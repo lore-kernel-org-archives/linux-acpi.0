@@ -1,13 +1,18 @@
-From: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
-Subject: Re: kacpid problems
-Date: Sat, 6 Nov 2004 03:02:07 +0100
-Message-ID: <20041106020207.GA7283@pooh>
-References: <418C0EFA.6000001@yahoo.no>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Linux ACPI processor driver patch: user-definable power state
+ limit
+Date: 05 Nov 2004 21:59:03 -0500
+Message-ID: <1099709942.13831.2092.camel@d845pe>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3001A193B6@hdsmsx401.amr.corp.intel.com>
+	 <200410112335.19159.jos.delbar@ugent.be>
+	 <1099683907.13837.1353.camel@d845pe>
+	 <200411060021.49794.jos.delbar@ugent.be>
+	 <1099702882.15333.1824.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <418C0EFA.6000001-eZNTXLQAfP4@public.gmane.org>
+In-Reply-To: <1099702882.15333.1824.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +22,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, James P Ketrenos <james.p.ketrenos-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-* dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org> [2004-11-06 00:38:34 +0100]:
+Andi's c2/c3 blacklist patch alters the promote/demote
+structures and the acpi_cstate_limit patch
+lives within those bounds.
 
-> When my processor gets too hot, over 85 C it tries to shutdown(S5), but 
-> the only thing that happends is that kacpid starts running and runns 
-> with 99% CPU usage.
-> (taken from top)
-> 5 root       7 -10     0    0    0 R  99.0  0.0   0:17.94 kacpid
-> 
-> Is it someone who knows what is wrong? Is it a bug or is it my hardware 
-> that is the problem?
- I have this also, but not always. Also even kacpid shows 99% CPU usage,
-as I see gkrellm, it shows that about 45% is spent in kernel space, and
-the rest in user space. I say not always because sometimes my machine
-goes without any problem even when hot, or bugging when it is not really
-hot. Don't know if my 'bug' is really related to yours, but yes, it is
-annoying as when this happens I can not shutdown manually even. The last
-line I see acpi_poweroff_called (even if I stop the kacpid process
-before).
- Is it a laptop or a desktop machine?
+So we keep both for now and acpi_state_limit
+will never break the blacklist.
 
-Regards,
-Laszlo/GCS
+Hopefully we'll figure out the problem with the
+two c2/c3 blacklisted systems and delete them
+and that workaround over time.
+
+thanks,
+-Len
+
 
 
 
