@@ -1,14 +1,14 @@
-From: Erik Meitner <usenet-cuDg6iFcrsRAfugRpC6u6w@public.gmane.org>
-Subject: Re: DSDT Change (Compaq Presario 2100)
-Date: Tue, 29 Jun 2004 15:04:46 -0500
+From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: problem with cpu eating too much power, prize given if solved
+Date: Wed, 30 Jun 2004 04:17:38 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <cbsi0v$t1r$1@sea.gmane.org>
-References: <200405280621.29874.andre@eisenbach.com> <c9am7j$nng$1@sea.gmane.org> <200405291345.51712.andre@eisenbach.com> <20040628213409.GA19468@elf.ucw.cz>
+Message-ID: <opsadhbojo4evsfm@smtp.pacific.net.th>
+References: <20040624153513.GB19545@rap.rap.dk> <20040628204008.GK698@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040628213409.GA19468-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20040628204008.GK698-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,53 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, keld-6PR53cSIHaE@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
+On Mon, 28 Jun 2004 22:40:09 +0200, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org> wrote:
+
 > Hi!
-> 
-> 
->>>>and errors, I stumbled across this (in method SMSL
->>>>
->>>>If (0x01)
->>>>{
->>>>	Store (\_SB.PCI0.ISA.EC0.TTDC, TRDC)
->>>>	Store ("AC remove! Set Throttle Duty Cycle ---: ", Debug)
->>>>	Store (TRDC, Debug)
->>>>	Store (0x01, TREN)
->>>>}
->>>
->>>The DSDT for my laptop has the exact same code.
+>
+>> Many times I just want to read the screen, eg emails or documents,
+>> and then still the cpu will be in idle mode, where
+>> it uses 7.5 W out of the about 15 W that the whole machine uses.
+>> I have found out from Intel data sheets that my
+>> Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
+>> stop grant/sleep states, (and 5.0 W i deep sleep state).
 >>
->>That piece of code is the state cange code (i.e. when you unplug the AC cord). 
->>There is another place you need to change, which initializes the behaviour 
->>when you boot with the power cable already unplugged.
+>> So I would like to have the CPU stopped completely (consuming 0 W)
+>> while I still could read the screen. In that way I should
+>> be able to have about double the lifetime on the battery,
+>> going to about 7 hours from the 3.5 hours I have now.
 >>
->>The method is _REG. Here is the code
+>> I would like the machine to wake up again by any keystroke
+>> on the keyboard or mouse input. I would like the input to be
+>> reacted upon (not just used to wake up the system, and
+>> then forgotten).
 >>
->>                                Store (0x01, \_SB.PCI0.PMU.CRUN)
->>                                If (0x01)
->>                                {
->>                                    Store (\_SB.PCI0.ISA.EC0.TTDC, TRDC)
->>                                    Store (0x01, TREN)
->>                                }
->>
->>Once again change "If (0x01)" to "If (0x00)".
-> 
-> 
-> Try your machine on battery, with full load. Monitor battery
-> temperature. If it gets hot, your battery was not really designed for
-> this, and forget this...
-> 								Pavel
+>
+> S1 is what you want... but... if you get what you asked for,
+> do you realize that for example clock would not update on the desktop
+> in this mode?
 
-Is the concern here that this allows the system to draw a greater 
-current from the battery than it was designed for? If so, too bad that 
-there is no way for the system to monitor current draw and throttle back 
-when it gets to great.
-
-Erik
-
+Which hardware can power down the CPU on its own?
 
 
 -------------------------------------------------------
