@@ -1,12 +1,15 @@
-From: "Mai S. Nash" <mainash_qt-wlyIfZtYCSj9fspm8xoNVA@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Fri, 05 Nov 2004 14:13:08 -0400
-Message-ID: <13a801c4c363$d3468f9d$5b595048@canadacouncil.ca>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Linux ACPI processor driver patch: user-definable power state
+ limit
+Date: 05 Nov 2004 14:45:07 -0500
+Message-ID: <1099683907.13837.1353.camel@d845pe>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3001A193B6@hdsmsx401.amr.corp.intel.com>
+	 <200410112335.19159.jos.delbar@ugent.be>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200410112335.19159.jos.delbar-Cru1EgDzd7c@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,32 +19,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, James P Ketrenos <james.p.ketrenos-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Jos,
+I agree with you that a single parameter is simpler.
 
-Do you want a rolex watch?
+Another thing we need to address -- with either scheme --
+is that the parameter must be set in the kernel, not
+in the processor modules.
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+This is because it is necessary for modules, such as ipw2100
+to be able to disable c3 automatically when they detect
+that it is interfering with their operation.
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+so we'd export a function from the base kernel for
+modules to set the limit, and we'd simply export
+the value of acpi_cstate_limit for processor.c
+to observe at run-time.
 
-Visit us: http://www.roiex.com/rep/rolex/
+int
+acpi_set_cstate_limit(int limit)
 
-Best regards,
-Hilton Jones
+int acpi_cstate_limit;
 
+I think it can return the old limit so that
+the caller can potentially un-do its call,
+or perhaps setting the limit to 0 should
+simply mean clear any limit.
 
-No thanks: http://roiex.com/z.php
+cheers,
+-Len
+
 
 
 
