@@ -1,47 +1,25 @@
-From: Dumitru Ciobarcianu <Dumitru.Ciobarcianu-6Lf+m/H07rc@public.gmane.org>
-Subject: Performance states
-Date: 16 Jul 2003 01:02:13 +0300
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1058306533.1488.3.camel@LNX.iNES.RO>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI patches updated (20030714)
+Date: Tue, 15 Jul 2003 19:35:44 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <A5974D8E5F98D511BB910002A50A66470B981254@hdsmsx103.hd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Hugh Dickins' <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI-Devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+> From: Hugh Dickins [mailto:hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org] 
 
-Hello,
+> > 		ACPI && !ACPI_HT_ONLY
+> > 			Full ACPI w/o the acpi=cpu option
+> 
+> Shouldn't this combination also support "noht", or is that 
+> too much to ask?
 
-While trying to test 2.6-test1 kernel I found that I don't have anymore
-the performance management for my CPU.
+Can do.  It will be called CONFIG_ACPI_HT, and will be required for ACPI to
+enable HT -- with or without the full CONFIG_ACPI.
 
-Is is something I forgot to enable (triplechecked first....) ?
-
->From 2.4+acpi patch dmesg: 
-ACPI: Processor [CPU0] (supports C1 C2 C3, 2 performance states)
-
->From 2.6-test1 dmesg:
-ACPI: Processor [CPU0] (supports C1 C2 C3)
-
-Where did the performance states went ? :)
-
-
--- 
-Cioby
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: VM Ware
-With VMware you can run multiple operating systems on a single machine.
-WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines at the
-same time. Free trial click here: http://www.vmware.com/wl/offer/345/0
+Cheers,
+-Len
