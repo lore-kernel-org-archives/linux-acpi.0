@@ -1,46 +1,36 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: S3 freezes on wake on NC6000 laptop
-Date: Mon, 7 Feb 2005 18:53:55 +0100
-Message-ID: <20050207175354.GA20662@hell.org.pl>
-References: <4207A416.8030400@colitti.com> <4207A8A2.1040202@gmx.net>
+From: Adam Sulmicki <adam@cfar.umd.edu>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Mon, 7 Feb 2005 13:04:22 -0500 (EST)
+Message-ID: <Pine.BSF.4.62.0502071259500.26868@www.missl.cs.umd.edu>
+References: <e796392205020221387d4d8562@mail.gmail.com>  <420217DB.709@gmx.net>
+ <4202A972.1070003@gmx.net>  <20050203225410.GB1110@elf.ucw.cz>
+ <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
+ <1107485504.5727.35.camel@desktop.cunninghams>  <9e4733910502032318460f2c0c@mail.gmail.com>
+  <20050204074454.GB1086@elf.ucw.cz>  <9e473391050204093837bc50d3@mail.gmail.com>
+  <20050205093550.GC1158@elf.ucw.cz> <1107695583.14847.167.camel@localhost.localdomain>
+ <Pine.BSF.4.62.0502062107000.26868@www.missl.cs.umd.edu> <42077AC4.5030103@grupopie.com>
+ <42077CFD.7030607@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-In-Reply-To: <4207A8A2.1040202-hi6Y0CQ0nG0@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <42077CFD.7030607@gmx.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Cc: Paulo Marques <pmarques@grupopie.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@ucw.cz>, Jon Smirl <jonsmirl@gmail.com>, ncunningham@linuxmail.org, ACPI List <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Li-Ta Lo <ollie@lanl.gov>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Carl-Daniel Hailfinger:
-> Ah, radeonfb. Please don't use radeonfb if you want to have any chance in
-> resuming. Don't use any framebuffer on systems with radeon cards. It will
-> freeze your machine completely. Actually, any graphics activity (framebuffer
-> or X or svga access) will freeze it.
+On Mon, 7 Feb 2005, Carl-Daniel Hailfinger wrote:
 
-That's sort of incorrect, I've used radeonfb since late 2.5.X builds and I
-don't remember it causing any problems resuming (of course, I need
-acpi_sleep=s3_bios, but that's another thing). Radeonfb will resume just
-fine, provided the underlying hardware is in a sane state. Granted, it may
-cause freezes, but it's definitely not so that removing it will magically
-cause your video to work or that it does always hang the machine.
-Best regards,
+> And how many competing implementations of video helpers/emulation code
+> do we have now?
+>
+> - scitechsoft emu
+> - linuxbios emu
+> - etc. (I surely forgot some)
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+just a minor nit-pick. "linuxbios" is not an "emulator" but drop-in 
+replacement for commerical bios (on motherboards that are supported).
 
+ 	http://www.linuxbios.org/
 
--------------------------------------------------------
-This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
-Tool for open source databases. Create drag-&-drop reports. Save time
-by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
-Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+I belive Paulo Marques and Li-Ta Lo expands linuxbios with the emulator to 
+run the VIDEOBIOS contained in it, but, it just an add on.
