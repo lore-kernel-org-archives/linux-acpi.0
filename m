@@ -1,15 +1,14 @@
-From: Scott James Remnant <scott-Umf49k1wg4FWk0Htik3J/w@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: S3 resume problems on HP compaq nc4010
-Date: Sun, 09 May 2004 22:52:28 +0100
+Date: Sun, 9 May 2004 23:56:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084139548.14657.4.camel@syndicate>
-References: <1083777804.4093.71.camel@descent.netsplit.com>
-	 <20040509015516.GA5487@elf.ucw.cz> <1084117826.2372.32.camel@syndicate>
-	 <20040509213919.GA13603@atrey.karlin.mff.cuni.cz>
+Message-ID: <20040509215621.GB15307@atrey.karlin.mff.cuni.cz>
+References: <1083777804.4093.71.camel@descent.netsplit.com> <20040509015516.GA5487@elf.ucw.cz> <1084117826.2372.32.camel@syndicate> <20040509213919.GA13603@atrey.karlin.mff.cuni.cz> <1084139548.14657.4.camel@syndicate>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-U8l/E8ir1CtHmkg9tiJU"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040509213919.GA13603-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1084139548.14657.4.camel-ImmFMecdQhGzQB+pC5nmwQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,65 +17,70 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Scott James Remnant <scott-Umf49k1wg4FWk0Htik3J/w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---=-U8l/E8ir1CtHmkg9tiJU
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> > > > > This seemed like the most likely place to bring up my ACPI woes :)  I've
+> > > > > recently purchased an HP compaq nc4010 (it's mostly identical to the
+> > > > > nc4000) and haven't been able to get ACPI S3 (memory) suspend
+> > > > > working.
+> > > > 
+> > > > Does ACPI S4 work for you? Try that first, its easier.
+> > > > 
+> > > Nope, swsusp does actually resume the keyboard and screen but then locks
+> > > up.  pm-disk doesn't even suspend.
+> > 
+> > What are the last messages? Do you suspend from singleuser mode, no
+> > modules?
+> > 
+> For both S3 and S4 you get a message about switching to the sleep state,
+> S4 you get some messages as it writes the pages to the disk, then the
+> machine powers off.
+> 
+> S3 resume you get nothing, because the screen never comes back (and
+> nothing in the logs either).
+> 
+> S4 you get the messages about restoring from swap, then the screen
+> switches to show the messages it showed whilst suspending and it
+> locks.
+> 
+> 
+> Have tried by booting init=/bin/bash with no modules loaded.
 
-On Sun, 2004-05-09 at 23:39 +0200, Pavel Machek wrote:
+Can you confirm that you did not have intel-agp or similar (AGP or DRI
+drivers) loaded? Even loading then unloading it hurts.
 
-> > > > This seemed like the most likely place to bring up my ACPI woes :) =
- I've
-> > > > recently purchased an HP compaq nc4010 (it's mostly identical to th=
-e
-> > > > nc4000) and haven't been able to get ACPI S3 (memory) suspend
-> > > > working.
-> > >=20
-> > > Does ACPI S4 work for you? Try that first, its easier.
-> > >=20
-> > Nope, swsusp does actually resume the keyboard and screen but then lock=
-s
-> > up.  pm-disk doesn't even suspend.
->=20
-> What are the last messages? Do you suspend from singleuser mode, no
-> modules?
->=20
-For both S3 and S4 you get a message about switching to the sleep state,
-S4 you get some messages as it writes the pages to the disk, then the
-machine powers off.
+If so, you can try following tricks....
 
-S3 resume you get nothing, because the screen never comes back (and
-nothing in the logs either).
+If you want to trick swsusp/S3 into working, you might want to try:
 
-S4 you get the messages about restoring from swap, then the screen
-switches to show the messages it showed whilst suspending and it locks.
+* go with minimal config, turn off drivers like USB, AGP you don't
+  really need
 
+* turn off APIC and preempt
 
-Have tried by booting init=3D/bin/bash with no modules loaded.
+* use ext2. At least it has working fsck. [If something seemes to go
+  wrong, force fsck when you have a chance]
 
-Scott
---=20
-Have you ever, ever felt like this?
-Had strange things happen?  Are you going round the twist?
+* turn off modules
 
---=-U8l/E8ir1CtHmkg9tiJU
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+* use vga text console, shut down X. [If you really want X, you might
+  want to try vesafb later]
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+* try running as few processes as possible, preferably go to single
+  user mode.
 
-iD8DBQBAnqgbIexP3IStZ2wRAgl+AKCCdJXthGM/qVjj1raqCaKzkejxSgCfUjq/
-bU5GB0VdVNgtGwWodYc0vFU=
-=13bf
------END PGP SIGNATURE-----
+* due to video issues, swsusp should be easier to get working than
+  S3. Try that first.
 
---=-U8l/E8ir1CtHmkg9tiJU--
+								Pavel
 
+-- 
+Horseback riding is like software...
+...vgf orggre jura vgf serr.
 
 
 -------------------------------------------------------
