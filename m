@@ -1,15 +1,12 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: 2.6.9-rc2-mm4 freezes at boot: ACPI IRQ9 SCI
-Date: Thu, 30 Sep 2004 12:39:29 +0200
+From: George Barnett <george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
+Subject: Compaq Evo 410
+Date: Thu, 30 Sep 2004 12:04:04 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <415BE261.3000100@pca.it>
-References: <415A721B.5060005@pca.it> <Pine.LNX.4.61.0409291157020.12406@gsf.ironcreek.net>
-Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Message-ID: <415BE824.80808@alink.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.61.0409291157020.12406-XiQj8ckOZSeysH1UfigpQV6hYfS7NtTn@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,43 +15,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi All,
 
-Hello,
+I've just installed SuSE 9.1 and with the 2.6.4.51(52?) kernel that 
+comes with it, my Evo n410c does lots of breaking.
 
-on 09/29/04 18:59, Andre Eisenbach wrote:
-> On Wed, 29 Sep 2004, Luca Capello wrote:
->> So, I suppose this isn't an ACPI error, but I'm not sure. Solutions?
-> No, this is not an ACPI error. It's a problem with the "Preempt big
-> kernel lock" feature. Check a Linux Kernel Mailing List archive for the
-> 2.6.9-rc2-mm4 announcement thread.
-> 
-> Ingo Molnar has replied to the announcement thread with a tiny patch
-> which fixes this problem.
-thank you for the explanation, Andre, I found the LKML 2.6.9-rc2-mm4
-announcement [1] and Ingo Molnar's patch [2].
+Basically, none of the fans are found and it just gets really hot before 
+powering down.
 
-But actually I don't need 2.6.9-rc2-mm4 anymore, as 2.6.9-rc3 is out and
-it contains the 'swsusp/pmdisk' merging (which is the reason I was
-trying to use 2.6.9-rc2-mm4).
+I've read Hugo's page at Larve.net, but that seems to be over a year 
+old.  I'm going to try an updated bios, but I'm wondering if anybody has 
+a working dsdt for this box?
 
-Thx, bye,
-Gismo / Luca
+Also, do the instructions 
+(acpidump,disasemble,fix,reassemble,merge,compile) still apply for 2.6 
+kernels?
 
-[1] http://lkml.org/lkml/2004/9/26/98
-[2] http://lkml.org/lkml/2004/9/27/237
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+I know less about ASM than I do about Islands in the Pacific - would 
+anybody be able to assist?
 
-iD8DBQFBW+JgVAp7Xm10JmkRAs6EAJ0eusvXn0BxYIaiWqg1uJ8a2/PneACdEIg4
-RfruQlYwHtT4gN1YpXK9gu8=
-=ZbKB
------END PGP SIGNATURE-----
+All the best,
+
+-- 
+George Barnett
+Reality Engineer & Explorer
+
+e: george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org
+m: +44 778 884 7205
+
+Things must be as they may
+       - William Shakespear, Henry V
 
 
 -------------------------------------------------------
