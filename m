@@ -1,14 +1,15 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Interrupt routing problem
-Date: Tue, 6 Jan 2004 09:47:46 +0100
+From: "Defiant" <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
+Subject: RE: can't switch CPU frequency while running on batterypower
+Date: Tue, 6 Jan 2004 19:07:36 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040106084745.GA30826@hell.org.pl>
-References: <3ACA40606221794F80A5670F0AF15F8401720C75@PDSMSX403.ccr.corp.intel.com> <1073362251.2419.21.camel@dhcppc4>
+Message-ID: <32908.192.168.36.2.1073412456.squirrel@defiant.homedns.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720C76@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1073362251.2419.21.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C76-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org
+     >
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,24 +18,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Len Brown:
-> Depending on your hardware, acpi_irq_balance, perhaps with
-> acpi_irq_pci=... could distribute some devices off IRQ9.  However, IRQ9
-> is only the 5th most active entry, so this may not help.
+>> CONFIG_X86_ACPI_CPUFREQ=y
+>> CONFIG_X86_ACPI_CPUFREQ_PROC_INTF=y
+>
+> Please try patch filed at
+> http://bugzilla.kernel.org/show_bug.cgi?id=1489
 
-The problem is that this box's BIOS points all the interrupt links to IRQ9
-by default and as far as I remember, neither acpi_irq_pci= nor
-acpi_balance_irqs help.
-Is the off-one bug in printing IRQs still present?
-Best regards,
+Tried the patch, but it didn't solved the Problem.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Well at least I found out some more Info about.
+My full speed is 1600, low speed is 1200Mhz:
+
+When running on AC Adapter, I can switch the speed as often as I want.
+So If I set it to 1200 and then disconnect the AC, I can also switch
+between both speeds under battery power. Now If it is 1200 and I connect
+the AC I can not set it back to 1600.
+Well like I said in my preceding post it is the same: Running with AC,
+speed set to 1600, disconnecting the AC, I can not set the speed down to
+1200.
+
+Hope that this wasn't that complicated (in my bad English),
+Erik Andresen
+
+--
+
+All I ask is a tall ship, and a star to steer her by
+> defiant.homedns.org <
+ -cause Experience is Knowledge
+
 
 
 -------------------------------------------------------
