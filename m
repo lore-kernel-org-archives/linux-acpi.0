@@ -1,13 +1,14 @@
-From: yu michael <m_i_c_y_u-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: acpi-20021101 broken
-Date: Tue, 5 Nov 2002 00:37:59 -0800 (PST)
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: Howto switch system/CPU states?
+Date: Tue, 5 Nov 2002 09:35:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021105083759.870.qmail@web12408.mail.yahoo.com>
-References: <Pine.LNX.4.44.0211051536510.6335-100000@thor.cantech.net.au>
+Message-ID: <20021105093559.B1465@brodo.de>
+References: <20021104060200.95943.qmail@web11002.mail.yahoo.com> <20021104075706.A635@brodo.de> <200211050128.37267.chris@chrishowells.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44.0211051536510.6335-100000-optB1Q+C1bO+ZPExc8Iw5bpzq4S04n8Q@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200211050128.37267.chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>; from chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org on Tue, Nov 05, 2002 at 01:29:01AM +0000
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,75 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Anthony J. Breeds-Taurima" <tony-xfCdrj5MXxYnC9Muvcwxkw@public.gmane.org>, moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Chris Howells <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi 
-Same situation happend on my ThinkPad 600E. After
-waitting for a long time, The seeming endless loop was
-over, and the box boot into console login. But the
-strange problem was that every character you key in
-were changed (eg. a change to ^A, ) so I cannot login.
-After waitting for a long time,  every thing looks
-like right. keyboard was ok now. 
+On Tue, Nov 05, 2002 at 01:29:01AM +0000, Chris Howells wrote:
+> 
+> Hi,
+> 
+> On Monday 04 November 2002 6:57 am, Dominik Brodowski wrote:
+> > On Sun, Nov 03, 2002 at 10:02:00PM -0800, Happy Camper wrote:
+> > > 2. Switch CPU C states.  When I load the processor module, I get this
+> > > in the /var/log/messages :
+> > > Nov  3 16:09:25 localhost kernel: ACPI: Processor [CPU] (supports C1 C2
+> > > C3, 8 throttling states)
+> > > However I cant figure out how to switch these processor states.
+> >
+> > http://www.brodo.de/english/pub/acpi/proc/processor.html
+> 
+> In the current ACPI patches (e.g. without the ACPI to cpufreq stuff), does the
+> switching CPU states have any actual effect?
 
-I was confused by the odd login experience.
+Yes, it should. Although you don't know whether it works until you have
+tested it. cpufreq only offers a cross-architecture interface, device driver
+notification, and timer updates (so that delay() loops are correct and
+/proc/cpuinfo shows the right frequency).
 
-
---- "Anthony J. Breeds-Taurima" <tony-xfCdrj5MXxYnC9Muvcwxkw@public.gmane.org>
-wrote:
-> On Tue, 5 Nov 2002 moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org wrote:
-> 
-> > Hi!
-> > 
-> > I just tried out acpi-20021101 (patch against
-> 2.4.20-rc1), but unfortunately it 
-> > seems to be broken. When booting, I see some kenel
-> messages (I think I could 
-> > identify the processor-determination) and then the
-> kernel seems to run into an 
-> > endless loop writing tons of messages to the
-> console (nearly impossible to 
-> > read); but they all seem to have the same
-> structure:
-> > 
-> > a few words "-" four digits "["for digits"]"
-> "["two digits"]" some text ":" 
-> > some text
-> 
-> I think you want the patch at:
-> 
->
-http://sourceforge.net/mailarchive/message.php?msg_id=2390873
-> 
-> 
-> Yours Tony
-> 
->    Jan 22-25 2003           Linux.Conf.AU           
-> http://linux.conf.au/
-> 		  The Australian Linux Technical Conference!
-> 
-> 
-> 
->
--------------------------------------------------------
-> This sf.net email is sponsored by: See the NEW Palm 
-> Tungsten T handheld. Power & Color in a compact
-> size!
->
-http://ads.sourceforge.net/cgi-bin/redirect.pl?palm0001en
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
-__________________________________________________
-Do you Yahoo!?
-HotJobs - Search new jobs daily now
-http://hotjobs.yahoo.com/
+	Dominik
 
 
 -------------------------------------------------------
