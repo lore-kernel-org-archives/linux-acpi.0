@@ -1,52 +1,62 @@
-From: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>
-Subject: [PATCH] bad strlcpy conversion breaks toshiba_acpi
-Date: Fri, 25 Jul 2003 10:46:38 -0400
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <3F2142CE.4090608@prairienet.org>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Fri, 25 Jul 2003 17:30:17 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030725153017.GC310@elf.ucw.cz>
+References: <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.44.0307250755460.2827-100000@puppy.afrinc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: Ben Collins <bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Michael Wawrzyniak <gan-28sE0Wxkf/LCXR85Y8Hu3Q@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0307250755460.2827-100000-zmH7q5lE+0tBz13eCZem0Q@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>
+Cc: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Please revert the following item from Ben Collins' "drivers/* strlcpy 
-conversions" patch dated 2003-May-26.
+Hi!
 
-The strlcpy function requires a zero-terminated string, which is not a 
-valid assumption for the code in question.  I suggest that Ben review 
-all such modifications he made to the kernel for similar errors.  It's 
-quite annoying to have someone add bugs to your driver while you're not 
-looking.  Either notify the maintainer of your patch or don't make mistakes.
+> My problem is the backlight on a Dell Inspiron 8100 with the nVidia VGA
+> controller. Everything seems to work as expected in all modes detected
+> (S0, S1, S3, S4bios, S4, S5), except that the backlight stays on after
+> "echo [1,3] > /proc/acpi/sleep".  S1 just refrigerates everything, and
+> leaves the display on, resume works fine.
+> 
+> S3 refrigerates everything and suspends, leaving the display white.
+> Resuming turns the backlight off.  I can retrieve the backlight with the
+> LCD/CRT button.
+> 
+> Both S4's behave properly (full power off/restore with the power button).
+> 
+> What part of the code should I look at to attack this problem (ACPI
+> tables, linux/arch/i386/kernel/acpi/*, or linux/drivers/acpi/*)?  DSDT
+> compiles ok with the iasl assembler/disassembler, and Windows XP goes into
+> standby properly; so I assume that the ACPI tables can be driven by the
+> OS.  Perhaps something along the lines of the asus_acpi code?
 
-Another gripe I have is that bitkeeper user "bcollins" does not have a 
-valid email address.
+Video is hard to do... You should write specific suspend/resume
+support for your video card. Bad luck if you are using vesafb :-(.
 
--John Belmonte
-
-
-Item to be REVERTED:
-
---- 1.9/drivers/acpi/toshiba_acpi.c	Mon May 19 10:57:16 2003
-+++ 1.10/drivers/acpi/toshiba_acpi.c	Sun May 25 17:00:00 2003
-@@ -108,8 +108,7 @@
-  	int result;
-  	char* str2 = kmalloc(n + 1, GFP_KERNEL);
-  	if (str2 == 0) return 0;
--	strncpy(str2, str, n);
--	str2[n] = 0;
-+	strlcpy(str2, str, n);
-  	va_start(args, format);
-  	result = vsscanf(str2, format, args);
-  	va_end(args);
-
-
-References:
-
-http://www.ussg.iu.edu/hypermail/linux/kernel/0305.3/0267.html
-http://linux-acpi.bkbits.net:8080/linux-acpi/diffs/drivers/acpi/toshiba_acpi.c-6aIl+mEMC3M@public.gmane.org?nav=index.html|src/|src/drivers|src/drivers/acpi|hist/drivers/acpi/toshiba_acpi.c
+> > Wakeup code should *not* be machine-specific, but video card
+> > save/restore is obviously video-card specific (and you basically can't
+> > get docs). Write beeping code in 8086 assembly and start debuggin'
+> > ;-))).
 
 
 -- 
-http:// if   l .o  /
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
+
+
+-------------------------------------------------------
+This SF.Net email sponsored by: Free pre-built ASP.NET sites including
+Data Reports, E-commerce, Portals, and Forums are available now.
+Download today and enter to win an XBOX or Visual Studio .NET.
+http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
