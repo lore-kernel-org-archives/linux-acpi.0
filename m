@@ -1,74 +1,60 @@
-From: "Georg C. F. Greve" <greve@gnu.org>
-Subject: Re: status update for current development on ASUS M2N
-Date: Sat, 02 Oct 2004 00:31:57 +0200
-Sender: softwaresuspend-devel-admin@berlios.de
-Message-ID: <m3ekkiqdcy.fsf@brain.gnuhh.org>
-References: <20040930214808.B5D9C3AA515@ws5-8.us4.outblaze.com>
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: smart battery on acer travelmate 4001
+Date: Fri, 01 Oct 2004 23:06:14 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <415DD4D6.2080402@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="20041002003157+0200-21114919-4450113298928427";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
-In-Reply-To: <20040930214808.B5D9C3AA515@ws5-8.us4.outblaze.com> (Nigel
-	Cunningham's message of "Fri, 01 Oct 2004 07:48:08 +1000")
-Errors-To: softwaresuspend-devel-admin@berlios.de
-List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
-List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
-List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
-	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
-List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
-	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
-List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
-To: Nigel Cunningham <ncunningham@linuxmail.org>
-Cc: ACPI List <acpi-devel@lists.sourceforge.net>, SoftwareSuspend-Devel <softwaresuspend-devel@lists.berlios.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---20041002003157+0200-21114919-4450113298928427
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
- || On Fri, 01 Oct 2004 07:48:08 +1000
- || "Nigel Cunningham" <ncunningham@linuxmail.org> wrote: 
+hi everyone,
 
- >> Can you tell me how to do this, please?
+i found out recently that i have one of those laptops with a smart
+battery. mine is an acer travelmate 4001 wlmi.
 
- nc> The simplest way is to do a digital photograph, I'm afraid. The
- nc> 'nice' way is to hook up a serial console and capture the output.
+i would like to ask you for some information:
 
-That is rather inconvenient.
+1. where do the smart batteries differ from "regular" batteries;
+2. what are the advantages/disadvantages of a smart battery vs "regular"
+battery
+3. i read that acpi4linux does not support smart batteries yet. what can
+i do to help?
 
-I'm curious. Any reason that nobody implemented something to do this?
+note: i do not code in the kernel, i am unable to write the drivers
+myself... yet... but i am fully available to supply every bit of
+necessary information to help others develop/test new drivers.
 
-I would assume that a kdb buffer that is reserved at startup,
-initalized with 0s and into which only kdb can write during debugging.
+thank you very much for your time and congratulations for your widely
+used absolutely critical acpi drivers.
 
-When kdb is left and the buffer is different from 0, the contents are
-dumped to dmesg/syslog.
-
-This appears to me like it would be a rather simple solution to avoid
-having to send around pictures or using a second computer...
-
-
- nc> If you do a photo, just send it to me, please.
-
-Just did that. Please confirm that you got it and it did not get stuck
-anywhere on the way.
-
-Hope this helps,
-
-Regards,
-Georg
-
--- 
-Georg C. F. Greve                                       <greve@gnu.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
-
---20041002003157+0200-21114919-4450113298928427
-Content-Type: application/pgp-signature
-
+regards,
+pedro venda.
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+Version: GnuPG v1.2.1 (MingW32)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQBBXdrdbvivwoZXSsoRAt3CAJsHk++btmpCPjz/ye1huujjt0iegwCfQ79V
-kYXlW5IUQSxLUvt9MaVScl4=
-=u30S
+iD8DBQFBXdTWeRy7HWZxjWERAkBCAJ9j1rrR9DKKtbRyTDpV4oGcW0cPSQCg5Y25
+sYQ+yvI99Q/pITv0tornMyI=
+=nfkr
 -----END PGP SIGNATURE-----
---20041002003157+0200-21114919-4450113298928427--
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
