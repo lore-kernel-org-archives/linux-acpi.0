@@ -1,55 +1,66 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [ACPI] RE: [ACPI-sppt] merge acpi-support into acpi-devel?
-Date: Sat, 4 Oct 2003 18:59:40 +0100
-Sender: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031004175940.GG24824@parcelfarce.linux.theplanet.co.uk>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC875A@hdsmsx402.hd.intel.com>
+From: Simon David Foster <s.d.f-FhtRXb7CoQBt1OO0OYaSVA@public.gmane.org>
+Subject: Screen not resuming after S3 resume
+Date: 04 Oct 2003 22:02:10 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1065301330.2386.11.camel@simon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC875A-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
-Errors-To: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
-	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
-	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-support>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Oct 04, 2003 at 10:48:31AM -0400, Brown, Len wrote:
-> The archive shows that overall, acpi-support gets 18% the traffic that acpi-devel gets.
-> 
-> There are newbie questions on LKML, and there is a FAQ to help them.
-> I don't see why we shouldn't follow that model.
-> 
-> The down-side of 2 lists is that people who post to acpi-devel will
-> probably get better support, so one wonders what is the advantage of
-> having 2 lists.
+I am running 2.6.0-test6 on a Dell Inspiron 4150 (mainly for the better
+ACPI support) and ACPI works perfectly out-of-box. However, if I issue
+1 or 3 to /proc/acpi/sleep, when I try to resume the screen display does not come
+back. I am sure the system has resumed correctly though because when I do
+Ctrl-Alt-Del, the system displays all signs of going for restart and
+then restarts and I can ssh in. Do I have to issue a command on resume to bring back the
+display, and if so how? This happens in both console and XFree86. I have applied
+the relevant DSDT from the acpi website for the 4150, but it made no
+difference. Actually I did manage to get the screen to come back from a standby
+(not a suspend), but immediately after this I tried again and the display wouldn't
+come back. I tried unloading the radeon.o module, but it made no difference.
 
-Personally, I'm really not interested in any of the x86 shitty BIOS IRQ
-routing type issues.  I'm interested in the following ACPI things:
+The relevant log portion:
 
- - It has to work on ia64 (that's my day job).
- - Solving some of the impedence mismatches between what ACPI expects
-   and what the core kernel provides (eg the PCI config space accessing,
-   down_timeout(), etc).
- - Refactoring the ACPI code to work better.
+----------
+PM: Preparing system for suspend
+Stopping tasks: =========================|
+hdc: start_power_step(step: 0)
+hdc: completing PM request, suspend
+hda: start_power_step(step: 0)
+hda: start_power_step(step: 1)
+hda: complete_power_step(step: 1, stat: 50, err: 0)
+hda: completing PM request, suspend
+PM: Entering state.
+Back to C!
+PM: Finishing up.
+PCI: Setting latency timer of device 0000:00:1f.5 to 64
+hda: Wakeup request inited, waiting for !BSY...
+hda: start_power_step(step: 1000)
+blk: queue c1311c00, I/O limit 4095Mb (mask 0xffffffff)
+hda: completing PM request, resume
+hdc: Wakeup request inited, waiting for !BSY...
+hdc: start_power_step(step: 1000)
+hdc: completing PM request, resume
+Restarting tasks... done
+----------
 
-Not that I expect the lists to be arranged for my benefit, but would
-anybody else be interested in a list-split along the lines of
+when resuming from S1.
 
- - acpi-x86 (for x86 specific problems)
- - acpi-core (for everything else)
+Any help is much appreciated.
 
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+-Si
+
 
 
 -------------------------------------------------------
