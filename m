@@ -1,14 +1,12 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: About LCD Brightness Control (2)
-Date: Mon, 17 Mar 2003 12:01:26 +0100
+From: Marci <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+Subject: [Fwd: ACPI error when trying entring in Sleep Mode]
+Date: Mon, 17 Mar 2003 13:50:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030317110126.GD8319@poup.poupinou.org>
-References: <79FEBAF94044D5119711000255C8544404125C6C@cl-exchange2.cyberlink.com.tw>
+Message-ID: <3E75C4A6.6000507@tin.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------020901040504080809040101"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <79FEBAF94044D5119711000255C8544404125C6C-g+0dA8ulbS0rFKkD1KpMzkCbqMlKTZDtgrjxKhR20QY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,49 +15,101 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: jack_chen-oDxavuD6NygHrNJx0XZkJA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------020901040504080809040101
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 17, 2003 at 04:15:27PM +0800, jack_chen-oDxavuD6NygHrNJx0XZkJA@public.gmane.org wrote:
-> Hi
->       I want to develop an application about LCD brightness control in the
-> platform of Windows XP SP1.
-> I have no idea to solve this problem, so can anyone give me a hand ??
-> Besides, what is "INT 15h" ?? What is "B!U0" ??
-> Is there any sample code related to this??
-> 
+No Ideas?
 
-This mailing list is devoted to support ACPI for Linux, and
-perhaps other free OS which include Intel's ACPI-CA as for example
-FreeBSD, NetBSD and probably others.
+Please :(
 
-Perhaps you will find a kind person with necessary knowledge to help
-you, perhaps not.  But it appar at least for me that your question
-is not well suited in that mailing list.  Unfortunately, I don't know
-where you can get help because I have no necessary knowledge for.
+I need this
 
-At least there are newsgroups for Windows developpement.
-A single search with a news readers show me that there is a hiearchy
-that look like:
-comp.os.ms-windows.programmer.*
+Thanks again
 
-and even one newsgroup in my country (France):
-fr.comp.os.ms-windows.programmation
-which, at this time of writing, contain 762 mails (with a retention of
-two weeks).
+--------------020901040504080809040101
+Content-Type: message/rfc822;
+ name="ACPI error when trying entring in Sleep Mode"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ACPI error when trying entring in Sleep Mode"
 
-I think you should try to see if such newsgroups will help you.
+Message-ID: <3E74DD8D.1090602-nc/lrvXPQ4s@public.gmane.org>
+Date: Sun, 16 Mar 2003 21:24:45 +0100
+From: Marci <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2.1) Gecko/20030311 Debian/1.2.1-10
+X-Accept-Language: en
+MIME-Version: 1.0
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: ACPI error when trying entring in Sleep Mode
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Cheers,
+Hi all, here my configuration :
 
--- 
-Ducrot Bruno
+MSI KT4 Ultra
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Athlon XP 2400+
+
+Nvidia Geforce 3 Ti200
+
+
+I have this problem:
+
+When I try to enter in S1 sleep mode appears in the screen these errors:
+
+Mar 16 21:08:17 magisystem kernel:  exfldio-0129 [31] ex_setup_region 
+     : Field [U1PE] access width (2 bytes) too large for region [UBP1] 
+(length 1)
+Mar 16 21:08:17 magisystem kernel:  exfldio-0140 [31] ex_setup_region 
+     : Field [U1PE] Base+Offset+Width 0+0+2 is beyond end of region 
+[UBP1] (length 1)
+Mar 16 21:08:17 magisystem kernel:  dswexec-0421 [23] ds_exec_end_op 
+     : [Store]: Could not resolve operands, AE_AML_REGION_LIMIT
+Mar 16 21:08:17 magisystem kernel:  psparse-1121: *** Error: Method 
+execution failed [\_PTS] (Node c15bc5e8), AE_AML_REGION_LIMIT
+Mar 16 21:08:17 magisystem kernel:  hwsleep-0257 [15] 
+acpi_enter_sleep_state: Entering sleep state [S1]
+Mar 16 21:08:17 magisystem kernel:    evgpe-0351: *** Error: 
+acpi_ev_gpe_dispatch: No handler or method for GPE[00], disabling event
+Mar 16 21:08:18 magisystem kernel:  exfldio-0129 [32] ex_setup_region 
+     : Field [U1PE] access width (2 bytes) too large for region [UBP1] 
+(length 1)
+Mar 16 21:08:18 magisystem kernel:  exfldio-0140 [32] ex_setup_region 
+     : Field [U1PE] Base+Offset+Width 0+0+2 is beyond end of region 
+[UBP1] (length 1)
+Mar 16 21:08:18 magisystem kernel:  exfldio-0129 [32] ex_setup_region 
+     : Field [U1PE] access width (2 bytes) too large for region [UBP1] 
+(length 1)
+Mar 16 21:08:18 magisystem kernel:  exfldio-0140 [32] ex_setup_region 
+     : Field [U1PE] Base+Offset+Width 0+0+2 is beyond end of region 
+[UBP1] (length 1)
+Mar 16 21:08:18 magisystem kernel:  psparse-1121: *** Error: Method 
+execution failed [\_WAK] (Node c15bc768), AE_AML_REGION_LIMIT
+Mar 16 21:08:18 magisystem kernel:  hwsleep-0428: *** Error: Method _WAK 
+failed, AE_AML_REGION_LIMIT
+Mar 16 21:08:18 magisystem kernel:    evgpe-0351: *** Error: 
+acpi_ev_gpe_dispatch: No handler or method for GPE[00], disabling event
+
+Anyone have ideas?
+
+The command that I do is "echo 1 > sleep" in the /proc/acpi directory. 
+The kernel is the 2.4.21-pre4 with the lastest patch.
+The system is the Linux Debian Sid OS
+
+Thanks for your help and time
+
+Bye
+
+Marcello
+
+
+--------------020901040504080809040101--
+
 
 
 -------------------------------------------------------
