@@ -1,14 +1,13 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: power is always C2 on toshiba A40 261
-Date: Wed, 23 Jun 2004 13:43:01 -0000
+From: "Lauri Forbes" <lauriforbesng-0AjdnUwZypk@public.gmane.org>
+Subject: Lose 19%, powerful weightloss now available where you are.
+Date: Wed, 23 Jun 2004 09:33:35 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040623134301.GC3152@message-id.gmane0305.slipkontur.de>
-References: <20040623122535.44750.qmail@web90004.mail.scd.yahoo.com>
+Message-ID: <c4f301c4592f$a7f5bd34$af880417@henkrott.demon.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040623122535.44750.qmail-i0kiQoVozyDcEUl5EaY66YglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +16,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 23, 2004 at 05:25:35AM -0700, Olive Esseret wrote:
-> Hello,
- 
-> The content of the file 
-> 
-> /proc/acpi/processor/CPU0/power
-> (see attached file power.txt.bz2)
+Hello, I have a special offer for you...
+WANT TO LOSE WEIGHT?
+The most powerful weightloss is now available
+without prescription. All natural Adipren720
+100% Money Back Guarantée!
+- Lose up to 19% Total Body Weight.
+- Loss of 20-35% abdominal Fat.
+- Up to 300% more Weight Loss while dieting.
+- Increase metabolic rate by 76.9% without Exercise.
+- Reduction of 40-70% overall Fat under skin.
+- Suppresses appetite for sugar.
+- Burns calorized fat.
+- Boost your Confidence level and Self Esteem.
+Get the facts about all-natural Adipren720 <http://www.5085enhanceme.biz/>
 
-(it is a bit cumbersome attaching such small files compressed :-)
 
-> shows that I am *always* in C2 sate. I see also that I
 
-you are probably using a USB mouse on a uhci-hcd controller.
-Unplug the mouse and it will enter C3.
-Playing sound also prevents C3.
--- 
-Stefan Seyfried
+---- system information ----
+different generic sort generic typify implies graphics programming 
+associate resource countries It subject interaction will phonebook 
+Collation Working non-proprietary expecting suggesting preferences Description
+Force 
+internationalized form Membership read objects presents more-general shared
+
+Existing interpretation: processing: define endorsement language For non-Java
+
+
 
 
 
