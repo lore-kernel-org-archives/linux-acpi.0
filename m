@@ -1,12 +1,15 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Possible Causes of S3 Freeze
-Date: Wed, 21 Apr 2004 16:54:37 -0400
+From: =?iso-8859-1?Q?Emilio_Mej=EDa_Fern=E1ndez_de_Velasco?= <emejia-XnAhQTnVLytMqUckJh7upg@public.gmane.org>
+Subject: RE: ACPI freezes laptop
+Date: Wed, 21 Apr 2004 23:35:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1082580877.3916.7.camel@nala>
+Message-ID: <001701c427e8$9d3b4660$0301a8c0@portatil>
+References: <1082575281.26454.21.camel@darkstar>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-reply-to: <1082575281.26454.21.camel-4/PLUo9XfK8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,25 +18,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Cc: 'acpi-devel' <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I have a laptop that can successfully enter the S3 state (kernel 2.6.5),
-but it will not come out. The behavior for coming out of S3 in Windows
-is to press the power button. In Linux this action does nothing. I have
-to remove the battery and wait several seconds before I can start up the
-computer again. I was wondering if anyone knew of possible causes of
-this behavior so I could further my investigation into what is wrong.
+OK, then I'll open a ticket.
+Hopefully some day I can see this laptop working properly.
+Thank you for all, you have spent a lot of time these days and I
+appreciate that.
 
-Incidentally, this laptop suffers from this "bug":
-http://bugzilla.kernel.org/show_bug.cgi?id=1920. The patch attached to
-the bug fixes the problem, but does not fix my S3 problem. I don't know
-if the two are related.
+>well maybe the better is open a ticket on bugzilla with this errors.
+>
+>not related with acpi but what is this can't be turned off ?
+>atkbd.c: Unknown key released (translated set 2, code 0x7a on
+>isa0060/serio0).
+>atkbd.c: This is an XFree86 bug. It shouldn't access hardware directly.
 
-Thanks to anyone who can help.
 
-Andrew Barr
-barr.156-ZbGKxL/pcrQ@public.gmane.org
+Best regards
+
+Emilio
 
 
 
