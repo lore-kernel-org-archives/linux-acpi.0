@@ -1,228 +1,295 @@
-From: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
-Subject: Re: No handler for Region [ERAM] on Gateway M350?
-Date: Sun, 11 Jan 2004 14:04:29 -0600 (CST)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0401111400070.18870-100000@data.upl.cs.wisc.edu>
-References: <1073784787.4900.14.camel@kinkakuji>
+From: Dominik Brodowski <linux@dominikbrodowski.de>
+Subject: [PATCH 2.6] update passive cooling algorithm
+Date: Sun, 11 Jan 2004 22:12:55 +0100
+Sender: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+Message-ID: <20040111211255.GA31105@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1073784787.4900.14.camel-o+XryGznM0/1KXRcyAk9cg@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dan <dan-bIuJOMs36aklhIHd5qHT+2D2FQJk+8+b@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Content-Disposition: inline
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: len.brown@intel.com
+Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-Check the archives of this list for the threads titled:
+[Len, could you test and verify this patch, and push it to Linus, please?]
 
-  /proc/battery empty on Gateway 400VTX
-  acpi on gateway 200x
-  acpi on new gateway laptops
-  Gateway 200x - trouble supplying ECDT table
-  ACPI/ECDT on gateway 200x notebook
+The current algorithm used by Linux ACPI for passive thermal management has
+two shortcomings:
 
-As well as this bug entry:
-  http://bugzilla.kernel.org/show_bug.cgi?id=1744
+- if increasing the CPU processing power as a thermal situation goes away,
+  throttling states are decreased later than performance states. This is
+  not wise -- it should be the opposite ordering of going "up".
 
+- only if the ACPI CPUfreq driver is used, performance states are used.
+  A generalized approach would offer passive cooling even if the ACPI
+  P-States cpufreq driver cannot be used (faulty BIOS, FixedHW access, etc.)
 
-In short:
-  1) Apply the latest acpi patches
+The attached patch addresses these issues.
 
-  2) Make sure your DSDT is correct as per
-     http://acpi.sourceforge.net/dsdt/index.php
+ drivers/acpi/processor.c |  182 +++++++++++++++++++++++++++++++++++++----------
+ 1 files changed, 146 insertions(+), 36 deletions(-)
 
-  3) Apply the patch listed in the bugzilla entry
-
-I believe the patches were for 2.4.x branch. I'm assuming once a suitable
-fix/workaround is determined this stuff will make it into the standard
-acpi patch sets and eventually into the mainstream kernels. Not exactly an
-easy solution, but it does appear to work for those that have tried it.
-
--casey
-
-
-
-
-On Sat, 10 Jan 2004, Dan wrote:
-
-> Hello,
->
->   I've recently been trying to get ACPI support up and running on my
-> Gateway M350 laptop...using kernel 2.6.1.  Everything seems to appear
-> just fine in /proc/acpi, except for the battery information;
-> /proc/acpi/battery exists, but there is nothing in the directory =(
-> There is a series of error messages (AE_NOT_EXIST) in the dmesg output
-> relating to it, preceeded by a "No Handler for Region [ERAM]" error that
-> I suspect is the source of the other problems.  The kernel config with
-> regards to ACPI is as follows:
->
-> # Power management options (ACPI, APM)
-> # ACPI (Advanced Configuration and Power Interface) Support
-> CONFIG_ACPI=y
-> CONFIG_ACPI_BOOT=y
-> CONFIG_ACPI_INTERPRETER=y
-> CONFIG_ACPI_SLEEP=y
-> CONFIG_ACPI_SLEEP_PROC_FS=y
-> CONFIG_ACPI_AC=y
-> CONFIG_ACPI_BATTERY=y
-> CONFIG_ACPI_BUTTON=y
-> CONFIG_ACPI_FAN=y
-> CONFIG_ACPI_PROCESSOR=y
-> CONFIG_ACPI_THERMAL=y
-> # CONFIG_ACPI_ASUS is not set
-> # CONFIG_ACPI_TOSHIBA is not set
-> # CONFIG_ACPI_DEBUG is not set
-> CONFIG_ACPI_BUS=y
-> CONFIG_ACPI_EC=y
-> CONFIG_ACPI_POWER=y
-> CONFIG_ACPI_PCI=y
-> CONFIG_ACPI_SYSTEM=y
-> # CONFIG_ACPI_RELAXED_AML is not set
-> # CONFIG_SERIAL_8250_ACPI is not set
-> ~~~~~~~~~~~~End .config~~~~~~~~~~~
->
-> The relevant section of dmesg is:
->
-> ACPI: RSDT (v001 GATEWA M350WVN  0x20030926  LTP 0x00000000) @0x1f6e6891
-> ACPI: FADT (v001 GATEWA M350WVN  0x20030926 PTL  0x00000050) @0x1f6ebe6a
-> ACPI: BOOT (v001 GATEWA M350WVN  0x20030926  LTP 0x00000001) @0x1f6ebfd8
-> ACPI: MADT (v001 INTEL  MONTARA  0x20030926 PTL  0x00000050) @0x1f6ebf7e
-> ACPI: SSDT (v001 INTEL  CPU0CST  0x00000001 INTL 0x20030224) @0x1f6e6ada
-> ACPI: SSDT (v001  INTEL  EISTRef 0x00002000 INTL 0x20030224) @0x1f6e68c9
-> ACPI: DSDT (v001 GATEWA M350WVN  0x20030926 MSFT 0x0100000e) @0x00000000
-> ACPI: Local APIC address 0xfee00000
-> ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
-> Processor #0 15:2 APIC version 20
-> ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
-> ACPI: IOAPIC (id[0x01] address[0xfec00000] global_irq_base[0x0])
-> IOAPIC[0]: Assigned apic_id 1
-> IOAPIC[0]: apic_id 1, version 32, address 0xfec00000, IRQ 0-23
-> ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
-> ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
-> ACPI BALANCE SET
-> Enabling APIC mode:  Flat.  Using 1 I/O APICs
-> Using ACPI (MADT) for SMP configuration information
-> Building zonelist for node : 0
-> current: c03c5a60
-> current->thread_info: c0448000
-> Initializing CPU#0
-> Kernel command line: root=/dev/hda2 video=vesa:ywrap,mtrr vga=0x317
-> PID hash table entries: 2048 (order 11: 16384 bytes)
-> Detected 2656.456 MHz processor.
-> Using tsc for high-res timesource
-> Console: colour dummy device 80x25
-> Memory: 505328k/514944k available (2400k kernel code, 8856k reserved,
-> 952k data, 156k init, 0k highmem)
-> zapping low mappings.
-> Calibrating delay loop... 5242.88 BogoMIPS
-> Dentry cache hash table entries: 65536 (order: 6, 262144 bytes)
-> Inode-cache hash table entries: 32768 (order: 5, 131072 bytes)
-> Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
-> checking if image is initramfs...it isn't (ungzip failed); looks like an
-> initrd
-> Freeing initrd memory: 13k freed
-> CPU:     After generic identify, caps: bfebfbff 00000000 00000000
-> 00000000
-> CPU:     After vendor identify, caps: bfebfbff 00000000 00000000
-> 00000000
-> CPU: Trace cache: 12K uops, L1 D cache: 8K
-> CPU: L2 cache: 512K
-> CPU:     After all inits, caps: bfebfbff 00000000 00000000 00000080
-> Intel machine check architecture supported.
-> Intel machine check reporting enabled on CPU#0.
-> CPU#0: Intel P4/Xeon Extended MCE MSRs (12) available
-> CPU: Intel Mobile Intel(R) Pentium(R) 4     CPU 2.66GHz stepping 09
-> Enabling fast FPU save and restore... done.
-> Enabling unmasked SIMD FPU exception support... done.
-> Checking 'hlt' instruction... OK.
-> POSIX conformance testing by UNIFIX
-> enabled ExtINT on CPU#0
-> ESR value before enabling vector: 00000000
-> ESR value after enabling vector: 00000000
-> ENABLING IO-APIC IRQs
-> init IO_APIC IRQs
->  IO-APIC (apicid-pin) 1-0, 1-16, 1-17, 1-18, 1-19, 1-20, 1-21, 1-22,
-> 1-23 not connected.
-> ..TIMER: vector=0x31 pin1=2 pin2=-1
-> Using local APIC timer interrupts.
-> calibrating APIC timer ...
-> ..... CPU clock speed is 2654.0887 MHz.
-> ..... host bus clock speed is 132.0744 MHz.
-> NET: Registered protocol family 16
-> PCI: PCI BIOS revision 2.10 entry at 0xfd9b2, last bus=2
-> PCI: Using configuration type 1
-> mtrr: v2.0 (20020519)
-> ACPI: Subsystem revision 20031203
->  tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully
-> acquired
-> Parsing all Control
-> Methods:..........................................................
-> Table [DSDT](id F006) - 687 Objects with 55 Devices 194 Methods 19
-> Regions
-> Parsing all Control Methods:.
-> Table [SSDT](id F003) - 1 Objects with 0 Devices 1 Methods 0 Regions
-> Parsing all Control Methods:...
-> Table [SSDT](id F004) - 4 Objects with 0 Devices 3 Methods 0 Regions
-> ACPI Namespace successfully loaded at root c04852bc
-> IOAPIC[0]: Set PCI routing entry (1-9 -> 0x71 -> IRQ 9 Mode:1 Active:0)
-> evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode
-> successful
-> evgpeblk-0747 [06] ev_create_gpe_block   : GPE 00 to 31 [_GPE] 4 regs at
-> 0000000000001028 on int 9
-> Completing Region/Field/Buffer/Package
-> initialization:..........................................................
-> Initialized 19/19 Regions 0/0 Fields 20/20 Buffers 19/19 Packages (700
-> nodes)
-> Executing all Device _STA and_INI methods:........evregion-0251 [21]
-> ev_address_space_dispa: No handler for Region [ERAM] (df652c28)
-> [EmbeddedControl]
->  exfldio-0284 [20] ex_access_region      : Region EmbeddedControl(3) has
-> no handler
->  dswexec-0435 [13] ds_exec_end_op        : [LGreater]: Could not resolve
-> operands, AE_NOT_EXIST
->  psparse-1120: *** Error: Method execution failed [\_SB_.PCI0._INI]
-> (Node df657528), AE_NOT_EXIST
->   nsinit-0408 [06] ns_init_one_device    : \_SB_.PCI0._INI failed:
-> AE_NOT_EXIST
-> ..................................................
-> 58 Devices found containing: 58 _STA, 0 _INI methods
-> ACPI: Interpreter enabled
-> ACPI: Using IOAPIC for interrupt routing
-> evregion-0251 [21] ev_address_space_dispa: No handler for Region [ERAM]
-> (df652c28) [EmbeddedControl]
->  exfldio-0284 [20] ex_access_region      : Region EmbeddedControl(3) has
-> no handler
->  psparse-1120: *** Error: Method execution failed [\_SB_.BAT0._STA]
-> (Node df658428), AE_NOT_EXIST
-> ~~~~~~~~~~End dmesg~~~~~~~~~~~~~~
->
-> As you can see in the above section, the first error (and what I suspect
-> is causing the subsequent AE_NOT_EXIST errors) is the "No Handler for
-> Region [ERAM]" message that I can't seem to diagnose.  I've attached a
-> dump of my DSDT data, after running it through acpidmp, in case it's
-> relevant (bzipped so that it's not 200+K =P).  Any ideas at all would be
-> MOST appreciated =)  Thanks so much!
->
-> ~D. Stone
->
-
-
-
-
-
-
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Perforce Software.
-Perforce is the Fast Software Configuration Management System offering
-advanced branching capabilities and atomic changes on 50+ platforms.
-Free Eval! http://www.perforce.com/perforce/loadprog.html
+diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
+--- linux-original/drivers/acpi/processor.c	2004-01-11 20:51:17.000000000 +0100
++++ linux/drivers/acpi/processor.c	2004-01-11 21:39:43.000000000 +0100
+@@ -1091,6 +1091,113 @@
+ }
+ 
+ 
++#ifdef CONFIG_CPU_FREQ
++
++/* If a passive cooling situation is detected, primarily CPUfreq is used, as it
++ * offers (in most cases) voltage scaling in addition to frequency scaling, and
++ * thus a cubic (instead of linear) reduction of energy. Also, we allow for
++ * _any_ cpufreq driver and not only the acpi-cpufreq driver.
++ */
++
++static unsigned int cpufreq_thermal_reduction_pctg[NR_CPUS];
++static unsigned int acpi_thermal_cpufreq_is_init = 0;
++
++
++static int cpu_has_cpufreq(unsigned int cpu)
++{
++	struct cpufreq_policy policy;
++	if (!acpi_thermal_cpufreq_is_init)
++		return -ENODEV;
++	if (!cpufreq_get_policy(&policy, cpu))
++		return -ENODEV;
++	return 0;
++}
++
++
++static int acpi_thermal_cpufreq_increase(unsigned int cpu)
++{
++	if (!cpu_has_cpufreq)
++		return -ENODEV;
++
++	if (cpufreq_thermal_reduction_pctg[cpu] < 60) {
++		cpufreq_thermal_reduction_pctg[cpu] += 20;
++		cpufreq_update_policy(cpu);
++		return 0;
++	}
++
++	return -ERANGE;
++}
++
++
++static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
++{
++	if (!cpu_has_cpufreq)
++		return -ENODEV;
++
++	if (cpufreq_thermal_reduction_pctg[cpu] >= 20) {
++		cpufreq_thermal_reduction_pctg[cpu] -= 20;
++		cpufreq_update_policy(cpu);
++		return 0;
++	}
++
++	return -ERANGE;
++}
++
++
++static int acpi_thermal_cpufreq_notifier(
++	struct notifier_block *nb,
++	unsigned long event,
++	void *data)
++{
++	struct cpufreq_policy *policy = data;
++	unsigned long max_freq = 0;
++
++	if (event != CPUFREQ_ADJUST)
++		goto out;
++
++	max_freq = (policy->cpuinfo.max_freq * (100 - cpufreq_thermal_reduction_pctg[policy->cpu])) / 100;
++
++	cpufreq_verify_within_limits(policy, 0, max_freq);
++
++ out:
++	return 0;
++}
++
++
++static struct notifier_block acpi_thermal_cpufreq_notifier_block = {
++	.notifier_call = acpi_thermal_cpufreq_notifier,
++};
++
++
++static void acpi_thermal_cpufreq_init(void) {
++	int i;
++
++	for (i=0; i<NR_CPUS; i++)
++		cpufreq_thermal_reduction_pctg[i] = 0;
++
++	i = cpufreq_register_notifier(&acpi_thermal_cpufreq_notifier_block, CPUFREQ_POLICY_NOTIFIER);
++	if (!i)
++		acpi_thermal_cpufreq_is_init = 1;
++}
++
++static void acpi_thermal_cpufreq_exit(void) {
++	if (acpi_thermal_cpufreq_is_init)
++		cpufreq_unregister_notifier(&acpi_thermal_cpufreq_notifier_block, CPUFREQ_POLICY_NOTIFIER);
++
++	acpi_thermal_cpufreq_is_init = 0;
++}
++
++#else /* ! CONFIG_CPU_FREQ */
++
++static void acpi_thermal_cpufreq_init(void) { return; }
++static void acpi_thermal_cpufreq_exit(void) { return; }
++static int acpi_thermal_cpufreq_increase(unsigned int cpu) { return -ENODEV; }
++static int acpi_thermal_cpufreq_decrease(unsigned int cpu) { return -ENODEV; }
++
++
++#endif
++
++
+ int
+ acpi_processor_set_thermal_limit (
+ 	acpi_handle		handle,
+@@ -1099,7 +1206,6 @@
+ 	int			result = 0;
+ 	struct acpi_processor	*pr = NULL;
+ 	struct acpi_device	*device = NULL;
+-	int			px = 0;
+ 	int			tx = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_set_thermal_limit");
+@@ -1116,12 +1222,7 @@
+ 	if (!pr)
+ 		return_VALUE(-ENODEV);
+ 
+-	if (!pr->flags.limit)
+-		return_VALUE(-ENODEV);
+-
+ 	/* Thermal limits are always relative to the current Px/Tx state. */
+-	if (pr->flags.performance)
+-		pr->limit.thermal.px = pr->performance->state;
+ 	if (pr->flags.throttling)
+ 		pr->limit.thermal.tx = pr->throttling.state;
+ 
+@@ -1130,26 +1231,27 @@
+ 	 * performance state.
+ 	 */
+ 
+-	px = pr->limit.thermal.px;
+ 	tx = pr->limit.thermal.tx;
+ 
+ 	switch (type) {
+ 
+ 	case ACPI_PROCESSOR_LIMIT_NONE:
+-		px = 0;
++		do {
++			result = acpi_thermal_cpufreq_decrease(pr->id);
++		} while (!result);
+ 		tx = 0;
+ 		break;
+ 
+ 	case ACPI_PROCESSOR_LIMIT_INCREMENT:
+-		if (pr->flags.performance) {
+-			if (px == (pr->performance->state_count - 1))
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
++		/* if going up: P-states first, T-states later */
++
++		result = acpi_thermal_cpufreq_increase(pr->id);
++		if (!result)
++			goto end;
++		else if (result == -ERANGE)
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+ 					"At maximum performance state\n"));
+-			else {
+-				px++;
+-				goto end;
+-			}
+-		}
++
+ 		if (pr->flags.throttling) {
+ 			if (tx == (pr->throttling.state_count - 1))
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+@@ -1160,37 +1262,41 @@
+ 		break;
+ 
+ 	case ACPI_PROCESSOR_LIMIT_DECREMENT:
+-		if (pr->flags.performance) {
+-			if (px == pr->performance_platform_limit)
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+-					"At minimum performance state\n"));
+-			else  {
+-				px--;
+-				goto end;
+-			}
+-		}
++		/* if going down: T-states first, P-states later */
++
+ 		if (pr->flags.throttling) {
+ 			if (tx == 0)
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+ 					"At minimum throttling state\n"));
+-			else
++			else {
+ 				tx--;
++				goto end;
++			}
+ 		}
++
++		result = acpi_thermal_cpufreq_decrease(pr->id);
++		if (result == -ERANGE)
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
++					"At minimum performance state\n"));
++
+ 		break;
+ 	}
+ 
+ end:
+-	pr->limit.thermal.px = px;
+-	pr->limit.thermal.tx = tx;
+-
+-	result = acpi_processor_apply_limit(pr);
+-	if (result)
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
+-			"Unable to set thermal limit\n"));
++	if (pr->flags.throttling) {
++		pr->limit.thermal.px = 0;
++		pr->limit.thermal.tx = tx;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Thermal limit now (P%d:T%d)\n",
+-		pr->limit.thermal.px,
+-		pr->limit.thermal.tx));
++		result = acpi_processor_apply_limit(pr);
++		if (result)
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
++					  "Unable to set thermal limit\n"));
++
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Thermal limit now (P%d:T%d)\n",
++				  pr->limit.thermal.px,
++				  pr->limit.thermal.tx));
++	} else
++		result = 0;
+ 
+ 	return_VALUE(result);
+ }
+@@ -1813,6 +1919,8 @@
+ 		return_VALUE(-ENODEV);
+ 	}
+ 
++	acpi_thermal_cpufreq_init();
++
+ 	return_VALUE(0);
+ }
+ 
+@@ -1822,6 +1930,8 @@
+ {
+ 	ACPI_FUNCTION_TRACE("acpi_processor_exit");
+ 
++	acpi_thermal_cpufreq_exit();
++
+ 	acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
