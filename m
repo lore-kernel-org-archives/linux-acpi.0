@@ -1,56 +1,47 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: [PATCHES] add _CST support
-Date: 27 Dec 2004 22:27:15 -0500
-Message-ID: <1104204434.18166.50.camel@d845pe>
-References: <20041127215118.GA30309@dominikbrodowski.de>
-	 <1103694244.17325.58.camel@d845pe>
-	 <20041223000842.GA8289@dominikbrodowski.de>
-	 <1103778133.2567.45.camel@d845pe>  <20041223130723.GE731@openzaurus.ucw.cz>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: the patch of restore-pci-config-space-on-resume break S1 onASUS2400 NE
+Date: Tue, 28 Dec 2004 12:01:04 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8406A730C0@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041223130723.GE731-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262060AbUL1EBh@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Brown, Len" <len.brown@intel.com>
+Cc: Arjan van de Ven <arjanv@redhat.com>, Pavel Machek <pavel@ucw.cz>, "Li, Shaohua" <shaohua.li@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net, "Fu, Michael" <michael.fu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-12-23 at 08:07, Pavel Machek wrote:
+the idea in post
+http://sourceforge.net/mailarchive/message.php?msg_id=3D9091508
+cure S1 resume hang for my ASUS2400NE.
 
-> > C-states are enumerated C0...Cn
-> > C-state types are enumerated C1, C2, C3.
-> > I don't see any confusion in the name-space duplicates
-> > as long as you know you're talking about C-states or C-state-types.
-> >
-> 
-> Unfortunately, people often don't know what they are talking about.
-> Having two things called C2 is definitely going to confuse just
-> about everyone but you...
+I guess Len will accept it.
 
-Probably we should not mess with the "well known" (hah;-) name space for
-C-states themselves (C0...Cn).
+Does it imply IDE DMA  could be started too early in the original resum=
+e code?
 
-Types, on the other hand, would probably be well addressed with a enum
-whose vales are 1,2,3 so if we chose to print them out they'd simply be
-a %d -- using C%d only for actual C-states themselves.
+Thanks,
+Luming
 
-would that be better?
+-----Original Message-----
+=46rom: Alan Cox [mailto:alan@lxorguk.ukuu.org.uk]=20
+Sent: 2004=C4=EA12=D4=C227=C8=D5 21:45
+To: Yu, Luming
+Cc: Arjan van de Ven; Pavel Machek; Brown, Len; Li, Shaohua; Pallipadi,=
+ Venkatesh; Linux Kernel Mailing List; acpi-devel@lists.sourceforge.net=
+; Fu, Michael
+Subject: RE: the patch of restore-pci-config-space-on-resume break S1 o=
+nASUS2400 NE
 
+On Llu, 2004-12-27 at 10:14, Yu, Luming wrote:
+>  Actually, the kernel (after removing restore-pci-config-space-on-res=
+ume patch) with option "ide=3Dnodma"=20
+> can work with S1 suspend/resume without any hang so far.
+>   So my suggestion for IDE driver is to disable DMA before entering S=
+1, and enable
+> DMA after resuming from S1 if DMA was enabled.  I need help from IDE =
+guys to confirm it.
 
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now. 
-http://productguide.itmanagersjournal.com/
+The IDE layer has no problem doing this, although it raises interesting
+questions about why it would be neccessary.=20
