@@ -1,12 +1,14 @@
 From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: PWRF event reprted at wake up from S1 and S3
-Date: Sat, 15 Nov 2003 16:32:51 +0100
+Subject: Re: Suspend 2 disk
+Date: Sat, 15 Nov 2003 16:40:41 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031115153251.GA24320@hell.org.pl>
+Message-ID: <20031115154041.GB24320@hell.org.pl>
+References: <1068895745.944.9.camel@nexus.l3jane.net> <20031115130211.GA12062@server.by> <1068903849.940.45.camel@nexus.l3jane.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1068903849.940.45.camel-FRzfUGJImGaWJdCIYJbLrA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,23 +17,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marc Franquesa <mark-KaoEA2pfkXWsTnJN9+BGXg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I'm having an annoying problem with my ASUS L3C (DSDT et al. at 
-http://bugme.osdl.org/show_bug.cgi?id=1185): upon wake-up from S1 (2.4.x
-and 2.6.x) and S3 (2.6.x), the PWRF 0x80 event is reported. This is
-driving me mad as I have the power button bound to trigger swsusp under
-normal (non-testing) conditions and it gets triggered every time I forget
-to kill acpid when testing sleep states.
+Thus wrote Marc Franquesa:
+> In the first kernel (2.4.20-8 with apm) if i do a 'apm -s' it suspends
+> to disk (on a suspend partition on /dev/hda1) and resumes OK. In the
+> second kernel (2.4.22 acpi-patched) I can't (and I don't know how)
+> suspend to disk.
 
-The power button is a fixed-feature one (no mention in the DSDT), so I'm
-not sure if anything can be done. An interesting fact is that the PWRF
-event makes it to the userspace before the _WAK notifies.
-
-I'm not filling a bugzilla since I suspect it's a BIOS bug of some sort.
-Tell I'll be happy to provide any additional info.
+See if cat /proc/acpi/sleep reports S4BIOS or something similar. If so, you
+probably can (echo 4b > /proc/acpi/sleep). Note that I haven't used that in
+any way so I might be wrong. However, if there's only S4 reported, you'll
+have to download the swsusp patch (http://swsusp.sourceforge.net/) for 2.4
+kernels -- the 2.0 version is almost stable now.
 Best regards,
 
 -- 
