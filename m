@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: 2.6.10-rc3 /proc/acpi/alarm does not wakeup from S3, videomode lost
-Date: Sat, 25 Dec 2004 22:07:04 +0100
-Message-ID: <20041225210704.GA20109@elf.ucw.cz>
-References: <200412212059.43909.mhf@berlios.de>
+From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: powernow & ACPI & 2.6.9
+Date: Sat, 25 Dec 2004 22:15:26 +0100
+Message-ID: <41CDD86E.1010905@cs.unibo.it>
+References: <20041119083851.GB2908@mithrandir.dakordnet.org> <20041119085900.GD31422@poupinou.org> <41BCB4D4.3050109@cs.unibo.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200412212059.43909.mhf-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
+In-Reply-To: <41BCB4D4.3050109-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Frank <mhf-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Andrea Borgia wrote:
 
-> Tried this on several machines:
+> Bruno Ducrot wrote:
+>> Could you please test those patches:
+>> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/powernow-k7.recalibrate-cpu_khz.diff 
+>> and
+>> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/timers-recalibrate_cpu_khz.diff 
 > 
-> # date -d +${x}seconds '+%Y-%m-%d %H:%M:%S' > /proc/acpi/alarm
-> # echo "3" > /proc/acpi/sleep
-> 
-> 3 <= x <= 100 seconds.
-> 
-> Sleeps alright but alarm is ignored, power switch wakes up. /proc/acpi/alarm 
-> readback correct. 
-> 
-> When machine awoken by button, textmode console videomode (80x60) is lost 
-> seems to be 80x25 and cursor gone and scroll messed up.
+> I've just tried 2.6.10-rc3, that still has the same "weird speed" 
+> problem as 2.6.9, and I'm glad to report that those two patches apply 
+> cleanly and fix the problem in this case too.
 
-Have you tright various options from Documentation/power/video.txt?
+Ditto for 2.6.10
 
-Or try just loading new fonts with setfont.
+BR,
+Andrea.
 
-> Sometimes "evevent-0286: *** Error: No installed handler for fixed event 
-> [00000004]" was observed on wakeup from _2nd_ S3.
-> 
-> How to make the alarm function work?
-
-No idea, it never worked for me.
-								Pavel
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing on usenet and in e-mail?
 
 
 -------------------------------------------------------
