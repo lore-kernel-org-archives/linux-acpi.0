@@ -1,13 +1,13 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Wed, 19 Jan 2005 12:09:33 +0100
-Message-ID: <20050119110933.GA14003@poupinou.org>
-References: <41E81C2C.8010809@bartol.udel.edu> <1105747983.7368.3.camel@tyrosine> <47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <20050118102635.GV19199@poupinou.org> <41ED2DB8.70707@bartol.udel.edu>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH] Sanitize ACPI Kconfig
+Date: Wed, 19 Jan 2005 13:15:16 +0100
+Message-ID: <20050119121516.GA22856@elf.ucw.cz>
+References: <20050107212259.GA13026@wotan.suse.de> <20050117111602.GI29270@wotan.suse.de> <20050117113007.GB1354@elf.ucw.cz> <200501171158.51388.david.goodenough@btconnect.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <41ED2DB8.70707-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+In-Reply-To: <200501171158.51388.david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,60 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 18, 2005 at 10:39:36AM -0500, Rich Townsend wrote:
-> Bruno Ducrot wrote:
-> >On Mon, Jan 17, 2005 at 10:03:25PM -0500, Rich Townsend wrote:
-> >
-> >>What could be going wrong? Some thoughts:
-> >>*) maybe there is already a driver registered for SMBus alarms, that 
-> >>prevents them from getting through?
-> >>*) I'm assuming its already there, but maybe the functionality described 
-> >>in 5.6.2.2.2 actually needs to be implemented in the i2c-acpi-ec code?
-> >
-> >
-> >Exactly.  This must be implemented in i2c-acpi-ec, and a event notifier
-> >sohuld be done in order to pass this to the children.  Also I have to
-> >modify i2c-acpi-ec in order to make this driver event driven (we write to
-> >the PCRTL, then wait for an event (query number will be 0x20 in this
-> >perticular case) from the EC before processing further), and in the
-> >handler, if the alarm bit is set, then notify the child.
-> >That what I meant in a previous mail with 'overriden the _Q20',
-> >by the fact that I think its only a dummy alarm ack in order to be
-> >sure the smbus is still functionnal even if the OS do not provide
-> >a driver for accessing the smbus.  I never meant to do this in DSDT.
-> >I'm sorry for the confusion.
-> 
-> OK, thanks for the clarification. Out of interest, how do I install 
-> event handlers for the EC? A quick look through ec.c doesn't show any 
-> obvious way to do it.
+Hi!
 
-Simple.  Need to add this into ec.c ;)
+> > > > neccessary if you want to go 2GHz with your athlon64 laptop (or it is
+> > > > 800MHz), so I'd say enable it.
+> > >
+> > > My desktop boxes and servers all don't care about battery or AC.
+> > >
+> > > But I'm not opposed to turning it on, just the "m" default is quite
+> > > useless.
+> >
+> > I'd say that 'y' there makes sense, but anything is better than 'm'.
+> I really do not understand this.  Having is as a module wastes a bit of disk
+> space (usually not a problem) but means that they can be loaded if wanted
+> either by loading them manually or by using acpid.  Having them as y forces
+> them to be there and some systems with dodgy ACPI implementations will
+> have problems, and having them not there means that Joe User has to 
 
-> 
-> >
-> >
-> >>*) perhaps the battery simply isn't generating the alarms?
-> >
-> >
-> >This may be another trouble.
-> 
-> Yeah, I think that may be the real problem. Even without proper alarm 
-> handling in i2c-acpi-ec, the alarms sent by the battery should still 
-> show up in the _Q20 method I hacked into my DSDT. Is it possible to fake 
-> an SMBus alarm, to track whether it is getting through the EC driver 
-> code properly
-
-I don't know.
-
+We want to get maximum testing. If there's some dodgy machine, we want
+to have it fixed. [I do not believe I seen such dodgy machines in
+recent history.]
+								Pavel
 -- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
