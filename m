@@ -1,557 +1,798 @@
-From: =?iso-8859-2?Q?Martin_MOKREJ=A9?= <mmokrejs-V2lp6ZUObelkZyP8+xg2CQ@public.gmane.org>
-Subject: 2.4.23-pre4-acpi-20030916 on ASUS A7V 333 1014 Beta2
-Date: Thu, 18 Sep 2003 20:58:18 +0200 (CEST)
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi-20030916-2.6.0-pre5.diff
+Date: 18 Sep 2003 19:03:28 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.OSF.4.51.0309182026530.456757@tao.natur.cuni.cz>
+Message-ID: <1063926206.2680.200.camel@linux.local>
+References: <20030823150219.21c951aa.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="20476355-1611458637-1063911498=:456757"
+Content-Type: multipart/mixed; boundary="=-8z5Zn6OiOKPLs73dYCjo"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Id: linux-acpi@vger.kernel.org
-
-I
-	got today to machine running 2.4.20 kernel and had to upgrade. It
-	turneout there's ACPI problem in 2.4.22 with this machine ... Sep 18
-	19:32:59 calomys kernel: ACPI-0202: *** Warning: Invalid tableSep 18
-	19:32:59 calomys kernel: ACPI-0095: *** Error: Acpi_load_tables: Error
-	getting required tables (DSDT/FADT/FACS): AE_BAD_SIGNATURE Sep 18
-	19:32:59 calomys kernel: ACPI-0116: *** Error: Acpi_load_tables: Could
-	not load tables: AE_BAD_SIGNATURE Sep 18 19:32:59 calomys kernel: ACPI:
-	System description table load faile<€Linux version 2.4.23-pre4
-	(root@calomys) (gcc version 3.3.1 20030626 (Debian prerelease)) #3 Thu
-	Sep 18 20:05:55 CEST 2003 BIOS-provided physical RAM map: 127MB HIGHMEM
-	available. 896MB LOWMEM available. ACPI: have wakeup address 0xc0001000
-	On node 0 totalpages: 262140 zone(0): 4096 pages. zone(1): 225280
-	pages. zone(2): 32764 pages. ACPI: RSDP (v000 ASUS ) @ 0x000f5c00 ACPI:
-	RSDT (v001 ASUS A7V333 0x42302e31 MSFT 0x31313031) @ 0x3fffc000 ACPI:
-	FADT (v001 ASUS A7V333 0x42302e31 MSFT 0x31313031) @ 0x3fffc0ae ACPI:
-	TÀÿ? (v001 ASUS A7V333 0x42302e31 MSFT 0x31313031) @ 0x3fffsMœ-------^
-	what are these 8bit chars? ACPI: DSDT (v001 ASUS A7V333 0x00001000 MSFT
-	0x0100000b) @ 0x00000000 Kernel command line: auto
-	BOOT_IMAGE=2423pre4acpi ro root=801 Found and enabled local APIC!
-	Initializing CPU#0 Detected 1666.768 MHz processor. Console: colour
-	VGA+ 80x25 Calibrating delay loop... 3322.67 BogoMIPS Memory:
-	1033560k/1048560k available (1389k kernel code, 14612k reserved, 360k
-	data, 292k init, 131056k highmem) Dentry cache hash table entries:
-	131072 (order: 8, 1048576 bytes) Inode cache hash table entries: 65536
-	(order: 7, 524288 bytes) Mount cache hash table entries: 512 (order: 0,
-	4096 bytes) Buffer cache hash table [...] 
-	Content analysis details:   (0.00 points, 5 required)
-	USER_AGENT_PINE    (0.0 points)  Message-Id indicates a non-spam MUA (Pine)
+In-Reply-To: <20030823150219.21c951aa.akpm-3NddpPZAyC0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-X-BeenThere: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-X-Mailman-Version: 2.0.9-sf.net
-Precedence: bulk
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Id: ACPI Development Discussion List <acpi-devel.lists.sourceforge.net>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-X-Original-Date: Thu, 18 Sep 2003 20:58:18 +0200 (CEST)
-Xref: main.gmane.org gmane.linux.acpi.devel:4752
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
-
---20476355-1611458637-1063911498=:456757
-Content-Type: TEXT/PLAIN; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by tao.natur.cuni.cz id h8IIwI1T003659
-
-Hi,
-  although I did not have reported any problems earlier, just accidentall=
-y
-I got today to machine running 2.4.20 kernel and had to upgrade. It turne=
-d
-out there's ACPI problem in 2.4.22 with this machine ...
-
-  It used to show with ACPI:
-Sep 18 19:32:59 calomys kernel:     ACPI-0202: *** Warning: Invalid table=
- signature T<C0><FF>? found
-Sep 18 19:32:59 calomys kernel:     ACPI-0095: *** Error: Acpi_load_table=
-s: Error getting required tables (DSDT/FADT/FACS): AE_BAD_SIGNATURE
-Sep 18 19:32:59 calomys kernel:     ACPI-0116: *** Error: Acpi_load_table=
-s: Could not load tables: AE_BAD_SIGNATURE
-Sep 18 19:32:59 calomys kernel: ACPI: System description table load faile=
-d
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Id: linux-acpi@vger.kernel.org
 
 
-  Please note it is a desktop computer, no laptop.
+--=-8z5Zn6OiOKPLs73dYCjo
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-  Here's what I have now when BIOS section Boot/Interrupt Mode is set to
-PIC:
+Andrew & Co,
+This patch updates 2.6.0-test5 to the current ACPI in 2.4.22-pre5
+If nothing explodes, I'll be releasing it to Linus shortly via BK.
 
-Linux version 2.4.23-pre4 (root@calomys) (gcc version 3.3.1 20030626 (Deb=
-ian prerelease)) #3 Thu Sep 18 20:05:55 CEST 2003
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
- BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000003fffc000 (usable)
- BIOS-e820: 000000003fffc000 - 000000003ffff000 (ACPI data)
- BIOS-e820: 000000003ffff000 - 0000000040000000 (ACPI NVS)
- BIOS-e820: 00000000fec00000 - 00000000fec01000 (reserved)
- BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
- BIOS-e820: 00000000ffff0000 - 0000000100000000 (reserved)
-127MB HIGHMEM available.
-896MB LOWMEM available.
-ACPI: have wakeup address 0xc0001000
-On node 0 totalpages: 262140
-zone(0): 4096 pages.
-zone(1): 225280 pages.
-zone(2): 32764 pages.
-ACPI: RSDP (v000 ASUS                                      ) @ 0x000f5c00
-ACPI: RSDT (v001 ASUS   A7V333   0x42302e31 MSFT 0x31313031) @ 0x3fffc000
-ACPI: FADT (v001 ASUS   A7V333   0x42302e31 MSFT 0x31313031) @ 0x3fffc0ae
-ACPI: T=C0=FF? (v001 ASUS   A7V333   0x42302e31 MSFT 0x31313031) @ 0x3fff=
-c02c
+(then I'll send a patch with the upcoming linux-acpi-test-2.6.0 changes)
 
--------^ what are these 8bit chars?
+The thing most 2.6 users will notice is that the CONFIG_ACPI_HT_ONLY
+scheme has been returned to the one used in 2.4.22 that people
+liked better; but several key platform fixes are included too.
 
-ACPI: DSDT (v001   ASUS A7V333   0x00001000 MSFT 0x0100000b) @ 0x00000000
-Kernel command line: auto BOOT_IMAGE=3D2423pre4acpi ro root=3D801
-Found and enabled local APIC!
-Initializing CPU#0
-Detected 1666.768 MHz processor.
-Console: colour VGA+ 80x25
-Calibrating delay loop... 3322.67 BogoMIPS
-Memory: 1033560k/1048560k available (1389k kernel code, 14612k reserved, =
-360k data, 292k init, 131056k highmem)
-Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes)
-Inode cache hash table entries: 65536 (order: 7, 524288 bytes)
-Mount cache hash table entries: 512 (order: 0, 4096 bytes)
-Buffer cache hash table entries: 65536 (order: 6, 262144 bytes)
-Page-cache hash table entries: 262144 (order: 8, 1048576 bytes)
-CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
-CPU: L2 Cache: 256K (64 bytes/line)
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU:     After generic, caps: 0383fbff c1c3fbff 00000000 00000000
-CPU:             Common caps: 0383fbff c1c3fbff 00000000 00000000
-CPU: AMD Athlon(TM) XP 2000+ stepping 02
-Enabling fast FPU save and restore... done.
-Enabling unmasked SIMD FPU exception support... done.
-Checking 'hlt' instruction... OK.
-POSIX conformance testing by UNIFIX
-enabled ExtINT on CPU#0
-ESR value before enabling vector: 00000000
-ESR value after enabling vector: 00000000
-Using local APIC timer interrupts.
-calibrating APIC timer ...
-..... CPU clock speed is 1666.7999 MHz.
-..... host bus clock speed is 266.6878 MHz.
-cpu: 0, clocks: 2666878, slice: 1333439
-CPU0<T0:2666864,T1:1333424,D:1,S:1333439,C:2666878>
-mtrr: v1.40 (20010327) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
-mtrr: detected mtrr type: Intel
-ACPI: Subsystem revision 20030916
-PCI: PCI BIOS revision 2.10 entry at 0xf17e0, last bus=3D1
-PCI: Using configuration type 1
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S1 S4 S5)
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 *5 6 7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs *3 4 5 6 7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 *7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 10 11 12 14)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
-PCI: Probing PCI hardware
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
-PCI: No IRQ known for interrupt pin A of device 00:11.1
+cheers,
+-Len
 
-------------------------------------------------^
-	this is also to be seen in BIOS APIC mode
+It is also available here:
+http://linux-acpi.bkbits.net:8080/linux-acpi-release-2.6.0
 
-ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 10
-PCI: Using ACPI for IRQ routing
-PCI: if you experience problems, try using option 'pci=3Dnoacpi' or even =
-'acpi=3Doff'
-PCI: Via IRQ fixup for 00:09.0, from 9 to 10
-PCI: Via IRQ fixup for 00:11.3, from 9 to 10
-isapnp: Scanning for PnP cards...
-isapnp: No Plug & Play device found
-Linux NET4.0 for Linux 2.4
-Based upon Swansea University Computer Society NET3.039
-Initializing RT netlink socket
-Starting kswapd
-allocated 32 pages and 32 bhs reserved for the highmem bounces
-Journalled Block Device driver loaded
-ACPI: Power Button (FF) [PWRF]
-ACPI: Processor [CPU0] (supports C1)
+and here:
+http://prdownloads.sourceforge.net/acpi/acpi-20030916-2.6.0-test5.diff?download
+
+ChangeSet-GekAy/qdEr7X/YFgETsMoA@public.gmane.org, 2003-09-18 12:01:37-07:00, len.brown@intel.com
+  ACPI_CA_VERSION                 0x20030916
+
+ChangeSet-GekAy/qdEr7pel47pPzWjg@public.gmane.org, 2003-09-18 11:59:12-07:00, len.brown@intel.com
+  remove ASUS A7V BIOS version 1011 from blacklist (Eric Valette)
+
+ChangeSet-GekAy/qdEr55DzOukK9tOg@public.gmane.org, 2003-09-18 11:41:51-07:00, len.brown@intel.com
+  IBM ThinkPAD T30/T40 oops (David Shaohua Li)
+  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=98849
+
+ChangeSet-GekAy/qdEr5Jt70yizMaYw@public.gmane.org, 2003-09-18 11:29:42-07:00, len.brown@intel.com
+  Extended IRQ resource type for nForce (Andrew de Quincey)
+
+ChangeSet-GekAy/qdEr7kfKl135yGWg@public.gmane.org, 2003-09-18 10:58:41-07:00, len.brown@intel.com
+  [ACPI] Handle systems that specify non-ACPI-compliant SCI over-rides
+(Jun Naka
+jima)
+
+ChangeSet-GekAy/qdEr4txE93JcnU2Q@public.gmane.org, 2003-09-18 10:54:11-07:00, len.brown@intel.com
+  Handle BIOS with _CRS that fails (Jun Nakajima)
+
+ChangeSet-GekAy/qdEr5bgfau97FWYA@public.gmane.org, 2003-09-18 00:52:06-04:00, len.brown@intel.com
+  [ACPI] merge 2.4.22 cleanup into 2.6
+  Restores CONFIG_ACPI_HT_ONLY as an alternative to CONFIG_ACPI
+  rather than a prerequisite
+
+ChangeSet-1Cvhk1ijdKctxE93JcnU2Q@public.gmane.org, 2003-09-15 00:34:00-04:00, len.brown@intel.com
+  sync 2.4.22 changes into 2.6
+  Note that this restores CONFIG_ACPI_HT_ONLY as a sub-set of
+CONFIG_ACPI rather
+ than a dependency.
 
 
 
-calomys:/# cat /proc/interrupts
-           CPU0
-  0:      46679          XT-PIC  timer
-  1:          2          XT-PIC  keyboard
-  2:          0          XT-PIC  cascade
-  5:       3343          XT-PIC  eth0
-  9:          0          XT-PIC  acpi
- 11:      22524          XT-PIC  aic7xxx
- 14:          4          XT-PIC  ide0
-NMI:          0
-LOC:      46641
-ERR:          9
-MIS:          0
-calomys:/#
 
+--=-8z5Zn6OiOKPLs73dYCjo
+Content-Disposition: attachment; filename=acpi-20030916-2.6.0-test5.diff
+Content-Type: text/plain; name=acpi-20030916-2.6.0-test5.diff; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-calomys:~# ls -laR /proc/acpi/
-/proc/acpi/:
-total 0
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   81 root     root            0 Sep 18  2003 ..
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 ac_adapter
--rw-r--r--    1 root     root            0 Sep 18 20:35 alarm
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 battery
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 button
--r--------    1 root     root            0 Sep 18 20:35 dsdt
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 embedded_controll=
-er
--r--------    1 root     root            0 Sep 18 20:35 event
--r--------    1 root     root            0 Sep 18 20:35 fadt
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 fan
--r--r--r--    1 root     root            0 Sep 18 20:35 info
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 power_resource
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 processor
--rw-r--r--    1 root     root            0 Sep 18 20:35 sleep
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 thermal_zone
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1315  -> 1.1322 
+#	include/linux/acpi.h	1.28    -> 1.29   
+#	drivers/acpi/pci_link.c	1.17    -> 1.19   
+#	   arch/i386/Kconfig	1.76    -> 1.77   
+#	arch/i386/kernel/mpparse.c	1.50    -> 1.52   
+#	arch/i386/kernel/dmi_scan.c	1.44    -> 1.46   
+#	    init/do_mounts.c	1.55    -> 1.56   
+#	arch/i386/kernel/setup.c	1.96    -> 1.97   
+#	   drivers/acpi/ec.c	1.24    -> 1.25   
+#	    init/do_mounts.h	1.6.1.1 -> 1.8    
+#	drivers/acpi/events/evregion.c	1.19    -> 1.20   
+#	include/acpi/acconfig.h	1.42    -> 1.43   
+#	arch/i386/kernel/acpi/boot.c	1.31    -> 1.32   
+#	include/asm-i386/acpi.h	1.8     -> 1.9    
+#	drivers/acpi/Makefile	1.35    -> 1.36   
+#	drivers/acpi/Kconfig	1.20    -> 1.21   
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/09/15	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1130.1.2
+# sync 2.4.22 changes into 2.6
+# Note that this restores CONFIG_ACPI_HT_ONLY as a sub-set of CONFIG_ACPI rather than a dependency.
+# --------------------------------------------
+# 03/09/18	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1316
+# [ACPI] merge 2.4.22 cleanup into 2.6
+# Restores CONFIG_ACPI_HT_ONLY as an alternative to CONFIG_ACPI
+# rather than a prerequisite
+# --------------------------------------------
+# 03/09/18	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1317
+# Handle BIOS with _CRS that fails (Jun Nakajima)
+# --------------------------------------------
+# 03/09/18	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1318
+# [ACPI] Handle systems that specify non-ACPI-compliant SCI over-rides (Jun Nakajima)
+# --------------------------------------------
+# 03/09/18	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1319
+# Extended IRQ resource type for nForce (Andrew de Quincey)
+# --------------------------------------------
+# 03/09/18	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1320
+# IBM ThinkPAD T30/T40 oops (David Shaohua Li)
+# https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=98849
+# --------------------------------------------
+# 03/09/18	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1321
+# remove ASUS A7V BIOS version 1011 from blacklist (Eric Valette)
+# --------------------------------------------
+# 03/09/18	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org	1.1322
+# ACPI_CA_VERSION                 0x20030916
+# --------------------------------------------
+#
+diff -Nru a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c	Thu Sep 18 14:19:28 2003
++++ b/arch/i386/kernel/acpi/boot.c	Thu Sep 18 14:19:28 2003
+@@ -183,8 +183,7 @@
+ 
+ #endif /*CONFIG_X86_LOCAL_APIC*/
+ 
+-#ifdef CONFIG_X86_IO_APIC
+-
++#if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_ACPI_INTERPRETER)
+ 
+ static int __init
+ acpi_parse_ioapic (
+@@ -368,7 +367,6 @@
+ 
+ 	result = acpi_table_parse(ACPI_APIC, acpi_parse_madt);
+ 	if (!result) {
+-		printk(KERN_WARNING PREFIX "MADT not present\n");
+ 		return 0;
+ 	}
+ 	else if (result < 0) {
+@@ -416,7 +414,7 @@
+ 
+ #endif /*CONFIG_X86_LOCAL_APIC*/
+ 
+-#ifdef CONFIG_X86_IO_APIC
++#if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_ACPI_INTERPRETER)
+ 
+ 	/* 
+ 	 * I/O APIC 
+@@ -472,7 +470,8 @@
+ 	acpi_irq_model = ACPI_IRQ_MODEL_IOAPIC;
+ 
+ 	acpi_ioapic = 1;
+-#endif /*CONFIG_X86_IO_APIC*/
++
++#endif /* CONFIG_X86_IO_APIC && CONFIG_ACPI_INTERPRETER */
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	if (acpi_lapic && acpi_ioapic) {
+@@ -480,6 +479,7 @@
+ 		clustered_apic_check();
+ 	}
+ #endif
++
+ #ifdef CONFIG_HPET_TIMER
+ 	acpi_table_parse(ACPI_HPET, acpi_parse_hpet);
+ #endif
+diff -Nru a/arch/i386/kernel/dmi_scan.c b/arch/i386/kernel/dmi_scan.c
+--- a/arch/i386/kernel/dmi_scan.c	Thu Sep 18 14:19:28 2003
++++ b/arch/i386/kernel/dmi_scan.c	Thu Sep 18 14:19:28 2003
+@@ -939,11 +939,6 @@
+ 			MATCH(DMI_BOARD_NAME, "CUR-DLS"),
+ 			NO_MATCH, NO_MATCH }},
+ 
+-	{ force_acpi_ht, "ASUS A7V", {
+-			MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC"),
+-			MATCH(DMI_BOARD_NAME, "<A7V>"),
+-			MATCH(DMI_BIOS_VERSION, "ASUS A7V ACPI BIOS Revision 1011"), NO_MATCH }},
+-
+ 	{ force_acpi_ht, "ABIT i440BX-W83977", {
+ 			MATCH(DMI_BOARD_VENDOR, "ABIT <http://www.abit.com>"),
+ 			MATCH(DMI_BOARD_NAME, "i440BX-W83977 (BP6)"),
+@@ -978,7 +973,10 @@
+ 	{ disable_acpi_pci, "ASUS A7V", {
+ 			MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC"),
+ 			MATCH(DMI_BOARD_NAME, "<A7V>"),
+-			MATCH(DMI_BIOS_VERSION, "ASUS A7V ACPI BIOS Revision 1007"), NO_MATCH }},
++			/* newer BIOS, Revision 1011, does work */
++			MATCH(DMI_BIOS_VERSION, "ASUS A7V ACPI BIOS Revision 1007"),
++			NO_MATCH }},
++
+ #endif
+ 
+ 	{ NULL, }
+diff -Nru a/arch/i386/kernel/mpparse.c b/arch/i386/kernel/mpparse.c
+--- a/arch/i386/kernel/mpparse.c	Thu Sep 18 14:19:28 2003
++++ b/arch/i386/kernel/mpparse.c	Thu Sep 18 14:19:28 2003
+@@ -830,7 +830,7 @@
+ 	MP_processor_info(&processor);
+ }
+ 
+-#ifdef CONFIG_X86_IO_APIC
++#if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_ACPI_INTERPRETER)
+ 
+ #define MP_ISA_BUS		0
+ #define MP_MAX_IOAPIC_PIN	127
+@@ -1019,10 +1019,6 @@
+ 	}
+ }
+ 
+-#ifdef	CONFIG_ACPI
+-
+-/* Ensure the ACPI SCI interrupt level is active low, edge-triggered */
+-
+ extern FADT_DESCRIPTOR acpi_fadt;
+ 
+ void __init mp_config_ioapic_for_sci(int irq)
+@@ -1031,6 +1027,7 @@
+ 	int ioapic_pin;
+ 	struct acpi_table_madt *madt;
+ 	struct acpi_table_int_src_ovr *entry = NULL;
++	acpi_interrupt_flags flags;
+ 	void *madt_end;
+ 	acpi_status status;
+ 
+@@ -1054,15 +1051,12 @@
+ 				 * See the note at the end of ACPI 2.0b section
+ 				 * 5.2.10.8 for what this is about.
+ 				 */
+-				if (entry->bus_irq != entry->global_irq) {
+-					acpi_fadt.sci_int = entry->global_irq;
+-					irq = entry->global_irq;
+-					break;
+-				}
+-				else
+-                			return;
++				flags = entry->flags;
++				acpi_fadt.sci_int = entry->global_irq;
++				irq = entry->global_irq;
++				break;
+ 			}
+-
++			
+                 	entry = (struct acpi_table_int_src_ovr *)
+                 	        ((unsigned long) entry + entry->header.length);
+         	}
+@@ -1072,9 +1066,14 @@
+ 
+ 	ioapic_pin = irq - mp_ioapic_routing[ioapic].irq_start;
+ 
+-	io_apic_set_pci_routing(ioapic, ioapic_pin, irq, 1, 1); // Active low, level triggered
++	if (flags.polarity == 0)
++		flags.polarity = 0x3;	/* Active low */ 
++	if (flags.trigger == 0) 
++		flags.trigger = 0x3;	/* Level-triggered */
++
++	io_apic_set_pci_routing(ioapic, ioapic_pin, irq, 
++				(flags.trigger >> 1) , (flags.polarity >> 1));
+ }
+-#endif	/* CONFIG_ACPI */
+ 
+ #ifdef CONFIG_ACPI_PCI
+ 
+@@ -1154,5 +1153,5 @@
+ }
+ 
+ #endif /*CONFIG_ACPI_PCI*/
+-#endif	/* CONFIG_X86_IO_APIC */
++#endif /*CONFIG_X86_IO_APIC && CONFIG_ACPI_INTERPRETER*/
+ #endif /*CONFIG_ACPI_BOOT*/
+diff -Nru a/arch/i386/kernel/setup.c b/arch/i386/kernel/setup.c
+--- a/arch/i386/kernel/setup.c	Thu Sep 18 14:19:28 2003
++++ b/arch/i386/kernel/setup.c	Thu Sep 18 14:19:28 2003
+@@ -64,7 +64,7 @@
+ unsigned long mmu_cr4_features;
+ EXPORT_SYMBOL_GPL(mmu_cr4_features);
+ 
+-#ifdef	CONFIG_ACPI
++#ifdef	CONFIG_ACPI_INTERPRETER
+ 	int acpi_disabled __initdata = 0;
+ #else
+ 	int acpi_disabled __initdata = 1;
+diff -Nru a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig	Thu Sep 18 14:19:28 2003
++++ b/drivers/acpi/Kconfig	Thu Sep 18 14:19:28 2003
+@@ -3,34 +3,14 @@
+ #
+ 
+ menu "ACPI (Advanced Configuration and Power Interface) Support"
+-
+-config ACPI_HT
+-	bool "ACPI Processor Enumeration for HT"
+-	depends on X86
+-	default y
+-	---help---
+-	  ACPI enumerates both logical (a.k.a. Hyper-Threaded -- HT)
+-	  and physical processors.  It is designed to obsolete several older
+-	  specifications, including the MultiProcessor Specification (MPS),
+-	  which supported only physical processors.
+-
+-	  CONFIG_ACPI_HT includes the minimal ACPI boot-time code
+-	  necessary to enumerate logical processors and enable HT.
+-
+-	  CONFIG_ACPI includes CONFIG_ACPI_HT, plus IO APIC enumeration,
+-	  and the hooks to run the ACPI AML interpreter for run-time events.
+-
+-	  When CONFIG_ACPI is selected, the command-line option "acpi=ht"
+-	  is available to run just the ACPI boot-time code -- just as if
+-	  only CONFIG_ACPI_HT were selected.
+-
+-	  Note that "acpi=off" can be used to disable all ACPI code in the kernel.
+-
+-config ACPI
+-	bool "Full ACPI Support"
+ 	depends on !X86_VISWS
+ 	depends on !IA64_HP_SIM
+-	depends on IA64 || (X86 || ACPI_HT)
++	depends on IA64 || X86
++
++config ACPI
++	bool "ACPI Support"
++	depends on IA64 || X86
++
+ 	default y
+ 	---help---
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
+@@ -60,14 +40,47 @@
+ 	  available at:
+ 	  <http://www.acpi.info>
+ 
++config ACPI_HT_ONLY
++	bool "Restrict ACPI to minimum boot code to enable HT"
++	depends on X86
++	depends on ACPI
++	depends on SMP
++	default n
++	---help---
++	  ACPI enumerates both logical (a.k.a. Hyper-Threaded -- HT)
++	  and physical processors.  It is designed to obsolete several older
++	  specifications, including the MultiProcessor Specification (MPS),
++	  which supported only physical processors.
++
++	  CONFIG_ACPI_HT_ONLY includes just the minimal ACPI boot-time code
++	  necessary to enumerate logical processors and enable HT.
++
++	  CONFIG_ACPI includes this, plus IO APIC enumeration,
++	  and the hooks to run the ACPI AML interpreter for run-time events.
++
++	  When CONFIG_ACPI is selected, the command-line option "acpi=ht"
++	  is available to run just the ACPI boot-time code -- just as if
++	  only CONFIG_ACPI_HT_ONLY were selected.
++
++	  Note that "acpi=off" can be used to disable all ACPI code in the kernel.
++
++
+ config ACPI_BOOT
+ 	bool
+-	depends on ACPI || ACPI_HT
++	depends on ACPI
++	default y
++
++config ACPI_INTERPRETER
++	bool
++	depends on ACPI
++	depends on !IA64_SGI_SN
++	depends on !ACPI_HT_ONLY
+ 	default y
+ 
+ config ACPI_SLEEP
+ 	bool "Sleep States (EXPERIMENTAL)"
+ 	depends on X86 && ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on EXPERIMENTAL && PM
+ 	select SOFTWARE_SUSPEND
+ 	default y
+@@ -94,7 +107,8 @@
+ 
+ config ACPI_AC
+ 	tristate "AC Adapter"
+-	depends on X86 && ACPI
++	depends on X86
++	depends on ACPI_INTERPRETER
+ 	default m
+ 	help
+ 	  This driver adds support for the AC Adapter object, which indicates
+@@ -103,7 +117,8 @@
+ 
+ config ACPI_BATTERY
+ 	tristate "Battery"
+-	depends on X86 && ACPI
++	depends on X86
++	depends on ACPI_INTERPRETER
+ 	default m
+ 	help
+ 	  This driver adds support for battery information through
+@@ -112,7 +127,7 @@
+ 
+ config ACPI_BUTTON
+ 	tristate "Button"
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default m
+ 	help
+@@ -124,7 +139,7 @@
+ 
+ config ACPI_FAN
+ 	tristate "Fan"
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default m
+ 	help
+@@ -133,7 +148,7 @@
+ 
+ config ACPI_PROCESSOR
+ 	tristate "Processor"
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default m
+ 	help
+@@ -153,14 +168,15 @@
+ 
+ config ACPI_NUMA
+ 	bool "NUMA support"
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on NUMA
+ 	depends on !X86_64
+ 	default y if IA64_GENERIC || IA64_SGI_SN2
+ 
+ config ACPI_ASUS
+         tristate "ASUS/Medion Laptop Extras"
+-        depends on X86 && ACPI
++	depends on X86
++	depends on ACPI_INTERPRETER
+ 	default m
+         ---help---
+           This driver provides support for extra features of ACPI-compatible
+@@ -186,7 +202,8 @@
+           
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+-	depends on X86 && ACPI
++	depends on X86
++	depends on ACPI_INTERPRETER
+ 	default m
+ 	---help---
+ 	  This driver adds support for access to certain system settings
+@@ -213,7 +230,7 @@
+ 
+ config ACPI_DEBUG
+ 	bool "Debug Statements"
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default n
+ 	help
+@@ -223,19 +240,14 @@
+ 
+ config ACPI_BUS
+ 	bool
+-	depends on ACPI
+-	depends on !IA64_SGI_SN
+-	default y
+-
+-config ACPI_INTERPRETER
+-	bool
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default y
+ 
+ config ACPI_EC
+ 	bool
+-	depends on X86 && ACPI
++	depends on X86
++	depends on ACPI_INTERPRETER
+ 	default y
+ 	help
+ 	  This driver is required on some systems for the proper operation of
+@@ -244,19 +256,19 @@
+ 
+ config ACPI_POWER
+ 	bool
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default y
+ 
+ config ACPI_PCI
+ 	bool
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default PCI
+ 
+ config ACPI_SYSTEM
+ 	bool
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on !IA64_SGI_SN
+ 	default y
+ 	help
+@@ -265,7 +277,7 @@
+ 
+ config ACPI_EFI
+ 	bool
+-	depends on ACPI
++	depends on ACPI_INTERPRETER
+ 	depends on IA64
+ 	default y
+ 
+diff -Nru a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+--- a/drivers/acpi/Makefile	Thu Sep 18 14:19:28 2003
++++ b/drivers/acpi/Makefile	Thu Sep 18 14:19:28 2003
+@@ -18,7 +18,7 @@
+ # ACPI Boot-Time Table Parsing
+ #
+ obj-$(CONFIG_ACPI_BOOT)		+= tables.o
+-obj-$(CONFIG_ACPI)		+= blacklist.o
++obj-$(CONFIG_ACPI_INTERPRETER)	+= blacklist.o
+ 
+ #
+ # ACPI Core Subsystem (Interpreter)
+diff -Nru a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c	Thu Sep 18 14:19:28 2003
++++ b/drivers/acpi/ec.c	Thu Sep 18 14:19:28 2003
+@@ -32,7 +32,7 @@
+ #include <asm/io.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+-
++#include <acpi/actypes.h>
+ 
+ #define _COMPONENT		ACPI_EC_COMPONENT
+ ACPI_MODULE_NAME		("acpi_ec")
+@@ -412,7 +412,10 @@
+ 	 * The EC object is in the handler context and is needed
+ 	 * when calling the acpi_ec_space_handler.
+ 	 */
+-	*return_context = handler_context;
++	if(function == ACPI_REGION_DEACTIVATE) 
++		*return_context = NULL;
++	else 
++		*return_context = handler_context;
+ 
+ 	return AE_OK;
+ }
+diff -Nru a/drivers/acpi/events/evregion.c b/drivers/acpi/events/evregion.c
+--- a/drivers/acpi/events/evregion.c	Thu Sep 18 14:19:28 2003
++++ b/drivers/acpi/events/evregion.c	Thu Sep 18 14:19:28 2003
+@@ -382,7 +382,7 @@
+ 	union acpi_operand_object       *obj_desc;
+ 	union acpi_operand_object       **last_obj_ptr;
+ 	acpi_adr_space_setup            region_setup;
+-	void                            *region_context;
++	void                            **region_context;
+ 	union acpi_operand_object       *region_obj2;
+ 	acpi_status                     status;
+ 
+@@ -394,7 +394,7 @@
+ 	if (!region_obj2) {
+ 		return_VOID;
+ 	}
+-	region_context = region_obj2->extra.region_context;
++	region_context = &region_obj2->extra.region_context;
+ 
+ 	/* Get the address handler from the region object */
+ 
+@@ -450,7 +450,7 @@
+ 
+ 			region_setup = handler_obj->address_space.setup;
+ 			status = region_setup (region_obj, ACPI_REGION_DEACTIVATE,
+-					  handler_obj->address_space.context, &region_context);
++					  handler_obj->address_space.context, region_context);
+ 
+ 			/* Init routine may fail, Just ignore errors */
+ 
+diff -Nru a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c	Thu Sep 18 14:19:28 2003
++++ b/drivers/acpi/pci_link.c	Thu Sep 18 14:19:28 2003
+@@ -220,7 +220,6 @@
+ 	return AE_CTRL_TERMINATE;
+ }
+ 
+-
+ static int
+ acpi_pci_link_get_current (
+ 	struct acpi_pci_link	*link)
+@@ -279,6 +278,28 @@
+ 	return_VALUE(result);
+ }
+ 
++static int
++acpi_pci_link_try_get_current (
++	struct acpi_pci_link *link,
++	int irq)
++{
++	int result;
++
++	ACPI_FUNCTION_TRACE("acpi_pci_link_try_get_current");
++
++	result = acpi_pci_link_get_current(link);
++	if (result && link->irq.active) {
++ 		return_VALUE(result);
++ 	}
++
++	if (!link->irq.active) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "No active IRQ resource found\n"));
++		printk(KERN_WARNING "_CRS returns NULL! Using IRQ %d for device (%s [%s]).\n", irq, acpi_device_name(link->device), acpi_device_bid(link->device));
++		link->irq.active = irq;
++	}
++	
++	return 0;
++}
+ 
+ static int
+ acpi_pci_link_set (
+@@ -294,6 +315,7 @@
+ 	struct acpi_buffer	buffer = {sizeof(resource)+1, &resource};
+ 	int			i = 0;
+ 	int			valid = 0;
++	int			resource_type = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_link_set");
+ 
+@@ -317,20 +339,32 @@
+ 		}
+ 	}
+ 
++	/* If IRQ<=15, first try with a "normal" IRQ descriptor. If that fails, try with
++	 * an extended one */
++	if (irq <= 15) {
++		resource_type = ACPI_RSTYPE_IRQ;
++	} else {
++		resource_type = ACPI_RSTYPE_EXT_IRQ;
++	}
++
++retry_programming:
++   
+ 	memset(&resource, 0, sizeof(resource));
+ 
+ 	/* NOTE: PCI interrupts are always level / active_low / shared. But not all
+ 	   interrupts > 15 are PCI interrupts. Rely on the ACPI IRQ definition for 
+ 	   parameters */
+-	if (irq <= 15) {
++	switch(resource_type) {
++	case ACPI_RSTYPE_IRQ:
+ 		resource.res.id = ACPI_RSTYPE_IRQ;
+ 		resource.res.length = sizeof(struct acpi_resource);
+ 		resource.res.data.irq.edge_level = link->irq.edge_level;
+ 		resource.res.data.irq.active_high_low = link->irq.active_high_low;
+ 		resource.res.data.irq.number_of_interrupts = 1;
+ 		resource.res.data.irq.interrupts[0] = irq;
+-	}
+-	else {
++		break;
++	   
++	case ACPI_RSTYPE_EXT_IRQ:
+ 		resource.res.id = ACPI_RSTYPE_EXT_IRQ;
+ 		resource.res.length = sizeof(struct acpi_resource);
+ 		resource.res.data.extended_irq.producer_consumer = ACPI_CONSUMER;
+@@ -339,11 +373,21 @@
+ 		resource.res.data.extended_irq.number_of_interrupts = 1;
+ 		resource.res.data.extended_irq.interrupts[0] = irq;
+ 		/* ignore resource_source, it's optional */
++		break;
+ 	}
+ 	resource.end.id = ACPI_RSTYPE_END_TAG;
+ 
+ 	/* Attempt to set the resource */
+ 	status = acpi_set_current_resources(link->handle, &buffer);
++
++	/* if we failed and IRQ <= 15, try again with an extended descriptor */
++	if (ACPI_FAILURE(status) && (resource_type == ACPI_RSTYPE_IRQ)) {
++                resource_type = ACPI_RSTYPE_EXT_IRQ;
++                printk(PREFIX "Retrying with extended IRQ descriptor\n");
++                goto retry_programming;
++	}
++  
++	/* check for total failure */
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _SRS\n"));
+ 		return_VALUE(-ENODEV);
+@@ -361,7 +405,7 @@
+ 	}
+ 
+ 	/* Make sure the active IRQ is the one we requested. */
+-	result = acpi_pci_link_get_current(link);
++	result = acpi_pci_link_try_get_current(link, irq);
+ 	if (result) {
+ 		return_VALUE(result);
+ 	}
+@@ -458,14 +502,14 @@
+ 		irq = link->irq.possible[0];
+ 	}
+ 
+-		/* 
+-		 * Select the best IRQ.  This is done in reverse to promote 
+-		 * the use of IRQs 9, 10, 11, and >15.
+-		 */
+-		for (i=(link->irq.possible_count-1); i>0; i--) {
+-			if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
+-				irq = link->irq.possible[i];
+-		}
++	/* 
++	 * Select the best IRQ.  This is done in reverse to promote 
++	 * the use of IRQs 9, 10, 11, and >15.
++	 */
++	for (i=(link->irq.possible_count-1); i>0; i--) {
++		if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
++			irq = link->irq.possible[i];
++	}
+ 
+ 	/* Attempt to enable the link device at this IRQ. */
+ 	if (acpi_pci_link_set(link, irq)) {
+@@ -574,10 +618,6 @@
+ 		else
+ 			printk(" %d", link->irq.possible[i]);
+ 	}
+-	if (!link->irq.active)
+-		printk(", disabled");
+-	else if (!found)
+-		printk(", enabled at IRQ %d", link->irq.active);
+ 	printk(")\n");
+ 
+ 	/* TBD: Acquire/release lock */
+diff -Nru a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+--- a/include/acpi/acconfig.h	Thu Sep 18 14:19:28 2003
++++ b/include/acpi/acconfig.h	Thu Sep 18 14:19:28 2003
+@@ -64,7 +64,7 @@
+ 
+ /* Version string */
+ 
+-#define ACPI_CA_VERSION                 0x20030813
++#define ACPI_CA_VERSION                 0x20030916
+ 
+ /* Maximum objects in the various object caches */
+ 
+diff -Nru a/include/linux/acpi.h b/include/linux/acpi.h
+--- a/include/linux/acpi.h	Thu Sep 18 14:19:28 2003
++++ b/include/linux/acpi.h	Thu Sep 18 14:19:28 2003
+@@ -424,17 +424,17 @@
+ 
+ #endif /*CONFIG_ACPI_EC*/
+ 
+-#ifdef CONFIG_ACPI
++#ifdef CONFIG_ACPI_INTERPRETER
+ 
+ int acpi_blacklisted(void);
+ 
+-#else
++#else /*!CONFIG_ACPI_INTERPRETER*/
+ 
+ static inline int acpi_blacklisted(void)
+ {
+ 	return 0;
+ }
+ 
+-#endif /*CONFIG_ACPI*/
++#endif /*!CONFIG_ACPI_INTERPRETER*/
+ 
+ #endif /*_LINUX_ACPI_H*/
+diff -Nru a/init/do_mounts.h b/init/do_mounts.h
+--- a/init/do_mounts.h	Thu Sep 18 14:19:28 2003
++++ b/init/do_mounts.h	Thu Sep 18 14:19:28 2003
+@@ -79,4 +79,3 @@
+ static inline void md_run_setup(void) {}
+ 
+ #endif
+-
 
-/proc/acpi/ac_adapter:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
+--=-8z5Zn6OiOKPLs73dYCjo--
 
-/proc/acpi/battery:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
-
-/proc/acpi/button:
-total 0
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 power
-
-/proc/acpi/button/power:
-total 0
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 ..
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 PWRF
-
-/proc/acpi/button/power/PWRF:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 ..
--r--r--r--    1 root     root            0 Sep 18 20:35 info
-
-/proc/acpi/embedded_controller:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
-
-/proc/acpi/fan:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
-
-/proc/acpi/power_resource:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
-
-/proc/acpi/processor:
-total 0
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 CPU0
-
-/proc/acpi/processor/CPU0:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x    3 root     root            0 Sep 18 20:35 ..
--r--r--r--    1 root     root            0 Sep 18 20:35 info
--rw-r--r--    1 root     root            0 Sep 18 20:35 limit
--rw-r--r--    1 root     root            0 Sep 18 20:35 performance
--r--r--r--    1 root     root            0 Sep 18 20:35 power
--rw-r--r--    1 root     root            0 Sep 18 20:35 throttling
-
-/proc/acpi/thermal_zone:
-total 0
-dr-xr-xr-x    2 root     root            0 Sep 18 20:35 .
-dr-xr-xr-x   10 root     root            0 Sep 18 20:35 ..
-calomys:~#
-calomys:~# cat /proc/acpi/processor/CPU0/throttling
-<not supported>
-calomys:~# cat /proc/acpi/processor/CPU0/performance
-<not supported>
-calomys:~# cat /proc/acpi/processor/CPU0/info
-processor id:            0
-acpi id:                 0
-bus mastering control:   no
-power management:        no
-throttling control:      no
-performance management:  no
-limit interface:         no
-calomys:~# cat /proc/acpi/processor/CPU0/limit
-<not supported>
-calomys:~# cat /proc/acpi/processor/CPU0/power
-active state:            C1
-default state:           C1
-bus master activity:     00000000
-states:
-   *C1:                  promotion[--] demotion[--] latency[000] usage[00=
-000000]
-    C2:                  <not supported>
-    C3:                  <not supported>
-calomys:~#
-
-
-
-If BIOS has set Boot/Interrupt Mode to APIC, I get ... see attached file
-a7v333.diff for easy comaprison of both modes. Also, lspci output when
-machine in this APIC mode is attached. Interrupts are below:
-
-calomys:~# cat /proc/interrupts
-           CPU0
-  0:      14317    IO-APIC-edge  timer
-  1:          2    IO-APIC-edge  keyboard
-  2:          0          XT-PIC  cascade
-  9:          0   IO-APIC-level  acpi
- 14:          5    IO-APIC-edge  ide0
- 16:        952   IO-APIC-level  eth0
- 18:      22137   IO-APIC-level  aic7xxx
-NMI:          0
-LOC:      14269
-ERR:          0
-MIS:          0
-calomys:~#
-
-
-
-I hope this tells you if everything looks like expected on my machine in =
-terms of ACPI.
-
-Thanks for developing/supporting ACPI!
---=20
-Martin Mokrejs <mmokrejs-V2lp6ZUObelkZyP8+xg2CQ@public.gmane.org>, <m.mokrejs@gsf.de>
-PGP5.0i key is at http://www.natur.cuni.cz/~mmokrejs
-MIPS / Institute for Bioinformatics <http://mips.gsf.de>
-GSF - National Research Center for Environment and Health
-Ingolstaedter Landstrasse 1, D-85764 Neuherberg, Germany
-tel.: +49-89-3187 3683 , fax:=A0+49-89-3187 3585
---20476355-1611458637-1063911498=:456757
-Content-Type: TEXT/PLAIN; charset=iso-8859-2; name="a7v333.diff"
-Content-ID: <Pine.OSF.4.51.0309182058180.456757-xveqDVFKMsx2wEp5G055aaVXKuFTiq87@public.gmane.org>
-Content-Description: 
-Content-Disposition: attachment; filename="a7v333.diff"
-Content-Transfer-Encoding: BASE64
-
-LS0tIFBJQyAyMDAzLTA5LTE4IDIwOjI1OjUxLjAwMDAwMDAwMCArMDIwMA0K
-KysrIEFQSUMgICAgICAgIDIwMDMtMDktMTggMjA6NDY6NTEuMDAwMDAwMDAw
-ICswMjAwDQpAQCAtMTgsMTYgKzE4LDI2IEBADQogem9uZSgyKTogMzI3NjQg
-cGFnZXMuDQogQUNQSTogUlNEUCAodjAwMCBBU1VTICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICApIEAgMHgwMDBmNWMwMA0KIEFDUEk6
-IFJTRFQgKHYwMDEgQVNVUyAgIEE3VjMzMyAgIDB4NDIzMDJlMzEgTVNGVCAw
-eDMxMzEzMDMxKSBAIDB4M2ZmZmMwMDANCi1BQ1BJOiBGQURUICh2MDAxIEFT
-VVMgICBBN1YzMzMgICAweDQyMzAyZTMxIE1TRlQgMHgzMTMxMzAzMSkgQCAw
-eDNmZmZjMGFlDQotQUNQSTogVMD/PyAodjAwMSBBU1VTICAgQTdWMzMzICAg
-MHg0MjMwMmUzMSBNU0ZUIDB4MzEzMTMwMzEpIEAgMHgzZmZmYzAyYw0KK0FD
-UEk6IEZBRFQgKHYwMDEgQVNVUyAgIEE3VjMzMyAgIDB4NDIzMDJlMzEgTVNG
-VCAweDMxMzEzMDMxKSBAIDB4M2ZmZmMwYjINCitBQ1BJOiBCT09UICh2MDAx
-IEFTVVMgICBBN1YzMzMgICAweDQyMzAyZTMxIE1TRlQgMHgzMTMxMzAzMSkg
-QCAweDNmZmZjMDMwDQorQUNQSTogTUFEVCAodjAwMSBBU1VTICAgQTdWMzMz
-ICAgMHg0MjMwMmUzMSBNU0ZUIDB4MzEzMTMwMzEpIEAgMHgzZmZmYzA1OA0K
-IEFDUEk6IERTRFQgKHYwMDEgICBBU1VTIEE3VjMzMyAgIDB4MDAwMDEwMDAg
-TVNGVCAweDAxMDAwMDBiKSBAIDB4MDAwMDAwMDANCitBQ1BJOiBMb2NhbCBB
-UElDIGFkZHJlc3MgMHhmZWUwMDAwMA0KK0FDUEk6IExBUElDIChhY3BpX2lk
-WzB4MDBdIGxhcGljX2lkWzB4MDBdIGVuYWJsZWQpDQorUHJvY2Vzc29yICMw
-IFBlbnRpdW0odG0pIFBybyBBUElDIHZlcnNpb24gMTYNCitBQ1BJOiBMQVBJ
-Q19OTUkgKGFjcGlfaWRbMHgwMF0gcG9sYXJpdHlbMHgxXSB0cmlnZ2VyWzB4
-MV0gbGludFsweDFdKQ0KK0FDUEk6IElPQVBJQyAoaWRbMHgwMl0gYWRkcmVz
-c1sweGZlYzAwMDAwXSBnbG9iYWxfaXJxX2Jhc2VbMHgwXSkNCitJT0FQSUNb
-MF06IEFzc2lnbmVkIGFwaWNfaWQgMg0KK0lPQVBJQ1swXTogYXBpY19pZCAy
-LCB2ZXJzaW9uIDIsIGFkZHJlc3MgMHhmZWMwMDAwMCwgSVJRIDAtMjMNCitB
-Q1BJOiBJTlRfU1JDX09WUiAoYnVzWzBdIGlycVsweDBdIGdsb2JhbF9pcnFb
-MHgyXSBwb2xhcml0eVsweDBdIHRyaWdnZXJbMHgxXSkNCitBQ1BJOiBJTlRf
-U1JDX09WUiAoYnVzWzBdIGlycVsweDldIGdsb2JhbF9pcnFbMHg5XSBwb2xh
-cml0eVsweDNdIHRyaWdnZXJbMHgzXSkNCitVc2luZyBBQ1BJIChNQURUKSBm
-b3IgU01QIGNvbmZpZ3VyYXRpb24gaW5mb3JtYXRpb24NCiBLZXJuZWwgY29t
-bWFuZCBsaW5lOiBhdXRvIEJPT1RfSU1BR0U9MjQyM3ByZTRhY3BpIHJvIHJv
-b3Q9ODAxDQotRm91bmQgYW5kIGVuYWJsZWQgbG9jYWwgQVBJQyENCiBJbml0
-aWFsaXppbmcgQ1BVIzANCiBEZXRlY3RlZCAxNjY2Ljc2OCBNSHogcHJvY2Vz
-c29yLg0KIENvbnNvbGU6IGNvbG91ciBWR0ErIDgweDI1DQogQ2FsaWJyYXRp
-bmcgZGVsYXkgbG9vcC4uLiAzMzIyLjY3IEJvZ29NSVBTDQotTWVtb3J5OiAx
-MDMzNTYway8xMDQ4NTYwayBhdmFpbGFibGUgKDEzODlrIGtlcm5lbCBjb2Rl
-LCAxNDYxMmsgcmVzZXJ2ZWQsIDM2MGsgZGF0YSwgMjkyayBpbml0LCAxMzEw
-NTZrIGhpZ2htZW0pDQorTWVtb3J5OiAxMDMzNTU2ay8xMDQ4NTYwayBhdmFp
-bGFibGUgKDEzODlrIGtlcm5lbCBjb2RlLCAxNDYxNmsgcmVzZXJ2ZWQsIDM2
-MGsgZGF0YSwgMjkyayBpbml0LCAxMzEwNTZrIGhpZ2htZW0pDQogRGVudHJ5
-IGNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMTMxMDcyIChvcmRlcjogOCwg
-MTA0ODU3NiBieXRlcykNCiBJbm9kZSBjYWNoZSBoYXNoIHRhYmxlIGVudHJp
-ZXM6IDY1NTM2IChvcmRlcjogNywgNTI0Mjg4IGJ5dGVzKQ0KIE1vdW50IGNh
-Y2hlIGhhc2ggdGFibGUgZW50cmllczogNTEyIChvcmRlcjogMCwgNDA5NiBi
-eXRlcykNCkBAIC00NywxOSArNTcsODAgQEANCiBlbmFibGVkIEV4dElOVCBv
-biBDUFUjMA0KIEVTUiB2YWx1ZSBiZWZvcmUgZW5hYmxpbmcgdmVjdG9yOiAw
-MDAwMDAwMA0KIEVTUiB2YWx1ZSBhZnRlciBlbmFibGluZyB2ZWN0b3I6IDAw
-MDAwMDAwDQorRU5BQkxJTkcgSU8tQVBJQyBJUlFzDQoraW5pdCBJT19BUElD
-IElSUXMNCisgSU8tQVBJQyAoYXBpY2lkLXBpbikgMi0wLCAyLTE2LCAyLTE3
-LCAyLTE4LCAyLTE5LCAyLTIwLCAyLTIxLCAyLTIyLCAyLTIzIG5vdCBjb25u
-ZWN0ZWQuDQorLi5USU1FUjogdmVjdG9yPTB4MzEgcGluMT0yIHBpbjI9MA0K
-K251bWJlciBvZiBNUCBJUlEgc291cmNlczogMTYuDQorbnVtYmVyIG9mIElP
-LUFQSUMgIzIgcmVnaXN0ZXJzOiAyNC4NCit0ZXN0aW5nIHRoZSBJTyBBUElD
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4NCisNCitJTyBBUElDICMyLi4uLi4u
-DQorLi4uLiByZWdpc3RlciAjMDA6IDAyMDAwMDAwDQorLi4uLi4uLiAgICA6
-IHBoeXNpY2FsIEFQSUMgaWQ6IDAyDQorLi4uLi4uLiAgICA6IERlbGl2ZXJ5
-IFR5cGU6IDANCisuLi4uLi4uICAgIDogTFRTICAgICAgICAgIDogMA0KKy4u
-Li4gcmVnaXN0ZXIgIzAxOiAwMDE3ODAwMg0KKy4uLi4uLi4gICAgIDogbWF4
-IHJlZGlyZWN0aW9uIGVudHJpZXM6IDAwMTcNCisuLi4uLi4uICAgICA6IFBS
-USBpbXBsZW1lbnRlZDogMQ0KKy4uLi4uLi4gICAgIDogSU8gQVBJQyB2ZXJz
-aW9uOiAwMDAyDQorLi4uLiBJUlEgcmVkaXJlY3Rpb24gdGFibGU6DQorIE5S
-IExvZyBQaHkgTWFzayBUcmlnIElSUiBQb2wgU3RhdCBEZXN0IERlbGkgVmVj
-dDogICANCisgMDAgMDAwIDAwICAxICAgIDAgICAgMCAgIDAgICAwICAgIDAg
-ICAgMCAgICAwMA0KKyAwMSAwMDEgMDEgIDAgICAgMCAgICAwICAgMCAgIDAg
-ICAgMSAgICAxICAgIDM5DQorIDAyIDAwMSAwMSAgMCAgICAwICAgIDAgICAw
-ICAgMCAgICAxICAgIDEgICAgMzENCisgMDMgMDAxIDAxICAwICAgIDAgICAg
-MCAgIDAgICAwICAgIDEgICAgMSAgICA0MQ0KKyAwNCAwMDEgMDEgIDAgICAg
-MCAgICAwICAgMCAgIDAgICAgMSAgICAxICAgIDQ5DQorIDA1IDAwMSAwMSAg
-MCAgICAwICAgIDAgICAwICAgMCAgICAxICAgIDEgICAgNTENCisgMDYgMDAx
-IDAxICAwICAgIDAgICAgMCAgIDAgICAwICAgIDEgICAgMSAgICA1OQ0KKyAw
-NyAwMDEgMDEgIDAgICAgMCAgICAwICAgMCAgIDAgICAgMSAgICAxICAgIDYx
-DQorIDA4IDAwMSAwMSAgMCAgICAwICAgIDAgICAwICAgMCAgICAxICAgIDEg
-ICAgNjkNCisgMDkgMDAxIDAxICAxICAgIDEgICAgMCAgIDEgICAwICAgIDEg
-ICAgMSAgICA3MQ0KKyAwYSAwMDEgMDEgIDAgICAgMCAgICAwICAgMCAgIDAg
-ICAgMSAgICAxICAgIDc5DQorIDBiIDAwMSAwMSAgMCAgICAwICAgIDAgICAw
-ICAgMCAgICAxICAgIDEgICAgODENCisgMGMgMDAxIDAxICAwICAgIDAgICAg
-MCAgIDAgICAwICAgIDEgICAgMSAgICA4OQ0KKyAwZCAwMDEgMDEgIDAgICAg
-MCAgICAwICAgMCAgIDAgICAgMSAgICAxICAgIDkxDQorIDBlIDAwMSAwMSAg
-MCAgICAwICAgIDAgICAwICAgMCAgICAxICAgIDEgICAgOTkNCisgMGYgMDAx
-IDAxICAwICAgIDAgICAgMCAgIDAgICAwICAgIDEgICAgMSAgICBBMQ0KKyAx
-MCAwMDAgMDAgIDEgICAgMCAgICAwICAgMCAgIDAgICAgMCAgICAwICAgIDAw
-DQorIDExIDAwMCAwMCAgMSAgICAwICAgIDAgICAwICAgMCAgICAwICAgIDAg
-ICAgMDANCisgMTIgMDAwIDAwICAxICAgIDAgICAgMCAgIDAgICAwICAgIDAg
-ICAgMCAgICAwMA0KKyAxMyAwMDAgMDAgIDEgICAgMCAgICAwICAgMCAgIDAg
-ICAgMCAgICAwICAgIDAwDQorIDE0IDAwMCAwMCAgMSAgICAwICAgIDAgICAw
-ICAgMCAgICAwICAgIDAgICAgMDANCisgMTUgMDAwIDAwICAxICAgIDAgICAg
-MCAgIDAgICAwICAgIDAgICAgMCAgICAwMA0KKyAxNiAwMDAgMDAgIDEgICAg
-MCAgICAwICAgMCAgIDAgICAgMCAgICAwICAgIDAwDQorIDE3IDAwMCAwMCAg
-MSAgICAwICAgIDAgICAwICAgMCAgICAwICAgIDAgICAgMDANCitJUlEgdG8g
-cGluIG1hcHBpbmdzOg0KK0lSUTAgLT4gMDoyDQorSVJRMSAtPiAwOjENCitJ
-UlEzIC0+IDA6Mw0KK0lSUTQgLT4gMDo0DQorSVJRNSAtPiAwOjUNCitJUlE2
-IC0+IDA6Ng0KK0lSUTcgLT4gMDo3DQorSVJROCAtPiAwOjgNCitJUlE5IC0+
-IDA6OQ0KK0lSUTEwIC0+IDA6MTANCitJUlExMSAtPiAwOjExDQorSVJRMTIg
-LT4gMDoxMg0KK0lSUTEzIC0+IDA6MTMNCitJUlExNCAtPiAwOjE0DQorSVJR
-MTUgLT4gMDoxNQ0KKy4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-Li4uLiBkb25lLg0KIFVzaW5nIGxvY2FsIEFQSUMgdGltZXIgaW50ZXJydXB0
-cy4NCiBjYWxpYnJhdGluZyBBUElDIHRpbWVyIC4uLg0KLS4uLi4uIENQVSBj
-bG9jayBzcGVlZCBpcyAxNjY2Ljc5OTkgTUh6Lg0KLS4uLi4uIGhvc3QgYnVz
-IGNsb2NrIHNwZWVkIGlzIDI2Ni42ODc4IE1Iei4NCi1jcHU6IDAsIGNsb2Nr
-czogMjY2Njg3OCwgc2xpY2U6IDEzMzM0MzkNCi1DUFUwPFQwOjI2NjY4NjQs
-VDE6MTMzMzQyNCxEOjEsUzoxMzMzNDM5LEM6MjY2Njg3OD4NCisuLi4uLiBD
-UFUgY2xvY2sgc3BlZWQgaXMgMTY2Ni44MTU5IE1Iei4NCisuLi4uLiBob3N0
-IGJ1cyBjbG9jayBzcGVlZCBpcyAyNjYuNjkwNSBNSHouDQorY3B1OiAwLCBj
-bG9ja3M6IDI2NjY5MDUsIHNsaWNlOiAxMzMzNDUyDQorQ1BVMDxUMDoyNjY2
-ODk2LFQxOjEzMzM0NDAsRDo0LFM6MTMzMzQ1MixDOjI2NjY5MDU+DQogbXRy
-cjogdjEuNDAgKDIwMDEwMzI3KSBSaWNoYXJkIEdvb2NoIChyZ29vY2hAYXRu
-Zi5jc2lyby5hdSkNCiBtdHJyOiBkZXRlY3RlZCBtdHJyIHR5cGU6IEludGVs
-DQogQUNQSTogU3Vic3lzdGVtIHJldmlzaW9uIDIwMDMwOTE2DQogUENJOiBQ
-Q0kgQklPUyByZXZpc2lvbiAyLjEwIGVudHJ5IGF0IDB4ZjE3ZTAsIGxhc3Qg
-YnVzPTENCiBQQ0k6IFVzaW5nIGNvbmZpZ3VyYXRpb24gdHlwZSAxDQorSU9B
-UElDWzBdOiBTZXQgUENJIHJvdXRpbmcgZW50cnkgKDItOSAtPiAweDcxIC0+
-IElSUSA5IE1vZGU6MSBBY3RpdmU6MSkNCiBBQ1BJOiBJbnRlcnByZXRlciBl
-bmFibGVkDQotQUNQSTogVXNpbmcgUElDIGZvciBpbnRlcnJ1cHQgcm91dGlu
-Zw0KK0FDUEk6IFVzaW5nIElPQVBJQyBmb3IgaW50ZXJydXB0IHJvdXRpbmcN
-CiBBQ1BJOiBTeXN0ZW0gW0FDUEldIChzdXBwb3J0cyBTMCBTMSBTNCBTNSkN
-CiBBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0FdIChJUlFzIDMgNCAq
-NSA2IDcgMTAgMTEgMTIgMTQgMTUpDQogQUNQSTogUENJIEludGVycnVwdCBM
-aW5rIFtMTktCXSAoSVJRcyAqMyA0IDUgNiA3IDEwIDExIDEyIDE0IDE1KQ0K
-QEAgLTcxLDE2ICsxNDIsNDggQEANCiBBQ1BJOiBQQ0kgSW50ZXJydXB0IFJv
-dXRpbmcgVGFibGUgW1xfU0JfLlBDSTAuX1BSVF0NCiBBQ1BJOiBQQ0kgSW50
-ZXJydXB0IFJvdXRpbmcgVGFibGUgW1xfU0JfLlBDSTAuUENJMS5fUFJUXQ0K
-IFBDSTogUHJvYmluZyBQQ0kgaGFyZHdhcmUNCi1BQ1BJOiBQQ0kgSW50ZXJy
-dXB0IExpbmsgW0xOS0JdIGVuYWJsZWQgYXQgSVJRIDExDQotQUNQSTogUENJ
-IEludGVycnVwdCBMaW5rIFtMTktEXSBlbmFibGVkIGF0IElSUSAxMA0KLUFD
-UEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQV0gZW5hYmxlZCBhdCBJUlEg
-NQ0KLUFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQ10gZW5hYmxlZCBh
-dCBJUlEgMTENCitJT0FQSUNbMF06IFNldCBQQ0kgcm91dGluZyBlbnRyeSAo
-Mi0xNyAtPiAweGE5IC0+IElSUSAxNyBNb2RlOjEgQWN0aXZlOjEpDQorMDA6
-MDA6MDVbQV0gLT4gMi0xNyAtPiBJUlEgMTcNCitJT0FQSUNbMF06IFNldCBQ
-Q0kgcm91dGluZyBlbnRyeSAoMi0xOCAtPiAweGIxIC0+IElSUSAxOCBNb2Rl
-OjEgQWN0aXZlOjEpDQorMDA6MDA6MDVbQl0gLT4gMi0xOCAtPiBJUlEgMTgN
-CitJT0FQSUNbMF06IFNldCBQQ0kgcm91dGluZyBlbnRyeSAoMi0xOSAtPiAw
-eGI5IC0+IElSUSAxOSBNb2RlOjEgQWN0aXZlOjEpDQorMDA6MDA6MDZbQV0g
-LT4gMi0xOSAtPiBJUlEgMTkNCitQaW4gMi0xNyBhbHJlYWR5IHByb2dyYW1t
-ZWQNCitQaW4gMi0xOSBhbHJlYWR5IHByb2dyYW1tZWQNCitJT0FQSUNbMF06
-IFNldCBQQ0kgcm91dGluZyBlbnRyeSAoMi0xNiAtPiAweGMxIC0+IElSUSAx
-NiBNb2RlOjEgQWN0aXZlOjEpDQorMDA6MDA6MGNbQl0gLT4gMi0xNiAtPiBJ
-UlEgMTYNCitQaW4gMi0xNyBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0x
-OCBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0xNiBhbHJlYWR5IHByb2dy
-YW1tZWQNCitQaW4gMi0xNyBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0x
-OCBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0xOSBhbHJlYWR5IHByb2dy
-YW1tZWQNCitQaW4gMi0xNyBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0x
-OCBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0xOSBhbHJlYWR5IHByb2dy
-YW1tZWQNCitQaW4gMi0xNiBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0x
-OCBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0xOSBhbHJlYWR5IHByb2dy
-YW1tZWQNCitQaW4gMi0xNiBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0x
-NyBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0xOSBhbHJlYWR5IHByb2dy
-YW1tZWQNCitQaW4gMi0xNiBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0x
-NyBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0xOCBhbHJlYWR5IHByb2dy
-YW1tZWQNCitJT0FQSUNbMF06IFNldCBQQ0kgcm91dGluZyBlbnRyeSAoMi0y
-MSAtPiAweGM5IC0+IElSUSAyMSBNb2RlOjEgQWN0aXZlOjEpDQorMDA6MDA6
-MTFbRF0gLT4gMi0yMSAtPiBJUlEgMjENCitQaW4gMi0xOSBhbHJlYWR5IHBy
-b2dyYW1tZWQNCitQaW4gMi0xNiBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4g
-Mi0xNyBhbHJlYWR5IHByb2dyYW1tZWQNCitQaW4gMi0xNiBhbHJlYWR5IHBy
-b2dyYW1tZWQNCitQaW4gMi0xNyBhbHJlYWR5IHByb2dyYW1tZWQNCiBQQ0k6
-IE5vIElSUSBrbm93biBmb3IgaW50ZXJydXB0IHBpbiBBIG9mIGRldmljZSAw
-MDoxMS4xDQotQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktFXSBlbmFi
-bGVkIGF0IElSUSAxMA0KIFBDSTogVXNpbmcgQUNQSSBmb3IgSVJRIHJvdXRp
-bmcNCiBQQ0k6IGlmIHlvdSBleHBlcmllbmNlIHByb2JsZW1zLCB0cnkgdXNp
-bmcgb3B0aW9uICdwY2k9bm9hY3BpJyBvciBldmVuICdhY3BpPW9mZicNCi1Q
-Q0k6IFZpYSBJUlEgZml4dXAgZm9yIDAwOjA5LjAsIGZyb20gOSB0byAxMA0K
-LVBDSTogVmlhIElSUSBmaXh1cCBmb3IgMDA6MTEuMywgZnJvbSA5IHRvIDEw
-DQorUENJOiBWaWEgSVJRIGZpeHVwIGZvciAwMDowOS4wLCBmcm9tIDkgdG8g
-Mw0KK1BDSTogVmlhIElSUSBmaXh1cCBmb3IgMDA6MDkuMSwgZnJvbSA1IHRv
-IDANCitQQ0k6IFZpYSBJUlEgZml4dXAgZm9yIDAwOjExLjIsIGZyb20gOSB0
-byA1DQorUENJOiBWaWEgSVJRIGZpeHVwIGZvciAwMDoxMS4zLCBmcm9tIDkg
-dG8gNQ0KIGlzYXBucDogU2Nhbm5pbmcgZm9yIFBuUCBjYXJkcy4uLg0KIGlz
-YXBucDogTm8gUGx1ZyAmIFBsYXkgZGV2aWNlIGZvdW5kDQogTGludXggTkVU
-NC4wIGZvciBMaW51eCAyLjQNCkBAIC05OSw3ICsyMDIsNyBAQA0KIEZEQyAw
-IGlzIGEgcG9zdC0xOTkxIDgyMDc3DQogZWVwcm8xMDAuYzp2MS4wOWotdCA5
-LzI5Lzk5IERvbmFsZCBCZWNrZXIgaHR0cDovL3d3dy5zY3lsZC5jb20vbmV0
-d29yay9lZXBybzEwMC5odG1sDQogZWVwcm8xMDAuYzogJFJldmlzaW9uOiAx
-LjM2ICQgMjAwMC8xMS8xNyBNb2RpZmllZCBieSBBbmRyZXkgVi4gU2F2b2No
-a2luIDxzYXdAc2F3LnN3LmNvbS5zZz4gYW5kIG90aGVycw0KLWV0aDA6IElu
-dGVsIENvcnAuIDgyNTU3LzgvOSBbRXRoZXJuZXQgUHJvIDEwMF0sIDAwOjAy
-OkIzOkI4OjNCOjBBLCBJUlEgNS4NCitldGgwOiBJbnRlbCBDb3JwLiA4MjU1
-Ny84LzkgW0V0aGVybmV0IFBybyAxMDBdLCAwMDowMjpCMzpCODozQjowQSwg
-SVJRIDE2Lg0KICAgQm9hcmQgYXNzZW1ibHkgNzUxNzY3LTAwNCwgUGh5c2lj
-YWwgY29ubmVjdG9ycyBwcmVzZW50OiBSSjQ1DQogICBQcmltYXJ5IGludGVy
-ZmFjZSBjaGlwIGk4MjU1NSBQSFkgIzEuDQogICAgIFNlY29uZGFyeSBpbnRl
-cmZhY2UgY2hpcCBpODI1NTUuDQpAQCAtMTU1LDggKzI1OCw3IEBADQoga2pv
-dXJuYWxkIHN0YXJ0aW5nLiAgQ29tbWl0IGludGVydmFsIDUgc2Vjb25kcw0K
-IEVYVDMgRlMgMi40LTAuOS4xOSwgMTkgQXVndXN0IDIwMDIgb24gc2QoOCw2
-KSwgaW50ZXJuYWwgam91cm5hbA0KIEVYVDMtZnM6IG1vdW50ZWQgZmlsZXN5
-c3RlbSB3aXRoIG9yZGVyZWQgZGF0YSBtb2RlLg0KLXNwdXJpb3VzIDgyNTlB
-IGludGVycnVwdDogSVJRNy4NCiB0dHlTMTogTFNSIHNhZmV0eSBjaGVjayBl
-bmdhZ2VkIQ0KIHR0eVMxOiBMU1Igc2FmZXR5IGNoZWNrIGVuZ2FnZWQhDQog
-dHR5UzE6IExTUiBzYWZldHkgY2hlY2sgZW5nYWdlZCENCi1TdGFydGluZyBB
-RlMgY2FjaGUgc2Nhbi4uLmZvdW5kIDY1NTUgbm9uLWVtcHR5IGNhY2hlIGZp
-bGVzICg2JSkuDQorU3RhcnRpbmcgQUZTIGNhY2hlIHNjYW4uLi5mb3VuZCA2
-NTU2IG5vbi1lbXB0eSBjYWNoZSBmaWxlcyAoNiUpLg0KDQo=
-
---20476355-1611458637-1063911498=:456757--
 
 
 -------------------------------------------------------
