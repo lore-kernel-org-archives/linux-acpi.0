@@ -1,70 +1,27 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3 (fwd)
-Date: Fri, 18 Feb 2005 01:09:11 +0100
-Message-ID: <42153227.9060800@gmx.net>
-References: <20050217232719.GB12638@elf.ucw.cz>
+From: Vernon Mauery <vernux@us.ibm.com>
+Subject: Re: [ACPI] Call for help: list of machines with working S3
+Date: Thu, 17 Feb 2005 08:44:00 -0800
+Message-ID: <4214C9D0.1090707@us.ibm.com>
+References: <20050214211105.GA12808@elf.ucw.cz>	 <1108621005.2096.412.camel@d845pe> <1108638021.4085.143.camel@tyrosine> <4214C3B8.30502@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050217232719.GB12638-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: vojtech-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <4214C3B8.30502@gmx.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, Kernel Mailing List <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek schrieb:
+Carl-Daniel Hailfinger wrote:
+> 1. A first step towards better DSDTs would be to make the ASL compiler
+> complain about the same things which are complained about by the
+> in-kernel ACPI interpreter. An example would be the following:
 > 
->>>I'm not sure if you can push the whole industry at once.
->>
->>The goal is to know what to tell the system vendors
->>interested in supporting Linux what they should do
->>with their BIOS on future platforms.
->>
->>I believe our message should be:
->>1. BIOS should save/restore video in S3
+> acpi_processor-0496 [10] acpi_processor_get_inf: Invalid PBLK length [7]
 > 
-> Actually, that'd expect too much of BIOS writers. I believe right
-> solution is "POST video as you do during normal boot in S3 resume".
+> The ASL compiler will not complain about it, yet the kernel will
+> refuse to do any processor throttling with a PBLK length of 7.
 
-Why not leave the choice to the BIOS writers? If some are able to
-save/restore video state by themselves, we shoudln't stop them.
-As long as the state after resume accepts setting the mode without
-lockup, we should be fine.
+This is like getting gcc to complain about run-time bugs in a program.  The compiler of a language (ASL in this case) compiles the language, regardless of run-time bugs because it can only detect syntax errors.  And iasl does that pretty well.  
 
-
->>2. Use Intel's ACPICA ASL compiler -- if not for production,
->>then at least as a static source code checker for validation.
-> 
-> 
-> 3. Try to boot linux (here's live cd). If it complains about bios bugs
-> (dmesg | grep ...), try to see if it is not indeed your bug.
-
-That could even be automated more. A live cd which boots, performs
-a few tests, displays the results on screen and offers an option
-to save these results to usbstick/network/disk/whatever.
-After saving the boot results, it will perform a S3 suspend and
-resume and display/save the results of that, too. If Intel have
-enough money, they could provide the functionality on a hard
-disk and it would have the benefit that S4 could be tested as well.
-If the disk has a FAT32 partition, the results can be saved there.
-
-
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+--Vernon
