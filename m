@@ -1,16 +1,14 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Fri, 21 Jan 2005 15:17:28 +0100
-Message-ID: <200501211517.28563.sanskryt@op.pl>
-References: <41E81C2C.8010809@bartol.udel.edu> <41F10180.60008@arrakis.dhis.org> <41F1031E.60507@bartol.udel.edu>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+From: simon-Ji7FXtOmRLs@public.gmane.org (Simon Fowler)
+Subject: Re: Re: DockApps
+Date: Sat, 22 Jan 2005 01:22:51 +1100
+Message-ID: <20050121142250.GC3945@himi.org>
+References: <16880.8771.253591.739342@phoenix.squirrel.nl> <20050121101018.GB3945@himi.org> <m2hdlb7xem.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vEao7xgI/oilGqZ+"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41F1031E.60507-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <m2hdlb7xem.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,41 +21,62 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia pi=B1tek 21 stycznia 2005 14:26, Rich Townsend napisa=B3:
-> Pedro Venda wrote:
-> > Johan Vromans wrote:
-> > | Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
-> > |>I do this because everything in /lib/modules/XXX/kernel/* gets
-> > |>clobbered when you do a make modules_install from the kernel source
-> > |>tree;
-> > |
-> > | I see.
-> > |
-> > |>I have recently realized that the whole SBS functionality can be
-> > |>implemented in terms of control methods in the DSDT, without the
-> > |>need for any kernel drivers.
-> > |
-> > | Nice. This would require a kernel recompile/reboot  for each DSDT
-> > | modification...
-> >
-> > not nice, I guess. 99.9% of the interested (me included) wouldn't be
-> > able to
-> > patch their DSDT and with generated ASL (is it ASL or AML or... ACPI
-> > language)
-> > code for their specific case.
->
-> What if you just had to run a perl script, and then add an "initrd=3D"
-> line to your kernel boot parameters? Because the code would be *so* much
-> cleaner if a lot of the tasks were moved to the DSDT; in particular, we
-> could get rid of i2c_acpi_sbs, and thus remove the dependency of ACPI on
-> I2C.
->
-> cheers,
->
-> Rich
-What about people who didn't use initrd in their kernel?
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+
+--vEao7xgI/oilGqZ+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Jan 21, 2005 at 01:57:05PM +0100, Johan Vromans wrote:
+> simon-Ji7FXtOmRLs@public.gmane.org (Simon Fowler) writes:
+> > If not, try hitting http://himi.org/wmacpi/ and trying it out - it
+> > should work fine on any modern system (as long as the
+> > /proc/acpi/battery/ interface is there
+>=20
+> I did, and I can't get it to work at all. I get an empty, zero-sized
+> window. Could be my lack of suitable window manager, though.
+>=20
+Well, you should be able to run it even without wmaker, but I
+personally haven't tested it . . .=20
+
+> libdockapp 1.50 seems to be read protected, so I couldn't test the 2.1
+> RC.
+>=20
+Thanks for that - fixed now.
+
+> > - if I can get some docs on the new SBS interface
+> > I'll gladly add code for handling it, though I can't test it
+> > myself).
+>=20
+> I'll send you (via private e-mail, please do not ignore it ;-)) the
+> detailed output of all associated /proc/files. I hope this helps.
+>=20
+Thanks - I'll hack something up basd on that, but I'd still like
+some documentation ;-) Richard's response to my other email shows
+why it's necessary.
+
+Simon
+
+--=20
+PGP public key Id 0x144A991C, or http://himi.org/stuff/himi.asc
+(crappy) Homepage: http://himi.org
+doe #237 (see http://www.lemuria.org/DeCSS)=20
+My DeCSS mirror: ftp://himi.org/pub/mirrors/css/=20
+
+--vEao7xgI/oilGqZ+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFB8RA6QPlfmRRKmRwRAj4oAJ91TIhD69dMrswlAGyYjFapk3yMCACePBcn
+AkVARfob4Y8KlZ4OIwmMcNM=
+=YApS
+-----END PGP SIGNATURE-----
+
+--vEao7xgI/oilGqZ+--
 
 
 -------------------------------------------------------
