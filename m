@@ -1,77 +1,72 @@
-From: Mads Paulin <paulin-/w0Os/Ss2Sh/SzgSGea1oA@public.gmane.org>
-Subject: Re: [Acpi4asus-user] ACPI on Asus M2N
-Date: 27 Oct 2003 09:36:00 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1067243760.1839.7.camel@M2400N>
-References: <1067120458.3313.8.camel@RTop>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PM][ACPI] No ACPI interrupts after resume from S1
+Date: Mon, 27 Oct 2003 16:56:18 +0800
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B67@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1067120458.3313.8.camel-RU1JJA7J9tM@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: rmuehlhoff <rmuehlhoff-52dn/g0OV9M@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, M?ns Rullg?rd <mru-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I made a mistake in using base_number. Would you please have updated patch a try?
+Thanks a lot. --Luming
+
+
+-----Original Message-----
+From: Karol Kozimor [mailto:sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org]
+Sent: 2003?10?27? 5:41
+To: Yu, Luming
+Cc: Pavel Machek; M?ns Rullg?rd; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; linux-kernel@vger.kernel.org
+Subject: Re: [PM][ACPI] No ACPI interrupts after resume from S1
+
+
+Thus wrote Yu, Luming:
+> Would you please try patch at http://bugme.osdl.org/show_bug.cgi?id=1409
+
 Hi,
+The patch makes my kernel oops on resume:
+hdc: completing PM  request, resume
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: 90
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: A0
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: 24
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: C8
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: E0
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: F0
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space:  4
+Unable to handle kernel paging request at virtual address 70677679
+ printing eip:
+c020c44c
+*pde = 00000000
+Oops: 0000 [#1]
+CPU:    0
+EIP:    0060:[<c020c44c>]   Not tainted
+EFLAGS: 00010206
+EIP is at acpi_hw_lowlevel_read+0x30/0x122
+eax: c02e6344   ebx: cffd6408   ecx: cfc51e88   edx: 00000010
+esi: 70677671   edi: cfc51e90   ebp: 00000008   esp: cfc51e58
+ds: 007b   es: 007b   ss: 0068
+Process bash (pid: 304, threadinfo=cfc50000 task=c1368a0)
+Stack: 00000130 c021c9b8 00000002 c02e6499 c02e6344 c02f6720 cffd6408 cfe3b228
+       000001e0 00000001 c020b6b2 00000008 cfc51e90 70677671 c0311650 00000018
+       c020b9c2 cffd6408 00000010 00000000 00000000 cfc51ebc c02da521 00000001
+Call Trace:
+ acpi_ut_acquire_mutex+0xc0/0x16b
+ acpi_hw_enable_gpe+0x1e/0x44
+ acpi_hw_enable_ec_gpes+0x7f0x85
+ acpi_leave_sleep_state+0x119/0x13e
+ dpm_resume+0x34/0x5a
+ acpi_pm_finish+0xb/0x38
+ [...]
 
-These problems are solve.
+Code: 8b 56 08 8b 46 04 89 d1 09 c1 75 0a 31 c0 83 c4 18 5b 5c 5f
+[hand typed, but at least the traces should be OK]
 
-It turned out to be a bug in the acpi-code.
+Best regards,
 
-I think this error has been corrected in the latest acpi-patch and
-possibly even incorporated into the latest kernel (no need to patch the
-kernel source)
-
-Regards
-Mads
-
-
-On Mon, 2003-10-27 at 09:28, rmuehlhoff wrote:
-> Hello, 
-> 
-> what's the current state concerning ACPI on Asus M2N?
-> I have been away from this list for a few weeks. Before I left, there
-> were still unsolves problems with the thermal management (cpu fan
-> control didn't work properly) which seemed do be due to a malfunctioning
-> DSDT. 
-> 
-> Is this problem solved, meanwhile?
-> 
-> Could please any Asus M2N user outline the recent progress on this issue
-> to me?
-> 
-> Thank you very much, 
-> 
-> Rainer
-> 
-> 
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: The SF.net Donation Program.
-> Do you like what SourceForge.net is doing for the Open
-> Source Community?  Make a contribution, and help us add new
-> features and functionality. Click here: http://sourceforge.net/donate/
-> _______________________________________________
-> Acpi4asus-user mailing list
-> Acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi4asus-user
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: The SF.net Donation Program.
-Do you like what SourceForge.net is doing for the Open
-Source Community?  Make a contribution, and help us add new
-features and functionality. Click here: http://sourceforge.net/donate/
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
