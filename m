@@ -1,11 +1,10 @@
-From: John M Trostel <john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org>
-Subject: Error starting acpi with 2.4.19
-Date: Wed, 04 Sep 2002 16:25:54 -0400
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Error starting acpi with 2.4.19
+Date: Wed, 4 Sep 2002 14:43:32 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1031171155.30356.2.camel@jtsdell>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B756@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,8 +14,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: 'John M Trostel' <john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org>, ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
+
+
+This sounds like your machine has bad ASL of the form:
+
+Name (DEB, 4)
+Scope (DEB)
+{
+}
+
+DEB can't be both an Integer and a Scope.
+
+What type of machine is this?
+Bob
+
+
+-----Original Message-----
+From: John M Trostel [mailto:john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org] 
+Sent: Wednesday, September 04, 2002 1:26 PM
+To: ACPI-list
+Subject: [ACPI] Error starting acpi with 2.4.19
 
 I am having problems getting ACPI started using the latest SGI XFS
 kernel (2.4.19) with patches sergiomb added. 
@@ -66,6 +85,16 @@ Senior Software Engineer
 Quantum Corp.
 john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org
 
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by: OSDN - Tired of that same old
+cell phone?  Get a new here for FREE!
+https://www.inphonic.com/r.asp?r=sourceforge1&refcode1=vs3390
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
