@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] [suspend/resume] wrong wakeup address
-Date: Fri, 15 Oct 2004 13:15:47 +0200
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: 2.6.9-rc4 ACPI problem after starting X
+Date: Fri, 15 Oct 2004 00:36:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041015111546.GB2015@elf.ucw.cz>
-References: <16A54BF5D6E14E4D916CE26C9AD30575546CFA@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <20041014223607.GA9549@message-id.gmane0305.slipkontur.de>
+References: <20041013172118.0ec42975.admin@wodkahexe.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575546CFA-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20041013172118.0ec42975.admin-HmhXUwHVxSOoYr4blSSd5g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,59 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> acpi_wakeup_address is returned by 'alloc_bootmem_low', so it's a
-> virtual address, but 'acpi_set_firmware_wakeing_vector' requires a
-> physical address. But what makes me confused is my Toshiba works (S3)
-> with/without the patch. Hope this patch (against 2.6.9-rc4) fixes some
-> systems which can't resume.
-
-Could you verify that address passed to firmware_waking_vector() is
-actually different? If the toshiba works with wrong return
-address... perhaps only high bits differ and toshiba just ignores
-them?
-
-Anyway it could explain quite a lot of failures.
-
-								Pavel 
-
-> Thanks,
-> Shaohua
+On Wed, Oct 13, 2004 at 05:21:18PM +0200, Sebastian wrote:
+> Hi,
 > 
-> Signed-off-by Li Shaohua <Shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> After starting X (v. 4.4.0) I'm getting still some strange ACPI errors in dmesg.
 > 
-> ===== drivers/acpi/sleep/main.c 1.40 vs edited =====
-> --- 1.40/drivers/acpi/sleep/main.c	2004-08-17 23:15:34 +08:00
-> +++ edited/drivers/acpi/sleep/main.c	2004-10-15 16:58:33 +08:00
-> @@ -12,6 +12,7 @@
->  #include <linux/irq.h>
->  #include <linux/dmi.h>
->  #include <linux/device.h>
-> +#include <asm/io.h>
->  #include <linux/suspend.h>
->  #include <acpi/acpi_bus.h>
->  #include <acpi/acpi_drivers.h>
-> @@ -56,7 +57,8 @@ static int acpi_pm_prepare(u32 pm_state)
->  		if (!acpi_wakeup_address)
->  			return -EFAULT;
->  		acpi_set_firmware_waking_vector(
-> -			(acpi_physical_address) acpi_wakeup_address);
-> +			(acpi_physical_address) virt_to_phys(
-> +			(void *)acpi_wakeup_address));
->  	}
->  	ACPI_FLUSH_CPU_CACHE();
->  	acpi_enable_wakeup_device_prep(acpi_state);
+>  dswload-0292: *** Error: Looking up [PBST] in namespace, AE_ALREADY_EXISTS
+>  psparse-1133: *** Error: Method execution failed [\_SB_.PCI0.LPC0.BAT1._BST] (Node c1474f28), AE_ALREADY_EXISTS
+> 
+> This does not happen, when working with the console. It starts some seconds, after i started X.
 
-
-
+i suspect this is some battery applet accessing your battery.
+What windowmanager / desktop environment are you using?
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
