@@ -1,12 +1,14 @@
-From: Kevin Fenzi <kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: redhat comment about intel not taking patches?
-Date: Mon, 10 Feb 2003 11:16:05 -0700
+From: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: ACPI PCI bus mismatch ?
+Date: Mon, 10 Feb 2003 18:13:03 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030210181607.2876.qmail@scrye.com>
+Message-ID: <3E47EBAF.1040103@alvie.com>
+References: <F760B14C9561B941B89469F59BA3A84713802A@orsmsx401.jf.intel.com> <20030210161754.GI25625@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030210161754.GI25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,41 +17,69 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Ducrot Bruno wrote:
+
+>Hi!
+>
+>On Thu, Feb 06, 2003 at 12:39:43PM -0800, Grover, Andrew wrote:
+> =20
+>
+>>>From: Alvaro Lopes [mailto:alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org]=20
+>>>OK, I tracked the problem down to acpi_os_derive_pci_id(). If=20
+>>>I remove=20
+>>>the call to acpi_os_derive_pci_id() in=20
+>>>acpi_ev_pci_config_region_setup()=20
+>>>it works fine.
+>>>
+>>>Will do some tests on 2.5.x now and let you know.
+>>>     =20
+>>>
+>>Grrreat.
+>>
+>>We stuck that code in because some IA64 systems needed it to work.
+>>
+>>Sounds like we need to re-think all this. A hack for right now might be
+>>to only call derive on IA64 boxes.
+>>   =20
+>>
+>
+>
+>It is KO for me.
+>
+>I sticked:
+>printk(KERN_DEBUG "BEFORE: 0x%x 0x%x 0x%x 0x%x\n", pci_id->segment, pci_=
+id->bus,
+>                                                   pci_id->device, pci_i=
+d->function);
+>acpi_os_derive_pci_id(...);
+>printk(KERN_DEBUG "AFTER: 0x%x 0x%x 0x%x 0x%x\n", pci_id->segment, pci_i=
+d->bus,
+>                                                   pci_id->device, pci_i=
+d->function);
+>
+>in drivers/acpi/events/evrgnini.c::ev_pci_config_region_setup()
+>
+>and it show me that pci_id->bus is *always* 0 at BEFORE, and will be
+>correct in AFTER (tested by creating 2 OPs, in fact).
+> =20
+>
+Perhaps a stupid question, but:
+
+If we are reading the busID for the brigde itself, shouldn't we use the=20
+"Primary bus number" @ 0x18, instead of "Secondary bus number" @ 0x19 ?
+
+=C1lvaro
+--=20
+
+=C1lvaro Lopes=20
+---------------------
+A .sig is just a .sig
 
 
-RedHat is playing with enabling ACPI in their next release. (At least
-in the beta for the next release: phoebe). 
-
-Noticed this changelog comment in the phoebe kernel: 
-
-* Thu Nov 07 2002 Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-- - remove ACPI again because Intel is unwilling to take patches
-
-What patches are they talking about? 
-
-Is there any way we could fix up the communication breakdown between
-RedHat/Intel?
-
-It would be great if ACPI would work out of the box on my laptop with
-a RedHat kernel. At a minimum I guess it would require acpi to be able
-to detect the compaq *PNP stuff and remove the * so the table works. 
-
-Any comments/thoughts?
-
-kevin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
-
-iD8DBQE+R+xn3imCezTjY0ERAle1AJ0WGVKSRzTTXYU+Y5R3Ie+VszaKaQCeNFDY
-9gfOUY3HK9arInbqQcBlZiQ=
-=kDHa
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
