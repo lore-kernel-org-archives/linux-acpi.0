@@ -1,12 +1,17 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH] Handle disabled local apic better
-Date: Tue, 23 Mar 2004 21:35:51 +0100
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: PCI not restored correctly after suspend to ram
+Date: Tue, 23 Mar 2004 21:42:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040323213551.4789bbae.ak@suse.de>
+Message-ID: <200403232142.23874.stefandoesinger@gmx.at>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079719856.7278.30.camel@dhcppc4>
+Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1079719856.7278.30.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,140 +20,93 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
+> Bruno is correct, the PCI config space should be saved and restored by
+> the driver's suspend and resume routines.  suspend/resume routines
+> typically do other hardware dependent stuff, but your debugging suggests
+> that at least for some of these devices, simply saving and restoring pci
+> config space (pci_save_state()/pci_restore_state()) may be sufficient.
+>
+> Time to take a look at the drivers for those devices...
 
+Thank you very much, now the broadcom ethernet card(b44) and the first pcmcia 
+bridge resume properly.
+I don't need firewire, the ipw2100 driver has no card specific resume code 
+right now(the pci part works fine), and the modem only has a closed driver. 
+So I'm content with everything except the sound card.
 
-When a kernel is compiled with local and io apic code, but the local APIC
-is disabled before ACPI starts ACPI gets confused.  The situation
-can occur in a mainline kernel too, e.g. when a dmi_scan entry disables
-the local apic early.
+The last remaining problem is the sound card(Intel Corp. 82801DB (ICH4) AC'97 
+Audio Controller (rev 03), i810_audio): Any call to pci_enable_device(), 
+pci_restore_state() or pci_write_config_X() crashes.
 
-The problem is that the ACPI code will do all the setup assuming there
-is a IO-APIC because the IO-APIC is not disabled, but the machine really runs in 
-PIC mode. This usually leads to lost network (devices get an unreachable interrupt) 
-or IDE hangs or other problems.
+I can revive the card from user mode with setpci. To make pci_enable_device 
+succeed, I have to change 3 registers:
 
-This patch adds checks for local apic enabled to all paths that need it
-(basically everybody who has a #ifdef CONFIG_X86_LOCAL_APIC needs this
-check instead)
+#setpci -s 00:1f.5 11.b=0x1c
+#setpci -s 00:1f.5 14.b=0xc1
+#setpci -s 00:1f.5 15.b=0x18
 
-It just handles the case there the up apic is disabled before ACPI boot,
-it can actually be disabled later too (e.g. when the APIC initialisation
-fails). This is probably still broken.
+Calling pci_write_config_byte() from the resume function of the driver caueses 
+a lockup. 
 
-Also removes an bogus error message - this path can trigger just with
-software disabled APIC.
+What's the function of these registers(11, 14, 15), and why doesn't setpci 
+crash?
 
--Andi
+Thank you very much so far, and I hope you can help me here too.
 
-diff -u linux/arch/i386/kernel/acpi/boot.c-o linux/arch/i386/kernel/acpi/boot.c
---- linux/arch/i386/kernel/acpi/boot.c-o	2004-03-23 17:32:22.000000000 +0100
-+++ linux/arch/i386/kernel/acpi/boot.c	2004-03-23 17:34:23.000000000 +0100
-@@ -685,6 +685,13 @@
- #ifdef CONFIG_X86_LOCAL_APIC
- 	int count, error;
- 
-+	/* it's still wrong when the apic is disabled later */
-+	extern int enable_local_apic;
-+	if (enable_local_apic < 0) { 
-+		printk(KERN_INFO "ACPI: local apic disabled\n");
-+		return;
-+	}
-+
- 	count = acpi_table_parse(ACPI_APIC, acpi_parse_madt);
- 	if (count == 1) {
- 
-diff -u linux/arch/i386/kernel/apic.c-o linux/arch/i386/kernel/apic.c
---- linux/arch/i386/kernel/apic.c-o	2004-03-23 17:32:22.000000000 +0100
-+++ linux/arch/i386/kernel/apic.c	2004-03-23 18:01:21.000000000 +0100
-@@ -41,6 +41,8 @@
- 
- #include "io_ports.h"
- 
-+extern int enable_local_apic;
-+
- static void apic_pm_activate(void);
- 
- void __init apic_intr_init(void)
-@@ -190,6 +192,9 @@
- {
- 	unsigned long value;
- 
-+	if (enable_local_apic < 0) 
-+		return;
-+
- 	clear_local_APIC();
- 
- 	/*
-@@ -1172,8 +1193,6 @@
- 	 * Complain if the BIOS pretends there is one.
- 	 */
- 	if (!cpu_has_apic && APIC_INTEGRATED(apic_version[boot_cpu_physical_apicid])) {
--		printk(KERN_ERR "BIOS bug, local APIC #%d not detected!...\n",
--			boot_cpu_physical_apicid);
- 		return -1;
- 	}
- 
-diff -u linux/arch/i386/kernel/setup.c-o linux/arch/i386/kernel/setup.c
---- linux/arch/i386/kernel/setup.c-o	2004-03-23 17:32:00.000000000 +0100
-+++ linux/arch/i386/kernel/setup.c	2004-03-23 18:01:14.000000000 +0100
-@@ -50,6 +50,10 @@
- #include "setup_arch_pre.h"
- #include "mach_resources.h"
- 
-+#ifdef CONFIG_X86_LOCAL_APIC
-+extern int enable_local_apic;
-+#endif
-+
- /* This value is set up by the early boot code to point to the value
-    immediately after the boot time page tables.  It contains a *physical*
-    address, and must not be in the .bss segment! */
-@@ -917,6 +925,7 @@
- 	acpi_reserve_bootmem();
- #endif
- #ifdef CONFIG_X86_FIND_SMP_CONFIG
-+	if (enable_local_apic >= 0) 
- 	/*
- 	 * Find and reserve possible boot-time SMP configuration:
- 	 */
-@@ -1232,7 +1241,7 @@
- 	acpi_boot_init();
- 
- #ifdef CONFIG_X86_LOCAL_APIC
--	if (smp_found_config)
-+	if (smp_found_config && enable_local_apic >= 0)
- 		get_smp_config();
- #endif
- 
-diff -u linux/arch/x86_64/kernel/apic.c-o linux/arch/x86_64/kernel/apic.c
---- linux/arch/x86_64/kernel/apic.c-o	2004-03-23 17:32:01.000000000 +0100
-+++ linux/arch/x86_64/kernel/apic.c	2004-03-23 18:41:58.000000000 +0100
-@@ -970,6 +970,7 @@
- }
- 
- int disable_apic; 
-+int enable_local_apic = 1;
- 
- /*
-  * This initializes the IO-APIC and APIC hardware if this is
-@@ -1009,12 +1010,14 @@
- 
- static __init int setup_disableapic(char *str) 
- { 
-+	enable_local_apic = -1;
- 	disable_apic = 1;
- 	return 0;
- } 
- 
- static __init int setup_nolapic(char *str) 
- { 
-+	enable_local_apic = -1;
- 	disable_apic = 1;
- 	return 0;
- } 
+Cheers,
+Stefan
+
+Here's again the pci configuration of the soundcard:
+
+Before suspend:
+00:1f.5 Multimedia audio controller: Intel Corp. 82801DB (ICH4) AC'97 Audio 
+Controller (rev 03)
+	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- 
+SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- 
+<MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 10
+	Region 0: I/O ports at 1c00 [size=256]
+	Region 1: I/O ports at 18c0 [size=64]
+	Region 2: Memory at d0000c00 (32-bit, non-prefetchable) [size=512]
+	Region 3: Memory at d0000800 (32-bit, non-prefetchable) [size=256]
+	Capabilities: [50] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+00: 86 80 c5 24 07 00 90 02 03 00 01 04 00 00 00 00
+10: 01 1c 00 00 c1 18 00 00 00 0c 00 d0 00 08 00 d0
+20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
+30: 00 00 00 00 50 00 00 00 00 00 00 00 0a 02 00 00
+
+After suspend:
+00:1f.5 Multimedia audio controller: Intel Corp. 82801DB (ICH4) AC'97 Audio 
+Controller (rev 03)
+	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
+	Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- 
+SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- 
+<MAbort- >SERR- <PERR-
+	Interrupt: pin B routed to IRQ 10
+	Region 0: I/O ports at 1c00 [disabled] [size=256]
+	Region 1: I/O ports at 18c0 [disabled] [size=64]
+	Region 2: [virtual] Memory at d0000c00 (32-bit, non-prefetchable) [disabled] 
+[size=512]
+	Region 3: [virtual] Memory at d0000800 (32-bit, non-prefetchable) [disabled] 
+[size=256]
+	Capabilities: [50] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+00: 86 80 c5 24 00 00 90 02 03 00 01 04 00 00 00 00
+10: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
+30: 00 00 00 00 50 00 00 00 00 00 00 00 00 02 00 00
 
 
 -------------------------------------------------------
