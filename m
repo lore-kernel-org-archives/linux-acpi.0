@@ -1,8 +1,14 @@
-From: IPSI-2005 Conferences <pescara2005-pVNfCVwX+wit+FuMyjyY7A@public.gmane.org>
-Subject: Invitation to Italy, Holland, and Montenegro 2005; c/bb
-Date: Mon, 4 Apr 2005 00:32:09 +0200
-Message-ID: <200504032232.j33MW9UE027049@vreme.yubc.net>
+From: Sergio Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
+Subject: Re: "Found HC with no IRQ" empty /proc/bus/usb
+Date: Sun, 03 Apr 2005 16:27:44 +0100
+Message-ID: <1112542065.790.0.camel@bastov>
+References: <424D8C48.1090804@atreus-systems.com>
+Reply-To: sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <424D8C48.1090804-sAvY64jVBerkQYj/0HfcvtBPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,71 +18,85 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dear potential Speaker:
-
-On behalf of the organizing committee, I would like to extend a cordial invitation for you to attend one of the upcoming IPSI BgD multidisciplinary, interdisciplinary, and transdisciplinary conferences.
-
-The first one will take place in Loreto Aprutino, Italy:
-
-IPSI-2005 ITALY
-Hotel Castello Chiola (arrival: 27 July 05 / departure: 1 August 05)
-New deadlines: 10 April 05 (abstract) / 10 May 05 (full paper)
-
-The second one will take place in Amsterdam, Holland:
-
-IPSI-2005 HOLLAND
-Hotel Okura (arrival: 1 September 05 / departure: 4 September 05)
-deadlines: 15 April 05 (abstract) / 1 June 05 (full paper)
-
-The third one will take place in Sveti Stefan, Montenegro:
-
-IPSI-2005 MONTENEGRO
-Hotel Sveti Stefan (arrival: 1 October 05 / departure: 8 October 05)
-Deadlines: 1 May 05 (abstract) / 1 July 05 (full paper)
-
-All IPSI BgD conferences are non-profit. They bring together the elite of the world science; so far, we have had seven Nobel Laureates speaking at the opening ceremonies. The conferences always take place in some of the most attractive places of the world. All those who come to IPSI conferences once, always love to come back (because of the unique professional quality and the extremely creative atmosphere); lists of past participants are on the web, as well as details of future conferences.
-
-These conferences are in line with the newest recommendations of the US National Science Foundation and of the EU research sponsoring agencies, to stress multidisciplinary, interdisciplinary, and transdisciplinary research (M+I+T++ research). The speakers and activities at the conferences truly support this type of scientific interaction.
-
-One of the main topics of this conference is "E-education and E-business with Special Emphasis on Semantic Web and Web Datamining"
-
-Other topics of interest include, but are not limited to:
-
-* Internet
-* Computer Science and Engineering
-* Mobile Communications/Computing for Science and Business
-* Management and Business Administration
-* Education
-* e-Medicine
-* e-Oriented Bio Engineering/Science and Molecular Engineering/Science
-* Environmental Protection
-* e-Economy
-* e-Law
-* Technology Based Art and Art to Inspire Technology Developments
-* Internet Psychology
-
-If you would like more information on either conference, please reply to this e-mail message.
-
-If you plan to submit an abstract and paper, please let us know immediately for planning purposes. Note that you can submit your paper also to the IPSI Transactions journal.
-
-Sincerely Yours,
-
-Prof. V. Milutinovic, Chairman,
-IPSI BgD Conferences
+is the age of the Bios is less then 2001 ? probably is , if so, you
+should append "acpi=3Dforce" to enable ACPI.
+On some Bios configurations, you also have to enable ACPI and disable
+APM ( on Bios configuration )
 
 
-* * * CONTROLLING OUR E-MAILS TO YOU * * *
 
-If you would like to continue to be informed about future IPSI BgD conferences, please reply to this e-mail message with a subject line of SUBSCRIBE.
 
-If you would like to be removed from our mailing list, please reply to this e-mail message with a subject line of REMOVE.
+On Fri, 2005-04-01 at 13:00 -0500, Allan Mcintosh wrote:
+> Hey,
+>=20
+> On my debian Dual 550MHz Pentium III machine, I am unable to get usb
+> working. I didn't notice anything obvious in the bios that would disabl=
+e
+> USB. Any suggestions would be greatly appreciated.
+>=20
+> I have tried several kernels, most recently 2.6.10 and 2.6.11.5.
+> I have also tried booting with variations of
+>=20
+> append=3D"noapic acpi=3Doff pci=3Dbiosirq"
+>=20
+>=20
+> Upon loading uhci_hcd module I see the following
+>=20
+> $ dmesg
+> <snip>
+> usbcore: registered new driver usbfs
+> usbcore: registered new driver hub
+> usbcore: registered new driver hiddev
+> usbcore: registered new driver usbhid
+> drivers/usb/input/hid-core.c: v2.0:USB HID core driver
+> USB Universal Host Controller Interface driver v2.2
+> PCI: Enabling device 0000:00:07.2 (0000 -> 0001)
+> PCI: No IRQ known for interrupt pin C of device 0000:00:07.2. Probably
+> buggy MP table.
+> uhci_hcd 0000:00:07.2: Found HC with no IRQ.  Check BIOS/PCI
+> 0000:00:07.2 setup!
+>=20
+>=20
+>=20
+> $ lspci -vv
+> <snip>
+> 0000:00:07.2 USB Controller: Intel Corp. 82371AB/EB/MB PIIX4 USB (rev
+> 01) (prog-if 00 [UHCI])
+>         Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+> ParErr- Stepping- SERR- FastB2B-
+>         Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbo=
+rt-
+> <TAbort- <MAbort- >SERR- <PERR-
+>         Interrupt: pin D routed to IRQ 0
+>         Region 4: I/O ports at ef80 [size=3D32]
+>=20
+>=20
+> $ lsmod
+> Module                  Size  Used by
+> uhci_hcd               34640  0
+> ehci_hcd               34180  0
+> usbhid                 33184  0
+> usbcore               123096  3 uhci_hcd,ehci_hcd,usbhid
+> <snip>
+>=20
+>=20
+>=20
+>=20
+>=20
+>=20
+>=20
+>=20
+>=20
+--=20
+S=E9rgio M.B.
+
 
 
 -------------------------------------------------------
 SF email is sponsored by - The IT Product Guide
 Read honest & candid reviews on hundreds of IT Products from real users.
 Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
