@@ -1,10 +1,10 @@
-From: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>
-Subject: lid state?
-Date: Sun, 06 Oct 2002 00:13:54 -0500
+From: Fritz Ganter <ganter-qNyyLuJ18ZleoWH0uzbU5w@public.gmane.org>
+Subject: 2.4.19 and swsusp
+Date: 06 Oct 2002 12:54:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D9FC692.6050005@prairienet.org>
+Message-ID: <1033901673.1529.13.camel@wuffi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,22 +15,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+Hi!
+Is there a swsusp patch for 2.4.19 + acpi-20020918-2.4.19?
 
-What is the correct way to detect the lid state on a lid event?  I've 
-seen some mention of using a counter, but as the lid could be closed 
-before acpid starts up, it doesn't seem very robust.
+I tried patch-acpi-acpi20020726-swsusp11.gz but the patch doesn't apply
+cleanly.
 
+I run fine with 2.4.18 until yesterday, and I'm missing suspend very
+much!
 
--John
-
-
+TIA
 
 -- 
-http:// i      .   /
+Fritz "der mit dem Linux tanzt" Ganter         http://www.kraftvoll.at
+ Key fingerprint = 555A DDBB 3985 16FF CD41  2031 C485 1783 BF34 728F
 
 
 
