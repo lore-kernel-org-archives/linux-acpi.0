@@ -1,14 +1,15 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Integrating OS power management with the X server
-Date: Mon, 25 Oct 2004 12:14:34 -0700
+From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] Allow ACPI_CUSTOM_DSDT for IA64
+Date: Mon, 25 Oct 2004 13:49:14 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <417D509A.8040305@root.org>
-References: <417D372C.3000107@root.org> <1098727986.3996.65.camel@tyrosine>
+Message-ID: <20041025134914.A8649@unix-os.sc.intel.com>
+References: <3ACA40606221794F80A5670F0AF15F8403BD57CF@pdsmsx403> <1098418443.2096.8.camel@d845pe>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1098727986.3996.65.camel@tyrosine>
+Content-Disposition: inline
+In-Reply-To: <1098418443.2096.8.camel@d845pe>; from len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Oct 22, 2004 at 12:14:03AM -0400
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,49 +18,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Yi Zhu <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, brian-/bzczjCP1d2sTnJN9+BGXg@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> On Mon, 2004-10-25 at 10:26 -0700, Nate Lawson wrote:
->>This interface works for apm (except that it only has NetBSD defines 
->>currently) but is not implemented for ACPI.  I'd like more information 
->>as to what the X server actually does with this event.  Is there any 
->>situation where it actually needs to veto a suspend?  Does it 
->>potentially take seconds to save state?  Does it need to access other 
->>running subsystems or is it self-contained?
-> 
-> At the moment, is it still the case that X will be unhappy if there are
-> any DRI clients running when going through a suspend/resume cycle?
+On Fri, Oct 22, 2004 at 12:14:03AM -0400, Len Brown wrote:
+> DSDT overrides are for developers and experimentation,
+> not for production use.  Developers know how to build kernels,
+> and those that don't use initrd's can't use the initrd
+> method anyway.
 
-I don't know.
+Hi Len,
+	Currently DSDT override patch is available only on X86 and
+this is required for IA64 too. 
 
-> If
-> so, it sounds like the server ought to reject a suspend (or,
-> alternatively, use the notification to kill clients).
+The attached patch(for 2.6.10-rc1)make this option available on IA64.
+Will you please consider applying this path.
 
-Or better, properly implement saving state in DRI.
+---
 
-> In the future, I'd expect that some dbus-related system would be
-> preferable - that way X doesn't get special cased, and any application
-> with good cause could reject a suspend.
+ linux-2.6.10-rc1-askeshav/drivers/acpi/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-The existing bsd_apm.c works for NetBSD and is the same interface as APM 
-in FreeBSD.  Basically, you open /dev/apm and get notification of 
-suspend requests.  Then you can continue them by sending a suspend ioctl 
-or veto by just ignoring them.  The problem is, there are some times in 
-ACPI when the userland cannot veto a suspend (i.e., critical battery or 
-system temperature).  My plan is to initiate an unconditional suspend in 
-those cases from the kernel.  Userland will have a chance to get the 
-notification but if it doesn't respond within some timeout (say a few 
-seconds), the kernel continues the suspend process.
-
-The reason for my email is it's not clear what semantics X expects and 
-how much it even uses this interface.
-
--- 
-Nate
+diff -puN drivers/acpi/Kconfig~config_dsdt drivers/acpi/Kconfig
+--- linux-2.6.10-rc1/drivers/acpi/Kconfig~config_dsdt	2004-10-25 13:43:37.078238831 -0700
++++ linux-2.6.10-rc1-askeshav/drivers/acpi/Kconfig	2004-10-25 13:45:31.171987433 -0700
+@@ -215,7 +215,7 @@ config ACPI_TOSHIBA
+ 
+ config ACPI_CUSTOM_DSDT
+ 	bool "Include Custom DSDT"
+-	depends on X86 && ACPI_INTERPRETER && !STANDALONE
++	depends on ACPI_INTERPRETER && !STANDALONE
+ 	default n 
+ 	help
+ 	  Thist option is to load a custom ACPI DSDT
+_
 
 
 -------------------------------------------------------
