@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Add CONFIG_ACPI_RELAXED_AML option
-Date: Fri, 13 Dec 2002 14:31:18 -0800
+Subject: [BK PATCH] ACPI updates
+Date: Fri, 13 Dec 2002 14:39:37 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A597@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A598@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,39 +14,119 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Craig Whitmore' <lennon-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org>, Matthew Tippett <matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>, chbm-tNiY1ywYjSU@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Craig Whitmore [mailto:lennon-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org] 
-> > > distributed in windows drivers.
-> >
-> > Continuing with this thread, would it make sense to be ACPI 
-> compliant
-> > but allow 'custom' dsdts to be passed to the acpi subsystem to allow
-> > users to work around less than perfect implementations from
-> > manufacturers.
-> >
-> 
-> Just 1 question. What do the manufacturer's say when you tell 
-> them they have
-> a "broken" dsdt? Do they normally fix it? or give some excuse 
-> in a reason
-> why they won't fix it?
+Hi Linus, please do a
 
-It varies. BIOS bugs exposed by Linux may be prioritized lower due to
-Linux's market position in laptops. They also may not get attention if they
-are on end-of-lifed machines, or rolled into a BIOS update only when enough
-other bugs are fixed to justify a new BIOS's validation and release. (We may
-*say* to them it is a trivial fix, but the only way to know if it breaks
-Windows is for them to test it!)
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
 
-There also isn't always a clear way to report BIOS bugs from end users.
+Summary: Bugfixes, and the beginning of an effort to make the code look more
+Linux-like.
 
-On the upside, the things we're seeing are almost always obviously wrong and
-easy to fix - it's just getting them to make the trivial change.
+This will update the following files:
 
-Regards -- Andy
+ drivers/acpi/dispatcher/dsfield.c       |    6 -
+ drivers/acpi/dispatcher/dsmthdat.c      |    2 
+ drivers/acpi/dispatcher/dsobject.c      |   26 ++---
+ drivers/acpi/dispatcher/dsutils.c       |    4 
+ drivers/acpi/dispatcher/dswexec.c       |    9 +
+ drivers/acpi/dispatcher/dswload.c       |    8 -
+ drivers/acpi/dispatcher/dswstate.c      |    4 
+ drivers/acpi/events/evgpe.c             |   20 ++--
+ drivers/acpi/events/evmisc.c            |    2 
+ drivers/acpi/executer/exconvrt.c        |   25 +++--
+ drivers/acpi/executer/excreate.c        |    2 
+ drivers/acpi/executer/exdump.c          |    8 -
+ drivers/acpi/executer/exfield.c         |    2 
+ drivers/acpi/executer/exfldio.c         |    2 
+ drivers/acpi/executer/exmisc.c          |   12 +-
+ drivers/acpi/executer/exmutex.c         |    2 
+ drivers/acpi/executer/exnames.c         |   14 +-
+ drivers/acpi/executer/exoparg2.c        |    2 
+ drivers/acpi/executer/exresolv.c        |    2 
+ drivers/acpi/executer/exstoren.c        |    4 
+ drivers/acpi/executer/exstorob.c        |   14 +-
+ drivers/acpi/executer/exutils.c         |    8 -
+ drivers/acpi/hardware/hwacpi.c          |    2 
+ drivers/acpi/hardware/hwregs.c          |   40 ++++----
+ drivers/acpi/include/acconfig.h         |    4 
+ drivers/acpi/include/acdebug.h          |   96 ++++++++++----------
+ drivers/acpi/include/acexcep.h          |   12 +-
+ drivers/acpi/include/acglobal.h         |   22 ++--
+ drivers/acpi/include/acinterp.h         |   21 ++--
+ drivers/acpi/include/aclocal.h          |   36 +++----
+ drivers/acpi/include/acmacros.h         |    8 -
+ drivers/acpi/include/acnamesp.h         |   38 +++----
+ drivers/acpi/include/acobject.h         |    4 
+ drivers/acpi/include/acparser.h         |   12 +-
+ drivers/acpi/include/acpiosxf.h         |   12 +-
+ drivers/acpi/include/acpixf.h           |    2 
+ drivers/acpi/include/acstruct.h         |    4 
+ drivers/acpi/include/actables.h         |   10 +-
+ drivers/acpi/include/actbl.h            |   20 ++--
+ drivers/acpi/include/actbl1.h           |    4 
+ drivers/acpi/include/actbl2.h           |    4 
+ drivers/acpi/include/actypes.h          |   12 +-
+ drivers/acpi/include/acutils.h          |   96 ++++++++++----------
+ drivers/acpi/include/platform/aclinux.h |   16 +--
+ drivers/acpi/namespace/nsaccess.c       |    6 -
+ drivers/acpi/namespace/nsalloc.c        |    2 
+ drivers/acpi/namespace/nsdump.c         |    4 
+ drivers/acpi/namespace/nseval.c         |   10 +-
+ drivers/acpi/namespace/nsinit.c         |    4 
+ drivers/acpi/namespace/nsnames.c        |    8 -
+ drivers/acpi/namespace/nsobject.c       |    2 
+ drivers/acpi/namespace/nsparse.c        |    2 
+ drivers/acpi/namespace/nssearch.c       |    4 
+ drivers/acpi/namespace/nsutils.c        |   30 +++---
+ drivers/acpi/namespace/nsxfeval.c       |    4 
+ drivers/acpi/namespace/nsxfname.c       |    4 
+ drivers/acpi/parser/psargs.c            |    8 -
+ drivers/acpi/parser/psopcode.c          |    4 
+ drivers/acpi/parser/psparse.c           |    2 
+ drivers/acpi/resources/rsaddr.c         |   20 ++--
+ drivers/acpi/resources/rscreate.c       |    2 
+ drivers/acpi/resources/rsirq.c          |    8 -
+ drivers/acpi/sleep.c                    |   12 +-
+ drivers/acpi/tables/tbconvrt.c          |   22 ++--
+ drivers/acpi/tables/tbget.c             |    2 
+ drivers/acpi/tables/tbgetall.c          |    8 -
+ drivers/acpi/tables/tbinstal.c          |    4 
+ drivers/acpi/tables/tbrsdt.c            |    6 -
+ drivers/acpi/tables/tbxfroot.c          |   16 +--
+ drivers/acpi/utilities/utalloc.c        |   22 +---
+ drivers/acpi/utilities/utcopy.c         |    4 
+ drivers/acpi/utilities/utdebug.c        |    4 
+ drivers/acpi/utilities/utdelete.c       |   10 +-
+ drivers/acpi/utilities/uteval.c         |    6 -
+ drivers/acpi/utilities/utglobal.c       |   32 +++---
+ drivers/acpi/utilities/utinit.c         |   16 +--
+ drivers/acpi/utilities/utmisc.c         |   20 ++--
+ drivers/acpi/utilities/utobject.c       |    6 -
+ 78 files changed, 494 insertions(+), 473 deletions(-)
+
+through these ChangeSets:
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/12/13 1.868)
+   ACPI: Fix write-related /proc entry functionality
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/12/12 1.867)
+   ACPI: update to 20021212
+    - remove NATIVE_CHAR typedef
+    - remove ACPI_{GET,VALID}_ADDRESS macros
+    - fix memory corruption in deletion of a static AML buffer
+    - fix fault caused by 0-length AML
+    - fix user-buffer overwrite/corruption of buffer is too small
+    - fix buffer-to-string conversion
+
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
