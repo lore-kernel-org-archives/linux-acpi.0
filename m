@@ -1,9 +1,14 @@
-From: bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
-Subject: Thinkpad R32 2.5.65-acpi
-Date: Mon, 24 Mar 2003 02:06:51 -0500
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: Hotplug PCI bridges
+Date: Mon, 24 Mar 2003 12:19:28 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200303240706.h2O76pF09989@throb.netspace.org>
+Message-ID: <20030324121928.GJ31008@parcelfarce.linux.theplanet.co.uk>
+References: <20030323155122.GE31008@parcelfarce.linux.theplanet.co.uk> <20030324.145806.74724782.kochi@hpc.bs1.fc.nec.co.jp>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030324.145806.74724782.kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -12,113 +17,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>
+Cc: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, Mar 24, 2003 at 02:58:06PM +0900, Takayoshi Kochi wrote:
+> > So.. how to fix?  Well, it depends.  Right now we have a half-arsed belief
+> > that PCI root bridges can go away.  Either we need to stop believing it
+> > or believe it properly.
+> 
+> Yes, they can.
 
-I've been playing around with ACPI power management a bit on my R32.
+OK.  In that case the existing code was broken as there was no way for
+the acpiphp driver to be informed when the root bridge was removed.
 
-I'm a bit new to this, but I think I've done my homework.  I Found the
-ECDT table replacement stuff, and followed those instructions.  This
-lead to a number of errors right after initializing ACPI(right after
-the PCI IRQ routing):
+> > If we believe it, we need to have some mechanism for having two drivers
+> > for one device [1].  This doesn't need to be a generic mechanism; it's
+> > fairly clear that acpiphp is a `subdriver' of pci_root and will always
+> > be initialised after it.
+> 
+> For 2.4, there is no acpi_bus_register_driver in the stock kernel
+> and we have luckily avoided the problem...
 
+Well, yeah.  But I need the GPE Block support in the latest version of ACPI,
+so I have to upgrade my ACPI CA.
 
-evregion-0341: *** Error: Handler for [SystemMemory] 
-		   returned AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed [\SMI_] 
-	      	   (Node c13b8728), AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed [\KCMD] 
-		   (Node c13bcda8), AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed [\_SB_.PCI0.
-		   LPC_.EC__.PUBS._STA] (Node c131cea8), AE_BAD_PARAMETER
-evregion-0341: *** Error: Handler for [SystemMemory]
-		    returned AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed [\SMI_] 
-		   (Node c13b8728), AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed [\RBEC] 
-		   (Node c13b8ba8), AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed [\_SB_.PCI0.
-		   LPC_.EC__.BAT0._STA] (Node c13194a8), AE_BAD_PARAMETER
-evregion-0341: *** Error: Handler for [SystemMemory] returned 
-		   AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed 
-		   [\SMI_] (Node c13b8728), AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed 
-		   [\RBEC] (Node c13b8ba8), AE_BAD_PARAMETER
-psparse-1121: *** Error: Method execution failed 
-		   [\_SB_.PCI0.LPC_.EC__.BAT1._STA] (Node c1319b28),
-		    AE_BAD_PARAMETER
+> > I'm currently favouring an acpi_pci_{,un}register_driver() interface with
+> > add and remove callbacks, since it's the least amount of code change
+> > without disbelieving pci root bridge removal.
+> 
+> I have no objection for going for it.
 
-FWIW I get the same messages (or at least very similar) messages under
-recent kernels (2.4 series with acpi patches , 2.5.65, and and acpi
-patched 2.5.65.)
+OK.  Will implement today.
 
-In /proc/acpi, there is no sleep file, there is an empty battery, an
-empty ac_adapter directory, a CPU directory that seems to be
-reasonable, and a thermal directory that says 50C all the time.
-
-Closing and opening the lid leads to another series of error messages,
-and little else. I won't get into that here.
-
-I tried to enable ACPI debugging selectively so I might trace what was
-going on, but I got pretty confused and gave up.
-
-Anyway, so I thought I'd try to take a look at the dsdt code and
-disassemble it.  Interestingly, recompiling it produced an error:
-
-dsdt.dsl  5881:                 ShiftLeft (Arg0, 0x08, Local0)
-Error    1014 -                               ^ Method argument 
-						is not initialized (Arg0)
-
-This is from
-
-     Method (_L18, 0, NotSerialized)
-        {
-            Sleep (0x07D0)
-            Store (\KCMD (0xC9, 0x00), Local0)
-            Store (Local0, \RRBF)
-            If (LEqual (Local0, 0x2F))
-            {
-BAD>>           ShiftLeft (Arg0, 0x08, Local0)
-                Store (Or (0x2013, Local0), Local0)
-                \_SB.PCI0.LPC.EC.HKEY.MHKQ (Local0)
-            }
-
-            Notify (\_SB.SLPB, 0x02)
-        }
-
-
-
-The line is pretty nonsensical, so I figured this couldn't be any worse
-(and maybe what "they" meant to do in the first place):
-
-        ShiftLeft (Local0, 0x08, Local0)
-
-So I compiled, and ran it.  The table gets loaded, but everything
-seems pretty much the same.
-
-Also of note, I specifically went into dmi_scan and de-Blacklisted my
-laptop from the smbus ban (and crossed my fingers), since I wan't sure
-if that was causing problems and it seems unlikely to destroy anything
-from what I've read (fingers crossed).
-
-I suspect that I've attemted to fix one of the switches, which
-probably won't fix any of the above error messages.
-
-Anyway, any input on where to go from here would be helpful.  I'm
-rather amazed at how broken the tables are.
-
-
-
---
-Hello, Justice Department?  I'd like to report a subversive penguin.  
-  --Tom Tomorrow "This Modern World"
-Brian Perkins                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org 
+-- 
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by:Crypto Challenge is now open! 
-Get cracking and register here for some mind boggling fun and 
-the chance of winning an Apple iPod:
-http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0031en
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
