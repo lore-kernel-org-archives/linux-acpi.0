@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Error Message at boot time
-Date: Mon, 12 Jan 2004 14:24:01 +0800
+Subject: RE: can't switch CPU frequency while running on batterypower
+Date: Mon, 12 Jan 2004 14:39:11 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CB0@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CB1@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,31 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastian Kemper <Sebastian.Kemper-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Defiant <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-> Sure
 >=20
-> Yu, Luming wrote:
-> >>    ACPI-0098: *** Error: Method execution failed [\_SB_.C005._CRS]=20
-> >>(Node c7fee980), AE_AML_BUFFER_LIMIT
-> >=20
-> >=20
-> > Hmm, annother case of  buffer limit failure.
-> > Can you send out  /proc/acpi/dsdt=20
-> >=20
+>=20
+> > When switching between AC and battery, _PPC method may=20
+> return a different
+> > P-state limit. Please verify if 'cat=20
+> /proc/acpi/processor/CPU0/limit' is
+> > different under the two situations.
+> >
+> > Thanks,
+> > Shaohua
+>=20
+> No, it is not different.
+> I get both times
+>=20
+> active limit:            P0:T0
+> platform limit:          P0:T0
+> user limit:              P0:T0
+> thermal limit:           P0:T0
+>=20
+> I guess, this is not good?
 
-I'm sorry, this seems to be old issue, which has been fixed in latest
-acpi.
-Would you please try latest kernel.
+Did you find any warning or error message in boot log?
+Maybe there are some potential ACPI bug.
 
-BTW. if you have other problem regarding ACPICA, please firstly try
-patch filed at=20
-http://bugme.osdl.org/show_bug.cgi?id=3D1766
-http://bugme.osdl.org/show_bug.cgi?id=3D1791
-=20
 
 
 -------------------------------------------------------
