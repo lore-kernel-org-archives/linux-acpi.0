@@ -1,15 +1,16 @@
-From: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
-Subject: Re: Tarting up my ACER 1703 ACPI spec
-Date: Wed, 14 Jan 2004 21:09:22 -0200
+From: Diego SANTA CRUZ <Diego.SantaCruz-p8DiymsW2f8@public.gmane.org>
+Subject: Re: Processor C states and USB problem
+Date: Thu, 15 Jan 2004 09:06:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4005CC22.9030902@techisa.srv.br>
-References: <1073487455.3051.17.camel@dirkl.int.tobit.co.uk> <20040109154007.7c6e4abc.greg@morningdave.org>
-Reply-To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org
+Message-ID: <1074153993.9113.6.camel@ltspc67.epfl.ch>
+References: <3ACA40606221794F80A5670F0AF15F8401720CC9@PDSMSX403.ccr.corp.intel.com>
+	 <1074066934.9124.6.camel@ltspc67.epfl.ch>
+	 <20040114163437.4bcbc62f.mike@it-loops.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040109154007.7c6e4abc.greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+In-Reply-To: <20040114163437.4bcbc62f.mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,41 +19,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Greg Sarjeant wrote:
+On Wed, 2004-01-14 at 16:34, Michael Guntsche wrote:
 
->Hi Dirk,
->
->   I found a couple of HOWTOs about this. They are:
->
->http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt
->http://home.fhtw-berlin.de/~s0502837/r31/
->
->   They suggest that the solution to both of your warnings is to add the following line at the end of the offending methods:
->
->   Return(Package(0x02){0x00, 0x00})
->
->   I can confirm that adding that line to my _WAK method did indeed get rid of the Warning on recompile. I don't know why that is the proper statement, which makes me a little uneasy, so if anyone could explain that (or point me to something that does), I'd appreciate it.
->
->   Hope that helps.
->   Greg
->  
->
-I was wondering... has anyone on this list ever thought about making a joint effort and writing some tutorials/articles on ACPI, hosted on a central place? 
+> 
+> Have you tried running a 2.6 kernel?
+> Under 2.4 bus master always shows "ffffffff" on my notebook. Sometimes
+> shutting down USB helps, sometimes it doesn't.
+> Running under 2.6 I only get full bus master activity if an USB
+> mouse is plugged in.
+> 
 
-Things like a generic explanation on how each ACPI object relates to others, the basic functions needed in a DSDT, how to fix the most common errors (the pages mentioned above already have some good information)... perhaps even some generic code skeletons for thermal zones, fan, etc. Perhaps even a "dissection" of a real DSDT.
+Thanks for the info. I guess I should get myself to try it out sometime
+soon then. The only problem is that the winmodem in this laptop uses a
+binary driver not available for 2.6 (AFAIK).
 
-I think this could be really useful for the people that are interested in learning more about ACPI and contribute to the project, but are intimidated by the lack of documentation, or excessively technical documentation...
+Best,
 
+Diego
 
 -- 
-
--- Erico Mendonca
-Techisa do Brasil
-
-
+-------------------------------------------------------
+Diego Santa Cruz - PhD
+Publications available at http://ltswww.epfl.ch/~dsanta
+Signal Processing Institute (LTS1 / ITS / STI)
+Swiss Federal Institute of Technology (EPFL)
+EPFL - STI - ITS, CH-1015 Lausanne, Switzerland
+E-mail:     Diego.SantaCruz-p8DiymsW2f8@public.gmane.org
+Phone:      +41 - 21 - 693 26 57
+Fax:        +41 - 21 - 693 76 00
+-------------------------------------------------------
 
 
 
