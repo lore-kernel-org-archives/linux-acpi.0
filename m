@@ -1,16 +1,9 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: [PATCH] Drop back to extended IRQ resource type
-Date: Tue, 2 Sep 2003 18:31:36 +0100
+From: "MailScanner" <postmaster-7zqYWxmgfIP3lWORV3XLkQ@public.gmane.org>
+Subject: Warning: E-mail viruses detected
+Date: Tue, 2 Sep 2003 14:14:29 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309021831.36533.adq_dvb@lidskialf.net>
-References: <20030829045032.GA688@gambit.implode.net> <200309021753.36646.adq_dvb@lidskialf.net> <20030902162312.GA1011@gambit.implode.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Message-ID: <200309021814.h82IETMX017570@remtk.solucorp.qc.ca>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030902162312.GA1011-XxA8UMA2PDBPKbTXaf03yKxOck334EZe@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,21 +12,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Wong <kernel-AAfBIQCtFhbR7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 02 Sep 2003 5:23 pm, John Wong wrote:
-> My card does work, but I'm am using the XFree86 nv driver since nVidia's
-> binary driver doesn't yet work with kernel 2.6.  I will try the 2.4.22
-> patch and the nVidia binary driver afterwards.
+Our virus detector has just been triggered by a message you sent:-
+  To: jack@localhost
+  Subject: Re: Approved
+  Date: Tue Sep  2 14:14:29 2003
 
-Great thanks... There IS a third party patch for v2.5 (maybe usable in v2.6) 
-for the nvidia driver somewhere... I've lost the URL unfortunately.
+One or more of the attachments (movie0045.pif) are on
+the list of unacceptable attachments for this site and will not have
+been delivered.
 
-I'm glad to see the dropback thing works on other boards.. well it looks like 
-it works anyway. :)
+Consider renaming the files or putting them into a "zip" file to avoid
+this constraint.
 
+The virus detector said this about the message:
+Report: Shortcuts to MS-Dos programs are very dangerous in email (movie0045.pif)
+
+
+-- 
+MailScanner
+Email Virus Scanner
+www.mailscanner.info
+Mailscanner thanks transtec Computers for their support
 
 
 -------------------------------------------------------
