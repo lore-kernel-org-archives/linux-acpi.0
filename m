@@ -1,39 +1,50 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: EC SCI model?
-Date: Wed, 25 Jun 2003 11:26:37 -0700 (PDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030625112546.H72722@root.org>
-References: <59278FC0C48A994BABABD069571E4568017903D5@orsmsx401.jf.intel.com>
+From: "¹Ú¿µ»ó" <groovy-GILFV2MaSN5eoWH0uzbU5w@public.gmane.org>
+Subject: [ACPI-sppt] Doesn't Wake on Lan with VT6103!
+Date: Thu, 26 Jun 2003 16:32:22 +0900
+Sender: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200306260732.h5Q7WMR02345@54s.new21.net>
+Reply-To: groovy-GILFV2MaSN5eoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <59278FC0C48A994BABABD069571E4568017903D5-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Diefenbaugh, Paul S" <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
+	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
+	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-support>
+To: acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 24 Jun 2003, Diefenbaugh, Paul S wrote:
-> I'd echo Andy's recommendation to check out the Linux code.  We went
-> through quite a bit of wrenching before getting this to work right on
-> all of the various ECs - noting that most are incapable of handing
-> EC_SCIs in a purely interrupt-driven fashion...
-> ___________________________________________
-> Paul Diefenbaugh
-> Intel Corporation, MPG | MPA | System Software Architecture
 
-I ran into the same problem.  My laptop is reporting events as
-level-triggered.  I'll examine other implementations as I rework things.
+Hi.
 
-Thanks,
--Nate
+I am using the EPIA M(VT5718B with VT6103) mainboard with Linux 2.5.69
+(Redhat 7.3). 
+When into S3 state or power-downed, it does not come alive when I send a WOL
+magic packet or ping. However, it works perfectly with WindowsXP as OS .
+
+I tried both the Linux via-rhine.c driver and VIA's rhinefet.c v3.28
+downloaded from VIA site. I saw that rhinefet.c has partial support for acpi.
+
+
+Both drivers clear registers related to WOL, but I guess for WOL to operate
+some sensible values must be written to it. Unfortunately, the chip
+documentation does not give me any clue what to do. 
+And, AwardBIOS6.0 is in this board.
+
+What should I do to make WOL available?
+Can anybody give me a detailed description what has to be done with the LAN
+chip and BIOS to enable WOL? 
+
+Thanks so much.
+
+Jun
+
+
 
 
 -------------------------------------------------------
