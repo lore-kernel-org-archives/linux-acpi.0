@@ -1,12 +1,10 @@
-From: Franklin Marmon <marmon-a4VQZhDi8cxBDgjK7y7TUQ@public.gmane.org>
-Subject: panic at acpi_ns_one_complete_parse
-Date: Tue, 11 May 2004 14:19:17 -0600
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: _S0D and \_S0?
+Date: Tue, 11 May 2004 18:02:19 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084306757.5031.8.camel@laptop.hydeco.com>
-Reply-To: marmon-a4VQZhDi8cxBDgjK7y7TUQ@public.gmane.org
+Message-ID: <20040511174800.K78445@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,29 +15,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+After doing some more analysis, on ASL, it appears some systems (Dell)
+have _S0D methods under devices.  It appears the OSPM should run those
+at runtime when deciding to change the power state for a device.  Here's
+an example:
 
-I've compiled a new DSDT table into my kernel (attached).  It compiles
-fine using iasl at this point, no warnings or errors.  When I reboot
-using this kernel I get a panic.  The top level of the call trace is 
+            Device (USB3)
+                Method (_S0D, 0, NotSerialized)
+                {
+                    Store (SMI (0x85, 0x00), Local0)
+                    And (Local0, 0x01, Local0)
+                    If (LEqual (Local0, 0x00))
+                    {
+                        Return (0x03)
+                    }
+                    Else
+                    {
+                        Return (0x00)
+                    }
+                }
+                Name (_S1D, 0x02)
+                Name (_S3D, 0x02)
 
-	acpi_ns_one_complete_parse-xd0/0xee
+This appears to say "if transitioning to another power state and the
+system is up and running (i.e. S0), the device must always be powered off
+(0x03) if bit 0 of SMI 0x85 is clear.  Otherwise, any power state is fine
+(0x00)".
 
-I'm wondering how I go about debugging this?  Presumably there is
-something wrong with my asm code, though the compiler isn't complaining
-about it any longer.  It was at great length when I dumped and
-disassembled /proc/acpi/dsdt.
+Additionally, some machines have non-zero values for \_S0.  Should we be
+writing these values to the wake register at some point?
 
-Thank you,
+asl/vaio.asl:Name(_S0_, Package(0x4) {
+asl/vaio.asl-    0x5,
+asl/vaio.asl-    0x5,
+asl/vaio.asl-    0x0,
+asl/vaio.asl-    0x0,
 
-frm
+Comments welcome.
 
--- 
-Franklin Marmon <marmon-a4VQZhDi8cxBDgjK7y7TUQ@public.gmane.org>
-"To error is human, machines do as they are told.  Unless they don't
-feel like it."
-
+-Nate
 
 
 -------------------------------------------------------
