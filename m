@@ -1,13 +1,14 @@
-From: Uwe Maier <umaier-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: acpi-20021101 broken
-Date: Tue, 5 Nov 2002 15:27:59 +0100 (MET)
+From: Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>
+Subject: Re: Changing temperature trip points
+Date: Tue, 5 Nov 2002 17:40:48 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <27570.1036506479@www30.gmx.net>
-References: <20021105083759.870.qmail@web12408.mail.yahoo.com>
+Message-ID: <20021105164048.GF18318@schiggy.intern.quelltext.com>
+References: <E187ipj-0001ss-00@usw-sf-list2.sourceforge.net> <000001c28231$b7cae110$c200a8c0@pikachu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <000001c28231$b7cae110$c200a8c0-3ycpsohRb2Y@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,69 +17,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hy,
-I can see that behaviour also on my Toshiba 2800-400.
-Booting is very slow. After boring minutes I can start a 'top' where I can
-see the kacpidpc spawning quite fast (and eating up nearly all of my CPU
-cycles until it dies).
+On Sat, Nov 02, 2002 at 12:35:56AM -0500, Edmund Rhudy wrote:
+> [...]
+> As it stands, I can currently turn the fan on manually with echo on >
+> /proc/acpi/fan/FAN0/state (though not turn it off with echo off, for
+> whatever reason), but I can't be constantly monitoring the temperature,
+> [...]
 
-uwe
+Just FYI, "on" and "off" are not the right keywords here:
 
-> Hi
-> Same situation happend on my ThinkPad 600E. After
-> waitting for a long time, The seeming endless loop was
-> over, and the box boot into console login. But the
-> strange problem was that every character you key in
-> were changed (eg. a change to ^A, ) so I cannot login.
-> After waitting for a long time,  every thing looks
-> like right. keyboard was ok now.
->
-> I was confused by the odd login experience.
->
->
-> --- "Anthony J. Breeds-Taurima" <tony-xfCdrj5MXxYnC9Muvcwxkw@public.gmane.org>
-> wrote:
-> > On Tue, 5 Nov 2002 moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org wrote:
-> >
-> > > Hi!
-> > >
-> > > I just tried out acpi-20021101 (patch against
-> > 2.4.20-rc1), but unfortunately it
-> > > seems to be broken. When booting, I see some kenel
-> > messages (I think I could
-> > > identify the processor-determination) and then the
-> > kernel seems to run into an
-> > > endless loop writing tons of messages to the
-> > console (nearly impossible to
-> > > read); but they all seem to have the same
-> > structure:
-> > >
-> > > a few words "-" four digits "["for digits"]"
-> > "["two digits"]" some text ":"
-> > > some text
-> >
-> > I think you want the patch at:
-> >
-> >
-> http://sourceforge.net/mailarchive/message.php?msg_id=2390873
-> >
-> >
-> > Yours Tony
-> >
-> >    Jan 22-25 2003           Linux.Conf.AU           
-> > http://linux.conf.au/
-> >           The Australian Linux Technical Conference!
+    echo >/proc/acpi/fan/FAN0/state 0		turns the fan on
+    echo >/proc/acpi/fan/FAN0/state 3		turns the fan off
 
+(On my machine, though, 3 doesn't turn the fan off, but makes it run
+slower and thus more quiet.)
 
--- 
- 
-
-+++ GMX - Mail, Messaging & more  http://www.gmx.net +++
-NEU: Mit GMX ins Internet. Rund um die Uhr für 1 ct/ Min. surfen!
-
+Arndt
 
 
 -------------------------------------------------------
