@@ -1,14 +1,15 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: CONFIG_ACPI
-Date: Wed, 18 Aug 2004 09:58:23 +0800
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI @ Ottawa Linux Symposium
+Date: 18 Aug 2004 00:35:33 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092794302.10064.4.camel@neuromancer.home.net>
-References: <1092779441.25902.21.camel@dhcppc4>
+Message-ID: <1092803733.25902.74.camel@dhcppc4>
+References: <1091158458.9636.17.camel@dhcppc4>
+	 <87brhwxni6.wl%miura@da-cha.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1092779441.25902.21.camel@dhcppc4>
+In-Reply-To: <87brhwxni6.wl%miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,24 +18,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-08-18 at 05:50, Len Brown wrote:
-> Looking over the ACPI config options,
-> it feels like time for some spring cleaning...
-> I'd like to see the /proc stuff go away,
-And where would they be located then?
-I see lots of directories in /sys/firmware/acpi/namespace/ACPI
+On Sat, 2004-07-31 at 10:25, Hiroshi Miura wrote:
+> Hi,
+> 
+> At 29 Jul 2004 23:34:18 -0400,
+> Len Brown wrote:
+> > 
+> > FYI,
+> > 
+> > Here are the slides I used to discuss ACPI at OLS last week:
+> >
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/ACPI_OLS_2004.sxi
+> > (Open Office Format)
+> 
+> From TODO list, I want to tell about it.
+> 
+> I start to implement Hotkey driver and Video switch driver
+> with vendor(Panasonic) support. I've already made its 
+> hotkey device driver, and the driver is posted later.
+> 
+> I have experienced about reverse-engineering of DSDT and making
+> hotkey driver, I think I can make hotkey drivers for other PCs. 
+> I want to request some Japanese PC vendor support, and if get, then 
+> I want to write hotkey driver for it.
 
-but no ascii files
+I'll be happy to see any positive news on this front.
+
+> About video driver,
+>  I'm trying to merge Ducrot's experimental implementation and mine.
+
+great!
+
+I think there are a lot of people interested in seeting this piece of
+the puzzle get solved.  Haven't heard from Bruno in a while -- he might
+be on vaction.  In any case, please post what you have to the list or
+the bug report so others can contribute.
+
+http://bugzilla.kernel.org/show_bug.cgi?id=1944
+
+thanks,
+-Len
 
 
--- 
-Ow Mun Heng
-Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel
-2.6.7-2.jul1-interactive 
-Neuromancer 09:56:06 up 35 min, 5 users, load average: 0.66, 1.10, 0.92 
 
 
 -------------------------------------------------------
