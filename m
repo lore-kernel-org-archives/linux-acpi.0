@@ -1,15 +1,15 @@
-From: Jeff Chua <jeff89-xU4+foPaXuB6NlgSsqhgrkEOCMrvLtNR@public.gmane.org>
-Subject: Re: _blank_ after resume
-Date: Tue, 9 Mar 2004 09:01:44 +0800 (SGT)
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: stack overflow
+Date: 09 Mar 2004 02:17:30 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0403090900270.30242@boston.corp.fedex.com>
-References: <Pine.LNX.4.58.0403071321080.873@boston.corp.fedex.com>
- <20040308204608.GA494@elf.ucw.cz> <Pine.LNX.4.58.0403090655550.25069@boston.corp.fedex.com>
- <20040308233725.GJ484@elf.ucw.cz>
+Message-ID: <1078816650.2342.547.camel@dhcppc4>
+References: <CE41BFEF2481C246A8DE0D2B4DBACF4F128AA4@ausx2kmpc106.aus.amer.dell.com>
+	 <20040308182630.GB9490@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040308233725.GJ484-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20040308182630.GB9490-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,23 +18,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ACPI Development <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Cc: Stuart_Hayes-DYMqY+WieiM@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Stuart,
+Does CONFIG_ACPI_DEBUG change the results of your measurements?
 
-On Tue, 9 Mar 2004, Pavel Machek wrote:
+Is it possible to run an i386 kernel on the same system to see if we've
+got an x86_64-specific issue?
 
-> I did not say it is easy :-).
->
-> Teach X (I mean write code!) to return video card to same state it
-> puts it after X shutdown.
+There is some run-time stack tracing code in ACPI (see
+acpi_gbl_lowest_stack_pointer) but it hasn't been used in a while.
 
-Ok. That means more sense now.
+thanks,
+-Len
 
-Thanks for the clarification.
+On Mon, 2004-03-08 at 13:26, Andi Kleen wrote:
+> > Here are some of the reasons I believe the stack is overflowing:
+> > 
+> > I've added some "printk"s to the kernel, and I've found that the stack pointer 
+> > goes down by ~6K between namespace/nseval.c:acpi_ns_evaluate_relative() and 
+> > executer/exstore.c:acpi_ex_store().
+> 
+> The usual way to start is do 
+> 
+> 	objdump -S <acpi object modules> | grep sub.*rsp
+> 
+> then sort by the biggest stack pigs and fix them one by one (e.g.
+> by kmallocing local data instead of allocating it on the stack)
+> When afterwards the problem still occurs it is most likely recursion or 
+> to deep nesting.  I have an old 2.4 patch that can catch these, but it 
+> would need porting to 2.6.
+> 
+> -Andi
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-Jeff.
 
 
 -------------------------------------------------------
