@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Date: Mon, 25 Aug 2003 11:02:20 +0800
+Subject: boot hang
+Date: Mon, 25 Aug 2003 13:46:46 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B0A@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B0C@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
@@ -20,11 +20,14 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thee is a tracker http://bugme.osdl.org/show_bug.cgi?id=3D529 ?
-Does anyone has such machine to have latest kernel and ACPI a try?
+Do you have experience like tracker =
+http://bugme.osdl.org/show_bug.cgi?id=3D891 ?  DSDT  and dmesg are =
+wanted.
 
 Thanks,
 Luming
+
+
 
 
 -------------------------------------------------------
