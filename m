@@ -1,21 +1,12 @@
-From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: S3 resume problems on HP compaq nc4010
-Date: Mon, 10 May 2004 13:32:47 +1000
+From: "Mj" <mj-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Yahoo!
+Date: Mon, 10 May 2004 20:23:14 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084157331.20487.41.camel@laptop-linux.wpcb.org.au>
-References: <1083777804.4093.71.camel@descent.netsplit.com>
-	 <20040509015516.GA5487@elf.ucw.cz> <1084117826.2372.32.camel@syndicate>
-	 <20040509213919.GA13603@atrey.karlin.mff.cuni.cz>
-	 <1084139548.14657.4.camel@syndicate>
-	 <20040509215621.GB15307@atrey.karlin.mff.cuni.cz>
-	 <1084140024.14657.8.camel@syndicate>
-	 <20040509232856.GA2504@atrey.karlin.mff.cuni.cz>
-Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+Message-ID: <xdusztnlrqktdakqcso@lists.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+        boundary="--------iazcnyxriwsuowpyveaz"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040509232856.GA2504-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -24,43 +15,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Scott James Remnant <scott-Umf49k1wg4FWk0Htik3J/w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+----------iazcnyxriwsuowpyveaz
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-On Mon, 2004-05-10 at 09:28, Pavel Machek wrote:
-> > > * due to video issues, swsusp should be easier to get working than
-> > >   S3. Try that first.
-> > > 
-> > Doesn't work either.  I got swsusp2 to work, but that has to shut down X
-> > and unload all the modules otherwise it won't resume; and that takes
-> > longer than a simple shutdown and boot -- so I abandoned it.  Plus it
-> > scared me -- too much pretty :)
-> 
-> Can you try just without dri/agp with swsusp2? That might do the
-> trick. Try to locate exactly which modules cause problems.
+<html><body>
+ 
 
-It should work fine without having to shutdown X, and even better now we
-have last week's pagedir patch applied.
+<br>
+</body></html>
 
-> dri/agp are known offenders, and fix is known by now.
-> 
-> Complain to Nigel about prettyness... I certainly did ;-).
+----------iazcnyxriwsuowpyveaz
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-You can't please everyone :> If you want it to look ugly, turn on
-debugging info!
 
-Nigel
--- 
-Nigel & Michelle Cunningham
-C/- Westminster Presbyterian Church Belconnen
-61 Templeton Street, Cook, ACT 2614.
-+61 (2) 6251 7727(wk); +61 (2) 6254 0216 (home)
+------------------  Virus Warning Message (on the network)
 
-Evolution (n): A hypothetical process whereby infinitely improbable events occur 
-with alarming frequency, order arises from chaos, and no one is given credit.
+You_will_answer_to_me.vbs is removed from here because it contains a virus.
+
+---------------------------------------------------------
+----------iazcnyxriwsuowpyveaz
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
+
+------------------  Virus Warning Message (on the network)
+
+Found virus VBS_BAGLE.Z in file You_will_answer_to_me.vbs
+The file is deleted.
+
+Therefore we removed the attachment-file
+by Mail Server and sent the message to you.
+
+(Japanese)
+$BK\%a!<%k$KE:IU$5$l$F$$$?%U%!%$%k$K%&%#%k%9$,46-AjHCUHv49ws@public.gmane.org$7$F$*$j$^$7$?!#(B
+$B$=$N$?$a!"%a!<%k%5!<%P$K$h$C$FE:IU%U%!%$%k$r<h$j=|$-!"K\J8$rAw?.(B
+$B$5$;$FD:$-$^$7$?!#(B
+
+---------------------------------------------------------
+
+----------iazcnyxriwsuowpyveaz--
 
 
 
