@@ -1,12 +1,15 @@
-From: lfs-support-bounces-Ugr1wgFcK0zneqvOfBTmdWD2FQJk+8+b@public.gmane.org
-Subject: Your message to Lfs-support awaits moderator approval
-Date: Sat, 23 Aug 2003 07:53:48 -0600
+From: =?iso-8859-1?q?=D8ystein=20Olsen?= <oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org>
+Subject: Errors a boot, Compaq Evo N1000v
+Date: Sat, 23 Aug 2003 15:53:00 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <mailman.2754.1061646828.8080.lfs-support@linuxfromscratch.org>
+Message-ID: <200308231553.00507.oystein.olsen@astro.uio.no>
+Reply-To: oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,21 +21,29 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Your mail to 'Lfs-support' with the subject
+I'm getting some errors at boot that I don't know how to fix. They are
 
-    Your details
+ACPI-1121: *** Error: Method execution failed [\_SB_.C03B.C047] (Node \=20
+c17df184), AE_AML_BUFFER_LIMIT
+ ACPI-1121: *** Error: Method execution failed [\_SB_.C03B.C04B] (Node \=20
+c17df6d8), AE_AML_BUFFER_LIMIT
+ACPI-1121: *** Error: Method execution failed [\_SB_.C03B._CRS] (Node \=20
+c17df6ac), AE_AML_BUFFER_LIMIT
+ACPI-0098: *** Error: Method execution failed [\_SB_.C03B._CRS] (Node \=20
+c17df6ac), AE_AML_BUFFER_LIMIT
 
-Is being held until the list moderator can review it for approval.
+Can anybody help me with this? My '/var/log/messages' and dsdt-table is=20
+located at=20
 
-The reason it is being held:
+http://folk.uio.no/oeysteio/Compaq/DSDT/ =20
 
-    Message has a suspicious header
+These messages didn't show up with the acpi-implementation from June 2003
 
-Either the message will get posted to the list, or you will receive
-notification of the moderator's decision.  If you would like to cancel
-this posting, please visit the following URL:
+=2D-=20
+=D8ystein Olsen, oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org, http://folk.uio.no/oeysteio
+Institute of Theoretical Astrophysics, http://www.astro.uio.no
+University of Oslo, Norway
 
-    http://linuxfromscratch.org/mailman/confirm/lfs-support/bea4628a2f16f2ea860716fc60227ebd86f63441
 
 
 
