@@ -1,14 +1,14 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: SSDT on Sony VAIO
-Date: Thu, 16 Jan 2003 08:46:24 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: RE: thermal.o Linux ACPI Kernel Modul
+Date: Thu, 16 Jan 2003 12:35:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030116074624.GA1239@brodo.de>
-References: <F760B14C9561B941B89469F59BA3A84725A11E@orsmsx401.jf.intel.com>
+Message-ID: <20030116113524.GS12516@poup.poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A847137F73@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A11E-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847137F73-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,43 +17,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nathan Conrad <conrad-aYgNHrD+FxfR7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: fat32-S0/GAf8tV78@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 15, 2003 at 05:08:40PM -0800, Grover, Andrew wrote:
-> > From: Nathan Conrad [mailto:conrad-aYgNHrD+FxfR7s880joybQ@public.gmane.org] 
-> > I am using kernel 2.5.55 on a Sony Vaio PCG-FXA49. Right now,
-> > /proc/acpi/processor/CPU0/info says that performance management is
-> > not available. My CPU (1.2 GHz mobile Athlon4) supports PowerNow, and
-> > I would expect this would qualify as performance management.
+On Wed, Jan 15, 2003 at 05:19:59PM -0800, Grover, Andrew wrote:
+> > From: Daniel [mailto:Fat32-S0/GAf8tV78@public.gmane.org] 
+> > Hallo Andrew,
+> > I have a little problem getting my cpu fan to work proppably 
+> > with linux.
+> > The ACPI module you coded creates a file in the proc fa calle 
+> > "trip_points".
+> > When I cat this file I get the following:
+> > cat trip_points
+> > critical (S5):           85 C
+> > passive:                 95 C: tc1=2 tc2=5 tsp=300 devices=0xc12c7680
 > > 
-> > I have looked at my ACPI tables and there is a listing of 5 P-states
-> > in my SSDT (1200 MHz,1000,800,600,500 MHz).
-> > 
-> > Why are these not listed in my /proc/acpi/processor/CPU0 directory?
-> > 
-> > Does the current Linux ACPI driver look at the SSDT tables, or does it
-> > only look at the DSDT for AML?
+> > So my fan is running the hole time (sometimes slower, 
+> > sometimes faster, but 
+> > never realy stops). btw. I have a Acer 613TXC Notebook with 
+> > Phoenix BIOS 
+> > (latest version).
 > 
-> It should consume both SSDT and DSDT tables.
-> 
-> You might try taking a look at the "performance management" section of
-> drivers/acpi/processor.c. Stick some printk's in
-> acpi_processor_get_performance_states and see where things are going
-> awry.
-> 
-> Also, if _PCT isn't present in the namespace as well, then it flags perf
-> support as not available.
+> You will notice that your system does not have an "active" entry. This
+> generally means that the fan is not under ACPI's control. So, the OS
+> power policy can read the temp (what does your temperature read?) and
+> implement passive cooling (throttle the CPU) and may shut the system
+> down when the temp hits 85C (wow, pretty hot) but it doesn't know about
+> any active cooling mechanisms.
 
-Also, do you have CONFIG_CPU_FREQ and CONFIG_ACPI_PROCESSOR_PERF enabled? If
-not, support for "performance management" will be disabled.
+passive at 95 and critical at 85 ?!  Oh my..
 
-	Dominik
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
-This SF.NET email is sponsored by: A Thawte Code Signing Certificate 
-is essential in establishing user confidence by providing assurance of 
-authenticity and code integrity. Download our Free Code Signing guide:
-http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0028en
+This SF.NET email is sponsored by: Thawte.com
+Understand how to protect your customers personal information by implementing
+SSL on your Apache Web Server. Click here to get our FREE Thawte Apache 
+Guide: http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0029en
