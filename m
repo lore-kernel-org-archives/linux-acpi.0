@@ -1,11 +1,8 @@
-From: Johnathan Hicks <thetech-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
-Subject: How do I measue latency?
-Date: Thu, 01 Aug 2002 00:10:59 -0400
+From: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
+Subject: Re: Re: Compaq Presario 2800T
+Date: Thu, 01 Aug 2002 01:51:18 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D48B4D3.1050109@folkwolf.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Message-ID: <200208010551.BAA23125@biohazard-cafe.mit.edu>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,21 +12,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: smandal-DPNOqEs/LNQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-ASUS was lazy when crafting the ACPI tables for my A7M266-D motherboard, and 
-set the C2 and C3 latency values to 101 and 1001 respectivley to disable them. 
-I know that ACPI doesn't do C2/C3 on SMP yet, but I would like to be be able 
-to measure some real values to insert in the FADT(FACP?) for when it can be 
-used. Both measuring and inserting into that table are possible right?
-As a side note, they goofed on the _S3_ object and wrote S_3_ instead in the DSDT.
 
---John
+
+Hi,
+
+So I upgraded to the acpi-20020726+swusp11.  Nothing much 
+has changed; however, I did develop a workaround for the hang
+when resuming from the suspension.  I was able to deduce that 
+ALSA was the culprit, so I simply shutdown/start ALSA in my 
+suspension script.
+
+The hangs on resume started with the patching of the DSDT. 
+ACPI with the patched DSDT is producing the following error
+(excerpted from dmesg):
+
+Executing all Device _STA and_INI methods:...evrgnini-0243:
+*** Error: Could not install Pci+config handler for C03C, 
+
+This error is repeated thrice.  Since my sound component
+(ADI SoundMAX, Intel 810) is PCI, I wonder if it's related?
+I'm not sure how to eliminate the error ... I could send
+my ASL DSDT to somebody who might be interested.
+
+
+Regards,
+
+Sourav
+
+
 
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by: Dice - The leading online job board
-for high-tech professionals. Search and apply for tech jobs today!
-http://seeker.dice.com/seeker.epl?rel_code=31
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
