@@ -1,19 +1,14 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: Dell D600: teaching radeonfb how to wake up...
-Date: Fri, 28 Nov 2003 11:10:44 +1100
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: ACPI + Laptop Power Management
+Date: Fri, 28 Nov 2003 11:21:19 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1069978244.671.219.camel@gaston>
-References: <20031120111315.GB432@openzaurus.ucw.cz>
-	 <1069370504.705.32.camel@gaston> <20031120234708.GA431@elf.ucw.cz>
-	 <20031121155010.C19564@loria2.loria.fr> <1069637387.723.112.camel@gaston>
-	 <20031124173603.GA298@elf.ucw.cz> <1069725771.876.296.camel@gaston>
-	 <20031125120443.GA297@elf.ucw.cz> <20031126132419.GL7374@poupinou.org>
-	 <20031126223436.GD207@elf.ucw.cz>  <20031127104722.GM7374@poupinou.org>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA0338640F@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031127104722.GM7374-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,46 +17,64 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2003-11-27 at 21:47, Ducrot Bruno wrote:
-> On Wed, Nov 26, 2003 at 11:34:36PM +0100, Pavel Machek wrote:
-> > That's what I'm doing, but it crashes machine on most
-> > machines. Perhaps PCI needs to be already initialized at this point or
-> > something like that?
-> 
-> In fact, I don't think that POST is a good idea anyway (we had
-> alerady that discussion).  It's way too early in the resume path.
-> Perhaps POSTing after PCI subsystem wakeup may help, but then you
-> may have to go with int 10 instead (and that will be pretty hard
-> to do that in kernel space).
 
-Well... we have to POST the card one way or another. So unless ATI
-provides us with the complete POST code for all of their chipset
-revisions, which may never happen, we are stuck with using the BIOS
-POST facility.
 
-However, I think Pavel is right here, we should probably restore
-the PCI bus (and AGP !) completely before attempting that. Which
-means we'll probably have to add a facility to x86 to go back to
-real mode run that dawn int10 thing.
+> -----Original Message-----
+> From: Micha Feigin [mailto:michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org]
+> Sent: Friday, November 21, 2003 7:13 PM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] ACPI + Laptop Power Management
+>=20
+>=20
+> On Fri, Nov 21, 2003 at 11:12:32AM +0100, Ducrot Bruno wrote:
+> like said here, laptopmode is what you want since it holds back dirty
+> buffer flushes which is what you are experiencing. It will fire up the
+> disk on reads though. I attached a script that you can use to enter
+> laptopmode (was actually distributed with laptopmode as far as I could
+> tell when googling for the original patch). I call it in responce to
+> ac events from acpid to get it running when the power is disconnected.
+> Will have to make sure that you get those event though since I had to
+> twik my dsdt for that.
+> You can also look at cpufreq of acpi cpu throttling to=20
+> throttle down you
+> cpu when on battery to conserve power (assuming you cpu=20
+> supports that).
 
-Something else we need on x86 (I need that at least in radeonfb),
-provided that doesn't exist already, is a small hook in the PCI
-code at probe time that "detects" which VGA PCI chbip had IO
-decoding enabled, that is which one is the primary one.
+I took a look at laptop mode. However, as the author said "it adds a
+non-significant" amount of battery time.
 
-I need that in order to properly retreive some tables, as on a
-bunch of laptops, the video BIOS ROM isn't accessible on the PCI
-ROM BAR of the card. So I need to check when dealing with the
-primary card and peek at the BIOS image at c0000 instead of the
-PCI ROM.
+The thing here is, even though it's flushing the buffers when there are
+others to flush, it makes not difference if the drive is still spinning =
+and
+not in standby-mode! I can't figure out what is making the HD _not_ spin
+down.
 
-ben.
- 
+BTW, Laptop_mode is merged into the 2.4.23-rc5 kernel (based on the
+changelogs)
 
+With regard to ACPId events, can you tell me how yo get it to work? I'm
+having problems getting it running. It gets lodaded up during init, and =
+it's
+running as root, but after logging in (GDM desktop), the events won't =
+fire
+until I kill the acpid process and re-run it again. (once I logged in)
+
+I can't figure out how to get it to work. I read in one page where the
+auther said to put xhost +local somewhere at the end of =
+/etc/X11/xinitrc.
+That didn't work either.
+
+> I patched reiserfs to change the journal commit time=20
+> according to the entry in
+> bdflush so that I can get the regular 30 sec journal flush=20
+> time when on
+> ac and 10 minutes when of battery.
+> I could try making such a patch for ext3 if you want.
+
+You mean that has to be patched at the Kernel Code Level?? Ah.. Dang!
 
 
 -------------------------------------------------------
