@@ -1,8 +1,8 @@
 From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/6]ACPI based Physical CPU hotplug
-Date: Wed, 8 Sep 2004 18:24:15 -0700
+Subject: Re: [PATCH 3/6]ACPI based Physical CPU hotplug
+Date: Wed, 8 Sep 2004 18:35:54 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040908182415.C7287@unix-os.sc.intel.com>
+Message-ID: <20040908183554.A7384@unix-os.sc.intel.com>
 References: <44BDAFB888F59F408FAE3CC35AB47041B17999@orsmsx409>
 Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
@@ -23,195 +23,218 @@ Cc: anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-This is the core eject support interface required to support user mode
-agent initiated hot-removal.
 
 ---
-Name:acpi_core_eject.patch
-Status: Tested on 2.6.9-rc2-mm2
+Name:acpi_hotplug_arch.patch
+Status: Tested on 2.6.9-rc1-mm2
 Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Depends:acpi_core
-Version: applies on 2.6.9-rc1-mm2
-
-This patch support /sys/firmware/acpi/eject interface where in 
-the ACPI device say "LSB0" can be ejected by echoing "\_SB.LSB0" > 
-/sys/firmware/acpi/eject
-
-The kernel when it receives an hardware sci eject request it simply passes this
-to user mode agent and the agent in turn will offline all the child devices and
-then echo's the ACPI device name onto /sys/firware/acpi/eject file and then the
-kernel will then actually remove the device.
-
+Depends:	
+Version: applies on 2.6.9-rc1-mm2	
+Description: 
+This patch provides the architecture specifice support for mapping lsapic to cpu array.
+Currently this supports just IA64. Support for IA32 and x86_64 is in progress
 ---
 
- linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/scan.c |  141 +++++++++++++++++++++++
- 1 files changed, 141 insertions(+)
+ linux-2.6.9-rc1-mm2-askeshav/arch/i386/kernel/acpi/boot.c |   22 ++
+ linux-2.6.9-rc1-mm2-askeshav/arch/ia64/kernel/acpi.c      |  129 +++++++++++++-
+ linux-2.6.9-rc1-mm2-askeshav/include/linux/acpi.h         |    6 
+ 3 files changed, 155 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/scan.c~acpi_core_eject drivers/acpi/scan.c
---- linux-2.6.9-rc1-mm2/drivers/acpi/scan.c~acpi_core_eject	2004-09-08 16:42:16.763594503 -0700
-+++ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/scan.c	2004-09-08 16:42:16.848555439 -0700
-@@ -2,6 +2,7 @@
-  * scan.c - support for transforming the ACPI namespace into individual objects
-  */
+diff -puN include/linux/acpi.h~acpi_hotplug_arch include/linux/acpi.h
+--- linux-2.6.9-rc1-mm2/include/linux/acpi.h~acpi_hotplug_arch	2004-09-08 16:42:19.810469466 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/include/linux/acpi.h	2004-09-08 16:42:19.907149152 -0700
+@@ -396,6 +396,12 @@ void acpi_numa_processor_affinity_init (
+ void acpi_numa_memory_affinity_init (struct acpi_table_memory_affinity *ma);
+ void acpi_numa_arch_fixup(void);
  
-+#include <linux/module.h>
- #include <linux/init.h>
- #include <linux/acpi.h>
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++/* Arch dependent functions for cpu hotplug support */
++int acpi_map_lsapic(acpi_handle handle, int *pcpu);
++int acpi_unmap_lsapic(int cpu);
++#endif /* CONFIG_ACPI_HOTPLUG_CPU */
++
+ extern int acpi_mp_config;
  
-@@ -293,6 +294,141 @@ end:
+ extern u32 pci_mmcfg_base_addr;
+diff -puN arch/ia64/kernel/acpi.c~acpi_hotplug_arch arch/ia64/kernel/acpi.c
+--- linux-2.6.9-rc1-mm2/arch/ia64/kernel/acpi.c~acpi_hotplug_arch	2004-09-08 16:42:19.816328841 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/arch/ia64/kernel/acpi.c	2004-09-08 16:42:19.909102277 -0700
+@@ -354,11 +354,11 @@ acpi_parse_madt (unsigned long phys_addr
+ #define PXM_FLAG_LEN ((MAX_PXM_DOMAINS + 1)/32)
+ 
+ static int __initdata srat_num_cpus;			/* number of cpus */
+-static u32 __initdata pxm_flag[PXM_FLAG_LEN];
++static u32 __devinitdata pxm_flag[PXM_FLAG_LEN];
+ #define pxm_bit_set(bit)	(set_bit(bit,(void *)pxm_flag))
+ #define pxm_bit_test(bit)	(test_bit(bit,(void *)pxm_flag))
+ /* maps to convert between proximity domain and logical node ID */
+-int __initdata pxm_to_nid_map[MAX_PXM_DOMAINS];
++int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
+ int __initdata nid_to_pxm_map[MAX_NUMNODES];
+ static struct acpi_table_slit __initdata *slit_table;
+ 
+@@ -650,4 +650,129 @@ acpi_gsi_to_irq (u32 gsi, unsigned int *
+ 	return 0;
  }
  
- /* --------------------------------------------------------------------------
-+                              ACPI hotplug Eject support
-+   -------------------------------------------------------------------------- */
-+static ssize_t acpi_eject_store(struct subsystem *subsys, const char *buf, size_t count);
-+static struct subsys_attribute acpi_eject_attr =
-+	__ATTR(eject,0200,NULL,acpi_eject_store);
++
 +
 +/*
-+ * evaluate _EJ0, detach driver, and remove from ACPI bus
++ *  ACPI based hotplug support for CPU
 + */
-+static int
-+eject_operation(acpi_handle handle, int lockable)
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++static
++int
++acpi_map_cpu2node(acpi_handle handle, int cpu, long physid)
 +{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status = AE_OK;
++#ifdef CONFIG_ACPI_NUMA
++	int 			pxm_id = 0;
++	union acpi_object 	*obj;
++	struct acpi_buffer 	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
 +
-+	/*
-+	 * TBD: evaluate _PS3?
-+	 */
++	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_PXM", NULL, &buffer)))
++		goto pxm_id_0;
 +
-+	if (lockable) {
-+		arg_list.count = 1;
-+		arg_list.pointer = &arg;
-+		arg.type = ACPI_TYPE_INTEGER;
-+		arg.integer.value = 0;
-+		acpi_evaluate_object(handle, "_LCK", &arg_list, NULL);
++	if ((!buffer.length) || (!buffer.pointer))
++		goto pxm_id_0;
++
++	obj = buffer.pointer;
++	if (obj->type != ACPI_TYPE_INTEGER) {
++		acpi_os_free(buffer.pointer);
++		goto pxm_id_0;
 +	}
 +
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = 1;
++	pxm_id = obj->integer.value;
 +
++pxm_id_0:
 +	/*
-+	 * TBD: _EJD support.
++	 * Assuming that the container driver would have set the proximity
++	 * domain and would have initialized pxm_to_nid_map[pxm_id] && pxm_flag
 +	 */
 +
-+	status = acpi_evaluate_object(handle, "_EJ0", &arg_list, NULL);
-+	if (ACPI_FAILURE(status)) {
-+		return(-ENODEV);
-+	}
++	/* Return Error if proximity domain is not set */
++	if (!pxm_bit_test(pxm_id))
++		return -EINVAL;
 +
++	node_cpuid[cpu].phys_id =  physid;
++	node_cpuid[cpu].nid = pxm_to_nid_map[pxm_id];
++
++#endif
 +	return(0);
 +}
 +
-+static ssize_t
-+acpi_eject_store(struct subsystem *subsys, const char *buf, size_t count)
++
++int
++acpi_map_lsapic(acpi_handle handle, int *pcpu)
 +{
-+	acpi_status status;
-+	acpi_handle hlsb;
-+	struct acpi_device *device = NULL;
-+	int result;
-+	int ret = count;
++	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
++	union acpi_object *obj;
++	struct acpi_table_lsapic *lsapic;
++	cpumask_t tmp_map;
++	long physid;
++	int cpu;
++ 
++	if (ACPI_FAILURE(acpi_evaluate_object(handle, "_MAT", NULL, &buffer)))
++		return -EINVAL;
 +
-+	char *acpi_name;
-+	char *p;
-+	int islockable;
-+	acpi_object_type	type = 0;
-+
-+	if (!count) {
++	if (!buffer.length ||  !buffer.pointer)
++		return -EINVAL;
++ 
++	obj = buffer.pointer;
++	if (obj->type != ACPI_TYPE_BUFFER ||
++	    obj->buffer.length < sizeof(*lsapic)) {
++		acpi_os_free(buffer.pointer);
 +		return -EINVAL;
 +	}
 +
-+	acpi_name = kmalloc(count+1, GFP_KERNEL);
-+	if (!acpi_name) {
-+		return -ENOMEM;
++	lsapic = (struct acpi_table_lsapic *)obj->buffer.pointer;
++
++	if ((lsapic->header.type != ACPI_MADT_LSAPIC) ||
++	    (!lsapic->flags.enabled)) {
++		acpi_os_free(buffer.pointer);
++		return -EINVAL;
 +	}
 +
-+	acpi_name[count] = '\0';
-+	strncpy(acpi_name, buf, count);
++	physid = ((lsapic->id <<8) | (lsapic->eid));
 +
-+	for (p = acpi_name+(count-1); p >= acpi_name; --p) {
-+		if (isspace(*p))
-+			*p = '\0';
-+		else
-+			break;
-+	}
++	acpi_os_free(buffer.pointer);
++	buffer.length = ACPI_ALLOCATE_BUFFER;
++	buffer.pointer = NULL;
 +
-+	status = acpi_get_handle(NULL, acpi_name, &hlsb);
-+	if(ACPI_FAILURE(status)) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
++	cpus_complement(tmp_map, cpu_present_map);
++	cpu = first_cpu(tmp_map);
++	if(cpu >= NR_CPUS)
++		return -EINVAL;
 +
-+	status = acpi_get_type(hlsb, &type);
-+	if (ACPI_FAILURE(status)) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
++	if (ACPI_FAILURE(acpi_map_cpu2node(handle, cpu, physid)))
++	return -ENODEV;
 +
-+	result = acpi_bus_get_device(hlsb, &device);
-+	if (result) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+#ifndef FORCE_EJECT
-+	if (device->driver == NULL) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
-+#endif
-+	if (!device->flags.ejectable) {
-+		ret = -ENODEV;
-+		goto err;
-+	}
++ 	cpu_set(cpu, cpu_present_map);
++	ia64_cpu_to_sapicid[cpu] = physid;
++	ia64_acpiid_to_sapicid[lsapic->acpi_id] = ia64_cpu_to_sapicid[cpu];
 +
-+	islockable = device->flags.lockable;
-+
-+	/*
-+	 * remove from ACPI bus.
-+	 */
-+	if (type == ACPI_BUS_TYPE_PROCESSOR)
-+		acpi_bus_trim(device, 0);
-+	else
-+		acpi_bus_trim(device, 1);
-+		
-+
-+	result = eject_operation(hlsb, islockable);
-+	if (result) {
-+		ret = -EBUSY;
-+	}
-+err:
-+	kfree(acpi_name);
-+	return ret;
++	*pcpu = cpu;
++	return(0);
 +}
++EXPORT_SYMBOL(acpi_map_lsapic);
 +
 +
-+static int __init register_acpi_eject(void)
++int
++acpi_unmap_lsapic(int cpu)
 +{
-+	subsys_create_file(&acpi_subsys, &acpi_eject_attr);
-+	return 0;
++	int i;
++
++	for (i=0; i<MAX_SAPICS; i++) {
++ 		if (ia64_acpiid_to_sapicid[i] == ia64_cpu_to_sapicid[cpu]) {
++ 			ia64_acpiid_to_sapicid[i] = -1;
++ 			break;
++ 		}
++ 	}
++ 	ia64_cpu_to_sapicid[cpu] = -1;
++	cpu_clear(cpu,cpu_present_map);
++
++#ifdef CONFIG_ACPI_NUMA
++	/* NUMA specific cleanup's */
++#endif
++
++	return(0);
 +}
-+
-+
-+/* --------------------------------------------------------------------------
-                               Performance Management
-    -------------------------------------------------------------------------- */
- 
-@@ -1155,6 +1291,11 @@ static int __init acpi_scan_init(void)
- 	if (result)
- 		acpi_device_unregister(acpi_root, ACPI_BUS_REMOVAL_NORMAL);
- 
-+	/*
-+	 * Register hotplug eject interface
-+	 */
-+	register_acpi_eject();
-+
-  Done:
- 	return_VALUE(result);
++EXPORT_SYMBOL(acpi_unmap_lsapic);
++#endif /* CONFIG_ACPI_HOTPLUG_CPU */
++ 
+ #endif /* CONFIG_ACPI */
+diff -puN arch/i386/kernel/acpi/boot.c~acpi_hotplug_arch arch/i386/kernel/acpi/boot.c
+--- linux-2.6.9-rc1-mm2/arch/i386/kernel/acpi/boot.c~acpi_hotplug_arch	2004-09-08 16:42:19.822188215 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/arch/i386/kernel/acpi/boot.c	2004-09-08 16:42:19.910078839 -0700
+@@ -475,6 +475,28 @@ unsigned int acpi_register_gsi(u32 gsi, 
  }
+ EXPORT_SYMBOL(acpi_register_gsi);
+ 
++/*
++ *  ACPI based hotplug support for CPU
++ */
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++int
++acpi_map_lsapic(acpi_handle handle, int *pcpu)
++{
++	/* TBD */
++	return -EINVAL;
++}
++EXPORT_SYMBOL(acpi_map_lsapic);
++
++
++int
++acpi_unmap_lsapic(int cpu)
++{
++	/* TBD */
++	return -EINVAL;
++}
++EXPORT_SYMBOL(acpi_unmap_lsapic);
++#endif /* CONFIG_ACPI_HOTPLUG_CPU */
++
+ static unsigned long __init
+ acpi_scan_rsdp (
+ 	unsigned long		start,
 _
 
 
