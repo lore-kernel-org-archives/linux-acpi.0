@@ -1,70 +1,56 @@
-From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Re: [BKPATCH] ACPI for 2.6
-Date: Mon, 28 Jun 2004 09:30:59 +0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6E0C289723A0564F9A8279E236E8565F07A9E73A@pdsmsx402.pd.intel.com>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: [ACPI] No APIC interrupts after ACPI suspend
+Date: Mon, 28 Jun 2004 09:35:55 +0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <B44D37711ED29844BEA67908EAF36F032D5361@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264625AbUF1BgN@vger.kernel.org>
 Content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
- 
-Please update your patch on osdl bug.
+Currently we have no suspend/resume code for IOAPIC, we should add it.
+For PIC mode, current 8259 resume code ignored IRQ level/edge trigger,
+and it should be added.
 
-thx.
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Stefan Seyfried
-Sent: 2004年6月26日 0:36
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Re: Re: [BKPATCH] ACPI for 2.6
-
-On Fri, Jun 25, 2004 at 10:13:56AM +0800, Wang, Zhenyu Z wrote:
-> 
-> Fine. It is simple.
-> How about to change " int active[9]; " 
-> to 
-> "int active[ACPI_THERMAL_MAX_ACTIVE];" ?
-
-Of course. active[9] is in fact wrong, since it only gives us
-active[0]...active[8], but later i use active[9] *blush*.
-Well, it is probably better if i don't try to make a living based
-on my C skills ;-)
-Thanks for spotting this.
-I admit that this patch looks a bit kludgy with all that "active[0],
-active[1],..." stuff, but since the limit of 10 Trip points is
-"hardcoded" in the ACPI spec, we can probably get away with that.
--- 
-Stefan Seyfried
-
-
-
--------------------------------------------------------
-This SF.Net email sponsored by Black Hat Briefings & Training.
-Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
-digital self defense, top technical experts, no vendor pitches, 
-unmatched networking opportunities. Visit www.blackhat.com
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
-
--------------------------------------------------------
-This SF.Net email sponsored by Black Hat Briefings & Training.
-Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
-digital self defense, top technical experts, no vendor pitches, 
-unmatched networking opportunities. Visit www.blackhat.com
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
+>admin@lists.sourceforge.net] On Behalf Of Matthew Garrett
+>Sent: Monday, June 28, 2004 12:28 AM
+>To: David Eriksson
+>Cc: linux-kernel@vger.kernel.org; acpi-devel@lists.sourceforge.net
+>Subject: Re: [ACPI] No APIC interrupts after ACPI suspend
+>
+>On Sat, 2004-06-26 at 18:42 +0200, David Eriksson wrote:
+>
+>> Maybe you've found this bug?
+>>
+>> http://bugme.osdl.org/show_bug.cgi?id=2643
+>
+>Yeah, that one was biting me, but it's not the one causing this bug.
+>cat /proc/interrupts shows that the ACPI interrupt is correctly set to
+>level triggered, but the ioapic isn't set up correctly so no interrupts
+>make it through. The same seems to be true for all other
+level-triggered
+>interrupts.
+>
+>--
+>Matthew Garrett | mjg59@srcf.ucam.org
+>
+>
+>
+>-------------------------------------------------------
+>This SF.Net email sponsored by Black Hat Briefings & Training.
+>Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
+>digital self defense, top technical experts, no vendor pitches,
+>unmatched networking opportunities. Visit www.blackhat.com
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel@lists.sourceforge.net
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
