@@ -1,11 +1,11 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: ASUS M3N and sleep states
-Date: Sat, 27 Dec 2003 22:51:37 +0100
+Date: Sat, 27 Dec 2003 18:33:36 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031227215137.GA28438@hell.org.pl>
+Message-ID: <20031227173335.GA1599@elf.ucw.cz>
 References: <3FED7289.1070201@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 In-Reply-To: <3FED7289.1070201-wlebWZzHoyE@public.gmane.org>
@@ -21,34 +21,24 @@ To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
 Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Luca Capello:
-> - - S1
-> obviously, if I leave the USB module on, the resume process hangs trying
-> to set the IRQ for the USB controllers. So, I unload the USB modules and
-> the resume process hangs again. I found that the other problem are the
-> ALSA modules: if I unload them (and the USB as well), the resume process
+Hi!
 
-[the following is for ASUS L3800C]
-Same here for USB (actually, unloading {usb-,}uhci suffices, 2.6 doesn't
-hang though). ALSA doesn't seem to care in my case.
-About the shutdown: it is likely that a PWRF event is issued after resume
-like in my case, kill acpid prior to suspending and see if it makes any
-difference (I reported the PWRF problem here a while ago, but have
-received no feedback so far).
+> I use a kernel 2.6.0, without any ACPI patch, and I enable all the
+> 'Power Management' options, as in my .config here:
+> 	#
+> 	# Power management options (ACPI, APM)
+> 	#
+> 	CONFIG_PM=y
+> 	CONFIG_SOFTWARE_SUSPEND=y
+> 	CONFIG_PM_DISK=y
+> 	CONFIG_PM_DISK_PARTITION="/dev/hda6"
 
-> - - S4
-> without USB and ALSA, I got a clear power-down and for the resume
-> (passing to the kernel the option 'resume=/dev/hda6' which is my swap
-> partition), the OS seems to resume correctly, it sees my resume command,
-> reads the resume partition, but then it reboots and my swap partition is
-> corrupted (I need a mkswap on my swap partition).
-
-Kill X and unload AGP or use Nigel's patches from swsusp.sf.net.
-Best regards,
+Select either PM_DISK or SOFTWARE_SUSPEND but not both. Thanks.
+								Pavel
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
