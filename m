@@ -1,83 +1,47 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [PM][ACPI] No ACPI interrupts after resume from S1
-Date: Fri, 21 Nov 2003 09:10:59 +0800
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BDD@pdsmsx403.ccr.corp.intel.com>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: a bit confused
+Date: Thu, 20 Nov 2003 22:41:26 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE00147D322@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
-To: "Yu, Luming" <luming.yu@intel.com>, Karol Kozimor <sziwan@hell.org.pl>
-Cc: Pavel Machek <pavel@ucw.cz>, M?ns Rullg?rd <mru@users.sourceforge.net>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Giorgenes Gelatti <giorgenes.canopus-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have made an updated version. Would you please retry?
--Luming
+> The linux kernel itself seems to already have
+> support for acpi (im using 2.4.21),
+> so, I do I need your patchs? Or better,
+> What does your patchs have to offer?
 
------Original Message-----
-From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-owner@vger.kernel.org]On Behalf Of Yu, Luming
-Sent: 2003?10?27? 16:56
-To: Karol Kozimor
-Cc: Pavel Machek; M?ns Rullg?rd; acpi-devel@lists.sourceforge.net; linux-kernel@vger.kernel.org
-Subject: RE: [PM][ACPI] No ACPI interrupts after resume from S1
+If your system works correctly, then the latest patch offers nothing.
 
+If it does not and you'd like to try the latest ACPI patch, the oldest
+kernel we support is 2.4.22:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
+2.4.22/
 
-I made a mistake in using base_number. Would you please have updated patch a try?
-Thanks a lot. --Luming
+Ref:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.A
+CPI
 
-
------Original Message-----
-From: Karol Kozimor [mailto:sziwan@hell.org.pl]
-Sent: 2003?10?27? 5:41
-To: Yu, Luming
-Cc: Pavel Machek; M?ns Rullg?rd; acpi-devel@lists.sourceforge.net; linux-kernel@vger.kernel.org
-Subject: Re: [PM][ACPI] No ACPI interrupts after resume from S1
+Cheers,
+-Len
 
 
-Thus wrote Yu, Luming:
-> Would you please try patch at http://bugme.osdl.org/show_bug.cgi?id=1409
-
-Hi,
-The patch makes my kernel oops on resume:
-hdc: completing PM  request, resume
-  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: 90
-  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: A0
-  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: 24
-  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: C8
-  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: E0
-  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: F0
-  hwregs-0760 [56] hw_low_level_read     : Unsupported address space:  4
-Unable to handle kernel paging request at virtual address 70677679
- printing eip:
-c020c44c
-*pde = 00000000
-Oops: 0000 [#1]
-CPU:    0
-EIP:    0060:[<c020c44c>]   Not tainted
-EFLAGS: 00010206
-EIP is at acpi_hw_lowlevel_read+0x30/0x122
-eax: c02e6344   ebx: cffd6408   ecx: cfc51e88   edx: 00000010
-esi: 70677671   edi: cfc51e90   ebp: 00000008   esp: cfc51e58
-ds: 007b   es: 007b   ss: 0068
-Process bash (pid: 304, threadinfo=cfc50000 task=c1368a0)
-Stack: 00000130 c021c9b8 00000002 c02e6499 c02e6344 c02f6720 cffd6408 cfe3b228
-       000001e0 00000001 c020b6b2 00000008 cfc51e90 70677671 c0311650 00000018
-       c020b9c2 cffd6408 00000010 00000000 00000000 cfc51ebc c02da521 00000001
-Call Trace:
- acpi_ut_acquire_mutex+0xc0/0x16b
- acpi_hw_enable_gpe+0x1e/0x44
- acpi_hw_enable_ec_gpes+0x7f0x85
- acpi_leave_sleep_state+0x119/0x13e
- dpm_resume+0x34/0x5a
- acpi_pm_finish+0xb/0x38
- [...]
-
-Code: 8b 56 08 8b 46 04 89 d1 09 c1 75 0a 31 c0 83 c4 18 5b 5c 5f
-[hand typed, but at least the traces should be OK]
-
-Best regards,
-
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
