@@ -1,13 +1,14 @@
-From: Nicolas Olivero <nicolas.olivero-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
+From: Robert Vollmert <rvollmert-hi6Y0CQ0nG0@public.gmane.org>
 Subject: Re: Re: acpi on medion laptop
-Date: Sun, 19 Oct 2003 11:37:40 +0200 (CEST)
+Date: Sun, 19 Oct 2003 14:51:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <28747088.1066556260752.JavaMail.www@wwinf0102>
-Reply-To: nicolas.olivero-39ZsbGIQGT5GWvitb5QawA@public.gmane.org
+Message-ID: <20031019125129.GA2030@krikkit>
+References: <28747088.1066556260752.JavaMail.www@wwinf0102>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <28747088.1066556260752.JavaMail.www-PMdOW1uaTljBkAz3hwFLjg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,19 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Yury Umanets <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hello, 
-first thanks for trying to help me....
-I compiled both kernel 2.4.23 and 2.6.0 but i still have the same problem.
-acpi works for my battery, i can see its level, but i can't see the thermal, fan informations :( 
-another idea to resolve my problem?
+Hi,
 
-does it mean that my processor is in danger? i think my fan works less often than before without acpi...
+On Sun, Oct 19, 2003 at 11:37:40AM +0200, Nicolas Olivero wrote:
+> I compiled both kernel 2.4.23 and 2.6.0 but i still have the same
+> problem. acpi works for my battery, i can see its level, but i can't
+> see the thermal, fan informations :( another idea to resolve my
+> problem?
 
-thanks for any help!
+are you checking the files under /proc/acpi, or only using
+/usr/bin/acpi? Maybe the information is there, only the program is too
+old to read it correctly? Also, which version of 2.6.0 are you using?
+I think there were some ACPI fixes in the recently released
+2.6.0-test8.
+
+Cheers
+Robert
 
 
 -------------------------------------------------------
