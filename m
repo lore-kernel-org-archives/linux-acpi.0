@@ -1,18 +1,14 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Re: suspend-to-disk: fan always on and misc kernel
-	errors
-Date: Mon, 04 Apr 2005 18:03:02 +1000
-Message-ID: <1112601782.3757.9.camel@desktop.cunningham.myip.net.au>
-References: <4246F06D.40005@cs.unibo.it>
-	 <20050328205027.GB28568@message-id.gmane0305.slipkontur.de>
-	 <4249A359.9060301@cs.unibo.it>
-	 <20050401221940.GC1868@message-id.gmane0305.slipkontur.de>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Subject: Re: Re: 2.6.12-rc1-mm4 and suspend2ram (and synaptics)
+Date: Mon, 4 Apr 2005 10:16:00 +0200
+Message-ID: <20050404081600.GA2424@gamma.logic.tuwien.ac.at>
+References: <20050331220822.GA22418@gamma.logic.tuwien.ac.at> <20050401113335.GA13160@elf.ucw.cz> <20050403224557.GB1015@gamma.logic.tuwien.ac.at> <20050403225929.GE13466@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050401221940.GC1868-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050403225929.GE13466-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,44 +18,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Hi Pavel!
 
-On Sat, 2005-04-02 at 08:19, Stefan Seyfried wrote:
-> On Tue, Mar 29, 2005 at 08:50:01PM +0200, Andrea Borgia wrote:
-> > Stefan Seyfried wrote:
-> > 
-> > Thanks, I have no idea how they got in the script, that partially fixed
-> > it: no more "command not found" errors, but the kernel messages about
-> > "scheduling while atomic" are still there and the script still aborts
-> > with SIG11 after resuming from suspend.
-> 
-> | Mar 27 18:49:57 localhost kernel: note: swsusp-script[3902] exited with preempt_count 1
-> 
-> disable preempt.
+On Mon, 04 Apr 2005, Pavel Machek wrote:
+> I'd like to fix the problem, but first I need to know where the
+> problem is.  If it works with minimal config, I know that it is one of
+> drivers you deselected.
 
-Isn't that just dealing with the symptom, rather than the problem
-though? Presumably something a preempt_enable() or such like is missing
-somewhere.
+It's b44. It *was* working with b44 insmod-ed and up and running, but
+now as soon as b44-eth0 is ifup-ed while suspending, the resume freezes.
+If I do a ifdown eth0 before suspending, it works.
 
-Regards,
+Best wishes
 
-Nigel
--- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
+Norbert
 
-Maintainer of Suspend2 Kernel Patches http://suspend2.net
-
+-------------------------------------------------------------------------=
+------
+Norbert Preining <preining AT logic DOT at>                 Universit=E0 =
+di Siena
+sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
+690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
+5 B094
+-------------------------------------------------------------------------=
+------
+PUDSEY (n.)
+The curious-shaped flat wads of dough left on a kitchen table after
+someone has been cutting scones out of it.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
 SF email is sponsored by - The IT Product Guide
 Read honest & candid reviews on hundreds of IT Products from real users.
 Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
