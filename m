@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
 Subject: Re: iasl
-Date: Mon, 12 May 2003 12:16:55 +0200
+Date: Mon, 12 May 2003 12:24:03 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030512101655.GB19351@poup.poupinou.org>
-References: <D3A3AA459175A44CB5326F26DA7A189C1C3C62@orsmsx405.jf.intel.com>
+Message-ID: <3EBF9263.6040405@ottaky.com>
+References: <D3A3AA459175A44CB5326F26DA7A189C1C3C62@orsmsx405.jf.intel.com> <20030512101655.GB19351@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3C62-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
+In-Reply-To: <20030512101655.GB19351-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,50 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 09, 2003 at 01:47:39PM -0700, Moore, Robert wrote:
-> 
-> In this case, we know that PCI_Config space is always accessed by 32-bit
-> reads/writes, so change the Op region definition to length 4.
+Ducrot Bruno wrote:
 
-You know nothing about that the fact that PCI_Config space have
-to be accessed as 32-bit reads/write.  It may be the
-Field(PIUC, DWordAcc,...) to be bogus.  A better look of this field
-is needed.
+> Unless sjb give us more info, we can not tell anything at this
+> stage.
 
-Imagine it look like 
-Field(PIUC, DWordAcc, ...)
-{
-	FOO, 16
-}
+OK .. the dsdt is here
 
-then a better fix is:
-OperationRegion (PIUC, PCI_Config, 0x74, 0x02)
-Field(PIUC, WordAcc, ...)
-{
-	FOO, 16
-}
+http://www.ottaky.com/misc/dsdt.dsl.gz
 
-Or FOO may be 8 bit long.
-In that case, a possible fix is:
-OperationRegion (PIUC, PCI_Config, 0x74, 0x01)
-Field(PIUC, ByteAcc, ...)
-{
-	FOO, 8
-}
+please note, this is the version I have fixed(?).
+
+Thanks for all your help, BTW ;-)
+
+sjb
 
 
-Unless sjb give us more info, we can not tell anything at this
-stage.
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
