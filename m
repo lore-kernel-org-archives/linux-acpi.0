@@ -1,15 +1,14 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: RE: DSDT in Dell i8200-- does acpi have the correct
-	addres	s?
-Date: 16 Dec 2002 14:51:01 -0500
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: 2.5.51: sleep broken
+Date: Mon, 16 Dec 2002 21:30:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1040068261.2060.33.camel@sirius.strandboge.cxm>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A5A8@orsmsx119.jf.intel.com>
+Message-ID: <20021216203016.GF16669@poup.poupinou.org>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A591@orsmsx119.jf.intel.com> <200212130111.32710.p_christ@hol.gr> <200212131604.23595.p_christ@hol.gr> <200212152356.09656.p_christ@hol.gr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A5A8-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200212152356.09656.p_christ-U04EIuiosng@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,79 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2002-12-16 at 14:43, Grover, Andrew wrote:
-> > From: James D Strandboge [mailto:jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org] 
-> > My i8200 has basic acpi functionality, with quite a few issues.  I
-> > started poking around the Dell download site and came across this in a
-> > description of a BIOS upgrade for my laptop:
-> > 
-> > ===================================================================
-> > Systems:      Dell Inspiron 8200	(Memory location F000:E845)
-> > Version:      A06                       (Memory location F000:E842)
-> > Build Date:   08/17/02                  (Memory location FFFF:0005)
-> > 
-> > ...
-> > 
-> > Now, if I read my dsdt from /proc/acpi/dsdt, nd decompile it 
-> > with iasl,
-> > it shows a version from 1998.  I looked at dmesg and found:
-> > 
-> > ACPI: DSDT (v001 INT430 SYSFexxx 00000.04097) @ 0x00000000
-> > ACPI: BIOS passes blacklist
-> > 
-> > 
-> > The question is, should acpi be looking at a different memory location
-> > for the proper DSDT?  I mean, can 0x00000000 be right?  What is the
-> > 'Memory location' dell is referring to?  
+On Sun, Dec 15, 2002 at 11:56:09PM +0200, P. Christeas wrote:
+> I also noted some perculiarity in the code:
 > 
-> I am so busted.
+> in: linux/arch/i386/kernel/acpi.c
+> in: acpi_reserve_bootmem(void)
+> ...
+>         if ((&wakeup_end - &wakeup_start) > PAGE_SIZE)
+>                 printk(KERN_CRIT "ACPI: Wakeup code way too big, will crash on 
+>                       attempt to suspend (0x%8.8lx)\n",
+>                         (&wakeup_end - &wakeup_start));
 > 
-> from drivers/acpi/tables.c:
+> --- I added the parameter to see what's happening. The message indicated an 
+> 0x3000 size. (12k)
 > 
-> /* 
->  * The DSDT is *not* in the RSDT (why not? no idea.) but we want
->  * to print its info, because this is what people usually blacklist
->  * against. Unfortunately, we don't know the phys_addr, so just
->  * print 0. Maybe no one will notice.
->  */
-> if(!acpi_get_table_header_early(ACPI_DSDT, &header))
-> 	acpi_table_print(header, 0);
+> the comment for the fn says:
+>  * We allocate a page in low memory for the wakeup
+>  * routine for when we come back from a sleep state. The
+>  * runtime allocator allows specification of <16M pages, but not
+>  * <1M pages.
 > 
-> Basically there was no clean way to get the DSDTs phys_addr at that point,
-> so I punted. Rest assured your DSDT does have an address, and yes, it is
-> stored in the BIOS, and subsequently copied to RAM, where we find it.
-> 
+> Are the above lines correct? AFAIK macro PAGE_SIZE = 4096
+> That would mean that only <4k code is allowed. OK, but the comment suggests 
+> otherwise...
 
-Please bear with me, I am new to this.  From what I gather, you are
-saying that this is simply a diagnostic message and is not reflecting
-the true state of my dsdt, and that in fact, linux is using the correct
-dsdt that is in the bios, rather than doing something else.  Is this
-correct?
+Search for wakeup_stack under acpi_wakeup.S
+I have modified that and it look something like that for me now:
 
-> Also note that this is printed in the first phase of ACPI init - table
-> parsing. Just because your system's DSDT info is printed here does not mean
-> it cannot be overridden before it is actually used. See
-> http://www.poupinou.org/acpi/over.html .
-> 
-I have read about overriding the dsdt, but my thinking was that the
-decompiled dsdt had a 1998 version, and that things may be wrong.  I
-guess I am back to square one-- this DSDT is very unmanageable (cryptic
-variable names and almost no comments).
+.org 0x800
+wakup_stack:
+.org 0x900
+ENTRY(wakup_end)
+.org 0x1000
 
-Thanks for your reply.
-
-Jamie
+(hint given by Pavel)
 
 -- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
+Ducrot Bruno
 
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
