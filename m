@@ -1,12 +1,14 @@
-From: Jamie Guinan <guinan-w0d+SACn59vSUeElwK9/Pw@public.gmane.org>
-Subject: RSDT too big
-Date: Wed, 8 Oct 2003 17:52:30 -0400 (EDT)
+From: Robert Vollmert <rvollmert-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Shuttle SB61G2 fan speed
+Date: Thu, 9 Oct 2003 00:55:14 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0310081743070.18004-100000@gemini.home.net>
-Reply-To: guinan-w0d+SACn59vSUeElwK9/Pw@public.gmane.org
+Message-ID: <20031008225514.GA4583@krikkit>
+References: <E1A7IkI-0004qc-8W@cell01.cell01.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E1A7IkI-0004qc-8W-6vcCkRnH9/iXl4vLVl4uKAC/G2K4zDHf@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,77 +17,77 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Eric Northup <digitale-eFwX6J65rk/J8bqQQ1YlwQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
 
-With a 2.4.20 SMP kernel, I'm seeing this in my kernel log,
+On Wed, Oct 08, 2003 at 02:09:10PM -0400, Eric Northup wrote:
+> I've posted it at http://www.digitaleric.net/dsdt.gz
 
-Oct  8 15:37:30 dolly5 kernel: ACPI: Searched entire block, no RSDP was found.
-Oct  8 15:37:30 dolly5 kernel: ACPI: RSDP located at physical address c00ea410
-Oct  8 15:37:30 dolly5 kernel: ACPI table found: RSDT v1 [COMPAQ CPQ0063  8195.1573]
-Oct  8 15:37:30 dolly5 kernel: ACPI: Too big length in RSDT: 124
+Thanks.
 
+I think that for fan control via ACPI to work, the fan device should
+specify an associated power resource that provides _ON/_OFF methods
+for starting and stopping the fan. Your DSDT doesn't appear to do
+that.
 
-Here is the code that's reporting it,
+You could try calling FON/FOFF manually to see if those methods work,
+at least. I don't know how to best do this, though. When I did that
+kind of testing, I modified the asus_acpi module. But maybe there's an
+easier way to do this?
 
-  arch/i386/kernel/acpitable.c:
+If these work, and the missing power resource thing is correct, maybe
+you could add one to your DSDT? You should be able to find working
+code in some of the DSDTs posted on acpi.sf.net. FYI, the relevant
+code for the ASUS M2N is
 
-	if (saved_rsdt.header.length > sizeof(saved_rsdt)) {
-		printk(KERN_WARNING "ACPI: Too big length in RSDT: %d\n", saved_rsdt.header.length);
-		return -ENODEV;
-	}
+Name (FAN1, 0x00)
 
-The sizeof(saved_rsdt) is 104.  The code doesn't appear to have changed in 2.4.22.
+Device (FN00)
+{
+    Name (_HID, EisaId ("PNP0C0B"))
 
-What could be wrong here?  More entries in the table that the kernel 
-doesn't yet know about?  Would it hurt to just continue instead of 
-returning -ENODEV?
+    Name (_PR0, Package (0x01)
+    {
+        GFAN
+    })
+}
 
-Additional info,
+PowerResource (GFAN, 0x00, 0x0000)
+{
+    Method (_STA, 0, NotSerialized)
+    {
+        Return (FAN1)
+    }
 
-$ cat /proc/cpuinfo 
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 15
-model           : 2
-model name      : Intel(R) Pentium(R) 4 CPU 3.00GHz
-stepping        : 9
-cpu MHz         : 2992.591
-cache size      : 512 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 2
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca 
-cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm
+    Method (_ON, 0, NotSerialized)
+    {
+        Store (0x01, FAN1)
+    }
 
+    Method (_OFF, 0, NotSerialized)
+    {
+        Store (0x00, FAN1)
+    }
+} 
 
-$ gdb /boot/vmlinux-2.4.20-18.9smp /proc/kcore
-(gdb) x/s 0xc00ea410
-0xc00ea410:	 "RSD PTR ,COMPAQ"
-(gdb) x/124bx 0xc00ea410
-0xc00ea410:	0x52	0x53	0x44	0x20	0x50	0x54	0x52	0x20
-0xc00ea418:	0x2c	0x43	0x4f	0x4d	0x50	0x41	0x51	0x00
-0xc00ea420:	0x40	0x76	0xff	0x3f	0x00	0x00	0x00	0x00
-0xc00ea428:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
-0xc00ea430:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
-0xc00ea438:	0x00	0x00	0x00	0x00	0x00	0x00	0x00	0x00
-0xc00ea440:	0x00	0x00	0x00	0x00	0xf0	0x3f	0x78	0x00
-0xc00ea448:	0x41	0x40	0x78	0x00	0x00	0x00	0x11	0x00
-0xc00ea450:	0x00	0x00	0xff	0xff	0xff	0xff	0xff	0xff
-0xc00ea458:	0xff	0xff	0x13	0x00	0x00	0x00	0x78	0x00
-0xc00ea460:	0x00	0x00	0x27	0x00	0x00	0x00	0xff	0xff
-0xc00ea468:	0xff	0xff	0xff	0xff	0xff	0xff	0x13	0x00
-0xc00ea470:	0x00	0x00	0xff	0xff	0xff	0xff	0xff	0xff
-0xc00ea478:	0xff	0xff	0xff	0xff	0xff	0xff	0xff	0xff
-0xc00ea480:	0xff	0xff	0x10	0x00	0x00	0x00	0xff	0xff
-0xc00ea488:	0xff	0xff	0xff
+If you modified _ON to call FON and _OFF to call FOFF, and adapted
+your fan device to reference the power resource, this might work. Of
+course, it's quite possible that it won't, especially since fan
+control in that notebook doesn't really work as suggested by the ACPI
+spec. Also, please note that a lot of this is speculation.
 
+>  I also re-compiled the kernel with ACPI debugging enabled.  Here is the
+> relevant (I think) part of dmesg (I can put the whole thing but its long
+> so I'm not sending it unless it would be helpful)
+
+As far as I can tell, this is OK. Temperature reporting also appears
+to work.
+
+Cheers
+Robert
 
 
 -------------------------------------------------------
