@@ -1,70 +1,42 @@
 From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[1/6]-ACPI core enhancement support
-Date: Mon, 20 Sep 2004 12:01:28 -0700
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
+Date: Mon, 20 Sep 2004 12:24:04 -0700
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040920120128.A15677@unix-os.sc.intel.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920093402.C14208@unix-os.sc.intel.com> <200409201326.44946.dtor_core@ameritech.net>
+Message-ID: <20040920122404.B15677@unix-os.sc.intel.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920093532.D14208@unix-os.sc.intel.com> <200409201333.42857.dtor_core@ameritech.net>
 Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200409201326.44946.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Mon, Sep 20, 2004 at 01:26:44PM -0500
+In-Reply-To: <200409201333.42857.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Mon, Sep 20, 2004 at 01:33:42PM -0500
 To: Dmitry Torokhov <dtor_core@ameritech.net>
 Cc: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 20, 2004 at 01:26:44PM -0500, Dmitry Torokhov wrote:
-> On Monday 20 September 2004 11:34 am, Keshavamurthy Anil S wrote:
-> > +void
-> > +acpi_bus_trim(struct acpi_device=A0=A0=A0=A0=A0=A0=A0*start,
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0int rmdevice)
-> > +{
-> > +=A0=A0=A0=A0=A0=A0=A0acpi_status=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0status =3D AE_OK;
-> > +=A0=A0=A0=A0=A0=A0=A0struct acpi_device=A0=A0=A0=A0=A0=A0*parent =3D=
- NULL;
-> > +=A0=A0=A0=A0=A0=A0=A0struct acpi_device=A0=A0=A0=A0=A0=A0*child =3D=
- NULL;
-> > +=A0=A0=A0=A0=A0=A0=A0acpi_handle=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0phandle =3D 0;
-> > +=A0=A0=A0=A0=A0=A0=A0acpi_handle=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0chandle =3D 0;
-> > +
-> > +=A0=A0=A0=A0=A0=A0=A0parent =A0=3D start;
-> > +=A0=A0=A0=A0=A0=A0=A0phandle =3D start->handle;
->=20
->=20
-> Why do all these variables have to be initialized? parent and phandle=
- are
-> set up explicitly couple of lines below, the rest is only used safely
-> as well...
-You are correct, variable initialization can be removed. I will do this=
-=2E
+On Mon, Sep 20, 2004 at 01:33:42PM -0500, Dmitry Torokhov wrote:
+> On Monday 20 September 2004 11:35 am, Keshavamurthy Anil S wrote:
+> > This patch support /sys/firmware/acpi/eject interface where in 
+> > the ACPI device say "LSB0" can be ejected by echoing "\_SB.LSB0" > 
+> > /sys/firmware/acpi/eject
+> > 
+> 
+> I wonder if eject should be an attribute of an individual device and visible
+> only when device can be ejected. Reading from it could show eject level
+> (_EJ0/_EJ3 etc).
+Hi Dmitry,
+	Today there is really no sysfs representation of acpi devices apart from
+the acpi namespace representation. Evaluating acpi namespaces's _EJ0 method won't help,
+as we need acpi device and all its child devices to be removed as part of the eject.
 
->=20
-> Also, introducing recursion (depth does not seem to be limited here) =
-is
-> not a good idea IMHO - better convert it into iteration to avoid stac=
-k
-> problems down teh road.
-Humm, I guess recursion should be fine and even though the code does no=
-t have
-an explicit limit, the ACPI namespace describing the Ejectable device w=
-ill limit the
-number of recursible devices. And I believe this won;t be more than 3 t=
-o 4 level depth.
-Hence recursion is fine here.
+Also for there is no 1:1 maping of acpi devices to pci devices to consider eject to be
+part of the pci devices.
 
-If you still strongly believe that recursion is not the right choice he=
-re,=20
-let me know and I will convert it to iteration.
+Hence the best solution for now is to echo ACPI full path name of the device to be
+ejected onto the eject file and the code will make sure that the device supports _EJx method before actuall removing the device.
 
-Thanks,
+thanks,
 Anil
--
-To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> Dmitry
