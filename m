@@ -1,136 +1,86 @@
-From: Takayoshi Kochi <t-kochi@bq.jp.nec.com>
-Subject: Re: [RFC] ACPI IRQ proposal
-Date: Fri, 26 Mar 2004 17:56:30 +0900 (JST)
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040326.175630.74755524.t-kochi@bq.jp.nec.com>
-References: <200403231537.14505.bjorn.helgaas@hp.com>
-	<20040326.143930.41646618.maeda@jp.fujitsu.com>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
+Date: Fri, 26 Mar 2004 11:06:17 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040326100617.GC388@elf.ucw.cz>
+References: <1079279490.10225.10.camel@darkstar> <20040315210729.GA19306@alpha.home.local> <1079389434.3695.2.camel@darkstar> <20040315231927.GA19829@alpha.home.local> <20040322105946.GC1505@openzaurus.ucw.cz> <1080253327.3755.20.camel@darkstar> <20040325222934.GF2179@elf.ucw.cz> <1080255058.4187.1.camel@darkstar> <20040325230037.GK2179@elf.ucw.cz> <20040326055547.GA26599@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20040326.143930.41646618.maeda@jp.fujitsu.com>
-To: maeda.naoaki@jp.fujitsu.com
-Cc: bjorn.helgaas@hp.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040326055547.GA26599-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Maeda-san, Bjorn,
+Hi!
 
-Although the ACPI spec says that SCI is 'active-low, level' interrupt,
-there are many platforms that doesn't follow the rule (what I've seen
-are almost active-high, level).  I think Maeda-san's case is just
-a wrong polarity.
+On P=E1 26-03-04 06:55:47, Willy Tarreau wrote:
+> On Fri, Mar 26, 2004 at 12:00:37AM +0100, Pavel Machek wrote:
+> > > so acpi_system_save_state(state) does do nothing at all ?
+> > > or does return nothing at all ?
+> >=20
+> > IIRC there was patch that made acpi_system_save_state() do nothing at
+> > all if !CONFIG_ACPI_SLEEP. I'm arguing thats very wrong.
+>=20
+> I 100% agree that it's dirty to call a fake function instead of not
+> calling it at all. Indeed, one of my proposed patches removed the
+> dependency on CONFIG_ACPI_SLEEP through a simple replacement of
+> acpi_system_save_state() with two calls to pm_send_all() which does
+> not depend on CONFIG_ACPI_SLEEP. I believe it was cleaner, but it's
+> not what is included in BK right now... Here it is for reference.
 
-Usually those platforms would describe the polarity and trigger of
-SCI in 'interrupt source override' record in the ACPI MADT table.
+Yes, this looks good and needed.
+								Pavel
 
-The polarity and trigger are programmed in iosapic when MADT
-parsing is done, so we don't want to force 'ACPI_ACTIVE_LOW,
-ACPI_LEVEL_SENSITIVE' when SCI is enabled.
 
-So maybe acpi_register_gsi() would take only one argument (u32 gsi)
-and the acpi_register_gsi() by itself will derive polarity and trigger
-from override table or iosapic_intr_info[]?
-
-From: MAEDA Naoaki <maeda.naoaki@jp.fujitsu.com>
-Subject: Re: [RFC] ACPI IRQ proposal
-Date: Fri, 26 Mar 2004 14:39:30 +0900 (JST)
-
-> Hi, Bjorn.
-> 
-> I've tried your patch in tiger4, but it causes spurious acpi interrupts,
-> and finally the IRQ is disabled by note_interrupt().
-> 
-> I guess the difference causing this problem is your patch enables the acpi
-> interrupt on acpi_register_gsi() called by acpi_os_install_interrupt_handler(),
-> but original acpi_os_install_interrupt_handler() calls acpi_irq_to_vector(),
-> which does not enable the interrupt, instead.
-> 
-> I am not sure the reason, but probably the enabling timing is too early
-> for the acpi interrupt.
-> 
-> Didn't you hit this problem?
-> 
-> Thanks,
-> Naoaki Maeda
-> 
-> ------- Original code 
-> #if defined(CONFIG_IA64) || defined(CONFIG_PCI_USE_VECTOR)
->         irq = acpi_irq_to_vector(irq);
->         if (irq < 0) {
->                 printk(KERN_ERR PREFIX "SCI (ACPI interrupt %d) not registered\n",
->                        acpi_fadt.sci_int);
->                 return AE_OK;
->         }
-> #endif
->         acpi_irq_handler = handler;
->         acpi_irq_context = context;
->         if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
->                 printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
->                 return AE_NOT_ACQUIRED;
->         }
->         acpi_irq_irq = irq;
-> --------
-> 
-> -------- Patched code
->         irq = acpi_register_gsi(gsi, ACPI_ACTIVE_LOW, ACPI_LEVEL_SENSITIVE);
->         if (irq < 0) {
->                 printk(KERN_ERR PREFIX "SCI (ACPI interrupt %d) not registered\n",
->                        gsi);
->                 return AE_OK;
->         }
-> 
->         acpi_irq_handler = handler;
->         acpi_irq_context = context;
->         if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
->                 printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
->                 return AE_NOT_ACQUIRED;
->         }
-> --------
-> 
-> 
-> From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-> Subject: [RFC] ACPI IRQ proposal
-> Date: Tue, 23 Mar 2004 15:37:14 -0700
-> 
-> > I think the ACPI/platform interactions for IRQ setup are unnecessarily
-> > complex.  Today we have:
-> > 
-> >     - boot-time parsing of all the _PRTs (platform subsys_initcall
-> >       calls acpi_pci_irq_init(), which calls either mp_parse_prt()
-> >       or iosapic_parse_prt() based on some #ifdefs).
-> > 
-> >     - pci_enable_device()-time IRQ enable (platform
-> >       pcibios_enable_resources() calls acpi_pci_irq_enable(), which
-> >       calls back to platform code, again based on some #ifdefs).
-> > 
-> > By defining a new platform interface, we should be able to get rid of
-> > the boot-time _PRT parsing and do everything cleanly at
-> > pci_enable_device()-time:
-> > 
-> >     int					/* Linux IRQ */
-> >     acpi_register_gsi(int gsi,
-> > 		      int polarity,	/* active high or low */
-> > 		      int trigger)	/* edge or level */
-> > 
-> > This is responsible for whatever APIC or IOSAPIC programming the
-> > platform needs, as well as allocating and returning a Linux IRQ.
-> > 
-> > By doing this, we get
-> > 
-> >     - possibility of hot-plugging a PCI root bridge (w/ _PRT)
-> >     - removal of architecture #ifdefs from pci_irq.c and osl.c
-> >     - removal of some Linux IRQ junk from acpi/pci_irq.c
-> > 
-> > If there are still some broken drivers that don't call pci_enable_device(),
-> > we still have the option of putting a hook somewhere that just calls
-> > acpi_pci_irq_enable() for all PCI devices.
-> > 
-> > Sample patch below only cleans up ia64; i386 and x86_64 looks a
-> > little more complicated.  Any comments?
-> 
+> --- linux-2.4.26-pre3-acpi/drivers/acpi/system.c	Mon Mar 15 21:54:55 20=
+04
+> +++ linux-2.4.26-pre3-acpi-pwoff/drivers/acpi/system.c	Mon Mar 15 21:57=
+:32 2004
+> @@ -46,13 +46,6 @@
+>  #include <linux/mc146818rtc.h>
+>  #include <linux/irq.h>
+>  #include <asm/hw_irq.h>
 > -
-> To unsubscribe from this list: send the line "unsubscribe linux-ia64" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> -acpi_status acpi_system_save_state(u32);
+> -#else
+> -static inline acpi_status acpi_system_save_state(u32 state)
+> -{
+> -	return AE_OK;
+> -}
+>  #endif /* !CONFIG_ACPI_SLEEP */
+> =20
+>  #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+> @@ -102,7 +95,8 @@
+>  		BUG();
+>  	/* Some SMP machines only can poweroff in boot CPU */
+>  	set_cpus_allowed(current, 1UL << cpu_logical_map(0));
+> -	acpi_system_save_state(ACPI_STATE_S5);
+> +	pm_send_all(PM_SAVE_STATE, (void *)3);
+> +	pm_send_all(PM_SUSPEND, (void *)3);
+>  	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
+>  	ACPI_DISABLE_IRQS();
+>  	acpi_enter_sleep_state(ACPI_STATE_S5);
+>=20
+>=20
+
+--=20
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
