@@ -1,14 +1,13 @@
-From: Alimin Bijosono Oei <alimin-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
-Subject: Re: dsdt patch
-Date: Wed, 04 Feb 2004 01:46:07 +1100
+From: "greg" <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+Subject: Re: No handler for Region
+Date: Tue, 3 Feb 2004 10:34:11 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <401FB42F.10501@ihug.com.au>
-References: <401CCB50.6010003@ihug.com.au> <401E12BC.60905@pca.it>
+Message-ID: <20040203153411.M47846@morningdave.org>
+References: <200402030823.53848.t.zachmann@zagge.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <401E12BC.60905-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <200402030823.53848.t.zachmann-c61pB8mzqkY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,31 +16,90 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Luca Capello wrote:
+Hi Thorsten,
 
-> Hello,
-> 
-> on 02/01/04 10:48, Alimin Bijosono Oei wrote:
-> 
->>Just want to ask where can I find a patch that will allow me to use my
->>own dsdt for kernel 2.4.24? Is there such a patch flying around or is
->>the kernel itself patched to allow implementation of custom dsdt table?
-> 
-> there's an HOWTO here (even if against linux-2.4.18):
-> 	http://www.cpqlinux.com/acpi-howto.html
-> 
-> Thx, bye,
-> Gismo / Luca
+   I had similar issues with a Gaateway 200X. The problem is that the machine 
+does not supply an ECDT. I was able to fix the problem by using the patch 
+associated with bug 1690.
 
-Thanks Luca. That's what I have been following as well. But then I am 
-stuck with the step of patching osl.c in order to include my own dsdt 
-table. The howto had a patch for kernel 2.4.18 but what about 2.4.24 
-which I am using now? Is there any osl.c patch for 2.4.24 somewhere?
+the bug - http://bugme.osdl.org/show_bug.cgi?id=1690
+the patch - http://bugme.osdl.org/attachment.cgi?id=1690&action=view
 
+   It seems to have worked for a number of different systems with this issue, 
+so perhaps it will help you, too.
+
+   Greg
+
+
+---------- Original Message -----------
+From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sent: Tue, 3 Feb 2004 08:25:41 +0100
+Subject: [ACPI] No handler for Region
+
+> Hello all,
+> 
+> I have a toshiba tecra s1. During the bootup I get some errors and 
+> the battery status is not working. The messages looks similar as 
+> described in
+> 
+> http://sourceforge.net/mailarchive/message.php?msg_id=6752695
+> 
+> I run a 2.6.2-rc2 kernel with the acpi-20040116.diff.bz2 patch and 
+> the acpi initrd patch for setting my own dsdt. Since the update to 
+> 2.6.2-rc2 the errors for the dockingstation are gone. However there 
+> are still some "No handler for Region" errors during boot up as seen 
+> below:
+> 
+> <4>evregion-0251 [21] ev_address_space_dispa: No handler for Region 
+> [ECF2] 
+> (dfef1ea8) [EmbeddedControl] <4> exfldio-0284 [20] ex_access_region  
+>     : Region EmbeddedControl(3) has no handler <4> dswexec-0435 [13] 
+> ds_exec_end_op        : [Store]: Could not resolve operands, AE_NOT_EXIST
+> <4> psparse-1120: *** Error: Method execution failed 
+> [\_SB_.BAT0._STA] (Node dfef9ba8), AE_NOT_EXIST <4>evregion-0251 
+> [21] ev_address_space_dispa: No handler for Region [ECF2] 
+> (dfef1ea8) [EmbeddedControl] <4> exfldio-0284 [20] ex_access_region  
+>     : Region EmbeddedControl(3) has no handler <4> dswexec-0435 [13] 
+> ds_exec_end_op        : [Store]: Could not resolve operands, AE_NOT_EXIST
+> <4> psparse-1120: *** Error: Method execution failed 
+> [\_SB_.BAT1._STA] (Node dfef9428), AE_NOT_EXIST
+> 
+> The problem lies in the Store command of the _STA Methods of the 
+> batteries. If the store command is replacecd by 
+> 
+> Store (0x01, Local0) 
+> 
+> the functions work without errors messages. 
+> 
+> I have put the file files.tar.gz containing:
+> dsdt.dsl.org (the dsdt I use)
+> dmesg.txt 
+> dmidecode.txt
+> acpidmp.txt
+> interrupts.txt
+> lscpi.txt
+> 
+> which can be found at http://zagge.online.de/files.tar.gz .
+> 
+> If you need more information or if I should test something I'm more 
+> than willing to do so. Thanks for your help and your good job.
+> 
+> Thorsten
+> 
+> -------------------------------------------------------
+> The SF.Net email is sponsored by EclipseCon 2004
+> Premiere Conference on Open Tools Development and Integration
+> See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+> http://www.eclipsecon.org/osdn
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+------- End of Original Message -------
 
 
 
