@@ -1,114 +1,68 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 20 Nov 2003 06:16:03 -0500
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1069326962.16410.49.camel@dhcppc4>
-References: <1069189083.2970.540.camel@dhcppc4>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Thu, 20 Nov 2003 12:44:29 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20031120114429.GH32464@poupinou.org>
+References: <20031119180119.GB22307@tate.loria.fr> <20031119194303.GA16571@hell.org.pl> <20031119205129.A19364@loria2.loria.fr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <1069189083.2970.540.camel@dhcppc4>
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com.br>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031119205129.A19364-SAjW485I7Qt98t58zOhiHA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+On Wed, Nov 19, 2003 at 08:51:29PM +0100, Emmanuel Thome wrote:
+> On Wed, Nov 19, 2003 at 08:43:03PM +0100, Karol Kozimor wrote:
+> > Thus wrote Emmanuel Thomé:
+> > > S3 works halfway. Meaning the ``going to sleep'' part works ;).  USB is
+> > > completely dead on bootup (megabytes of ``host controller halted''
+> > > messages), but that's not my #1 concern. My #1 concern is the radeon
+> > > 9000 (M9) graphics card, which doesn't come up (fortunately, network is
+> > > relatively polite, and enables me to investigate). I'm not even talking
+> > > graphic mode.
+> > 
+> > I thought framebuffer was considered "graphic mode", wasn't it? Anyway,
+> 
+> Granted. I meant ``I'm not yet trying to handle the case where X comes to
+> play''.
+> 
+> The fact that radeonfb is loaded or not does not make a big difference
+> anyway. It would, if eventually the radeonfb driver were able to talk the
+> right language to the device. Which is something I'm not going to expect
+> from vesafb. Proper acpi power management would be a dramatic feature to
+> add to radeonfb...
+> 
+> > contact Benjamin Herrenschmidt (lkml arschives), he's the one doing a major
+> > rework of radeonfb for 2.6, so he might be able to help.
+> 
+> yup, done that a few moments ago. I'll be glad if he answers email.
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
+radeonfb contains suspend/resume code for pmac, written by
+some ATI folks (at least on the 2.4 benh kernels, and certainly in
+his 2.6 bk tree), so I guess you can start with (looking the code,
+you will see some ref. to ACPI, even though it is for pmac..).
+Also, dri cvs have some interresting stuff as well.
 
-	A panic fix from Matt Wilcox via 2.6, and a build fix from me.
-	(List of kernels built below.)
-	Same caveat as before, I've not booted on x86_64 hardware.
+-- 
+Ducrot Bruno
 
-thanks,
--Len
-
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.23-rc2/acpi-20031002-2.4.23-rc2.diff.gz
-
-This will update the following files:
-
- arch/i386/kernel/acpi.c     |    7 +++----
- arch/i386/kernel/dmi_scan.c |    5 ++---
- arch/i386/kernel/pci-pc.c   |   12 ++----------
- arch/i386/kernel/setup.c    |    9 +++------
- arch/x86_64/kernel/acpi.c   |   19 ++-----------------
- arch/x86_64/kernel/e820.c   |    9 +++++----
- arch/x86_64/kernel/pci-pc.c |   10 +---------
- arch/x86_64/kernel/setup.c  |    2 +-
- drivers/acpi/pci_root.c     |    4 +---
- include/asm-i386/acpi.h     |    6 ++++--
- include/asm-x86_64/acpi.h   |    9 ++++-----
- 11 files changed, 28 insertions(+), 64 deletions(-)
-
-through these ChangeSets:
-
-<len.brown@intel.com> (03/11/20 1.1208)
-   [ACPI] "pci=noacpi" -- 2.4.23 specific part of previous 2.4.22 fix
-
-<len.brown@intel.com> (03/11/20 1.1063.44.53)
-   [ACPI] "pci=noacpi" -- replace two sets of flags with one: acpi_noirq
-
-<willy@debian.org> (03/11/19 1.1063.44.52)
-   [PATCH] Fix panic-at-boot
-   
-   This fixes a panic-at-boot when ACPI Hotplug PCI is compiled in, but
-   ACPI is disabled.  It just makes sure that the list is properly
-   initialized statically instead of depending on runtime initialization
-   that may or may not happen.
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
-x86_64:
-1. errs.ACPI.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-2. errs.ACPI.PCI.X86_LOCAL_APIC.X86_IO_APIC
-3. errs.ACPI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-4. errs.ACPI.X86_LOCAL_APIC.X86_IO_APIC
-5. errs.DEBUG_KERNEL.ACPI.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-6. errs.DEBUG_KERNEL.ACPI.PCI.X86_LOCAL_APIC.X86_IO_APIC
-7. errs.DEBUG_KERNEL.ACPI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-8. errs.DEBUG_KERNEL.ACPI.X86_LOCAL_APIC.X86_IO_APIC
-9. errs.DEBUG_KERNEL.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-10. errs.DEBUG_KERNEL.PCI.X86_LOCAL_APIC.X86_IO_APIC
-11. errs.DEBUG_KERNEL.SMP.X86_LOCAL_APIC.X86_IO_APIC
-12. errs.DEBUG_KERNEL.X86_LOCAL_APIC.X86_IO_APIC
-13. errs.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-14. errs.PCI.X86_LOCAL_APIC.X86_IO_APIC
-15. errs.SMP.X86_LOCAL_APIC.X86_IO_APIC
-16. errs.X86_LOCAL_APIC.X86_IO_APIC
-16 SUCCESS in 16 ATTEMPTS
-
-i386:
-1. errs.
-2. errs.ACPI
-3. errs.ACPI.PCI
-4. errs.ACPI.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-5. errs.ACPI.PCI.X86_LOCAL_APIC
-6. errs.ACPI.PCI.X86_LOCAL_APIC.X86_IO_APIC
-7. errs.ACPI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-8. errs.ACPI.X86_LOCAL_APIC
-9. errs.ACPI.X86_LOCAL_APIC.X86_IO_APIC
-10. errs.DEBUG_KERNEL
-11. errs.DEBUG_KERNEL.ACPI
-12. errs.DEBUG_KERNEL.ACPI.PCI
-13. errs.DEBUG_KERNEL.ACPI.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-14. errs.DEBUG_KERNEL.ACPI.PCI.X86_LOCAL_APIC
-15. errs.DEBUG_KERNEL.ACPI.PCI.X86_LOCAL_APIC.X86_IO_APIC
-16. errs.DEBUG_KERNEL.ACPI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-17. errs.DEBUG_KERNEL.ACPI.X86_LOCAL_APIC
-18. errs.DEBUG_KERNEL.ACPI.X86_LOCAL_APIC.X86_IO_APIC
-19. errs.DEBUG_KERNEL.PCI
-20. errs.DEBUG_KERNEL.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-21. errs.DEBUG_KERNEL.PCI.X86_LOCAL_APIC
-22. errs.DEBUG_KERNEL.PCI.X86_LOCAL_APIC.X86_IO_APIC
-23. errs.DEBUG_KERNEL.SMP.X86_LOCAL_APIC.X86_IO_APIC
-24. errs.DEBUG_KERNEL.X86_LOCAL_APIC
-25. errs.DEBUG_KERNEL.X86_LOCAL_APIC.X86_IO_APIC
-26. errs.PCI
-27. errs.PCI.SMP.X86_LOCAL_APIC.X86_IO_APIC
-28. errs.PCI.X86_LOCAL_APIC
-29. errs.PCI.X86_LOCAL_APIC.X86_IO_APIC
-30. errs.SMP.X86_LOCAL_APIC.X86_IO_APIC
-31. errs.X86_LOCAL_APIC
-32. errs.X86_LOCAL_APIC.X86_IO_APIC
-32 SUCCESS in 32 ATTEMPTS
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
