@@ -1,42 +1,44 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ACPI] [PATCH] 1/3 ACPI resource handling
-Date: Mon, 24 Feb 2003 14:48:06 -0800
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: seq_file damage still not fixed in 2.5.63
+Date: Mon, 24 Feb 2003 23:50:28 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BB1A@orsmsx107.jf.intel.com>
+Message-ID: <20030224225028.GA16141@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: 'Pavel Machek' <pavel-+ZI9xUNit7I@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Bjorn Helgaas' <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Disposition: inline
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, andy-SXfmanCb7nbrBKCeMvbIDA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-
-
-Yes, as long as the code is used more than once (which it appears to be),
-then of course it should be procedurized.
-Bob
-
-
------Original Message-----
-From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org] 
-Sent: Sunday, February 23, 2003 2:55 PM
-To: Moore, Robert
-Cc: 'Bjorn Helgaas'; Grover, Andrew; Walz, Michael; t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org;
-linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel@lists.sourceforge.net
-Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
 
 Hi!
 
-> 1) This seems like a good idea to simplify the parsing of the resource
-lists
-> 
-> 2) I'm not convinced that this buys a whole lot -- it just hides the code
-> behind a macro (something that's not generally liked in the Linux world.)
-> Would this procedure be called from more than one place?
+...this patch was dropped on the floor somewhere. Please apply,
 
-Well, reducing code duplication *is* liked in Linux world. Use inline
-function instead of macro if possible, through.
-	
-Pavel
+							Pavel
+
+--- clean/drivers/acpi/processor.c	2003-02-15 18:51:17.000000000 +0100
++++ linux/drivers/acpi/processor.c	2003-02-15 18:52:17.000000000 +0100
+@@ -1356,7 +1356,8 @@
+         loff_t			*data)
+ {
+ 	int			result = 0;
+-	struct acpi_processor	*pr = (struct acpi_processor *) data;
++        struct seq_file 	*m = (struct seq_file *)file->private_data;
++	struct acpi_processor	*pr = (struct acpi_processor *)m->private;
+ 	char			state_string[12] = {'\0'};
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_write_throttling");
+@@ -1418,7 +1419,8 @@
+ 	loff_t			*data)
+ {
+ 	int			result = 0;
+-	struct acpi_processor	*pr = (struct acpi_processor *) data;
++        struct seq_file 	*m = (struct seq_file *)file->private_data;
++	struct acpi_processor	*pr = (struct acpi_processor *)m->private;
+ 	char			limit_string[25] = {'\0'};
+ 	int			px = 0;
+ 	int			tx = 0;
+
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
