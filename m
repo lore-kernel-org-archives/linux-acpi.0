@@ -1,7 +1,7 @@
 From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: [Suspend2-devel] Cause of Suspend2 resume failures on Toshiba laptops
-Date: Tue, 8 Mar 2005 11:25:42 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750155EABF@pdsmsx402.ccr.corp.intel.com>
+Subject: RE: s4bios: does anyone use it?
+Date: Tue, 8 Mar 2005 13:24:13 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750155EBB0@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -16,50 +16,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>, Dumitru Ciobarcianu <swsusp-devel-P4rH+HwZiSk@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, suspend2-devel-g/J2nbn7YhmWn91e4EydUaxOck334EZe@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->
->On Sat, Mar 05, 2005 at 10:44:58AM +0200, Dumitru Ciobarcianu wrote:
->> ??n data de S??, 05-03-2005 la 01:50 +0800, Bernard Blackham a scris:
->> > The attached patch more or less reverts the change in 2.6.9-rc1
-that
->> > began this all. If you have a Toshiba or other laptop that's
->> > affected by this, I ask you to see if it helps your problems. (It
->> > hacks around the problem rather than fixing it, but I'm not
-entirely
->> > sure what functionality it disables).
->>
->> You are on the right track , it does the trick, I did serveral
->> suspend/resume cycles whitout problems.
->>
->> But (yes, it's a but :) it is functionally equivalent with using the
->> other workaround (booting at resume with acpi=3Doff) meaning that I
-lose
->> all the acpi events (AC events, LID events, etc). The system records
-the
->> event (if I do an "watch cat /proc/acpi/ac_adapter/ADP1/state" it
-shows
->> the current state correctly) but acpid does not receive the event,
-and
->> thus can not act accordingly :(  (Toshiba Satellite Pro 6100)
->
->Ahh, d'oh. Try this patch instead.
->
->After more investigation, it seems that the issue is the GPE is
->fired but not serviced because kacpid is frozen. This in itself
->would be okay, however, the GPE isn't being disabled before the
->method executes (despite there being code there to do so), and hence
->fires continuously.
->
->The attached patch makes kacpid NOFREEZE so the GPE does get
->serviced (eventually), but probably still isn't the correct
->solution. (A better solution being making sure the GPE gets disabled
->in the first place ... still looking into this).
 Hi,
-Did you guys try the suspend method 'platform'? In this case, ACPI will
-disable all non-wakeup GPEs.
+>> >
+>> > Is there single user of s4bios? It used to work for me 4 notebooks
+>> > ago, but I never really used it.
+>>
+>> I don't have anymore my toshiba laptop where S4 bios was first
+>> implemented.
+>>
+>> > I think I'm the only person that ever
+>> > seen it working, but I could be wrong.
+>>
+>> You are indeed wrong.
+>
+>Okay, so we had 2 users in past but have 0 users now? :-).
+I wonder how could anyone use S4BIOS in 2.6.11. S4 and S4b all came into
+'enter_state'. and in acpi_sleep_init:
+
+		if (i =3D=3D ACPI_STATE_S4) {
+			if (acpi_gbl_FACS->S4bios_f) {
+				sleep_states[i] =3D 1;
+				printk(" S4bios");
+				acpi_pm_ops.pm_disk_mode =3D
+PM_DISK_FIRMWARE;
+			}
+			if (sleep_states[i])
+				acpi_pm_ops.pm_disk_mode =3D
+PM_DISK_PLATFORM;
+		}
+That means we actually can't set PM_DISK_FIRMWARE (always set
+PM_DISK_PLATFORM). Is this intended? If no, .pm_disk_mode should be a
+mask.
 
 Thanks,
 Shaohua
