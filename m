@@ -1,13 +1,16 @@
-From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ibm-acpi-0.1
-Date: Tue, 10 Aug 2004 14:49:40 +0300
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: Re: ibm-acpi-0.1
+Date: Tue, 10 Aug 2004 12:45:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2004.08.10.11.49.38.39080@yahoo.com>
-References: <20040810080826.GD28939@aero.ensim.com> <pan.2004.08.10.10.18.05.651578@yahoo.com>
+Message-ID: <1092138355.16885.11.camel@localhost.localdomain>
+References: <20040810080826.GD28939@aero.ensim.com>
+	 <pan.2004.08.10.10.18.05.651578@yahoo.com>
+	 <pan.2004.08.10.11.49.38.39080@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <pan.2004.08.10.11.49.38.39080-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,79 +19,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Boris,
+On Maw, 2004-08-10 at 12:49, Paul Ionescu wrote:
+> station. I also use idectl to enable my cdrom or secondary hard-disk in
+> the UltraBay slim, but I have the following problems: DMA is not working
+> any more for hdc after "idectl 1 rescan" After some rescan cycles I will
+> have a lot of ide1 in /proc/ide/
+> 
+> See http://bugme.osdl.org/show_bug.cgi?id=2261
 
-First, I want to apologize if this is a little bit off-topic for this
-list, but I think that maybe this could be interesting for the others too.
+The 2.4 kernel supports IDE device hotplugging. The 2.6 maintainer has
+consistently refused to merge the change because some bits are ugly
+but hasn't done anything else to move it forward either.
 
- I saw that you use idectl for enabling the cdrom on the docking
-station. I also use idectl to enable my cdrom or secondary hard-disk in
-the UltraBay slim, but I have the following problems: DMA is not working
-any more for hdc after "idectl 1 rescan" After some rescan cycles I will
-have a lot of ide1 in /proc/ide/
+You need 2.4 for the ultrabay stuff to work properly right now.
 
-See http://bugme.osdl.org/show_bug.cgi?id=2261
-
-Do you have the same problems ?
-
-
-
-On Tue, 10 Aug 2004 13:18:09 +0300, Paul Ionescu wrote:
-
-> Hi Boris,
-> 
-> On a T41 it inserts in the kernel only if I replace _SB.GDCK with
-> _SB.PCI0.PCI1.DOCK.
-> If I don't, I get the following message:
-> insmod ./ibm_acpi.ko 
-> insmod: error inserting './ibm_acpi.ko': -1 No such device
-> 
-> and in dmesg I found:
-> ibm_acpi: acpi_get_handle(\_SB.GDCK) failed
-> 
-> At a fist glance, hot-keys work, but the Fn-F5 does not enable bluetooth
-> anymore.
-> I will get back with more feedback.
-> 
-> Thanks,
-> Paul
-> 
-> On Tue, 10 Aug 2004 01:08:26 -0700, Borislav Deianov wrote:
-> 
->> Hi,
->> 
->> This is the first public release of my ACPI driver for IBM ThinkPad
->> laptops. The features currently supported are:
->> 
->> - hot keys (Fn key combinations)
->> - docking and undocking
->> - some basic fan speed control
->> 
->> Note that I've only tested on a ThinkPad X40 with the X4 UltraBase. I
->> suspect many other recent models are sufficiently similar to work with
->> this driver but I have no such reports yet.
->> 
->> I'll release this on the linux-thinkpad list as well, but I thought
->> I'd get some comments here first. This is my first foray into the ACPI
->> code, so do let me know if I'm doing something horribly wrong. :-)
->> 
->> (Sorry, no web page yet. One thing at a time.)
->> 
->> Thanks,
->> Boris
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
-> 100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
-> Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
-> http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
-
+Alan
 
 
 
