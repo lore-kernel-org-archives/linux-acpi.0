@@ -1,14 +1,15 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] fix _MEM handling in Type Specific Flags (resend)
-Date: Fri, 19 Mar 2004 12:36:43 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: b44 suspend/resume (Re: PCI not restored correctly after
+	suspend to ram)
+Date: 19 Mar 2004 15:35:00 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403191236.43861.bjorn.helgaas@hp.com>
+Message-ID: <1079728500.7277.140.camel@dhcppc4>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200403180935.09436.stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,81 +18,94 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <willy-+nN6oZZ19oAAvxtiuMwx3w@public.gmane.org>
+To: stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, davem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pp-YuCZbdju05vHOG6cAo2yLw@public.gmane.org
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I sent this earlier (Jan 20!), but I don't think I saw any response.
-Just wanted to make sure it's not dropped.  I checked, and it
-still applies cleanly to 2.6.5-rc1.
+On Thu, 2004-03-18 at 03:35, Stefan D=F6singer wrote:
+> Hello list,
+> I have the following problems with suspend to ram on my Acer Travelmate=
+ 803
+> (Centrino) notebook:
+> With the patch for radeon_driver.c(Xfree v. 4.4) I can suspend and resu=
+me my=20
+> notebook. After resume, the settings of most pci devices are not restor=
+ed=20
+> correctly and the devices do not work. See the attached lspci_before_su=
+spend=20
+> and lspci_after_suspend files for details.
+> Devices not working are:
+> *Soundcard(00:1f.5)
+> *All devices on bus 02
+> *The modem, but there's only a non-GPL driver available.
+>=20
+> I can get most devices devies to work by setting the pci registers with=
+ setpci=20
+> after resume. I use the attached fixpci.sh script to do so. I can get m=
+y=20
+> soundcard, the ethernet card(02:02.0) ...
 
-It looks like cache_attribute is currently used by hot-plug.
-The current code sets cache_attribute incorrectly (it extracts
-(_MTP | _MEM) when it should extract only _MEM).
+02:02.0 Ethernet controller: Broadcom Corporation BCM4401 100Base-T (rev
+01)
 
+#broadcom ethernet controller
+DEV=3D02:02.0
+echo "Configuring $DEV"
+$SETPCI -s $DEV  04.w=3D0x0106
+$SETPCI -s $DEV  08.w=3D0x0810
+$SETPCI -s $DEV  0c.w=3D0x4000
+$SETPCI -s $DEV  10.w=3D0x4000
+$SETPCI -s $DEV  12.w=3D0xd020
 
-ACPI: Fix _MEM handling (it's only two bits, not four).
+I think this is the b44. Looking at b44_suspend/b44_resume, I don't see
+any calls to pci_save_state()/pci_restore_state() that I would expect,
+so it comes back after resume with bus mastering disabled etc.
 
-The memory attributes (_MEM) in Type Specific Flags are only two bits,
-not four.  See ACPI spec 2.0c, Table 6-28.
+-Len
+-----------
+lspci_before_suspend:
 
-===== drivers/acpi/resources/rsaddr.c 1.15 vs edited =====
---- 1.15/drivers/acpi/resources/rsaddr.c	Mon Oct  6 10:15:00 2003
-+++ edited/drivers/acpi/resources/rsaddr.c	Tue Nov 18 12:43:44 2003
-@@ -149,7 +149,7 @@
- 		output_struct->data.address16.attribute.memory.read_write_attribute =
- 				(u16) (temp8 & 0x01);
- 		output_struct->data.address16.attribute.memory.cache_attribute =
--				(u16) ((temp8 >> 1) & 0x0F);
-+				(u16) ((temp8 >> 1) & 0x03);
- 	}
- 	else {
- 		if (ACPI_IO_RANGE == output_struct->data.address16.resource_type) {
-@@ -347,7 +347,7 @@
- 
- 		temp8 |=
- 			(linked_list->data.address16.attribute.memory.cache_attribute &
--			 0x0F) << 1;
-+			 0x03) << 1;
- 	}
- 	else if (ACPI_IO_RANGE == linked_list->data.address16.resource_type) {
- 		temp8 = (u8)
-@@ -539,7 +539,7 @@
- 				(u16) (temp8 & 0x01);
- 
- 		output_struct->data.address32.attribute.memory.cache_attribute =
--				(u16) ((temp8 >> 1) & 0x0F);
-+				(u16) ((temp8 >> 1) & 0x03);
- 	}
- 	else {
- 		if (ACPI_IO_RANGE == output_struct->data.address32.resource_type) {
-@@ -735,7 +735,7 @@
- 
- 		temp8 |=
- 			(linked_list->data.address32.attribute.memory.cache_attribute &
--			 0x0F) << 1;
-+			 0x03) << 1;
- 	}
- 	else if (ACPI_IO_RANGE == linked_list->data.address32.resource_type) {
- 		temp8 = (u8)
-@@ -926,7 +926,7 @@
- 				(u16) (temp8 & 0x01);
- 
- 		output_struct->data.address64.attribute.memory.cache_attribute =
--				(u16) ((temp8 >> 1) & 0x0F);
-+				(u16) ((temp8 >> 1) & 0x03);
- 	}
- 	else {
- 		if (ACPI_IO_RANGE == output_struct->data.address64.resource_type) {
-@@ -1124,7 +1124,7 @@
- 
- 		temp8 |=
- 			(linked_list->data.address64.attribute.memory.cache_attribute &
--			 0x0F) << 1;
-+			 0x03) << 1;
- 	}
- 	else if (ACPI_IO_RANGE == linked_list->data.address64.resource_type) {
- 		temp8 = (u8)
+02:02.0 Ethernet controller: Broadcom Corporation BCM4401 100Base-T (rev
+01)
+        Subsystem: Acer Incorporated [ALI]: Unknown device 001f
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR+ FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort+
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 64
+        Interrupt: pin A routed to IRQ 5
+        Region 0: Memory at d0204000 (32-bit, non-prefetchable)
+[size=3D8K]
+        Capabilities: [40] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D375mA
+PME(D0+,D1+,D2+,D3hot+,D3cold+)
+                Status: D0 PME-Enable- DSel=3D0 DScale=3D2 PME-
+00: e4 14 01 44 06 01 10 08 01 00 00 02 00 40 00 00
+10: 00 40 20 d0 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
+30: 00 00 00 00 40 00 00 00 00 00 00 00 05 01 00 00
+
+------------
+lspci_after_suspend
+02:02.0 Ethernet controller: Broadcom Corporation BCM4401 100Base-T (rev
+01)
+        Subsystem: Acer Incorporated [ALI]: Unknown device 001f
+        Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3Dfast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Interrupt: pin A routed to IRQ 5
+        Region 0: [virtual] Memory at d0204000 (32-bit,
+non-prefetchable) [disabled] [size=3D8K]
+        Capabilities: [40] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D375mA
+PME(D0+,D1+,D2+,D3hot+,D3cold+)
+                Status: D0 PME-Enable- DSel=3D0 DScale=3D2 PME-
+00: e4 14 01 44 00 00 10 00 01 00 00 02 00 00 00 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
+30: 00 00 00 00 40 00 00 00 00 00 00 00 00 01 00 00
+
 
 
 
