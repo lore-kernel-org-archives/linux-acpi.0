@@ -1,11 +1,13 @@
-From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Subject: Suspend 2 ram gone with latest bk-acpi patch
-Date: Tue, 22 Mar 2005 13:09:45 +0100
-Message-ID: <20050322120945.GB5917@gamma.logic.tuwien.ac.at>
+From: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
+Subject: Re: ACPI on ECS A530 (Transmeta)
+Date: Tue, 22 Mar 2005 20:29:21 +0100
+Message-ID: <20050322192921.GA4821@schottelius.org>
+References: <20050316003934.GB28204@schottelius.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
 Content-Disposition: inline
+In-Reply-To: <20050316003934.GB28204-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,65 +20,53 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ACPI developers!
 
-I am using suspend to ram successfully wiht 2.6.11-mm4 and prior
-incarnations, but since 2.6.12-rc1-mm1 the laptop does not wake up after
-suspend to ram. With 2.6.11-mm4 it is still working with exactely the
-same setup.
+--4Ckj6UjgE2iN1+kY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I unload the whole usb stuff (otherwise 2.6.11-mm4 won't work) and do
-exactely the same.
+Hello!
 
-The differences in the kernel config files are trivial:
+Thans for the hint to the simple instructions.
 
-new stuff I answered with yes:
-+CONFIG_ACPI_HOTKEY=3Dy
-+CONFIG_PCMCIA_IOCTL=3Dy
-+CONFIG_AOE_PARTITIONS=3D16
+As I don't use bugzilla (some kind of stupid to create accounts
+for every project you want to report bugs to and much more annoying),
+the results of acpidm, dmesg (incomplete), dmidecode, .. can be found at
 
-stuff that has automatically changed (changed Kconfig I suppose)
--CONFIG_FW_LOADER=3Dm
-+CONFIG_FW_LOADER=3Dy
+http://schotteli.us/~nico/linux/acpi/ecs-a530/
 
-and some modules I compiled but not use/load.
+If you have questions or I can help to test, simply tell me.
 
-With 2.6.12-rc1-mm1 the system starts, then nothing, black screen, no
-CapsLock light, no Sysrq, no sync hard disk led activity, just plane
-frozen.
+Nico
 
-I suspect that this is related to the big changes in ACPI code (I am
-also seeing a lot of new messages while booting from the ACPI subsystem
-like:
-ACPI: Can't get handler for 0000:00:00.0
-ACPI: No ACPI bus support for 00:01
-ACPI: No ACPI bus support for 1-0:1.0
-etc
 
-Can you confirm that this may be the cause of the recent problems, and
-what kind of tests can I make to confirm it?
+--4Ckj6UjgE2iN1+kY
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Thanks a lot and all the best
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-Norbert
+iQIVAwUBQkByD7OTBMvCUbrlAQKsag//btKI757sGjJsiGCOwbndI+UCmobuTpfi
+tEw8Az99gcRv0Ty7hxEDpD3+9twIgxgAoY8RJggsq6eoMoBKrdvm/P7DHJ6ENB28
+14rE6Ro5KqAPDh7CL893S+QOVm3eRCJGDeWkCGxdawEIZLOwcr9G5Nyaxj1CsG8P
+kXAr8CH3DLPkmWeRQZwTieHHW8puNlJwukICpnICrs8brs61LMCFGbgyMXvqKKVa
+mWRL0klh1TYpAYNTRVnwZKPokAlf8KzEXe26H9Qkzc9sm2tRh6UxVrYSqudruIzh
+Z0pmMVQupzDiSBLXNwMiAewTnG8ZQcLx2GhqTjFhrgufTBbt7Wo/EY2VoCFgcgmV
+srAW3+In43nlKFPSnlFgVAQKEdKKnp35aix4ruS03RKWCsJ08w+ATuXIuk4+v+or
+vFipDoInoqvMKpMO0iL77xfmdegH8/+MLEv3uKVHRDeNMfk0q2oJN0OCsggpfuxi
+5tl9nJ5rfMII+9x4so3RMjtoJIM2bWvjjpkC89dgUBmmcajl0i0A3lgiIcDYYQ6w
+vB9P5DRdbNj8V8DLAw1D03RPAeHFRblPjq1ckJlflcBMWc48pN2XNJgZTat6WfVC
+RFVG7aJ0rgSewrd7BxtEYjEue6vdQIiFD8YiXbs5pI0lhC1IQN34nkThJvxBWe/M
+UWlunIwmhB4=
+=/cu6
+-----END PGP SIGNATURE-----
 
--------------------------------------------------------------------------=
-------
-Norbert Preining <preining AT logic DOT at>                 Universit=E0 =
-di Siena
-sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
-690018
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
-5 B094
--------------------------------------------------------------------------=
-------
-ULLAPOOL (n.)
-The spittle which builds up on the floor of the Royal Opera House.
-			--- Douglas Adams, The Meaning of Liff
+--4Ckj6UjgE2iN1+kY--
 
 
 -------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
+This SF.net email is sponsored by: 2005 Windows Mobile Application Contest
+Submit applications for Windows Mobile(tm)-based Pocket PCs or Smartphones
+for the chance to win $25,000 and application distribution. Enter today at
+http://ads.osdn.com/?ad_id=6882&alloc_id=15148&op=click
