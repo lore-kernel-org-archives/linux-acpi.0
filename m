@@ -1,10 +1,10 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Irene Zubarev <zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Subject: RE: Decrement method
-Date: Mon, 18 Nov 2002 10:44:50 -0800
+Date: Mon, 18 Nov 2002 13:47:31 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B913@orsmsx107.jf.intel.com>
+Message-ID: <OF1BADF4AB.A109DAA6-ON87256C75.00672C59@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,14 +14,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Irene Zubarev' <zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Hi,
+
+Arg0 contains integer, it's the slot # passed to method.
+
+Thanks,
+
+Irene Zubarev
+
+
+
+                                                                                                                                       
+                      "Moore, Robert"                                                                                                  
+                      <robert.moore@int        To:       Irene Zubarev/Raleigh/IBM@IBMUS, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org             
+                      el.com>                  cc:                                                                                     
+                                               Subject:  RE: [ACPI] Decrement method                                                   
+                      11/18/2002 01:44                                                                                                 
+                      PM                                                                                                               
+                                                                                                                                       
+                                                                                                                                       
+
+
 
 What is in Arg0?
 
 
 -----Original Message-----
-From: Irene Zubarev [mailto:zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org] 
+From: Irene Zubarev [mailto:zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org]
 Sent: Monday, November 18, 2002 8:30 AM
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Subject: [ACPI] Decrement method
@@ -43,13 +66,17 @@ Irene Zubarev
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by: To learn the basics of securing 
-your web site with SSL, click here to get a FREE TRIAL of a Thawte 
+This sf.net email is sponsored by: To learn the basics of securing
+your web site with SSL, click here to get a FREE TRIAL of a Thawte
 Server Certificate: http://www.gothawte.com/rd524.html
 _______________________________________________
 Acpi-devel mailing list
 Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+
+
 
 
 -------------------------------------------------------
