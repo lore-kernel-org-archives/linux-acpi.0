@@ -1,15 +1,12 @@
-From: Daniel Jacobowitz <dan-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: Phoenix tool to disassemble the dsdt
-Date: Sun, 1 Sep 2002 15:37:45 -0400
+From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
+Subject: fan
+Date: Sun, 1 Sep 2002 23:33:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020901193745.GA24534@nevyn.them.org>
-References: <1030879302.1157.9.camel@speedy-gonzales>
+Message-ID: <200209012133.g81LXbX31417@mailgate5.cinetic.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1030879302.1157.9.camel-E24s2BKACg1yFPTEfy9P5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,30 +15,52 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Heiko =?iso-8859-1?Q?Ettelbr=FCck?= <hbruckynews-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpilist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Sep 01, 2002 at 01:21:41PM +0200, Heiko Ettelbrück wrote:
-> Hi,
-> 
-> on Intel's ACPI website (in the FAQ section) there is a tool mentioned
-> which is able to disassemble the dsdt: ad.exe from Phoenix (a DOS tool).
-> 
-> Yesterday I tried to get that tool using the appropriate link to
-> Phoenix' website, but the link seems to be broken. Does anyone of you
-> have some information about how to get the tool by now?
-> 
-> According to my understanding of the ACPI FAQ entry at Intel's site, the
-> tool seems to be freely available. Did I get that right? Or has Phoenix
-> altered the license after that FAQ entry had been published?
+Hi,
 
-It just doesn't seem to be available any more.  But recent versions of
-Intel's iasl can disassemble (very well).
+I am unsure if the fan handling on my laptop works, so I made
+a experiment. I wanted to switch the fan on and off via
+echo -n 0 > /proc/acpi/fan/FAN/state
+to switch the fan off and echo -n 1 >.../state to switch the fan on.
+That did not work. First of all: cat /proc/acpi/fan/FAN/state
+always said that "status:     on" - but the fan some times
+on, some times off.
 
--- 
-Daniel Jacobowitz
-MontaVista Software                         Debian GNU/Linux Developer
+For better debugging, I added a printk in fan.c:acpi_fan_write_state,
+as you can see below. I echo'd the values you can see. The fan
+began to work when I said "echo -n 3> /proc/a/f/F/state".
+
+
+from var log messages:
+Sep  1 23:05:03 wally kernel: fan_write 0, state_string '0'
+Sep  1 23:05:22 wally kernel: fan_write 1, state_string '1'
+Sep  1 23:05:22 wally kernel: acpi_bus-0472 [06] acpi_bus_set_power    : Device does not support D1
+Sep  1 23:06:27 wally kernel: fan_write 3, state_string '3'
+Sep  1 23:06:27 wally kernel: acpi_power-0363 [07] acpi_power_transition : Error transitioning device [FAN] to D3
+Sep  1 23:06:27 wally kernel: acpi_bus-0521 [06] acpi_bus_set_power    : Error transitioning device [FAN] to D3
+Sep  1 23:06:42 wally kernel: fan_write 1, state_string '1'
+Sep  1 23:06:42 wally kernel: acpi_bus-0472 [06] acpi_bus_set_power    : Device does not support D1
+Sep  1 23:06:50 wally kernel: fan_write 3, state_string '3'
+Sep  1 23:06:55 wally kernel: fan_write 0, state_string '0'
+
+I am using linux-2.4.20-pre5 with latest apci patch, everthing enabled,
+on a laptop. If you need more input, please ask.
+
+Here my questions:
+
+is echo -n 0 >/proc/acpi/fan/FAN/state
+ment to stop the fan and
+is echo -n 1 >/proc/acpi/fan/FAN/state
+ment to start the fan?
+
+What does the "Error transitioning device [FAN] to D3" mean?
+
+    TIA
+    Joerg
+
+
 
 
 -------------------------------------------------------
