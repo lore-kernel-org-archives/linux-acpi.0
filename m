@@ -1,9 +1,9 @@
-From: "Doug Forbes" <tnr5qpxv-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Rx: VICODIN is Here - Just Pennies per Tablet.................. xcz idnl
-Date: Sat, 11 Oct 2003 23:35:52 -0600
+From: "Bernard Prather" <w701deieeh-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Rx: VICODIN is Here - Just Pennies per Tablet.................. xuczsffe tj
+Date: Sun, 12 Oct 2003 02:39:00 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <l7o1jq78v1n4qcfv8sppf6@10jb02.enf.s4>
-Reply-To: "Doug Forbes" <tnr5qpxv-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <jm8gb$yp961b3l34@j9f3.vm3m10w>
+Reply-To: "Bernard Prather" <w701deieeh-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
 	boundary="BEFEC5_8B1_DD2_50A"
@@ -64,9 +64,7 @@ If you wish to be excluded from future mailings -
 <br>
 <br>
 <br>
-<br>xhzpwmrhwormfe 
-rjok dlvrdsqqvawbek qhi jpyxlxpch 
-r
+<br>tpervgpcqmvxjpk x
 
 --BEFEC5_8B1_DD2_50A--
 
