@@ -1,13 +1,13 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Fri, 21 Jan 2005 08:26:54 -0500
-Message-ID: <41F1031E.60507@bartol.udel.edu>
-References: <41E81C2C.8010809@bartol.udel.edu>	<1105747983.7368.3.camel@tyrosine>	<47e0449d05011419037877f931@mail.gmail.com>	<m2fz13x8mw.fsf@phoenix.squirrel.nl>	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>	<m2wtu74yzq.fsf@phoenix.squirrel.nl>	<41F01923.1000503@bartol.udel.edu> <m2sm4v4wk7.fsf@phoenix.squirrel.nl> <41F10180.60008@arrakis.dhis.org>
+From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Subject: Re: DockApps (Was: Smart Battery System driver)
+Date: Fri, 21 Jan 2005 13:30:55 +0000
+Message-ID: <41F1040F.5020409@arrakis.dhis.org>
+References: <16880.8771.253591.739342@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41F10180.60008-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+In-Reply-To: <16880.8771.253591.739342-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,46 +17,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro Venda wrote:
-> Johan Vromans wrote:
-> | Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
-> |
-> |
-> |>I do this because everything in /lib/modules/XXX/kernel/* gets
-> |>clobbered when you do a make modules_install from the kernel source
-> |>tree;
-> |
-> |
-> | I see.
-> |
-> |
-> |>I have recently realized that the whole SBS functionality can be
-> |>implemented in terms of control methods in the DSDT, without the
-> |>need for any kernel drivers.
-> |
-> |
-> | Nice. This would require a kernel recompile/reboot  for each DSDT
-> | modification...
-> 
-> not nice, I guess. 99.9% of the interested (me included) wouldn't be 
-> able to
-> patch their DSDT and with generated ASL (is it ASL or AML or... ACPI 
-> language)
-> code for their specific case.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-What if you just had to run a perl script, and then add an "initrd=" 
-line to your kernel boot parameters? Because the code would be *so* much 
-cleaner if a lot of the tasks were moved to the DSDT; in particular, we 
-could get rid of i2c_acpi_sbs, and thus remove the dependency of ACPI on 
-I2C.
+Johan Vromans wrote:
+| [Quoting Rich Townsend, on January 19 2005, 08:31, in "Re: Smart Batter=
+y Sy"]
+|
+|>However, I'm surprised that the GB applet doesn't get the AC state from
+|>polling /proc/acpi/adapter/AC0/state. I use wmacpi, and that shows up
+|>the AC state fine...
+|
+|
+| Speaking of wmacpi: what is your favorite (acpi-related) docapp for
+| your laptop?
 
-cheers,
+I use the kde thingy, klaptopdaemon, I think... works very well. reports =
+AC
+adapter presence and battery charge in percentage. not sure if it reports=
+ time
+to empty...
 
-Rich
+regards,
+pedro venda.
+
+| Most of them have some form of libacpi that does a varying job. It is
+| clear that using the SBS info would be much easier, and better.
+
+hacking the lib would be the best way to use enhanced SBS information, al=
+though
+I guess the driver state is not very matured to get people writing librar=
+ies to
+access it. Also, having info/state entries in /proc is being "deprecated"=
+. /sys
+was built for that and gradually all kernel drivers will be using it for
+userspace interaction...
+
+regards,
+pedro venda.
+- --
+
+Pedro Jo=E3o Lopes Venda
+email: pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org
+http://arrakis.dhis.org
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFB8QQPeRy7HWZxjWERAr2ZAKCmoe3RITPablOLXkLfn3U3lOLZegCgy73d
+gM0hwGZUxxBsoKDLk15nUEc=3D
+=3DWT8Y
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
