@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Network failures with ACPI enabled (kernel 2.4, 2.6) PROBLEM FOUND!!!!!!
-Date: Sat, 3 Jan 2004 22:06:22 +0100
+Subject: Re: Problems with 600m PM states
+Date: Sat, 3 Jan 2004 23:22:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040103210622.GA2775@elf.ucw.cz>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8954@hdsmsx402.hd.intel.com> <20031231001716.76cb2e8d.mike@it-loops.com> <20031231004648.531549af.mike@it-loops.com> <1072851661.2363.228.camel@dhcppc4> <20031231172328.5ae00921.mike@it-loops.com>
+Message-ID: <20040103222256.GC2775@elf.ucw.cz>
+References: <3ACA40606221794F80A5670F0AF15F8401720C6D@PDSMSX403.ccr.corp.intel.com> <Pine.BSF.4.55.0401021139340.70212@dea.intranet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031231172328.5ae00921.mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <Pine.BSF.4.55.0401021139340.70212-RwPPEzxwQTH1LS48qovbHA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > The fact that transmit works and receive fails is a clue.
-> > Probably the broadcom uses interrupts for receive, but doesn't
-> > use interrupts for transmit.  So if it were not getting interrupts,
-> > transmit could still send frames.
-> > 
-> > So if you enable the parallel port in ECP mode, broadcom works --
-> > but if the port is disabled, or enabled but not in ECP mode, it fails?
+> > >Let's start with S1 and work up from there.
 > 
-> Hmm I played around with it some more. If I lower the speed on my
-> notebook
-> to 10baseT-HD the transfer works at 800KB/s.
-> But errors and frames on the device (eth0) are increasing at an alarming
-> rate.
-> For me it looks like that the problem occurs if the network card gets a
-> lot of inbound traffic.
+> > http://bugzilla.kernel.org/show_bug.cgi?id=1588
+> 
+> Great!  The patch attached to this bug seemed to solve the problem for
+> S1.  I can now resume without issue from an S1 sleep.
+> 
+> Onto S3...
 
-Is not this plain old "ACPI stays to log with interrupts disabled"?
-									Pavel
+Actually right order is S1, swsusp, S3 ;-).
+								Pavel
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
