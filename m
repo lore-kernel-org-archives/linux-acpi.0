@@ -1,11 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [BK PATCH] ACPI updates
-Date: Fri, 22 Nov 2002 13:28:20 -0800
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: RE: AW: iasl -d now gives segmentation fault !
+Date: 23 Nov 2002 01:46:58 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A53C@orsmsx119.jf.intel.com>
+Message-ID: <1038016031.2182.1.camel@darkstar.portugal>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B8DB@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19B8DB-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,42 +17,85 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Linus Torvalds [mailto:torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org] 
-> Andrew,
->  did you see the attached report?
+hi
 
-> Basically, it appears that the ACPI irq routing returns 
-> entries that are 
-> bigger than NR_IRQS, which is a no-no.
-> 
-> Admittedly the IDE layer is also doing bad things (it 
-> shouldn't disable 
-> irq's that it hasn'e registered yet, and it would have failed 
-> to register 
-> a bad irq number), but it looks like (a) there are bad ACPI 
-> tables around 
-> (big surprise, not!) and (b) Linux acpi doesn't sanity-test 
-> the values 
-> properly.
+I download new iasl binary and sources=20
 
-Here is the dmesg:
+with sources
 
-> > ACPI: No IRQ known for interrupt pin A of device 00:10.0 - using IRQ 255
-> > PCI: Using ACPI for IRQ routing
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20021115 [Nov 21
+2002]
+Copyright (C) 2000 - 2002 Intel Corporation
+Supports ACPI Specification Revision 2.0b
 
-ACPI cannot find any irq so it's using whatever the pci_dev's irq value was
-set at. I still am not sure if the fact we can't resolve the IRQ is a BIOS
-problem, or a problem in the code.
+Loading Acpi table from file acpi_dsdt.dat
+Segmentation fault
 
-In any case, yes, we should be checking for this case. Shanley says any
-value higher than 0xF in the Interrupt Line register means it's not safe to
-use that value.
+and with binary for the first time=20
 
-Regards -- Andy
+./iasl: /lib/i686/libc.so.6: version `GLIBC_2.3' not found (required by ./i=
+asl)
+./iasl: /lib/i686/libc.so.6: version `GLIBC_2.3' not found (required by ./i=
+asl)
+
+glibc2.3? redhat7.3 stills in 2.2
+
+btw
+what does mean zeroed bytes? I have one bios with some cleared
+information? and this gives wrong checksum ?
+or wrong checksum , clears the information?
+and can this information be in other "table"
+like the information that is SSDT (
+acpidmp SSDT | acpidisasm -n
+Scope \_PR_
+  Scope \_PR_.CPU0
+    Name \_PR_.CPU0._PCT
+    Name \_PR_.CPU0._PSS
+    Name \_PR_.CPU0._PPC
+)=20
+What could i do about it ? try clear bios...
+finally=20
+I am testing in other computer (one desktop with motherboard intel
+CAE810 or something like this)
+and with this dsdt.bin disassemble well without problems.=20
+
+On Mon, 2002-11-11 at 21:32, Moore, Robert wrote:
+>=20
+> Disassembly works fine here, but as I think I mentioned before, the poste=
+d
+> DSDT is corrupt;  The checksum is wrong and there are zeroed bytes in the
+> file. =20
+>=20
+> The resulting disassembly will not compile.
+>=20
+> I've added a checksum check to the front end of the disassembler
+>=20
+> Bob
+>=20
+>=20
+> -----Original Message-----
+> From: Grover, Andrew [mailto:andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]=20
+> Sent: Monday, November 11, 2002 1:15 PM
+> To: 'S=E9rgio Monteiro Basto'; Herbert Nachtnebel
+> Cc: acpi-devel
+> Subject: RE: AW: [ACPI] iasl -d now gives segmentation fault !
+>=20
+> Hi Sergio,
+>=20
+> Have you tried compiling your own iasl from the unix source distribution?
+>=20
+> (Just "cd compiler;make")
+>=20
+> Disassembly seemed to work fine for me, with your DSDT.
+>=20
+> Regards -- Andy
+
+
 
 
 -------------------------------------------------------
