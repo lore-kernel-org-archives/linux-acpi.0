@@ -1,14 +1,15 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Battery rate on Acer TM 292
-Date: Mon, 13 Sep 2004 09:20:53 +0800
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [Lhns-devel] Re: [PATCH 6/6]ACPI based Physical CPU hotplug
+Date: Mon, 13 Sep 2004 10:18:34 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305751B66D5@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <20040913101834.65490902.tokunaga.keiich@jp.fujitsu.com>
+References: <44BDAFB888F59F408FAE3CC35AB47041B17999@orsmsx409>
+ <20040908184152.D7384@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-reply-to: <20040908184152.D7384-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,51 +18,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Tomanek <stefan-Q4Z/ui9EqVxM7kwft8N7nw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Tomanek wrote:
->Hello,
->I've got an Acer Travelmate 292 (It's been sold under the name Extensa
-2902,
->but
->it's essentially an TM292), and there are 3 issues with its ACPI
->implementation:
->
->1) ACPI only reports 2 frequencies (600 and 1500 Mhz) for the Dothan, I
->already
->adressed this to the cpufreq guys
->
->2) the ac adapter does not send any events, but's that's not much
-trouble
->since
->it's status is reported properly, and battery events are sent instead
-It's possibly a BIOS issue.
+On Wed, 08 Sep 2004 18:41:52 -0700 Keshavamurthy Anil S wrote:
+> ---
+> Name:container_drv.patch
+> Status: Tested on 2.6.9-rc1-mm2
+> Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Depends:	
+> Version: applies on 2.6.9-rc1-mm2
+> Description:
+> This is the very early version on the Container driver which supports
+> hotplug notifications on ACPI004, PNP0A05 and PNP0A06 devices.
 
->
->3) the rate of charging or discharging is always 0, makes it hard to
-guess
->when
->we are running out of power :-)
->
->stefan@nano:~$ acpi
->     Battery 1: discharging, 99%, charging at zero rate
->  - will never fully charge.
->stefan@nano:~$ cat /proc/acpi/battery/BAT1/state
->present:                 yes
->capacity state:          ok
->charging state:          discharging
->present rate:            0 mA
->remaining capacity:      3960 mAh
->present voltage:         16376 mV
-Please don't trust 'present rate'. In many systems, 'present rate' are
-always 0. If you want to estimate the power of the battery, please use
-remaining capacity. I'd like the user daemon use 'remaining capacity' to
-calculate the rate.
+Here is a typo fix.  The HID 'ACPI004' should be 'ACPI0004':)
 
 Thanks,
-Shaohua
+Keiichiro Tokunaga
+
+
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+
+---
+
+ linux-2.6.9-rc1-mm3-kei/drivers/acpi/container.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff -puN drivers/acpi/container.c~fix-acpi0004 drivers/acpi/container.c
+--- linux-2.6.9-rc1-mm3/drivers/acpi/container.c~fix-acpi0004	2004-09-13 10:04:42.183606664 +0900
++++ linux-2.6.9-rc1-mm3-kei/drivers/acpi/container.c	2004-09-13 10:05:02.951325835 +0900
+@@ -58,7 +58,7 @@ static int acpi_container_remove(struct 
+ static struct acpi_driver acpi_container_driver = {
+ 	.name =		ACPI_CONTAINER_DRIVER_NAME,
+ 	.class =	ACPI_CONTAINER_CLASS,
+-	.ids =		"ACPI004,PNP0A05,PNP0A06",
++	.ids =		"ACPI0004,PNP0A05,PNP0A06",
+ 	.ops =		{
+ 				.add =		acpi_container_add,
+ 				.remove =	acpi_container_remove,
+@@ -270,7 +270,7 @@ container_walk_namespace_cb(acpi_handle 
+ 		goto end;
+ 	}
+ 
+-	if (strcmp(hid, "ACPI004") && strcmp(hid, "PNP0A05") &&
++	if (strcmp(hid, "ACPI0004") && strcmp(hid, "PNP0A05") &&
+ 			strcmp(hid, "PNP0A06")) {
+ 		goto end;
+ 	}
+
+_
 
 
 -------------------------------------------------------
