@@ -1,14 +1,15 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: 2.6.3-rc3 (and possibly earlier 2.6): weird hang and oopses
-Date: 17 Feb 2004 01:26:13 -0500
+Subject: Re: No network after S3
+Date: 17 Feb 2004 01:53:26 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076999173.2508.30.camel@dhcppc4>
-References: <A6974D8E5F98D511BB910002A50A6647615F214C@hdsmsx402.hd.intel.com>
+Message-ID: <1077000806.2515.46.camel@dhcppc4>
+References: <BF1FE1855350A0479097B3A0D2A80EE0025A6344@hdsmsx402.hd.intel.com>
+	 <200402161417.42755.t.zachmann@zagge.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <A6974D8E5F98D511BB910002A50A6647615F214C-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+In-Reply-To: <200402161417.42755.t.zachmann-c61pB8mzqkY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,109 +18,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alessandro Suardi <alessandro.suardi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Alessandro,
-Sure looks like a failure in the ACPI processor driver.
+On Mon, 2004-02-16 at 08:17, Thorsten Zachmann wrote:
+> Hello 
+> On Monday 16 February 2004 07:10, Brown, Len wrote:
+> > >I tried pci=noacpi. No diference.
+> > >If I understand you right, I should wait a little bit before dealing
+> > >with this powersaving stuff.
+> >
+> > If the NIC were now working before attempting suspend/resume, then we'd
+> > need to get that fixed first.  However, I think you're saying that the
+> > NIC _does_ work under normal conditions, and the failure is only after
+> > returning from S3. yes?
+> >
+> 
+> It looks like I have the same problem on my Tecra S1. After a suspend (S3) the 
+> network and sound are no longer working. 
+> A ethereal trace shows that the interface still sends arp requests but is 
+> unable to receive something. If I look at /proc/interrupts the counter for 
+> the interrupt where the network card is connected is no longer incremented.
+> 
+> > So this seems suspend/resume specific, and your use of pci=noacpi
+> > further suggests it has nothing to do with the initial interrupt
+> > assignments.
+> 
+> pci=noacpi also didn't change the situation.
+> 
+> > We've got a number of post-resume failures, and this issue is rising on
+> > the priority list -- so I expect we'll spend some time looking at it
+> > soon.
+> 
+> I tried out the patches from bug report 1409 and 1661 but nothing changed.
+> 
+> Please let me know if there is any information that I can provide to track the 
+> problem down?
 
-Please confirm your system is otherwise happy when you disable the
-processor driver.  eg. CONFIG_ACPI_PROCESSOR=n
+need /proc/interrupts -- PIC or APIC mode?  network interrupt shared
+with ACPI, other devices, or dedicated interrupt?  We'll probably have
+to dump out the state of the interrupt controller after resume.  for
+IOAPIC we can do that with print_IO_APIC.  for PIC mode we'll need
+something else.
 
-Also, it would be helpful to know if this failure started recently or
-you saw it in previous releases, b/c we've made some changes to the
-processor driver recently.
-
-thanks,
 -Len
 
-ps. acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org is the preferred alias to send
-Linux ACPI issues -- it includes linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org which is a small
-sub-set.
-
-On Mon, 2004-02-16 at 17:47, Alessandro Suardi wrote:
-> [CC:ing linux-acpi since some acpi stuff appears in backtraces]
-> 
-> While apparently doing nothing special (possibly a 'rm' on a
->   regular ext3 filesystem) my laptop hung. Not completely, as
->   I could
-> 
->   * switch virtual desktops within Ximian Desktop 2
->   * click on the kill window top right button, see the "app is
->      not responding, kill it anyway ?" dialog, say ok, see the
->      gnome-terminal vanish
->   * Alt-Fn to virtual consoles, type a login name (but getting
->      no prompt for the password - this hung)
->   * Alt-SysRq
-> 
-> 
-> Trying to get more info, I Alt-SysRq-P seeing this (handcopied
->   but should be fairly reliable :) :
-> 
-> 
-> Pid: 0, comm:     swapper
-> EIP: 0060: acpi_processor_idle+0x13c/0x1cb
-> 
->   default_idle+0x0/0x27
->   rest_init+0x0/0x5e
->   acpi_nt_copy_ipackage_to_ipackage+0x69/0xdb
->   default_idle+0x0/0x27
->   rest_init+0x0/0x5e
->   cpu_idle+0x2e/0x37
->   start_kernel+0x182/0x1b0
->   unknown_bootoption+0x0,0xff
-> 
-> 
-> While copying this down, there were 'ps' oopses at regular
->   intervals (say 2/3 minutes apart from each other), with this
->   further oops trace:
-> 
->   pid_revalidate+0x28/0xd2
->   pid_revalidate+0x41/0xd2
->   dput+0x22/0x21f
->   link_path_walk+0x61b/0x957
->   buffered_rmqueue+0xc1/0x15a
->   __alloc_pages+0xa4/0x342
->   proc_info_read+0x74/0x155
->   filp_open+0x67/0x69
->   vfs_read+0xbc/0x127
->   sys_read+0x42/0x63
->   sysenter_past_esp+0x52/0x71
-> 
-> And right after each oops a further trace, with the warning
->   that 'ps' exited with a preempt_count of 1:
-> 
-> Bad: scheduling while atomic
-> 
->   schedule
->   unmap_page_range
->   unmap_vmas
->   exit_mmap
->   mmput
->   do_exit
->   do_divide
->   do_page_fault
->   acpi_processor_set_performance
->   error_code
->   file_read_actor
-> 
-> There was more, but I couldn't copy further info due to pressing
->   time constraints. This isn't the first time a 2.6.x kernel hangs
->   on me, and IIRC 2.6.1 never did.
-> 
-> 
-> Oh, and of course I still can't Alt-SysRq-B :(
-> 
-> 
-> Thanks for looking into this, ciao,
-> 
-> --alessandro
-> 
->   "Two rivers run too deep
->    The seasons change and so do I"
->        (U2, "Indian Summer Sky")
-> 
 
 
 
