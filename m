@@ -1,16 +1,14 @@
-From: Christian Hoenig <me-IGuAFssZLu2QuR96i0ejA4QuADTiUCJX@public.gmane.org>
-Subject: broken DSDT on Samsung X05 Notebook
-Date: Tue, 18 Nov 2003 10:51:35 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: acpi on new gateway laptops
+Date: Tue, 18 Nov 2003 11:35:49 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200311181051.38825.me@christianhoenig.de>
-Reply-To: me-IGuAFssZLu2QuR96i0ejA4QuADTiUCJX@public.gmane.org
+Message-ID: <20031118103549.GZ32464@poupinou.org>
+References: <20031112232315.GD430@masanjin.net> <20031117102219.O60721@root.org> <20031117183900.GA32570@masanjin.net> <20031117104936.N60907@root.org> <20031117193719.GB32570@masanjin.net> <20031117120555.E61216@root.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Description: clearsigned data
 Content-Disposition: inline
+In-Reply-To: <20031117120555.E61216-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,96 +17,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, Nov 17, 2003 at 12:07:30PM -0800, Nate Lawson wrote:
+> On Mon, 17 Nov 2003, William Morgan wrote:
+> > Excerpts (reformatted) from Nate Lawson's mail of 17 Nov 2003 (EST):
+> > > Get the data from the DSDT.  Dump it with acpidmp, search for PNP0C09,
+> > > then write down the resources.  Mine is below:
+> >
+> > Hm, mine looks like this:
+> >
+> >   Device(H_EC) {
+> >       Name(_HID, 0x090cd041)
+> >       Name(_UID, 0x1)
+> >       Method(_CRS) {
+> >           Name(BFFR, Buffer(0x12) {0x47, 0x1, 0x62, 0x0, 0x62, 0x0, 0x0, 0x1, 0x47, 0x1, 0x66, 0x0, 0x66, 0x0, 0x0, 0x1, 0x79, 0x0 })
+> >           Return(BFFR)
+> >       }
+> >       OperationRegion(ECR_, EmbeddedControl, 0x0, 0xff)
+> >       ...
+> >   }
+> >
+> > So I'm guessing that this also corresponds to control reg=0x66 and data
+> > reg=0x62 as I see those two numbers in the buffer. So I think I should be able
+> > to use an ECDT that's identical to yours, except the EC_ID field (which in my
+> > case is "\_SB_.PCI0.LPCB.H_EC")....
+> 
+> Looks right but you need to get your _GPE bit also. I think it's 0x79
+> but you really need to parse the buffer to be sure.  There is a flag to
+> acpidmp to parse buffer contents.
+> 
 
-Hi List,
+Not in the backported version IIRC.
 
-I'm pretty new to this list and all the ACPI/DSDT and notebook stuff, so=20
-please be kind if I miss something :-).
+-- 
+Ducrot Bruno
 
-I recently bought a "Samsung X05 XTC 1400" which works fine with linux so f=
-ar,=20
-only the ACPI (DSDT) stuff gives me a headache.
-It would be very nice if there's someone who has more knowlege of the DSDT=
-=20
-hacking than me and who is willing to help me to fix my DSDT :-).
-
-All my logs and errors can be found in [3] or [4].
-The original DSDT can be found in [5], the decompiled one in [6].
-[7] is my try to fix that problems.
-
-
-So, here is my problem description (partially):
-
-When I run the gentoo-2.4.20-r8 kernel, the internal power display [1] and =
-the
-Brightness-control (via Fn-UP, Fn-DOWN) work. Unfortunately I don't know=20
-exactly, which ACPI version is included in that (heavily patched) kernel.
-
-When I run vanilla-2.4.22 or 2.6.-test9 patched with the latest ACPI those=
-=20
-stuff doesn't work. The Battery, AC and Thermal stuff don't work here, too=
-=20
-(see the boot.logs.* and the /proc/acpi 'dumps' in [3]).
-
-The Cause seems to be a broken DSDT.
-I did the steps to dump the DSDT, decompile it and tried to recompile it,=20
-which leads to the errors in [2]. I then tried to fix the (only) ERROR whic=
-h=20
-lead stuff to the point, that now the thermal stuff works and the notebook=
-=20
-powers off at shutdown (which didn't work before, either). But the errors i=
-n=20
-boot.log about BAT and AC still remain. Unfortunately in this setup changin=
-g=20
-the displaybrightness works, but the Icon in the upper right always shows a=
-=20
-static symbol (not a little progressbar) and [1] only shows the exact same=
-=20
-(and wrong) icon, too, and not the % left in the Bat.
-
-
-Since I never had contact to that stuff, I really don't know, what can be o=
-f=20
-help for you, so please ask, if you need further information or stuff!
-
-
-So, again, it would be very nice, if someone could take his/her hand on tha=
-t=20
-and help me a little bit ;-)
-
-and... thanks in advance!
-take care, have fun
-/christian
-EDDK
-
-
-=3D=3D=3D=3D=3D
-[1] internal power display: The notebook shows a little Icon in the top left
-	corner showing the powerstatus (Bat/AC) and the % left in the Bat
-	when hitting Fn-F2
-[2] ftp://ftp.christianhoenig.de/ACPI-DSDT/iasl.error.log
-[3] ftp://ftp.christianhoenig.de/ACPI-DSDT/
-[4] ftp://ftp.christianhoeing.de/ACPI-DSDT.tar.gz       <-- which only is a=
-=20
-tarball
-	of all
-[5] ftp://ftp.christianhoeing.de/ACPI-DSDT/dsdt.samsung-original.dat
-[6] ftp://ftp.christianhoeing.de/ACPI-DSDT/dsdt.samsung-original.dsl
-[7] ftp://ftp.christianhoeing.de/ACPI-DSDT/dsdt.own.dsl
-
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/ueuqmauZIX3ydQURAqhGAJ9SV33jlsHsslxWiuxJItzkcQyMpwCfSqBh
-QwkZkAT24j1UDGXyZtTNRok=3D
-=3DCoil
-=2D----END PGP SIGNATURE-----
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
