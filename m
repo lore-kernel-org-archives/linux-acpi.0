@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI suspend weirdness on Dell Inspiron 2650
-Date: Tue, 11 Feb 2003 12:53:32 +0100
+Subject: Re: [Fwd: Re: ASL help with latest acpi and compaq presario 2800t]
+Date: Tue, 11 Feb 2003 14:37:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030211115332.GJ25625@poup.poupinou.org>
-References: <3E491E11.20001@ihug.com.au>
+Message-ID: <20030211133711.GL25625@poup.poupinou.org>
+References: <64854.64.164.111.5.1044907496.squirrel@benham.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3E491E11.20001-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
+In-Reply-To: <64854.64.164.111.5.1044907496.squirrel-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,74 +17,79 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luke Hammer <lukeh-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
+To: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 11, 2003 at 04:00:17PM +0000, Luke Hammer wrote:
-> Hi,
+On Mon, Feb 10, 2003 at 12:04:56PM -0800, Darren Benham wrote:
+> oops... for got to include the list...
 > 
-> I've finallyjust managed to get some kind of suspend state
-> working on my Dell Inspiron 2650 laptop, using the 2.4.21-pre3 kernel
-> and the ACPI-20030125-2.4.21-pre3 patch (under RedHat 7.3). I can
-> get some kind of suspend state working using 'echo 1 >/proc/acpi/sleep'
-> but I don't think it's the genuine suspend-to-RAM state. For one
-
-Correct.  It is 'system standby'.
-
-> thing, as soon as I put it into this state, one of the fans comes on
-> and stays on (not very good when you're trying to conserve battery
-> juice, but this is probably a Dell BIOS problem); and secondly, the screen
-> doesn't actually seem to be turned off - I can still make out an image 
-> on it,
-
-How?  Could you explain ?  If yes, then there is a problem.  The
-processor is supposed to have stopped execution.
-
-> it just looks like the backlighting has been turned off.
-
-It sound like, but definitely you should some power saving in
-this state.  It is not the best, though, and S3 is really preferable.
-
+> -------- Original Message --------
+> Subject: Re: [ACPI] ASL help with latest acpi and compaq presario 2800t
+> From: "Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
+> Date: Mon, February 10, 2003 12:01 pm
+> To: <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 > 
-> Nothing at all seems to happen if I try to echo 3, 4, 4b or 5 to 
-> /proc/acpi/sleep,
+> 
+> Ducrot Bruno said:
+> > On Sun, Feb 09, 2003 at 05:44:48PM -0700, Kevin Fenzi wrote:
+> >
+> > Try:
+> >
+> > --- dsdt.asl	2003/02/10 13:49:25	1.1
+> > +++ dsdt.asl	2003/02/10 13:54:53
+> > @@ -1916,7 +1915,7 @@
+> >                         }
+> >                         Method(_OFF) {
+> >                             If(LOr(\_SB_.C020, LEqual(0x0, 0x1))) {
+> > -                                Return(0x0)
+> > +                                /* Return(0x0) */
+> >                             }
+> >                             C132(0x3, 0x0)
+> >                         }
+> > @@ -2202,7 +2201,7 @@
+> >                         }
+> >                         Method(_OFF) {
+> >                             If(LOr(\_SB_.C023, LEqual(0x0, 0x1))) {
+> > -                                Return(0x0)
+> > +                                /* Return(0x0) */
+> >                             }
+> >                             C132(0x1, 0x0)
+> >                         }
+> 
+> I question these two changes.  It really does seem as if the "return"
+> statements are to prevent the rest of the code from being executed in
+> certain cases.
 
-'3' is disabled explicitely.  It is in active developpement in 2.5.
-'4' is not supported.  Actually it is defaulted to '4b'.
-    You have to get swsusp (or a 2.5 tree) to get it.
-'4b' is still under developpement for 2.4.  For example, nothing is
-     done yet to restore a fbconsole (especially the svga one).  It
-     is certainly not SMP safe, not to mention that  it can not be preempted.
+Exact.  I am completly wrong here.
+
+You should consider to do something like that instead:
 
 
-> which is strange since the ChangeLog for the latest ACPI patch mentions
-> being able to change settings for the S3 suspend,
+                         Method(_OFF) {
+                             If(LOr(\_SB_.C020, LEqual(0x0, 0x1))) {
+                                Store ("_OFF: already off ?", Debug)
+                            } Else {
+                                C132(0x3, 0x0)
+                            }
+                        }
 
-Actually this is only for 2.5.  Perhaps a miss here (I have not read carrefully
-the ChangeLog, sorry)
 
-> and it also claims to
-> incorporate the s4bios patch. If I cat /proc/acpi/sleep I get "S0 S1 S3 
+> Wouldn't it be wiser to leave them in and either 1)
+> ignore the warning or 2) put "return statements at the end of the
+> block?--  Darren
+> 
 
-But only for 2.4.
+point 2) can not work here.
+An _OFF method must return nothing (see acpi specs 2.0b, 7.1.2)
+OSPM will call _OFF, then call _STA in order to check if
+the power ressource is really off.
 
-> S4 S5", so
+Note also that the debug statement is only here to check if
+"LOr(\_SB_.C020, LEqual(0x0, 0x1)" is really for that.  I am
+really not sure here.  Hard to follow this ASL since
+the names are not, well, the best that can be choosen..
 
-You should have 'S4bios' if you cat /proc/acpi/sleep.  It is
-somehow different from S4.  Remember, S4bios
-work _only_ if your bios support it.  If not, I can not do so much for
-you.  Please note also that S4bios is _not_ apm suspend-to-disk, so
-your laptop can support the apm one, but not S4bios (even though it
-sound like strange in my point of view)...
-
-> I'm not sure if I'm doing something wrong, or if ACPI suspend-to-RAM support
-> isn't fully functional yet.
-
-S3 would not backported to 2.4.  I don't say this is not
-possible, though, but sound like nobody will try to go for 2.4.
-
-Cheers,
 
 -- 
 Ducrot Bruno
