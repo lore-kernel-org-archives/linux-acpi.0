@@ -1,16 +1,12 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: dri-resume XFree86
-Date: Fri, 6 Sep 2002 09:29:08 -0600
+From: Matthew Wilcox <willy-+nN6oZZ19oAAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] Sleeping in interrupt context
+Date: Fri, 6 Sep 2002 10:13:42 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020906152912.4665.qmail@scrye.com>
-References: <20020903093612.GC27884@dutidad.twi.tudelft.nl>
-	<20020906032912.16913.qmail@scrye.com>
-	<20020906074200.GA26504@dutidad.twi.tudelft.nl>
+Message-ID: <20020906161342.GA20665@ldl.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020906074200.GA26504-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,70 +15,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
->>>>> "Charl" == Charl P Botha <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org> writes:
+We're using GFP_KERNEL where we should be using GFP_ATOMIC in
+acpi_bus_generate_event().  Here's a route to it:                                      
+Find an ACPI button:
 
-Charl> On Thu, Sep 05, 2002 at 09:29:08PM -0600, Kevin Fenzi wrote:
->> Built fine here... Seems to have worked fine. I tried a swsusp and
->> it came back fine.
+acpi_button_add
+|-> acpi_install_fixed_event_handler(acpi_button_notify);
+    |-> acpi_gbl_fixed_event_handlers[event].handler =
+acpi_button_notify
+                    
+Get an interrupt:
 
-Charl> Whoop!
+acpi_ev_sci_handler 
+|-> acpi_ev_fixed_event_detect
+    |-> acpi_ev_fixed_event_dispatch
+        |-> acpi_gbl_fixed_event_handlers[event].handler
+            |-> acpi_button_notify
+                |-> acpi_bus_generate_event
+                    |-> kmalloc(sizeof(struct acpi_bus_event), GFP_KERNEL);
 
->> You might note that you no longer need to abort the suspend if your
->> radeon module is still in use. At least it worked for me with it
->> still in use... and it never was not in use.
+And we get a BUG() if that slab needs a new page.  Here's a patch:
 
-Charl> I made the new modifications to do specifically this... X never
-Charl> releases its handle on the DRM.  The "old" way (which does have
-Charl> some other applications) could break severely if it released
-Charl> the DRM whilst for instance a Qt app was running.  So, in
-Charl> short, with the new patch you can just suspend/resume at your
-Charl> heart's content, even while a 3D app or somesuch is running.
+Index: drivers/acpi/bus.c
+===================================================================
+RCS file: /var/cvs/linux/drivers/acpi/bus.c,v
+retrieving revision 1.3
+diff -u -p -r1.3 bus.c
+--- drivers/acpi/bus.c	19 Aug 2002 12:04:38 -0000	1.3
++++ drivers/acpi/bus.c	6 Sep 2002 16:08:35 -0000
+@@ -660,7 +660,7 @@ acpi_bus_generate_event (
+ 	if (!event_is_open)
+ 		return_VALUE(0);
+ 
+-	event = kmalloc(sizeof(struct acpi_bus_event), GFP_KERNEL);
++	event = kmalloc(sizeof(struct acpi_bus_event), GFP_ATOMIC);
+ 	if (!event)
+ 		return_VALUE(-ENOMEM);
+ 
 
-excellent. ;) 
-might make a 'README.upgradingfromKludge'
-I was thinking for a few seconds that it had broken swsusp entirely,
-but it turns out I had a check in there that if radeon was in use it
-should abort. ;) 
+-- 
+Due to broken mail software, I lost 100 email messages between Aug 13 and
+Aug 19.  If yours was one of them, please resend.
 
->> One other strange thing... after a swsusp everything comes back
->> except Xv does look like it works. It just gives a blank window for
->> anything that uses Xv. :( This was the case with the driReInit
->> version as well. Or the stock X modules/libs.
-
-Charl> Durn.  I haven't even started looking at this.  So after a
-Charl> resume, there's no way of getting Xv going again short of
-Charl> restarting X?
-
-yep. If I start another X server it works fine, or restart that one,
-but in the one that was going over the suspend it doesn't work. 
-No errors, and it seems to detect it like it's still there, but it
-doesn't display anything. 
-
->> Happy to provide more info...
-
-Charl> Thanks very much for testing!
-
-anytime. 
-
-Charl> Regards, Charl
-
-kevin
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.6 and Gnu Privacy Guard <http://www.gnupg.org/>
-
-iD8DBQE9eMnI3imCezTjY0ERAq1xAJsFz39BPlawqo4UK4kDmEpqJyoGGgCfQG7E
-/wetosOUhmLPRSLxbLPM9Ws=
-=+VPS
------END PGP SIGNATURE-----
+It's always legal to use Linux (TM) systems
+http://www.gnu.org/philosophy/why-free.html
 
 
 -------------------------------------------------------
