@@ -1,14 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Battery status/info query called twice
-Date: Fri, 16 May 2003 15:11:07 -0700
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Asus ACPI Hotkeys
+Date: Sat, 17 May 2003 00:24:08 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96E9B@orsmsx401.jf.intel.com>
+Message-ID: <20030516222408.GA18680@hell.org.pl>
+References: <F760B14C9561B941B89469F59BA3A847E96E9A@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96E9A-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,19 +17,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Stefan Behnel <behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>, Gertjan <g.zwartjes-oe7qfRrRQfdlL9U78CI+FQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Julien Lerouge <julien.lerouge-o/5/jSaJEHk+NdeTPqioyti2O/JbrIOy@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Markus Gaugusch [mailto:markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org]=20
-> Did anybody have a look at this? Andy?
->=20
-> sorry for bugging you, but if I could fix it, I would do so!
-> But I'll try to make a (probably very dirty) "dsdt in initrd" patch!
+Thus wrote Grover, Andrew:
+> Well then probably someone needs to write a device driver for this, just
+> like for Toshiba's special device.
 
-I don't have time, but if you or someone else wanted to work on a fix
-then I'd love to see a patch.
+Actually, it has already been done. Right now, we're working with Julien to 
+simplify the code and to add some features. The code is now under heavy 
+re-development, and we'll make an appropriate announce once it becomes 
+stable enough.
 
-Regards -- Andy
+Since we were aiming at merging the driver with the ACPI code (more or less
+on the same basis the Toshiba driver is) anyway, we can as well ask right
+now, whether this would be possible somewhere in the future? 
+
+Best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
