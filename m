@@ -1,14 +1,16 @@
-From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
 Subject: Re: Plea for help
-Date: Fri, 19 Dec 2003 18:05:05 -0600
+Date: Fri, 19 Dec 2003 16:09:47 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FE39231.4040003@comcast.net>
-References: <3FE28F79.601@comcast.net> <3FE33B69.1010606@netspace.org>
+Message-ID: <20031219160947.79c3fcdf.rddunlap@osdl.org>
+References: <3FE28F79.601@comcast.net>
+	<3FE33B69.1010606@netspace.org>
+	<3FE39231.4040003@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FE33B69.1010606-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <3FE39231.4040003-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +19,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Brian Perkins wrote:
-> First of all, what's the panic like?
-> Does it give a function?
-> You do have all of the kernel hacking options on, don't you?
-> 
+On Fri, 19 Dec 2003 18:05:05 -0600 Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org> wrote:
 
-You can see the panic at
+| Brian Perkins wrote:
+| > First of all, what's the panic like?
+| > Does it give a function?
+| > You do have all of the kernel hacking options on, don't you?
+| > 
+| 
+| You can see the panic at
+| 
+|    http://home.comcast.net/~i.pilcher/panics/1/panic.txt
+| 
+| The config used to produce it is at
+| 
+|    http://home.comcast.net/~i.pilcher/panics/1/config
+| 
+| Unfortunately, if I turn CONFIG_FRAME_POINTER on I don't get the panic,
+| just the hang at
+| 
+|    http://home.comcast.net/~i.pilcher/panics/2/hang.txt
+| 
+| Config at
+| 
+|    http://home.comcast.net/~i.pilcher/panics/2/config
+| 
+| And as I previously mentioned, turning CONFIG_DEBUG_SLAB on prevents
+| the panic entirely.
 
-   http://home.comcast.net/~i.pilcher/panics/1/panic.txt
+Can you also put the System.map file for that kernel on your website
+so that we can correlate kernel memory addresses?
 
-The config used to produce it is at
-
-   http://home.comcast.net/~i.pilcher/panics/1/config
-
-Unfortunately, if I turn CONFIG_FRAME_POINTER on I don't get the panic,
-just the hang at
-
-   http://home.comcast.net/~i.pilcher/panics/2/hang.txt
-
-Config at
-
-   http://home.comcast.net/~i.pilcher/panics/2/config
-
-And as I previously mentioned, turning CONFIG_DEBUG_SLAB on prevents
-the panic entirely.
-
--- 
-========================================================================
-Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-========================================================================
-
+--
+~Randy
+MOTD:  Always include version info.
 
 
 -------------------------------------------------------
