@@ -1,14 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
-Date: Thu, 11 Mar 2004 11:51:32 +0100
+From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: Can't Play avi/mov files after S4 Resume
+Date: Thu, 11 Mar 2004 12:08:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040311105132.GI28592@poupinou.org>
-References: <20040308163452.GE5352@openzaurus.ucw.cz> <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades> <20040308183228.GD484@elf.ucw.cz> <20040308201411.GA18636@alpha.home.local> <20040308205444.GH484@elf.ucw.cz> <20040309233325.GA22953@alpha.home.local>
+Message-ID: <1079003309.26171.234.camel@localhost>
+References: <C386328088ED7F4E9F81AFBABDDF60DA04A92547@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040309233325.GA22953-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
+In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA04A92547-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Cc: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 10, 2004 at 12:33:25AM +0100, Willy Tarreau wrote:
-> Hi Pavel,
-> 
-> On Mon, Mar 08, 2004 at 09:54:44PM +0100, Pavel Machek wrote:
-> > Can you replace
-> > 
-> > acpi_system_save_state() with
-> > 
-> >         pm_send_all(PM_SAVE_STATE, (void *)3);
-> >         pm_send_all(PM_SUSPEND, (void *)3);
-> > 
-> > ?
-> > 
-> > That should fix it, too, and does not depend on CONFIG_ACPI_SLEEP.
-> 
-> Just checked, and I still can poweroff (which was a bit expected anyway, but
-> now confirmed). So with this little patch against 2.4.26-pre2, poweroff does
-> not depend on CONFIG_ACPI_SLEEP anymore, as you fairly requested (thank you
-> for having insisted).
+Am Do, den 11.03.2004 schrieb Ow Mun Heng um 06:19:
+> > > -----Original Message-----
+> > > From: Ow Mun Heng 
+> > > Hi All,
+> > > 
+> > > RH9 + D600 + 2.6.3 kernel (acpi-20040211 patch + laptop mode)
+> > > suspend is compiled into the kernel
+> > > tg3/sound/usb as modules
+> >   S4 Suspend and resume works Great
+> >
+> > > I've tried S1 and S3..no Dice. The suspend works ok.. but 
+> > > on powering on.. hard disk spins up.. no Console/X11.
+> > > (I guess this is a known issue)
+> > > 
+> However, I just found out that Video will not work(after
+> resuming from S4 suspend). Eg: Playing any
+> AVI/MOV etc files. Sound will be Ok but no picture. Xine/Mplayer is 
+> the same. 
+> It'll work fine once I perform proper reboot.
+> Any Ideas?
 
-IMHO, that is much likely a bug somewhere in the notifer_reboot chain
-than an ACPI problem.  For example, IDE disks would all been in standby
-modes, and IDE hwif will be 'cleaned up' before even calling the
-poweroff callback, yet with your patch the pm_send_all with
-PM_SAVE_STATE would actually hang some of those IDE hwif.
+Is this using X11/XFree86?
+If yes then check (after resume) with xvinfo if your XVideo extensions
+are still online, I suspect not. Another clue would be to try the x11
+mplayer driver instead of the probable deafult xv driver.
+
+If this helps then the video driver of your card is a little broken and
+does not reinitialise the XV...
+
+CU
+  nils faerber
 
 -- 
-Bruno Ducrot
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          D1 : +49-170-2729106
+--
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
