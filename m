@@ -1,13 +1,16 @@
-From: "Ty Santos" <g7rtea-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: LIVE LONGER with H-uman...G-rowth...H-ormone...ekram
-Date: Fri, 21 Nov 2003 08:23:55 +0100
+From: Dimitris Stasinopoulos <dimitris-1R3Ry79yXbc@public.gmane.org>
+Subject: Re: Problem with acpi and HP Compaq nx7000 laptop
+Date: Fri, 21 Nov 2003 10:20:56 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yhdvq4i$dtgn@ysp.dy>
-Reply-To: "Ty Santos" <g7rtea-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <200311211020.56074.dimitris@linea.gr>
+References: <3ACA40606221794F80A5670F0AF15F8401720BDC@pdsmsx403.ccr.corp.intel.com> <20031121073159.65e78efe.tobiasmatzat@freenet.de>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="8D_6_F00B.C"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20031121073159.65e78efe.tobiasmatzat-KuiJ5kEpwI6ELgA04lAiVw@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,82 +22,59 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Same here (nx7000). Also, when charging the rate is fine, but when ac is 
+offline, the rate is stuck to 1.4A, even with the lid closed and the cpu 
+scaled down to 600MHz (normally 1,5GHz).
 
---8D_6_F00B.C
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+Dimitris
 
-H-uman...G-rowth...H-ormone Therapy
-
-"Overall deterioration of the body that comes with growing old is not inev=
-itable."---Dr. Daniel Rudman's in the New England Journal of Medicine.
-
-
-Follow me to longer living: www.mmv9.org?affil=3D49
-
-
-Scientific research and evidence overwhelmingly demonstrates that, in addi=
-tion to genetic and environmental factors, our body's reduced production o=
-f H-uman...G-rowth...H-ormone is a direct cause of aging. Between the ages=
- of 20 to 70, our levels can fall by more than 75%. This may cause us to l=
-ook and feel older and less energetic. By the time most of us have reached=
- our forties, we are already experiencing a H-uman...G-rowth...H-ormone de=
-ficiency.
-
-
-Follow me to longer living: www.mmv9.org?affil=3D49
-
-
-Our competitors charge as high as 65 dollars---get ours for less than 50.
-
-
-Follow me to longer living: www.mmv9.org?affil=3D49
-
-
-
-
-
-
-
-
-
-No more advertisements, thanks - www.aqmp.net/out5s/rem2e.asp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-vibj   cnhd y  jxzh frfyic fi l yl
- f 
-p ict
-s
-
-tyhqln r
-
---8D_6_F00B.C--
+On Friday 21 November 2003 08:31, Tobias Matzat wrote:
+> But it seems there are only patches for the 2.6 kernel.
+> I will try it, but I'm currently using mainly the 2.4 kernel.
+>
+> THX
+>
+> On Fri, 21 Nov 2003 09:00:19 +0800
+>
+> "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > Please try latest patch at
+> > http://bugzilla.kernel.org/show_bug.cgi?id=1444   - Luming
+> >
+> >
+> > -----Original Message-----
+> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Tobias
+> > Matzat Sent: 2003?11?21? 6:05
+> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: [ACPI] Problem with acpi and HP Compaq nx7000 laptop
+> >
+> >
+> >
+> >
+> > Hi!
+> >
+> > I get the following error messages from my kernel (2.4.22):
+> >
+> > ACPI: Interpreter enabled
+> > ACPI: Using PIC for interrupt routing
+> > ACPI: System [ACPI] (supports S0 S3 S4bios S4 S5)
+> > dsopcode-0515 [20] ds_init_buffer_field  : Field size 1392 exceeds
+> > Buffer size 1296 (bits) psparse-1121: *** Error: Method execution
+> > failed [\_SB_.C046.C052] (Node dffc09e8), AE_AML_BUFFER_LIMIT
+> > psparse-1121: *** Error: Method execution failed [\_SB_.C046.C056]
+> > (Node dffc0ae8), AE_AML_BUFFER_LIMIT psparse-1121: *** Error: Method
+> > execution failed [\_SB_.C046._CRS] (Node dffc0be8),
+> > AE_AML_BUFFER_LIMIT uteval-0098: *** Error: Method execution failed
+> > [\_SB_.C046._CRS] (Node dffc0be8), AE_AML_BUFFER_LIMIT ACPI: PCI Root
+> > Bridge [C046] (00:00)
+> >
+> > What do they mean and how can i fix them? Is it something
+> > dsdt-related? I took a look at the acpi4linux page but i found
+> > nothing related to my laptop.
+> >
+> > Please help me, i am completetly new to acpi.
+> >
+> > Greets, Tobias
 
 
 
