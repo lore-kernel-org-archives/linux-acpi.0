@@ -1,14 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: hotkey/video framework [was: ibm-acpi-0.2]
-Date: Tue, 17 Aug 2004 23:55:05 +0200
+From: =?ISO-8859-1?Q?Dennis_Lichtenth=E4ler?=
+ <dennis.lichtenthaeler-ml43uUC8Ylsb1SvskN2V4Q@public.gmane.org>
+Subject: ACPI preventing hotplug from working
+Date: Wed, 18 Aug 2004 00:36:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040817215505.GB15957@hell.org.pl>
-References: <3ACA40606221794F80A5670F0AF15F840533AE98@pdsmsx403>
+Message-ID: <41228863.3070101@pfarroli.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F840533AE98@pdsmsx403>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,34 +16,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>, julien.lerouge-GANU6spQydw@public.gmane.org, John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, letsnote-tech-eXqGM+LsbTTAqL8d+zIrHngSJqDPrsil@public.gmane.org
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Yu, Luming:
-> >One possibility is to just agree on the proc file format and ACPI
-> >events for the common features, then have each driver implement them
-> >separately. This would probably be simpler than trying to come up with
-> >some sort of a wrapper framework as the code involved is fairly simple
-> >and there probably isn't much we can share. Then again, there might
-> >be, I haven't looked.
-> I think the proposaled framework/abstraction layer is NOT just for 
-> code sharing. We need to dynamically load the proper hotkey/video driver
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-While binding all HIDs in one place should be fairly easy, I don't think I
-see an advantage to that as opposed to a modrobe *_acpi solution,
-especially now that the fix to acpi_bus_register_driver() is in place.
+Hi everyone!
+I'm not sure I'm right on this list but neither the gentoo nor the
+hotplug-guys were able to help me out...
 
-As for the video, if a certain API was agreed on, the generic driver could
-provide an abstraction that vendor-specific drivers could bind on. What I'm
-afraid of is that the components and AML code used are so diverse that the
-management of such a layer becomes a nightmare.
+Whenever I plug a USB device in _before_ boot it gets recognized as soon as
+the hotplug-script is loaded, the modules get loaded and everything works like
+a charm. If I plug the device in _after_ boot, nothing happens. There is no
+sign at all that linux recognized me changing something.
 
-Best regards,
+I have tried the usual suspects and found out that it obviously had something
+to do with ACPI as switching it off at boot (with acpi=off) fixes the problem.
+I googled a bit and found that problems like this could be caused by a buggy
+DSDT. After some more googling I found out how to disassemble it, did so,
+found four or five errors, fixed them, recompiled the DSDT, had it load by the
+kernel but - nothing changed. I'm told that the default DSDT is overridden by
+a user-defined one (ACPI-0291: *** Info: Table [DSDT] replaced by host OS) so
+my patching actually worked but it doesn't solve the problem.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Booting with
+acpi_os_name="Microsoft Windows XP"
+hasn't worked either.
+
+I've tried different kernels now, the gentoo-supplied 2.6 one (I think it was
+2.6.5) as well as the most recent 2.6.7-gentoo-r14. The same problem also
+appeared on a default install of SuSE 9.1.
+It is definitely not a hardware problem since with WinXP Home and with ACPI
+disabled (on any kernel) hotplug works.
+
+What makes this problem so incredibly annoying is that I can't seem to find
+any starting point for debugging as there is no reaction to my plugging
+in/plugging out at all.
+
+Any tips would be greatly appreciated!
+Dennis
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (MingW32)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFBIohjIYGOmjAGFHMRAjdcAKCyUCDwpiXpRA7VZnQskRzUv/oxSgCfbkJS
+q+Ox2aP1nORPxks2KF/R2mc=
+=G6DQ
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
