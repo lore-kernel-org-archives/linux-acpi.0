@@ -1,18 +1,13 @@
-From: Paul Jackson <pj-sJ/iWh9BUns@public.gmane.org>
-Subject: Re: Re: [PATCH] cleanup ACPI numa warnings
-Date: Sat, 7 Aug 2004 10:57:29 -0700
+From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
+Subject: ac status broken with kernel 2.6.8-rc2
+Date: Sun, 8 Aug 2004 14:51:01 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040807105729.6adea633.pj@sgi.com>
-References: <1091738798.22406.9.camel@tdi>
-	<1091739702.31490.245.camel@nighthawk>
-	<1091741142.22406.28.camel@tdi>
-	<249150000.1091763309@[10.10.2.4]>
-	<20040805205059.3fb67b71.rddunlap@osdl.org>
+Message-ID: <20040808115101.GA3498@luna.mooo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040805205059.3fb67b71.rddunlap-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -21,29 +16,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Cc: mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org, alex.williamson-VXdhtT5mjnY@public.gmane.org, haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> And there's nothing in CodingStyle that agrees with you that I could find.
+The ac status reporting is completely broken for me with kernel
+2.6.8-rc2 and 2.6.8-rc3-mm1. 
 
->From the file Documentation/SubmittingPatches:
+On cold boot the power is always reported as off-line. After suspend
+(swsusp2) the power is stuck on on-line. It doesn't matter for both
+whether the power is actually connected or if the battery is in.
 
-        3) 'static inline' is better than a macro
+ac and battery are compiled as modules and loaded from /etc/modules and
+removed/reinserted on suspend/resume cycle.
 
-        Static inline functions are greatly preferred over macros.
-        They provide type safety, have no length limitations, no formatting
-        limitations, and under gcc they are as cheap as macros.
-
-        Macros should only be used for cases where a static inline is clearly
-        suboptimal [there a few, isolated cases of this in fast paths],
-        or where it is impossible to use a static inline function [such as
-        string-izing].
-
--- 
-                          I won't rest till it's the best ...
-                          Programmer, Linux Scalability
-                          Paul Jackson <pj-sJ/iWh9BUns@public.gmane.org> 1.650.933.1373
+The machine is a sony vaio pcg-fxa53 (amd 1500+ and via chipset).
 
 
 -------------------------------------------------------
