@@ -1,10 +1,10 @@
-From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
-Subject: BATTSTAT-patch for two or more batteries
-Date: Sun, 6 Oct 2002 18:51:42 +0200
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: ACPI fails - TP600 2.5.40
+Date: 06 Oct 2002 23:03:22 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021006185142.0a422a2b.hanno@gmx.de>
+Message-ID: <1033941802.21257.57.camel@irongate.swansea.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,19 +15,16 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: ACPI list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have updated my gnome-battstat-patch for two batteries now:
-http://www.gentoo.org/~hanno/battstat_two_batteries_v2.diff
-Patch is against gnome-applets-2.0.3.
+IBM Thinkpad 600:
 
-Changes:
-- Should also work with more than 2 batteries, now generic check for what's in /proc/acpi/battery. (can anyone with 3 batteries confirm this?)
-- Should also fix the issue reported by Federico Di Gregorio with the non-usual ac/dc-proc-entry. Also generic check. (Frederico, can you confirm this?)
+With 2.5.40 the ACPI code causes a kernel crash. Unfortunately the trace
+is about 6 foot long mostly looping with a crash on vga cursor unblank
+causing a fault causing a crash...
 
-Any Feedback is welcome. I will also send this to the gnome-authors.
+
 
 
 -------------------------------------------------------
