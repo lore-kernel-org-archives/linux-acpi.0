@@ -1,12 +1,14 @@
-From: Sebastian Seifert <lathander-Mmb7MZpHnFY@public.gmane.org>
-Subject: [PATCH] bug in acpi_os_wait_semaphore
-Date: Wed, 3 Mar 2004 15:37:25 +0100
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 1/2] 2.6: use scaling_available_freqs in acpi-cpufreq-ioport driver
+Date: Wed, 3 Mar 2004 17:22:55 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040303143725.GA1657@ergo.gotdns.org>
+Message-ID: <20040303162255.GK2869@poupinou.org>
+References: <20040220083149.GA10215@dominikbrodowski.de> <20040224125628.GA438@elf.ucw.cz> <20040224210040.GA8166@dreamcraft.com.au> <20040224221642.GB9145@elf.ucw.cz> <20040226172823.GJ2869@poupinou.org> <20040226215006.GB397@elf.ucw.cz> <20040301175430.GY2869@poupinou.org> <20040301180325.GA562@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20040301180325.GA562-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,36 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Tomasz Ciolek <tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Mon, Mar 01, 2004 at 07:03:25PM +0100, Pavel Machek wrote:
+> 
+> As long as people don't want to change rvo, irt, etc, we should be
+> fine.
 
-I have found a tiny bug in acpi_os_wait_semaphore, which has caused my mutex
-problems. If Acquire is called on a mutex with a non-zero, non-infinity
-timeout, a bad return value check will cause the timeout to expire instantly.
+Yes, probably, but in case of powernow-k7 I need to pass specifically
+fsb and latency.  And I much prefer to do it atomic.  Also I want to
+check that the user do not enter stupid things.  For example, I
+requested that frequency being passed even though it's actually only
+here in order to check that frequency and FID being OK with something
+like
+if (frequency != table[vid] * fsb * ...) then fail.
+for each entry passed.
 
-Here's a one-line patch against osl.c in 2.6.3-mm4 (I hope that's current
-enough):
+> First step in that direction would be to have voltage in milivolts in
+> those frequency tables, so that core can print them etc... like this:
+> 
+> --- clean/include/linux/cpufreq.h	2004-01-09 20:24:26.000000000 +0100
+> +++ linux/include/linux/cpufreq.h	2004-03-01 19:02:48.000000000 +0100
+> @@ -316,6 +316,7 @@
+>  	unsigned int	index;     /* any */
+>  	unsigned int	frequency; /* kHz - doesn't need to be in ascending
+>  				    * order */
+> +	unsigned int	voltage;   /* mV */
+>  };
 
---- ../../../linux-2.6.3-nopreempt/drivers/acpi/osl.c   2004-03-03 10:37:10.000000000 +0100
-+++ osl.c       2004-03-03 15:11:11.000000000 +0100
-@@ -892,7 +892,7 @@
-                        static const int quantum_ms = 1000/HZ;
- 
-                        ret = down_trylock(sem);
--                       for (i = timeout; (i > 0 && ret < 0); i -= quantum_ms) {
-+                       for (i = timeout; (i > 0 && ret != 0); i -= quantum_ms) {
-                                current->state = TASK_INTERRUPTIBLE;
-                                schedule_timeout(1);
-                                ret = down_trylock(sem);
-
-
-Sebastian
+Well, why not?
 
 -- 
-Man gewoehnt sich an allem, auch am Dativ.
+Bruno Ducrot
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
