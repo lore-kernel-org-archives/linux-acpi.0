@@ -1,14 +1,14 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: [RFC, PATCH] sysdev suspend/resume order?
-Date: Mon, 16 Aug 2004 16:47:53 -0400
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC, PATCH] sysdev suspend/resume order?
+Date: Mon, 16 Aug 2004 14:01:21 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41211D79.9080407@optonline.net>
-References: <88056F38E9E48644A0F562A38C64FB60029C6914@scsmsx403.amr.corp.intel.com>
+Message-ID: <88056F38E9E48644A0F562A38C64FB60029C6981@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <88056F38E9E48644A0F562A38C64FB60029C6914-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,55 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pallipadi, Venkatesh wrote:
+=20
+>-----Original Message-----
+>From: Nathan Bryant [mailto:nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org]=20
+>Sent: Monday, August 16, 2004 1:48 PM
+>To: Pallipadi, Venkatesh; Matthew Garrett
+>Cc: Li, Shaohua; Patrick Mochel; Pavel Machek;=20
+>acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Brown, Len
+>Subject: Re: [ACPI] [RFC, PATCH] sysdev suspend/resume order?
+>
+>Pallipadi, Venkatesh wrote:
+>
+>> I think the basic resume ordering should be=20
+>> - APIC (if enabled)
+>
+>You mean Local APIC?
+>
+>> - IOAPIC (or PIC)
+>
+>We still use the i8259 in APIC mode for some things. (Some=20
+>motherboards=20
+>  don't connect certain IOAPIC pins, like IRQ0... I think there may be=20
+>other uses) Does that need to be before or after the local=20
+>apic? Before=20
+>or after the IO-APIC?
 
-> I think the basic resume ordering should be 
-> - APIC (if enabled)
+OK. Another attempt at listing all the devices that need to have=20
+some ordering during resume
 
-You mean Local APIC?
+- Local APIC
+- i8259
+- IOAPIC
+- PIT
+- Interrupt link device
+- All drivers
 
-> - IOAPIC (or PIC)
-
-We still use the i8259 in APIC mode for some things. (Some motherboards 
-  don't connect certain IOAPIC pins, like IRQ0... I think there may be 
-other uses) Does that need to be before or after the local apic? Before 
-or after the IO-APIC?
-
-> - Link device
-> - All drivers
-
-Makes sense
-
-But where does PIT fit into the order? It has its own sys_device, and 
-was, I think, specifically reported by one user to be causing a problem. 
-If the following message in the archives is accurate, it might help, but 
-it's a little short on details of how he tracked this down: 
-http://marc.theaimsgroup.com/?l=acpi4linux&m=109180681500139&w=2
-
-Matthew, care to weigh in? I'm fuzzy on the details of what patches 
-broke what, on your system. (That is to say, who did what to who.)
-
-> 
-> I somehow feel doing it in a single driver may increase the complexity
-> of this whole thing. Especially with various APIC/IOAPIC configs and 
-> boot time parameters.
-
-You may be right. Part of the problem is that some of the affected code 
-lives in arch/... and some of it lives in drivers/acpi/... That 
-certainly makes cleaning up require a little more forethought.
-
-Nathan
-
-> 
-> Thanks,
-> Venki
-> 
-> 
-
+Thanks,
+Venki
 
 
 -------------------------------------------------------
