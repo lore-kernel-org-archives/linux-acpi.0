@@ -1,13 +1,12 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: sbs-linux: smart batteries on SourceForge
-Date: Mon, 07 Feb 2005 10:32:40 +0100
-Message-ID: <m23bw8zpdz.fsf@phoenix.squirrel.nl>
-References: <41FBDDE2.1050403@bartol.udel.edu>
-	<42057EBE.5090102@bartol.udel.edu>
+From: Helge Hafting <helge.hafting-CND4fxrytsY@public.gmane.org>
+Subject: Re: Re: [RFC] Reliable video POSTing on resume
+Date: Mon, 07 Feb 2005 11:20:33 +0100
+Message-ID: <420740F1.5050609@hist.no>
+References: <20050122134205.GA9354@wsc-gmbh.de>	 <4204B3C1.80706@rainbow-software.org>	 <9e473391050205074769e4f10@mail.gmail.com>	 <200502051748.43547.stefandoesinger@gmx.at> <9e47339105020509382adbbf39@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-In-Reply-To: <42057EBE.5090102-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> (Rich Townsend's message of
- "Sat, 05 Feb 2005 21:19:42 -0500")
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <9e47339105020509382adbbf39-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: =?UTF-8?B?U3RlZmFuIETDtnNpbmdlcg==?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Ondrej Zary <linux-ZCIryABCsrmttCpgsWEBFmD2FQJk+8+b@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
+Jon Smirl wrote:
 
-> Full instructions are provided in the accompanying README file.
+>On Sat, 5 Feb 2005 17:48:43 +0100, Stefan D=C3=B6singer
+><stefandoesinger-RbZlAiThDcE@public.gmane.org> wrote:
+> =20
+>
+>>The reset code of radeon card seems to be easy to reverse engineer. I h=
+ave
+>>started an attempt and I have 50-60% of my radeon M9 reset code impleme=
+nted
+>>in a 32 bit C program. I had to stop due to school reasons.
+>>   =20
+>>
+>
+>The problem with the radeon reset code is that there are many, many
+>variations of the radeon chips, including different steppings of the
+>same part. The ROM is matched to the paticular bugs of the chip. From
+>what I know ATI doesn't even have a universal radeon reset program.
+> =20
+>
+Maybe they could provide such a program, if asked?
+Basically, a chip detect and a switch statement containing all
+the bios reset sequences they have.
 
-If I understand the instructions correctly, _every_ change to the BIOS
-settings would require me to:
- - boot a non-DSDT-overriding kernel
- - extract the (possibly modified) DSDT
- - repeat the patch procedure, building a new DSDT
- - strip the old one from my initrd, and append the new DSDT
- - reboot the new kernel
+They may want to protect "trade secrets" about innovative
+3D-pipelines and such.  But the bios reset is probably not that
+high-end, so perhaps they could provide source code for it?
 
-This is quite cumbersome.
-Is there any insight in what changes to BIOS settings would lead to
-changes in the DSDT?
-
--- Johan
+Helge Hafting
 
 
 -------------------------------------------------------
