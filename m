@@ -1,52 +1,41 @@
-From: Adam Kessel <adam-/J5p37YCQWYytDrLOV7HaA@public.gmane.org>
-Subject: ACPI Poweroff fails on HP OmniBook 500
-Date: Tue, 28 Oct 2003 21:06:36 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031029020636.GF29465@bostoncoop.net>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI 2.6
+Date: 29 Oct 2003 02:59:05 -0500
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <1067414344.15257.5.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I posted this recently to lkml, but got no response, so I thought I would
-report it here as well.[1]
+Hi Linus, please do a 
 
-In 2.4.22-rc2, ACPI poweroff worked fine on the HP OmniBook.
+	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
 
-Since 2.4.22, all the way up to 2.4.23-pre8, the system fails to
-shutdown--the process gets to "power off" and hangs there. It is
-necessary to do a hard shut down to turn the system off.
+	These two csets undo recent changes that caused crashes.
 
-There is no problem with rebooting.
+thanks,
+-Len
 
-Apparently this effects a number of HP laptops, although I have only
-verified it on the OmniBook 500.[2]
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.0-test9/acpi-20031002-2.6.0-test9.diff.gz
 
-This problem is not present in 2.6.0-test9.
+This will update the following files:
 
-I am using force=acpi as required since I have an older BIOS.  Apparently
-the problem occurs in OmniBook laptops they have newer BIOSes as well.
+ drivers/acpi/dispatcher/dsopcode.c |    8 +++-----
+ drivers/acpi/ec.c                  |   16 ++--------------
+ 2 files changed, 5 insertions(+), 19 deletions(-)
 
-I expect this is related to the Sony VAIO problem discussed this month on
-this list as well.[3]
+through these ChangeSets:
 
-[1] http://www.ussg.iu.edu/hypermail/linux/kernel/0310.1/1625.html 
-[2] http://zurich.ai.mit.edu/pipermail/omnibook/2003-September/002805.html
-[3] http://article.gmane.org/gmane.linux.acpi.devel/4770
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/28 1.1373)
+   [ACPI] REVERT ACPICA-20030918 CONFIG_ACPI_DEBUG printk that caused
+crash
+   http://bugzilla.kernel.org/show_bug.cgi?id=1341
 
-
--------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-Does SourceForge.net help you be more productive?  Does it
-help you create better code?   SHARE THE LOVE, and help us help
-YOU!  Click Here: http://sourceforge.net/donate/
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/28 1.1372)
+   [ACPI] REVERT acpi_ec_gpe_query(ec) fix that crashed non-T40 boxes
+   http://bugme.osdl.org/show_bug.cgi?id=1171
