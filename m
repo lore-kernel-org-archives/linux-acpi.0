@@ -1,15 +1,12 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: X86_PM_TIMER: /proc/cpuinfo doesn't get updated
-Date: Thu, 18 Mar 2004 09:51:33 +0100
+From: =?iso-8859-1?q?Praveen=20C?= <cpravn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: acpi on r40e
+Date: Thu, 18 Mar 2004 15:27:43 +0000 (GMT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040318085133.GA15526@dominikbrodowski.de>
-References: <16471.43776.178128.198317@wombat.chubb.wattle.id.au> <200403162340.57546.dtor_core@ameritech.net> <20040317095314.GB14983@dominikbrodowski.de> <20040317145312.X3595@root.org>
+Message-ID: <20040318152743.81889.qmail@web14525.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040317145312.X3595-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,95 +15,76 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, Peter Chubb <peter-LkDQP0DxSMGxwJ88Py/mJxCuuivNXqWP@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, john stultz <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
+I posted to this list about acpi problems on r40e. The processor module
+was causing the system to hang and I found that cpu power management
+was the cause of the trouble. So in drivers/acpi/processor.c, in
+function acpi_processor_add(), I disabled power managment by setting
+the power flag to zero as follows:
 
---GvXjxJ+pjyke8COw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+    /*
+      Install the idle handler if processor power management is
+supported.
+      Note that the default idle handler (default_idle) will be used on
 
-On Wed, Mar 17, 2004 at 02:56:27PM -0800, Nate Lawson wrote:
-> On Wed, 17 Mar 2004, Dominik Brodowski wrote:
-> > On Tue, Mar 16, 2004 at 11:40:57PM -0500, Dmitry Torokhov wrote:
-> > > On Tuesday 16 March 2004 08:33 pm, Peter Chubb wrote:
-> > > > >>>>> "Dmitry" =3D=3D Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org> wri=
-tes:
-> > > >
-> > > > Dmitry> On Tuesday 16 March 2004 07:13 pm, Karol Kozimor wrote:
-> > > > >> Thus wrote john stultz: > Hmm. This is untested, but I think this
-> > > > >> should do the trick.
-> > > > >>
-> > > > >> Hmm... without the patch, neither cpu MHz nor bogomips are updat=
-ed,
-> > > > >> with the patch cpu MHz value seems correct (both using acpi.ko a=
-nd
-> > > > >> speedstep-ich.ko, but the bogomips is still at its initial value.
-> > > > >> Best regards,
-> > > > >>
-> > > >
-> > > > Dmitry> Karol, do you have a P4? AFAIK P4's TSC is stable even if c=
-ore
-> > > > Dmitry> frequence changes so loop_per_juffy (=3D=3D bogomips) need =
-not be
-> > > > Dmitry> updated.
-> > > >
-> > > > The TSC is variable rate for Pentium-IV if you're using clock
-> > > > modulation.
-> > > >
-> > > > Peter C
-> > > >
-> > >
-> > > I understand that by clock modulation you mean throttling as opposed =
-to
-> > > true SpeedStep... OK, that means that for P4+ we somehow need to figu=
-re
-> > > out whether the CPU is throttled or not to correctly calculate delays.
-> > > Is there a clean way to get this data?
-> >
-> > Hm, will have one patch to test it ready later today -- and a basic pat=
-ch to
-> > do this distinction is in the hiding of my notebook's harddisk already.=
-=2E.
-> > who's willing to do some testing on his SpeedStep-capable Pentium 4 - M=
-obile.
->=20
-> Instead of all this gymnastics, how about:
+      platforms that only support C1.
+     */
+    pr->flags.power = 0; //Disable cpu power management for r40e
+    if ((pr->id == 0) && (pr->flags.power)) {
+        pm_idle_save = pm_idle;
+        pm_idle = acpi_processor_idle;
+    }
 
-It's not so much gymnastics -- implementing different handling for cpufreq
-drivers which do not affect the TSC is easy. It's just difficult to get to
-know what drivers/CPUs are affected... and the test run you did yesterday
-helped in evaluating this. Thanks for doing so.
-=20
-> 1. If using Px states, state is unknown until first "set" event.
+With this change the processor module does not hang. But the system is
+always in C1 and it becomes hot (~50C) even when there is no load. Here
+is
 
-Normally, when using cpufreq drivers the original state is known -- only the
-ACPI spec has this severe flaw, but there are tries for a workaround [patch
-is submitted]
+cat /proc/acpi/processor/cpu/*
 
-> 2. Implement priorities for time source selection and a generic timer API.
-> This gets around the need to get the clock rate correct to have system
-> timers work.  On FreeBSD, this is /sys/kern/kern_tc.c
+processor id:            0
+acpi id:                 1
+bus mastering control:   yes
+power management:        no
+throttling control:      yes
+limit interface:         yes
+active limit:            P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+active state:            C1
+default state:           C1
+bus master activity:     00000000
+states:
+   *C1:                  promotion[C2] demotion[--] latency[000]
+usage[00000000]
+    C2:                  promotion[C3] demotion[C1] latency[003]
+usage[00000000]
+    C3:                  promotion[--] demotion[C2] latency[250]
+usage[00000000]
+state count:             8
+active state:            T0
+states:
+   *T0:                  00%
+    T1:                  12%
+    T2:                  25%
+    T3:                  37%
+    T4:                  50%
+    T5:                  62%
+    T6:                  75%
+    T7:                  87%
 
-IIRC, John Stultz intends to do a major upgrade of the timing code in 2.7.
+I hope someone can find a solution for this.
+Thanks
+praveen
 
-	Dominik
+=====
+http://www.cpraveen.tk/
 
---GvXjxJ+pjyke8COw
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAWWMVZ8MDCHJbN8YRAgTpAJ0TBQxl6ukms526cctWQixRajHBUACfYe5S
-BvYijW695DQURjL16UwNmRc=
-=PPdA
------END PGP SIGNATURE-----
-
---GvXjxJ+pjyke8COw--
+________________________________________________________________________
+Yahoo! India Insurance Special: Be informed on the best policies, services, tools and more. 
+Go to: http://in.insurance.yahoo.com/licspecial/index.html
 
 
 -------------------------------------------------------
