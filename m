@@ -1,8 +1,8 @@
 From: "MailScanner" <postmaster-Uwtyl+lVbAULUko9wUHW+6km5W21vHkk@public.gmane.org>
 Subject: Atención: Virus detectado en e-mail
-Date: Mon, 1 Sep 2003 02:32:46 -0300
+Date: Mon, 1 Sep 2003 05:24:40 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309010532.h815WkJ5029470@relay2.uncu.edu.ar>
+Message-ID: <200309010824.h818OeSr005516@relay2.uncu.edu.ar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: Quoted-Printable
@@ -20,16 +20,16 @@ List-Id: linux-acpi@vger.kernel.org
 
 Nuestro detector de virus ha sido activado por un mensaje enviado por Usted:
   A: jjciarla-/HDx387uZdgLD7QD9zJ8Xg@public.gmane.org
-  Asunto: Re: Details
-  Fecha: Mon Sep  1 02:32:46 2003
+  Asunto: Re: Re: My details
+  Fecha: Mon Sep  1 05:24:40 2003
 Las partes del mensaje que estaban infectadas no han sido enviadas.
 
 Este mensaje es sólo para avisarle de que su sistema puede tener un virus
 y debería verificarlo.
 
 El detector de virus dijo lo siguiente acerca del mensaje:
-Informe: details.pif  Infection: W32/Sobig.F@mm
-Shortcuts to MS-Dos programs are very dangerous in email (details.pif)
+Informe: your_document.pif  Infection: W32/Sobig.F@mm
+Shortcuts to MS-Dos programs are very dangerous in email (your_document.pif)
 
 
 --
