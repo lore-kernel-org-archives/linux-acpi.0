@@ -1,15 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: redhat9 and kernel2.4.22 and failed patch for 2.4.20
-Date: Tue, 8 Apr 2003 13:14:01 +0200
+Subject: Re: ARB_DIS
+Date: Tue, 8 Apr 2003 13:26:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030408111401.GT10287@poup.poupinou.org>
-References: <1049756521.1407.16.camel@darkstar.portugal>
+Message-ID: <20030408112629.GU10287@poup.poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A847E96DBF@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1049756521.1407.16.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96DBF-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,24 +17,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 08, 2003 at 12:01:54AM +0100, Sérgio Monteiro Basto wrote:
-> There is no way configure patch kernel with acpi:), because is one
-> 2.4.21pre3-ac4!?
-> and is very difficult configure 2.4.21-pre6 for redhat9 because at
-> startup is request many kernel modules like usb modules, iptables
-> modules and many things like the new input devices made in ac kernels. 
-> I guess.
-> So is not a bad idear put acpi in ac kernels!!!
-> bye good week.
-> my last try will be with acpi-20021212-2.4.20.diff.gz in 2.4.20-8
+Hi, Andy.
+
+On Mon, Apr 07, 2003 at 11:40:00AM -0700, Grover, Andrew wrote:
+> Hi Eric,
+> 
+> So in a patch applied 6 months ago, you added code to restore the
+> ARB_DIS bit on resume from S1. In looking more closely, it appears that
+> this is a duplicate of code already in acpi_leave_sleep_state. Given
+> that the OS should be calling that function after resuming S1, I am
+> considering removing that line from acpi_enter_sleep_state, but wanted
+> to check with you before I did. Any reason why I should stay?
 > 
 
-I have no trouble to patch ac kernels with acpi patches.
-What is the problem ?
+Really, you should track more closely authors of patches...
+
+Anyway, since you have applied ARB_DIS before calling AML methods
+in acpi_leave_sleep_state(), this is OK for me.
+
+Cheers,
 
 -- 
 Ducrot Bruno
