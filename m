@@ -1,31 +1,52 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Vaio doesn't poweroff with 2.4.22
-Date: Tue, 16 Sep 2003 22:06:55 +0200
+From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Subject: [PATCH] 2.4.23-pre3 Don't change BIOS allocated IRQs
+Date: Wed, 17 Sep 2003 00:06:59 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030916200655.GG602@elf.ucw.cz>
-References: <Pine.GSO.4.21.0309150835480.3191-100000@vervain.sonytel.be>
+Message-ID: <200309170006.59980.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.21.0309150835480.3191-100000-Q9iLAqk50tFNk+PO8Cj175kigfUh6rMo@public.gmane.org>
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Development <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+With the help of Chris Wright testing several failed patches, I've tracked 
+down another ACPI IRQ problem. On many systems, the BIOS 
+pre-allocates IRQs for certain PCI devices, providing a list of alternate 
+possibilities as well.
 
-> With 2.4.22, my Sony Vaio PCG-Z600TEK (s/600/505/ in US/JP) shows a regression
-> w.r.t. power management:
->   - It doesn't poweroff anymore (screen contents are still there after the
->     powering down message)
->   - It doesn't reboot anymore (screen goes black, though)
->   - It accidentally suspended to RAM once while I was actively working on it (I
->     never managed to get suspend working, except for this `accident'). I didn't
->     see any messages about this in the kernel log.
+On some systems, changing the IRQ to one of those alternate possibilities 
+works fine. On others however, it really isn't a good idea. As theres no 
+way to tell which systems are good and bad in advance, this patch simply 
+ensures that ACPI does not change an IRQ if the BIOS has pre-allocated it.
 
-It suspended to RAM... Did it also *resume* correctly?
-									Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+
+--- linux-2.4.23-pre3.null_crs/drivers/acpi/pci_link.c	2003-09-05 23:57:39.000000000 +0100
++++ linux-2.4.23-pre3.nochangeirq/drivers/acpi/pci_link.c	2003-09-16 23:59:49.212387016 +0100
+@@ -507,15 +507,15 @@
+ 		irq = link->irq.active;
+ 	} else {
+ 		irq = link->irq.possible[0];
+-	}
+ 
+-	/* 
+-	 * Select the best IRQ.  This is done in reverse to promote 
+-	 * the use of IRQs 9, 10, 11, and >15.
+-	 */
+-	for (i=(link->irq.possible_count-1); i>0; i--) {
+-		if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
+-			irq = link->irq.possible[i];
++		/* 
++		 * Select the best IRQ.  This is done in reverse to promote 
++		 * the use of IRQs 9, 10, 11, and >15.
++		 */
++		for (i=(link->irq.possible_count-1); i>0; i--) {
++			if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
++				irq = link->irq.possible[i];
++		}
+ 	}
+ 
+ 	/* Attempt to enable the link device at this IRQ. */
