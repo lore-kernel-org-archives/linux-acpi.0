@@ -1,28 +1,49 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [ACPI] Re: [PATCH] Linux 2.6-pre-mm2 Fix crash on boot on ASUS L3800C if enabing APIC => add this machine to DMI black list
-Date: Mon, 21 Jul 2003 18:18:00 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030721161800.GB28083@hell.org.pl>
-References: <200307210114.h6L1El7M018996@harpo.it.uu.se> <3F1B9F37.509@free.fr> <3F1C0DEE.8040509@free.fr>
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: acpi_processor_get_per: Unsupported address space
+Date: Tue, 22 Jul 2003 14:11:19 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030722121119.GA1964@brodo.de>
+References: <m2oezpghjy.fsf@tnuctip.rychter.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3F1C0DEE.8040509-GANU6spQydw@public.gmane.org>
-To: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
-Cc: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <m2oezpghjy.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Eric Valette:
-> Come on, APM is a thing from the past and any recent laptop does not 
-> even care of supporting it now that Windows XP is  bundled... And in any 
-> case it is not supported by this particular machine...
+On Sun, Jul 20, 2003 at 11:49:05AM -0700, Jan Rychter wrote:
+> On a Toshiba Dynabook SS S7/290LNKW (Centrino-based), kernel 2.4.22-pre7
+> (also tested with pre5).
+> 
+> I am getting the following message at bootup:
+> 
+> acpi_processor-0899 [31] acpi_processor_get_per: Unsupported address space [127] (control_register)
+> ACPI: Processor [CPU0] (supports C1 C2 C3)
+> ACPI: Thermal Zone [THRM] (44 C)
+> 
+> What does this mean? Does it indicate problems?
 
-While I agree with your first statement, I must object to the second: this
-laptop, contrary to what the manual says, supports APM quite well indeed.
-Anyway, turning ACPI off is not a solution.
-Best regards,
+It means that the "performance states" == SpeedStep states are only
+available using the binary-only processor.o replacement module available at
+Intel's ACPI site, or using the cpufreq speedstep-centrino module [patches
+in 2.5., or at http://www.codemonkey.org.uk/cpufreq/ once davej's server is
+back online]
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+	Dominik
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: VM Ware
+With VMware you can run multiple operating systems on a single machine.
+WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines at the
+same time. Free trial click here: http://www.vmware.com/wl/offer/345/0
