@@ -1,11 +1,10 @@
-From: "Jon P. Rush" <jon.prush_xf-46pKsnS0FKveWPZRMiJ+Cw@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Mon, 29 Nov 2004 11:18:32 -0400
-Message-ID: <c53f01c4d626$47f551cf$a1bd11cf@mat.upc.es>
+From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Subject: acpi ca compiler does not compile
+Date: Tue, 30 Nov 2004 01:16:14 +0100
+Message-ID: <41ABBBCE.4020308@renninger.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,33 +15,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+there is semicolon missing in line 953 in file compiler/aslcompiler.y:
 
-Do you want a rolex watch?
-
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
-
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.icors.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.icors.com/z.php
-
+/tmp/acpica-unix-20041105/compiler> make
+cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER 
+-I../include    -c -o aslcompilerparse.o aslcompilerparse.c
+aslcompiler.y: In function `AslCompilerparse':
+aslcompiler.y:953: error: parse error before '}' token
+make: *** [aslcompilerparse.o] Error 1
 
 
 -------------------------------------------------------
