@@ -1,12 +1,15 @@
-From: Maurice Commandeur <maurice-7ioHVeqw5HuiwVrDSQtohw@public.gmane.org>
-Subject: Problems with Toshiba P20
-Date: Mon, 27 Dec 2004 22:20:48 +0100
-Message-ID: <200412272220.48065.maurice@nieuwerbrug.org>
+From: Jeroen Wijnhout <wijnhout-FT9nftu9LUxX9el/+yt6TA@public.gmane.org>
+Subject: Re: what is the worst laptop atm?
+Date: Mon, 27 Dec 2004 22:34:11 +0100
+Message-ID: <200412272234.11984.wijnhout@science.uva.nl>
+References: <20041227165207.GB9606@poupinou.org>
+ <200412271800.31064.wijnhout@science.uva.nl>
+ <20041227171202.GC9606@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-reply-to: <20041227171202.GC9606-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,26 +23,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday 27 December 2004 18:12, Bruno Ducrot wrote:
+> > I'm using a Acer 4001WLmi (supposedly with a smart-battery). I would be
+> > so delighted if I could finally see my battery status. Besides, it is a
+> > good buy (after all you do want to have a working computer, right?).
+>
+> Does that one fail S3 btw?
+>
 
-Hi, 
+Didn't try that yet (I'm not sure how risky this is for my laptop).
 
-I've recently bought an Toshiba P20-771, and it seems to have problems with 
-powermanagement.... 
-It's in the US known as an P25.
-
-I can't restart it without pullig the powerplug from the system, doesn't like 
-to hibernate....
-
-I have made an webpage where you can read all of my problems....
-Please have a look at it !
-The dmseg,dsdt etc are also available there
-
-I've placed the files here :
-http://www.nieuwerbrug.org/acpi/index.html
-
-Let me know if you know any solutions.
-
-Greetings Maurice.
+best,
+Jeroen
 
 
 -------------------------------------------------------
