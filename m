@@ -1,14 +1,16 @@
-From: =?iso-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
+From: valvo <valvoline-FEXhGYRT/JJAfugRpC6u6w@public.gmane.org>
 Subject: Re: patch: acpi-20020821 fix?
-Date: Thu, 29 Aug 2002 18:20:33 +0300
+Date: Thu, 29 Aug 2002 22:47:48 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020829182033.A23001@sci.fi>
-References: <15723.8797.507913.189282@marple.lmc.cs.sunysb.edu> <20020829144434.GB246@lilyth.vrlteam>
+Message-ID: <20020829204748.GI409@lilyth.vrlteam>
+References: <15723.8797.507913.189282@marple.lmc.cs.sunysb.edu> <20020829144434.GB246@lilyth.vrlteam> <20020829182033.A23001@sci.fi>
+Reply-To: valvoline-FEXhGYRT/JJAfugRpC6u6w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="l0l+eSofNeLXHSnY"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020829144434.GB246-eODHXEvUBeUUXDL+gvDWyA@public.gmane.org>; from valvoline-FEXhGYRT/JJAfugRpC6u6w@public.gmane.org on Thu, Aug 29, 2002 at 04:44:34PM +0200
+Content-Disposition: inline
+In-Reply-To: <20020829182033.A23001-ORSVBvAovxo@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +19,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: valvo <valvoline-FEXhGYRT/JJAfugRpC6u6w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: valvo <valvoline-FEXhGYRT/JJAfugRpC6u6w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 29, 2002 at 04:44:34PM +0200, valvo wrote:
-> On Tue, Aug 27, 2002 at 02:55:25AM -0400, Giridhar Pemmasani wrote:
-> >     /* only support S1 and S5 on kernel 2.4 */
-> > -   if (state != ACPI_STATE_S1 || state != ACPI_STATE_S5)
-> > +   if (state != ACPI_STATE_S1 && state != ACPI_STATE_S5)
-> >         return AE_ERROR;
->
-> i don't understand the purpouses of this patch...can you be more explicit, plz ?
 
-Looks clear to me. Without this change the condition is always true.
+--l0l+eSofNeLXHSnY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Ville Syrjälä
-syrjala-ORSVBvAovxo@public.gmane.org
-http://www.sci.fi/~syrjala/
+On Thu, Aug 29, 2002 at 06:20:33PM +0300, Ville Syrj?l? wrote:
+
+> Looks clear to me. Without this change the condition is always true.
+
+sorry!. now it's clear! (=3D
+btw, a common mistake....
+
+--=20
+[ valvoline :: VRL Team :: s0ftpj :: freaknet Medialab :: GPG key available=
+  ]
+[ key fingerprint :: - :: B7E2 48BC 705F AE8F 9ABE  E422 076A 2561 1D67 B4D=
+D ]
+[ GPG key available on keyserver :: pgp.mit.edu :: with keyID :: 1D67B4DD :=
+: ]
+
+--l0l+eSofNeLXHSnY
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+
+iD8DBQE9bohzB2olYR1ntN0RAuCcAJ9Ofk44l+D8acdxf6i7pt5LEzujXgCfTzZZ
+TfltOMfok/K9wIVhkX43I8w=
+=3dSY
+-----END PGP SIGNATURE-----
+
+--l0l+eSofNeLXHSnY--
 
 
 -------------------------------------------------------
