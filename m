@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI whitelist for working DMIs
-Date: Wed, 22 Oct 2003 15:53:48 +0200
+From: Enrico <enrico_tux-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Acpi on TM427LC
+Date: Thu, 23 Oct 2003 12:00:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031022135348.GA643@openzaurus.ucw.cz>
-References: <20031020115132.GA802@informatik.uni-bremen.de>
+Message-ID: <200310231200.39175.enrico_tux@libero.it>
+Reply-To: enrico_tux-whZMOeQn8C0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031020115132.GA802-jNDFPZUTrfTJi8DqpkIagb0g9mU11dCt@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,22 +18,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Moritz Muehlenhoff <jmm-jNDFPZUTrfTJi8DqpkIagb0g9mU11dCt@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi everyone, i've some problems with my acpi on TravelMate 427LC... In 
+particular i can't read temperature sensor and neither fan sensor...
 
-> when I upgraded from a older 2.6.0-test kernel to test8 ACPI stopped
-> working because it claims that my 97 bios is too old. As everything
-> worked fine in the past and still works with acpi=force I decoded my
-> DMI to give you an impression of my setup. Is it possible to whitelist
-> working ACPI setups such as mine?
+Is there a way to get them work?
 
-Such whitelist certainly should be added. My toshiba needs it, too.
--- 
-				Pavel
-Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+I've a 2.4.21 kernel... Should i use another Kernel?
+I've decompiled & fixed my dsdt, but before to rebuild the kernel i'd like to 
+know if i must use a new 2.6 kernel or something else...
+
+Thanks for the attention...
+Bye
 
 
 
