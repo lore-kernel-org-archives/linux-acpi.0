@@ -1,14 +1,14 @@
-From: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>
-Subject: Re: More seq-file fixes for /proc/acpi
-Date: Fri, 14 Feb 2003 16:18:46 -0500
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI and my IBM Thinkpad R32
+Date: Fri, 14 Feb 2003 22:21:55 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E4D5D36.4080100@prairienet.org>
-References: <20030213223900.GA141@elf.ucw.cz>
+Message-ID: <20030214212155.GZ25625@poup.poupinou.org>
+References: <20030214170712.6e70c356.linux.wali@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030213223900.GA141-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030214170712.6e70c356.linux.wali-Mmb7MZpHnFY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,42 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> More seq-file fixes. [This is not a dup ;-)] Toshiba maintainer,
-> please fix your stuff yourself. This should fix all /proc write
-> problems in acpi I know... Please apply,
-
-> --- clean/drivers/acpi/toshiba_acpi.c	2003-02-11 17:40:46.000000000 +0100
-> +++ linux/drivers/acpi/toshiba_acpi.c	2003-02-13 23:17:16.000000000 +0100
-> @@ -519,6 +519,7 @@
->  	if (proc) {
->  		proc->proc_fops = &toshiba_lcd_fops;
->  		proc->proc_fops->write = proc_write_lcd;
-> +#warning You need to fix up after converting to seq_file; see thermal.c for examples.
->  	}
->  
->  	proc = create_proc_entry(PROC_VIDEO, S_IFREG | S_IRUGO | S_IWUSR,
+On Fri, Feb 14, 2003 at 05:07:12PM +0100, Michael Wahlbrink wrote:
+> Hi,
+> here comes an ACPI-Newbie with some (perhaps stupid) questions ;-)
+> I've got an IBM Thinkpad R32 (Type 2658-DCG) and tried to get linux working on it. Ok all is set up excl. powersave etc.. (the ACPI) stuff. I've tried a vanilla 2.4.19 kernel enabled acpi and got some informations about battery temperature etc in /proc/acpi/ . Then I've read an article about linux and ACPI in the german ct'.  ...And so I've found this project... Ok, I patched a 2.4.20 and a 2.4.21-pre3 kernel with the ACPI-patches from sf. Now I got no readable Information in /proc .. :-( Now I get the following messages about acpi when booting up (kernel 2.4.12-pre3 with patch):
 > 
 
-I take exception to this.  The person who converted my driver to 
-seq_file should be responsible for finishing the job.
+There is a little problem in this laptop.
+IBM will release soon a bios upgrade.
 
-I disagreed with the conversion to seq_file because it doesn't support 
-an object oriented programming style, as I explained in a posting at the 
-time the conversion took place.
-
--John
+In the meantime, you can check
+http://www.poupinou.org/acpi/ibm_ecdt.html
+for a workaround.
 
 
-
+Cheers,
 
 -- 
-http:// if   l .   /
+Ducrot Bruno
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
