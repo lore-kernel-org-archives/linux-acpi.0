@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Compaq presario 2556EU
-Date: Fri, 27 Aug 2004 21:55:47 +0200
+From: Christian Hesse <christian.hesse-5lmcC6f56PSELgA04lAiVw@public.gmane.org>
+Subject: problems with display after resume with samsung x10
+Date: Sun, 29 Aug 2004 00:02:46 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040827195546.GC709@openzaurus.ucw.cz>
-References: <200408230852.48290.hp@syntomax.com>
+Message-ID: <200408290002.55490.christian.hesse@linuxob.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart2160313.2KeUPyKdV1";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200408230852.48290.hp-KOxqMzujAKlWk0Htik3J/w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,64 +18,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hein-Pieter van Braam <hp-KOxqMzujAKlWk0Htik3J/w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+--nextPart2160313.2KeUPyKdV1
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
+Hello!
 
-> S3 state:
-> I've tried to do everything I could find on the mailing lists, in 
-> Documentation/power/tricks.txt and Documentation/power/video.txt.
-> I've tried this with kernel versions 2.6.7 and 2.6.8.1 with and without the 
-> acpi patches from acpi.sf.net, doesn't make a lick of difference.
-> I've also tried with acpi=noirc pci=noacpi acpi_sleep=s3_mode 
-> acpi_sleep=s3_bios (and all possible combinations of those) tried various 
-> apic settings off,on and whatever I could find in kernel-parameters.txt
-> with or without device drivers loaded, with a kernel whith no hardware support 
-> other than what's needed to get the thing booting (+acpi) in single user mode 
-> and with init=/bin/bash 
-> 
-> Well, suspending seems to go fine, but the resuming is where things start to 
-> go wrong :) the system enters the state in a normal way, stopping tasks, 
-> entering state etc. and the power led starts to glow (or blink what you want 
-> to call it)
-> 
-> As soon as I press the power button again, the power led lights up again, and 
-> the led behind my power button lights up again to, my keyboard leds flash, 
-> and I get a second or something of HDD activity. After that, nothing. My 
-> keyboard leds (IE capslock) won't work anymore, and I can't get any hdd 
-> activity (I tried typing in hdparm -t /dev/hda to get some) 
-> I've got no networking (if I enable that, which doesn't seem to matter for the 
-> overall effect) 
-> 
-> The thing's a brick basically :)
-> 
-> I've also tried the following advanced script :)
-> #!/bin/bash
-> echo mem > /sys/power/state
-> touch isitworking
+The power button wakes up my notebook (Samsung X10 with GeForce4 440 Go!) f=
+rom=20
+suspend to RAM since ACPI 20040715. However, the display staied black.
 
-sync missing here :-).
+Now I've found a way to reactivate it. Switching to virtual terminal two (c=
+hvt=20
+2) and using this program [1] the display is activated but still stays blac=
+k.=20
+Switching to vt 7 shows this [2], the upper half of kdm on the middle botto=
+m=20
+part of the display.
+Switching to a virtual terminal results in funny colors or black. To get kd=
+m=20
+back you have to use boot-radeon again.
 
-> well, no "isitworking"
-> 
-> One other weird thing I noticed is that as soon as I press the power button 
-> and keep hitting the capslock key frantically it keeps responding for about 5 
-> seconds until it's stuck in the state that it's in (ie if it crashes with the 
-> caps lock led on, it stays on, and vice versa)
+Any chance that this will work properly in future?
 
-Try mapping capslock on something else, see if that still works.
+[1] http://www.doesi.gmxhome.de/linux/tm800s3/resources/boot-radeon.c
+[2] http://linux.eworm.net/snap_after_resume.jpg
 
-But this is very hard to debug, and nearly impossible to do remotely.
-You are probably hitting 2 bugs at same time. Solve video somehow, and
-then you can debug second one...
+=2D-=20
+Christian Hesse
 
-				Pavel
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+geek by nature
+linux by choice
 
+--nextPart2160313.2KeUPyKdV1
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBBMQEPlZfG2c8gdSURAj5mAJwKB8MgMX+hfV0qk/ihdWcgoTdp5QCg5WCK
+TMDnEUysgSsKkMz4aGadhUo=
+=BZqA
+-----END PGP SIGNATURE-----
+
+--nextPart2160313.2KeUPyKdV1--
 
 
 -------------------------------------------------------
