@@ -1,14 +1,13 @@
-From: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
-Subject: Re: RE: ACPI -- Workaround for broken DSDT
-Date: Wed, 04 Feb 2004 18:18:49 -0800
+From: Sergey Vlasov <vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
+Subject: Re: ACPI stops working after memory upgrade vpr Matrix 175b4
+Date: Wed, 4 Feb 2004 19:18:08 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1075947529.5947.38.camel@tinny.home.foo>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A9F@hdsmsx402.hd.intel.com>
+Message-ID: <20040204191808.2e23df00.vsu@altlinux.ru>
+References: <20040204073941.05d71e0b.rddunlap@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8A9F-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,44 +16,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-02-03 at 23:22, Brown, Len wrote:
-> > From Brown, Len on Sunday, 01 February, 2004:
-> > >The vendor should supply a correct DSDT with their BIOS.
-> > >In the case of Dell, you might inquire here: http://linux.dell.com/
-> > >For non-vendor supplied solutions, you might also follow the 
-> > DSDT link
-> > >here: http://acpi.sourceforge.net/  
-> > 
-> > Hmm.  Do vendors generally release these?  I know Dell's very shaky on
-> >   the Linux support front, at least for desktop/laptop.
-> > Also, how do non-vendor supplied ones get made?  Seems like something
-> >   you need NDA'ed docs for.
+On Wed, 4 Feb 2004 07:39:41 -0800 Randy.Dunlap wrote:
+
+> < Recompile your DSDT. Since the amount of RAM changed and you're probably
+> < using old DSDT containing wrong addresses, no wonder you're hitting
+> < errors.
 > 
-> Non-vendor supplied DSDTs are created by end-users who bought machines
-> that don't work.  Per the DSDT link above, one can extract,
-> dis-assemble, modify a DSDT -- and tell Linux to use your copy instead
-> of the version burned into PROM.
+> Is this correct?  If a user adds or removes memory, then the
+> DSDT must be rebuilt?  Sheesh!!  That's bad if this is correct.
 
-what's the long term strategy for ACPI on Linux?  If there are so many
-broken DSDT's, and we want ACPI to be accessible to non-programmers,
-then what's the ultimate solution?  Is it to include patches for every
-possible platform, and have the ACPI subsystem autodetect and fix at
-boot time?
-
-Since thus far the ability to override the DSDT tables has not been
-included in the vanilla ACPI distribution, then it seems you guys have
-something else in mind.
-
-What does Windows do?  Is it just that their DSDT
-parser/executer/whatever operates differently (in which case a Windows
-emulation mode could be added to the Linux subsystem), or is it that
-Laptop manufacturers ship a corrected DSDT as part of their driver set?
-
-	Scott
+Many BIOSes patch the DSDT according to the system configuration (e.g.
+rename \_S3 to something other if Suspend to RAM is disabled in the
+setup).  Probably some BIOSes put the memory size into DSDT this
+way...
 
 
 
