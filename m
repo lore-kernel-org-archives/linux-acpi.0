@@ -1,61 +1,57 @@
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [ACPI] [PATCH] PCI IRQ resource deallocation support [2/3]
-Date: Mon, 27 Sep 2004 14:01:28 +0900
+Subject: Re: [ACPI] [PATCH] Updated patches for PCI IRQ resource deallocation
+ support [2/3]
+Date: Mon, 27 Sep 2004 14:49:11 +0900
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <41579EA8.8000700@jp.fujitsu.com>
-References: <414FEBDB.2050201@soft.fujitsu.com>
- <200409210857.59457.bjorn.helgaas@hp.com> <4150D458.3050400@jp.fujitsu.com>
- <20040924.145229.108814142.t-kochi@bq.jp.nec.com>
- <4153BEBA.5030202@jp.fujitsu.com>
- <Pine.LNX.4.60.0409242236330.7426@poirot.grange>
+Message-ID: <4157A9D7.4090605@jp.fujitsu.com>
+References: <Pine.LNX.4.53.0409251356110.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <Pine.LNX.4.60.0409242236330.7426@poirot.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Takayoshi Kochi <t-kochi@bq.jp.nec.com>, bjorn.helgaas@hp.com, acpi-devel@lists.sourceforge.net, kaneshige.kenji@soft.fujitsu.com, akpm@osdl.org, greg@kroah.com, len.brown@intel.com, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
+In-reply-to: <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com>
+To: Zwane Mwaikambo <zwane@linuxpower.ca>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, long <tlnguyen@snoqualmie.dp.intel.com>, Andrew Morton <akpm@osdl.org>, Greg Kroah-Hartmann <greg@kroah.com>, Len Brown <len.brown@intel.com>, tony.luck@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Guennadi Liakhovetski,
+Zwane Mwaikambo wrote:
+> On Sat, 25 Sep 2004, Zwane Mwaikambo wrote:
+> 
+>> Kenji Kaneshige wrote:
+>> 
+>> >     - Changed acpi_pci_irq_disable() to leave 'dev->irq' as it
+>> >       is. Clearing 'dev->irq' by some magic constant
+>> >       (e.g. PCI_UNDEFINED_IRQ) is TBD.
+>> 
+>> This may not be safe with CONFIG_PCI_MSI, you may want to verify against 
+>> that if you already haven't.
+>> 
 
-Thank you for the information.
-I refer to arm, arm26 and ppc64 codes.
+Thank you for commemts.
+You are right. If the linux IRQ number is allocated by MSI code,
+clearing 'dev->irq' would cause a problem. So we need to consider
+clearing 'dev->irq' carefully.
+
+The latest patch doesn't clear 'dev->irq' so far.
+
+>> > +acpi_unregister_gsi (unsigned int irq)
+>> > +{
+>> > +}
+>> > +EXPORT_SYMBOL(acpi_unregister_gsi);
+>> 
+>> Why not just make these static inlines in header files? Since you're on 
+>> this, how about making irq_desc and friends dynamic too?
+> 
+> Sorry, i broke Cc.
+> 
+
+I'm not quite sure what you are saying, but my idea is defining
+acpi_unregister_gsi() as a opposite part of acpi_register_gsi().
+Acpi_register_gsi() is defined for each arch (i386, ia64), so
+acpi_unregister_gsi() is defined for each i386 and ia64 too. 
 
 Thanks,
 Kenji Kaneshige
-
-
-Guennadi Liakhovetski wrote:
-
-> On Fri, 24 Sep 2004, Kenji Kaneshige wrote:
-> 
->> Takayoshi Kochi wrote:
->> I'll change my patch to leave dev->irq as it is. And then I'll
->> investigate about defining PCI_UNDEFINED_IRQ.
-> 
-> 
-> Some platforms (arm, arm26, ppc64) define a macro NO_IRQ:
-> 
-> include/asm-arm/irq.h:#define NO_IRQ        ((unsigned int)(-1))
-> include/asm-arm26/irq.h:#define NO_IRQ      ((unsigned int)(-1))
-> include/asm-ppc64/irq.h:#define NO_IRQ      (-1)
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-> Project Admins to receive an Apple iPod Mini FREE for your judgement on
-> who ports your project to Linux PPC the best. Sponsored by IBM.
-> Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
 
