@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Fix wake GPE enabling
-Date: Wed, 21 Apr 2004 23:57:40 +0200
+From: krunk <krunkalot-ktR7oAotx3zQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Re: ACPI and the Dell 5150
+Date: Tue, 20 Apr 2004 15:15:05 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040421215740.GA14898@elf.ucw.cz>
-References: <37F890616C995246BE76B3E6B2DBE0554F1A53@orsmsx403.amr.corp.intel.com> <20040408211323.GB7340@dominikbrodowski.de>
+Message-ID: <1082492104.4767.3.camel@localhost>
+References: <005401c4264c$767efbe0$6601a8c0@MICHAEL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040408211323.GB7340-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+In-Reply-To: <005401c4264c$767efbe0$6601a8c0-ch6Hu9/Y/Nk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+I really wish they would have just stuck with APM. It "just worked". If
+it's not broke, why fix it?
 
-> > > However, the ACPI subsystem, and I do not care whether it is the CA
-> > core
-> > > or
-> > > any other part, currently does not enable any(!) wake GPEs.
-> > > 
-> > 
-> > Linux needs a user interface and some additional OSPM software to
-> > identify and program the wake devices, as well as handle the other
-> > information in the _PRW methods.
-> > 
-> > The ACPI CA core subsystem will only identify wake vs. runtime GPEs.
-> 
-> OK, as long as it gets into Linux, I do not care whether its the ACPI CA or
-> the ACPI OSPM part. It just seemed to me that the ACPI CA were the place to
-> do it, but as its contrary to spec I'll only use it on my own notebook [so
-> that it wakes up from sleep] until a proper patch / proper code in Linux
-> drivers/acpi/* exists.
 
-If upper layers do not exist, it is right thing to do some minimal
-default in low layer. Do not give that patch up so quickly ;-).
+On Mon, 2004-04-19 at 15:25, Michael McCaskill wrote:
+> Hey krunk. This is mmcc999 from the Dell Support forums. I am also on
+> Gentoo forums under theonlymcc. I have done all the things you have
+> done. It seems that "fixing" errors will not suffice in this case. It
+> seems that the DSDT is just poorly written logically, and the fact
+> that Dell uses Microsoft's ASL/ASM compiler versus Intel's, which more
+> strictly adhears to the ACPI standard. I think part of the "problem"
+> (not really a problem) is that 2.6 kernel expects a strict ACPI/DSDT
+> as well. But I am with you, anyone who can help with this, please do.
+> All of us 5150 Linux 2.6 users would appreciate it.
 
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+
 
 
 -------------------------------------------------------
