@@ -1,176 +1,79 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC][PATCH] ACPI/MPS SMP cleanup (smpenum)
-Date: Tue, 10 Aug 2004 11:40:16 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847071DE02D@orsmsx401.amr.corp.intel.com>
+From: Karol Kozimor <sziwan@hell.org.pl>
+Subject: Re: 2.6.8-rc4-mm1 : Hard freeze due to ACPI
+Date: Tue, 10 Aug 2004 23:06:47 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040810210647.GA17943@hell.org.pl>
+References: <41189098.4000400@free.fr> <4118A500.1080306@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267698AbUHJVGr@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4118A500.1080306@free.fr>
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Eric Valette <eric.valette@free.fr>, Andrew Morton <akpm@osdl.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-This patch series makes it possible to compile out MPS, while using ACPI
-for SMP=20
-boot information.
+Thus wrote Eric Valette:
+> >I tried 2.6.8-rc4-mm1 on my ASUS L3800C laptop (radeon 7500), defined 
+> >CONFIG_FB_MODE_HELPERS and I have got a hard freeze when starting X and 
+> >framebuffer console with a lot of yellow dot on the bottom screen. 
+> >Suddently I hear the fan meaning the machine is dead
+> 
+> OK I've reverted the most suspect change 
+> (remove-unconditional-pci-acpi-irq-routing.patch) and it did not fix the 
+> problem. As Karol Kozimor suspected ACPI, I then tried with acpi=off and 
+> then it boot but I will burn my CPU as fans are ACPI controlled...
 
-http://www.kernel.org/pub/linux/kernel/people/grover/smp-20040810-2.6.8-
-rc4.diff.gz
-bk://linux-acpi.bkbits.net/linux-smp-init
+Here's more about my problem: it seems 2.6.8-rc3-mm1 sometimes manages to
+boot here. Even so, kacpid completely hogs the CPU. dmesg and debug output
+is at http://hell.org.pl/~sziwan/2.6.8-rc3-mm1.report (300 kB), DSDT is at
+http://hell.org.pl/~sziwan/l3800c.dsl. Note the odd thermal zone output
+(did somebody mention TZ problems?). Call trace below.
+Best regards,
 
-History:
+-- 
+Karol 'sziwan' Kozimor
+sziwan@hell.org.pl
 
-When SMP support was added to the i386 architecture (1995?), information
-about the
-processors, ioapics, and interrupt routing was obtained through the MPS
-table. In
-implementing this support, Linux used many MPS-specific data structures,
-not just
-in the MPS parsing code, but everywhere.
-
-When ACPI SMP support was added, we didn't change the data structures,
-we=20
-just filled them in with information from the ACPI tables. This was the
-only way=20
-to get ACPI SMP working without a massive rearch of io_apic.c and
-mpparse.c, but=20
-it made the two smp init paths (MPS and ACPI) very confusing and
-nonintuitive (not=20
-to mention creating a dependency on MPS from ACPI.)
-
-This patch properly re-architects the smp init code to handle multiple
-smp=20
-enumerators.
-
-Major changes:
-
-1) ACPI and MPS code is abstracted into "SMP enumeration drivers". ACPI
-and MPS
-report CPU and I/OAPIC information through a standard function
-interface, instead
-of manipulating the kernel data structures directly.
-
-2) ACPI and MPS export function pointers that allow the SMP core to
-configure=20
-interrupts.
-
-Minor changes:
-
-1) Added #defines for MPS/ACPI polarity/trigger values
-2) non-MPS SMP variables prefixed with "smp_", MPS variables prefixed
-with "mps_"=20
-ACPI variables with "acpi_".
-3) Erroneous balanced irq debug #define removed
-4) Renamed mp_register_gsi to acpi_register_io_apic_gsi
-5) Simplified setup_ioapic_dest().
-
-Benefits:
-
-1) ACPI and MPS init code and data structs make more sense without
-interference=20
-from the other. e.g. mp_irqs is now only used by MPS.
-
-2) SMP core data structures no longer contain MPS-specific baggage
-(there was A=20
-LOT).
-
-3) Common algorithm for determining ioapic ids.
-
-4) Lots of duplicated array bounds checking unified.
-
-5) It should be possible to fall back to a secondary smp enumerator if
-the primary=20
-one fails (not fully implemented yet.)
-
-Known issues:
-
-1) This patch still does not move ACPI-specific code out of io_apic.c
-and
-mpparse.c, because this would make merging more difficult. After this
-patch, this=20
-should be easy.
-
-2) this breaks Summit/x440 build, because mp_bus_id_to_node is no longer
-defined=20
-for non-MPS builds. I need some advice from people who know about the
-proper=20
-solution to this.
-
-3) Config should insist on either MPS or ACPI support if SMP.
-
-4) Still some small uglinesses, such as translation_table[], and setup.c
-still has hardcoded init calls to ACPI/MPS (I think this is probably ok
-unless more smpenums are added in the future.)
-
-Testing/feedback:
-
-This patch applies against 2.6.8-rc4.
-
-Please test on any/all SMP machines, in ACPI and MPS (acpi=3Doff),
-especially Via=20
-and Nvidia chipsets, and note any changes in /proc/interrupts. (ACPI and
-MPS might=20
-not be the same, but patch vs. no patch should be). I also greatly
-simplified visws smp init, so some testing there would also be nice (if
-possible).
-
-Feedback to acpi-devel. diffstat follows.
-
-Thanks -- Andy
-
- arch/i386/Kconfig                            |   24 -
- arch/i386/kernel/Makefile                    |    2=20
- arch/i386/kernel/acpi/boot.c                 |   82 ++-
- arch/i386/kernel/apic.c                      |   25 -
- arch/i386/kernel/i386_ksyms.c                |    2=20
- arch/i386/kernel/io_apic.c                   |  406 +++++++++--------
- arch/i386/kernel/mpparse.c                   |  625
-+++++++++------------------
- arch/i386/kernel/nmi.c                       |    1=20
- arch/i386/kernel/reboot.c                    |    1=20
- arch/i386/kernel/setup.c                     |   21=20
- arch/i386/kernel/smpenum.c                   |  195 ++++++++
- arch/i386/kernel/time.c                      |    1=20
- arch/i386/kernel/timers/timer_pit.c          |    2=20
- arch/i386/mach-visws/mpparse.c               |   80 ---
- arch/i386/mm/discontig.c                     |    2=20
- arch/i386/pci/irq.c                          |   11=20
- drivers/acpi/bus.c                           |    1=20
- drivers/acpi/pci_irq.c                       |    3=20
- include/asm-i386/acpi.h                      |   20=20
- include/asm-i386/genapic.h                   |   18=20
- include/asm-i386/hpet.h                      |    1=20
- include/asm-i386/io_apic.h                   |   22=20
- include/asm-i386/mach-bigsmp/mach_apic.h     |   13=20
- include/asm-i386/mach-default/mach_apic.h    |   13=20
- include/asm-i386/mach-default/mach_mpparse.h |    8=20
- include/asm-i386/mach-es7000/mach_apic.h     |   13=20
- include/asm-i386/mach-es7000/mach_mpparse.h  |    8=20
- include/asm-i386/mach-generic/mach_mpparse.h |    2=20
- include/asm-i386/mach-numaq/mach_apic.h      |   13=20
- include/asm-i386/mach-numaq/mach_mpparse.h   |    8=20
- include/asm-i386/mach-summit/mach_apic.h     |   14=20
- include/asm-i386/mach-summit/mach_mpparse.h  |    8=20
- include/asm-i386/mach-visws/mach_apic.h      |    8=20
- include/asm-i386/mpspec.h                    |   76 ---
- include/asm-i386/mpspec_def.h                |   13=20
- include/asm-i386/smp.h                       |    2=20
- include/asm-i386/smpenum.h                   |  108 ++++
- 37 files changed, 990 insertions(+), 862 deletions(-)
-
-
--------------------------------------------------------
-SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
-100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
-Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
-http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
+Pid: 5, comm:               kacpid
+EIP: 0060:[<c01e65c7>] CPU: 0
+EIP is at acpi_os_get_thread_id+0x1f/0x2b
+ EFLAGS: 00000246    Not tainted  (2.6.8-rc3-mm1)
+EAX: 00000000 EBX: 00000000 ECX: c1272030 EDX: 00000000
+ESI: c136bf28 EDI: cfeec028 EBP: 00000048 DS: 007b ES: 007b
+CR0: 8005003b CR2: b7bd4000 CR3: 0fdce000 CR4: 00000690
+ [<c020a7c9>] acpi_ut_acquire_mutex+0x34/0x159
+ [<c02088a8>] acpi_ut_release_to_cache+0x44/0x94
+ [<c020ad54>] acpi_ut_delete_generic_state+0x37/0x49
+ [<c020c1ea>] acpi_ut_update_object_reference+0x9e/0x27f
+ [<c020c4a8>] acpi_ut_remove_reference+0x81/0x99
+ [<c01e8eca>] acpi_ds_get_predicate_value+0x196/0x1bd
+ [<c01e94a1>] acpi_ds_exec_end_op+0x3e7/0x426
+ [<c02011e5>] acpi_ps_parse_loop+0x6be/0x9ef
+ [<c02015d8>] acpi_ps_parse_aml+0xc2/0x26e
+ [<c0202229>] acpi_psx_execute+0x1d9/0x274
+ [<c01fd981>] acpi_ns_execute_control_method+0xe2/0x100
+ [<c01fd870>] acpi_ns_evaluate_by_handle+0xd7/0x106
+ [<c01fd618>] acpi_ns_evaluate_relative+0x158/0x1b2
+ [<c01fcae7>] acpi_evaluate_object+0x16a/0x263
+ [<c01e6a82>] acpi_evaluate_integer+0x89/0x19c
+ [<c01ed5ce>] acpi_ev_sci_xrupt_handler+0x4e/0x57
+ [<c02094ad>] acpi_ut_status_exit+0x3e/0x4a
+ [<c02094ad>] acpi_ut_status_exit+0x3e/0x4a
+ [<c02093af>] acpi_ut_trace+0x28/0x2e
+ [<c02179de>] acpi_thermal_get_temperature+0x62/0x9e
+ [<c02185f2>] acpi_thermal_check+0x6e/0x2c6
+ [<c020e2ac>] acpi_bus_get_device+0x9c/0xa7
+ [<c02193c2>] acpi_thermal_notify+0x88/0xf6
+ [<c01ee20d>] acpi_ev_notify_dispatch+0x57/0x60
+ [<c01e5ee5>] acpi_os_execute_deferred+0x59/0x72
+ [<c01226ed>] worker_thread+0x1ad/0x273
+ [<c0112036>] activate_task+0x5c/0x6f
+ [<c01e5e8c>] acpi_os_execute_deferred+0x0/0x72
+ [<c01128dc>] default_wake_function+0x0/0xc
+ [<c011291b>] __wake_up_common+0x33/0x56
+ [<c01128dc>] default_wake_function+0x0/0xc
+ [<c0122540>] worker_thread+0x0/0x273
+ [<c0125c40>] kthread+0x90/0x95
+ [<c0125bb0>] kthread+0x0/0x95
+ [<c0102249>] kernel_thread_helper+0x5/0xb
