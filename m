@@ -1,8 +1,8 @@
 From: kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org
-Subject: swsusp with 2.5.33
-Date: Sun, 08 Sep 2002 23:46:13 +0200 (MEST)
+Subject: acpid, ospmd, libpower
+Date: Mon, 09 Sep 2002 02:29:32 +0200 (MEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.SOL.4.21.0209082337150.3487-100000@neptun>
+Message-ID: <Pine.SOL.4.21.0209090209310.14414-100000@neptun>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -20,24 +20,19 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi there,
 
-lately I observed problems with swsusp. Only if I am suspending from
-console right after the boot there are enough pages free....I did some
-research on the net and found that the rmap things does not free enough
-pages. 
+after I started implementing some S3/S4 functionality for ospmd I took a
+minute to look at the different portions of the above mentioned projects
+code base. After that I am not that sure any more wether ospmd is the
+right place to do that. Is it intended to replace acpid? If not which is
+the difference between the two? 
 
-AFAIU when suspending to disk the kernel (respective the vm) is asked to
-swap as many pages out as possible and creates an image from the remaining
-pages and writes that to disk. While that seems to be at first a great
-idea it depends - by design - upon the ability to free more than half of
-the ram. Why can one not stop all processes, lock the kernel, and write
-all pages to an image in swap space? 
+I would like to do some work on libpower and ospmd if that would make
+sense. Since there are some consistency issues in naming in power.h I
+would like to start with them. Since the code is copyright by intel: would
+patches be accepted even if they affect naming?
 
-Though I am by no means into kernel internals I would really like to
-understand why the above assumption is wrong.
-
-Can someone help me out? 
-
--Knut
+Regards
+-Knut~
 
 
 
