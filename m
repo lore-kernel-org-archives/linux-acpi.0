@@ -1,12 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Add mising static's to button.c
-Date: Wed, 18 Dec 2002 23:11:42 +0100
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: gettimeofday() moving backwards
+Date: Wed, 18 Dec 2002 23:40:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021218221142.GA321@elf.ucw.cz>
+Message-ID: <20021218224033.GA1077@brodo.de>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A5BB@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A5BB-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,49 +17,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Paul Richards' <p.a.richards-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Wed, Dec 18, 2002 at 01:23:57PM -0800, Grover, Andrew wrote:
+> > From: Paul Richards [mailto:p.a.richards-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org] 
+> > I am using linux kernel v2.4.20 with ACPI patch dated 2002-12-05.
+> > 
+> > I have noticed that if my processor changes state (800Mhz up 
+> > to 1200Mhz say)
+> > then gettimeofday() behaves weirdly.  It runs smoothly but 
+> > every now and again
+> > (on the order of 10 times a second) it makes a correction.  
+> > If I have gone from
+> > 800Mhz to 1200Mhz then the correction is backwards, otherwise 
+> > it makes a forward
+> > jump..
+> 
+> Hmm, can you mention this on the cpufreq mailing list?
+> cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org .
 
-Should be obvious, please apply,
-							Pavel
+In kernel 2.5.5x, gettimeofday() should work fine: ACPI uses the cpufreq
+infrastructure, which adds -among other things- a hunk in
+arch/i386/timer/tsc.c which updates some values on frequency transitions.
+(see http://www.brodo.de/cpufreq/ for details on cpufreq).
 
---- clean/drivers/acpi/button.c	2002-11-29 21:16:33.000000000 +0100
-+++ linux-sensors/drivers/acpi/button.c	2002-12-16 23:20:15.000000000 +0100
-@@ -68,8 +68,8 @@
- MODULE_LICENSE("GPL");
- 
- 
--int acpi_button_add (struct acpi_device *device);
--int acpi_button_remove (struct acpi_device *device, int type);
-+static int acpi_button_add (struct acpi_device *device);
-+static int acpi_button_remove (struct acpi_device *device, int type);
- static int acpi_button_open_fs(struct inode *inode, struct file *file);
- 
- static struct acpi_driver acpi_button_driver = {
-@@ -234,7 +234,7 @@
- }
- 
- 
--int
-+static int
- acpi_button_add (
- 	struct acpi_device	*device)
- {
-@@ -384,7 +384,7 @@
- }
- 
- 
--int
-+static int
- acpi_button_remove (struct acpi_device *device, int type)
- {
- 	acpi_status		status = 0;
+As cpufreq isn't included in 2.4. kernels, and likely never will, the 2.4.
+gettimeofday() call does cause strange results in 2.4.
 
--- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
+	Dominik
+
+
 
 
 -------------------------------------------------------
