@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M3N and sleep states
-Date: Thu, 01 Jan 2004 00:18:36 +0100
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: RE: Network failures with ACPI enabled (kernel 2.4, 2.6)
+ PROBLEM FOUND!!!!!!
+Date: Wed, 31 Dec 2003 15:46:41 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FF3594C.8030104@pca.it>
-References: <3FED7289.1070201@pca.it>
+Message-ID: <20031231152704.A3006@root.org>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC8953@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FED7289.1070201-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8953-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,54 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, 30 Dec 2003, Brown, Len wrote:
+> > You won't believe me but I found out what was causing the problem.
+> > Since I never use the parallel port on this notebook I turned
+> > it OFF in the BIOS.
+> > Setting it to AUTOMATIC mode solved my issues.
+>
+> > The Linux-ACPI still has a problem somewhere since I don't see the
+> > network timeouts in WinXP, if I turn off the parport.
+> > For me it looks like that the parport and the internal card share
+> > something, either ACPI or hardware wise and by turning off the parport
+> > the network card somehow changes too.
+>
+> It may be I/O port ranges rather than IRQs at the bottom of this one.
 
-Hello,
+You can use the -r flag for acpidump to decode Buffers as
+ResourceTemplate()s:
 
-on 12/27/03 12:52, Luca Capello wrote:
-| - S3
-| without USB and ALSA, the fan turns on suddendly after the 'echo 3 >
-| /proc/acpi/sleep', as when my OS hangs for other reasons. IMHO this is a
-| problem with the BIOS (and the DSDT), as once I shut down the PC
-| pressing 5sec the power-button, I need to press 2 times the power-button
-| to reach again a boot (the first time I press the power-button, the
-| laptop powers on and suddenly powers off).
-I should say that this is not exactly: I made some other tests and
-actually resuming from S3 is ok in 90% but the screen remains blank.
-Sometimes the fan turns on and I can't shutdown (but this happens when
-the temperature is too high). The other times, I can launch any
-commands: I see the HD light blinking and I heard the HD working. More,
-'shutdown -h now' works and I get a clean shutdown (but 'reboot' doesn't
-work.
+     -r   Additionally outputs commented ResourceTemplate() macros for
+	  Buffer objects that contain valid resource streams.  These macros
+	  are defined in the ACPI 2.0 specification section 16.2.4.
 
-Here the complete situation: I can get S3 and a complete clear resume
-even with the ALSA modules on and AGP. I tried it once I was logged in X
-via GDM and it worked :-) This didn't with the USB modules on (as it was
-supposed to be).
+Since moving to iasl as the acpidump backend in FreeBSD, we've lost this
+capability.  I'd love it if iasl would grow a flag to have this behavior.
+You could restrict it to only outputing the macros if the Buffer starts
+with a valid resource.
 
-Another striking thing is that while normally the screen remains blank
-during shutdown, if I enter in S3 from an X terminal and then I start
-the shutdown (always without seeing my typing), then I can see the first
-console (tty1) appearing and showing some messaged about the shutdown
-process (just the "Shutdown called from..." and "acpid_power_off_called"
-or something similar). This doesn't happen if I try from tty2, I mean, I
-can't see tty1 in any other ways.
-
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQE/81lJVAp7Xm10JmkRAgDNAJ9Om3RmoAbTv11Bw68v3ImhEUyaegCggyi5
-IiADUOXuEXYKUKnfq1NAy1k=
-=k5+z
------END PGP SIGNATURE-----
-
+-Nate
 
 
 -------------------------------------------------------
