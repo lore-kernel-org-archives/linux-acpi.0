@@ -1,15 +1,11 @@
-From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
-Date: Tue, 15 Mar 2005 16:02:20 -0700 (MST)
-Message-ID: <Pine.LNX.4.61.0503151543420.23036@montezuma.fsmlabs.com>
-References: <20050304234622.63e8a335.akpm@osdl.org>
- <Pine.LNX.4.62.0503110006260.30687@alpha.polcom.net>  <1110559685.4822.15.camel@eeyore>
-  <Pine.LNX.4.62.0503112009070.22293@alpha.polcom.net>  <1110574599.4822.54.camel@eeyore>
-  <Pine.LNX.4.62.0503112239580.25254@alpha.polcom.net>  <1110580150.4822.75.camel@eeyore>
-  <Pine.LNX.4.62.0503131607330.23588@alpha.polcom.net> <1110915355.5917.41.camel@eeyore>
+From: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
+Subject: ACPI on ECS A530 (Transmeta)
+Date: Wed, 16 Mar 2005 01:39:34 +0100
+Message-ID: <20050316003934.GB28204@schottelius.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-In-Reply-To: <1110915355.5917.41.camel@eeyore>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,110 +15,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
 
-On Tue, 15 Mar 2005, Bjorn Helgaas wrote:
+--BwCQnh7xodEAoBMC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> That seems awfully suspicious to me.  So the following is
-> probably safe as far as it goes, but not sufficient for all
-> cases.
+Hello!
 
-VIA bridges allow for IRQ routing updates by programming 
-PCI_INTERRUPT_LINE, so it is supposed to work even if we do it for all the 
-devices, so it appears to be a board/bios specific problem.
+Do you want a real challenge? Help me my ECS A530
+with Transmeta prozessor to work fine with ACPI!
 
-> Shaohua, Len, Zwane?  This is related to 
->     http://bugzilla.kernel.org/show_bug.cgi?id=3319
-> 
-> ===== arch/i386/pci/irq.c 1.55 vs edited =====
-> --- 1.55/arch/i386/pci/irq.c	2005-02-07 22:39:15 -07:00
-> +++ edited/arch/i386/pci/irq.c	2005-03-15 10:11:44 -07:00
-> @@ -1026,7 +1026,6 @@
->  static int pirq_enable_irq(struct pci_dev *dev)
->  {
->  	u8 pin;
-> -	extern int via_interrupt_line_quirk;
->  	struct pci_dev *temp_dev;
->  
->  	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
-> @@ -1081,10 +1080,6 @@
->  		printk(KERN_WARNING "PCI: No IRQ known for interrupt pin %c of device %s.%s\n",
->  		       'A' + pin, pci_name(dev), msg);
->  	}
-> -	/* VIA bridges use interrupt line for apic/pci steering across
-> -	   the V-Link */
-> -	else if (via_interrupt_line_quirk)
-> -		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq & 15);
->  	return 0;
->  }
->  
-> ===== drivers/acpi/pci_irq.c 1.37 vs edited =====
-> --- 1.37/drivers/acpi/pci_irq.c	2005-03-01 09:57:29 -07:00
-> +++ edited/drivers/acpi/pci_irq.c	2005-03-15 10:10:57 -07:00
-> @@ -388,7 +388,6 @@
->  	u8			pin = 0;
->  	int			edge_level = ACPI_LEVEL_SENSITIVE;
->  	int			active_high_low = ACPI_ACTIVE_LOW;
-> -	extern int		via_interrupt_line_quirk;
->  
->  	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
->  
-> @@ -437,9 +436,6 @@
->  			return_VALUE(0);
->  		}
->   	}
-> -
-> -	if (via_interrupt_line_quirk)
-> -		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq & 15);
->  
->  	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
->  
-> ===== drivers/pci/quirks.c 1.72 vs edited =====
-> --- 1.72/drivers/pci/quirks.c	2005-03-10 01:38:25 -07:00
-> +++ edited/drivers/pci/quirks.c	2005-03-15 12:15:00 -07:00
-> @@ -683,19 +683,23 @@
->  }
->  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82454NX,	quirk_disable_pxb );
->  
-> -/*
-> - *	VIA northbridges care about PCI_INTERRUPT_LINE
-> - */
-> -int via_interrupt_line_quirk;
-> -
-> -static void __devinit quirk_via_bridge(struct pci_dev *pdev)
-> +static void __devinit quirk_via_irqpic(struct pci_dev *dev)
->  {
-> -	if(pdev->devfn == 0) {
-> -		printk(KERN_INFO "PCI: Via IRQ fixup\n");
-> -		via_interrupt_line_quirk = 1;
-> +	u8 irq, new_irq = dev->irq & 0xf;
-> +
-> +	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
-> +	if (new_irq != irq) {
-> +		printk(KERN_INFO "PCI: Via IRQ fixup for %s, from %d to %d\n",
-> +			pci_name(dev), irq, new_irq);
-> +		udelay(15);
-> +		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
->  	}
->  }
-> -DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_ANY_ID,                     quirk_via_bridge );
-> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_2, quirk_via_irqpic);
-> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_5, quirk_via_irqpic);
-> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_6, quirk_via_irqpic);
-> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8233_5,   quirk_via_irqpic);
-> +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8233_7,   quirk_via_irqpic);
+- No sleep state works, some work, but never wake up again
+- display blanking works only in X, never on console
+- no apm support (in hardware)
+- mail and internet buttons are not raising any event nor keypress
+- somehow broken usb2.0 (writing much data to/from harddisks results in dis=
+connect)
 
-This looks like it'll only affect the PCI device associated with the 
-listed south bridges, which might break systems which relied on the per 
-device setting. Your 'debug' patch actually made sense to me, that is, 
-moving the PCI_INTERRUPT_LINE fixup at gsi register.
+So guys, who wants to help me to get this monster supported?
 
-Thanks,
-	Zwane
+Tell me what todo, what to dump, I'll give you all information
+I can get.
+
+Nico
+
+--=20
+Keep it simple & stupid, use what's available.
+Please use pgp encryption: 8D0E 27A4 is my id.
+http://nico.schotteli.us | http://linux.schottelius.org
+
+--BwCQnh7xodEAoBMC
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iQIVAwUBQjeARLOTBMvCUbrlAQIHLg//ex3T7ZcK66bt+sCsYEA3LZFlbwFjxHYc
+fRXKa/qfg70iJEPz+y5HCNhid+toANaUManGYZgpReAcUnZHd4hqE7zaulGW6tkm
+PzDflDqiQ1Z/Hpybuzj1/aOu7Ih9ybpKT8+APOOITHmEE3thbyet3h6Ns0NGENiP
+4KIjDywH8+hGdK4OGi7/LLks/PFppojSQ/I3LG+7wm6SOzFJqKMksyfZ4CMmG78k
+zPSJIaGjLcnJqE9h6P2oZgGWGAdd+0KWkQHCBYB0ibbjo/rrGHLtG4LyuM6D/aF2
+9Nt91kYGCPZRaQYaccHaFjLqxEzFkikuRd9QGnAmm5cceqgHbOHqwC/VdmpkfROL
+eNNF0sT5Id2nOo1L8T+UnbfUOoTlW29hedc4B6taXv0pC+zpGZIhQWRG9N7/loUX
+4KRSa9EgP9iqS7Ow/vD8rCJTW6m8tl1PA02Om3SNB2xgJk4UMEjwragsOzMe93X/
+H5/jzqjjXkJWwenDXCZAVXriHc2MNvFjB5mqW6phBrDbZy1BJnk1nHNQLF8Exf/o
+0zUXPEuxRHGDDo8wHahzRmi824AVsuBUAyki9IhCcNMJZbzlHDEW6yibYq0NtRoj
+geHo9JAAvqL2SdyDEkpefyuANKCbRqlTn4DgJMMVqqlKLQYfYp2k7YE8E53e7XcJ
+ofxCsNGfLuY=
+=ioQI
+-----END PGP SIGNATURE-----
+
+--BwCQnh7xodEAoBMC--
 
 
 -------------------------------------------------------
