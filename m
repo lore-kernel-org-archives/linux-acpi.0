@@ -1,12 +1,14 @@
-From: AnonimoVeneziano <voloterreno-nc/lrvXPQ4s@public.gmane.org>
-Subject: ACPI + IO-APIC power off by button problems
-Date: Sun, 02 Mar 2003 19:53:46 +0100
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: ACPI very nearly working on Thinkpad 240x
+Date: Sun, 2 Mar 2003 19:33:27 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E62533A.7050505@tin.it>
+Message-ID: <20030302193327.GA29280@srcf.ucam.org>
+References: <20030302184737.GA28806@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030302184737.GA28806-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,28 +20,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, I have this configuration:
+> 2) S3 suspends and resumes. 
 
-MSI KT4 Ultra MoBo
-Athlon XP 2400+
-Matrox G450
+Ok. I've now got the following in my acpid default.sh:
 
-and this problem: with kernel 2.4.20 and without ACPI patch installed 
-and IO-APIC support activated the system does not shutdown properly, and 
-it reboots instead of turn off and if I try to turn off the PC by 
-pressing the power off button it does nothing, as if I've never pressed it
+case "$1" in
+        button*)
+                case "$2" in
+                        power)  echo -n 4 >/proc/acpi/sleep
+                                ;;
+                        SBTN)   rmmod i8042
+                                MYTERM=`fgconsole`
+                                chvt 12
+                                echo -n 3 >/proc/acpi/sleep
+                                sleep 5
+                                modprobe i8042
+                                chvt $MYTERM
+                                ;;
 
-Using instead the kernel 2.4.21-pre4 + lastest ACPI patch I've solved 
-the power down issue , and now the system shutdown properly , but the 
-button does not work again . Without IO-APIC the button works correctly. 
-There are some incompatibilities between the PowerButton and the IO-APIC?
+The i8042 stuff results in working keyboard and mouse, the chvts cause X 
+to reinitialise the screen and gives me my display back. My text 
+consoles are unusable, though.
 
-I've noticed this problem in my old mobo too, an ASUS CUV4X-EA
-
-Thanks
-
-Bye
-
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
