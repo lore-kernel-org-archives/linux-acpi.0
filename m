@@ -1,38 +1,28 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPICA 20050211 update for 2.6.11-rc4
-Date: 16 Feb 2005 00:57:15 -0500
-Message-ID: <1108533434.2092.346.camel@d845pe>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger@gmx.at>
+Subject: Re: [ACPI] Call for help: list of machines with working S3
+Date: Wed, 16 Feb 2005 09:48:42 +0100
+Message-ID: <200502160948.43005.stefandoesinger@gmx.at>
+References: <20050214211105.GA12808@elf.ucw.cz> <e796392205021521541da7ee25@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <e796392205021521541da7ee25@mail.gmail.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: acpi-devel@lists.sourceforge.net, Stefan Schweizer <sschweizer@gmail.com>
+Cc: Pavel Machek <pavel@suse.cz>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-Please test this latest ACPICA update for 2.6.11-rc4
-and let me know if you see any regressions.
 
-It should fix the AE_NO_RETURN_VALUE regression,
-among others.  If I don't hear of anything breaking,
-I'll attempt to get it under the wire into 2.6.11.
+> The problems with this patch are:
+> - you need to press a key to come back from the "resume-console" after
+> resume. - DRI in X does not work (at least for me with intel-agp, others
+> reportet it works)
+> I just disabloed it by not loading intel-agp (hotplug-blacklist)
+You can force the radeon X driver to use pci mode by setting Option 
+"ForcePciMode" to "true" or something simmilar in you X config file. This way 
+you can get dri without intel-agp. This is much slower, but enought to play 
+tuxracer ;-)
 
-thanks,
--Len
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.11/acpi-20050211-2.6.11-rc4.diff.gz
-
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Stefan
