@@ -1,44 +1,59 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: IRQ routing
-Date: Wed, 23 Oct 2002 11:15:04 +0200 (CEST)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0210231110280.24534-100000@dynast.gaugusch.at>
+From: Olaf Dietsche <olaf.dietsche#list.linux-kernel-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>
+Subject: Re: 2.5.44: How to decode call trace
+Date: Wed, 23 Oct 2002 12:33:25 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <878z0p1m2y.fsf@goat.bogus.local>
+References: <87elai82xb.fsf@goat.bogus.local.suse.lists.linux.kernel>
+	<p73isztstim.fsf@oldwotan.suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI-Devel <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a Sony VAIO FX405 with a little bit strange IRQ routing:
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 *9 10 11 12)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 7 9 *10 11 12)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 7 9 10 11 12)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 *9 10 11 12)
-Why is IRQ 11 never used? IRQ 3 should also be free (only COM1 available).
+Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org> writes:
 
-You can find full boot log at http://markus.gaugusch.at/dmesg.txt
-(also for my last posting, processor&thermal zone broken)
+> Olaf Dietsche <olaf.dietsche#list.linux-kernel-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org> writes:
+>> and this is the code:
+>> static int __fscap_lookup(struct vfsmount *mnt, struct nameidata *nd)
+>> {
+>> 	static char name[] = ".capabilities";
+>> 	nd->mnt = mntget(mnt);
+>> 	nd->dentry = dget(mnt->mnt_sb->s_root);
+>> 	nd->flags = 0;
+>> 	return path_walk(name, nd);
+>> }
+>> 
+>> What does .text.lock.namei and name.810 mean?
+>
+> .text.lock.namei means that it hung in the slow path of a spinlock that
+> is referenced from namei.c
 
-thanks!
-Markus
--- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
+I guess this is what __down_failed means.
 
+> name.810 is a static data variable, probably the static char name[]
+> shown above. Remember the kernel backtrace is not exact and can print
+> random stack junk that looks like return addresses too. You always have 
+> to sanity check each entry.
 
+Ok, I'll keep that in mind.
 
--------------------------------------------------------
-This sf.net emial is sponsored by: Influence the future 
-of Java(TM) technology. Join the Java Community 
-Process(SM) (JCP(SM)) program now. 
-http://ads.sourceforge.net/cgi-bin/redirect.pl?sunm0002en
+>> Is there a way to get the line number out of these hex values?
+>
+> addr2line -e vmlinux ... does this when you compile the kernel with -g 
+
+Great! This is what I was searching for.
+
+When I build with "make -k EXTRA_CFLAGS=-g EXTRA_LDFLAGS=-g bzImage",
+I get a ton of error messages from drivers/acpi/include/actypes.h and
+other acpi related stuff, starting with: #error ACPI_MACHINE_WIDTH not
+defined. Maybe this is not the usual way to build with -g, but I don't
+get these errors with "make -k bzImage". Maybe someone is interested
+in this.
+
+Anyway, I come around this by first building with "EXTRA_CFLAGS=-g
+EXTRA_LDFLAGS=-g", ignoring the error messages and then a second try
+with only EXTRA_LDFLAGS=-g.
+
+Regards, Olaf.
