@@ -1,14 +1,14 @@
-From: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Lhms-devel] [PATCH] ACPI based Memory HotplugDriverPatch
-Date: Thu, 9 Sep 2004 11:39:05 -0700
+From: =?UTF-8?B?TWlrYSBQZW50dGlsw6Q=?= <mika.penttila-9Aww8k/80nUxHbG02/KK1g@public.gmane.org>
+Subject: Re: Re: [PATCH 5/6]ACPI based Physical CPU hotplug
+Date: Thu, 09 Sep 2004 23:40:03 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D36CE1FCEFD3524B81CA12C6FE5BCAB007A6C4C5@fmsmsx406.amr.corp.intel.com>
+Message-ID: <4140BFA3.1070508@kolumbus.fi>
+References: <44BDAFB888F59F408FAE3CC35AB47041B17999@orsmsx409> <20040908184011.C7384@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20040908184011.C7384-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,25 +17,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LHNS list <lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->> Currently, it names it memory.ko.  Len has also suggested that it be
->> something more like memory_hotplug.ko or memory_hp.ko or something
->> like that, because the ACPI spec does include verbage about the
->> system memory map...  As this driver does handle "memory"
->> devices, it kinda makes sense, but we're not wed to any particular=20
->> name...  ;-) =20
->
->How about including acpi in the name?  acpi_memory.o?=20
->acpi_memhotplug.o?
+I don't see how the acpi_processor_start() stuff (which was formerly in 
+acpi_processor_add()) gets executed in the plain non-hotplug case. It's 
+only called from the hotplug notifications.
 
-Sure, either is fine with me...  Perhaps being as descriptive as=20
-possible is best and just go with acpi_memhotplug.o=20
+--Mika
 
-matt
 
 
 -------------------------------------------------------
