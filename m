@@ -1,11 +1,13 @@
-From: ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
-Subject: ACPI Suspend on Inspiron 1100
-Date: Thu, 31 Mar 2005 14:19:32 -0500
-Message-ID: <20050331191931.GA16450@jose.lug.udel.edu>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: acpi: sleep/proc.c cleanups
+Date: Thu, 31 Mar 2005 16:27:25 +0200
+Message-ID: <20050331142724.GA609@openzaurus.ucw.cz>
+References: <20050319110657.GA1530@elf.ucw.cz> <20050319223115.GC29495@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20050319223115.GC29495-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,44 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello everyone,
+Hi!
 
-I have some questions on ACPI suspend on a Dell Inspiron 1100.  I have
-tried two different kernels: 2.6.8 (as comes with Debian sarge) and a
-2.6.11.6 (which I built myself).  This is with BIOS A31.
+> > --- clean/drivers/acpi/sleep/proc.c	2005-01-12 11:07:39.000000000 +0100
+> > +++ linux/drivers/acpi/sleep/proc.c	2005-01-12 11:20:13.000000000 +0100
+> 
+> > +		seq_printf(seq, "%4s	%4d		%s%8s\n",
+> > +			   dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
+> > +			   dev->wakeup.flags.run_wake ? "*" : "",
+> > +			   dev->wakeup.state.enabled ? "enabled" : "disabled");
+> 
+> Oh, now that i read this... :-)
+> 
+> What is the difference beteen "*enabled" and "enabled"? I noticed it today
+> when trying to get my Armada E500 to wake-on-lan from S3. So what is
+> wakeup.flags.run_wake?
 
-Neither one has working ACPI suspend, though the symptoms are different:
-
-1) 2.6.8: putting the machine to sleep via proc/sysfs works, but the
-laptop immediately wakes back up.  It looks almost like some device is
-not going to sleep, generating activity, and then causing a wakeup.
-
-2) 2.6.11.6: putting the machine to sleep via proc/sysfs works, but
-the machine never fully wakes up.  I can still login to a console and
-halt the laptop, but the display won't turn back on.  Switching
-to/from X11 VT doesn't seem to help.
-
-It behaves this way for all suspend/sleep types except disk, which
-does nothing (as I kind of expected, and is OK).  I've dumped the
-DSDT, disassembled and recompiled.  No errors are produce, just a few
-warnings - mostly about invalid return types.
-
-I'd like to get this working.  Is is likely?  Should I fix the DSDT
-warnings?  My understanding is that they won't make a big difference.
-Any help is much appreciated!
-
+Not quite sure, probably something to do with runtime wakeups :-).
+				Pavel
 -- 
-Ross Vandegrift
-ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-"The good Christian should beware of mathematicians, and all those who
-make empty prophecies. The danger already exists that the mathematicians
-have made a covenant with the devil to darken the spirit and to confine
-man in the bonds of Hell."
-	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
 
 
 -------------------------------------------------------
