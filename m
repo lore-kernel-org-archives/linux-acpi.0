@@ -1,11 +1,20 @@
-From: 영어<fg2o0jdkas9ks-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org>
-Subject: (광고)1:1 외국인 방문 맞춤 영어회화!!!
-Date: Sat, 12 Jul 2003 05:17:56 +0900
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: Instability without ACPI and quirks
+Date: 12 Jul 2003 04:25:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19b4KO-0001nY-8N@externalmx.vasoftware.com>
+Message-ID: <1057980324.1470.61.camel@darkstar.portugal>
+References: <200307110022.29512.adq_dvb@lidskialf.net>
+	<200307111356.22376.adq_dvb@lidskialf.net>
+	<20030711140227.GF22636@poupinou.org>
+	<200307111806.57883.adq_dvb@lidskialf.net>
+	<20030711172639.GL22636@poupinou.org>
+	<1057947446.1451.51.camel@darkstar.portugal>
+	<20030711184648.GN22636@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/html; charset="euc-kr"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030711184648.GN22636-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,171 +23,139 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-<html>
+Hi thanks for replying=20
+Results:
+root@darkstar:~#/setpci -v -H1 -s 0:0.0 52
+00:00.0:52 =3D eb
+root@darkstar:~#setpci -v -H1 -s 0:0.0 52=3D$(printf %x $((0x$(setpci -H1 -=
+s 0:0.0 52) | 0x80)))
+00:00.0:52 eb
+root@darkstar:~#setpci -v -H1 -s 0:0.0 52=3D$(printf %x $((0x$(setpci -H1 -=
+s 0:0.0 52) & 0x7f)))
+00:00.0:52 6b
+root@darkstar:~#setpci -v -H1 -s 0:0.0 52=3D$(printf %x $((0x$(setpci -H1 -=
+s 0:0.0 52) | 0x80)))
+00:00.0:52 eb
 
-<head>
-<meta http-equiv="content-type" content="text/html; charset=euc-kr">
-<title>제목 없음</title>
-<meta name="generator" content="Namo WebEditor v5.0">
-</head>
+I don't resit to tell you, this doesn't do nothing !
+so why 52 ?=20
 
-<BODY text=black vLink=purple aLink=red link=blue bgColor=white>
-<TABLE cellSpacing=0 cellPadding=1 width=530 align=center bgColor=#000000 
-border=0>
-  <TBODY>
-  <TR>
-    <TD bgColor=#232687>
-      <TABLE cellSpacing=0 cellPadding=0 width="100%" bgColor=#232687 
-        border=0><TBODY>
-        <TR>
-          <TD width=5></TD>
-          <TD bgColor=#232687></TD>
-          <TD width=5></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD align=middle><A href="http://www.g-study.co.kr/main/index.htm" 
-            target=_blank><IMG height=196 
-            src="http://www.g-study.co.kr/mailform/top.jpg" width=478 
-            border=0></A></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD bgColor=#ffffff></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD align=middle bgColor=#ffffff><A 
-            href="http://www.g-study.co.kr/main/index.htm" target=_blank><IMG 
-            height=159 src="http://www.g-study.co.kr/mailform/body1.jpg" 
-            width=487 border=0></A></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD>
-            <TABLE cellSpacing=5 cellPadding=0 width="100%" bgColor=#ffffff 
-            border=0>
-              <TBODY>
-              <TR>
-                <TD vAlign=center width=320 bgColor=#66ccff 
-                  height=20><STRONG><FONT color=#ffffff size=2><IMG height=10 
-                  src="http://www.g-study.co.kr/mailform/bullet1.gif" width=6> 
-                  서비스특징</FONT></STRONG></TD>
-                <TD align=middle rowSpan=4><IMG height=141 
-                  src="http://www.g-study.co.kr/mailform/body2.jpg" 
-              width=139></TD></TR>
-              <TR>
-                <TD>
-                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
-                    <TBODY>
-                    <TR>
-                      <TD width=10></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 철저한 개별 방문을 통한 맞춤교육</FONT></TD></TR>
-                    <TR>
-                      <TD></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 단기간내 영어회화에 대한 두려움 극복</FONT></TD></TR>
-                    <TR>
-                      <TD></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 개개인에 맞는 최고의 강사 주선</FONT></TD></TR>
-                    <TR>
-                      <TD></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 교육시간외 강사들과의 친목모임 주선</FONT></TD></TR>
-                    <TR>
-                      <TD></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 1:1 회화 및 단체회화 
-              가능</FONT></TD></TR></TBODY></TABLE></TD></TR>
-              <TR>
-                <TD vAlign=center bgColor=#ffcc00 height=20><STRONG><FONT 
-                  color=#ffffff size=2><IMG height=10 
-                  src="http://www.g-study.co.kr/mailform/bullet1.gif" 
-                  width=6>강사진 소개</FONT></STRONG></TD></TR>
-              <TR>
-                <TD>
-                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
-                    <TBODY>
-                    <TR>
-                      <TD width=10></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 미국, 캐나다등 현지 유수대학 B.A. 학위취득</FONT></TD></TR>
-                    <TR>
-                      <TD></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> TESOL / CELTA 자격증 취득</FONT></TD></TR>
-                    <TR>
-                      <TD></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 현재 국내 어학원 및 대학교 강사로 활동중</FONT></TD></TR>
-                    <TR>
-                      <TD></TD>
-                      <TD><FONT face=굴림체 size=2><IMG height=8 
-                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
-                        width=8> 개인지도 및 학원강사 경력 2년 
-                이상</FONT></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD vAlign=center align=middle bgColor=#adf8fe height=80><FONT 
-            color=#3333ff size=5><STRONG>문의 및 상담 : 02) 583-3556<FONT 
-            size=3><BR><BR><FONT color=#330099>지금 전화주시면 외국인선생님이 여러분의 곁으로 다가 
-            갑니다.</FONT></FONT></STRONG></FONT></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD align=middle bgColor=#a4d1ff height=30><BR><FONT 
-            size=3><STRONG>Total Education Consulting 
-            Service....</STRONG><BR><FONT size=2>(주)글로벌세이<BR></FONT></FONT>
-            <P><A href="http://www.g-study.co.kr/main/index.htm" 
-            target=_blank><B>홈페이지 바로가기</B></A><BR><BR></P></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD bgColor=#232687></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD height=214></TD>
-          <TD bgColor=#e0e0e0>
-            <P><FONT color=#333333 size=2>귀하의 허락 없이 광고 메일을 보내게 된 점 정중히 사과 드립니다. 
-            <BR></FONT><FONT face=굴림 color=#333333 size=2>본 메일은 정보통신망 이용촉진 및 
-            정보보호 등에 관한 법률 제 50조에 의거한 <BR>[광고] 메일입니다. <BR>e-mail주소는 인터넷상에서 
-            취득하였으며, 주소외 어떠한 개인 정보도 <BR>가지고 있지 않습니다.<BR>수신거부를 원하시면 </FONT><FONT 
-            size=2><A href="mailto:bjlim74-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org"><B><FONT 
-            color=red>[수신거부]</FONT></B></A> <FONT face=굴림 color=#333333>를 해주세요. 
-            <BR>다시 한번 정보를 원하지 않는 분께는 대단히 죄송합니다.<BR>번거로우시더라도 한번 더 수신거부를 해주시면 
-            감사하겠습니다.</FONT></FONT></P>
-            <P align=left><FONT face=굴림 color=#333333 size=2>주소 : 서울 서초구 서초2동 
-            1337-8 보통빌딩 405호 (주)글로벌세이 (bjlim74-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org)</FONT></P>
-            <P align=center><FONT color=#333333 size=2>If you want to be removed 
-            from our recipient list, please click</FONT><FONT size=2> <A href="mailto:bjlim74-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org"><B><FONT 
-            color=red>[unsubscribe]</FONT></B></A>. </FONT></P></TD>
-          <TD></TD></TR>
-        <TR>
-          <TD></TD>
-          <TD></TD>
-          <TD></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
-<P><IMG 
-src="http://www.gillajabi.net/supercounter/count.cgi?gstudy"></P>
-</BODY>
+I have a compaq presario 706EA
+00:00.0 Host bridge: VIA Technologies, Inc. VT8363/8365 [KT133/KM133]
+(rev 80)
+00:07.4 Bridge: VIA Technologies, Inc. VT82C686 [Apollo Super ACPI] (rev
+40)
 
-</html>
+Seems to be one KT133 but I am not sure,
+This for me doesn't make sense every via chipset or every Athlons have a
+rol of bugs, but for me the conclusion is:
+Without acpi, we can put this kind of machine working correctly.=20
+first because they are purely ACPI implementation ( the beginning of
+implementation of ACPI in ordinary laptops? )  =20
+Other thing is APIC, with someones APIC is disable by kernel, sometimes
+we have to disable it and other time APIC seems to be detected but we
+have problems with IRQ routing.
+So many time I ask people to disable APIC no know if it work better or
+if can resolve some problem, for me, is a test that I like to be
+informed.
+So I try to find out IRQ routing problems on my laptop (of course) and I
+found one bunch of quirks, so my (not well proved) theory is that bunch
+of quirks is to correct the problem of don't have ACPI.=20
+Since now (happily) have ACPI in main kernel maybe we can begging
+removing quirks from kernel.
+I am testing (in my laptop) the first two removing quirks
+quirk_via_acpi=20
+quirk_vt82c686_acpi
+this two applied are applied to 00:07.4 Apollo Super ACPI
+after 4 days, nothing happens (everything works fine).
+And now I am going for next two=20
+this are applied to 00:07.5 VT82C686 AC97 Audio Controller and 00:07.2
+USB Controller and is the same function in drivers/pci/quirks.c where
+you can read :
+ * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
+ * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
+ * when written, it makes an internal connection to the PIC.
+ * For these devices, this register is defined to be 4 bits wide.
+ * Normally this is fine.  However for IO-APIC motherboards, or
+ * non-x86 architectures (yes Via exists on PPC among other places),
+ * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
+ * interrupts delivered properly.
+ *
+ * TODO: When we have device-specific interrupt routers,
+ * quirk_via_irqpic will go away from quirks.
+
+
+Thanks
+
+
+On Fri, 2003-07-11 at 19:46, Ducrot Bruno wrote:
+> On Fri, Jul 11, 2003 at 07:17:25PM +0100, S=E9rgio Monteiro Basto wrote:
+> > On Fri, 2003-07-11 at 18:26, Ducrot Bruno wrote:
+> > >=20
+> > > You probably need acpi due to power states for the cpu.  Common probl=
+em
+> > > with laptop shipped with athlon in general (there is a tool called
+> > > lvcool though if you do not have acpi).
+> >=20
+> > sounds cool
+> > I have one athlon 4 on one KT133.
+> > but after reading=20
+> > http://cip.uni-trier.de/nofftz/linux/Athlon-Powersaving-HOWTO.html
+> >=20
+> > in 2.5
+> > This is the only solution which does not use the ACPI system of the
+> > Linux kernel.=20
+>=20
+> This one will do exactly what ACPI does (that is, in the main loop,
+> read LVL2 register).  So the exact same issue will likely happens.
+>=20
+> ...
+>=20
+> > 2.1. The Command-line Hack
+> > you can enable/disable the power-saving right from the command-line
+> > without any need for rebooting.
+> >=20
+> > on KT133/133A, KX133, KL/KLE133, KM/KN133, ...:
+> > enable: setpci -v -H1 -s 0:0.0 52=3D$(printf %x $((0x$(setpci -H1 -s 0:=
+0.0
+> > 52) | 0x80)))
+> > disable: setpci -v -H1 -s 0:0.0 52=3D$(printf %x $((0x$(setpci -H1 -s
+> > 0:0.0 52) & 0x7f)))=20
+> >=20
+> > How I know if it enable or disable ?
+>=20
+> setpci -H1 -s 0:0.0 52
+> then look if bit 8 is set (enable) or not (disable).
+>=20
+> > is it safe try this commands?
+>=20
+> I don't know.
+>=20
+> --=20
+> Ducrot Bruno
+>=20
+> --  Which is worse:  ignorance or apathy?
+> --  Don't know.  Don't care.
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email sponsored by: Parasoft
+> Error proof Web apps, automate testing & more.
+> Download & eval WebKing and get a free book.
+> www.parasoft.com/bulletproofapps1
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+--=20
+S=E9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+
+Who gives me one shell, give me everything.
 
 
 
