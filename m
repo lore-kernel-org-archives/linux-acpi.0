@@ -1,16 +1,17 @@
-From: Luca <kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Subject: Re: Radeon PM Support
-Date: Thu, 19 Aug 2004 19:43:19 +0200
+Date: Thu, 19 Aug 2004 20:38:26 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040819174319.GB6913@dreamland.darkstar.lan>
-References: <1091139240.26511.9.camel@6-allhosts> <200408051453.55710.stefandoesinger@gmx.at> <200408051914.39445.anib@anib.de> <200408052153.25467.stefandoesinger@gmx.at>
-Reply-To: kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org
+Message-ID: <200408192038.26959.stefandoesinger@gmx.at>
+References: <1091139240.26511.9.camel@6-allhosts> <200408052153.25467.stefandoesinger@gmx.at> <20040819174319.GB6913@dreamland.darkstar.lan>
+Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: Quoted-Printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040819174319.GB6913-sTXFmx6KbOnUXq0IF5SVAZ4oGUkBHcCu@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200408052153.25467.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,31 +20,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan =?iso-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: anib-La3J9u0raUk@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org
+Cc: anib-La3J9u0raUk@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Il Thu, Aug 05, 2004 at 09:53:25PM +0200, Stefan D=F6singer ha scritto:=20
-> *the boot-radeon.c program can ROM-post the radeon card(compile with gc=
-c=20
-> boot-radeon.c -o boot-radeon -llrmi) You need the lrmi libs+headers. Ca=
-ll it=20
-> after resuming from S3.
+> > *the boot-radeon.c program can ROM-post the radeon card(compile with gcc
+> > boot-radeon.c -o boot-radeon -llrmi) You need the lrmi libs+headers. Call
+> > it after resuming from S3.
+>
+> Is this radeon specific? AFAICS it should POST any card, right?
+Ole Rohne says it's an old IBM PC feature:
 
-Is this radeon specific? AFAICS it should POST any card, right?
+"It is an old IBM PC like feature...
 
-Oh, one small bug:
+If the adapter has BIOS at $0xc000, it is supposed to contain a POST
+entry point at $0xc000,$3 and int10/e6 is supposed to point to it."
 
-> void err(char *function, int exitval) {
-> 	fprintf(stderr, "%s():\n");
+Just give it a try. Note that the boot-radeon.c has the PCI information 1:0:0 
+hardcoded, so you'll have to edit it if your video card is somewhere else.
 
-fprintf(stderr, "%s():\n", function);
-
-
-Luca
---=20
-Home: http://kronoz.cjb.net
-Runtime error 6D at f000:a12f : user incompetente
+Stefan
 
 
 -------------------------------------------------------
