@@ -1,10 +1,10 @@
-From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: More info on VP6 panics
-Date: Sat, 17 Jan 2004 00:50:53 -0600
+From: christian graf <chr.graf-Mmb7MZpHnFY@public.gmane.org>
+Subject: acpi_processor.c - kernel 2.6.1
+Date: Sun, 18 Jan 2004 00:43:13 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4008DB4D.8090407@comcast.net>
+Message-ID: <1074382993.674.24.camel@dragon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,31 +15,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Background:  I get a kernel panic when I boot 2.4.2{2,3,4} with ACPI on
-my dual-processor Abit VP6.  Compiling the kernel with CONFIG_DEBUG_SLAB
-turned on allows it to boot, as does booting with "idle=poll".
+Hi,
 
-I do not believe that the panic occurs anywhere in the ACPI code.  From
-what I can tell, the transition to ACPI mode causes the idle thread on
-the other processor to panic.
+reading the /usr/src/linux-2.6.1/drivers/acpi/processor.c
+i thought the kernel should set the state dynamically, based on the
+load. Maybe it is possible to set the processor-state of my centrino
+manually. Can please anybody tell me how to get it right?
 
-I believe that I have identified the line of code that triggers the
-panic.  It is the actual transition to ACPI mode at
-drivers/acpi/hardware/hwacpi.c, line 143.  If I insert an infinite loop
-before the call to acpi_os_write_port, the boot process simply hangs.
-If I move the loop below the call to acpi_os_write_port, I get the same
-old panic message.
+The reason I'm asking is, that once I do load the processor.ko module,
+my Centrino switches immediately into C2-state. It never switches back
+to C1 state, even under heavy load like compiling the kernel.
 
-How can I debug this further?
+I think the kernel should switch back from C2 to C1 state from alone????
 
-Thanks!
--- 
-========================================================================
-Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-========================================================================
+Please ask me whatever you need to help me swtiching back into C1 state.
+
+christian
+
+
+
+cat /proc/acpi/processor/CPU0/power
+active state:            C2
+default state:           C1
+bus master activity:     ffffffff
+states:
+    C1:                  promotion[C2] demotion[--] latency[000]
+usage[00000010]
+   *C2:                  promotion[C3] demotion[C1] latency[001]
+usage[00905291]
+    C3:                  promotion[--] demotion[C2] latency[185]
+usage[00000000]
+
+
+behn-GKM3wtwTCu0@public.gmane.org:~$ cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 9
+model name      : Intel(R) Pentium(R) M processor 1600MHz
+stepping        : 5
+cpu MHz         : 599.964
+cache size      : 1024 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr mce cx8 apic sep mtrr pge mca
+cmov pat clflush dts acpi mmx fxsr sse sse2 tm pbe tm2 est
+bogomips        : 1185.79
+
+
+
 
 
 
