@@ -1,13 +1,12 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: DSDT from within windows?
-Date: Mon, 31 Jan 2005 13:18:41 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E7129AB@orsmsx403.amr.corp.intel.com>
+From: =?ISO-8859-15?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
+Subject: RE: system does not wake up sometimes
+Date: Mon, 31 Jan 2005 23:21:28 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501312317420.31879@gaston.free.fr>
+References: <16A54BF5D6E14E4D916CE26C9AD3057501168084@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057501168084-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,83 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>, Jing Su <gargamel.su-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Seems like the SSDT(s) are not present in the registry, at least with
-XP.
+On Mon, 31 Jan 2005, Li, Shaohua wrote:
 
-iASL -g will grab these tables out of the registry;  I have not seen an
-SSDT under HKEY_LOCAL_MACHINE\HARDWARE\ACPI, however.
+> >very often, my system does not wake up at the specified time. I need to
+> >press a key to resume.
+> >The system goes to sleep the day before at about 22h30 with the following
+> >commands:
+> >modprobe genrtc
+> >sleep 5
+> >echo 2005-01-28 11:10:00 >/proc/acpi/alarm
+> >sleep 5
+> >echo 1 >/proc/acpi/sleep
+> >
+> >What could be wrong?
+> >I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
+> >
+> >Thanks in advance for any help! Please tell me, if you need more
+> >information.
+> 
+> did you mean alarm can't work only the specific time? Is there any rule?
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Starikovskiy, Alexey Y
-> Sent: Monday, January 31, 2005 2:12 AM
-> To: Bernard Blackham; Jing Su
-> Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: RE: [ACPI] DSDT from within windows?
->=20
-> It's in registry, with all other ACPI tables:
->=20
-> HKEY_LOCAL_MACHINE\HARDWARE\ACPI\DSDT
->=20
->=20
-> Regards,
-> 	Alex.
-> >-----Original Message-----
-> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> >admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Bernard Blackham
-> >Sent: Monday, January 31, 2005 5:55 AM
-> >To: Jing Su
-> >Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >Subject: Re: [ACPI] DSDT from within windows?
-> >
-> >On Sun, Jan 30, 2005 at 09:41:03PM -0500, Jing Su wrote:
-> >> I wondered if maybe Windows also allows OEMs to over-ride the
-> >> DSDT.  Maybe the hardware guys only had limited time to
-> >> provide a hacked up version, and their driver writers  provide a
-> >> patched one later.
-> >>
-> >> I've tried some googling, but found no hits thus far.  Anyone know
-if
-> >> it's possible to pull the active DSDT from a running Windows XP
-> >> session?
-> >
-> >I've no idea how to get it from a live session, but perhaps you
-> >could grep the windows folder for the string "DSDT" to see what
-> >turns up?
-> >
-> >Bernard.
-> >
-> >--
-> > Bernard Blackham <bernard at blackham dot com dot au>
-> >
-> >
-> >-------------------------------------------------------
-> >This SF.Net email is sponsored by: IntelliVIEW -- Interactive
-Reporting
-> >Tool for open source databases. Create drag-&-drop reports. Save time
-> >by over 75%! Publish reports on the web. Export to DOC, XLS, RTF,
-etc.
-> >Download a FREE copy at http://www.intelliview.com/go/osdn_nl
-> >_______________________________________________
-> >Acpi-devel mailing list
-> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: IntelliVIEW -- Interactive
-Reporting
-> Tool for open source databases. Create drag-&-drop reports. Save time
-> by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
-> Download a FREE copy at http://www.intelliview.com/go/osdn_nl
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+No, I didn't find any rule. Sometimes the system really wakes up the right
+time (Jan 22 11:10:00 gaston kernel: Back to C!), but very often it does
+not. And this is not so good, because some cron-jobs don't get started at
+the right time...
+
+Greetings, Peter
+
+-- 
+http://pmrb.free.fr/contact/
 
 
 -------------------------------------------------------
