@@ -1,16 +1,14 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
-Subject: Re: Smart Battery System driver
-Date: Mon, 17 Jan 2005 22:11:37 +0100
-Message-ID: <200501172211.37583.sanskryt@op.pl>
-References: <41E81C2C.8010809@bartol.udel.edu>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI hotplug
+Date: Mon, 17 Jan 2005 14:01:21 -0800
+Message-ID: <20050117140121.A21143@unix-os.sc.intel.com>
+References: <20050113120644.A911@unix-os.sc.intel.com> <20050115101454.67867.qmail@web50203.mail.yahoo.com>
+Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41E81C2C.8010809-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20050115101454.67867.qmail-NMLAVizEvX2A/QwVtaZbd3CJp6faPEW9@public.gmane.org>; from i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org on Sat, Jan 15, 2005 at 02:14:53AM -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,32 +18,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia pi=B1tek 14 stycznia 2005 20:23, Rich Townsend napisa=B3:
-> Accordingly, I've written a first shot at an SBS ACPI driver. This
-> driver, which can be downloaded from
->
-> http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20040114.tar.gz
->
-> ...provides access to the SBS via a new /proc/acpi/sbs interface, and
-> also provides a "legacy" /proc/acpi/battery interface that current
-> battery-monitoring tools can access. This driver depends on Bruno's
-> i2c-acpi-ec driver, which I have included with my source code since a
-> couple of bug fixes were necessary.
-This is realy great.
-I have:
-1. patched the 2.6.10 kernel with Bruno patch
-2. compiled the kernel without ac and battery modules in acpi tree;
-3. compiled and instaled the i2c_acpi_ec and acpi_sbs moudules;
-4. instaled acpid package from debian;
-and now I have the klaptopdaemon in Kde window manager showing when the lap=
-top=20
-is on ac or on battery with the info.
-Congratulations and thanks for all persons involvd in this project.
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+On Sat, Jan 15, 2005 at 02:14:53AM -0800, Paul Ionescu wrote:
+> 
+> I was hoping that I can use my docking station without
+> being necessary to boot docked.
+
+I see. Docking functionality needs more support that does
+not live in acpiphp. There have been some recent posts,
+for example, about docking support in Thinkpads and
+this functionality is separately enabled by a different
+ACPI config option. Grep for ACPI_IBM in acpi/Kconfig
+and see Documentation/ibm-acpi.txt for more details.
+
+Rajesh
+
 
 
 -------------------------------------------------------
