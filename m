@@ -1,12 +1,10 @@
-From: Diego Zuccato <diego-gmoNqwowlqBr8A+qpt3pXFzrSV/HdtiB@public.gmane.org>
-Subject: Re: Runlevel for Sleep?
-Date: Mon, 09 Sep 2002 23:52:22 +0000
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI
+Date: Mon, 9 Sep 2002 17:12:37 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D7D3436.8C579CCD@otello.alma.unibo.it>
-References: <Pine.LNX.4.44.0209071232170.1021-100000@cherise.pdx.osdl.net> <200209081126.g88BQjn05186@pfn1.pefnos> <3D7C5FDF.4FB4E759@otello.alma.unibo.it> <200209090855.g898rbA19798@pfn1.pefnos>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE31@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,24 +14,59 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-"P. Christeas" wrote:
+Hi Linus,
 
-> The whole point of the initscripts is that this is your call. The kernel
-[...]
-> I just try to imagine situations thay may need design consideration.
-Uhm... Then just call your scripts from acpid. Or manage yourself ACPI
-events. It's all in userspace. If a service needs special handling,
-simply do it before (suspend) or after (resume) echoing to
-/proc/acpi/sleep. IMO there's no need to provide extra hooks.
-The timer setting, IIRC, is one of the "services" that need that kind of
-special handlin (at resume, you have to set current time from hw clock).
-Think echoing to /proc/scpi/sleep as a REALLY slow ATOMIC operation :-)
+A bunch of assorted ACPI fixes and cleanups, please apply.
 
-BYtE,
- Diego.
+You can pull from:
+http://linux-acpi.bkbits.net/linux-acpi
+<http://linux-acpi.bkbits.net/linux-acpi>  .
+
+
+ChangeSet-Eo5DMOVaGn8@public.gmane.org, 2002-09-09 17:00:28-07:00, agrover@groveronline.com
+  ACPI: Fix possible sleeping at interrupt context (Matthew Wilcox)
+
+ChangeSet-ALLLLFoGt6I@public.gmane.org, 2002-09-09 14:35:46-07:00, agrover@groveronline.com
+  ACPI: Do not compile functions not used in HT_ONLY mode
+
+ChangeSet-buus5hzmOQM@public.gmane.org, 2002-09-04 17:59:10-07:00, agrover@groveronline.com
+  ACPI: Do not do certain bits of APIC config if CONFIG_ACPI_HT_ONLY is set.
+
+ChangeSet-8bMezWwbLIQ@public.gmane.org, 2002-09-04 17:18:49-07:00, agrover@groveronline.com
+  ACPI: Remove interpreter debugger and kdb directories. These ultimately
+  didn't prove useful enough to be used on a regular basis.
+
+ChangeSet-JGszwtnY6O4@public.gmane.org, 2002-09-03 15:35:24-07:00, agrover@groveronline.com
+  ifdef some arch-specific ACPI code
+
+ChangeSet-Oj5efZNPAlA@public.gmane.org, 2002-09-03 15:12:32-07:00, agrover@groveronline.com
+  Remove obsolete OSL functions (Kochi Takayoshi)
+
+ChangeSet-/gjyQfi6Jvo@public.gmane.org, 2002-09-03 15:06:51-07:00, agrover@groveronline.com
+  ACPI Config.in update by Christoph Hellwig
+  - 3 space indents
+  - one menu for all arches instead of duplicating
+  - define_*s moved below the real questions
+
+ChangeSet-Qg/eL0vA19Q@public.gmane.org, 2002-09-03 15:02:44-07:00, agrover@groveronline.com
+  By John Belmonte - improvements to Toshiba ACPI driver:
+  1) Fix sscanf
+  2) Add TV out support
+  3) Add hotkey status
+  4) Add version info
+
+ChangeSet-4cO+7sT5u5jBkAz3hwFLjg@public.gmane.org, 2002-08-30 15:56:22-07:00, agrover@groveronline.com
+  ACPI trivial cleanups (Kochi Takayoshi)
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
