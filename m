@@ -1,9 +1,11 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
-Date: Sat, 11 Dec 2004 12:09:17 +0000 (UTC)
-Message-ID: <E1Cd638-00022A-FP@sc8-sf-mx2.sourceforge.net>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Shutting down PCI devices on suspend
+Date: Sat, 11 Dec 2004 15:37:40 +0000
+Message-ID: <1102779460.5984.17.camel@tyrosine>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: <>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,13 +15,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Sat Dec 11 07:07:15 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Network Associates WebShield SMTP V4.5 MR1a on ibixmaila detected virus
-W32/Bagle!eml.gen in attachment unknown from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
-deleted.
+The default PCI suspend/resume calls (used if the driver doesn't
+implement them itself) don't alter the device power state. This seems to
+cause problems on some Thinkpads - going into S3 doesn't seem to result
+in the on-board Radeon being put into D3, and as a result the battery is
+drained at a higher rate than it should be. Who should be responsible
+for making sure that devices are properly put to sleep:
+
+1) The drivers (not immensely helpful in the case where we don't
+necessarily have drivers registered for every device)
+2) The kernel
+3) The hardware itself?
+
+I seem to remember someone mentioning something about Linux not checking
+for hints from the hardware as to what state devices should be put in,
+but I know little about this.
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
