@@ -1,17 +1,14 @@
-From: Pere =?ISO-8859-15?Q?Casta=F1er?= <XaRz69-pCzzcW6XgXY@public.gmane.org>
-Subject: Re: Acpi irq handler doesn't detect ICH4 sound device with
- ALSA. Is a known bug?
-Date: Fri, 13 Aug 2004 23:24:16 +0200
+From: Daniel Pittman <daniel-zvVxMF7wGoXk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: [ltp] ibm-acpi-0.2
+Date: Sun, 15 Aug 2004 19:48:16 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040813232416.2119a446@debian>
-References: <20040813211607.0e8bce72@debian>
-	<411D1595.7090706@optonline.net>
+Message-ID: <87hdr4ivfj.fsf@enki.rimspace.net>
+References: <20040810080826.GD28939@aero.ensim.com>
+	<20040814211247.GS20883@aero.ensim.com>
+	<1092557960.10752.10.camel@mentorng.gurulabs.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="pgp-sha1";
- boundary="Signature=_Fri__13_Aug_2004_23_24_16_+0200_pHoa8h3.PhRS511d"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <411D1595.7090706-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,55 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---Signature=_Fri__13_Aug_2004_23_24_16_+0200_pHoa8h3.PhRS511d
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 15 Aug 2004, Dax Kelson wrote:
+> On Sat, 2004-08-14 at 15:12, Borislav Deianov wrote:
+>> Hi,
+>>
+>> This is the second alpha release of my ACPI driver for IBM ThinkPad
+>> laptops. The features currently supported are:
+>>
+>> 	- Fn key combinations
+>> 	- Bluetooth enable and disable
+>
+> Without your driver, Bluetooth enable/disable already works fine on my
+> T42p.
 
-On Fri, 13 Aug 2004 15:25:09 -0400
-Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org> wrote:
+[...]
 
->=20
-> Does "acpi=3Dirq" also work? That is a little less aggressive about what=
-=20
-> it disables...
+> Does it work differently on older ThinkPads? 
 
-No. I've the same results of letting acpi to andle the irqs.
-Where I can find documentation of irq management in kernel? I don't know an=
-ything of the benefits of letting acpi to handle the irq and could be an in=
-teresting reading for a nerd computer student like me..
+Yes. My A31p, at least, will only enable the Bluetooth adapter when I
+hit a dedicated hardware button on the screen.
 
-Regards,
---=20
-"Master Rahl guide us. Master Rahl teach us. Master Rahl protect us.=20
-In your light we thrive. In your mercy we are sheltered. In your wisdom
-we are humbled. We live only to serve. Our lives are yours"
-                                                Sword of the Truth Series,=
-=20
-                                                         by Terry Goodkind
-------
-Pere Casta=F1er Sard=E0=A0 - http://xarz.homelinux.net
-GnuPG Public key available - http://xarz.homelinux.net/Public_key_block.asc
-Computer Science Student on UOC - http://www.uoc.edu
-Linux Registered User #232073=20
-Debian/GNU User - http://www.debian.org
----------------------
+This module, presumably, will allow me to control it from software, just
+like Windows does.
 
---Signature=_Fri__13_Aug_2004_23_24_16_+0200_pHoa8h3.PhRS511d
-Content-Type: application/pgp-signature
+     Daniel
+-- 
+CAUTION: This product exerts a force on every other object in the
+Universe, proportional to the product of their masses divided by the
+square of the distance between them, center to center.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBHTGEz9pL9wbHcwIRAjckAJ0fnTetAtjZJUiBOhIadHbmWIPV4ACeME3O
-4bQiUV/zNOo9E/Y3z/+bX50=
-=xjFh
------END PGP SIGNATURE-----
-
---Signature=_Fri__13_Aug_2004_23_24_16_+0200_pHoa8h3.PhRS511d--
 
 
 -------------------------------------------------------
