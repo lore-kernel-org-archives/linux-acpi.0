@@ -1,16 +1,13 @@
-From: Matthew Harrell <lists-sender-12e533-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
-Subject: Re: Where to send dsdt to at HP
-Date: Thu, 10 Apr 2003 09:37:05 -0400
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: Re: AW: reading battery status and CPU time
+Date: Thu, 10 Apr 2003 15:44:10 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030410133705.GB27885@bittwiddlers.com>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD10476C218@cceexc19.americas.cpqcorp.net>
-Reply-To: Matthew Harrell <mharrell-dated-1050413828.696c14-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
+Message-ID: <Pine.LNX.4.53.0304101541190.27207@dynast.gaugusch.at>
+References: <B900970C7DD9474C972986EB3EC7C58F0D4096@andromeda.agcad.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <C50AB9511EE59B49B2A503CB7AE1ABD10476C218-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <B900970C7DD9474C972986EB3EC7C58F0D4096-PWLG29+z7hEKeIAE67mlpo2P0GrZ+RbP@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,25 +16,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Apr 10, Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org> wrote:
+> > btw: Does anybody know how I could print out 1/100 sec accurate
+> > timestamps via syslog/dmesg?
+> Read out the time stamp counter of the cpu (Pentium and up, RDTSC
+> instruction) and print it. This register is incremented with the clock
+> rate of the cpu. Therefore the accuracy should be much better than 1/100
+> sec.
+Ok, but how should I do this while AML code is being executed?
+Or do you mean in the function that prints the debug output (just came to
+my mind ...).
+Nevertheless, I don't know how to achive that (I know C/C++ but I haven't
+done much inside the kernel and don't know the function names, etc.)
+Could you give me a hint? Thanks.
 
-Nope, sorry.  This is a modified one for Pavilion and Omnibook laptops.  Thanks
-to work by Robert Moore I can now see my battery fine and numerous other things
-work well.  Looks like I'm still missing S1 and S2 in /proc/acpi/sleep but 
-the DSDT is a heck of a lot better than it was before.
-
-: If you have a corrected DSDT for an HP ProLiant or HP Evo, please send
-: it to me and I'll make sure it gets in front of a BIOS developer.  (In
-: the case of ProLiant it will get fixed, but I can't make a guarantee on
-: Evo.)
+Markus
+PS: It seems my notebook has just died, so testing will have to wait until
+it is repaired - does anybody know the beep code 1 long, two short on a
+sony vaio fx405? :-(((((
 
 -- 
-  Matthew Harrell                          I have the power to channel my
-  Bit Twiddlers, Inc.                       imagination into ever-soaring
-  mharrell-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org                 levels of suspicion and paranoia.
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
 
 
 -------------------------------------------------------
