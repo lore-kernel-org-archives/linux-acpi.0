@@ -1,13 +1,12 @@
-From: John-otv8KCb+Bkdaa/9Udqfwiw@public.gmane.org
-Subject: Re: "bypass" ?
-Date: Fri, 24 Jan 2003 12:34:45 +0000 (GMT)
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Fix thermal/cooling mode and thermal/polling frequency
+Date: Fri, 24 Jan 2003 15:22:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18c33O-000Pb7-00@probity.mcc.ac.uk>
-References: <3E3018DA.7000505@gkec.tu-darmstadt.de>
+Message-ID: <20030124142230.GA10768@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3E3018DA.7000505-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,40 +15,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org
-Cc: John-otv8KCb+Bkdaa/9Udqfwiw@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 23 Jan, Stefan Behnel wrote:
-..
->> I have a Toshiba 3000-400 laptop, which previously needed a ACPI table
->> bypass for it to detect the battery power levels, which I have been
->> doing up to 2.4.17..
-> 
-> What do you mean, a "bypass"?
+Hi!
 
-With the standard kernels (upto around 2.4.18) the batteries would show
-up under ACPI but no power level details were indicated.  I followed the
-instructions on an Intel web site (forgot the link) which outlined the
-process of dumping the DSDT, dissasembling it, correcting the mistakes
-in the schema, reassembling the schema as a hex dump which is then
-included into /usr/src/linux/drivers/acpi/tables/tbget.c.
+This should fix two more files in proc... Please apply,
+								Pavel
 
-This may not be the ideal solution, but it did work (sort of) and the
-modified ACPI did display battery power levels etc.
+--- clean/drivers/acpi/thermal.c	2003-01-17 23:09:34.000000000 +0100
++++ linux-swsusp/drivers/acpi/thermal.c	2003-01-24 14:00:29.000000000 +0100
+@@ -946,10 +950,11 @@
+ 	struct file		*file,
+ 	const char		*buffer,
+ 	unsigned long		count,
+-	void			*data)
++	loff_t			*ppos)
+ {
+ 	int			result = 0;
+-	struct acpi_thermal	*tz = (struct acpi_thermal *) data;
++        struct seq_file 	*m = (struct seq_file *)file->private_data;
++	struct acpi_thermal	*tz = (struct acpi_thermal *) m->private;
+ 	char			mode_string[12] = {'\0'};
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_thermal_write_cooling_mode");
+@@ -1006,10 +1011,11 @@
+ 	struct file		*file,
+ 	const char		*buffer,
+ 	unsigned long		count,
+-	void			*data)
++	loff_t			*ppos)
+ {
++        struct seq_file 	*m = (struct seq_file *)file->private_data;
+ 	int			result = 0;
+-	struct acpi_thermal	*tz = (struct acpi_thermal *) data;
++	struct acpi_thermal	*tz = (struct acpi_thermal *) m->private;
+ 	char			polling_string[12] = {'\0'};
+ 	int			seconds = 0;
+ 
 
-None of this was required with 2.4.20 and 20030109 patches.
 
-John 
 -- 
-  John Heaton, G1YYH
-  Manchester Computing, Kilburn Building.
-  The University of Manchester, Oxford Road, Manchester, England, M13-9PL
-  pstn://+44-161-275-6011/Hello/Is.Dat-U?
-  fax://+44-161-275-6040/screech/warble/ssshhh/beepbeep
-
-
-
+Worst form of spam? Adding advertisment signatures ala sourceforge.net.
+What goes next? Inserting advertisment *into* email?
 
 
 -------------------------------------------------------
