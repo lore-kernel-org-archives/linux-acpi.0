@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: acpi-20040715+D600+Suspend
-Date: Tue, 7 Sep 2004 11:34:24 +0200
+From: =?ISO-8859-1?Q?Richard_K=F6rber?= <shred-lDxpuoTbsqf2eFz/2MeuCQ@public.gmane.org>
+Subject: ACPI and Fedora Core 2?
+Date: Tue, 07 Sep 2004 12:01:32 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040907093424.GA30810@atrey.karlin.mff.cuni.cz>
-References: <1093972503.9372.38.camel@neuromancer.home.net> <20040902143034.GA676@elf.ucw.cz> <1094442085.21466.29.camel@neuromancer.home.net> <20040906171349.GC26195@atrey.karlin.mff.cuni.cz> <1094527351.25454.14.camel@neuromancer.home.net>
+Message-ID: <413D86FC.1040404@despammed.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1094527351.25454.14.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,30 +15,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello!
 
-> > > I had my root partition (reiserfs crash), I lost a few trivial files (i
-> > > hope) and had to do a rebuild-tree.
-> > 
-> > Hmm, do not use reiserfs ;-).
-> Hmm.. isn't reiserfs better?
-> I dunno.
-> Suse uses it as their root fs.
-> I've only switched to reiserfs for my FC2 install. (and frankly, like
-> since I went to FC2 3+ months ago, I've had like 3 reiserfs
-> --rebuild-checks) compared to like NONE  when I was on RH9/ext3 for ~8
-> months.
-> 
-> What's the majority of ppl using? I know this is Off-topic. sorry..
+I am trying to use Cool'n'Quiet on my Athlon 64 system running Fedora 
+Core 2 and a 2.6.7 kernel. Anyhow it seems that ACPI behaves strangely 
+on my system.
 
-For suspend work, ext2 is the safest. I'm now using ext3 on less
-important machines -- at least fsck works there.
+As far as I found out, there should be nothing more to do than a 
+"modprobe powernow-k8". Anyhow, I will always get the error message "No 
+such device".
 
-								Pavel
+I think it's also strange that there is a /proc/acpi/ directory, but 
+quite all of the directories in there are empty (e.g. there actually is 
+a /proc/acpi/thermal_zone/ directory, but it is empty).
+
+Booting the kernel with the "acpi=on apm=off" options set, didn't help 
+either.
+
+The ACPI module is compiled into the Fedora kernel by default, along 
+with the Fan, Processor and Thermal Zone module. The other modules (AC 
+Adapter, Battery, Button, ASUS and Toshiba laptop extras) are compiled 
+as modules. The modules ac, battery and button are also shown in lsmod.
+
+Strange enough, the asus_acpi module is loaded as well. It actually is 
+an Asus mainboard, but it's not a notebook computer.
+
+APM is also compiled into the kernel, but dmesg says it has been 
+disabled on user request.
+
+It's an AMD Athlon 64 3000+, Asus K8V SE Deluxe, and Fedora Core 2 (i386 
+installation, I will wait for FC3 before I switch to x86_64).
+
+I appreciate any advice how I could get ACPI and Cool'n'Quiet work 
+properly. Thanks in advance!
+
+Regards
+-- 
+Richard Körber -~- shred-lDxpuoTbsqf2eFz/2MeuCQ@public.gmane.org -~-
+
 
 
 -------------------------------------------------------
