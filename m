@@ -1,21 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: Centrino speedstep
-Date: Sat, 01 Jan 2005 11:50:59 +0100
-Message-ID: <m2652hh17w.fsf@phoenix.squirrel.nl>
-References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
-	<20041228212653.GA8436@dominikbrodowski.de>
-	<20041229181834.GA19199@poupinou.org>
-	<41D42E88.5080800@mega.ist.utl.pt>
-	<m2llbfk931.fsf@phoenix.squirrel.nl>
-	<41D43A9F.5050507@mega.ist.utl.pt>
-	<16852.15668.315630.700537@phoenix.squirrel.nl>
-	<41D4AA9F.7080200@mega.ist.utl.pt>
-	<20041231082524.GA8312@dominikbrodowski.de>
+From: =?ISO-8859-1?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
+Subject: Re: first shoot for smartbattery (was Re: Re: i2c-acpi-ec.c)
+Date: Sat, 01 Jan 2005 13:35:18 +0100
+Message-ID: <41D69906.8040908@technik-emden.de>
+References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041231082524.GA8312-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org> (Dominik
- Brodowski's message of "Fri, 31 Dec 2004 09:25:24 +0100")
+In-Reply-To: <20041231181628.GL19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -28,22 +20,43 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> On Fri, Dec 31, 2004 at 01:25:51AM +0000, Pedro Venda wrote:
->> also, how exactly can I use ACPI throttling? because with the speestep 
->> driver, I can't go below 600MHz, but 12% of maximum frequency is 180MHz 
->> which I can reach using ACPI throttling.
->
-> but throttling doesn't save you anything.
+Hi.
+have tried the driver on my Travelmate 4002 which has also the smartbattery.
 
-Do you have any idea of the actual power savings in relation to
-frequency scaling and sleep states? E.g., stepping down from 1.6Ghz to
-800Mhz will save a lot (50%?), but how much is saved by using C3
-state. More interesting, how much savings are lost by not being able
-to use C3 state?
+Here what's happening.
 
--- Johan
+root@trilian smartbatt # ./smartbattery
+Error: No i2c-bus specified!
+Syntax: smartbatt I2CBUS
+~  Installed I2C busses:
+~    i2c-4       unknown         ACPI EC SMBus adapter at 0018
+Algorithm unavailable
+~    i2c-3       unknown         crt2
+Algorithm unavailable
+~    i2c-2       unknown         vga
+Algorithm unavailable
+~    i2c-1       unknown         dvi
+Algorithm unavailable
+~    i2c-0       unknown         monid
+Algorithm unavailable
+
+root@trilian smartbatt # ./smartbattery 4
+current:       65535 mA
+remain:        65535 mA or mWh
+time to empty: 65535 minutes
+time to full:  65535 minutes
+temperature:   6280.5 C
+voltage:       65535 mV
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQFB1pkGgL2kQgmW9pgRAgs8AKDEDlT1vtVHiC+XSGv8Fu5bwHG2GwCfSIbv
+AotXyJR5Rn2NGXf8yGr+Prc=
+=K+fO
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
