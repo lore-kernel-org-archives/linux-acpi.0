@@ -1,14 +1,12 @@
-From: =?iso-8859-1?q?Praveen=20C?= <cpravn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi on r40e
-Date: Thu, 19 Feb 2004 14:04:12 +0000 (GMT)
+From: Ryan Hadley <rhadley-SquOHqY54CWNtvSE1QmJz5qQE7yCjDx5@public.gmane.org>
+Subject: ACPI sleep issues on a Lattitude D500 (gentoo-dev-2.6.2)
+Date: Thu, 19 Feb 2004 16:42:53 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040219140412.85807.qmail@web14522.mail.yahoo.com>
-References: <BF1FE1855350A0479097B3A0D2A80EE0025A6413@hdsmsx402.hd.intel.com>
+Message-ID: <40352DDD.5050004@interlinknetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0025A6413-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-If I boot with acpi=off, the hotkeys work. I can see the keypress by
-watch'ing /dev/nvram. But with acpi, the keys dont work and nothing is
-registered in /dev/nvram when any of the hotkeys are pressed. Even
-closing and opening the lid causes some change in nvram but nothing is
-registered when acpi is enabled.
+Hello,
 
-It looks like hotkeys are accessed through CMOS in Thinkpads.
+If I stick:
 
-I dont see any CMOS entry in dsdt table
-(http://www.flatface.net/~praveen/tp/acpi/dsdt.dsl).
+	echo -n "1" > /proc/acpi/sleep
 
-I am not an expert in this; I am just trying to give all the info I
-think might be relevant.
+To be called when my lid is closed bad things happen.
 
-praveen
+It seems to go to sleep just fine, but when I try to bring it out of 
+sleep mode (by opening the lid and pressing power) things don't go fine. 
+It outputs "Back to C!" followed by some things about the ide stuff 
+coming back up and then does nothing. I have to hold the power button 
+until it shuts off and then turn it back on to get it to respond again.
 
-=====
-http://www.cpraveen.tk/
+Then, when I check my /var/log/acpid.log file, I see this in it 
+happening in between the start and stop markings of the lid button 
+actions being called:
 
-________________________________________________________________________
-Yahoo! India Insurance Special: Be informed on the best policies, services, tools and more. 
-Go to: http://in.insurance.yahoo.com/licspecial/index.html
+	/bin/sh: line 30: `start-single-daemon': not a valid identifier
+
+Is that some perl script trying to be ran with /bin/sh as the 
+interpreter? Could this be a cause of my hung system on power restore?
+
+If I don't put the machine to sleep when the lid button is closed, just 
+do other things like spin down the hard drive (hdparm -y /dev/hda), then 
+nothing bad happens and there is no strange /bin/sh error in the acpid 
+log file.
+
+Any help would be greatly appreciated... All I found on google was the 
+/bin/sh error being caused by a perl script being ran with /bin/sh as 
+the interpreter instead of perl... but it was for a completely unrelated 
+problem (not even ACPI related).
+
+Thanks-
+Ryan
 
 
 -------------------------------------------------------
