@@ -1,14 +1,11 @@
-From: Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>
-Subject: Re: Changing temperature trip points
-Date: Tue, 5 Nov 2002 17:40:48 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: hibernate
+Date: Tue, 5 Nov 2002 14:36:27 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021105164048.GF18318@schiggy.intern.quelltext.com>
-References: <E187ipj-0001ss-00@usw-sf-list2.sourceforge.net> <000001c28231$b7cae110$c200a8c0@pikachu>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4B8@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <000001c28231$b7cae110$c200a8c0-3ycpsohRb2Y@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +14,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Chris Howells' <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 02, 2002 at 12:35:56AM -0500, Edmund Rhudy wrote:
-> [...]
-> As it stands, I can currently turn the fan on manually with echo on >
-> /proc/acpi/fan/FAN0/state (though not turn it off with echo off, for
-> whatever reason), but I can't be constantly monitoring the temperature,
-> [...]
+> From: Chris Howells [mailto:chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org] 
+> On Monday 04 November 2002 2:02 pm, Robert Woerle wrote:
+> > btw hibernate is S4 ! S3 is the standby ( suspend to ram )
+> Could somebody please explain what S1 and S2 are as well?
 
-Just FYI, "on" and "off" are not the right keywords here:
+>From ACPI 2.0a spec section 2.4:
 
-    echo >/proc/acpi/fan/FAN0/state 0		turns the fan on
-    echo >/proc/acpi/fan/FAN0/state 3		turns the fan off
+S1 Sleeping State
+The S1 sleeping state is a low wake latency sleeping state. In this state,
+no system context is lost (CPU or chip set) and hardware maintains all
+system context.
 
-(On my machine, though, 3 doesn't turn the fan off, but makes it run
-slower and thus more quiet.)
+S2 Sleeping State
+The S2 sleeping state is a low wake latency sleeping state. This state is
+similar to the S1 sleeping state except that the CPU and system cache
+context is lost (the OS is responsible for maintaining the caches and CPU
+context). Control starts from the processor's reset vector after the wake
+event.
 
-Arndt
+(no one uses S2, since it is so similar to S3)
+
+Regards -- Andy
 
 
 -------------------------------------------------------
