@@ -1,8 +1,8 @@
-From: squid-dev-help-l63656HnnUMPKjDvHGQMeg@public.gmane.org
-Subject: Request for moderated posting
-Date: 27 Jan 2004 03:35:53 -0000
+From: MAILER-DAEMON-pb599fR3TxUuBsRpK9cBJVLXYXvW4kAk0E9HWUfgJXw@public.gmane.org
+Subject: failure notice
+Date: 27 Jan 2004 03:43:16 -0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040127033553.74900.qmail@squid-cache.org>
+Message-ID: <E1AlKAC-0000az-00@deer.gmane.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,43 +15,54 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This message has been passed onto the list moderators for
-approval. This is because you are not a subscriber to this
-list or the related squid-users list.
+Hi. This is the qmail-send program at mailgate-external2.sri.com.
+I'm afraid I wasn't able to deliver your message to the following addresses.
+This is a permanent error; I've given up. Sorry it didn't work out.
 
-If you wish to avoid this in the future, please subscribe
-to the squid-dev list by sending presentation of yourself
-and which areas of Squid you are interested to help with
-the development of Squid to squid-dev-l63656HnnUN5HvqHVlZymw@public.gmane.org
+<brenda-1VPwtPCARB1BDgjK7y7TUQ@public.gmane.org>:
+130.107.1.30 does not like recipient.
+Remote host said: 550 5.1.1 <brenda-1VPwtPCARB1BDgjK7y7TUQ@public.gmane.org>... User unknown
+Giving up on 130.107.1.30.
 
-Or alternatively if you are not really interested in helping
-with the development of Squid, subscribe to the squid-users
-list.
+--- Below this line is a copy of the message.
 
-When when you have introduced yourself and your intentions
-to the developers, you may send a request to subscribe on
-the list to by sending an email to
+Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Received: (qmail 28510 invoked from network); 27 Jan 2004 03:43:15 -0000
+Received: from localhost (HELO mailgate-external2.SRI.COM) (127.0.0.1)
+  by mailgate-external2.sri.com with SMTP; 27 Jan 2004 03:43:15 -0000
+Received: from lists.sourceforge.net ([203.247.145.53])
+ by mailgate-external2.SRI.COM (SAVSMTP 3.1.2.35) with SMTP id M2004012619431331274
+ for <brenda-1VPwtPCARB1BDgjK7y7TUQ@public.gmane.org>; Mon, 26 Jan 2004 19:43:13 -0800
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: brenda-1VPwtPCARB1BDgjK7y7TUQ@public.gmane.org
+Subject: Hi
+Date: Tue, 27 Jan 2004 12:43:29 +0900
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0003_4D6F352E.E6C8D7E2"
+X-Priority: 3
+X-MSMail-Priority: Normal
 
-squid-dev-subscribe-l63656HnnUMPKjDvHGQMeg@public.gmane.org
+This is a multi-part message in MIME format.
 
-with no subject or body.
+------=_NextPart_000_0003_4D6F352E.E6C8D7E2
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 
-If you would like to subscribe an alternate email address
-from the one you are posting from, send an email
-to
-
-squid-dev-help-l63656HnnUMPKjDvHGQMeg@public.gmane.org
-
-to get help on doing this.
-
-Please remember that squid-dev is aimed at squid developers.
-If you want to contribute ideas and code, this list is for
-you. If you want to track development, please use the web
-archives.
+The message cannot be represented in 7-bit ASCII encoding and has been sent as a binary attachment.
 
 
-Thanks!
-The Squid Developers
+------=_NextPart_000_0003_4D6F352E.E6C8D7E2
+Content-Type: application/octet-stream;
+	name="doc.zip"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="doc.zip"
+
+UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==
+------=_NextPart_000_0003_4D6F352E.E6C8D7E2--
+
 
 
 
