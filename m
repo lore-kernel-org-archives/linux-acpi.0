@@ -1,10 +1,16 @@
-From: =?ISO-8859-15?Q?Jean-Fran=E7ois_Rameau?= <jframeau-JRzDBA0BuDZiLUuM0BA3LQ@public.gmane.org>
-Subject: Help wanted: ACPI and serial ports
-Date: Fri, 18 Feb 2005 10:45:13 +0100
-Message-ID: <4215B929.5010004@cyberdeck.com>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Call for help: list of machines with working S3
+Date: Fri, 18 Feb 2005 11:12:07 +0100
+Message-ID: <m2wtt618js.fsf@phoenix.squirrel.nl>
+References: <20050214211105.GA12808@elf.ucw.cz>
+	<1108621005.2096.412.camel@d845pe>
+	<1108638021.4085.143.camel@tyrosine> <4214C3B8.30502@gmx.net>
+	<m28y5ndjcz.fsf@phoenix.squirrel.nl>
+	<1108674637.4085.156.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <1108674637.4085.156.camel@tyrosine> (Matthew Garrett's message
+ of "Thu, 17 Feb 2005 21:10:37 +0000")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +23,31 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> writes:
 
-Hi everybody,
+>> Given that these notebooks will "InstantOn/PowerSave" correctly when
+>> running Windows/XP, what would be the added value for the
+>> manufacturer?
+>
+> In practical terms? A flash-sounding sticky label. It's unlikely to make
+> much difference unless Intel offered some amount of funding in return
+> for having one.
 
-I'm facing a weird problem with a motheboard from=20
-http://www.flytech.com/product-18.html / B79 model.
+Please note that all modern notebooks already have a flashy sticker
+reading "Designed for Windows/XP". With Windoes/XP, everything just
+works (or has been tweaked to work, who knows). So I still don't see a
+real incentive for notebook vendors.
 
-I'm using a 2.4.22 kernel.
+And yes, the world would be much better if notebook vendors were
+competing for stickers like "Designed for Linux" and "Designed for
+Mac/OS".
 
-The PC must power off once a day and then restarts some hours after=20
-using the RTC Power On bios feature.
-Problem: if RTC Power On is up, PC never stops (it reboots immediately=20
-after the power off call). If I turn off RTC power on feature, the PC=20
-stops and power is off.
-Looking at dmesg, I see ACPI: Interpreter disabled.
+> (Of course, Intel /could/ make something like this a requirement for
+> the Centrino branding, which would probably help a great deal)
 
-So I tried to set acpi=3Dforce on kernel's command line: curiously, the=20
-kernel loads a asus_acpi module.
-Problem: if asus_acpi is loaded, and RTC Power On is up, the PC never=20
-stops. If a remove the module, that's OK: the PC stops and power is off.
+This I fully agree with. 
 
-Seeems to be OK, no ?
-
-The PC uses 4 serial ports: if I set acpi=3Dforce, I can't use serial por=
-t=20
-3 and 4 anymore, even using setserial call.
-
-Is there something I can do to track the problem ?
-
-Regards,
-
-jean-fran=E7ois
+-- Johan
 
 
 -------------------------------------------------------
