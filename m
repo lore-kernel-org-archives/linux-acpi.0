@@ -1,15 +1,14 @@
-From: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: acpi poweroff linux problem
-Date: Tue, 13 Jul 2004 12:28:19 +0200 (CEST)
+From: Barry Dunn <lists-2N9sBa0oe+EDXYZnReoRVg@public.gmane.org>
+Subject: Re: acpi kills boot from usb flash media - 2.6.7 kernel
+Date: Tue, 13 Jul 2004 15:14:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.60.0407131226310.2017@frog.athome>
-References: <40F38865.1050007@makines.com>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Message-ID: <20040713151410.6bd153ab@gen.aqui>
+References: <44BDAFB888F59F408FAE3CC35AB470417CCC34@orsmsx409>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; FORMAT=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40F38865.1050007-npIeQ/MgtcxBDgjK7y7TUQ@public.gmane.org>
-Content-ID: <Pine.LNX.4.60.0407131227491.2017-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <44BDAFB888F59F408FAE3CC35AB470417CCC34-sBd4vmA9Se5uxbqukCiDuA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,44 +17,85 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Arch. Giovanni Andrea Lucaferri" <lucaferri-npIeQ/MgtcxBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, 13 Jul 2004 00:31:35 -0700
+"Keshavamurthy, Anil S" <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-Salut Giovanni,
-On Tue, 13 Jul 2004, Arch. Giovanni Andrea Lucaferri wrote:
-> I have slackware 9.1, kernel 2.4.20 patched with latest acpi .diff
-> on acer laptop travelmate632
-> Everything works but not poweroff.
-> The system close all service and daemon but acipd goes in sleep mode, not in 
-> poweroff.
-> The configuration is the original of the distibution.
-there are two things you may try:
-  1. If your system does not use the local APIC you might build a kernel
-   without "Local APIC support on uniprocessors" CONFIG_X86_UP_APIC
-  2. do not use the rtc-module "Enhanced Real Time Clock Support", but if
-   you need the generic RTC CONFIG_GEN_RTC instead.
-And please report back, if one of this things solves your problem.
+> Hi Barry,
+> 	Can you please see if this attached patch helps.
+> 
+> Thanks,
+> Anil 
+> 
 
-Cheers
-   hartwig felger
+Hi Anil,
 
-Hartwig Felger informatics
+Thanks for the suggestion, unfortunately the patch makes no difference,
+everything behaves exactly as before. Cheers anyway,
 
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Barry
 
-iD8DBQFA87lP9bBoTzOf1pMRAlnFAKDJr0F6LXP/Cd+k/ui7c49szZshigCeO9Rt
-5Vf5vtKrt1XpVZBIuQFcsPo=
-=9eLx
------END PGP SIGNATURE-----
+> >-----Original Message-----
+> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org 
+> >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Barry
+> >Dunn Sent: Monday, July 12, 2004 2:50 PM
+> >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> >Subject: [ACPI] acpi kills boot from usb flash media - 2.6.7 kernel
+> >
+> >I'm trying to boot from a usb flash memory stick on my laptop 
+> >(so I can encrypt the whole drive), it works fine in all the 
+> >usb ports with acpi=off in the boot parameters, but with acpi 
+> >enabled it usually hangs at the line "ACPI: Subsystem revision 
+> >20040326". I say usually because that's the case in 4 of the 5 
+> >usb ports, but curiously it tends to stutter on a bit further 
+> >in the remaining port, and twice (out of dozens of attempts 
+> >with different parameters etc) it has successfully booted from 
+> >that port with acpi enabled. It's random however, and I 
+> >couldn't reproduce either success.
+> >
+> >With acpi debug enabled, in the 'good' port it hangs either at 
+> >"Executing all Device _STA and_INI methods:" or "Completing 
+> >Region/Field/Buffer/Package initialization:", in the other 
+> >ports it hangs at "ACPI Namespace successfully loaded at root 
+> >c0495a3c".
+> >
+> >The second time it worked, I'd noticed a small pause not 
+> >normally there (less than 5 seconds) after the line 
+> >"Uncompressing Linux... Ok, booting the kernel", which makes 
+> >me suspect the speed of the flash drive (from which an initrd 
+> >is loaded) is the problem, and that perhaps that early delay 
+> >was what enabled it to boot. Doubly so because booting from a 
+> >(obviously faster) usb hard drive enclosure works fine with 
+> >acpi in all usb ports.
+> >
+> >(Speed doesn't explain why one usb port does better though, 
+> >hdparm -t shows no difference between them.)
+> >
+> >Could anyone give me pointers on how to introduce a delay in 
+> >acpi initialization, or suitably early in the boot process, to 
+> >see if that'll do the trick? If anyone's come across a similar 
+> >problem and has other suggestions, all the better. The laptop 
+> >is a rebadge of a Uniwill system, called an "EI System 4405". 
+> >The dsdt does have some compile errors which I managed to get 
+> >rid of, but there's no difference between using the modified 
+> >or original dsdt. (From looking into the errors, the dsdt 
+> >seems similar to some Fujitsu-Siemens and Asus models). I've 
+> >tried all acpi related options listed in 
+> >kernel-parameters.txt, removing io-apic and local apic from 
+> >the kernel, and combinations thereof, but no joy. Basically 
+> >I'm a bit stuck. :)
+> >
+> >I've attached the dmesg, output of lspci -vv and cat 
+> >/proc/interrupts are below, any suggestions are appreciated.
+> >
+> >Cheers,
+> >
+> >Barry
+> >
+
+<snip>
 
 
 -------------------------------------------------------
