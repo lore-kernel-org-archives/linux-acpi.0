@@ -1,12 +1,12 @@
-From: Jacek Kawa <jfk-am85oNWwv3KkuDHyt5Lh4DtUAC2U4X/S@public.gmane.org>
-Subject: 2.6/2.4, ACPI, Compaq Armada 110, freeze while booting
-Date: Sun, 18 Apr 2004 03:00:00 +0200
+From: "Adrian Yee" <brewt-acpi.sf.net-CDLCgzMZgTDYtjvyW6yDsg@public.gmane.org>
+Subject: S3 suspend/resume driver questions
+Date: Sun, 18 Apr 2004 03:06:49 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040418005959.GA15475@finwe.eu.org>
+Message-ID: <GMail.1082282809.299052003.09816679024@brewt.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,104 +16,85 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi,
 
-(I'm not subscribed to acpi-devel@ so CC me)
+Well after hacking around with the 2.6 kernels for some time now trying to =
+get ACPI S3 suspend/resume working, I've finally gotten it to work on my no=
+tebook (Fujitsu S6010 - PIII 1GHz, i830 chipset/graphics).  I had to use th=
+e acpi_sleep=3Ds3_bios kernel argument to get video restored on resume, but=
+ I had other problems - other devices were causing lockups on resume.  This=
+ turned out to be caused by the pci states of devices not being restored on=
+ resume (is this normal?).  To fix this, I had to make some changes to the =
+various drivers: 8139too and the alsa intel8x0 driver.
 
-I've got problem with making Linux with ACPI enabled 
-work with Compaq Armada 110. 
+For the 8139too driver, I had to move the pci save/restore power/state code=
+=2E  It currently is located after:
 
-o 2.6.6-rc1 log (written down):
--------------------------------
-ACPI: Subsystem revision 20040326
- tbxface-0117 [03] acpi_load_tables	: ACPI Tables successfully acquired
- Parsing all Control Methods:.................................................... ...
- Table [DSDT](id F004) - 398 Objects with 38 Devices 122 Methods 13 Regions
- ACPI Namespace successfully loaded at root c03851bc
- ACPI: IRQ10 SCI: Edge set to Level Trigger.
- evxfevnt-0093 [04] acpi_enable		: Transition to ACPI mode successful
- evgpeblk-0867 [06] ev_create_gpe_block	: GPE 00 to 15 [_GPE] 2 regs at 0000000000008020 on int 10
- evgpeblk-0925 [06] ev_create_gpe_block	: Found 0 Wake, Enabled 5 Runtime GPEs in this block
- Completing Region/Field/Buffer/Package initialization:................................ ...
- Initialized 13/13 Regions 1/1 Fields 22/22 Buffers 19/19 Packages (407 nodes)
- Executing all Device _STA and_INI methods: ..........[ACPI Debug] String: Length 0x30, "--------- VIA SOFTWARE SMI PMIO 2Fh ------------"
- 
-And then OS freezes. pci=noacpi or/and noacpi are not enough and only 
-acpi=off 'solves' problem.
+if (!netif_running (dev))
 
-o tested versions
------------------
-I tested 2.6.6-rc1, 2.6.5-mm6, 2.6.4, 2.6.1 and symptoms are similar 
-(when debug is disabled last visible line is 'ACPI: IRQ10 SCI: Edge set 
-to Level Trigger') With 2.4.24 and 2.4.25 and ACPI enabled I got blank 
-screen instead of text, but I guess it's the same problem (without ACPI
-2.4.2[45] boot fine).
+And because I didn't have the device running (the module is loaded, but the=
+ device isn't configured), it wasn't restoring the device properly.  Is the=
+re a reason why it doesn't pci_save_state() if the device isn't running?  T=
+he problem with this is that I often switch between wired and wireless netw=
+ork, so the device is often not up.  I looked at the 3c59x driver and it al=
+so doesn't perform any suspend/resume code on the device if it isn't runnin=
+g.  Is this proper behaviour?
 
-Custom DSDT does not help. I patched osl.c and according to logs new table
-(found here: http://acpi.sourceforge.net/dsdt/view.php?id=77) was loaded 
-correctly, but system froze after 'Executing all Device _STA and_INI methods' 
-as before.
+For the alsa intel8x0 driver, I just added code to save/restore the pci sta=
+te on suspend and resume.  Is this the correct way to fix the problem?
 
-o references
-------------
-I found one similar description of problem, with Compaq Presario 2158 EA,
-but no solution 
-(http://linux.derkeiler.com/Newsgroups/comp.os.linux.portable/2003-09/0017.html).
+One thing I couldn't fix was the i830 video state:
 
-It's bit strange to me, and maybe I should test some older ACPI versions,
-as there are many pages with information, that ACPI with modified DSDT is 
-almost fully functional... 
+Before suspend:
+00:02.1 Display controller: Intel Corp. 82830 CGC [Chipset Graphics Control=
+ler]
+	Subsystem: Fujitsu Limited.: Unknown device 113c
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dfast >TAbort- <TAbort- =
+<MAbort- >SERR- <PERR-
+	Latency: 0 (2750ns max)
+	Region 0: Memory at f0000000 (32-bit, prefetchable) [size=3D128M]
+	Region 1: Memory at e0100000 (32-bit, non-prefetchable) [size=3D512K]
+	Capabilities: [d0] Power Management version 1
+		Flags: PMEClk- DSI+ D1+ D2- AuxCurrent=3D0mA PME(D0-,D1-,D2-,D3hot-,D3col=
+d-)
+		Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
+00: 86 80 77 35 07 00 90 00 00 00 80 03 00 00 80 00
+10: 08 00 00 f0 00 00 10 e0 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 cf 10 3c 11
+30: 00 00 00 00 d0 00 00 00 00 00 00 00 00 00 00 0b
 
-o system details
-----------------
+After resume:
+00:02.1 Display controller: Intel Corp. 82830 CGC [Chipset Graphics Control=
+ler]
+	Subsystem: Fujitsu Limited.: Unknown device 113c
+	Control: I/O- Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Steppi=
+ng- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dfast >TAbort- <TAbort- =
+<MAbort- >SERR- <PERR-
+	Latency: 0 (2750ns max)
+	Region 0: Memory at f0000000 (32-bit, prefetchable) [disabled] [size=3D128=
+M]
+	Region 1: Memory at e0100000 (32-bit, non-prefetchable) [disabled] [size=
+=3D512K]
+	Capabilities: [d0] Power Management version 1
+		Flags: PMEClk- DSI+ D1+ D2- AuxCurrent=3D0mA PME(D0-,D1-,D2-,D3hot-,D3col=
+d-)
+		Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
+00: 86 80 77 35 04 00 90 00 00 00 80 03 00 00 80 00
+10: 08 00 00 f0 00 00 10 e0 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 cf 10 3c 11
+30: 00 00 00 00 d0 00 00 00 00 00 00 00 00 00 00 0b
 
-2.6.6-rc1 config: 
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/config-2.6.6-rc1
-2.4.25 config:
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/config-2.4.25
+I tried modifing the intel-agp module to save/restore the state, but it did=
+n't seem to have any effect on it.  Any clues?
 
-acpidmp output:
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/acpidmp
+Thanks in advance for any help.
 
-cpuinfo:
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/cpuinfo
-lspci:
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/lspci
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/lspci-v
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/lspci-v-v
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/lspci-v-v-v
-/proc/dma:
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/dma
-/proc/interrupts:
- http://zeus.polsl.gliwice.pl/~jfk/kernel/acpi/interrupts
-
-(all collected with acpi=off)
-
-Gnu C                  3.3.3
-Gnu make               3.80
-binutils               2.14.90.0.7
-util-linux             2.12
-mount                  2.12
-module-init-tools      3.0-pre10
-e2fsprogs              1.35
-jfsutils               1.1.4
-xfsprogs               2.6.5
-Linux C Library        2.3.2
-Dynamic linker (ldd)   2.3.2
-Procps                 3.2.1
-Net-tools              1.60
-Console-tools          0.2.3
-Sh-utils               5.0.91
-
-Suggestions are welcome.
-
-bye!
-
--- 
-Jacek Kawa
+Adrian
 
 
 -------------------------------------------------------
