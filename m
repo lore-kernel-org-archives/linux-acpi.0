@@ -1,56 +1,117 @@
-From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Subject: RE: [ACPI] RE: [ACPI-sppt] merge acpi-support into acpi-devel?
-Date: Mon, 6 Oct 2003 18:33:29 -0500
-Sender: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD106610CB5@cceexc19.americas.cpqcorp.net>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: \_PR\CPU\_INI not called during initialization
+Date: Mon, 6 Oct 2003 15:58:32 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DE1@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
-Errors-To: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
-	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
-	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-support>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Nope. A Processor object is just that.  A Processor.  Not a Device.
+Just because something can appear under _SB does not imply that it is a
+Device object.
+
+However, once again, we need to see what MS does.
+Bob
+
+
+-----Original Message-----
+From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
+Sent: Monday, October 06, 2003 3:55 PM
+To: Moore, Robert
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: \_PR\CPU\_INI not called during initialization
+
+Here is the info I'm going on, section 5.3.1:
+
+%%%
+\_PR
+ACPI 1.0 Processor Namespace. ACPI 1.0 requires all Processor objects to
+be defined under this namespace. ACPI 2.0 allows Processor object
+definitions under the \_SB namespace. ACPI 2.0-compatible systems may
+maintain the \_PR namespace for compatibility with ACPI 1.0 operating
+systems. An ACPI 2.0-compatible namespace may define Processor objects
+in
+either the \_SB or \_PR scope but not both.
+
+\_SB
+All Device/Bus Objects are defined under this namespace.
+%%%
+
+I read this to mean that in ACPI 2.0, Processor objects are devices
+regardless of whether they are defined under \_SB or under \_PR.
+
+My DSDT:
+   http://root.org/~nate/acpi/ibm.dsdt
+ASL url was in original email below.
+
+-Nate
+
+On Mon, 6 Oct 2003, Moore, Robert wrote:
+> Please send the DSDT from this machine, I'd like to see it.
+> Thanks,
+> Bob
+>
+>
 > -----Original Message-----
-> From: Brown, Len [mailto:len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]=20
-> To: Matthew Wilcox
-> > Personally, I'm really not interested in any of the x86=20
-> > shitty BIOS IRQ routing type issues.
->=20
-> > - acpi-x86 (for x86 specific problems)
-> > - acpi-core (for everything else)
->=20
-> We need to work through the configuration issues on x86 to enable a
-> successful broad Linux ACPI deployment.  Based on the type of=20
-> bugs that
-> are getting fixed today, I'm hopeful that these are deployment pains
-> that we'll fix and put behind us.  So in the long-term I=20
-> don't think we
-> should need a special list to segregate them from other linux acpi
-> topics.
->=20
-> thanks,
-> -Len
-
-I agree - one list.  I think if separate the lists you'll just end up
-with acpi-x86 getting 95% of the issues even if half of them are
-problems in the core.  The vast majority of Linux ACPI implementations
-will be x86 for a long time.  I think if it weren't for the laptop
-users we probably wouldn't have ACPI for Linux, and it will be a long
-time before you'll see a Itanium laptop.
-
-Regards,
-John
+> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
+> Sent: Monday, October 06, 2003 2:50 PM
+> To: Moore, Robert
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: RE: \_PR\CPU\_INI not called during initialization
+>
+> Since in ACPI 2.0 a processor declaration block can be under \_SB_, it
+> counts as a device.  If you don't want this in ACPICA, I'll stick it
+> under
+> our Processor driver.
+>
+> -Nate
+>
+> On Mon, 6 Oct 2003, Moore, Robert wrote:
+> > _INI methods are only called on objects of type "Device", as per the
+> > ACPI specification.
+> > Bob
+> >
+> >
+> > -----Original Message-----
+> > From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
+> > Sent: Monday, October 06, 2003 9:47 AM
+> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Cc: Moore, Robert
+> > Subject: \_PR\CPU\_INI not called during initialization
+> >
+> > My laptop has two performance states I have been using, however, I
+get
+> a
+> > 0
+> > when I read the mhz and mW associated with each state.  When running
+> > with
+> > debug =3D ACPI_LV_INIT, I noticed that the processor's _INI method =
+is
+> not
+> > called and this is what fills out the Px info.  Is this something
+> you'll
+> > add to ACPICA or should I be handling that myself?
+> >
+> >    http://root.org/~nate/acpi/ibm-acpidump.asl.gz
+> >
+> > -Nate
+> >
+>
 
 
 -------------------------------------------------------
