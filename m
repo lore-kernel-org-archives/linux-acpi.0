@@ -1,9 +1,10 @@
-From: =?ISO-8859-15?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
-Subject: system does not wake up sometimes
-Date: Thu, 27 Jan 2005 18:40:33 +0100
-Message-ID: <Pine.LNX.4.58.0501271837150.29216@gaston.free.fr>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Sleep() method in AML
+Date: Wed, 26 Jan 2005 15:13:38 -0500
+Message-ID: <41F7F9F2.4000501@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -14,30 +15,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-very often, my system does not wake up at the specified time. I need to
-press a key to resume.
-The system goes to sleep the day before at about 22h30 with the following
-commands:
-modprobe genrtc
-sleep 5
-echo 2005-01-28 11:10:00 >/proc/acpi/alarm
-sleep 5
-echo 1 >/proc/acpi/sleep
+How does the current Linux implementation of the AML interpreter treat 
+the Sleep() method? According to the ACPI spec, this method should 
+relinquish the processor, so I would anticipate some form of mapping to 
+the kernel msleep() function. However, to what extent is this true?
 
-What could be wrong?
-I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
+Does Sleep() actually permit other tasks to be scheduled, or does the 
+AML interpreter just go into some form of delay loop for the required 
+time? I ask because I'm hacking together some Smart Battery stuff in the 
+DSDT, and the code uses a lot of Sleep() calls (to implement polling of 
+the embedded controller). I was hoping that these calls would mean that 
+the polling doesn't have much of an impact on the rest of the system; 
+but I find I'm losing keypresses etc. during the execution of the code 
+containing the Sleep() references. Any suggestions regarding how to fix 
+this problem?
 
-Thanks in advance for any help! Please tell me, if you need more information.
-Kind regards, Peter
+cheers,
 
--- 
-email: pmrb at free.fr
-http://pmrb.free.fr/contact/
-
+Rich
 
 
 -------------------------------------------------------
