@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Kernel 2.6-test10 and /sys/power/state on Thinkpad R32
-Date: Mon, 1 Dec 2003 21:13:29 +0100
+From: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>
+Subject: Re: RE: Toshiba ACPI battery status - ACPI errors
+Date: Tue, 2 Dec 2003 22:45:22 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031201201329.GA206@elf.ucw.cz>
-References: <1069851924.3708.4.camel@hogfather.northernmaniacs.com>
+Message-ID: <20031202214522.GA8720@fqdn.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720BE7@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1069851924.3708.4.camel-fpKYWrq5g0ViPMq5F3FOwhQI7fTEVXXPmpATvIKMPHk@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720BE7-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stephan Herhut <sah-jNDFPZUTrfRKC+uPiMyuuyYxWCU7E+c1@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> I just wrote a patch for this issue. Would you please have it a look, and test it .
 
-> I gave kernel 2.6-test10 a try to test the long-awaited suspend to
-> ram/disk. I am using fedora core 1 on a ThinkPad R32 with the newest
-> BIOS available. Everythings works fine, except suspending my thinkpad.
-> 
-> echo {ram|disk} > /sys/power/state
-> 
-> just yields a Preparing for suspend kernel message and afterwards
-> nothing happens. I can even retry as often as I want to, always only
-> producing this message.
-> 
-> I use the current kernel rpm from people.radhat.com/arjanv.
-> 
-> Anyone something to try or is this already known?
-
-Try echo 4 > /proc/acpi/sleep on vanilla kernel.
-								Pavel
+I would do so, but it is against the 2.6.x series, and i had some issues
+with this kernel series on my notebook, so for now i stay with 2.4.x. If
+you have a patch against 2.4.x, i can give it a try.
 
 
+Regards
+Michael
 
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Michael Holzt, DL3KJU, kju-+hGXy1KyAyQ@public.gmane.org, kju@debian.org, kju@IRCNet
 
 
 -------------------------------------------------------
