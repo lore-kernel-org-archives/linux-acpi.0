@@ -1,14 +1,12 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] MADT printk cleanups
-Date: Tue, 25 May 2004 09:50:30 -0600
+From: Philip Balister <philip-6RQC9ztksjxg9hUCZPvPmw@public.gmane.org>
+Subject: S3 on Dell D600
+Date: Tue, 25 May 2004 12:49:43 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200405250950.30717.bjorn.helgaas@hp.com>
+Message-ID: <1085503783.3837.6.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,104 +15,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Here's a fairly straightforward patch to go along with the switch to
-printing GSIs in decimal instead of hex.  It
-	- uses "gsi" rather than "global_irq"
-	- prints GSIs as %u rather than 0x%x
-	- places the "polarity trigger" stuff at the end consistently
-	- reorders IOSAPIC info to be consistent with IOAPIC
-	- changes a couple addresses from %p to 0x%08lx for consistency
+I've been trying to get my Dell D600 laptop to sleep using echo 3
+>/proc/acpi/S3. I am closer than I have been, the current problem is
+the laptop suspends and immediately restarts. I am running FC2 with
+kernel rpm version 2.6.6-1.377.
 
-No functional change.  This is against current BK of linux-2.5.
+I do unload the the tg3 ethernet driver module and the ipw2100 wireless
+module. If I don't the system hangs apparently during the loading of the
+ipw2100 firmware.
 
-===== drivers/acpi/tables.c 1.23 vs edited =====
---- 1.23/drivers/acpi/tables.c	2004-05-12 21:30:55 -06:00
-+++ edited/drivers/acpi/tables.c	2004-05-25 09:39:47 -06:00
-@@ -131,7 +131,7 @@
- 	{
- 		struct acpi_table_ioapic *p =
- 			(struct acpi_table_ioapic*) header;
--		printk(KERN_INFO PREFIX "IOAPIC (id[0x%02x] address[0x%08x] global_irq_base[0x%x])\n",
-+		printk(KERN_INFO PREFIX "IOAPIC (id[0x%02x] address[0x%08x] gsi_base[%u])\n",
- 			p->id, p->address, p->global_irq_base);
- 	}
- 		break;
-@@ -140,7 +140,7 @@
- 	{
- 		struct acpi_table_int_src_ovr *p =
- 			(struct acpi_table_int_src_ovr*) header;
--		printk(KERN_INFO PREFIX "INT_SRC_OVR (bus %d bus_irq %d global_irq %d %s %s)\n",
-+		printk(KERN_INFO PREFIX "INT_SRC_OVR (bus %d bus_irq %d gsi %u %s %s)\n",
- 			p->bus, p->bus_irq, p->global_irq,
- 			mps_inti_flags_polarity[p->flags.polarity],
- 			mps_inti_flags_trigger[p->flags.trigger]);
-@@ -155,9 +155,10 @@
- 	{
- 		struct acpi_table_nmi_src *p =
- 			(struct acpi_table_nmi_src*) header;
--		printk(KERN_INFO PREFIX "NMI_SRC (%s %s global_irq %d)\n",
-+		printk(KERN_INFO PREFIX "NMI_SRC (gsi %u %s %s)\n",
-+			p->global_irq,
- 			mps_inti_flags_polarity[p->flags.polarity],
--			mps_inti_flags_trigger[p->flags.trigger], p->global_irq);
-+			mps_inti_flags_trigger[p->flags.trigger]);
- 	}
- 		break;
- 
-@@ -165,10 +166,10 @@
- 	{
- 		struct acpi_table_lapic_nmi *p =
- 			(struct acpi_table_lapic_nmi*) header;
--		printk(KERN_INFO PREFIX "LAPIC_NMI (acpi_id[0x%02x] %s %s lint[0x%x])\n",
--			p->acpi_id,
-+		printk(KERN_INFO PREFIX "LAPIC_NMI (acpi_id[0x%02x] lint[0x%x] %s %s)\n",
-+			p->acpi_id, p->lint,
- 			mps_inti_flags_polarity[p->flags.polarity],
--			mps_inti_flags_trigger[p->flags.trigger], p->lint);
-+			mps_inti_flags_trigger[p->flags.trigger]);
- 	}
- 		break;
- 
-@@ -176,8 +177,8 @@
- 	{
- 		struct acpi_table_lapic_addr_ovr *p =
- 			(struct acpi_table_lapic_addr_ovr*) header;
--		printk(KERN_INFO PREFIX "LAPIC_ADDR_OVR (address[%p])\n",
--			(void *) (unsigned long) p->address);
-+		printk(KERN_INFO PREFIX "LAPIC_ADDR_OVR (address[0x%08lx])\n",
-+			(unsigned long) p->address);
- 	}
- 		break;
- 
-@@ -185,8 +186,9 @@
- 	{
- 		struct acpi_table_iosapic *p =
- 			(struct acpi_table_iosapic*) header;
--		printk(KERN_INFO PREFIX "IOSAPIC (id[0x%x] global_irq_base[0x%x] address[%p])\n",
--			p->id, p->global_irq_base, (void *) (unsigned long) p->address);
-+		printk(KERN_INFO PREFIX "IOSAPIC (id[0x%x] address[0x%08lx] gsi_base[%u])\n",
-+			p->id, (unsigned long) p->address,
-+			p->global_irq_base);
- 	}
- 		break;
- 
-@@ -203,10 +205,10 @@
- 	{
- 		struct acpi_table_plat_int_src *p =
- 			(struct acpi_table_plat_int_src*) header;
--		printk(KERN_INFO PREFIX "PLAT_INT_SRC (%s %s type[0x%x] id[0x%04x] eid[0x%x] iosapic_vector[0x%x] global_irq[0x%x]\n",
-+		printk(KERN_INFO PREFIX "PLAT_INT_SRC (type[0x%x] id[0x%04x] eid[0x%x] iosapic_vector[0x%x] gsi[%u] %s %s)\n",
-+			p->type, p->id, p->eid, p->iosapic_vector, p->global_irq,
- 			mps_inti_flags_polarity[p->flags.polarity],
--			mps_inti_flags_trigger[p->flags.trigger],
--			p->type, p->id, p->eid, p->iosapic_vector, p->global_irq);
-+			mps_inti_flags_trigger[p->flags.trigger]);
- 	}
- 		break;
- 
+Here is the results of dmesg:
+
+PM: Preparing system for suspend
+Stopping tasks:
+======================================================================================|
+PCI: Setting latency timer of device 0000:00:1d.7 to 64
+PCI: Setting latency timer of device 0000:00:1f.5 to 64
+drivers/acpi/osl.c:737: spin_lock(drivers/acpi/osl.c:11f37804) already
+locked by drivers/acpi/osl.c/737
+drivers/acpi/osl.c:756: spin_unlock(drivers/acpi/osl.c:11f37804) not
+locked
+Restarting tasks... done
+agpgart: Found an AGP 2.0 compliant device at 0000:00:00.0.
+agpgart: Putting AGP V2 device at 0000:00:00.0 into 1x mode
+agpgart: Putting AGP V2 device at 0000:01:00.0 into 1x mode
+[drm] Loading R200 Microcode
+
+Anyone have any more suggestions? Do I need to hunt down the exact
+version of acpi in this kernel?
+
+Thanks,
+
+Philip
+
 
 
 -------------------------------------------------------
