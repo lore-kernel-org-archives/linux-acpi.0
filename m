@@ -1,13 +1,14 @@
-From: Damien Challet <dchallet-iYm916uyMS6cH/9ky42jgw@public.gmane.org>
-Subject: enable sound card with PNPACPI
-Date: Tue, 18 Jan 2005 18:56:01 +0000
-Message-ID: <200501181856.01957.dchallet@netcourrier.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: AE_AML_BUFFER_LIMIT errors with latest Linus tree
+Date: Tue, 18 Jan 2005 18:07:06 +0000
+Message-ID: <1106071626.32485.42.camel@elrond.flymine.org>
+References: <3ACA40606221794F80A5670F0AF15F8406B6551B@pdsmsx403>
+	 <200501040242.33765.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200501040242.33765.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,26 +21,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear All,
+On Tue, 2005-01-04 at 02:42 -0500, Dmitry Torokhov wrote:
+> On Tuesday 04 January 2005 02:29 am, Yu, Luming wrote:
+> > Not sure if  kernel option "acpi_os_name=Microsoft Windows" help this?
+> > 
+> 
+> No, it does not.
 
-I understand that in principle the equivalent of 
+I'm seeing several of these errors with the post-2.6.10 ACPI patches on
+various machines. On previous kernels, no errors were produced. What's
+changed that could cause this, and is it correct? 
 
-setpnp 0x0e on
-
-is (with PNPACPI)
-
-echo 1 > /sys/device/pnp0/00:0e/power
-
-(from memory)
-
-The only problem is that even if I "activate" all the devices, I still cannot 
-load the needed module (on a thinkpad 600e, module snd-cs4236).  
-
-What is needed in addition to that ?
-
-Many thanks
-
-Damien
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
