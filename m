@@ -1,43 +1,47 @@
-From: Andy Grover <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org>
-Subject: [PATCH] Make ACPI unselectable in 2.4.20-rc1
-Date: Thu, 7 Nov 2002 18:20:39 -0800 (PST)
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0211071811450.3860-100000@dexter.groveronline.com>
+From: Maier Gerfried <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
+Subject: Re: Changing temperature trip points
+Date: Fri, 08 Nov 2002 08:45:06 +0100 (MET)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1036741506.3dcb6b824e289@sbox.tugraz.at>
+References: <E187ipj-0001ss-00@usw-sf-list2.sourceforge.net> <000001c28231$b7cae110$c200a8c0@pikachu> <20021105164048.GF18318@schiggy.intern.quelltext.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20021105164048.GF18318-dzH3swnhYuu5cqaZGqYS/O8dC6aEkcuFVpNB7YpNyf8@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo,
+Zitiere Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>:
 
-My plan is to start feeding you bits of ACPI changes after 2.4.20 is 
-released. However, for 2.4.20, I'd like to make sure the really old code 
-in 2.4.20 doesn't bite any casual kernel builders.
+[...]
+> Just FYI, "on" and "off" are not the right keywords here:
+> 
+>     echo >/proc/acpi/fan/FAN0/state 0		turns the fan on
+>     echo >/proc/acpi/fan/FAN0/state 3		turns the fan off
+> 
+> (On my machine, though, 3 doesn't turn the fan off, but makes it run
+> slower and thus more quiet.)
 
-Please apply,
+Does this mean, that there shold be /proc/acpi/fan/... present in the latest 
+acpi (kernel 2.4.20-rc1)?
 
-Thanks -- Andy
+Well, unfortunately I do not have it :-(
+(fan-module seems to be loaded without any problems - meaning: error messages; 
+acpi-debug enabled)
 
-===== arch/i386/config.in 1.35 vs edited =====
---- 1.35/arch/i386/config.in	Mon Aug 19 06:23:29 2002
-+++ edited/arch/i386/config.in	Thu Nov  7 18:08:09 2002
-@@ -298,11 +298,12 @@
- bool 'Power Management support' CONFIG_PM
- 
- if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
--   dep_bool '  ACPI support' CONFIG_ACPI $CONFIG_PM
--   
--   if [ "$CONFIG_ACPI" != "n" ]; then
--      source drivers/acpi/Config.in
--   fi
-+    comment '  ACPI support disabled temporarily'
-+#   dep_bool '  ACPI support' CONFIG_ACPI $CONFIG_PM
-+#   
-+#   if [ "$CONFIG_ACPI" != "n" ]; then
-+#      source drivers/acpi/Config.in
-+#   fi
- fi
- 
- dep_tristate '  Advanced Power Management BIOS support' CONFIG_APM $CONFIG_PM
+Maier Gerfried
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by: See the NEW Palm 
+Tungsten T handheld. Power & Color in a compact size!
+http://ads.sourceforge.net/cgi-bin/redirect.pl?palm0001en
