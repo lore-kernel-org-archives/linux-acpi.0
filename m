@@ -1,13 +1,14 @@
-From: "Elvin Choi" <elvin.choi_np-4hJi8j2Fm/M@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Fri, 22 Oct 2004 02:17:22 -0100
+From: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [OT] 2.6.9: allow config to specify custom DSDT (Ulf Dambacher)
+Date: Fri, 22 Oct 2004 11:20:35 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <782e01c4b7e5$e9315d3d$bd29faef@tega.co.uk>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8403BD57CF@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,33 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, brian-/bzczjCP1d2sTnJN9+BGXg@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
 
-Do you want a rolex watch?
+Hi,
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+How about the DSDT_INITRD patch in SuSE kernel? I think it is cleaner
+than this one.
+What do you think?
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+Thanks,
+-yi
 
-Visit us: http://www.toels.com/replica/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://toels.com/z.php
-
+Len Brown wrote:
+> Note that CONFIG_ACPI_CUSTOM_DSDT depends on CONFIG_STANDALONE=3Dn
+>=20
+> The reason is that otherwise the allmodconfig and
+> allyesconfig builds break.
+>=20
+> thanks,
+> -Len
 
 
 -------------------------------------------------------
