@@ -1,15 +1,13 @@
-From: Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>
-Subject: Re: standby resumes immediately in 2.6.0-test8
-Date: Mon, 27 Oct 2003 23:29:10 +0200
+From: Mathias =?utf-8?q?Fr=C3=B6hlich?= <Mathias.Froehlich-S0/GAf8tV78@public.gmane.org>
+Subject: RE: p2b-ds blacklisted?
+Date: Mon, 27 Oct 2003 23:31:13 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200310272329.10977.aviram@beyondsecurity.com>
-References: <Pine.LNX.4.44.0310271050240.13116-100000@cherise>
+Message-ID: <200310272331.13118.Mathias.Froehlich@web.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+  charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44.0310271050240.13116-100000-L1xM/EEGAB4@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,37 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 27 October 2003 20:52, Patrick Mochel wrote:
-> > It *does* look like something wakes the computer up immediately - but
-> > what can it be?
->
-> Could you please do
->
-> # echo -n standby > /sys/power/state
-> # echo $?
 
-# echo -n standby > /sys/power/state
-# echo $?
-1
+Hi,
 
->
-> Also, please send the output of 'cat /proc/acpi/sleep' ? 
+I seems that early ASUS P2B-DS boards have a hardware bug.
+I finally got it working using linux 2.4.23-pre8 and the fix described in
 
-# cat /proc/acpi/sleep
-S0 S3 S4 S5
+http://www.asus.com.tw/support/english/techref/acpi/index_2.aspx
 
-> If "S1"  is not
-> present, then your system does not support standby, and it will not work.
+and of course the kernel argument acpi=force. The power button works and the 
+cpu's tell me that they support C1. I don't know a way to test this.
 
-I guess not :-(
+I had the resistor at the wrong place and have tried before with the RedHat 
+severn 3 kernel with acpi=force which did not work. I could not use the scsi 
+controler and the acpi interrupt count growed very fast. Past changing the 
+resistor, the acpi interrupt count was ok, but the pci ethernet card stopped 
+working. Then I tried 2.4.23-pre1 and everything was fine.
 
-For the record, it's a Sony Vaio R505DL.
+Hope this helps.
 
-- Aviram
+   Mathias Fröhlich
+
+-- 
+Mathias Fröhlich, email: Mathias.Froehlich-S0/GAf8tV78@public.gmane.org
+
 
 
 -------------------------------------------------------
