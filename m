@@ -1,14 +1,14 @@
-From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
-Subject: Re: [Discontig-devel] RE: Cleanup of NUMA support in ACPI
-Date: Thu, 15 Aug 2002 18:32:59 -0700
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: No events when pressing power button
+Date: Fri, 16 Aug 2002 10:04:16 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020816103143.KBBXC0A8264C.1C79D883@mvf.biglobe.ne.jp>
-References: <20020815092003.JBWFC0A82650.6C9EC293@mvf.biglobe.ne.jp> <200208151758.05568.efocht@ess.nec.de>
+Message-ID: <20020816080416.GB10248@poup.poupinou.org>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DD94@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200208151758.05568.efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DD94-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,36 +17,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org
-Cc: discontig-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Martin Platter' <mxp1-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Erich,
+On Thu, Aug 15, 2002 at 08:00:45AM -0700, Grover, Andrew wrote:
+> > From: Martin Platter [mailto:mxp1-hi6Y0CQ0nG0@public.gmane.org] 
+> > Hi!
+> > 
+> > It works on my Gericom M6T. I have added 
+> > "eisa_set_level_irq(9);" in the 
+> > pci_irq.c at line 365.
+> > Now I get events from LID, Powerbutton and I can even use the special 
+> > function keys to set the backlight :-)
+> 
+> Very cool.
+> 
+> I think handling both PIC and IOAPIC will make fixing this a little bit of
+> work, but thanks for confirming the source of the problem.
+> 
 
-The "ifdef SRAT_DEBUG"'s in arch/ia64/kernel/acpi.c arn't
-necessary because arch-independent acpi_table_print_srat_entry()
-function does this.
+One person (don't remember who) reported that after a S3 it didn't worked
+any more on a toshiba satellite 3000 514.
 
-> +#ifdef SRAT_DEBUG
-> +	printk("CPU %x in proximity domain %x %s\n",
-> +	       pa->apic_id, pa->proximity_domain,
-> +	       pa->flags.enabled ? "enabled" : "disabled");
-> +#endif
+Perhaps it is a 'only toshiba' trouble, though.
 
-
-> +#ifdef SRAT_DEBUG
-> +	printk("Memory range 0x%lx to 0x%lx (type %x) in proximity domain %x %s\n",
-> +	       paddr, paddr + size - 1,
-> +	       ma->memory_type, ma->proximity_domain,
-> +	       ma->flags.enabled ? (ma->flags.hot_pluggable ? 
-> +				    "enabled and removable" : "enabled" )
-> +	       : "disabled");
-> +#endif
-
-Thanks,
 -- 
-KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
-
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
