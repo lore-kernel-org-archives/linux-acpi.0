@@ -1,14 +1,14 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: throttling resets when checking temp?
-Date: Thu, 10 Jun 2004 10:56:58 +0200
+From: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
+Subject: Re: APM sleep vs. ACPI S3 sleep
+Date: Thu, 10 Jun 2004 11:10:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040610085658.GA17661@dominikbrodowski.de>
-References: <1086855209.25639.4.camel@nazgul.overridex.net>
+Message-ID: <40C8338F.9050701@mesias.co.uk>
+References: <40ACE6B4.4060408@mesias.co.uk> <1085111866.12354.567.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1086855209.25639.4.camel-zaTuhZP8yyaauuQHeMDlAOTW4wlIGRCZ@public.gmane.org>
+In-Reply-To: <1085111866.12354.567.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,23 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dan <overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jun 10, 2004 at 04:13:29AM -0400, Dan wrote:
-> Hi there, I'm having what seems to be an odd problem to me.  when I
-> change my cpu throttling by running a command like:
+Len
+
+> S3 is suspend to RAM, so the processor will be off, but RAM will still
+> be refreshed; and some devices may still consume power.
 > 
-> echo 3 > /proc/acpi/processor/CPU0/throttling
+> S4 is suspend to disk, and it should be as cold this way as S5.
 
-That's only a debug interface, please try using
+The machine is now running with more memory than the BIOS was claimed to 
+support, maybe this warmth in suspend is a side effect? Some 
+misconfiguration of the memory? Increasing the memory and moving to 
+ACPI/2.6 happened about the same time.
 
-echo 0:3 > /proc/acpi/processor/CPU0/limit
+I don't think the machine supports S4 but I will be trying the linux 
+software suspend stuff soon.
 
-instead.
+-Cam
 
-	Dominik
+-- 
+camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org                                                 <--
 
 
 -------------------------------------------------------
