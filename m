@@ -1,18 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: bluetooth button is dead
-Date: Wed, 22 Dec 2004 11:35:39 +0100
-Message-ID: <m28y7q8vt0.fsf@phoenix.squirrel.nl>
-References: <20041221150316.14A5D9DA3B@phoenix.squirrel.nl>
-	<200412212014.36223.sanskryt@op.pl>
-	<m2d5x3l9wt.fsf@phoenix.squirrel.nl>
-	<200412212042.56854.juris@juris.com.pl>
-	<16840.33460.373241.800472@phoenix.squirrel.nl>
-	<41C8AEDE.3050105@mega.ist.utl.pt>
+From: Michael Frank <mhf-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
+Subject: 2.6.10-rc3 /proc/acpi/alarm does not wakeup from S3, videomode lost
+Date: Tue, 21 Dec 2004 20:59:41 +0800
+Message-ID: <200412212059.43909.mhf@berlios.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41C8AEDE.3050105-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org> (Pedro Venda's message of
- "Tue, 21 Dec 2004 23:16:46 +0000")
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,21 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, juris-DO2cFn/OelIEUmgCuDUIdw@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org> writes:
+Tried this on several machines:
 
->>>May be you have also find some solving to "smart battery"problem?
->> No. That's why I'm lurking around in the ACPI devel list ;-).
->
-> hehehe, that seems to be a common reason for some of us.
+# date -d +${x}seconds '+%Y-%m-%d %H:%M:%S' > /proc/acpi/alarm
+# echo "3" > /proc/acpi/sleep
 
-Actually, I'm prepared to give it a try, but I'm no ACPI wizard. So
-first I want to learn from the experts.
+3 <= x <= 100 seconds.
 
--- Johan
+Sleeps alright but alarm is ignored, power switch wakes up. /proc/acpi/alarm 
+readback correct. 
+
+When machine awoken by button, textmode console videomode (80x60) is lost 
+seems to be 80x25 and cursor gone and scroll messed up.
+
+Sometimes "evevent-0286: *** Error: No installed handler for fixed event 
+[00000004]" was observed on wakeup from _2nd_ S3.
+
+How to make the alarm function work?
+
+Regards
+Michael
 
 
 -------------------------------------------------------
