@@ -1,15 +1,11 @@
-From: Aaron Gaudio <prothonotar-2LEdZMXKCZJeeLb3ft/vUmD2FQJk+8+b@public.gmane.org>
-Subject: Re: ACPI, klaptopdaemon patch - battery status in KDE3
-Date: Wed, 14 Aug 2002 22:50:09 -0400
+From: Phil Short <justswitch-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
+Subject: Problem with Toshiba 1005-S157 DSDT
+Date: Thu, 15 Aug 2002 00:00:31 -0500 (CDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020814225009.A17815@tarnation.dyndns.org>
-References: <20020815001634.36933.qmail@web14203.mail.yahoo.com>
+Message-ID: <20020814235326.H49229-100000@Grayswandir.cygnet_hq>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-md5;
-	protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020815001634.36933.qmail-Km5/rSCkvXWA/QwVtaZbd3CJp6faPEW9@public.gmane.org>; from h_brunsting-/E1597aS9LQAvxtiuMwx3w@public.gmane.org on Wed, Aug 14, 2002 at 05:16:34PM -0700
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,73 +14,65 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "H. Brunsting" <h_brunsting-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
 
---CE+1k2dSO48ffgeK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm having problems with acpi on this laptop.  Following the procedure
+outlined by Richard Black a week or so ago, I obtained the dsdt.dat file
+(may be viewed at http://home.earthlink.net/~justswitch) and used this
+file as input to the iasl compiler (without making any changes),
+generating the following error message:
 
-And lo, upon Wed, Aug 14, 2002 at 05:16:34PM -0700, H. Brunsting spaketh th=
-usly:
 
-> It refers to proc/acpi/ac_adapter/AC/state, and on my
-> system this entry
-> shows up as proc/acpi/ac_adapter/ACAD/state - ACAD
-> instead of AC. I don't
-> know if this is being caused by my laptop not
-> conforming to the standard or
-> the standard acpi software, either case it's worth
-> noting, because I am sure
-> I am not the only one having this problem (which is
-> now solved by editing
-> the source of portable.cpp). I'm not really a cpp
-> coder, but I'm sure
-> another line checking proc/acpi/ac_adapter/ACAD/state
-> in the same way as it
-> is done with AC will solve the problem for most
-> people.
->=20
+Intel ACPI Component Architecture
+ASL Compiler / AML Disassembler version 20020725 [Jul 25 2002]
+Copyright (C) 2000 - 2002 Intel Corporation
+Supports ACPI Specification Revision 2.0a
 
-The acpi patch for gkrellm has the same problem, and
-not just with the AC adapter, but with almost all the=20
-acpi devices (battery, thermal, etc.). The simple
-solution is to patch your copy of the code with the right
-paths for your box, but the correct solution is probably
-to match any directory under (for example) /proc/acpi/ac_adapter
-(presumably if there's more than one directory, there's more
-than one such device).
+dsdt.asl   134: Method(_WAK, 1) {
+Warning 2026 -            ^ Reserved method must return a value (_WAK)
 
-There's gotta be a better way to check for the newer ACPI
-stuff than seeing if one of the expected files exists anyways...
+dsdt.asl   280:             If(CondRefOf(_OSI, Local0)) {
+Error   1022 -        Object does not exist ^  (_OSI)
 
---=20
+dsdt.asl   281:                 If(\_OSI) {
+Error   1022 -   Object does not exist ^  (\_OSI)
 
-Aaron Gaudio                           prothontar @ tarnation.dyndns.org
-                   http://tarnation.dyndns.org/~aaron
-                            ----------------
-  "From fullness, aspect. From aspect, being. From being, emptiness."
+dsdt.asl   282:                     "Windows 2001"
+Error   1037 -                       parse error ^
 
---CE+1k2dSO48ffgeK
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+dsdt.asl   566:             Method(_DOD) {
+Warning 2019 -                        ^ Mixed return types in method (_DOD)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+dsdt.asl   566:             Method(_DOD) {
+Warning 2026 -                        ^ Reserved method must return a value (_DOD)
 
-iEYEARECAAYFAj1bFuEACgkQwXDG7ZQN91coKwCeJJZArunca3vfI5CB2evdOYJl
-swIAoJ46Ubegc5G17/6dkuCJOkDwuaZ9
-=zC3E
------END PGP SIGNATURE-----
+dsdt.asl   848:                 SRST,   1,
+Error   1051 -                     ^ Access width of Field Unit extends beyond region limit
 
---CE+1k2dSO48ffgeK--
+dsdt.asl   851:                 ACPW,   1
+Error   1051 -                     ^ Access width of Field Unit extends beyond region limit
+
+dsdt.asl  2256:                 Field(ERAM, AnyAcc, Lock, Preserve) {
+Error   1048 -                           ^ Host Operation Region requires ByteAcc access
+
+ASL Input: dsdt.asl - 3250 lines, 135282 bytes, 2300 keywords
+Compilation complete. 6 Errors 3 Warnings
+
+
+Could someone please give me a hint on where to procede from here to
+create an error-free dsdt file?
+
+Thanks,
+
+Phil
+
+
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by: Dice - The leading online job board
-for high-tech professionals. Search and apply for tech jobs today!
-http://seeker.dice.com/seeker.epl?rel_code=3D31
+This sf.net email is sponsored by: OSDN - Tired of that same old
+cell phone?  Get a new here for FREE!
+https://www.inphonic.com/r.asp?r=sourceforge1&refcode1=vs3390
