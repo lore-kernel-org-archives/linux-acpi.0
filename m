@@ -1,12 +1,14 @@
-From: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
-Subject: Re: acpi debug messages from compaq presario 2800...
-Date: Wed, 07 Aug 2002 19:07:04 -0400
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Subject: Re: Re: Compaq Presario 2800T
+Date: Thu, 8 Aug 2002 01:05:02 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208072307.TAA05468@magic-pi-ball.mit.edu>
-References: <20020807225425.5804.qmail@scrye.com>
+Message-ID: <20020807230502.GA3563@dutidad.twi.tudelft.nl>
+References: <20020807224648.5744.qmail@scrye.com> <200208072257.SAA04328@magic-pi-ball.mit.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Your message of "Wed, 07 Aug 2002 16:54:19 MDT."
-             <20020807225425.5804.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200208072257.SAA04328-UAlz0gpoyMvRrlGjHHsfAOmCSIfjHtlf@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,42 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
+Cc: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-> Could not install Pci_config handler for C03C, AE_ALREADY_EXISTS 
-> ....evrgnini-0243: *** Error: Could not install Pci_config handler for
-> C03C, AE_ALREADY_EXISTS
+On Wed, Aug 07, 2002 at 06:57:25PM -0400, Sourav K Mandal wrote:
+> > The Fn f7 (dim) and Fn-f8 (brighten) and Fn-F4 (monitor) all work fine
+> > when I first boot up. They also work fine if I start X with no DRM. If
+> > I start X with drm, then they stop working and won't work again until
+> > I reboot. 
 > 
-> Is this a problem? Any ideas what C03C is? 
+> Exactly what I'm getting, but with stock DRI modules.
 
-I have the exact same error messsages.  As I speculated earlier,
-this could be affecting the soundcard and modem, which are both
-PCI.  The soundcard ALSA drivers must be unloaded and reloaded
-on suspend, sound apps die when I hit "pause", and Quake 3 
-doesn't work any more (complains of "broken pipe" when 
-accessing the emulated OSS device).  Second, modem has gotten 
-flakier -- it refuses to connect after coming out of a suspend, 
-requiring a reboot.  I'm trying out unloading/reloading those 
-modules as well in my suspend script ...
+Just for clarity, on my laptop (which is not a Compaq, but a no-namer with
+Radeon Mobility 7500 64MB) the bright/dim keys always work, DRI or no DRI.
 
-None of these problems occurred prior to modifying my DSDT.
+> > Any ideas? Could be a XFree86 version problem? 
+> 
+> Unforunately, not really.  :-(
+> 
+> My (layman's) guess is that it has something to do with the GPU's
+> power state.  The BIOS won't shut down the LCD until it's
+> satisfied with the Radeon's power state; once DRM is used
+>  the Radeon cannot enter an acceptable power state.
 
-Can you verify these effects?
+If you experience this with stock XFree86 DRI as well, I would post a report
+on xpert-72qDnkntNoRAfugRpC6u6w@public.gmane.org as well.  One of the ATI engineers is spending a lot of
+time with these drivers and might have something to add to the equation.
 
-Unfortunately, I haven't yet figured out what C03C is.
+> This is the inverse of the DRI-on-resume problem, that once
+> the Radeon is shutdown w/o reset, the DRM "parts" don't 
+> wake up properoly.
 
+The DRM wasn't designed for stopping/starting in mid-stride, which is why
+we've made it so that it completely initialises/de-initialises during
+VT-switch.  If certain remaining technical problems can be sorted out, this
+might even make XFree86 4.3.0, at least until a more generic solution can be
+implemented.
 
-Sourav
+Good luck,
+Charl
 
-
-PS:  There's also token in the DSDT that starts with "*SYN" ...
-i wonder if that needs to be changed to "SYN" as well.
-
-
+-- 
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
