@@ -1,14 +1,13 @@
-From: Damien Elmes <damien-voeRRA98qc6eZLLa646FqQ@public.gmane.org>
-Subject: Cardbus + ACPI weirdness on a Compaq laptop
-Date: Wed, 21 Apr 2004 22:15:23 +0900
+From: Emilio Mejia Fernandez de Velasco <emejia-EkmVulN54Sk@public.gmane.org>
+Subject: ACPI freezes laptop
+Date: Wed, 21 Apr 2004 16:39:20 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <86y8oph3pw.fsf@mobile.repose.cx>
-References: <864qrem0mm.fsf@mobile.repose.cx>
+Message-ID: <200404211639.20459.emejia@ieee.org>
+Reply-To: emejia-EkmVulN54Sk@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_YeohAUpF431TNML"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <864qrem0mm.fsf-oYM03kX4ec6+8CgqdUn7AQ@public.gmane.org> (Damien Elmes's message of
- "Wed, 21 Apr 2004 13:10:57 +0900")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,115 +16,162 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: sergiomb <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-(sorry if this is a repost - I don't know if it got through. I'm
-subscribed now.)
 
-Howdy folks,
+--Boundary-00=_YeohAUpF431TNML
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-I recently bought a cardbus-based wireless network card. I had a
-pcmcia wireless card previously which worked fine.
+Hello,
+I have compiled kernel 2.4.26, and also 2.6.5 with acpi, with the .config f=
+ile=20
+that you sent me, that is, taking care not to use APIC or SMP options, but=
+=20
+there was no luck.
+The computer freezes after some time. Here I send you one copy of the=20
+file /var/log/messages after the following proceedings:
 
-When I first plugged the card in I noticed that the system slowed
-down to a snails pace. The 'events' kernel process was using all of
-the CPU and choking other processes from running.
+At 15:12:11, after booting with the new kernel 2.4.26, I unplug and plug ba=
+ck=20
+the AC adapter, and so the computer is blocked. It doesn't respond to the=20
+keyboard, so I have to reboot.
+At 15:29:28 the system reboots after fsck caused for the former hard reboot.
+This time I try kernel 2.6.5 in order to check the behaivour when plugging =
+and=20
+unplugging the AC adapter:
+=46rom 15:29:37 to 15:41:17 I unplug and plug again several times -more tha=
+n 20=20
+times- the AC adapter to see if it blocks, but everything keeps alive, unti=
+l=20
+15:41:17, then is the last time I'm able to check the file /var/log/messages
+After this the system is again frozen, completely blocked.
 
-After some fiddling I traced it down to ACPI support. When ACPI is
-off, the events are never generated, and so the system runs as normal.
-
-What's also strange is that when you enable the network interface (in
-other words, bring it from a powered-on state to a network-associated
-state), the CPU consumption of 'events' drops from about 99% to 70% -
-so the utilisation of the card is reducing the number of events that
-are being generated.
-
-The actual events seem strange (to me at least, an ACPI newbie) - I
-imagine "PWRB" is the power button and "PCIB" is the PCI bus? Both
-events are generated about 350 times a second:
-
-22:12:53 Execute Method: [\_GPE._L0B] (Node c12c5208)
-22:12:53   evmisc-0135 [442] ev_queue_notify_reques: Dispatching Notify(2) on node c12d4528
-22:12:53   evmisc-0139 [442] ev_queue_notify_reques: Notify value: Device Wake
-22:12:53   evmisc-0200 [442] ev_queue_notify_reques: No notify handler for [PCIB] node c12d4528
-22:12:53   evmisc-0135 [442] ev_queue_notify_reques: Dispatching Notify(2) on node c12d8528
-22:12:53   evmisc-0139 [442] ev_queue_notify_reques: Notify value: Device Wake
-22:12:53   evmisc-0200 [442] ev_queue_notify_reques: No notify handler for [PWRB] node c12d8528
-22:12:53 acpi_bus-0494 [435] acpi_bus_notify       : Received DEVICE WAKE notification for device [PCIB]
-22:12:53 acpi_bus-0494 [435] acpi_bus_notify       : Received DEVICE WAKE notification for device [PWRB]
-22:12:53 Execute Method: [\_GPE._L0B] (Node c12c5208)
-22:12:53   evmisc-0135 [442] ev_queue_notify_reques: Dispatching Notify(2) on node c12d4528
-22:12:53   evmisc-0139 [442] ev_queue_notify_reques: Notify value: Device Wake
-22:12:53   evmisc-0200 [442] ev_queue_notify_reques: No notify handler for [PCIB] node c12d4528
-22:12:53   evmisc-0135 [442] ev_queue_notify_reques: Dispatching Notify(2) on node c12d8528
-22:12:53   evmisc-0139 [442] ev_queue_notify_reques: Notify value: Device Wake
-22:12:53   evmisc-0200 [442] ev_queue_notify_reques: No notify handler for [PWRB] node c12d8528
-22:12:53 acpi_bus-0494 [435] acpi_bus_notify       : Received DEVICE WAKE notification for device [PCIB]
-22:12:53 acpi_bus-0494 [435] acpi_bus_notify       : Received DEVICE WAKE notification for device [PWRB]
-
-I had a quick hack at the code in an effort to fix the problem. I
-thought that maybe if I ignored the spurious GPE message in
-evgpe.c:acpi_ev_gpe_detect(), avoiding further processing would
-reduce the CPU load. Unfortunately that doesn't seem to have an
-effect on the problem.
-
-I discovered that if I return INTERRUPT_NOT_HANDLED from that
-function, the kernel complains about it and disables the ACPI
-interrupt. This effectively solves my problem since I only use ACPI
-for battery status, and don't need the ACPI interrupt to check the
-power button, etc. However, it's a pretty ugly "solution" and I'm not
-sure if that prevents the "fan" module (which I also run) from
-working properly.
-
-There doesn't appear to be an IRQ conflict:
-
-irq 9: nobody cared!
-Call Trace:
- [<c010933a>] __report_bad_irq+0x2a/0x90
- [<c0109430>] note_interrupt+0x70/0xb0
- [<c0109710>] do_IRQ+0x120/0x130
- [<c01079c8>] common_interrupt+0x18/0x20
- [<c011de0e>] do_softirq+0x3e/0xa0
- [<c01096eb>] do_IRQ+0xfb/0x130
- [<c01079c8>] common_interrupt+0x18/0x20
- [<d099223a>] acpi_processor_idle+0xd1/0x1c2 [processor]
- [<c0104d44>] cpu_idle+0x34/0x40
- [<c0346794>] start_kernel+0x164/0x190
- [<c03464d0>] unknown_bootoption+0x0/0x120
-
-mobile[0]% cat /proc/interrupts 
-           CPU0       
-  0:    3195626          XT-PIC  timer
-  1:      20498          XT-PIC  i8042
-  2:          0          XT-PIC  cascade
-  5:          0          XT-PIC  Intel 82801CA-ICH3
-  8:          4          XT-PIC  rtc
-  9:     200000          XT-PIC  acpi
- 10:          4          XT-PIC  uhci_hcd, yenta, eth1
- 11:          0          XT-PIC  uhci_hcd
- 12:      18366          XT-PIC  i8042
- 14:       6150          XT-PIC  ide0
- 15:         22          XT-PIC  ide1
-NMI:          0 
-LOC:    3194242 
-ERR:          6
-MIS:          0
-
-Does anyone have any thoughts? Is there extra debug information I can
-provide to make it easier to guess the problem? I've tried this card
-on Windows, and it seems to run okay.
-
-The card is a Corega CG-WL54GT.
-
-Cheers,
-
-Damien
+Can you please check the copy of /var/log/messages that I send attached?
+So you can check the events around the refered times and see if it tells yo=
+u=20
+why it gets blocked.
+Thank you
 
 
+Emilio
 
--- 
-Damien Elmes
+--Boundary-00=_YeohAUpF431TNML
+Content-Type: application/x-bzip2;
+  name="messages.bz2"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="messages.bz2"
+
+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
+
+--Boundary-00=_YeohAUpF431TNML--
+
 
 
 -------------------------------------------------------
