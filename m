@@ -1,16 +1,14 @@
-From: Malte Cornils <mcornils-mcycREo4Un4@public.gmane.org>
-Subject: Re: ACPI breakage (was: 2.6.x: local APIC results in hang at boot)
-Date: Mon, 1 Mar 2004 22:02:16 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI C4 support
+Date: Mon, 1 Mar 2004 13:26:09 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403012202.16728.mcornils@usta.de>
-References: <200402031047.i13Algrs019289@harpo.it.uu.se>
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255F035@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200402031047.i13Algrs019289-gq7oiAaKCbRt3AgVzhmPzw@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,58 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Stefan Behlert <behlert-l3A5Bk7waGM@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-(Mail was on linux-kernel, now moving to acpi-devel as requested)
+> From: Pavel Machek [mailto:pavel-AlSwsSmVLrQ@public.gmane.org]=20
+> If there is old BIOS guide telling them to use length of 7, could we
+> make Linux accept that? Its likely a lot of developers have read
+> that...
+>=20
+> Allowing length of 7 is one line change; if we do it, such notebooks
+> will be able to use C1..C3, but not C4. That does not seem too bad...
 
-Am Dienstag, 3. Februar 2004 11:47 schrieb Mikael Pettersson:
-> On 2004-02-03, Malte Cornils wrote:
-> >I've tested this with 2.6.2-rc3 and kernels before that; when I activate
-> >the "Enable local APIC" question the kernel hangs with:
-> >
-> >POSIX conformance testing by UNIFIX
-> >enabled ExtInt on CPU#0
-> >ESR value before enabling vector: 00000000
-> >ESR value after enabling vector: 00000000
-> >Using local APIC timer interrupts.
-> >calibrating APIC timer ...
-> >..... CPU clock speed is 1399.0856 MHz.
-> >..... host bus clock speed is 99.0989 MHz.
-> >NET: Registered protocol family 16
-> >EISA bus registered
-> >PCI: Using configuration type 1
-> >mtrr: v2.0 (20020519)
-> >ACPI: Subsystem revision 20040116
-> >ACPI: IRQ9 SCI: Edge set to Level Trigger.
-> >
-> >and then nothing happens.
-> >
-> >On request, I can send the boot log from the same kernel without local
-> >APIC compiled-in; you can also get it from
-> >http://www.usta.de/RefAk/Aussen/privat/apic-works.log
-> >
-> >As I said, it works without the option. (So, this is a problem for
-> >people using distribution/generic kernels with the Local-APIC option
-> >enabled)
-> >
-> >This is an Asus Centrino notebook (M2400N) with 1,4 GHz, latest BIOS
-> >update and so on. When I enable the local APIC but disable ACPI, it
-> >works too - ACPI is used to reroute some interrupts and make e.g. sound
-> >work.
->
-> This clearly indicates ACPI breakage on your machine.
-> Re-report it as such to the ACPI list.
+I would favor being a little more demanding before adding a hack. This
+could be EASILY fixed by a BIOS update, now that the BIOS developer
+knows it is wrong. If this is a common BIOS error then maybe that
+changes things.
 
-I've added some further info. You can find the dmidecode and biosdecode info 
-on: 
-http://www.usta.de/RefAk/Aussen/privat/dmidecode.log
-http://www.usta.de/RefAk/Aussen/privat/biosdecode.log
+BTW, hey wasn't someone going to implement _CST support? FreeBSD already
+has this, we're behind*! ;-)
 
-Thanks for looking into that,
--Malte
+Regards -- Andy
 
-PS: Please Cc: me, I am not subscribed
+* not that any systems use it yet, but it's coming
 
 
 -------------------------------------------------------
