@@ -1,34 +1,51 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [ACPI] [PATCH] add acpi_interrupt_to_irq
-Date: Thu, 22 Jan 2004 09:38:18 -0700
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200401220938.18951.bjorn.helgaas@hp.com>
-References: <7F740D512C7C1046AB53446D37200173618864@scsmsx402.sc.intel.com>
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Subject: Re: PROBLEM: LCD display dead after ACPI suspend to RAM (S3)
+Date: Thu, 22 Jan 2004 18:13:01 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <m3ad4fdi02.fsf@reason.gnu-hamburg>
+References: <m3hdyo2kce.fsf@reason.gnu-hamburg>
+	<20040122140155.GC5194@hell.org.pl>
+	<m3d69cj8hb.fsf@reason.gnu-hamburg>
+	<1074790450.1585.4.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <7F740D512C7C1046AB53446D37200173618864@scsmsx402.sc.intel.com>
-Content-Disposition: inline
-To: "Nakajima, Jun" <jun.nakajima@intel.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
-Cc: "Brown, Len" <len.brown@intel.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1074790450.1585.4.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+ =?iso-8859-15?q?=28S=E9rgio?= Monteiro Basto's message of "22 Jan 2004 16:54:10 +0000")
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: =?iso-8859-15?q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 21 January 2004 8:36 pm, Nakajima, Jun wrote:
+ || On 22 Jan 2004 16:54:10 +0000
+ || S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org> wrote:=20
 
-> > 	(b) is "acpi_interrupt_to_irq" a better name than
-> > 	    "acpi_irq_to_vector"?
-> 
-> I don't know what people imagine by "interrupt", but to me it implies an
-> "event". 
+ smb> Just a guess, try compile in the kernel don't use modules please!
 
-Are you saying that you think "acpi_irq_to_vector" is the right name?
-What does "vector" mean?  The return value of that function is in
-fact a Linux IRQ, and is passed to request_irq() and free_irq().  So
-I think the correct name is "acpi_SOMETHING_to_irq".  If you don't
-like "interrupt", you can propose something else.  I just think it's
-misleading for the name to contain "to_vector", when it's really
-doing "to_irq".
+Would love to.=20
+
+How do I properly incorporate the acpi4asus CVS tree in the kernel
+sources?
+
+Regards,
+Georg
+
+--=20
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
 
+-------------------------------------------------------
+The SF.Net email is sponsored by EclipseCon 2004
+Premiere Conference on Open Tools Development and Integration
+See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+http://www.eclipsecon.org/osdn
