@@ -1,8 +1,8 @@
-From: Dan Moore <dan-2czqXp8lH1M@public.gmane.org>
-Subject: Compaq Proliant DL380 G1
-Date: Sat, 6 Mar 2004 20:03:52 -0500 (EST)
+From: Jeff Chua <jeff89-xU4+foPaXuB6NlgSsqhgrkEOCMrvLtNR@public.gmane.org>
+Subject: _blank_ after resume
+Date: Sun, 7 Mar 2004 13:26:22 +0800 (SGT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0402270933510.770@andromeda.68k.org>
+Message-ID: <Pine.LNX.4.58.0403071321080.873@boston.corp.fedex.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,42 +14,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Development <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Greetings,
 
-I have, as the subject vaguely implies, a G1 Compaq Proliant DL380 with
-two CPUs.  I'm running 2.4.24 (plus the latest ACPI patch), and ACPI on it
-is lacking in two particular cases:
+I got a blank screen with keyboard frozen after resume.
 
-Power Button - the power button does not seem to produce events (no output
-on 'cat /proc/acpi/event'), though it also doesn't immediately power down
-the system as it does when ACPI is not enabled in the kernel at all.  So
-it seems to just be eating the power button events.
+Running on IBM Thinkpad X30
+Linux 2.6.4-rc2 with patch acpi-20040220-2.6.4.diff.bz2
+XFree86 Version 4.4.0
 
-Temperature - the one temperature reading (thermal_zone/THM0/temperature)
-*always* reads "8 C", which I very much doubt is the case.  This, however,
-is less of a concern to me than the power button.
+Problem only occurs if suspends from X11. Shutting down X11 first will
+resume properly.
+
+So, it is possible to resume back to X11 without shutting down X11 before
+suspending?
 
 
-First off, my question is whether anyone here has done any work on this
-so far.  I can't find any evidence of work in the archives nor in the DSDT
-database.  I did find this:
-  http://www.cpqlinux.com/acpi-howto.html#proliant
-which mentions ACPI on the Proliant DL series, but I think he's talking
-about the G2 and G3 DL380s, not the G1 (which only supports up to 2x1Ghz
-P3s).
-
-I have done a little work on this and have made some progress in the
-investigation of what's going on, but I've got some more research to do
-before asking more detailed questions.
-
-Thanks.
-
--- 
-Dan-ZpabqtIHBis@public.gmane.org
-moore.cx/dan
+Thanks,
+Jeff
 
 
 -------------------------------------------------------
