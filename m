@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 02/12] ia64 acpi build fix
-Date: Wed, 23 Feb 2005 01:52:58 -0800
-Message-ID: <200502230953.j1N9rCep020693@shell0.pdx.osdl.net>
+Subject: [patch 04/12] pcc_acpi build fix
+Date: Wed, 23 Feb 2005 01:53:00 -0800
+Message-ID: <200502230953.j1N9rEUr020699@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +17,41 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 
-arch/ia64/kernel/acpi.c: In function `acpi_map_iosapic':
-arch/ia64/kernel/acpi.c:822: error: `MAX_PXM_DOMAINS' undeclared (first use in this function)
-arch/ia64/kernel/acpi.c:822: error: (Each undeclared identifier is reported only once
-arch/ia64/kernel/acpi.c:822: error: for each function it appears in.)
-arch/ia64/kernel/acpi.c:827: error: `pxm_to_nid_map' undeclared (first use in this function)
+With older gcc's:
+
+drivers/acpi/pcc_acpi.c: In function `acpi_pcc_write_sset':
+drivers/acpi/pcc_acpi.c:111: field `integer' already initialized
+drivers/acpi/pcc_acpi.c:111: unknown field `value' specified in initializer
+drivers/acpi/pcc_acpi.c:111: warning: excess elements in union initializer
+drivers/acpi/pcc_acpi.c:111: warning: (near initialization for `in_objs[0]')
+drivers/acpi/pcc_acpi.c:113: field `integer' already initialized
+drivers/acpi/pcc_acpi.c:113: unknown field `value' specified in initializer
+drivers/acpi/pcc_acpi.c:113: warning: excess elements in union initializer
+drivers/acpi/pcc_acpi.c:113: warning: (near initialization for `in_objs[1]')
 
 
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/arch/ia64/kernel/acpi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ 25-akpm/drivers/acpi/pcc_acpi.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/acpi.c~ia64-acpi-build-fix arch/ia64/kernel/acpi.c
---- 25/arch/ia64/kernel/acpi.c~ia64-acpi-build-fix	2005-02-23 01:47:50.000000000 -0800
-+++ 25-akpm/arch/ia64/kernel/acpi.c	2005-02-23 01:47:50.000000000 -0800
-@@ -771,7 +771,7 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
-  
- 
--#ifdef CONFIG_NUMA
-+#ifdef CONFIG_ACPI_NUMA
- acpi_status __init
- acpi_map_iosapic (acpi_handle handle, u32 depth, void *context, void **ret)
+diff -puN drivers/acpi/pcc_acpi.c~pcc_acpi-build-fix drivers/acpi/pcc_acpi.c
+--- 25/drivers/acpi/pcc_acpi.c~pcc_acpi-build-fix	2005-02-23 01:48:02.000000000 -0800
++++ 25-akpm/drivers/acpi/pcc_acpi.c	2005-02-23 01:48:02.000000000 -0800
+@@ -107,10 +107,8 @@ static int acpi_pcc_write_sset(struct ac
  {
+ 	acpi_status status;
+ 	union acpi_object in_objs[] = {
+-		{ .integer.type  = ACPI_TYPE_INTEGER,
+-		  .integer.value = func, },
+-		{ .integer.type  = ACPI_TYPE_INTEGER,
+-		  .integer.value = val, },
++		{ .integer = { .type  = ACPI_TYPE_INTEGER, .value = func, }},
++		{ .integer = { .type  = ACPI_TYPE_INTEGER, .value = val, }},
+ 	};
+ 	struct acpi_object_list params = {
+ 		.count   = ARRAY_SIZE(in_objs),
 _
 
 
