@@ -1,55 +1,91 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] clean up some ACPI IRQ conversions
-Date: Tue, 9 Mar 2004 16:19:04 -0700
+Subject: Re: [ACPI] [PATCH] 1 of 6 sync mpparse
+Date: Tue, 9 Mar 2004 16:24:50 -0700
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200403091619.04333.bjorn.helgaas@hp.com>
+Message-ID: <200403091624.50746.bjorn.helgaas@hp.com>
+References: <200403091619.04333.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <200403091619.04333.bjorn.helgaas@hp.com>
 Content-Disposition: inline
 To: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 Cc: Andi Kleen <ak@suse.de>, "Nakajima, Jun" <jun.nakajima@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Back in January, I posted a patch to clean up some ACPI IRQ
-handling:
+i386, x86_64: sync mpparse.c slightly
 
-    http://www.gelato.unsw.edu.au/linux-ia64/0401/8019.html
-    http://www.gelato.unsw.edu.au/linux-ia64/0401/8005.html
+This cleans up a little whitespace and a couple typos to remove
+needless differences between mpparse.c for i386 and x86_64.
 
-At the time, it conflicted with some pending MSI updates, so we
-put it off until those went in.  Those are now in, so I'll post
-my updated patches as responses to this note.
-
-I originally proposed "acpi_interrupt_to_irq" as a better name for
-"acpi_irq_to_vector", but I'm now proposing "acpi_global_irq_to_irq".
-ia64 uses "gsi" rather than "global_irq", but "global_irq" seems to
-be already established in include/linux/acpi.h, so I went that way.
-
-If people think "acpi_global_irq_to_irq" is too clunky, I'd be glad
-to change it, but it'd be nice to at least get these changes in as
-a start.
-
-I split it into six easy pieces:
-    1: i386 and x86_64: whitespace and typo changes to sync mpparse.c
-    2: x86_64: add acpi_irq_to_vector() to be same as i386
-    3: i386, x86_64: rename "irq" to "global_irq" (local vars, arguments)
-	(this also fixes a potential i386 bug; we used to do
-	    irq = acpi_irq_to_vector(irq);
-	    entry->irq = irq;
-	    continue;
-	where we convert "irq" from an ACPI global irq to a Linux IRQ,
-	then go through the loop again.  So we could find another PRT
-	entry where the global IRQ happens to match the Linux IRQ we
-	previously found, and screw things up.)
-    4: i386, x86_64, ia64, acpi: rename "acpi_irq_to_vector()" to "acpi_global_irq_to_irq()"
-    5: acpi: fix double conversion in acpi_os_install_interrupt_handler()
-	(this fixes the bug mentioned as the "fishy" part in
-	http://www.gelato.unsw.edu.au/linux-ia64/0401/8005.html)
-    6: acpi: rename acpi_irq variables for clarity
-
-These changes (all together, not individually) have been built and
-booted on ia64 and built for i386.
+diff -Nru a/arch/i386/kernel/mpparse.c b/arch/i386/kernel/mpparse.c
+--- a/arch/i386/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
++++ b/arch/i386/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
+@@ -1,5 +1,5 @@
+ /*
+- *	Intel Multiprocessor Specificiation 1.1 and 1.4
++ *	Intel Multiprocessor Specification 1.1 and 1.4
+  *	compliant MP-table parsing routines.
+  *
+  *	(c) 1995 Alan Cox, Building #3 <alan@redhat.com>
+@@ -1158,19 +1158,19 @@
+ 		if ((1<<bit) & mp_ioapic_routing[ioapic].pin_programmed[idx]) {
+ 			Dprintk(KERN_DEBUG "Pin %d-%d already programmed\n",
+ 				mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
+- 			entry->irq = acpi_irq_to_vector(irq);
++			entry->irq = acpi_irq_to_vector(irq);
+ 			continue;
+ 		}
+ 
+ 		mp_ioapic_routing[ioapic].pin_programmed[idx] |= (1<<bit);
+ 
+ 		if (!io_apic_set_pci_routing(ioapic, ioapic_pin, irq, edge_level, active_high_low)) {
+- 			entry->irq = acpi_irq_to_vector(irq);
+- 		}
++			entry->irq = acpi_irq_to_vector(irq);
++		}
+ 		printk(KERN_DEBUG "%02x:%02x:%02x[%c] -> %d-%d -> IRQ %d\n",
+-			entry->id.segment, entry->id.bus, 
+-			entry->id.device, ('A' + entry->pin), 
+-			mp_ioapic_routing[ioapic].apic_id, ioapic_pin, 
++			entry->id.segment, entry->id.bus,
++			entry->id.device, ('A' + entry->pin),
++			mp_ioapic_routing[ioapic].apic_id, ioapic_pin,
+ 			entry->irq);
+ 	}
+ 
+diff -Nru a/arch/x86_64/kernel/mpparse.c b/arch/x86_64/kernel/mpparse.c
+--- a/arch/x86_64/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
++++ b/arch/x86_64/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
+@@ -9,7 +9,7 @@
+  *		Erich Boleyn	:	MP v1.4 and additional changes.
+  *		Alan Cox	:	Added EBDA scanning
+  *		Ingo Molnar	:	various cleanups and rewrites
+- *	Maciej W. Rozycki	:	Bits for default MP configurations
++ *		Maciej W. Rozycki:	Bits for default MP configurations
+  *		Paul Diefenbaugh:	Added full ACPI support
+  */
+ 
+@@ -1009,14 +1009,14 @@
+  			if (use_pci_vector() && !platform_legacy_irq(irq))
+  				irq = IO_APIC_VECTOR(irq);
+ 			entry->irq = irq;
+- 		}
+-		printk(KERN_DEBUG "%02x:%02x:%02x[%c] -> %d-%d"
+-			" -> IRQ %d\n", entry->id.segment, entry->id.bus, 
+-			entry->id.device, ('A' + entry->pin), 
++		}
++		printk(KERN_DEBUG "%02x:%02x:%02x[%c] -> %d-%d -> IRQ %d\n",
++			entry->id.segment, entry->id.bus,
++			entry->id.device, ('A' + entry->pin),
+ 			mp_ioapic_routing[ioapic].apic_id, ioapic_pin,
+ 			entry->irq);
+ 	}
+-	
++
+ 	print_IO_APIC();
+ 
+ 	return;
 
