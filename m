@@ -1,17 +1,13 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+From: Aman Gupta <acpi-e31a5gnSYeGubukWoKzokaxOck334EZe@public.gmane.org>
 Subject: Re: Radeon PM Support
-Date: Thu, 19 Aug 2004 20:38:26 +0200
+Date: Thu, 19 Aug 2004 15:37:19 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408192038.26959.stefandoesinger@gmx.at>
-References: <1091139240.26511.9.camel@6-allhosts> <200408052153.25467.stefandoesinger@gmx.at> <20040819174319.GB6913@dreamland.darkstar.lan>
-Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Message-ID: <loom.20040819T173209-640@post.gmane.org>
+References: <88056F38E9E48644A0F562A38C64FB6002A92B31@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040819174319.GB6913-sTXFmx6KbOnUXq0IF5SVAZ4oGUkBHcCu@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,26 +16,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org
-Cc: anib-La3J9u0raUk@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> > *the boot-radeon.c program can ROM-post the radeon card(compile with gcc
-> > boot-radeon.c -o boot-radeon -llrmi) You need the lrmi libs+headers. Call
-> > it after resuming from S3.
->
-> Is this radeon specific? AFAICS it should POST any card, right?
-Ole Rohne says it's an old IBM PC feature:
+Pallipadi, Venkatesh <venkatesh.pallipadi@...> writes:
+> 
+> I guess we need to do something like this "acpi_sleep=vgapost", 
+> rather than doing a generic vgapost for all display devices. 
+> As the generic solution seems to have broken few systems 
+> which were working before.
+> 
+> I have two systems with almost identical video setup, with 
+> Radeon 9000M AGP adapter. vgapost works on one system and 
+> fails on another. The failing system never returns 
+> from real mode vgapost call. I also found that 
+> the VBIOS is not same on these two systems. Probably 
+> different versions of the firmware. I am digging further 
+> to find out why it works on one Radeon 9000M and not 
+> on another one. 
+> 
+> -Venki
 
-"It is an old IBM PC like feature...
 
-If the adapter has BIOS at $0xc000, it is supposed to contain a POST
-entry point at $0xc000,$3 and int10/e6 is supposed to point to it."
+Does vgapost work if you do it on the commandline using the
+http://www.doesi.gmxhome.de/linux/tm800s3/resources/boot-radeon.c utility? Are
+there any differences in the lspci -vv output of the two cards? Are they both on
+1:0.0?
 
-Just give it a try. Note that the boot-radeon.c has the PCI information 1:0:0 
-hardcoded, so you'll have to edit it if your video card is somewhere else.
+Can you post a patch that implements acpi_sleep=vgapost so it can be tested on
+different systems?
 
-Stefan
+  Aman Gupta
+
 
 
 -------------------------------------------------------
