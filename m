@@ -1,14 +1,15 @@
-From: "Manpreet Singh" <Manpreet.Singh-IrU4XInhIXM@public.gmane.org>
-Subject: RE: Spurious ACPI interrupts on 2.6.4
-Date: Thu, 18 Mar 2004 22:15:07 -0800
+From: =?ISO-8859-1?Q?S=E9rgio?= "M. Basto" <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: Hang on booting 2.6.3 at "Edge set to Level Trigger"
+Date: Fri, 19 Mar 2004 09:46:46 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EB6B0A91B0F6AC44842492A8F6852CDE0C4504@fcexmb01.efi.internal>
+Message-ID: <1079689606.5242.11.camel@rh10.fe.up.pt>
+References: <200403181845.46394.philipp.buechel@gmx.li>
+Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <200403181845.46394.philipp.buechel-EOsNSARiLbg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,94 +18,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: YhLu <YhLu-NmV4wUZxxR8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Philipp <philipp.buechel-EOsNSARiLbg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, I did that. The interrupts are still present.
-
-Thanks,
-Manpreet.
+easy one, disable SMP and APIC in kernel configuration or boot with
+something like this: noloapic=20
 
 
------Original Message-----
-From: YhLu [mailto:YhLu-NmV4wUZxxR8@public.gmane.org]
-Sent: Thursday, March 18, 2004 7:51 PM
-To: Manpreet Singh; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: ??: [ACPI] Spurious ACPI interrupts on 2.6.4
+On Thu, 2004-03-18 at 17:45, Philipp wrote:
+> Hi there
+>=20
+> I got an ACPI problem on my Compaq Presario 700.
+> When I boot Mandrake 10.0 with its 2.6.3-4mdk kernel and ACPI enabled t=
+he=20
+> bootprocess hangs here:
+> [...]
+> ACPI: Subsystem revision 20040211
+> Looking for DSDT initrd...not found!
+> ACPI: IRQ10 SCI: Edge set to Level Trigger
+>=20
+> This happens wether noapic was given as kernel parameter or not. The sy=
+stem=20
+> just boots properly with ACPI disabled. Can anybody help me with that=20
+> problem? Thank you for suggestions.
+>=20
+> Regards
+> Philipp
 
+--=20
+S=E9rgio M. Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
 
-Did you disable the USB device from BIOS SETUP?
-
------=D3=CA=BC=FE=D4=AD=BC=FE-----
-=B7=A2=BC=FE=C8=CB: Manpreet Singh [mailto:Manpreet.Singh-IrU4XInhIXM@public.gmane.org]=20
-=B7=A2=CB=CD=CA=B1=BC=E4: 2004=C4=EA3=D4=C217=C8=D5 11:47
-=CA=D5=BC=FE=C8=CB: YhLu; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-=D6=F7=CC=E2: RE: [ACPI] Spurious ACPI interrupts on 2.6.4
-
-Hi,
-
-I tried using a PS2 keyboard instead of the USB keyboard I was using
-earlier,
-but the interrupts are still present.
-
-Thanks,
-Manpreet.
-
-
------Original Message-----
-From: YhLu
-To: Manpreet Singh; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Sent: 3/16/2004 10:35 PM
-Subject: ??: [ACPI] Spurious ACPI interrupts on 2.6.4
-
-You can disabled usb device from BIOS setup and check again.
-
------????-----
-???: Manpreet Singh [mailto:Manpreet.Singh-IrU4XInhIXM@public.gmane.org]=20
-????: 2004?3?16? 15:05
-???: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-??: [ACPI] Spurious ACPI interrupts on 2.6.4
-
-Hi,
-
-I am booting Linux kernel 2.6.4 on the Tyan S2098 motherboard (Intel
-845GL
-chipset). The system boots up a lot slower with ACPI enabled. It turns
-out
-that there are continuous spurious ACPI interrupts that cause this.
-
-I would appreciate if someone has an insight to share on this issue.
-
-Here is what /proc/interrupts look like after a few mins after boot-up:
-
-           CPU0      =20
-  0:    1340869          XT-PIC  timer
-  2:          0          XT-PIC  cascade
-  5:          0          XT-PIC  ehci_hcd
-  9:    1916095          XT-PIC  acpi, uhci_hcd
- 11:          0          XT-PIC  uhci_hcd
- 12:       3278          XT-PIC  uhci_hcd
- 14:        918          XT-PIC  ide0
-NMI:          0=20
-ERR:          0
-
-The only USB device is a USB keyboard. But I don't think all of these
-interrupts are because of that.
-
-Thanks,
-Manpreet.
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dclick
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
