@@ -1,8 +1,8 @@
 From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: 2002-10-22 processor&thermal module broken?
-Date: Wed, 23 Oct 2002 11:10:27 +0200 (CEST)
+Subject: IRQ routing
+Date: Wed, 23 Oct 2002 11:15:04 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0210231109110.24534-100000@dynast.gaugusch.at>
+Message-ID: <Pine.LNX.4.44.0210231110280.24534-100000@dynast.gaugusch.at>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,9 +17,15 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: ACPI-Devel <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I just tried 2.4.20-pre11 with latest acpi patch (+ swsusp) and there is
-no processor/thermal entry in my /proc anymore. Any hints?
+I have a Sony VAIO FX405 with a little bit strange IRQ routing:
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 *9 10 11 12)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 7 9 *10 11 12)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 7 9 10 11 12)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 *9 10 11 12)
+Why is IRQ 11 never used? IRQ 3 should also be free (only COM1 available).
+
+You can find full boot log at http://markus.gaugusch.at/dmesg.txt
+(also for my last posting, processor&thermal zone broken)
 
 thanks!
 Markus
