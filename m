@@ -1,8 +1,8 @@
 From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: vaio 505fx: GPE9: AE_NOT_FOUND
-Date: Wed, 23 Oct 2002 15:13:25 -0700
+Date: Wed, 23 Oct 2002 15:18:57 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B891@orsmsx107.jf.intel.com>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B892@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,6 +16,27 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: 'jeff' <jeff-bThHCuZ0d8s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+
+I've added an error message to the AML interpreter to display the name of
+the object when a namespace lookup error happens.  Here's the output:
+
+Executing \_GPE._E09
+[ACPI Debug] String: SCI generated
+[ACPI Debug] Integer: 0000000000000007
+  psargs-0423: *** Error: Looking up [\_SB_.PCI0.MOON.SMIH] in namespace,
+AE_NOT_FOUND
+ psparse-1343: *** Error: Method execution failed, AE_NOT_FOUND
+Method pathname:  \_SB_.PCI0.ISA_.SIO_.EC__.SCID (Node 004CCFC8)
+ psparse-1343: *** Error: Method execution failed, AE_NOT_FOUND
+Method pathname:  \_GPE._E09 (Node 004C5678)
+Execution of \_GPE._E09 failed with status AE_NOT_FOUND
+
+-----Original Message-----
+From: Moore, Robert [mailto:robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
+Sent: Wednesday, October 23, 2002 3:13 PM
+To: 'jeff'; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] vaio 505fx: GPE9: AE_NOT_FOUND
 
 
 I disassembled your dsdt and recompiled it, here are the problems, very bad:
@@ -105,6 +126,18 @@ On Wed, Oct 23, 2002 at 10:54:53AM -0700, Moore, Robert wrote:
 >  psparse-1155: *** Error: Method execution failed, AE_NOT_FOUND 
 > Method pathname:  \_GPE._E09 (Node c3fa3b14)
 >  evevent-0798: *** Error: AE_NOT_FOUND while evaluated GPE9 method
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by: Influence the future 
+of Java(TM) technology. Join the Java Community 
+Process(SM) (JCP(SM)) program now. 
+http://ads.sourceforge.net/cgi-bin/redirect.pl?sunm0002en
+
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
