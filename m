@@ -1,12 +1,13 @@
-From: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
-Subject: Re: ACPI on the Compaq Presario 2800T
-Date: Fri, 26 Jul 2002 20:49:55 -0400
+From: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>
+Subject: AGAIN problems with newest ACPI patch :-((((((
+Date: Sat, 27 Jul 2002 04:19:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200207270049.UAA22638@cathedral-seven.mit.edu>
-References: <20020726101631.GA25511@clara.net>
+Message-ID: <200207270418.54513.m.c.p@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Your message of "Fri, 26 Jul 2002 11:16:32 BST."
-             <20020726101631.GA25511-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,57 +19,73 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi there,
 
-> Sourav K Mandal [smandal-DPNOqEs/LNQ@public.gmane.org] wrote:
+again many troubles with your newest ACPI patch (20020726).
 
+Unlike almost every second release the Network (NIC) are working, but if =
+i do=20
+a ping <IP> i get 1 reply and after that:
 
-> There is no "fan" entry because the laptop seems to take care of that
-> itself on my system although I wish I could override it and have it run
-> a little cooler.  Battery probably doesn't appear because of
-> nocorruption.2 missing... so perhaps you don't need:
+Jul 27 03:43:13 codeman kernel: eth0: Tx ring dump,  Tx queue 169 / 141:
+Jul 27 03:43:13 codeman kernel: eth0:     0 200ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     1 000ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     2 000ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     3 000ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     4 000ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     5 000ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     6 000ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     7 000ca000.
+Jul 27 03:43:13 codeman kernel: eth0:     8 600ca000.
+Jul 27 03:43:13 codeman kernel: eth0:   =3D 9 000ca000.
+=2E..
+Jul 27 03:43:13 codeman kernel: eth0: Printing Rx ring (next to receive i=
+nto=20
+0, dirty index 0).
+=2E..
 
-I have done 2.4.18+acpi-20020709+nocorruption-2+sleep+swsusp+packet-cd.
+and so on. Many more lines of the above. After that the network is=20
+NON-functional.
 
-Suspend seems to work, but no battery indicator.
+And now the bad one: pon dsl-provider (ADSL connect, pppd, no kernel base=
+d=20
+PPPoE) and the system freezes!! Only hard reset will help.
 
-> You'll probably have to come up with this yourself but you are welcome
-> to get the diff from my webpage as your bugs are possibly similar to the
-> ones in my DSDT.
-> 
-> http://dude.noc.clara.net/~faye/compaq2701ea/
+This is with 2.4.18.
 
-Thanks! I might have too look at it to get ideas ...
+[*] ACPI Support
+[ ] CPU Enumeration Only
+<M>   AC Adapter
+<M>   Battery
+<M>   Button
+<M>   Fan
+<M>   Processor
+<M>   Thermal Zone
+[ ]   Debug Statements
 
-> I recently helped someone get their DSDT patched via IRC and learned a
-> few more likely bugs so I'm thinking of putting all this reasoning on a
-> page - a proto DSDT patching howto if you like.
+I've also tried with Debug statements with no more debugging output.
+Now I use again, like before updating the ACPI code, v20020611 with no=20
+problems.
 
-That'd be sweet for newbies like myself
+P.S.: Isn't it possible to make always a ~95% working code?! ;-))
 
-> There was a choice of WXP, NT5S, W98S and WME
-> Is there an official "Best host OS to fake" for this situation?
-> The only thing I can think of is that this setting makes certain things
-> remain under the BIOS control because of the way that the OS handles
-> them?
+System:
+-------
+- Celeron 800MHz
+- 256MB RAM
+- eepro100 internal network
+- rtl8139 external network (adsl)
+- Debian SID
 
-Interesting ... seems like trial-and-error is the best strategy.
+--=20
+Kind regards
+        Marc-Christian Petersen
 
+http://sourceforge.net/projects/wolk
 
-Sourav
-
-
-> 
-> 
-> Faye
-> 
-> -- 
-> Faye Pearson,
-> Software Development Manager,
-> ClaraNET Ltd.       Tel 020 7903 3000
-> 
-> Life sucks, but death doesn't put out at all.
-> 		-- Thomas J. Kopp
-
+PGP/GnuPG Key: 1024D/569DE2E3DB441A16
+Fingerprint: 3469 0CF8 CA7E 0042 7824 080A 569D E2E3 DB44 1A16
+Key available at www.keyserver.net. Encrypted e-mail preferred.
 
 
 -------------------------------------------------------
