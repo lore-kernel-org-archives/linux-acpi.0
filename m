@@ -1,15 +1,15 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI not working - worked with earlier versions
-Date: Wed, 23 Oct 2002 16:09:36 +0200
+From: =?ISO-8859-1?Q?S=E9rgio_Montei?=ro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Re: ACPI Source patches updated (20021022)
+Date: Wed, 23 Oct 2002 15:47:42 +0100 (WEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021023140936.GD604@poup.poupinou.org>
-References: <20021023083411.3064b045.hanno@gmx.de>
+Message-ID: <1035384462.3db6b68e3ca67@webmail.sapo.pt>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DF60@orsmsx119.jf.intel.com> <20021023110222.A14630@sci.fi>
+Reply-To: Sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20021023083411.3064b045.hanno-Mmb7MZpHnFY@public.gmane.org>
+In-Reply-To: <20021023110222.A14630-ORSVBvAovxo@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,33 +18,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hanno =?iso-8859-1?Q?B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: =?ISO-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 23, 2002 at 08:34:11AM +0200, Hanno Böck wrote:
-> Today i reinstalled Linux on my Athlon 700 System.
-> With earlier versions of acpi, i had no problems. but now, i get the following error:
-> >ACPI: Vendor "VIA694" System "AWRDACPI" Revision 0x0 has a known ACPI >BIOS problem.
-> >ACPI: Reason: Bogus table. This is a non-recoverable error
-> 
-> Well, I had working acpi before, so why this error?
-> I don't know if everything worked, but i could definitely start acpid and shutdown my pc with the power-button. This is no longer possible, since it seems that this "error"-check disables acpi completely.
-> I don't have an acpi-proc-interface and my pc will not shut down on halt.
-> 
-> 
+Citando Ville Syrjälä <syrjala-ORSVBvAovxo@public.gmane.org>:
 
-If you are really really sure, you can remove the entry in
-driver/acpi/blacklist.c,
-or mark it as 'non critical'.
+} You didn't pick up my IRQ derive fix. Is it incorrect
+} or did you just
+} miss it?
 
-But I remember that it has been blacklisted for good reasons (but prehaps
-the all_versions need to be changed ?)
+In this list it is normal.
+You have to justify what this fix do.
+I try it in my laptop and the IRQ derive warning disappears, 
+but doesn't warranty  that code is correct, so can you explain,
+what is the difference of this code?
 
--- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+bye
+Sérgio Monteiro Basto
+		
+
+--------------------------------------------
+SAPO ADSL.PT Agora o kit apenas por 75 Eur. e tráfego ilimitado até ao final de 2002!
+Mais informações em http://www.sapo.pt/kitadsl
 
 
 -------------------------------------------------------
