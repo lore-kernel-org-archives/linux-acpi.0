@@ -1,13 +1,12 @@
-From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
-Subject: Re: ACPI on hp tc1100
-Date: Sun, 26 Dec 2004 15:52:13 -0500
-Message-ID: <41CF247D.3030505@joshuawise.com>
-References: <41B2912D.8020105@joshuawise.com> <Pine.LNX.4.60.0412051210070.990@frog.athome> <41B377AE.7080108@joshuawise.com> <41CE656C.1050500@joshuawise.com> <20041226073113.GA919@redhat.com> <41CF1DF0.60504@joshuawise.com> <20041226203637.GB26474@redhat.com>
+From: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>
+Subject: ACPI - DOS - 2.6.10
+Date: Mon, 27 Dec 2004 00:08:29 +0100
+Message-ID: <20041226230829.GB947@mail.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041226203637.GB26474-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,20 +16,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> The 855 should work fine with the in-kernel GART driver. The NVidia driver
-> I can't say, but I'd be surprised if it doesn't also support it.
-Right. The in-kernel GART's AGP support works, but suspend to RAM 
-doesn't (or I guess, more accurately, restore from RAM...) The system 
-hangs if the NVidia driver is using the GART when suspending/resuming, 
-however if I disable AGP, suspend/resume works fine. (well, on the 
-graphics driver front, at least.)
+Hello,
 
-> 		Dave
-joshua
+since 2.6.10-rc1 display switch button stoped to work. I have ACPI video
+compiled in, it displays: DOS setting: <1>
+
+Any value written to this file does not get it work. ACPI event is generated:
+[Mon Dec 27 00:07:32 2004] received event "video VGA 00000080 00000000"
+
+Any suggestions? I can provide /proc/acpi/dsdt if it helps.
+
+-- 
+Luká¹ Hejtmánek
 
 
 -------------------------------------------------------
