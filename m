@@ -1,16 +1,12 @@
-From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: Re: [PATCH 1/4] properly create kobjects in acpi/scan.c
-Date: Tue, 24 Aug 2004 12:03:48 -0500
+From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+Subject: Oops when loading ac
+Date: Tue, 24 Aug 2004 20:19:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408241203.48881.dtor_core@ameritech.net>
-References: <200408240134.16962.dtor_core@ameritech.net> <87zn4ky2zr.wl%miura@da-cha.org>
+Message-ID: <412B86A9.80404@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <87zn4ky2zr.wl%miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,55 +15,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 24 August 2004 10:23 am, Hiroshi Miura wrote:
-> Hi,
-> 
-> At Tue, 24 Aug 2004 01:34:15 -0500,
-> Dmitry Torokhov wrote:
-> > 04-acpi-multiple-readers.patch
-> > 	- allow multiple readrs access /proc/acpi/event, every event is
-> > 	  delivered to all readers. Also limit number of pending events
-> > 	  to 64 (per reader) so if reader is stuck ACPI does not consume
-> > 	  all memory.
-> > 
-> > 	  Can be user by various daemons, I could see cpufreqd listening
-> > 	  for battery insertion/removal events and debugging is much
-> > 	  easier too.
-> 
-> 'acpid' has soket interface for other daemon/utillities.
-> 
-> from man acpid
->        In  addition  to  rule  files, acpid also accepts connections on a UNIX
->        domain socket (/var/run/acpid.socket by default).  Any application  may
->        connect  to  this  socket.  Once connected, acpid will send the text of
->        all ACPI events to the client.  The client has  the  responsibility  of
->        filtering  for messages about which it cares.  acpid will not close the
->        client socket except in the case of a SIGHUP or acpid exiting.
-> 
-> I think it is enough.
+Somewhere between 2.6.7 + acpi_20040715 and 2.6.8.1 (still present in 
+2.6.9-rc1) there appeared a bug that causes the ac module to crash when 
+loading. I had no problems with the ac module before this. Any ideas on 
+what has been changed and what to do about it?
 
-I do not think that present implementation of acpid has to be a prerequisite
-for all setups. Plus, tunneling events through acpid introduces unwanted (IMHO)
-dependencies: acpid has to be started first, restarting it can mess up other
-processes reading from it's socket, etc, etc...
+Rgds
+Pierre
 
-Given how cheap multiple readers implementation is and the fact that exclusive
-only access only causes troubles (think psaux in older kernels) I think it
-should go in.
- 
-> If allow multiple readers, acpid and other tool need some lock facility to avoid 
-> unwanted multiple event handling.
-> 
+ From dmesg:
 
-Well, since acpid manifests that it will pass _all_ events to its readers the
-same issue exists right now.
+Unable to handle kernel paging request at virtual address c0452440
+ printing eip:
+c0233162
+*pde = 00488027
+*pte = 00452000
+Oops: 0002 [#1]
+PREEMPT DEBUG_PAGEALLOC
+Modules linked in: ac radeon ipv6 xfs
+CPU:    0
+EIP:    0060:[<c0233162>]    Not tainted VLI
+EFLAGS: 00010246   (2.6.9-rc1)
+EIP is at acpi_bus_register_driver+0xd4/0x169
+eax: c0452440   ebx: e0903b40   ecx: e090336b   edx: ffffffed
+esi: dd468000   edi: e0903c80   ebp: c03cec60   esp: dd469f84
+ds: 007b   es: 007b   ss: 0068
+Process insmod (pid: 573, threadinfo=dd468000 task=dd4909f0)
+Stack: c03ceca0 e0905031 e0903b40 c014c54b c0469884 00000001 e0903c80 
+4003edfa
+       0001120e bffffeec 00000004 40010008 00000000 00000000 dd468000 
+c0106b79
+       40010008 0002edf2 0807a008 00000000 00000000 bfffcef8 00000080 
+0000007b
+Call Trace:
+ [<e0905031>] init_module+0x31/0x52 [ac]
+ [<c014c54b>] sys_init_module+0x1ab/0x370
+ [<c0106b79>] sysenter_past_esp+0x52/0x71
+Code: 00 00 00 a1 6c 75 3d c0 c7 05 f8 74 3d c0 7c f2 39 c0 c7 05 fc 74 
+3d c0 bd 01 00 00 89 1d 6c 75 3d c0 c7 03 68 75 3d c0 89 43 04 <89> 18 
+81 3d e8 74 3d c0 3c 4b 24 1d 74 1c 68 e8 74 3d c0 68 bf
+ <6>note: insmod[573] exited with preempt_count 1
+drivers/acpi/scan.c:445: spin_lock(drivers/acpi/scan.c:c03d74e8) already 
+locked by drivers/acpi/scan.c/445
 
--- 
-Dmitry
 
 
 -------------------------------------------------------
