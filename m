@@ -1,13 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [BK PATCH] ACPI Update (resend 1)
-Date: Thu, 6 Feb 2003 09:56:23 -0800
+From: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI Lock after resume from S3 [2.5.59+latest ACPI]
+Date: Thu, 06 Feb 2003 18:33:30 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84713801D@orsmsx401.jf.intel.com>
+Message-ID: <3E42AA7A.1030207@alvie.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,88 +15,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+Hi list
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+here's the problem:
 
-This will update the following files:
+My toshiba enters S3 via acpi_enter_sleep_state(). It goes to sleep=20
+right after writing PM1A_CONTROL with SLP_ENABLE.  It resumes then to=20
+the caller  [acpi_suspend()] and then calls acpi_restore_system_state()=20
+and finally acpi_leave_sleep_state().
 
- drivers/acpi/processor.c |    2 ++
- 1 files changed, 2 insertions(+)
+The problem is that it enters a deadlock because:
 
-through these ChangeSets:
+    1- When setting PM1A_CONTROL with flag ACPI_MTX_LOCK, the hardware=20
+mutex is locked, the system enters sleep right after writing the=20
+register and never unlocks the mutex, because it resumes to a different=20
+point;
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/06 1.968)
-   ACPI: Enable compilation w/o cpufreq
+    2- in acpi_leave_sleep_state() we disable BM artbitration, and here=20
+it locks forever, waiting a hardware mutex release.
 
-Thanks -- Andy
+Disabling APCI_MTX_LOCK on the 1st point seems to go around the problem,=20
+and the system resumes almost OK, only HDD DMA is disabled:
 
-> -----Original Message-----
-> From: Dominik Brodowski [mailto:linux-JhLEnvuH02M@public.gmane.org] 
-> Sent: Thursday, February 06, 2003 1:27 AM
-> To: Linus Torvalds; Grover, Andrew
-> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [BK PATCH] ACPI Update (resend 1)
-> 
-> 
-> Sorry ...
-> 
-> On Wed, Feb 05, 2003 at 06:42:20PM -0800, Grover, Andrew wrote:
-> > Dominik, I can come up with a quick fix (put a 
-> CONFIG_CPU_FREQ around
-> > the code block at line 1044 in processor.c) but is there a 
-> better way?
-> No, there's no better way ... even though this code block can 
-> only be called
-> when CONFIG_CPU_FREQ is enabled -- pr->flags.performance is 
-> zero otherwise.
-> 
-> > > -----Original Message-----
-> > > From: Linus Torvalds [mailto:torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org] 
-> > > 
-> > > On Wed, 5 Feb 2003, Grover, Andrew wrote:
-> > > > 
-> > > > 	bk pull http://linux-acpi.bkbits.net/linux-acpi
-> > > 
-> > > Hmm..
-> > > 
-> > >   drivers/built-in.o(.text+0x32f93): In function 
-> > > `acpi_processor_apply_limit':
-> > >   : undefined reference to `cpufreq_get_policy'
-> > > 
-> > > This seems to happen if ACPI is on, but CPUFREQ isn't.. Which 
-> > > is my normal 
-> > > dual P4-HT desktop requirement.
-> > > 
-> > > 		Linus
-> > > 
-> 
-> --- linux/drivers/acpi/processor.c.original	2003-02-06 
-> 10:13:50.000000000 +0100
-> +++ linux/drivers/acpi/processor.c	2003-02-06 
-> 10:16:55.000000000 +0100
-> @@ -1041,6 +1041,7 @@
->  		return_VALUE(-ENODEV);
->  
->  	if (pr->flags.performance) {
-> +#ifdef CONFIG_CPU_FREQ
->  		px = pr->performance_platform_limit;
->  		if (pr->limit.user.px > px)
->  			px = pr->limit.user.px;
-> @@ -1055,6 +1056,7 @@
->  		}
->  		if (result)
->  			goto end;
-> +#endif
->  	} else if (pr->performance_platform_limit) {
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Platform limit 
-> event detected. Consider using ACPI P-States CPUfreq driver\n"));
->  	}
-> 
+Feb  6 18:19:26 supernova kernel: hda: status timeout: status=3D0x80 { Bu=
+sy }
+Feb  6 18:19:26 supernova kernel: hda: DMA disabled
+Feb  6 18:19:26 supernova kernel: hda: drive not ready for command
+Feb  6 18:19:27 supernova kernel: ide0: reset: master: error (0x00?)
+
+=C1lvaro
+
+--=20
+
+=C1lvaro Lopes=20
+---------------------
+A .sig is just a .sig
+
+
 
 
 -------------------------------------------------------
