@@ -1,11 +1,11 @@
-From: System Administrator <postmaster-mwuG6knsBJfQT0dZR+AlfA@public.gmane.org>
-Subject: Undeliverable: Re: Details
-Date: Thu, 28 Aug 2003 16:48:53 -0400
+From: System Administrator <postmaster-T/ttqKRfFoI@public.gmane.org>
+Subject: Undeliverable: Thank you!
+Date: Fri, 29 Aug 2003 00:27:28 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <340595E812BBE74CB7068E3A0D745AC031C6BB@grommit.internal.paytec.com>
+Message-ID: <3BCF4C69FF9ED21194860000C03537C0011A183E@neptun.rodae.ro>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_000_01C36DA5.CAC51190"
+	boundary="----_=_NextPart_000_01C36DAB.2E8DA1D8"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -21,60 +21,60 @@ List-Id: linux-acpi@vger.kernel.org
 This message is in MIME format. Since your mail reader does not understand
 this format, some or all of this message may not be legible.
 
-------_=_NextPart_000_01C36DA5.CAC51190
+------_=_NextPart_000_01C36DAB.2E8DA1D8
 Content-Type: text/plain;
 	charset="iso-8859-1"
 
 Your message
 
-  To:      chris.povirk-mwuG6knsBJfQT0dZR+AlfA@public.gmane.org
-  Subject: Re: Details
-  Sent:    Thu, 28 Aug 2003 16:51:36 -0400
+  To:      sorin-T/ttqKRfFoI@public.gmane.org
+  Subject: Thank you!
+  Sent:    Fri, 29 Aug 2003 00:32:45 +0300
 
 did not reach the following recipient(s):
 
-CHRIS.POVIRK-8C7j0OJuW6BXrIkS9f7CXA@public.gmane.org on Thu, 28 Aug 2003 16:48:46 -0400
+sorin-T/ttqKRfFoI@public.gmane.org on Fri, 29 Aug 2003 00:27:21 +0300
     The recipient name is not recognized
-	The MTS-ID of the original message is: c=us;a= ;p=payment
-technolo;l=GROMMIT0308282048RVSN5639
-    MSEXCH:IMS:Payment Technologies:PTI:GROMMIT 0 (000C05A6) Unknown
-Recipient
+	The MTS-ID of the original message is: c=us;a= ;p=daewoo
+automobil;l=NEPTUN0308282127RCS9D206
+    MSEXCH:IMS:DWAR:neptun:NEPTUN 0 (000C05A6) Unknown Recipient
 
 
 
-------_=_NextPart_000_01C36DA5.CAC51190
+------_=_NextPart_000_01C36DAB.2E8DA1D8
 Content-Type: message/rfc822
 
+Message-ID: <200308282132.h7SLWet2017751-ksY/rU0ExTXjT2Z9FUd5sVujkAuAlJWo@public.gmane.org>
 From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: chris.povirk-mwuG6knsBJfQT0dZR+AlfA@public.gmane.org
-Subject: Re: Details
-Date: Thu, 28 Aug 2003 16:51:36 -0400
+To: sorin-T/ttqKRfFoI@public.gmane.org
+Subject: Thank you!
+Date: Fri, 29 Aug 2003 00:32:45 +0300
 MIME-Version: 1.0
-X-Mailer: Internet Mail Service (5.5.2656.59)
+X-Mailer: Internet Mail Service (5.5.2653.19)
 X-MS-Embedded-Report: 
 Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_002_01C36DA5.CAC51190"
+	boundary="----_=_NextPart_002_01C36DAB.2E8DA1D8"
 
 
-------_=_NextPart_002_01C36DA5.CAC51190
+------_=_NextPart_002_01C36DAB.2E8DA1D8
 Content-Type: text/plain;
 	charset="iso-8859-1"
 
 See the attached file for details
 
 
-------_=_NextPart_002_01C36DA5.CAC51190
+------_=_NextPart_002_01C36DAB.2E8DA1D8
 Content-Type: application/octet-stream;
 	name="Deleted Attachment.txt"
 Content-Disposition: attachment;
 	filename="Deleted Attachment.txt"
 
-Your attachment "thank_you.pif" contained virus:
+Your attachment "document_9446.pif" contained virus:
          "W32.Sobig.F@mm
 It was deleted and replaced with this text file.
-------_=_NextPart_002_01C36DA5.CAC51190--
+------_=_NextPart_002_01C36DAB.2E8DA1D8--
 
-------_=_NextPart_000_01C36DA5.CAC51190--
+------_=_NextPart_000_01C36DAB.2E8DA1D8--
 
 
 -------------------------------------------------------
