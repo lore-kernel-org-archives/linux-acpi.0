@@ -1,16 +1,16 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: RE: acpi-20031203-2.6.0.diff brokes the battery status
- readings with 2.6.0 in DELL Inspiron 8500
-Date: Tue, 30 Dec 2003 09:59:05 -0800 (PST)
+From: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+Subject: Re: Network failures with ACPI enabled (kernel 2.4, 2.6)
+Date: Tue, 30 Dec 2003 19:23:01 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031230094935.E98403@root.org>
-References: <E1Aa16k-00089f-Ft@sc8-sf-list2.sourceforge.net>
- <3FECC541.10001@videotron.ca>
+Message-ID: <20031230192301.5d17d418.mike@it-loops.com>
+References: <20031230010822.155c1466.mike@it-loops.com>
+	<20031230165749.34ed607d.mike@it-loops.com>
+	<1072806481.2364.201.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FECC541.10001-XzQKRVe1yT0V+D8aMU/kSg@public.gmane.org>
+In-Reply-To: <1072806481.2364.201.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,80 +19,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Mark M." <maalox-XzQKRVe1yT0V+D8aMU/kSg@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Your dmesg shows that this is the same thing we found broken for Dells:
->      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
->      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
->      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
->      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
+On 30 Dec 2003 12:48:02 -0500
+Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-Here is the bug info.  Note that Luming's patch does NOT fix the problem
-but just silences the warnings.  If you use the ASL patch I have attached
-that adds RefOf/DerefOf (credit Mark Santcroos), the problems are fixed.
-You can also revert dsmthdat.c back to what it was pre-0619 and that also
-fixes the problem.
+> > Today I tried the same transfer with a XIRCOM PCMCIA network card
+> > and ACPI enabled. It worked without a problem.
+> > I am not sure what this means for ACPI <-> B44 though. ;)
+> 
+> Please note which IRQ each kind of ethernet NIC gets,
+> and if it shares an IRQ with any other device.
+> If the working and non-working NICs come up on different IRQs
+> then that may be a clue.
 
-http://bugme.osdl.org/show_bug.cgi?id=3D1728
+The broadcom card gets IRQ 5 and the Xircom card gets IRQ3.
+Both IRQ are non-shared. Well IRQ 5 was shared with USB, but for testing
+purposes I removed the USB modules.
 
-The issue is, ACPI-CA is still not getting its argument-passing right
-after moving away from "always copy" semantics.
 
--Nate
+> 
+> But the fact that B44 works with acpi=off and fails with pci=noacpi
+> suggests that IRQ assignment isn't the problem.
+> 
+> Looking at the actual ACPI interrupt:
+> 
+>   0:     738650          XT-PIC  timer
+>   9:       3546          XT-PIC  acpi
+> 
+> Not an interrupt storm, but you're getting a measurable number of acpi
+> events.
+> 
+> 
+> echo 0x4 > /proc/acpi/debug_layer
+> echo 0x08000000 > /proc/acpi/debug_level
+> 
+> may tell us what they are -- though it is unclear why they might
+> interfere with the B44 device and not others.
 
-On Fri, 26 Dec 2003, Mark M. wrote:
-> I have the same problem with my Dell Inspiron 5150. Battery status AND
-> temperature reading stopped working when I upgraded from 2.6.0-test11-mm
-> to 2.6.0-mm1. I noticed it because klaptop stopped showing the battery
-> charge status, and gkrellm2 stopped showing the battery and temperature
-> status (stuck at 25C). Actually, the only thing that still works with
-> the battery is wether the AC is plugged in or not. Here is my /proc and
-> dmesg from 2.6.0-mm1. I can reboot and show you the working test11-mm
-> stuff as well, if needed.
-> ...
-> root-2T+B9ReNDUQ@public.gmane.org maalox # cat /proc/acpi/battery/BAT0/state
-> present:                 yes
-> capacity state:          ok
-> charging state:          unknown
-> present rate:            0 mW
-> remaining capacity:      0 mWh
-> present voltage:         0 mV
->
-> All the 0 readings have actual numbers with test11-mm, as well as model
-> number, serial number, ...
->
-> From: Brown, Len <len-lUQJ9CVx3tM@public.gmane.org>
-> RE: acpi-20031203-2.6.0.diff brokes the battery status readings with
-> 2.6.0 in DELL Inspiron 8500
-> 2003-12-19 08:11
->
->   dmesg from before and after would help, plus the info under
-> /proc/acpi/battery.
->
->   Thanks,
->   -Len
->
->   > -----Original Message-----
->   > From: acpi-devel-admin-I+uqrFQUvWk@public.gmane.org
->   > [mailto:acpi-devel-admin-I+uqrFQUvWk@public.gmane.org] On Behalf Of
->   > Pere Casta=F1er
->   > Sent: Thursday, December 18, 2003 7:00 PM
->   > To: acpi-devel
->   > Subject: [ACPI] acpi-20031203-2.6.0.diff brokes the battery
->   > status readings with 2.6.0 in DELL Inspiron 8500
->   >
->   >
->   > I've just aplyied last patch into 2.6.0 stable release and it
->   > brokes the battery monitor from acpi in
->   > /proc/acpi/battery/BAT0/status...because of this
->   > gnome-battery applet don't shows any information.
->   >
->   > Do you need more information?
->   >
->   > PS:with acpi included on 2.6.0 all works fine.
->
+I know where the IRQ's come from. I have an applet running that shows me
+the battery state and temperature via ACPI. Every time it polls the stats
+the interrupts increase.
+For testing purposes I disabled it, verified that the interrupts didn't increase
+and tried copying a file, same result.
+
+> 
+> >Local APIC disabled by BIOS -- reenabling.
+> > Found and enabled local APIC!
+> 
+> This can be risky -- please verify that "nolapic" has no effect.
+I tried "nolapic" and even compiled a kernel completely without IOAPIC support.
+No change.
+
+Is ACPI doing something nasty with IRQ 5?
+
+
+Cheers,
+Michael
 
 
 -------------------------------------------------------
