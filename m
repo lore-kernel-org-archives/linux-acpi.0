@@ -1,8 +1,8 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Re: [Acpi4asus-user] DSDT table for Asus L5F00GA
-Date: Tue, 8 Jun 2004 15:33:56 +0200
+Date: Tue, 8 Jun 2004 15:51:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040608133356.GQ13782@poupinou.org>
+Message-ID: <20040608135110.GR13782@poupinou.org>
 References: <40C23B64.4070603@viktoria-poland.com.pl> <20040607212832.GA16077@hell.org.pl> <40C4E25A.8000004@viktoria-poland.com.pl> <40C4E2FC.3060502@viktoria-poland.com.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -41,104 +41,95 @@ On Mon, Jun 07, 2004 at 11:49:48PM +0200, Rafa? wrote:
 > >>
 > >> dsdt.dsl  7416:     If (SS1)
 > >> Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
-> >
-> >
-> >
-> > Please supply your DSDT, or (even better) post it to acpi.sf.net.
-> > The error is, on the other hand, quite common, you should be safe by
-> > removing the If statements (i.e. unconditionally leaving the 
-> definitions).
-> 
-> 
-> The tables are here:
-> 
-> http://wujek.kolko-rozancowe.org/dsdt.dsl
-> 
-> I took them with the following command:
-> 
-> cat /proc/acpi/dsdt > /dsdt
-> and then:
-> iasl -d /dsdt
-> 
-> I'm not sure if this is what you meant. If you wanted not disassembled 
-> tables then they are here:
-> 
-> http://wujek.kolko-rozancowe.org/dsdt
-> 
-> I removed those IF statements in dsdt.dsl file and the compile errors 
-> disappeared but there were still warnings. I've put those tables
-> somehow into the kernel (I modified the osl.c file as shown in some 
-> tutorials). Kernel compiled succesfully, it booted with no
-> problems and there were less "method execution failed" messages. 
-> However, the sleep states still don't work, making
-> echo 3 > /proc/acpi/sleep does not work at all, nothing happens and no 
-> error messages are displayed. I have no idea how to make it work
-> and get rid off all those error messages during bootup :(
-> 
-
-As I read your dsdt.dsl, S3 is probably a bios option.  It's something
-you can verify at BIOS prompt perhaps.  If not, after looking the AML,
-this little program should help you to determine if S3 is off.
-
---- CUT ---
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-
-#include <sys/stat.h>
-#include <sys/types.h>
 
 
-int main()
-{
-	int fd;
-	char val;
+I've hacked a little your ASL, though I do have some trouble with.
+It give me something like that: 
 
-	fd = open("/dev/mem", O_RDONLY);
-	if (fd < 0) {
-		perror("open");
-		exit(1);
-	}
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20040427 [May 19
+2004]
+Copyright (C) 2000 - 2004 Intel Corporation
+Supports ACPI Specification Revision 2.0c
 
-	if (lseek(fd, 0x1ffdf064, SEEK_SET) == (off_t)-1) {
-		perror("lseek");
-		exit(1);
-	}
+Asus_L5F00GA.dsl  2214:                 Scope (\_SB.PCI0)
+Warning  2031 -                Internal compiler error ^  (Not using
+optimized name - did not find node)
 
-	if (read(fd, &val, 1) != 1) {
-		perror("read");
-		exit(1);
-	}
+Asus_L5F00GA.dsl  3433:                 Scope (\_SB.PCI0)
+Warning  2031 -                Internal compiler error ^  (Not using
+optimized name - did not find node)
 
-	printf("S1 %s\nS2 %s\nS3 %s\nS4 %s\n",
-		val & 1 ? "yes" : "no",
-		val & 2 ? "yes" : "no",
-		val & 4 ? "yes" : "no",
-		val & 8 ? "yes" : "no");
+Asus_L5F00GA.dsl  3488:                 Scope (\_SB.PCI0)
+Warning  2031 -                Internal compiler error ^  (Not using
+optimized name - did not find node)
 
-	return 0;
-}
---- CUT ---
+ASL Input:  Asus_L5F00GA.dsl - 7474 lines, 250731 bytes, 3279 keywords
+AML Output: DSDT.aml - 26221 bytes 888 named objects 2391 executable
+opcodes
 
-This correspond to this portion of the ASL:
-
-    OperationRegion (BIOS, SystemMemory, 0x1FFDF064, 0xFF)
-    Field (BIOS, ByteAcc, NoLock, Preserve)
-    {
-        SS1,    1,
-        SS2,    1,
-        SS3,    1,
-        SS4,    1,
-
-        ...
-        ...
-        ...
-    }
+Compilation complete. 0 Errors, 3 Warnings, 0 Remarks, 714 Optimizations
 
 
-Note that even if S3 is supported from firmware point-of-view, this is still in
-developpement at that time under Linux..
+I'm not sure exactly what is the trouble yet, but perhaps someone can
+help?
+
+
+Note that only the first change is  important, since the method
+will return _without_ releasing a mutex.
+
+
+--- Asus_L5F00GA.dsl	2004/06/08 13:35:21	1.1
++++ Asus_L5F00GA.dsl	2004/06/08 13:42:48
+@@ -4836,8 +4836,8 @@
+                         {
+                             Acquire (PSMX, 0xFFFF)
+                             ISMI (\GTDD)
+-                            Return (\ACTD)
+                             Release (PSMX)
++                            Return (\ACTD)
+                         }
+ 
+                         Method (ADVD, 0, NotSerialized)
+@@ -7413,8 +7413,6 @@
+         0x00, 
+         0x00
+     })
+-    If (SS1)
+-    {
+         Name (_S1, Package (0x04)
+         {
+             0x01, 
+@@ -7422,10 +7420,7 @@
+             0x00, 
+             0x00
+         })
+-    }
+ 
+-    If (SS3)
+-    {
+         Name (_S3, Package (0x04)
+         {
+             0x05, 
+@@ -7433,10 +7428,7 @@
+             0x00, 
+             0x00
+         })
+-    }
+ 
+-    If (SS4)
+-    {
+         Name (_S4, Package (0x04)
+         {
+             0x06, 
+@@ -7444,7 +7436,6 @@
+             0x00, 
+             0x00
+         })
+-    }
+ 
+     Name (_S5, Package (0x04)
+     {
 
 -- 
 Bruno Ducrot
