@@ -1,36 +1,57 @@
-From: Zwane Mwaikambo <zwane@linuxpower.ca>
-Subject: Re: [ACPI] [PATCH] Updated patches for PCI IRQ resource deallocation
- support [2/3]
-Date: Sat, 25 Sep 2004 14:18:48 +0300 (EAT)
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com>
-References: <Pine.LNX.4.53.0409251356110.2914@musoma.fsmlabs.com>
- <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Re: [patch 1/1] thinkpad fn+fx key driver
+Date: Sat, 25 Sep 2004 13:22:20 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040925112219.GC4039@elf.ucw.cz>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300179B935@hdsmsx401.amr.corp.intel.com> <20040923112457.GB1083@ucw.cz> <20040924134118.GA467@openzaurus.ucw.cz> <20040924142248.GA2593@ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, long <tlnguyen@snoqualmie.dp.intel.com>, Andrew Morton <akpm@osdl.org>, Greg Kroah-Hartmann <greg@kroah.com>, Len Brown <len.brown@intel.com>, tony.luck@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040924142248.GA2593-+ZI9xUNit7I@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, erik-aH8aFkyL5XJBDgjK7y7TUQ@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 25 Sep 2004, Zwane Mwaikambo wrote:
+Hi!
 
-> Kenji Kaneshige wrote:
+> > Having vol+/vol- keys would be  very welcome. This daemon would
+> > have to understand scancodes for a lot of
+> > different keyboards, but perhaps
+> > that is easy enough to create incrementally.
 > 
-> >     - Changed acpi_pci_irq_disable() to leave 'dev->irq' as it
-> >       is. Clearing 'dev->irq' by some magic constant
-> >       (e.g. PCI_UNDEFINED_IRQ) is TBD.
-> 
-> This may not be safe with CONFIG_PCI_MSI, you may want to verify against 
-> that if you already haven't.
-> 
-> > +acpi_unregister_gsi (unsigned int irq)
-> > +{
-> > +}
-> > +EXPORT_SYMBOL(acpi_unregister_gsi);
-> 
-> Why not just make these static inlines in header files? Since you're on 
-> this, how about making irq_desc and friends dynamic too?
+> The Volume+ and Volume- keys are actually pretty standardized and the
+> kernel recognizes them out of the box on 95% of machines.
 
-Sorry, i broke Cc.
+Hmm, yes, on my machines vol- generates ^[[26~, mute ^[[25~ and vol+ nothing.
+
+> The daemon could but wouldn't have to take care of uploading the correct
+> scancode->keycode tables to the kernel.
+
+Hmm, okay. 
+
+Is it possible to have somehow get both keycodes and translated keys?
+I guess I might want to define ctrl-alt-= as vol+ and ctrl-alt-- as
+vol- for machines that do not have hardware keys.
+
+Do you have example code using event interface, somewhere?
+
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
+Project Admins to receive an Apple iPod Mini FREE for your judgement on
+who ports your project to Linux PPC the best. Sponsored by IBM.
+Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
