@@ -1,7 +1,7 @@
 From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
 Subject: RE: kacpid problems
-Date: Wed, 10 Nov 2004 17:06:18 +0100 (CET)
-Message-ID: <20041110160618.51476.qmail@web25306.mail.ukl.yahoo.com>
+Date: Wed, 10 Nov 2004 17:11:04 +0100 (CET)
+Message-ID: <20041110161104.52313.qmail@web25306.mail.ukl.yahoo.com>
 References: <3ACA40606221794F80A5670F0AF15F84041AC049@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
@@ -21,8 +21,10 @@ To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Where should I look for the output? In
-/var/log/messages?
+I get lots of this when the machine boots..:
+Scheduling function [ce855c48(cd245400)] for deferred
+execution.
+
  --- "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote: 
 > Hmm, odd!
 > Please apply following debug patch to see what could
