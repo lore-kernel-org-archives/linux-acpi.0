@@ -1,8 +1,8 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Fixing ACPI compilation, fixing CONFIG_ACPI_BOOT
-Date: Sun, 4 Aug 2002 20:51:04 +0200
+Subject: 2.5.30 ACPI: fixing compilation
+Date: Sun, 4 Aug 2002 20:58:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <42004.8562148169$1028487277@news.gmane.org>
+Message-ID: <20020804185827.GA15828@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,39 +20,32 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-Here are patches to fix CONFIG_ACPI_BOOT. This is 3rd or so
-retransmit; I've seen no response at all. Please comment on the patch,
-or it is going directly to Linus.
-
+This fixes compilation and is actually right since we can't get SMP
+machine suspending, anyway. We'll have to bring all other CPUs down
+for suspend in future. Please apply,
 								Pavel
 
+--- clean/drivers/acpi/system.c	Mon Jul 29 20:02:23 2002
++++ linux-swsusp/drivers/acpi/system.c	Sun Aug  4 20:57:01 2002
+@@ -256,7 +256,7 @@
+ 	acpi_status		status = AE_ERROR;
+ 	unsigned long		flags = 0;
+ 
+-	save_flags(flags);
++	local_irq_save(flags);
+ 	
+ 	switch (state)
+ 	{
+@@ -270,7 +270,7 @@
+ 		do_suspend_lowlevel(0);
+ 		break;
+ 	}
+-	restore_flags(flags);
++	local_irq_restore(flags);
+ 
+ 	return status;
+ }
 
---- clean/arch/i386/kernel/acpi.c	Mon Jun  3 11:43:27 2002
-+++ linux-swsusp/arch/i386/kernel/acpi.c	Mon Jun 10 23:03:24 2002
-@@ -53,11 +53,9 @@
-                               Boot-time Configuration
-    -------------------------------------------------------------------------- */
- 
--#ifdef CONFIG_ACPI_BOOT
--
- enum acpi_irq_model_id		acpi_irq_model;
- 
--
-+#ifdef CONFIG_ACPI_BOOT
- /*
-  * Use reserved fixmap pages for physical-to-virtual mappings of ACPI tables.
-  * Note that the same range is used for each table, so tables that need to
---- clean/include/linux/acpi.h	Mon Jun  3 11:43:38 2002
-+++ linux-swsusp/include/linux/acpi.h	Sun Aug  4 18:43:05 2002
-@@ -39,7 +39,7 @@
- #include <asm/acpi.h>
- 
- 
--#ifdef CONFIG_ACPI_BOOT
-+#ifdef CONFIG_ACPI
- 
- enum acpi_irq_model_id {
- 	ACPI_IRQ_MODEL_PIC = 0,
 
 
 -- 
