@@ -1,14 +1,11 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: acpi on toshiba satellite 1625CDT
-Date: Fri, 28 Mar 2003 19:59:47 +0100
+From: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>
+Subject: S3 resume freezing at "Back to C!"
+Date: Mon, 31 Mar 2003 01:17:23 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030328185947.GE5147@zaurus.ucw.cz>
-References: <200303251447.12168.mark@ale8.org>
+Message-ID: <Pine.LNX.4.33.0303310113470.31128-100000@godzilla.axis.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200303251447.12168.mark-pX1FbxK42pU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +14,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mark Stocker <mark-pX1FbxK42pU@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Before 2.5.63, I actually had S3 resume working on my Acer 634 laptop.. but 
+since 2.5.63 and including 2.5.66+acpi patches, it freezes after "Enabling 
+SEP on CPU #0" and then "Back to C!" upon nothing more happens (magic sysrq 
+does not work either). I haven't dug deeper into it but I guess I have to I 
+just wanted to point it out :) I'm using S3bios btw. Anyone know anything 
+that might have added complexity to the lowlevel s3 wakeup path ? (Almost 
+all drivers are disabled)
 
-> state of the lid and power button, thermal zone seems to work, sleep doesnt 
-> seem to work as it should but this doesnt bother me.  Battery info appears 
-> incorrect as it will show a battery even when the battery is removed.  Ac 
-> power is correctly read.
-> I would greatly appreciate any help!!  Compiling acpi without fan support 
-> doesnt help, the fan still gets stuck on.  Is there anyway around this other 
-> than disabling acpi completly causing the lid switch problem?
-> 
+/Bjorn
 
-Look at thermal zone info, try echo 3
-> /proc/acpi/fan/PFAN/state (IIRC).
--- 
-				Pavel
-Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
 
 
 
