@@ -1,65 +1,91 @@
-From: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>
-Subject: Re: [2.5.69] S3 does not come back / Sony Vaio C1MHP
-Date: Sat, 31 May 2003 10:57:06 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030531085706.GD5501@paradigm.rfc822.org>
-References: <20030527101501.GB1247@paradigm.rfc822.org> <20030528214124.GB667@elf.ucw.cz> <20030529171328.GA4279@paradigm.rfc822.org> <20030529191735.GB1454@elf.ucw.cz>
+From: =?iso-8859-1?Q?=C9ric?= Brunet <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
+Subject: Re: 2.5.70 freezes when running hwclock
+Date: Sat, 31 May 2003 13:49:24 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030531114924.GA14158@lps.ens.fr>
+References: <20030531080544.GA13848@lps.ens.fr> <200305311841.47238.mflt1@micrologica.com.hk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zbGR4y+acU1DwHSi"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030529191735.GB1454-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <200305311841.47238.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
+To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Cc: Linux Kernel mailing list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
---zbGR4y+acU1DwHSi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, May 29, 2003 at 09:17:35PM +0200, Pavel Machek wrote:
-> > tried that - no luck
+On Sat, May 31, 2003 at 06:41:47PM +0800, Michael Frank wrote:
+> > I have tried 2.5.70 on an intel chipset based pc, and I
+> > got a reproductible complete freeze during the boot
+> > process when hwclock is run. Even Caps Lock wouldn't lit
+> > the little led.
+> This seems to be an ACPI related problem on ALI 1533/1535=20
+> compatible implementations frequently seen on Toshiba's.
 >=20
-> Well, 8 leds on paralel port and book about i386 assembly is the next
-> step, I'm afraid.
+> As a workaround, Boot with ACPI=3Doff and add --directisa to=20
+> hwclock lines in rc.sysinit and halt (or their equivalents)
 >=20
-> Or you can make sony (or someone else?) donate vaio notebook to me
-> ;-).
+> If this is really an Intel chipset it would be a first=20
+>=20
+> Please post your problem, solution and system info and lspci=20
+> to ACPI list.
 
-If it had a parallel port :) Firewire, USB, VGA, Ethernet - thats it.
+hwclock --directisa works indeed. ACPI is indeed configured in, and=20
+I haven't tried to boot with ACPI=3Doff.
 
-Flo
---=20
-Florian Lohoff                  flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org             +49-5201-669912
-                        Heisenberg may have been here.
+Computer is a shuttle SB51G with an intel 845G/845GL chipset.
 
---zbGR4y+acU1DwHSi
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+-------------------- lspci ----------------------------------
+00:00.0 Host bridge: Intel Corp. 82845G/GL [Brookdale-G] Chipset Host B=
+ridge (rev 03)
+00:02.0 VGA compatible controller: Intel Corp. 82845G/GL [Brookdale-G] =
+Chipset Integrated Graphics Device (rev 03)
+00:1d.0 USB Controller: Intel Corp. 82801DB USB (Hub #1) (rev 02)
+00:1d.1 USB Controller: Intel Corp. 82801DB USB (Hub #2) (rev 02)
+00:1d.2 USB Controller: Intel Corp. 82801DB USB (Hub #3) (rev 02)
+00:1d.7 USB Controller: Intel Corp. 82801DB USB EHCI Controller (rev 02=
+)
+00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB PCI Bridge (rev 82)
+00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 02)
+00:1f.1 IDE interface: Intel Corp. 82801DB ICH4 IDE (rev 02)
+00:1f.3 SMBus: Intel Corp. 82801DB SMBus (rev 02)
+00:1f.5 Multimedia audio controller: Intel Corp. 82801DB AC'97 Audio (r=
+ev 02)
+01:06.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/8=
+139C/8139C+ (rev 10)
+01:07.0 FireWire (IEEE 1394): VIA Technologies, Inc. IEEE 1394 Host Con=
+troller (rev 46)
+01:08.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8029(A=
+S)
+-----------------------------------------------------------------------=
+-------
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+I am not sure what is relevant about the RTC. Let's try this:
 
-iD8DBQE+2G5iUaz2rXW+gJcRAvA6AJ9k/dCHqH4BDJI31qaQldKRttqOrgCfW0wo
-uDS1Dr7ZmIR0L1d0y2Bh8yA=
-=DoLC
------END PGP SIGNATURE-----
+------------------ lspci -vvv -s 00:1f.0 -----------------------------
+00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 02)
+        Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- Par=
+Err- Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbo=
+rt- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+-----------------------------------------------------------------------=
+-
 
---zbGR4y+acU1DwHSi--
+------------------- lspci -vvv -s 00:1f.3---------------------------
+00:1f.3 SMBus: Intel Corp. 82801DB SMBus (rev 02)
+        Subsystem: Holco Enterprise Co, Ltd/Shuttle Computer: Unknown d=
+evice fb50
+        Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- Par=
+Err- Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbo=
+rt- <TAbort- <MAbort- >SERR- <PERR-
+        Interrupt: pin B routed to IRQ 5
+        Region 4: I/O ports at 0500 [size=3D32]
+--------------------------------------------------------------------
 
+2.5.67 was working fine, with the same configuration.
 
--------------------------------------------------------
-This SF.net email is sponsored by: eBay
-Get office equipment for less on eBay!
-http://adfarm.mediaplex.com/ad/ck/711-11697-6916-5
+Regards,
+
+	=C9ric Brunet
