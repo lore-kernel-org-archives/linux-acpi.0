@@ -1,12 +1,11 @@
-From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
-Subject: RE: DSDT from within windows?
-Date: Tue, 1 Feb 2005 15:35:02 +0100 (CET)
-Message-ID: <20050201143502.7544.qmail@web25307.mail.ukl.yahoo.com>
-References: <971FCB6690CD0E4898387DBF7552B90E7129AB@orsmsx403.amr.corp.intel.com>
+From: =?ISO-8859-1?Q?C=FCneyt?= <cu_lists-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
+Subject: Is it possible for ACPI to blow up the battery?
+Date: Wed, 26 Jan 2005 21:28:06 +0100
+Message-ID: <41F7FD56.8090309@calt129.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E7129AB-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,16 +15,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have tried overwriting the DSDT in the registry, but
-Windows updates the registry everytime windows boots,
-so my fixed DSDT gets overwritten. This was just a
-project  thought I should try out, and just as  I
-suspected, it didn't work.
-Do any of you guys know if it's possible to overwrite
-the DSDT in windows?
+Hi all,
+
+It may be really a dumb question, but I've really no idea.
+
+I have a Samsung P10 and found at behnel.de & SF-ACPI page some=20
+instructions to patch the DSDT table under Suse 9.1pro. I followed those=20
+as close as I can and I guess ACPI works somehow. Well, wakeup after=20
+sleep and CPU-throttling doesn't work though :(
+
+Now to my dismay the battery stopped charging at all, it is completely=20
+empty. No matter what I do, it doesn't get charged. The battery is about=20
+2 yrs old but was pretty OK before, i.e. lasted about 1.5 hrs unplugged.=20
+Is it possible for DSDT patches to blow up the battery & charging units=20
+or you think the battery's (physically) died all of a sudden?
+
+Greets
+C=FCneyt Yilmaz
+
+--=20
+Reclaim Your Inbox!
+www.mozilla.org/products/thunderbird
 
 
 -------------------------------------------------------
