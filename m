@@ -1,14 +1,12 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: ACPI + Laptop Power Management
-Date: Mon, 1 Dec 2003 09:20:02 +0800
+From: Arjen Verweij <sphere-4V0eaZAy+Mi7Qac5JyVuKSvJykC1LJ6w@public.gmane.org>
+Subject: System no longer responds to magic packets after power down.
+Date: Mon, 1 Dec 2003 02:34:24 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA0338650A@wdmyexch02.my.asia.wdc.com>
+Message-ID: <Pine.LNX.4.10.10312010214310.13819-100000@vengeance.et.tudelft.nl>
+Reply-To: a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,104 +15,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
+I have a machine with an abit nf7-s motherboard in it. Debian sid runs
+nicely on it, with a 2.4.22 kernel. There is a rather peculiar quirk with
+Wake-on-LAN though. After power down from Linux, the box will no longer
+respond to magic packets. This is only the case with power down from
+Linux, and not from Windows. In order to be able to wake the box up again,
+I have to power on/off the box.
 
-> -----Original Message-----
-> From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]
-> Sent: Friday, November 28, 2003 11:47 PM
-> To: Ow Mun Heng
-> Cc: Micha Feigin; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] ACPI + Laptop Power Management
->=20
->=20
-> > I took a look at laptop mode. However, as the author said "it adds a
-> > non-significant" amount of battery time.
->=20
-> Where have you read that?
-> Have you looked at linux/Documentation/laptop-mode.txt?
+I suppose something gets reset then, but I don't know what it is. Does
+anyone have a clue where the problem might be? Personallly I think it
+could be either ACPI or the binary driver from nvidia, although I don't
+have a clue how the latter would waste the WOL function. It is just an
+observation that the driver in W2K can detect if WOL is enabled or not.
+Maybe it can turn it off as well?
 
-I took another look at the kernel docs. It _does_ say it adds like 10% =
-of
-batt time. The initial post about the "NON-significant ..etc" was =
-actually
-gathered from one website that had the laptop-mode's author email.
+To exclude the nvidia driver as the culprit, I tried to boot without the
+nvnet module, shutdown and ether-wake. No dice. So now I am wondering
+about ACPI.
 
-=20
->=20
-> > The thing here is, even though it's flushing the buffers=20
-> when there are
-> > others to flush, it makes not difference if the drive is=20
-> still spinning and
-> > not in standby-mode! I can't figure out what is making the=20
-> HD _not_ spin
-> > down.
->=20
-> man hdparm, hdparm -S something.
+The 2.4.22 kernel is vanilla, no patches applied. Should I file a
+bugreport as described on the project pages?
 
-That's just for power savings. eg: power management of the HD.. I spin =
-the
-HD down manually using hdparm -y /dev/hda
+Thanks for your effort.
 
+Regards,
 
+Arjen
 
-
->=20
-> > BTW, Laptop_mode is merged into the 2.4.23-rc5 kernel (based on the
-> > changelogs)
->=20
-> As already said.
-
-I took a swipe at kernel 2.4.23 yesterday night. Laptop mode is in..
-_however_ cpu frequency scaling is not in there and that's most =
-certainly
-something that I _need_ ton conserve batt life. I used to get it from =
-the
--ac branch but seems like Alan is busy and heven't released anything =
-after
-2.4.22-ac4.
-
-BTW, anyone know how to get cpufreq into the main kernel. Where can I =
-find a
-diff or is there another method of cpu freq scaling now??
-
-
->=20
-> > With regard to ACPId events, can you tell me how yo get it=20
-> to work? I'm
-> > having problems getting it running. It gets lodaded up=20
-> during init, and it's
-> > running as root, but after logging in (GDM desktop), the=20
-> events won't fire
-> > until I kill the acpid process and re-run it again. (once I=20
-> logged in)
-> > I can't figure out how to get it to work. I read in one=20
-> page where the
-> > auther said to put xhost +local somewhere at the end of=20
-> /etc/X11/xinitrc.
-> > That didn't work either.
->=20
-> I don't know.  All my scripts for power managements via acpid=20
-> certainly
-> do not use X.  I am wondering what is inside yours, but if they come
-> as default with a distribution, it is probably better to use another
-> distribution.
->=20
-
-Fudge that.. I found out how to use xhost properly (finally) yesterday. =
-It
-seems I missed the ":" in "xhost +local:"
-
-Now screen blanking works great and so does acpid and it's events.
-
- BTW, I use RedHat 9
-
-Cheers=20
-
-OW
 
 
 -------------------------------------------------------
