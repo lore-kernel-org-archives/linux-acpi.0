@@ -1,9 +1,8 @@
-From: Enrico <enrico_tux-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: Acpi on TM427LC
-Date: Thu, 23 Oct 2003 12:00:39 +0200
+From: Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>
+Subject: standby resumes immediately in 2.6.0-test8
+Date: Thu, 23 Oct 2003 16:30:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200310231200.39175.enrico_tux@libero.it>
-Reply-To: enrico_tux-whZMOeQn8C0@public.gmane.org
+Message-ID: <200310231630.21392.aviram@beyondsecurity.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -18,25 +17,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi everyone, i've some problems with my acpi on TravelMate 427LC... In 
-particular i can't read temperature sensor and neither fan sensor...
+Hi,
 
-Is there a way to get them work?
+I am trying to get "standby" to work on my Sony vaio laptop. I did:
+echo -n "standby" > /sys/power/state
 
-I've a 2.4.21 kernel... Should i use another Kernel?
-I've decompiled & fixed my dsdt, but before to rebuild the kernel i'd like to 
-know if i must use a new 2.6 kernel or something else...
+But this only flashes the screen once (in X this is more noticeable) and 
+resumes immediately.
+Dmesg shows:
 
-Thanks for the attention...
-Bye
+PM: Preparing system for suspend
+Stopping tasks: 
+============================================================================|
+Restarting tasks... done
 
+
+I am using 2.6.0-test8 with suspend and sleep states enabled. All other ACPI 
+functions seems to work fine, my laptop is an R505DL.
+
+How can I debug this?
+
+- Aviram
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by OSDN developer relations
-Here's your chance to show off your extensive product knowledge
-We want to know what you know. Tell us and you have a chance to win $100
-http://www.zoomerang.com/survey.zgi?HRPT1X3RYQNC5V4MLNSV3E54
+This SF.net email is sponsored by: The SF.net Donation Program.
+Do you like what SourceForge.net is doing for the Open
+Source Community?  Make a contribution, and help us add new
+features and functionality. Click here: http://sourceforge.net/donate/
