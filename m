@@ -1,73 +1,84 @@
-From: Borislav Deianov <borislav@users.sourceforge.net>
-Subject: ibm-acpi-0.10
-Date: Sun, 16 Jan 2005 15:41:08 -0800
-Message-ID: <20050116234108.GK25275@aero.ensim.com>
-References: <20040916102610.GU20883@aero.ensim.com>
-Reply-To: linux-thinkpad@linux-thinkpad.org
+From: =?iso-8859-1?q?Jo=E3o_Cardoso?= <jcard-A1Gx7Te15Zc@public.gmane.org>
+Subject: Re: ASUS M3N standby resume regression in 2.6.x -- works under 2.4.x
+Date: Mon, 17 Jan 2005 01:45:57 +0000
+Message-ID: <200501170145.58041.jcard@fe.up.pt>
+References: <200501111652.28556.jcard@fe.up.pt> <200501141909.34406.jcard@fe.up.pt> <41E82E48.6070403@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41E82E48.6070403-wlebWZzHoyE@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040916102610.GU20883@aero.ensim.com>
-Sender: linux-thinkpad-admin@linux-thinkpad.org
-Errors-To: linux-thinkpad-admin@linux-thinkpad.org
-List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
-List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
-List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
-List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
-List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
-To: linux-thinkpad@linux-thinkpad.org, acpi-devel@lists.sourceforge.net
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Friday 14 January 2005 20:40, Luca Capello wrote:
+|  Hello,
+|
+|  on 01/14/2005 08:09 PM, Jo=C3=A3o Cardoso wrote:
+|  > OK, I have compiled 2.6.11-rc1 without USB support.
+|
+|  <cut>
+|
+|  > ... e100_suspend+0x8b/0xe0
+|  > ... e100_suspend...
+|  > So, there is obviously a problem with the e100 network driver.
+|
+|  I think so, but have you tried with the eepro100 driver instead?
 
-It's been a couple of months and ibm-acpi was getting stale.
-Especially with module parameters not working in 2.6.10, it was really
-starting to stink up was the house... :-). So there you go, an update:
+No, lets fix acpi first.
 
-This is the 10th - oh let's call it beta - release of my ACPI driver
-for IBM Thinkpad laptops. The features currently supported are:
+|  > S3 doesn't work either, but never worked, even in 2.4.xx
+|
+|  Have you searched on the mailing-list archive for my posts [1]? I had an
+|  M3N (M3410C) for a while and I tried sleep modes with different kernels.
+|  I don't remember exactly the results, but IIRC S3 worked quite well. And
+|  AFAIK Georg Greve made other tests with some positive results.
 
-	- Fn key combinations
-	- Bluetooth enable and disable
-	- video output switching, expansion control	
-	- ThinkLight on and off
-	- limited docking and undocking
-	- UltraBay eject
-	- CMOS control
-	- LED control
-	- ACPI sounds
-	- Experimental: temperatures and fan speed
-	- Experimental: embedded controller register dump
+Yes, I have followed your posts and results. S1 works fine with the 2.4.x=20
+kernels. I have not tried S3. Thanks a lot for your efforts and results!
 
-Changes since 0.8 (the version included in 2.6.10):
+I have resisting to change to the 2.6.x kernels because of the S1 issue, (I=
+=20
+think that a laptop without a S1or S3 is almost useless), but sooner or lat=
+ter=20
+I have to change.
 
-        - support for the 570, R30 and R31
-        - ultrabay support for the A22p and A3x
-        - drop experimental status from cmos, led and beep functions
-        - fix module parameter passing
-        - modified blank.sh should work with X on Debian and Fedora
-        - default radio.sh script uses ipw2100 RF kill switch
-        - default blank and hibernate events use the swsusp2 hibernate.sh
-        - experimental temperatures and fan speed
-        - experimental embedded controller register dump
+|  > What is the next step? A new laptop? WinXP? (sorry, but I'm not exactly
+|  > happy)
+|
+|  No, I was very happy with this laptop, so I don't advice you to change i=
+t.
 
-The major new experimental feature is the temperature and fan speed
-display. Some models (T and X series, maybe others) can show several
-temperature readings (in addition to CPU temperature) and the current
-fan speed. Three models (X31, X40 and 570) can control the fan speed
-to a certain degree. See the README for the full details.
+My comments were because the laptop refused to start up after the loockup. =
+I=20
+was really *very*, *very* worried, as you can imagine. I only can advise=20
+anyone that's trying acpi to imediately shutdown theirs laptop if it freeze=
+s.
 
-I still have a few things in my backlog, namely support for the 240,
-600e, 770x and G41. Coming soon, I just needed to get something out
-the door (I've been sitting on the 0.10 stuff for a while...).
+I believe that in the previous kernels, in my laptop at least, the=20
+temperature/fan was managed by the bios -- a few seconds after a lookup the=
+=20
+fan started turning at maximum speed. That is not the case anymore.
 
-http://ibm-acpi.sf.net/
+|  Thx, bye,
+|  Gismo / Luca
 
-Enjoy,
-Boris
--- 
-The linux-thinkpad mailing list home page is at:
-http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
+Thanks,
+Joao
+
+
+-------------------------------------------------------
+The SF.Net email is sponsored by: Beat the post-holiday blues
+Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
