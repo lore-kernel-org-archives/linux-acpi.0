@@ -1,13 +1,12 @@
-From: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
-Subject: Battery status update resolution
-Date: Sun, 10 Aug 2003 02:14:08 -0400 (EDT)
+From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Subject: S3 suspend no longer works with 2.6.0-test3
+Date: Sun, 10 Aug 2003 22:58:08 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.GSO.4.53.0308100150310.8919@compserv2>
-References: <Pine.GSO.4.53.0308092239430.8919@compserv2>
+Message-ID: <1060549076.742.19.camel@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.GSO.4.53.0308092239430.8919-0/pBV72GoN7BkAz3hwFLjg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,24 +18,48 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Hi,
 
-I apologize upfront, if this is not totally relevant to this list.
-Some questions about the update resolution of the battery remaining
-capacity status:
+the system is Sony Vaio Z600TEK. Since 2.6.0-test3 the kernel locks when
+suspending to S3 via echo 3 > /proc/acpi/sleep. Console then shows:
 
-What is the capacity status update resolution of a state-of-the-art
-'smart' battery ? I'm currently using a Dell Inspiron 2600 with a Sanyo
-LION control method battery, which updates its capacity status only for a
-change of 30 - 40 mAh in the capacity (as observed through _BST control
-method). What exactly is this limitation due to, is it the AML implementation
-of the _BST method by the OEM or is it the battery hardware itself (say
-number of bits in the A/D converter of the smart battery) ?
+hda: start_power_step (Step: 0)
+hda: start_power_step (Step: 1)
+hda: complete_power_step (step: 1, stat: 50, err: 0)
+hda: completing PM request, suspend
 
-Any insights would be greatly appreciated.
+Thats it. I put a dump_stack () into ide_complete_pm_request and got the
+following:
 
-Thanks,
---Manish
+[<c02762d9>] ide_complete_pm_request +0x39/0x240
+[<c027dd0c>] task_no_data_intr +0xac/0xc0
+[<c0278643>] ide_intr 0x2c3/0x5d0
+[<c011321c>] timer_interrupt +0x8c/0x260
+[<c0131126>] update_process_times +0x46/0x50
+[<c027dc60>] task_no_data_intr +0x0/0xc0
+[<c010cbcb>] handle_IRQ_even +0x3b/0x70
+[<c010d1e0>] do_IRQ +0x140/0x3a0
+
+With some printks I found that it does return from the first three, but
+I could not trace it further. Especially I can not see it returning from
+the second task_no_data_intr...but to be honest I have no further idea
+where to look at. 
+
+Can anyone else observe this?
+
+-Knut
+
+-- 
+Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
+Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
+fon: +49-211-81-11314                           fax: +49-211-81-13105
+
+
+
+
+
+
 
 
 
