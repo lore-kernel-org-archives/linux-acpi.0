@@ -1,13 +1,13 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: keylock regression with i8042 + S3 resume
-Date: Mon, 15 Nov 2004 09:58:25 -0500
-Message-ID: <4198C411.4070705@optonline.net>
-References: <88056F38E9E48644A0F562A38C64FB600356939A@scsmsx403.amr.corp.intel.com>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI_BUS dependency for CONFIG_PNP
+Date: 15 Nov 2004 11:42:47 -0500
+Message-ID: <1100536966.5518.947.camel@d845pe>
+References: <20041115114654.GJ1662@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <88056F38E9E48644A0F562A38C64FB600356939A-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20041115114654.GJ1662-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pallipadi, Venkatesh wrote:
+On Mon, 2004-11-15 at 06:46, Andi Kleen wrote:
+> 2.6.10rc2 got this new dependency:
+> 
+> config PNP
+>         bool "Plug and Play support"
+>         depends on ISA || ACPI_BUS
+> 
+> from the ACPI update. This enables ISA-PNP on x86-64, where
+> it was always disabled previously and is completely useless. Can
+> someone
+> explain the rationale behind that change? IMHO you should never use
+> ISA-PNP without CONFIG_ISA.
 
->I had some problem with S3 resume and keyboard and I nailed down to this
->changeset
->
->http://linux.bkbits.net:8080/linux-2.6/cset@40fc9c34Uv8lvE8IkEDy5dqjDzb_
->Kw?nav=index.html|src/.|src/drivers|src/drivers/input|src/drivers/input/
->serio|related/drivers/input/serio/i8042.c 
->
->But, it was not a consistent failure and I only saw it once in a while.
->
->HTH,
->Venki
->
-For me, it's pretty consistent. Will work on Dmitry's debug options later.
-Nathan
+Linux PNP handles up to 3 protocols:
+ISAPNP -- useful only if CONFIG_ISA, independent of PNPBIOS and PNPACPI
+PNPBIOS -- useful only if acpi_disabled
+PNPACPI -- useful if !acpi_disabled
+
+drivers/pnp/isapnp/Kconfig appears to already have the dependency you're
+looking for to make sure that ISAPNP is not defined without CONFIG_ISA:
+
+config ISAPNP
+        bool "ISA Plug and Play support"
+        depends on PNP && ISA
+
+
+
 
 
 
