@@ -1,11 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Intel SE7500WV2 not working with ACPI (fwd)
-Date: Fri, 2 Jan 2004 13:09:04 -0800 (PST)
+From: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
+Subject: Re: Problems with 600m PM states
+Date: Fri, 2 Jan 2004 16:42:42 -0500 (EST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040102130742.G9534@root.org>
+Message-ID: <Pine.BSF.4.55.0401021635300.503@dea.intranet>
+References: <3ACA40606221794F80A5670F0AF15F8401720C6D@PDSMSX403.ccr.corp.intel.com>
+ <Pine.BSF.4.55.0401021139340.70212@dea.intranet> <20040102185613.GA30051@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040102185613.GA30051-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,53 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I can't figure this one out.  I think the issue is that various methods
-are defined under device "EC0" (note 3 chars) but when ACPI-CA attempts to
-call _REG, some internal function expands the name to "EC0_" (note 4
-chars), which doesn't exist.
+On Fri, 2 Jan 2004, Karol Kozimor wrote:
 
-Ideas?
+> Thus wrote Michael A. Smith:
 
-Thanks,
-Nate
+> > The system seems to suspend correctly, but will not resume.  After the
+> > suspend, the power led has a slow blink, which is what I expect.  If I
+> > hit the power button to bring it back, I can hear the disk spin up, and
+> > the power led is on full, but that's it.  The screen never returns and
+> > my only recourse is a hard reboot.
 
----------- Forwarded message ----------
-Date: Tue, 25 Nov 2003 15:04:26 -0800
-From: Brooks Davis <brooks-JGfshJpz5UybPZpvUQj5UqxOck334EZe@public.gmane.org>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Brooks Davis <brooks-JGfshJpz5UybPZpvUQj5UqxOck334EZe@public.gmane.org>, current@freebsd.org
-Subject: Re: Intel SE7500WV2 not working with ACPI
+> Please try 2.6.1-rc1 or -rc1-mm1 for the keyboard problem.
 
-On Tue, Nov 25, 2003 at 12:12:16PM -0800, Nate Lawson wrote:
-> > acpi0: <INTEL  SWV20   > on motherboard
-> >     ACPI-1287: *** Error: Method execution failed [\\_SB_.PCI0.SBRG.EC0_._REG] (Node 0xc29b4660), AE_NOT_EXIST
-> > acpi0: Could not initialise SystemIO handler: AE_NOT_EXIST
-> > device_probe_and_attach: acpi0 attach returned 6
->
-> This is the source of the problems.  When acpi0 fails to attach,
-> everything else is done through the legacy PCI code.  The question is, why
-> is it failing?  The above-mentioned EC method could indicate the problem
-> is in walking the namespace but we'll have to look at the ASL to be sure.
->
-> Please send a url to the output of:
->      acpidump -t -d > brooks-Intel.asl
+Tried 2.6.1-rc1 (with the S1 patch referenced earlier in the thread)
+and see the same behavior for S3.  Not sure which keyboard problem you were
+referring to though.
 
-http://people.freebsd.org/~brooks/debug/brooks-Intel.asl
+> Have you already tried passing acpi_sleep={s3_mode,s3_bios} as a
+> kernel parameter?
 
-> Also, build with options ACPI_DEBUG and set these in your loader.conf:
->
-> debug.acpi.layer="ACPI_ALL_COMPONENTS"
-> debug.acpi.level="ACPI_LV_OPREGION"
+I have now.  If I use either, instead of resuming, the machine reboots.
+Without any parameter, after resume the screen remains off, but it
+appears the system is running ... if i blindly type "shutdown -h now",
+the system will power off.
 
-There's a new dmesg with this done at:
-
-http://people.freebsd.org/~brooks/debug/dmesg-brooks-Intel
-
-Thanks,
-Brooks
+Michael Smith
+mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
 
 
 -------------------------------------------------------
