@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
 Subject: Re: Re: fix ACPI poweroff in 2.4.25-rc2
-Date: Mon, 8 Mar 2004 20:58:19 +0100
+Date: Mon, 8 Mar 2004 21:14:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040308195819.GG484@elf.ucw.cz>
-References: <20040308183228.GD484@elf.ucw.cz> <Pine.LNX.4.44.0403081539370.13683-100000@dmt.cyclades>
+Message-ID: <20040308201411.GA18636@alpha.home.local>
+References: <20040308163452.GE5352@openzaurus.ucw.cz> <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades> <20040308183228.GD484@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0403081539370.13683-100000-N7x2SXzAOustNcHCoTQCcg@public.gmane.org>
+In-Reply-To: <20040308183228.GD484-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,50 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi Pavel,
 
-> > > > > The recent 2.4 patch breaks the build for ia64 because we don't
-> > > > > set CONFIG_ACPI_SLEEP, and acpi_system_save_state() is only
-> > > > > defined under #ifdef CONFIG_ACPI_SLEEP.  Can you add the following
-> > > > > patch to deal with this?
-> > > > 
-> > > > Original patch should be reverted. Having different
-> > > > behaviour of poweroff depending on ACPI_SLEEP would
-> > > > be wrong.
-> > > 
-> > > Hi Pavel,
-> > > 
-> > > Original patches fixes a real problem, so its not as easy as "lets revert 
-> > > it", yes? 
-> > 
-> > To put it simply:
-> > 
-> > there's broken machine where calling acpi_system_save_state() with
-> > invalid argument fixes it by accident.
-> > 
-> > It can do random stuff on any other machine...
-> 
-> What random stuff ?
+On Mon, Mar 08, 2004 at 07:32:28PM +0100, Pavel Machek wrote:
+ 
+> there's broken machine where calling acpi_system_save_state() with
+> invalid argument fixes it by accident.
 
-Okay, I was wrong. acpi_system_save_state does not do what I thought.
+In fact it does not fix it by accident, it's the previous code which
+broke it by accident. Older ACPI poweroff code has been working well
+on this machine, and suddenly stopped working. So i looked at what
+changed and noticed that the acpi_poweroff() function changed from
+_I don't remember what function_ to acpi_suspend(S5), and that
+acpi_system_save_state(), which was called implicitly in the previous
+function got lost during the change. Taking it back fixed my problem,
+but I cannot say for sure that it will not break anything else, but its
+use seems legitimate at first glance.
 
-Anyway, #ifdef CONFIG_ACPI_SLEEP around acpi_system_sleep_state is
-wrong fix. If its needed, its needed regardless of
-CONFIG_ACPI_SLEEP...
+I agree that disabling local APIC from there would be another alternative,
+but it may also be regarded as a workaround because I cannot explain
+why this sh*tty notebook doesn't like it.
 
-Replacing it with
-	pm_send_all(PM_SAVE_STATE, (void *)3);
-	pm_send_all(PM_SUSPEND, (void *)3);
-should do the trick.
+My intention was to write a more generic machine_prepare_stop() function
+which would disable sensible things such as APIC, stop every non-boot CPU
+and get the best conditions to stop the system. It could even be used for
+the restart and for kexec. But calling it from ACPI and writing a new
+arch-specific function for every arch will for sure break some other archs.
 
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Anyway, up to 2.4.24, on the 3 machines I know that support ACPI, none of
+them could poweroff. Now, with both this fix and the SMP fix, they all shutdown
+cleanly. So I'm hopeful that we're in the right direction.
+
+Cheers,
+Willy
+
 
 
 -------------------------------------------------------
