@@ -1,15 +1,14 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Re: [PATCH] Handle disabled local apic better
-Date: Wed, 24 Mar 2004 05:27:24 +0100
+From: Russell King <rmk-pci-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
+Date: Wed, 24 Mar 2004 09:07:47 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040324052724.56e57709.ak@suse.de>
-References: <20040323213551.4789bbae.ak@suse.de>
-	<1080112373.18504.67.camel@dhcppc4>
+Message-ID: <20040324090746.A13095@flint.arm.linux.org.uk>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk> <20040320181000.GA8272@kroah.com> <20040322223425.GB3213@neo.rr.com> <20040324013557.GB21477@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1080112373.18504.67.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040324013557.GB21477-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>; from greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org on Tue, Mar 23, 2004 at 05:35:57PM -0800
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,118 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 24 Mar 2004 02:12:54 -0500
-Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-
-> On Tue, 2004-03-23 at 15:35, Andi Kleen wrote:
-> > When a kernel is compiled with local and io apic code, but the local APIC
-> > is disabled before ACPI starts ACPI gets confused.  The situation
-> > can occur in a mainline kernel too, e.g. when a dmi_scan entry disables
-> > the local apic early.
+On Tue, Mar 23, 2004 at 05:35:57PM -0800, Greg KH wrote:
+> On Mon, Mar 22, 2004 at 10:34:25PM +0000, Adam Belay wrote:
+> > > Yes, this will happen in 2.7 when we add the ability to have "generic"
+> > > and "specific" type drivers for devices.
 > > 
-> > The problem is that the ACPI code will do all the setup assuming there
-> > is a IO-APIC because the IO-APIC is not disabled, but the machine really runs in 
-> > PIC mode. This usually leads to lost network (devices get an unreachable interrupt) 
-> > or IDE hangs or other problems.
+> > What do you think would be the best way to go about this?
 > > 
-> > This patch adds checks for local apic enabled to all paths that need it
-> > (basically everybody who has a #ifdef CONFIG_X86_LOCAL_APIC needs this
-> > check instead)
+> > I was able to come up with the following options:
+> > 
+> > 1.) flags in struct device_driver
 > 
-> oof, and there are lots of CONFIG_X86_LOCAL_APIC uses apparently
-> un-guarded at run-time...
+> I think this is the best place for it.  We will have to do something
+> like weight the different ways to specify a driver can handle a device
+> differently.  Something like this kind of priority:
+> 	- device id
+> 	- device class
 
-I thought I catched most of them?
- 
-> Looks like i386 lacks the parse_cmdline_early() check for "nolapic" to
-> make this test effective.
+The way I discussed with Pat two OLS's ago (I think it was two) was that
+the bus type match method would return a value to indicate how well the
+IDs matched the device.
 
+When a driver matches a device, we remember this value, and call the
+drivers ->probe function, as we do today.
 
-Yes. But dmi scan is done that early.
+However, when we add a new driver, we attempt to re-match all devices,
+including those with drivers.  If a device with an existing driver is
+found to have a "better" match with the new driver, the original driver's
+->remove function is called to unbind the driver, and the new driver
+bound to the device.
 
-For command line and APIC failures later it probably needs more work, agreed.
+The match function would, for instance, return a lower value for a
+device driver matching only the class IDs, a higher ID for a device
+driver matching only the vendor ID, vendor ID + device ID, and the
+highest value for vendor ID + device ID + class ID.
 
-BTW if that is all cleaned up I would suggest just to get rid of the CONFIGs
-and always use runtime defaults. This would make these parts more maintainable
-I think and is the right thing to do for distributions.
-
-> (why the heck is the parse_args() so late, anyway?)
-> 
-> Looks like x86_64 has it, but then does it again at __setup() time --
-> which should probably be removed; along with the redundant variable
-> "disable_apic".
-
-The x86-64 disable_apic was there first. I just had to add the new
-variable because of the new incestuous sharing of acpi/boot.c to avoid
-link errors.
- 
-> >  
-> > diff -u linux/arch/i386/kernel/apic.c-o linux/arch/i386/kernel/apic.c
-> > --- linux/arch/i386/kernel/apic.c-o	2004-03-23 17:32:22.000000000 +0100
-> > +++ linux/arch/i386/kernel/apic.c	2004-03-23 18:01:21.000000000 +0100
-> > @@ -41,6 +41,8 @@
-> >  
-> >  #include "io_ports.h"
-> >  
-> > +extern int enable_local_apic;
-> > +
-> 
-> how about declare in asm/apic.h instead?
-
-Sure. I was just lazy.
-
-> >  /* This value is set up by the early boot code to point to the value
-> >     immediately after the boot time page tables.  It contains a *physical*
-> >     address, and must not be in the .bss segment! */
-> > @@ -917,6 +925,7 @@
-> >  	acpi_reserve_bootmem();
-> >  #endif
-> >  #ifdef CONFIG_X86_FIND_SMP_CONFIG
-> > +	if (enable_local_apic >= 0) 
-> >  	/*
-> >  	 * Find and reserve possible boot-time SMP configuration:
-> >  	 */
-> 
-> Here we're disabling MPS with "nolapic" -- something that "maxcpus=0"
-> and "nosmp" never effectively did before...
-
-MPS without local APIC is useless.
-
->
-> >  /*
-> >   * This initializes the IO-APIC and APIC hardware if this is
-> > @@ -1009,12 +1010,14 @@
-> >  
-> >  static __init int setup_disableapic(char *str) 
-> >  { 
-> > +	enable_local_apic = -1;
-> >  	disable_apic = 1;
-> >  	return 0;
-> >  } 
-> >  
-> >  static __init int setup_nolapic(char *str) 
-> >  { 
-> > +	enable_local_apic = -1;
-> >  	disable_apic = 1;
-> >  	return 0;
-> >  } 
-> 
-> these routines should be deleted, since they duplicate the earlier
-> parse_cmdline_early().  the ambiguous "disable_lapic" should go also,
-> since "enable_local_apic" is on the scene, yes?
-
-No, even when you parse in parse_cmdline_early() you need a __setup,
-otherwise the normal __setup parser will complain about unknown 
-options.
-
-In 2.7 i hope this all will get up cleared up with a __early_setup()
-
--Andi
-
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:  2.6 PCMCIA      - http://pcmcia.arm.linux.org.uk/
+                 2.6 Serial core
 
 
 -------------------------------------------------------
