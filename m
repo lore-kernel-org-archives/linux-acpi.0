@@ -1,53 +1,51 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Custom Override for DSDT?
-Date: Fri, 13 Dec 2002 14:59:58 -0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A59A@orsmsx119.jf.intel.com>
+Subject: ACPI releases updated (20021212)
+Date: Fri, 13 Dec 2002 15:11:02 -0800
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A59C@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Matthew Tippett' <matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>
-Cc: 'Craig Whitmore' <lennon-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org>, chbm-tNiY1ywYjSU@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Matthew Tippett [mailto:matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org] 
-> Getting back to the original question, would it make sense to 
-> support a 
-> way of overriding a dsdt to allow a broken BIOS that the manufacturer 
-> won't fix be usable?
-> 
-> This still keeps standards based ACPI compliance but with the 
-> nice twist 
->   that we don't have to rely entirely on the manufacturer for 
-> the BIOS 
-> to work.
+Hi all,
 
-We have this. Old documentation of the procedure is at
-http://developer.intel.com/technology/iapc/acpi/bios_override.htm .
+New versions of the ACPI patches are available from
+http://sf.net/projects/acpi . Non-Linux source drops will not be available
+until Dec 20, due to web publishing issues. (I can email it on request, if
+you can't wait.)
 
-There is a new, easier way to do it, that various people have documented.
-(Ducrot, perhaps?) We will be updating that URL with the new method at some
-point, too.
-
-It's good for debugging, or you highly motivated people, but obviously not
-for a general solution.
+(If you already downloaded the patch against 2.5.51, you may want to re-get
+it. A small fix for writes to the /proc interface has been slipstreamed.)
 
 Regards -- Andy
 
+----------------------------------------
+12 December 2002.  Summary of changes for version 20021212.
 
+1) ACPI CA Core Subsystem:
 
+Fixed a problem where the creation of a zero-length AML Buffer
+would cause a fault.
 
+Fixed a problem where a Buffer object that pointed to a static
+AML buffer (in an ACPI table) could inadvertently be deleted,
+causing memory corruption.
 
--------------------------------------------------------
-This sf.net email is sponsored by:
-With Great Power, Comes Great Responsibility 
-Learn to use your power at OSDN's High Performance Computing Channel
-http://hpc.devchannel.org/
+Fixed a problem where a user buffer (passed in to the external
+ACPI CA interfaces) could be overwritten if the buffer was too
+small to complete the operation, causing memory corruption.
+
+Fixed a problem in the Buffer-to-String conversion code where
+a string of length one was always returned, regardless of the
+size of the input Buffer object.
+
+Removed the NATIVE_CHAR data type across the entire source due
+to lack of need and lack of consistent use.
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
