@@ -1,81 +1,83 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Problem with acpi and HP Compaq nx7000 laptop
-Date: Fri, 21 Nov 2003 09:00:19 +0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BDC@pdsmsx403.ccr.corp.intel.com>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: RE: [PM][ACPI] No ACPI interrupts after resume from S1
+Date: Fri, 21 Nov 2003 09:10:59 +0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BDD@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
 content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tobias Matzat <tobiasmatzat-KuiJ5kEpwI6ELgA04lAiVw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu@intel.com>, Karol Kozimor <sziwan@hell.org.pl>
+Cc: Pavel Machek <pavel@ucw.cz>, M?ns Rullg?rd <mru@users.sourceforge.net>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Please try latest patch at =
-http://bugzilla.kernel.org/show_bug.cgi?id=3D1444   - Luming
+I have made an updated version. Would you please retry?
+-Luming
+
+-----Original Message-----
+From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-owner@vger.kernel.org]On Behalf Of Yu, Luming
+Sent: 2003?10?27? 16:56
+To: Karol Kozimor
+Cc: Pavel Machek; M?ns Rullg?rd; acpi-devel@lists.sourceforge.net; linux-kernel@vger.kernel.org
+Subject: RE: [PM][ACPI] No ACPI interrupts after resume from S1
+
+
+I made a mistake in using base_number. Would you please have updated patch a try?
+Thanks a lot. --Luming
 
 
 -----Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Tobias =
-Matzat
-Sent: 2003?11?21? 6:05
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Problem with acpi and HP Compaq nx7000 laptop
+From: Karol Kozimor [mailto:sziwan@hell.org.pl]
+Sent: 2003?10?27? 5:41
+To: Yu, Luming
+Cc: Pavel Machek; M?ns Rullg?rd; acpi-devel@lists.sourceforge.net; linux-kernel@vger.kernel.org
+Subject: Re: [PM][ACPI] No ACPI interrupts after resume from S1
 
 
+Thus wrote Yu, Luming:
+> Would you please try patch at http://bugme.osdl.org/show_bug.cgi?id=1409
 
+Hi,
+The patch makes my kernel oops on resume:
+hdc: completing PM  request, resume
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: 90
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: A0
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: 24
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: C8
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: E0
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space: F0
+  hwregs-0760 [56] hw_low_level_read     : Unsupported address space:  4
+Unable to handle kernel paging request at virtual address 70677679
+ printing eip:
+c020c44c
+*pde = 00000000
+Oops: 0000 [#1]
+CPU:    0
+EIP:    0060:[<c020c44c>]   Not tainted
+EFLAGS: 00010206
+EIP is at acpi_hw_lowlevel_read+0x30/0x122
+eax: c02e6344   ebx: cffd6408   ecx: cfc51e88   edx: 00000010
+esi: 70677671   edi: cfc51e90   ebp: 00000008   esp: cfc51e58
+ds: 007b   es: 007b   ss: 0068
+Process bash (pid: 304, threadinfo=cfc50000 task=c1368a0)
+Stack: 00000130 c021c9b8 00000002 c02e6499 c02e6344 c02f6720 cffd6408 cfe3b228
+       000001e0 00000001 c020b6b2 00000008 cfc51e90 70677671 c0311650 00000018
+       c020b9c2 cffd6408 00000010 00000000 00000000 cfc51ebc c02da521 00000001
+Call Trace:
+ acpi_ut_acquire_mutex+0xc0/0x16b
+ acpi_hw_enable_gpe+0x1e/0x44
+ acpi_hw_enable_ec_gpes+0x7f0x85
+ acpi_leave_sleep_state+0x119/0x13e
+ dpm_resume+0x34/0x5a
+ acpi_pm_finish+0xb/0x38
+ [...]
 
-Hi!
+Code: 8b 56 08 8b 46 04 89 d1 09 c1 75 0a 31 c0 83 c4 18 5b 5c 5f
+[hand typed, but at least the traces should be OK]
 
-I get the following error messages from my kernel (2.4.22):
+Best regards,
 
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 S4bios S4 S5)
-dsopcode-0515 [20] ds_init_buffer_field  : Field size 1392 exceeds =
-Buffer size 1296 (bits)
- psparse-1121: *** Error: Method execution failed [\_SB_.C046.C052] =
-(Node dffc09e8), AE_AML_BUFFER_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.C046.C056] =
-(Node dffc0ae8), AE_AML_BUFFER_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.C046._CRS] =
-(Node dffc0be8), AE_AML_BUFFER_LIMIT
-  uteval-0098: *** Error: Method execution failed [\_SB_.C046._CRS] =
-(Node dffc0be8), AE_AML_BUFFER_LIMIT
-ACPI: PCI Root Bridge [C046] (00:00)
-
-What do they mean and how can i fix them? Is it something dsdt-related?
-I took a look at the acpi4linux page but i found nothing related to=20
-my laptop.
-
-Please help me, i am completetly new to acpi.
-
-Greets, Tobias
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-Does SourceForge.net help you be more productive?  Does it
-help you create better code?  SHARE THE LOVE, and help us help
-YOU!  Click Here: http://sourceforge.net/donate/
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-Does SourceForge.net help you be more productive?  Does it
-help you create better code?  SHARE THE LOVE, and help us help
-YOU!  Click Here: http://sourceforge.net/donate/
+-- 
+Karol 'sziwan' Kozimor
+sziwan@hell.org.pl
