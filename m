@@ -1,13 +1,11 @@
-From: feuerblume-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: ACPI and Shutdown on VAIO FXA-49
-Date: Mon, 18 Nov 2002 20:32:46 +0100 (CET)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Status of ospmd?
+Date: Mon, 18 Nov 2002 14:04:32 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0211182029520.981-100000@schneck.daheim>
-References: <003f01c28f34$bab06930$e90015ac@HHN.INC>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A518@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <003f01c28f34$bab06930$e90015ac-FbVwfWZXBtM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,22 +14,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Russ Neff <russ-rjAkyXQP36HLeiHq/WgCfg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Louis Garcia' <louisg00-Bdlq13kUjeyLZ21kGMrzwg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Russ,
+> From: Louis Garcia [mailto:louisg00-Bdlq13kUjeyLZ21kGMrzwg@public.gmane.org] 
+> What is the status of ospmd? It replaced acipd right? The last release
+> was on May 9. I heard somewhere that apmd and ospmd was going to be
+> combined so one daemon could control both pm systems. I don't 
+> think acpi
+> is going to be that useful unless their is an daemon 
+> controlling policy.
 
-the latest 11.11.2002 patch works very fine with my VAIO FXA-49. No
-problems with shutdown. I guess your machine should be quite similar, so
-it is probably a good idea to try the latest patch.
-I don't know whether you are using the mdk kernel, if so, go ahead and get
-the standard kernel.
+Latest ospmd is in sf.net CVS.
 
-cheers
+It does support both APM and ACPI, but since we've all been busy working on
+kernel bugs, it hasn't received much improvement lately, and is still not
+ready for actual use.
 
-Stefan
-
+Regards -- Andy
 
 
 -------------------------------------------------------
