@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
 Subject: Re: PCI power state mapping
-Date: Thu, 29 Jul 2004 12:52:51 +0200
+Date: Thu, 29 Jul 2004 13:15:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040729105251.GB9718@elf.ucw.cz>
-References: <B44D37711ED29844BEA67908EAF36F036BCB8C@pdsmsx401.ccr.corp.intel.com> <41069C59.5020603@drzeus.cx> <20040729084154.GH21889@openzaurus.ucw.cz> <4108D5BC.8040302@drzeus.cx>
+Message-ID: <4108DC59.4050409@drzeus.cx>
+References: <B44D37711ED29844BEA67908EAF36F036BCB8C@pdsmsx401.ccr.corp.intel.com> <41069C59.5020603@drzeus.cx> <20040729084154.GH21889@openzaurus.ucw.cz> <4108D5BC.8040302@drzeus.cx> <20040729105251.GB9718@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+ boundary="------------060000070607090201030802"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4108D5BC.8040302-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+In-Reply-To: <20040729105251.GB9718-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +17,107 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multi-part message in MIME format.
+--------------060000070607090201030802
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Anyhow, I did some hacks into pci_device_suspend() getting it to 
-> suspend devices without a driver. Combined with my escalation patch 
-> in pci_set_power_state() all devices on the machine now enters D2 or 
-> D3 depending on device capabilities. My laptop still cannot enter the 
-> suspend state so there is still something missing... Are there any 
-> more areas of power management in linux that aren't quite up to spec.?
->     
-> 
-> You forgot to say if you are trying to suspend to ram or to disk.
->                                 Pavel
->   
-> 
->    RAM. It was in the beginning of the thread...
+Pavel Machek wrote:
 
+>Hi!
+>
+>  
+>
+>>Anyhow, I did some hacks into pci_device_suspend() getting it to 
+>>suspend devices without a driver. Combined with my escalation patch 
+>>in pci_set_power_state() all devices on the machine now enters D2 or 
+>>D3 depending on device capabilities. My laptop still cannot enter the 
+>>suspend state so there is still something missing... Are there any 
+>>more areas of power management in linux that aren't quite up to spec.?
+>>    
+>>
+>>You forgot to say if you are trying to suspend to ram or to disk.
+>>                                Pavel
+>>  
+>>
+>>   RAM. It was in the beginning of the thread...
+>>    
+>>
+>
+>Okay, try suspending to disk, first. It tends to work better. Are your
+>"hacks into pci_device_suspend() getting it to suspend devices without
+>a driver" available somewhere?
+>								Pavel
+>
+>  
+>
+Suspend to disk works fine. It's just the ram-bit that won't work. There 
+is an earlier thread about this with more details (search for 
+"suspend-to-ram hangs on HP NX7010"). I haven't bothered making a patch 
+of my changes since they do not add any functionality. If you have a 
+look at pci_device_suspend() it's fairly easy to change it. It's a very 
+compact and obvious function.
+
+Rgds
+Pierre
+
+--------------060000070607090201030802
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Pavel Machek wrote:
+<blockquote cite="mid20040729105251.GB9718-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org" type="cite">
+  <pre wrap="">Hi!
+
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Anyhow, I did some hacks into pci_device_suspend() getting it to 
+suspend devices without a driver. Combined with my escalation patch 
+in pci_set_power_state() all devices on the machine now enters D2 or 
+D3 depending on device capabilities. My laptop still cannot enter the 
+suspend state so there is still something missing... Are there any 
+more areas of power management in linux that aren't quite up to spec.?
+    
+
+You forgot to say if you are trying to suspend to ram or to disk.
+                                Pavel
+  
+
+   RAM. It was in the beginning of the thread...
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
 Okay, try suspending to disk, first. It tends to work better. Are your
 "hacks into pci_device_suspend() getting it to suspend devices without
 a driver" available somewhere?
 								Pavel
 
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+  </pre>
+</blockquote>
+Suspend to disk works fine. It's just the ram-bit that won't work.
+There is an earlier thread about this with more details (search for
+"suspend-to-ram hangs on HP NX7010"). I haven't bothered making a patch
+of my changes since they do not add any functionality. If you have a
+look at pci_device_suspend() it's fairly easy to change it. It's a very
+compact and obvious function.<br>
+<br>
+Rgds<br>
+Pierre<br>
+</body>
+</html>
+
+--------------060000070607090201030802--
 
 
 -------------------------------------------------------
