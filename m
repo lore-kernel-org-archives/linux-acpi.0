@@ -1,14 +1,23 @@
-From: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Subject: Re: Re: toshiba_acpi 0.18
-Date: Thu, 25 Mar 2004 10:48:28 -0500
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
+Date: Thu, 25 Mar 2004 22:22:07 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4062FF4C.4000102@neggie.net>
-References: <4053C4D5.8000703@neggie.net>	<1079242701.2168.121.camel@dhcppc4>	<4053F592.80001@neggie.net> <20040325173453.77fed4e9.vsu@altlinux.ru>
+Message-ID: <1080253327.3755.20.camel@darkstar>
+References: <20040308163452.GE5352@openzaurus.ucw.cz>
+	 <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades>
+	 <20040308183228.GD484@elf.ucw.cz> <20040308201411.GA18636@alpha.home.local>
+	 <20040308205444.GH484@elf.ucw.cz> <20040309233325.GA22953@alpha.home.local>
+	 <1079279490.10225.10.camel@darkstar>
+	 <20040315210729.GA19306@alpha.home.local>
+	 <1079389434.3695.2.camel@darkstar>
+	 <20040315231927.GA19829@alpha.home.local>
+	 <20040322105946.GC1505@openzaurus.ucw.cz>
+Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040325173453.77fed4e9.vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
+In-Reply-To: <20040322105946.GC1505-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,56 +26,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sergey Vlasov <vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Sergey Vlasov wrote:
-> On Sun, 14 Mar 2004 01:02:58 -0500 John Belmonte wrote:
-> 
->> static int
->>-dispatch_write(struct file* file, const char* buffer, unsigned long count,
->>-	ProcItem* item)
->>+dispatch_write(struct file* file, __user const char* buffer,
->>+	unsigned long count, ProcItem* item)
->> {
->>-	return item->write_func(buffer, count);
->>+	int result;
->>+	char* tmp_buffer;
->>+
->>+	/* Arg buffer points to userspace memory, which can't be accessed
->>+	 * directly.  Since we're making a copy, zero-terminate the
->>+	 * destination so that sscanf can be used on it safely.
->>+	 */
->>+	tmp_buffer = kmalloc(count + 1, GFP_KERNEL);
->>+	if (copy_from_user(tmp_buffer, buffer, count)) {
->>+		result = -EFAULT;
->>+	}
->>+	else {
->>+		tmp_buffer[count] = 0;
->>+		result = item->write_func(tmp_buffer, count);
->>+	}
->>+	kfree(tmp_buffer);
->>+	return result;
->> }
-> 
-> 
-> This is still not enough.  count comes from userspace and can be
-> arbitrarily large, and this function does not even check the return
-> value from kmalloc()...
+hi(gh)!
+On Mon, 2004-03-22 at 10:59, Pavel Machek wrote:
+> Hi!
+>=20
+> > > and status =3D acpi_system_save_state(state);=20
+> > > on line 341 of drivers/acpi/system.c ?
+> >=20
+> > OK sorry, I didn't notice it. So you'll simply have to remove the
+> > first hunk of the patch so that acpi_system_save_state() stays defined
+> > at least when CONFIG_ACPI_SLEEP is defined.
+>=20
+> In such case... at least insert BUG() into fake acpi_system_save_state me=
+thod.
 
-The "count" arg is passed by value, so there is no issue.
+Well you say that is a bug and I ask how do you translate=20
+status =3D acpi_system_save_state(state); if not I think that will be
+inefficient.=20
+--=20
+S=E9rgio M. B.
 
-You are right about not checking the kmalloc result for an error.  I'll 
-fix that, but it's not enough to warrant a new release on its own.  The 
-code before the patch had the same problem, so this is not a newly 
-created bug, and not related to the problem being addressed.
-
--John
-
-
--- 
-http:// if  ile.org/
 
 
 -------------------------------------------------------
