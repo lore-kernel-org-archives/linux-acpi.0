@@ -1,14 +1,15 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: Status of ACPI on IBM T40p
-Date: Mon, 9 Feb 2004 11:12:43 +0800
+From: Olaf Hering <olh-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [BKPATCH] ACPI for 2.6
+Date: Mon, 9 Feb 2004 10:09:00 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03F9E459@wdmyexch02.my.asia.wdc.com>
+Message-ID: <20040209090900.GA30625@suse.de>
+References: <1076145027.8682.34.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <1076145027.8682.34.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,35 +18,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexander Gran <alex-4mRm4CWMOdkHuPwBo6/EyUB+6BGkLq7r@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+ On Sat, Feb 07, Len Brown wrote:
 
+> Hi Linus, please do a 
+> 
+> 	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.3
+> 
+> 	ACPI cpufreq related updates from Dominik, Asus and Toshiba
+> 	model specific updates from Karol and John, misc IA64
+> 	ACPI tweaks from Jes Sorensen etc.  All but Toshiba
+> 	and Asus have been through -mm.
+> 
+> thanks,
+> -Len
+> 
+> ps. a plain patch is also available here:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.3/acpi-20040116-2.6.3.diff.gz
 
-> -----Original Message-----
-> From: Alexander Gran [mailto:alex-4mRm4CWMOdkHuPwBo6/EyUB+6BGkLq7r@public.gmane.org]
->=20
-> Am Freitag, 6. Februar 2004 21:17 schrieb Bruno Ducrot:
-> > > > without USB devices, my T40 can enter C3
-> > >
-> > > can you tell me how to remove usb so that my Laptop can=20
-> get into C3?
-> > > It keeps being in C2 and usage of C3 is [000000000]
-> > >
-> > > bus master activity =3D fffffffff all the time..
-> >
-> > Recompiling kernel without any kind of usb things, even=20
-> modules perhap ?
->=20
-> Wich results in a highly usable kernel....:)
+>  arch/ia64/kernel/acpi.c             |   22 
 
-Alex,
-	Can you tell me what you meant from your comment? Did you
-try it out already? Good results?
+Len,
 
-I want to try it on my D600.
-=20
+this file uses now NR_MEMBLKS, which is undefined. Do you have a patch
+to fix it?
+
+-- 
+USB is for mice, FireWire is for men!
+
+sUse lINUX ag, nÜRNBERG
 
 
 -------------------------------------------------------
