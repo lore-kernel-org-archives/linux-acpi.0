@@ -1,59 +1,161 @@
-From: Catalin BOIE <util-m7amzYTWDwUM5Le54R2NVQ@public.gmane.org>
-Subject: [PATCH] Re: 2.6.0test4mm5 - compile problem (acpi)
-Date: Thu, 4 Sep 2003 07:39:47 +0300 (EEST)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.56.0309040739210.20565@hosting.rdsbv.ro>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI in 2.4.22 breaking several systems
+Date: Thu, 4 Sep 2003 00:44:49 -0400
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FCFC@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-(Please CC me. Thank you.)
+Santiago,
+Thanks for the feedback.
+
+The DMI cutoff for ACPI was set (somewhat arbitrarily) for 1/1/2001.
+If the system doesn't have DMI support, then DMI can't be used to
+determine the age of the BIOS and so ACPI is not disabled.  That is why
+your very old system has ACPI enabled by default.
+
+2.6.0 is actually slightly behind 2.4.22 in ACPI at the moment -- though
+I don't recall off-hand any major fixes missing so I'm surprised that
+you see different behaviour; we'll be checking the fix list shortly to
+update 2.6...
+
+If acpi=off or pci=noacpi is required to make interrupts work, then it
+is a bug.  The best way to help is to file bugzilla's for the failures
+you see, and there we'll take them one by one.
+
+Thanks,
+-Len
+--------
+Please file a bug at http://bugzilla.kernel.org/
+Category: Power Management
+Componenet: ACPI
+
+Please attach the output from dmidecode, available in /usr/sbin/, or
+here: 
+http://www.nongnu.org/dmidecode/
+
+Please attach the output from acpidmp, available in /usr/sbin/, or in
+here
+http://www.intel.com/technology/iapc/acpi/downloads/pmtools-20010730.tar
+.gz
+
+Please attach /proc/interrupts and the dmesg output showing the failure,
+if possible.
 
 
-  CC      drivers/acpi/pci_link.o
-drivers/acpi/pci_link.c: In function `acpi_pci_link_try_get_current':
-drivers/acpi/pci_link.c:290: error: `_dbg' undeclared (first use in this
-function)
-drivers/acpi/pci_link.c:290: error: (Each undeclared identifier is
-reported only once
-drivers/acpi/pci_link.c:290: error: for each function it appears in.)
-make[2]: *** [drivers/acpi/pci_link.o] Error 1
-make[1]: *** [drivers/acpi] Error 2
-make: *** [drivers] Error 2
-
-
-Patch:
-diff -ur acpi.ok/pci_link.c acpi/pci_link.c
---- acpi.ok/pci_link.c  2003-09-03 09:28:42.000000000 +0300
-+++ acpi/pci_link.c     2003-09-03 13:42:28.000000000 +0300
-@@ -285,6 +285,8 @@
- {
-        int result;
-
-+       ACPI_FUNCTION_TRACE("acpi_pci_link_try_get_current");
-+
-        result = acpi_pci_link_get_current(link);
-        if (result && link->irq.active) {
-                return_VALUE(result);
-
-
----
-Catalin(ux) BOIE
-catab-m7amzYTWDwUM5Le54R2NVQ@public.gmane.org
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+> -----Original Message-----
+> From: Santiago Garcia Mantinan [mailto:manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org] 
+> Sent: Thursday, August 28, 2003 6:52 PM
+> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+> Subject: ACPI in 2.4.22 breaking several systems
+> 
+> 
+> Hi!
+> 
+> I don't know if this could be expected, for what I see most 
+> of the problems
+> are caused by the changes in the interrupt routing in rc3 or 
+> rc4, on my
+> first upgrades out of 5 different machines 4 had this kind of 
+> problem, for
+> all this systems, the pci=noacpi recipe solved the problem, 
+> hopefully this
+> is sugested on the kernel messages, however I think that 
+> maybe a warning in
+> the ACPI kernel doc or config should be in place.
+> 
+> What seems really weird to me is that at least on some of 
+> this systems, the
+> irq routing problem doesn't exist on 2.6.0test4 and it seems 
+> to be using the
+> same ACPI version :-???
+> 
+> The other failures I found was on old Pentium MMX with Intel 
+> 430TX chipset
+> based motherboards. The machines were working perfectly with 
+> ACPI as of
+> 2.4.21, powering off correctly as power button was pressed, ... when
+> switching to 2.4.22 the first thing I got was a hang when 
+> loading the sound
+> card drivers, irq routing problem that was solved using 
+> pci=noacpi, then I
+> tried powering off using halt and it worked, but then I tried 
+> powering off
+> pushing the power button and I got hang with an error that 
+> started like
+> this:
+> 
+> process swapper
+> Unable to handle kernel NULL pointer dereference at virtual 
+> address 00000008
+>  printing eip:
+> c016a52b
+> 
+> I have just tested 2.6.0test4 on this machine and I got the 
+> same problem as
+> with 2.4.22.
+> 
+> This is the dmesg|grep -i acpi for 2.4.21 on that machine:
+> 
+>  BIOS-e820: 0000000003ffd000 - 0000000003ffd800 (ACPI NVS)
+>  BIOS-e820: 0000000003ffd800 - 0000000003fff400 (ACPI data)
+> ACPI: Core Subsystem version [20011018]
+>     ACPI-0349: *** Warning: Zero GPEs are defined in the FADT
+> ACPI: Subsystem enabled
+> ACPI: System firmware supports S0 S1 S5
+> ACPI: Power Button (FF) found
+> 
+> And this is for 2.4.22:
+> 
+>  BIOS-e820: 0000000003ffd000 - 0000000003ffd800 (ACPI NVS)
+>  BIOS-e820: 0000000003ffd800 - 0000000003fff400 (ACPI data)
+> ACPI: have wakeup address 0xc0001000
+> ACPI: RSDP (v000                                           ) 
+> @ 0x000f6880
+> ACPI: RSDT (v001                 0x00000000  0x00000000) @ 0x03ffd800
+> ACPI: FADT (v001                 0x00000000  0x00000000) @ 0x03ffd840
+> ACPI: DSDT (v001  AWARD AWRDACPI 0x00001000 MSFT 0x01000000) 
+> @ 0x00000000
+> Kernel command line: auto BOOT_IMAGE=Linux ro root=302 pci=noacpi
+> ACPI: Subsystem revision 20030813
+>     ACPI-0888: *** Info: There are no GPE blocks defined in the FADT
+> ACPI: Interpreter enabled
+> ACPI: Using PIC for interrupt routing
+> ACPI: System [ACPI] (supports S0 S1 S4bios S5)
+> ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *10 11 12 14 15)
+> ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 10 *11 12 14 15)
+> ACPI: PCI Root Bridge [PCI0] (00:00)
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+> ACPI: Power Button (FF) [PWRF]
+> 
+> One weird thing was that this system was not detected as an 
+> old bios and
+> thus the ACPI code was not turned off, while the only machine 
+> that I have
+> tried on which new ACPI works perfectly, a more modern PII 
+> machine, had the
+> ACPI set to off because its BIOS was too old.
+> 
+> Well, I suppose this won't tell much about the problem, so 
+> I'm offering for
+> gathering the info that may be needed to fix this, just tell 
+> me what to do.
+> 
+> Regards...
+> -- 
+> Manty/BestiaTester -> http://manty.net
+> -
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
