@@ -1,26 +1,37 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ACPI update (20030122)
-Date: Thu, 23 Jan 2003 16:09:07 -0800
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847137FB5@orsmsx401.jf.intel.com>
+From: Dominik Bartenstein <dom-K271P2BsTd0@public.gmane.org>
+Subject: IBM Thinkpad | ACPI
+Date: Fri, 24 Jan 2003 01:05:32 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200301240105.32478.dom@wahuu.at>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: Dave Jones <davej-rdkfGonbjUTCLXcRTR1eJlpr/1R2p/CL@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Dave Jones [mailto:davej-rdkfGonbjUTCLXcRTR1eJlpr/1R2p/CL@public.gmane.org] 
-> I've noticed that with .59 some of my boxes no longer have
-> functioning NICs unless I boot with acpi=off. Packets get
-> transmitted, but nothing ever gets received.
-> Seen this with a 3c509, an 8139, and an e100.
-> 
-> Known bug? Fixed in this patch ?
+Hi!
 
-Known bug. Not fixed in this patch. Are you sure this is new in recent
-kernels?
+I want to say many thanks to Bruno Ducrot who provided a work around for the 
+IBM Thinkpads! His patch replaces the actual ECDT table with a modified one. 
+/proc/acpi/battery works perfectly, so does /proc/acpi/processor. 
+/proc/acpi/fan and /proc/acpi/thermal_zone are not working yet.
 
-Regards -- Andy
+Greetings,
+Dom
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
