@@ -1,18 +1,13 @@
-From: Frank Mehnert <fm3-IG//nw+yl+iQIjdd1DhZXWfrygkm6VTR@public.gmane.org>
-Subject: Re: IBM T41 + ACPI + APIC
-Date: Thu, 12 Aug 2004 21:56:38 +0200
+From: "Cintia B. Margi" <cintia-Emgmuai4XwL2fBVCVOL8/A@public.gmane.org>
+Subject: question about ACPI & Smart Batteries
+Date: Thu, 12 Aug 2004 15:02:06 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408122156.42419.fm3@os.inf.tu-dresden.de>
-References: <F760B14C9561B941B89469F59BA3A8470726A996@orsmsx401.amr.corp.intel.com> <411BA242.6010103@optonline.net>
+Message-ID: <20040812220206.GC30862@miramar.cse.ucsc.edu>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1;
-  boundary="Boundary-02=_6t8GBxRC5RQ35PL";
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <411BA242.6010103-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -25,43 +20,32 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Boundary-02=_6t8GBxRC5RQ35PL
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hello,
 
-On Thursday 12 August 2004 19:00, Nathan Bryant wrote:
-> Grover, Andrew wrote:
-> > You need an IOAPIC. The local APIC is basically just the part of the CPU
-> > that receives messages from the IOAPIC, if present.
->
-> By the way, it is a bad idea to use front-side-bus interrupt delivery on
-> some (all?) Intel mobile processors/chipsets. This prevents entering C3,
-> if I remember correctly. The real details are in the i850-M databook...
+I am trying to understand the information flow between a Smart Battery and =
+the values
+I can see at /proc/acpi/battery/BAT0/state. I lookedt at ACPI standard, and=
+ it says
+that if the battery supports "smart battery", it is responsible by providin=
+g the battery
+related values (please correct me if I am wrong). Than I took a look at "Sm=
+art Battery"
+data standard and it specifies the parameters. It also says that this param=
+eters should
+be polled by the SMBus Host.
 
-BTW: Why does Linux not use the Local APIC timer as a source for timer=20
-interrupts? Using the Local APIC timer saves the kernel from acknowledging
-the PIT IRQ. Acknowledging the Local APIC IRQ is _much_ cheaper.
+What I really want to know is how often /proc/acpi/battery/BAT0/state is up=
+dated when
+a battery is discharging/charging.=20
 
-=46rank
-=2D-=20
-## Dept. of Computer Science, Dresden University of Technology, Germany ##
-## http://os.inf.tu-dresden.de/~fm3                                     ##
+I do not have acpid installed, and I running Debian kernel 2.6.6, with acpi=
+ version
+20040326.=20
+=20
+Thanks!
 
---Boundary-02=_6t8GBxRC5RQ35PL
-Content-Type: application/pgp-signature
-Content-Description: signature
+Cintia
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBBG8t66z8pigLf3EcRAnucAJ4vdOZc3lWPXAC+dwVZF8sA2/NIDQCfQcqY
-VcZCWUQKsGdjaDrN+KiKHuc=
-=NtPN
------END PGP SIGNATURE-----
-
---Boundary-02=_6t8GBxRC5RQ35PL--
 
 
 -------------------------------------------------------
