@@ -1,14 +1,15 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [PATCH] return number of devices claimed from acpi_bus_register_driver()
-Date: Fri, 30 Jul 2004 19:17:34 +0200
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Re: Radeon PM Support
+Date: Fri, 30 Jul 2004 13:31:15 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040730171734.GA29979@hell.org.pl>
-References: <200407291209.28801.bjorn.helgaas@hp.com>
+Message-ID: <1091194275.2375.1.camel@6-allhosts>
+References: <1091139240.26511.9.camel@6-allhosts>
+	 <20040730141028.GE21359@luna.mooo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200407291209.28801.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+In-Reply-To: <20040730141028.GE21359-4cxDFgrrBECgSpxsJD1C4w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +18,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Bjorn Helgaas:
-> pnp_register_driver() and pci_register_driver() return the number of
-> devices claimed by the driver.  This makes acpi_bus_register_driver()
-> do the same.
+On Fri, 2004-07-30 at 14:10, Micha Feigin wrote:
+[...]
+> I am not sure about the current state of things. AFAIK the problem was
+> with dri suspend support for radeon, and at the time at least, the card
+> was reset on VT switch to enable suspend. IIRC the patch was
+> incorporated into main the main tree quite some time ago.
 > 
-> All existing callers of acpi_bus_register_driver() either ignore the
-> return value or check only for negative (error) return values.
- 
-I'd like to see that (or something similar) in if possible. The current
-behaviour of acpi_bus_register_driver() does not allow for a clean solution
-to back off in case no devices are claimed, thus most acpi drivers will
-properly load even if there's no matching hardware available.
-Best regards,
+> I have no experience with S3 suspend (my laptop doesn't seem to support
+> it) but it does suspend with swsusp2 if I switch VT.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Thanks to everyone for their responses. I won't be able to try anything
+out for a week or so because the card is in the mail still, but this
+gives me a good idea of what to expect when I do get it. Thanks again.
+
+Andrew
+
 
 
 -------------------------------------------------------
