@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: RE: PATCH: Call acpi_leave_sleep_state before resuming devices
-Date: Thu, 20 Jan 2005 21:56:49 +0100
-Message-ID: <20050120205648.GE468@openzaurus.ucw.cz>
-References: <16A54BF5D6E14E4D916CE26C9AD30575F054DA@pdsmsx402.ccr.corp.intel.com> <200501191636.15174.stefandoesinger@gmx.at> <20050119211716.GA4066@elf.ucw.cz> <200501201417.12228.stefandoesinger@gmx.at>
+From: jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org (Johan Vromans)
+Subject: DockApps (Was: Smart Battery System driver)
+Date: Thu, 20 Jan 2005 22:27:31 +0100
+Message-ID: <16880.8771.253591.739342@phoenix.squirrel.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200501201417.12228.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +15,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan D inger <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+[Quoting Rich Townsend, on January 19 2005, 08:31, in "Re: Smart Battery Sy"]
+> However, I'm surprised that the GB applet doesn't get the AC state from 
+> polling /proc/acpi/adapter/AC0/state. I use wmacpi, and that shows up 
+> the AC state fine...
 
-> > > Allright, here it is. This patch introduces two new suspend/resume
-> > > functions, pm_ops->setup and pm_ops->leave. There are now 5 functions:
-> > >
-> > > prepare: It's called before devices are suspended
-> > > setup: Called after device suspend but before finally going to sleep
-> > > enter: Last suspend function
-> > > leave: Called before devices are beeing resumed
-> > > finish: Last function, called after device resume
-> >
-> > Add this as a comment to pm.h and you have my Acknowledged-by: :-)
-> Allright, here it is.
+Speaking of wmacpi: what is your favorite (acpi-related) docapp for
+your laptop? 
 
-Acked-by: Pavel
+wmacpi is quite nice (needs a couple of patches, though).
+wmlaptop is also quite nice, but its ACPI support doesn't seem up to
+	 date.
+wmpower is also nice, etc.
+wmacpimon doesn't get the values right.
 
-You probably want to mail it to len, cc: akpm to get it included.
+Most of them have some form of libacpi that does a varying job. It is
+clear that using the SBS info would be much easier, and better.
 
-				Pavel
-
-
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+-- Johan
 
 
 -------------------------------------------------------
