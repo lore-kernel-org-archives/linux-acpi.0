@@ -1,12 +1,14 @@
-From: "Barry Stein" <barrystein_qa-Otscj6OxWA6jDu5FIAKUs/U/3Eu2kcEP@public.gmane.org>
-Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
-Date: Sat, 30 Oct 2004 22:28:45 -0300
-Message-ID: <6cc301c4bee8$4c8c2f6d$041c5c0d@westhawk.nl>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Laptop does not halt or reboot anymore
+Date: 31 Oct 2004 01:27:22 -0400
+Message-ID: <1099200442.18176.6.camel@d845pe>
+References: <16768.61140.778090.570927@aber.ac.uk>
+	 <16769.64564.408964.717856@aber.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <16769.64564.408964.717856-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,32 +18,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+On Fri, 2004-10-29 at 04:15, Fred Labrosse wrote:
 
-Do you want a rolex watch?
+> What can I do to help?
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+re-test with 2.6.9
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.roiex.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://roiex.com/z.php
+thanks,
+-Len
 
 
 
