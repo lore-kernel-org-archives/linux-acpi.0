@@ -1,10 +1,10 @@
-From: Giridhar Pemmasani <giri-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
-Subject: patch: acpi-20020821 fix?
-Date: Tue, 27 Aug 2002 02:55:25 -0400
+From: Jamin W. Collins <jcollins-u0TlgVUp4POoiH3BShWgcg@public.gmane.org>
+Subject: C1VN, ACPI and ESD/ASD = const CPU
+Date: Tue, 27 Aug 2002 09:18:44 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <15723.8797.507913.189282@marple.lmc.cs.sunysb.edu>
+Message-ID: <20020827091844.7af7a982.jcollins@asgardsrealm.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,21 +18,43 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It seems that the following patch against drivers/acpi/system.c
-is needed to get 'echo -n 5 > /proc/acpi/sleep' to work as
-expected. 
+Has anyone else tried using ACPI with the C1VN or similiar laptops?  I've
+recently recompiled my kernel, removing APM and enabling ACPI.  Most
+things seem to work fine (battery status and events).  However, when I
+start esd or asd to mix audio streams my processor utilization immediately
+jumps to ~50% and stays there.  The utilization drops to 15-30% if I set
+longrun to maximum rather than variable.  I've verified the utilization
+with both "top" and "gkrellm".  However, while top shows that my CPU is
+not completely idle, it does not list what is using the CPU.  I've tried
+sorting by CPU utilization, but there are still large gaps. As shown by
+the following:
 
---- system.c.orig   Tue Aug 27 02:42:17 2002
-+++ system.c    Tue Aug 27 02:43:42 2002
-@@ -110,7 +110,7 @@
-    acpi_status status;
- 
-    /* only support S1 and S5 on kernel 2.4 */
--   if (state != ACPI_STATE_S1 || state != ACPI_STATE_S5)
-+   if (state != ACPI_STATE_S1 && state != ACPI_STATE_S5)
-        return AE_ERROR;
- 
-    acpi_enter_sleep_state_prep(state);
+CPU states:   0.8% user,  25.7% system,   0.0% nice,  73.5% idle
+Mem:    110876K total,   107672K used,     3204K free,     9944K buffers
+Swap:   996020K total,        0K used,   996020K free,    48224K cached
+
+  PID USER     PRI  NI  SIZE  RSS SHARE STAT %CPU %MEM   TIME COMMAND
+  700 jcollins  15   0   960  960   748 R     1.1  0.8   0:16 top
+  591 root      10 -10 39296  30M  2052 S <   0.7 27.8   2:14 XFree86
+    1 root       8   0   488  488   424 S     0.0  0.4   0:01 init
+    2 root       9   0     0    0     0 SW    0.0  0.0   0:00 keventd
+    3 root      19  19     0    0     0 SWN   0.0  0.0   0:00
+ksoftirqd_CPU0
+    4 root       9   0     0    0     0 SW    0.0  0.0   0:00 kswapd
+
+I'm able to run either ESD or ASD with a non-ACPI kernel without these
+symptoms and likewise, running the ACPI kernel without ESD or ASD results
+in normal CPU utilization.
+
+I've tried both the vanilla ACPI support provided with the 2.4.18 kernel
+and the latest patches provided by the ACPI project for the 2.4.18 kernel,
+both exhibit the same behaviour.
+
+Any ideas on how to use both ACPI and either ASD or ESD without this high
+CPU utilization cropping up?
+
+-- 
+Jamin W. Collins
 
 
 -------------------------------------------------------
