@@ -1,13 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Compile problem in DSDT.dsl file
-Date: Mon, 17 Jan 2005 14:08:20 +0100
-Message-ID: <20050117130819.GA8558@hell.org.pl>
-References: <200501101200.13340.rjweber@ieee.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Mon, 17 Jan 2005 14:20:23 +0100
+Message-ID: <20050117132023.GT19199@poupinou.org>
+References: <41E81C2C.8010809@bartol.udel.edu> <1105747983.7368.3.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200501101200.13340.rjweber-EkmVulN54Sk@public.gmane.org>
+In-Reply-To: <1105747983.7368.3.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bob Weber <rjweber-EkmVulN54Sk@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Bob Weber:
-> Hello. I've had ACPI working on my laptop, but with the latest kernel I cannot 
-> boot unless I have "acpi=off".
+On Sat, Jan 15, 2005 at 12:13:03AM +0000, Matthew Garrett wrote:
+> On Fri, 2005-01-14 at 14:23 -0500, Rich Townsend wrote:
 > 
-> After reading up on the linux ACPI effort, I decided to try and tackle this. I 
-> have an enpower ENP24004 centrino-based system. With an Intel chipset, I 
-> figured chances are good that the only issue is in the DSDT table.
+> > ...provides access to the SBS via a new /proc/acpi/sbs interface, and
+> > also provides a "legacy" /proc/acpi/battery interface that current
+> > battery-monitoring tools can access. This driver depends on Bruno's 
+> > i2c-acpi-ec driver, which I have included with my source code since a 
+> > couple of bug fixes were necessary.
 > 
-> I've extracted the DSDT code, and when I compile it with "iasl -tc dsdt.dsl", 
-> I get the following:
+> One thing I've been meaning to ask - several Thinkpads have an
+> interesting design issue, whereby reading certain smbus addresses can
+> render the machine unbootable without a motherboard replacement. As a
+> result, i2c-piix refuses to load on Thinkpads. Does something similar
+> need to be done for i2c-acpi-ec, or does it only provide i2c access to
+> devices connected to the embedded controller?
 > 
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
-> Copyright (C) 2000 - 2003 Intel Corporation
-> Supports ACPI Specification Revision 2.0b
-> 
-> dsdt.dsl  7573:     If (SS1)
-> Error    1037 -      ^ parse error, unexpected PARSEOP_IF
 
-A rebranded ASUS, M3N in this case. Someone once suggested to move those
-statements to an _INI method, please search the archives for the exact
-solution.
-Best regards,
+The latter.  But its possible that devices connected may be
+faulty.  I'm not aware of a thinkpad with such i2c access (though
+its possible there is one than can be legacy).
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
