@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Linux ACPI processor driver patch: user-definable power state limit
-Date: Sun, 10 Oct 2004 03:14:59 -0400
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Early init patch breaks Dell laptops
+Date: 10 Oct 2004 04:44:43 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3001A1938D@hdsmsx401.amr.corp.intel.com>
+Message-ID: <1097397880.16792.23.camel@d845pe>
+References: <3ACA40606221794F80A5670F0AF15F8405BD1224@pdsmsx403>
+	 <416822C3.1040503@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="=-AoeFo7QDOQRFoJCH7xM4"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <416822C3.1040503-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,37 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Cc: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-great -- I was hoping to hear this.
+
+--=-AoeFo7QDOQRFoJCH7xM4
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+Let me know if this doesn't address all of the regressions.
 
 thanks,
 -Len
-=20
 
->-----Original Message-----
->From: Dominik Brodowski [mailto:linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org]=20
->Sent: Saturday, October 09, 2004 2:56 PM
->To: Brown, Len
->Cc: Jos Delbar; ACPI Developers; Moore, Robert
->Subject: Re: [ACPI] Re: Linux ACPI processor driver patch:=20
->user-definable power state limit
->
->Len,
->
->module parameters are even better suited for for this task:
->processor.acpi_cstate_limit=3D1 can be passed on the boot line.=20
->I'd vote for
->the removal of "acpi_", though. As soon as Rusty's and mine "module
->parameters" patch make them also available in /sys/module/*/ for
->modification during runtime, if so desired.
->
->Thanks,
->	Dominik
->
->
+
+
+--=-AoeFo7QDOQRFoJCH7xM4
+Content-Disposition: attachment; filename=lapic.patch
+Content-Type: text/plain; name=lapic.patch; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+===== arch/i386/kernel/apic.c 1.60 vs 1.61 =====
+--- 1.60/arch/i386/kernel/apic.c	2004-10-06 21:10:37 -04:00
++++ 1.61/arch/i386/kernel/apic.c	2004-10-10 04:12:38 -04:00
+@@ -690,22 +690,8 @@
+ 		goto no_apic;
+ 	}
+ 
+-	if (!cpu_has_apic) {
+-		/*
+-		 * Some BIOSes disable the local APIC in the
+-		 * APIC_BASE MSR. This can only be done in
+-		 * software for Intel P6 and AMD K7 (Model > 1).
+-		 */
+-		rdmsr(MSR_IA32_APICBASE, l, h);
+-		if (!(l & MSR_IA32_APICBASE_ENABLE)) {
+-			apic_printk(APIC_VERBOSE, "Local APIC disabled "
+-					"by BIOS -- reenabling.\n");
+-			l &= ~MSR_IA32_APICBASE_BASE;
+-			l |= MSR_IA32_APICBASE_ENABLE | APIC_DEFAULT_PHYS_BASE;
+-			wrmsr(MSR_IA32_APICBASE, l, h);
+-			enabled_via_apicbase = 1;
+-		}
+-	}
++	if (!cpu_has_apic)
++		goto no_apic;
+ 	/*
+ 	 * The APIC feature bit should now be enabled
+ 	 * in `cpuid'
+
+--=-AoeFo7QDOQRFoJCH7xM4--
+
 
 
 -------------------------------------------------------
