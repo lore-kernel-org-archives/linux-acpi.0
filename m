@@ -1,8 +1,8 @@
 From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: fan control based on temp
-Date: Thu, 17 Jun 2004 10:10:37 +0800
+Date: Thu, 17 Jun 2004 10:46:18 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6E0C289723A0564F9A8279E236E8565F07A00084@pdsmsx402.pd.intel.com>
+Message-ID: <6E0C289723A0564F9A8279E236E8565F07A000D1@pdsmsx402.pd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-2022-jp"
@@ -21,76 +21,32 @@ To: Dan <overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a known issue on some laptops.
-http://bugme.osdl.org/show_bug.cgi?id=2026
+I can't extract DSDT from your file.
+Do you use pmtool from kernel.org?
+http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 
-Pls, attach your acpidump output.
+acpidmp DSDT > a
+iasl -d a
+and attach the a.dsl output
 
 -zhen 
 
 -----Original Message-----
 From: Dan [mailto:overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org] 
-Sent: 2004年6月17日 10:04
+Sent: 2004年6月17日 10:23
 To: Wang, Zhenyu Z
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Subject: RE: [ACPI] fan control based on temp
 
-On Sun, 2004-06-13 at 22:26, Wang, Zhenyu Z wrote:
->  Any debug message? dmesg...
+On Wed, 2004-06-16 at 22:10, Wang, Zhenyu Z wrote:
+> This is a known issue on some laptops.
+> http://bugme.osdl.org/show_bug.cgi?id=2026
 > 
-> What's the type of your laptop?
+> Pls, attach your acpidump output.
 > 
-> -zhen
+> -zhen 
 
-While I'm waiting for the fan to stop, I figured I'd post all the info
-in my dmesg about acpi, the laptop is a sager 8550v (aka prostar, clevo,
-etc.) -Dan
-
- BIOS-e820: 000000000fff0000 - 000000000ffffc00 (ACPI data)
- BIOS-e820: 000000000ffffc00 - 0000000010000000 (ACPI NVS)
-ACPI: RSDP (v000 PTLTD                                     ) @
-0x000f6da0
-ACPI: RSDT (v001 PTLTD    RSDT   0x06040000  LTP 0x00000000) @
-0x0fffc4ff
-ACPI: FADT (v001 CLEVO  HOFFA    0x06040000 PTL_ 0x000f4240) @
-0x0ffffb8c
-ACPI: DSDT (v001  Clevo PTL_ACPI 0x06040000 MSFT 0x0100000b) @
-0x00000000
-ACPI: Looking for DSDT in initrd ... found (at offset 87794)!
-ACPI: Subsystem revision 20040326
-ACPI: IRQ10 SCI: Level Trigger.
-    ACPI-1133: *** Error: Method execution failed
-[\_SB_.PCI0.PIB_.SIRA._STA] (Node c12c91e0), AE_AML_NO_RETURN_VALUE
-    ACPI-0154: *** Error: Method execution failed
-[\_SB_.PCI0.PIB_.SIRA._STA] (Node c12c91e0), AE_AML_NO_RETURN_VALUE
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 11 13 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs *5 13 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs *10 13 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs *11 13 14 15)
-ACPI: Embedded Controller [EC0] (gpe 12)
-ACPI: Power Resource [PFNL] (on)
-ACPI: Power Resource [PFNH] (on)
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 5
-PCI: Using ACPI for IRQ routing
-PCI: if you experience problems, try using option 'pci=noacpi' or even
-'acpi=off'
-ACPI: AC Adapter [ADP0] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Lid Switch [LID]
-ACPI: Fan [FANL] (on)
-ACPI: Fan [FANH] (on)
-ACPI: Processor [CPU0] (supports C1 C2, 16 throttling states)
-ACPI: Thermal Zone [THM0] (44 C)
-ACPI: (supports S0 S1 S4 S5)
+hmm, and I am on a 2.6.x kernel... acpidump output's attached -Dan
 
 ============================
 -Dan "OverrideX"-
@@ -98,10 +54,8 @@ ICQ: 7171522
 AIM: OverrideX
 Jabber: OverrideX-/eSpBmjxGS4dnm+yROfE0A@public.gmane.org
 
-Cold, adj.: When the politicians walk around with their hands in their
-own pockets.
-
-
+"How to make a million dollars: First, get a million dollars." -- Steve
+Martin
 
 
 
