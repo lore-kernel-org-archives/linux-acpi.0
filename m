@@ -1,13 +1,12 @@
-From: David =?utf-8?B?R8OzbWV6?= <david-0d+f1cuTMnnk1uMJSBkQmQ@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: Smart Battery System driver
-Date: Sat, 15 Jan 2005 01:06:03 +0100
-Message-ID: <20050115000603.GA22263@fargo>
+Date: Sat, 15 Jan 2005 00:13:03 +0000
+Message-ID: <1105747983.7368.3.camel@tyrosine>
 References: <41E81C2C.8010809@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <41E81C2C.8010809-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,30 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rich ;),
+On Fri, 2005-01-14 at 14:23 -0500, Rich Townsend wrote:
 
-On Jan 14 at 02:23:24, Rich Townsend wrote:
-> Accordingly, I've written a first shot at an SBS ACPI driver. This
-> driver, which can be downloaded from
->=20
-> http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20040114.tar.gz
+> ...provides access to the SBS via a new /proc/acpi/sbs interface, and
+> also provides a "legacy" /proc/acpi/battery interface that current
+> battery-monitoring tools can access. This driver depends on Bruno's 
+> i2c-acpi-ec driver, which I have included with my source code since a 
+> couple of bug fixes were necessary.
 
-To Bruno and you: Thanks. Really really tkanks :). It works like
-a charm ;). For the record, i'm testing it on a Travelmate 4001LMi
-with kernel 2.6.10. Both interfaces, legacy and the new sbs one
-are working ok. Same for acpi userspace tools.
+One thing I've been meaning to ask - several Thinkpads have an
+interesting design issue, whereby reading certain smbus addresses can
+render the machine unbootable without a motherboard replacement. As a
+result, i2c-piix refuses to load on Thinkpads. Does something similar
+need to be done for i2c-acpi-ec, or does it only provide i2c access to
+devices connected to the embedded controller?
 
-Hope all the quaint things you do are like this ;)
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-Thanks again.
-
---=20
-David G=C3=B3mez                                      Jabber ID: davidge@=
-jabber.org
 
 
 -------------------------------------------------------
