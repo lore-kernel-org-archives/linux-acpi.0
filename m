@@ -1,14 +1,13 @@
-From: kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org
-Subject: Re: RE: Thermal OOPS fixed
-Date: Tue, 01 Oct 2002 22:52:09 +0200 (MEST)
+From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Subject: [not-ACPI] What happened to kernel.org?
+Date: Wed, 2 Oct 2002 00:45:10 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.SOL.4.21.0210012247410.28739-100000@neptun>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DEE6@orsmsx119.jf.intel.com>
+Message-ID: <200210020045.10241.p_christ@hol.gr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <EDC461A30AC4D511ADE10002A5072CAD0236DEE6-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,22 +16,10 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Knut Neumann' <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 1 Oct 2002, Grover, Andrew wrote:
-> I will fix the timer init problem. Can you submit a patch for the rmmod
-> /proc issue?
-
-Not yet, but I am working on it. It seems that something goes wrong in
-acpi_bus_unregister_driver. Obviously acpi_thermal_remove does not get
-called. I will submit a patch if I can as soon as possible.
-
-Can anyone else reproduce the problem?
-
--Knut
-
+Anybody there could say why www.kernel.org is down?
 
 
 
