@@ -1,14 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: [PATCH] s3_bios and lcall $0xc000,$3
-Date: 18 Feb 2003 14:56:37 +0100
+Date: Tue, 18 Feb 2003 17:08:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1045576597.6967.46.camel@dutidad>
-References: <Pine.LNX.4.33.0302181426010.22900-100000@godzilla.axis.se>
+Message-ID: <20030218160811.GA32192@atrey.karlin.mff.cuni.cz>
+References: <20030218000206.GC7372@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0302180216520.21776-100000@godzilla.axis.se> <20030218111954.GB5277@atrey.karlin.mff.cuni.cz> <1045572005.7077.40.camel@dutidad>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.33.0302181426010.22900-100000-Hi2dXqvvzfEtpH44vsTDoQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1045572005.7077.40.camel-1Jw6Eky0yc0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,28 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2003-02-18 at 14:29, Bjorn Wesen wrote:
-> On 18 Feb 2003, Charl P. Botha wrote:
-> > If the X server is not using DRI, the BIOS initialisation is mostly
-> > sufficient, as X resets the correct video mode when one VT switches
+Hi!
+
+> > > OTOH - if you suspend/wakeup from within X, I assume (??) that the X server 
+> > > will take care of proper card-specific reinitialization ? Haven't
+> > > tried it 
+> > 
+> > X-server is not able to do *this* hard reinitialization :-(.
 > 
-> DOes the X server react to the pm events then and does this resetting when 
-> resuming, without having to switch manually to the console before and back 
-> after ?
+> If the X server is not using DRI, the BIOS initialisation is mostly
+> sufficient, as X resets the correct video mode when one VT switches
 
-The current X code is not sensitive to all PM events: last  I checked
-only APM.  However, currently the code is such that a suspend event
-automatically switches to a text VT and resume switches back.  It makes
-sense to have this kind of code in the VT switch handling, since an
-application can do strange things to the video whilst we're switched
-away from X, so technically, X should never assume any kind of state
-when it switches back.
 
+Unfortunately, during S3 resume, BIOS initialisation may or may not
+have been run, or maybe you have it in state you left in. You don't
+know.
+
+								Pavel
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Casualities in World Trade Center: ~3k dead inside the building,
+cryptography in U.S.A. and free speech in Czech Republic.
 
 
 -------------------------------------------------------
