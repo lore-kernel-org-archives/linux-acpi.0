@@ -1,14 +1,14 @@
-From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: acpi on new gateway laptops
-Date: Mon, 17 Nov 2003 14:37:20 -0500
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Crash with fs corruption on 2.4.23-rc1 + CONFIG_ACPI_PROCESSOR
+Date: Mon, 17 Nov 2003 20:51:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031117193719.GB32570@masanjin.net>
-References: <20031112232315.GD430@masanjin.net> <20031117102219.O60721@root.org> <20031117183900.GA32570@masanjin.net> <20031117104936.N60907@root.org>
+Message-ID: <20031117195118.GX32464@poupinou.org>
+References: <20031113161857.GM26911@roosevelt.alcove-fr> <20031114124713.GK32464@poupinou.org> <20031114152403.GK29316@roosevelt.alcove-fr> <20031115065020.GO32464@poupinou.org> <20031115134811.GA2630@hottah.alcove-fr> <20031117131800.GQ32464@poupinou.org> <20031117102931.B60721@root.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031117104936.N60907-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <20031117102931.B60721-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,33 +21,52 @@ To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Excerpts (reformatted) from Nate Lawson's mail of 17 Nov 2003 (EST):
-> Get the data from the DSDT.  Dump it with acpidmp, search for PNP0C09,
-> then write down the resources.  Mine is below:
+On Mon, Nov 17, 2003 at 10:31:36AM -0800, Nate Lawson wrote:
+> On Mon, 17 Nov 2003, Ducrot Bruno wrote:
+> > On Sat, Nov 15, 2003 at 02:48:11PM +0100, Stelian Pop wrote:
+> > > On Sat, Nov 15, 2003 at 07:50:20AM +0100, Ducrot Bruno wrote:
+> > >
+> > > > I think the trouble come from C3, just need to check some values.  If you
+> > > > can, it may be usefull that you disable C3, with something like that:
+> > > >
+> > > > +		acpi_fadt.plvl3_lat = 1234;
+> > >
+> > > And the patch works, your assumption was correct.
+> > >
+> > > Now, C3 seem to be reported as supported, 2.6 (correctly) doesn't
+> > > promote to it, but 2.4 does. I can't find an obvious reason by reading
+> > > the processor.c code (almost identical between 2.4/2.6...)
+> >
+> > No, 2.6 have some trouble, I guess, because C3 should be promoted.  I guess
+> > you are using a USB bridge driver, which need to be rewrotten somehow, because
+> > it does a lot of DMA transfers just to check if a device is plugged..
+> > That affect all USB driver, but not EHCI IIRC.
+> 
+> BTW, you were right about USB causing huge numbers of BM events.  Without
+> it in my kernel, things are quiet and C3 is used.  I just committed the
+> driver (FreeBSD).  Playing mp3s also results in BM activity but that is
+> expected.  I plan to add a quiesce method to our USB drivers so that ACPI
+> can shut the polling off while idle.
+> 
 
-Hm, mine looks like this:
+Well, easy to guess: each time C3 is problematic under Linux show that
+it's either:
+1/ USB bridge (need to be fixed in the usb driver, not acpi related imo),
+2/ PIIX4 F-DMA errata deadlock is enabled (that is: C3 have to be disabled).
+3/ PIIX4 ide workaround check is enabled.
 
-  Device(H_EC) {
-      Name(_HID, 0x090cd041)
-      Name(_UID, 0x1)
-      Method(_CRS) {
-          Name(BFFR, Buffer(0x12) {0x47, 0x1, 0x62, 0x0, 0x62, 0x0, 0x0, 0x1, 0x47, 0x1, 0x66, 0x0, 0x66, 0x0, 0x0, 0x1, 0x79, 0x0 })
-          Return(BFFR)
-      }
-      OperationRegion(ECR_, EmbeddedControl, 0x0, 0xff)
-      ...
-  }
+1/ still need to be fixed.
+2/ and 3/ have been fixed by Dominik Brodowski last year.
 
-So I'm guessing that this also corresponds to control reg=0x66 and data
-reg=0x62 as I see those two numbers in the buffer. So I think I should be able
-to use an ECDT that's identical to yours, except the EC_ID field (which in my
-case is "\_SB_.PCI0.LPCB.H_EC")....
+The trouble for Stelian seems to be different, though (and therefore more
+interresting).
 
-Let me know if that doesn't seem right; otherwise, thank you very much
-for the instructions.
 
 -- 
-William
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
