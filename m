@@ -1,45 +1,80 @@
-From: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
-Date: Fri, 21 Feb 2003 11:33:45 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200302211133.45773.bjorn_helgaas@hp.com>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BAFC@orsmsx107.jf.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Sneaking patches in (was Re: System hang when trying to enter sleep/standby state)
+Date: Tue, 18 Feb 2003 09:15:56 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030218081556.GB137@elf.ucw.cz>
+References: <20030217131922.GC4704@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0302171016320.1034-100000@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BAFC-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0302171016320.1034-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> 2) I'm not convinced that this buys a whole lot -- it just hides the code
-> behind a macro (something that's not generally liked in the Linux world.)
-> Would this procedure be called from more than one place?
+Hi!
 
-I assume you're wondering about the value of this piece:
+> > Even with the changelogs, I can't decide which one of these it
+> > is. Probably 2.19, but as it also moves files, commit list is useless
+> > because it represent moves as delete all lines, add all lines, and any
+> > change is hidden.
+> 
+> As a personal choice, I _never_ make changes when I move files. I've been 
+> so pissed at Andy for unintentionally obscuring changes this way that I 
+> swore I would never do it myself. :)
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:bjorn_helgaas-VXdhtT5mjnY@public.gmane.org] 
-> Sent: Tuesday, February 11, 2003 1:58 PM
-> ...
->     2) Addition of acpi_resource_to_address64(), which copies
->        address16, address32, or address64 resources to an address64
->        structure, so you don't have to maintain three sets of code
->        that differ only in the size of the address they deal with.
+Okay...
 
-If so, decode_acpi_resource() in drivers/hotplug/acpiphp_glue.c is a
-good example of why acpi_resource_to_address64() is useful.
-decode_acpi_resource() contains a switch to handle 16-, 32-,
-and 64-bit addresses.
+> > -
+> > -	/* Install the soft-off (S5) handler. */
+> > -	if (sleep_states[ACPI_STATE_S5]) {
+> > -		pm_power_off = acpi_power_off;
+> > -
+> > -		/* workaround: some systems don't claim S4 support,
+> > but they
+> > -                   do support S5 (power-down). That is all we need,
+> > so
+> > -		   indicate support. */
+> > -		sleep_states[ACPI_STATE_S4] = 1;
+> > -	}
+> >  
+> >  	return_VALUE(0);
+> > 
+> > Are you sure about this one?
+> 
+> Definitely. The setting of pm_power_off was moved to poweroff.c. 
+> 
+> The other part is bogus. S5 is not a sleep state, and shouldn't be treated 
+> as such. You can still do a swsusp-style suspend and enter S5, in which 
+> case I wouldn't recommend going through ACPI at all. You simply don't need 
+> it. You need to save state, etc, then just call pm_power_off(). 
 
-So does acpi_get_crs_addr() in arch/ia64/kernel/acpi.c.  So will
-my code to support multiple IO port space on IA64 (unless we
-have something like acpi_resource_to_address64()).
+Yes but I need S4 to be enabled, i.e. sleep_states[ACPI_STATE_S4] =
+1;. OTOH it might be usefull to enable S4 even if S5 is not there, it
+is usefull for old machines, too, user just has to turn it off
+manually.
 
-None of these places really cares whether the address is 16, 32,
-or 64 bits; they just have to have code to use the correct structure
-type.  I'm proposing that we hide that ugliness in one place, and
-most places can just deal with address64 and be done with it.
+> The only thing you lack is a way to trigger swsusp w/o ACPI, right? 
 
-Bjorn
+Actually you can trigger swsusp using syscall, but few people do that.
+
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SlickEdit Inc. Develop an edge.
+The most comprehensive and flexible code editor you can use.
+Code faster. C/C++, C#, Java, HTML, XML, many more. FREE 30-Day Trial.
+www.slickedit.com/sourceforge
