@@ -1,14 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Toshiba Satellite 1905S303 DSDT table
-Date: Tue, 4 Nov 2003 16:09:26 +0100
+From: "Debra Lancaster" <ll403h-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: US Stock Market: PFDE - Last Picks .45 to 1.18....74 to 1.20...fanchon
+Date: Tue, 04 Nov 2003 15:24:19 -0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031104150926.GO21970@poupinou.org>
-References: <3FA58FE8.4000409@techisa.srv.br> <20031104103943.GJ21970@poupinou.org> <3FA7A224.1080907@techisa.srv.br>
+Message-ID: <ovs83hy4muc01-8@1atn2.2hug>
+Reply-To: "Debra Lancaster" <ll403h-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="FB09E53F0."
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3FA7A224.1080907-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,107 +16,110 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 04, 2003 at 10:57:08AM -0200, Erico M Mendonca wrote:
-> Ducrot Bruno wrote:
-> 
-> >On Sun, Nov 02, 2003 at 09:14:48PM -0200, Erico M Mendonca wrote:
-> > 
-> >
-> >>I'm currently trying to debug the DSDT table of this aforementioned 
-> >>machine, and managed to clear all the errors, except for this one:
-> >>=================
-> >>Intel ACPI Component Architecture
-> >>ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
-> >>Copyright (C) 2000 - 2003 Intel Corporation
-> >>Supports ACPI Specification Revision 2.0b
-> >>
-> >>s303.asl   468:                 If(\_OSI) {
-> >>Error    1028 -      Too few arguments ^  (\_OSI requires 1)
-> >>
-> >>s303.asl   469:                     "Windows 2001"
-> >>Error    1037 -                                  ^ parse error, 
-> >>unexpected PARSEOP_STRING_LITERAL
-> >>
-> >>ASL Input:  s303.asl - 2871 lines, 112889 bytes, 2084 keywords
-> >>Compilation complete. 2 Errors, 0 Warnings, 0 Remarks, 538 Optimizations
-> >>==============
-> >>
-> >>   
-> >>
-> >
-> >FYI I have debugged a *lot* of similar models.  What is the
-> >problem you encounter for that one?
-> >
-> >
-> > 
-> >
-> I solved this by changing it to a simple
-> 
->               If(\_OSI ("Windows 2001")) 
 
-As I already tryed to say, unless you are on a BSD system,
-or unless someone port the FreeBSD acpidump, do not use acpidump.
-Or else, you are missing informations for debugging irq for example.
+--FB09E53F0.
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
+
+UPSIDE INTERNATIONAL - Searching Out Stocks with Big Upside Potential...th=
+at have gone unnoticed until now.
 
 
+UpSide International uncovers unusual trends and activity in stocks.  We l=
+ook for signs of block trades and insider purchasing in order to uncover i=
+nsight into uncommon trends.
 
-> Anyway, I got the ACPI working fine for most functions, except:
-> - processor: no throttling (Pentium 4), but that may be out of the scope 
-> of ACPI(?)
+Seven weeks ago, on Sept. 4th, we highlighted SUQU at 0.57. We set the tar=
+get price at 1.20.  It hit a high of 1.18--we were very close. Our last pi=
+ck was TRHL at 0.74 on Oct. 3rd.  Target was 1.13.  It hit 1.20.
 
-It may be done via ACPI, but cpufreq can do that via p4-clockmod.
+Our focus now is on Paramco Financial: PFDE
 
-> processor id:            0
-> acpi id:                 0
-> bus mastering control:   no
-> power management:        yes
-> throttling control:      no
-> performance management:  no
-> limit interface:         no
+New trading range (as of 10/28/03): Target -- 2.36.
 
-performance should work, strange.  Anyway, cpufreq can do that via
-speedstep-ich.
+Yesterday, a Long White Candlestick formed, and pressure was strong. The s=
+tock is in position for a higher high and a higher low. Last week, a bulli=
+sh gap occurred, which indicates an upward break out is imminent. The volu=
+me is very high. Also,  PFDE just started an unusual trading pattern.  Lar=
+ge blocks of shares are being bought.  Is this an indication of something?=
+ Are large investors picking up PFDE, an institution, what's coming?
 
-> 
-> - fan control/reporting
-> - thermal_zone and power_resource
+We have been seeing indicators with PFDE, the 20 - 50 Day MACD Oscillator =
+is now indicating an uptrend, 20 Day Bollinger Bands have moved into an up=
+grade indication.
 
-A thermal_zone can be added to the AML for that model.
+Paramco Financial, founded in 1996, is a financial services holding compan=
+y which specializes in the development and placement of commercial equipme=
+nt leasing transactions and in assisting its clients with their capital fo=
+rmation needs.
 
-> The lid and power buttons are generating events after recompiling the DSDT 
-> table (they didn't before). Proper IRQ routing, battery and ac_adapter 
-> worked before.
-> 
-> 
-> As for the Fn-keys:
-> 
-> Fn-ESC (mute): doesn't work
-> Fn-F1 (screen lock): doesn't work
-> Fn-F2 (power toggle): doesn't work
-> Fn-F3 (suspend to RAM): doesn't work
-> Fn-F4 (hibernate): doesn't work
-> Fn-F5 (video switch): hangs the machine (read below)
-> Fn-F6/F7 (brightness): works
-> Fn-F8 (wireless toggle): works
-> Fn-F9 (touchpad toggle): works
-> Fn-F10/F11/F12: well, they should work anyway :)
-> 
+In 2001, Paramco began a major vertical expansion effort to enter into the=
+ residential and commercial mort.gage industry, the mort.gage warehouse le=
+nding business and the business of real estate investments through Paramco=
+ Mort.gage Corporation and Paramco Investments, Inc.
 
-Some, if not all, of this Fn-key can be done via the omnibook kernel
-module (see http://sf.net/projects/omke).  You can test at first
-the perl tool, in order to check if that is ok.
 
-Cheers,
+RECENT NEWS
+Paramco Financial Acquires Royal Federal - a company in highly profitable =
+sector of mort.gage industry.
 
--- 
-Ducrot Bruno
+DENVER - (PRIMEZONE) -- Paramco Financial, Inc. (OTC BB:PFDE.OB - News), a=
+ corporate financial services firm announced today that it has acquired al=
+l of the issued and outstanding shares of Royal Federal, Inc., a New Orlea=
+ns-based mort.gage company.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+According to Douglas G. Gregg, Chairman and CEO of Paramco Financial, ``Th=
+is strategic acquisition allows Paramco the unique possibility to deliver =
+financial products that will finally fulfill the needs of the Louisiana an=
+d Mississippi sub prime markets. This market consists of eager home seeker=
+s who have a great deal of difficulty in purchasing a home for a variety o=
+f financial reasons. Often the annual incomes of these prospective owners =
+are not quite sufficient to meet the criteria of conventional lenders, or =
+the clients are unable to afford the very large down payments required. Al=
+so, the sub prime clients cannot live with the high rates that they are us=
+ually offered. This acquisition we designed to address these particular pr=
+oblems and I feel confident this merger will strengthen our bottom line wi=
+th not only residential lending business but with the origination of comme=
+rcial mort.gages and other types of client financing.''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bvmxmktfrgwrjrgmbjr
+
+--FB09E53F0.--
+
 
 
 -------------------------------------------------------
