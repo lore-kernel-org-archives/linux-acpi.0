@@ -1,12 +1,12 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Overheat event self fullfilling nightmare
-Date: Tue, 20 Aug 2002 14:00:22 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Why is the new patch against 2.4.20-pre3 and not 2.4.1
+	9?
+Date: Tue, 20 Aug 2002 10:42:42 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020820130022.GB2022@clara.net>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DDB1@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,42 +15,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'valette=9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org'" <valette-9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-We've had some hot weather recently, this combined with me playing with
-GLX on my laptop has meant I discovered the joys of CPU overheat.
+> From: VALETTE Eric [mailto:valette-9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org] 
+> I've tried to apply it on 2.4.19, it fails. I've tried on 
+> 2.4.20-pre4 it 
+> also fails :-(. So I have to stick with 2.4.20-pre3 which is known to 
+> cause some hangup on boot (see Marcello comment for pre4).
 
-Or rather.. not.
+OK there's a patch against pre4 on sf.net now.
 
-When the CPU gets hot enough to cause an event, it sends the event,
-sends the event again, ad infinitum.  This causes the machine to run at
-a load average which builds to 2.0 just trying to handle all these
-events.
+> Can we have some light of why 20-pre3 instead of 19? Or is it just 
+> cahotic because of the temperature and beverage?
 
-Is this a problem with my DSDT - not just sending the event *on* the
-threshold but continuing while it's over - probably.
+Because that's what I originally merged against, and I didn't want to
+remerge against .19.
 
-Is this also a problem with ACPI not limiting the number of repeat
-events being logged?  I think it should accept n same events in m
-seconds and flush remaining events of the same type until a different
-event happens.
-
-Any other opinions?  Any ideas where I should start looking in the DSDT
-to find the code which manages this?
-
-
-Faye
-
--- 
-Faye Pearson,
-Software Development Manager,
-ClaraNET Ltd.       Tel 020 7903 3000
-
-narcolepulacyi, n.:
-	The contagious action of yawning, causing everyone in sight
-	to also yawn.
-		-- "Sniglets", Rich Hall & Friends
+-- Andy
 
 
 -------------------------------------------------------
