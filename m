@@ -1,14 +1,16 @@
-From: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Lhms-devel] [PATCH] ACPI based Memory Hotplug DriverPatch
-Date: Fri, 10 Sep 2004 18:19:50 +0530
+From: Andreas Dieling <snow-1pFVYSAoaJAREI5ypv3d1g@public.gmane.org>
+Subject: Re: acpi_serialize not working?
+Date: Fri, 10 Sep 2004 14:54:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <FEB6C4E97F6CAF41978FB2059D5454180F37F2@bgsmsx402.gar.corp.intel.com>
+Message-ID: <200409101454.51943.snow@quantentunnel.de>
+References: <37F890616C995246BE76B3E6B2DBE05501F537BE@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE05501F537BE-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,41 +19,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Friday 10 September 2004 00:55, Moore, Robert wrote:
+> The implementation of the forced serialization is straightforward:
+>
+>     if (AcpiGbl_AllMethodsSerialized)
+>     {
+>         ObjDesc->Method.Concurrency = 1;
+>         ObjDesc->Method.MethodFlags |= AML_METHOD_SERIALIZED;
+>     }
+>
+> I would be interested in more information on the failure.
+>
 
->=20
-> >I think I'd slightly prefer something that looks more like this (same
-> >thing goes for the add function):
-> >
-> >acpi_memory_disable_device(struct acpi_memory_device *mem_device)
-> >{
-> >	int err;
-> >	u64 start =3D mem_device->start_addr;
-> >	u64 len =3D mem_device->end_addr - start + 1;
-> >	unsigned long attr =3D mem_device->read_write_attribute;
-> >
-> >	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
-> >
-> >	/*
-> >	 * Ask the VM to offline this memory range.
-> >	 */
-> >	err =3D remove_memory(start, len, attr);
-> >
-> >	if (err) {
-> >		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Hot-Remove
-> >failed.\n"));
-> >		return_VALUE(err);
-> >	}
-> >...
->=20
-> Yeah, that's a little easier to read...
->=20
-This looks good and easier to read. Thanks for the suggestion, Dave.
+I put some debug output into the code when "acpi_gbl_all_methods_serialized" 
+is altered, an it seems that first the kernel parameters are parsed and 
+acpi_gbl_all_methods_serialized is correctly set to TRUE but after that the 
+global acpi variables are initialized and acpi_gbl_all_methods_serialized is 
+set back to FALSE...
 
---Naveen
+http://www.tzi.de/~adieling/dmesg.out
 
 
 -------------------------------------------------------
