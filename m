@@ -1,19 +1,14 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Radeon PM Support
-Date: Wed, 04 Aug 2004 00:17:25 -0700
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Problem sendig IBM Thinkpad T41p to ram
+Date: Wed, 04 Aug 2004 10:28:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091603845.18566.54.camel@neuromancer.home.net>
-References: <1091139240.26511.9.camel@6-allhosts>
-	 <20040730141028.GE21359@luna.mooo.com> <20040730162756.4f300a5c@localhost>
-	 <20040730190047.GH21359@luna.mooo.com>
-	 <1091560208.24759.15.camel@6-allhosts> <41103952.2030707@optonline.net>
-	 <1091583216.2974.2.camel@localhost.localdomain>
-	 <1091590835.2304.64.camel@dhcppc4>  <yzohdrjqu6p.fsf@localhost.localdomain>
+Message-ID: <1091611715.3733.16.camel@tyrosine>
+References: <1091571076.4077.8.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <yzohdrjqu6p.fsf-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <1091571076.4077.8.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -22,35 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>
+Cc: Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-08-03 at 23:43, ole.rohne-vJEk5272eHo@public.gmane.org wrote:
-> Len> Some folks have had good luck getting Radeon to resume
-> Len> after applying this patch.  I saw it fix a Dell 600m/Radeon.
-> 
-> Len> http://lists.debian.org/debian-x/2004/03/msg03482.html
-> 
-> The same folks were even happier with a more recent patch that moves
-> the S3 resume POST where really belongs: into kernel space:
-> 
-> <http://article.gmane.org/gmane.linux.acpi.devel/8879>
+On Wed, 2004-08-04 at 00:11 +0200, Erik Tews wrote:
 
-I've got to try this out. I have a D600 running on FC2.
+> I would like to suspend my t41p to ram using acpi. But everytime my
+> system resumes I just got a blank LCD with backlight activated but no
+> data on it, no matter if I suspend on console or X. Has somebody got an
+> idea what this problem could be? I tried with and without framebuffer
+> too, with 2.6.7 vanilla and 2.6.8-rc2 with current acpi-patch.
 
-S4 works great.. S3.. not so.
-
-When I have time...
-
-Sigh..
-
-interesting info though.. Thanks
+Try passing acpi_sleep=s3_bios to the kernel and don't use the
+framebuffer.
 
 -- 
-Ow Mun Heng
-Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel
-2.6.7-2.jul1-interactive 
-Neuromancer 00:16:43 up 11:31, 5 users, load average: 0.69, 0.66, 0.61 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
