@@ -1,15 +1,14 @@
-From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 Subject: Re: various problems with Acer TM654, suspend, ACAD, radeon
-Date: Mon, 23 Aug 2004 09:35:19 +0200
+Date: Mon, 23 Aug 2004 09:05:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040823073519.GB2217@gamma.logic.tuwien.ac.at>
-References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <20040822194512.GA8158@gamma.logic.tuwien.ac.at> <20040822201636.GA10152@gamma.logic.tuwien.ac.at> <200408222233.30755.stefandoesinger@gmx.at>
+Message-ID: <20040823070534.GD24853@message-id.gmane0305.slipkontur.de>
+References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200408222233.30755.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <20040820161911.GA24510-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,36 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan =?iso-8859-15?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Stefan!
+On Fri, Aug 20, 2004 at 06:19:11PM +0200, Norbert Preining wrote:
 
-On Son, 22 Aug 2004, Stefan Dösinger wrote:
-> > Now I have only to get S2D and S2R to be fixed ...
-> What video adapter do you have and what driver do you use?
+> With S2D I had success up to 2.6.7-mm5 (I didn't check all the inbetween
+> kernels), but with 2.6.8.1-mmX and rc4-mmX the laptop suspends without
+> any problems (besides I have to stop mysqld), even with X running (ATI
+> Radeon 7500M 0000:01:00.0 VGA compatible controller: ATI Technologies
+> Inc Radeon Mobility M7 LW [Radeon Mobility 7500]).
+> 
+> With the newer kernels resuming does not work anymore, there are many
 
-ATI Technologies Inc Radeon Mobility M7 LW [Radeon Mobility 7500]
+cat /sys/power/disk ??
+does "echo -n shutdown > /sys/power/disk" prior to suspending help?
 
-driver = radeon
+> Now my questions:
+> - Can the missing battery (dis)charge rate be fixed? Is this an hardware
+>   defect, i.e. the battery does not send the information, or are there
+>   other reasons?
+> - Same with the AC Adapter, why does it send no event at all?
 
-(more or less current information
-http://www.logic.at/people/preining/acer/)
+Acer notebooks are notorious for these errors. Don't know if the hardware
+or only the DSDT are just full of sh**
+-- 
+Stefan Seyfried
 
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Norbert Preining <preining AT logic DOT at>         Technische Universität Wien
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-MUNDERFIELD (n.) A meadow selected, whilst driving past, as being
-ideal for a picnic which, from a sitting position, turns out to be
-full of stubble, dust and cowpats, and almost impossible to enjoy
-yourself in.
-			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
