@@ -1,12 +1,10 @@
-From: Ulrich Dobramysl <uli-do-RbZlAiThDcE@public.gmane.org>
-Subject: Gericom Supersonic - System freeze at startup
-Date: Thu, 03 Oct 2002 18:33:25 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI source release updated (20021002)
+Date: Thu, 3 Oct 2002 11:31:41 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D9C7155.7070709@gmx.at>
-Reply-To: uli-NCHUqdhOjCGWIDz0JBNUog@public.gmane.org
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DEFF@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,25 +14,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'berndp=p32f3XyCuykqcZcGjlUOXw@public.gmane.org'" <berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello there!
+> ACPI: PCI Interrupt Link [LNUS] enabled at IRQ 0
+> pci_link-0480 [04] acpi_pci_link_get_irq : Link disabled
+>  pci_irq-0258 [03] acpi_pci_irq_lookup   : Invalid IRQ link 
+> routing entry
+>  pci_irq-0296 [03] acpi_pci_irq_derive   : Unable to derive IRQ for 
+> device 00:0f
+> .2
 
-I have a problem concerning ACPI with my laptop. I've tried several 
-Kernels (2.4.16-19, 2.5.40) with several different ACPI patches, but 
-everytime I get the same problem, if ACPI is enabled in the kernel 
-config. The system freezes at startup right after the line "ACPI 
-Namespace succesfully loaded at root c047a05c". The fan slows down or is 
-switched off completely, depending on how hot my laptop is (The strange 
-thing about this is, that it switches off completely if the CPU is 
-rather hot, but when booting the cold system the fan just gets slower).
-I need ACPI, because hopefully my IRQ problems (the network and sound 
-cards just do not get interrupts) would be resolved, and the fan noise 
-is a bit annoying when working several hours.
-Can someone please help me?
+            Name(PICA, Package(0xc) {
+                Package(0x4) {
+                    0x000fffff,
+                    0x0,
+                    LNUS,
+                    0x0,
+                },
+--------------------------------------------------
 
-Uli Dobramysl
+    Device(LNUS) {
+	...
+        Method(_STA) {
+            If(GETI(PIUS)) {
+                Return(0xb)
+            }
+            Else {
+                Return(0x9)
+            }
+--------------------------------------------------
+    Method(GETI, 1) {
+        If(And(Arg0, 0xf, )) {
+            Return(Zero)
+        }
+        Else {
+            Return(\MLIB.CNV2(And(Arg0, 0xf, )))
+        }
+
+This BIOS appears to be unusual, in that it uses a link device (LNUS), even
+in IOAPIC mode. Unfortunately, this causes a bug in GETI to show the link
+device as disabled.
+
+If you are familiar with the whole DSDT-loading process, you might try that,
+and modify GETI by swapping what is in the two parts of the If/Else.
+
+Regards -- Andy
 
 
 
