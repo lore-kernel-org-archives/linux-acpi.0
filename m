@@ -1,11 +1,14 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: ACPI interrupts..
-Date: Wed, 25 Sep 2002 14:27:08 -0700
+From: kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org
+Subject: Re: CALL FOR TESTING
+Date: Thu, 26 Sep 2002 00:01:20 +0200 (MEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B7BB@orsmsx107.jf.intel.com>
+Message-ID: <Pine.SOL.4.21.0209252358150.12078-100000@neptun>
+References: <20020918055456.H202@toy.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-reply-to: <20020918055456.H202-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,66 +17,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Sorry for beeing a bit late,  I was out of town for a few days. I will try
+that tomorrow morning. Actually before I left I did what Andrew suggested
+and compiled acpi as modules. Machine boots fine then, but when modprobing
+the thermal module oopses. IIRC temperature was around 60 degrees
+celsius...that does not seem too hot for an athlon, does it?
 
-The hardware is supposed to be implemented such that an SCI can only occur
-if the enable bit and the status bit are both 1.
+In fact this seems not to be irq-related in any way.
 
-Interesting that it looks like the issue is within GPE block 1.
+-Knut
 
-evevent-0704 [0000] [127] Ev_gpe_detect         : GPE block at
-000000000000042E - Values: Enable 80 Status 40
- evevent-0704 [0000] [127] Ev_gpe_detect         : GPE block at
-000000000000042F - Values: Enable 00 Status 21
- evevent-0704 [0000] [127] Ev_gpe_detect         : GPE block at
-000000000000042A - Values: Enable 38 Status 00
- evevent-0704 [0000] [127] Ev_gpe_detect         : GPE block at
-000000000000042B - Values: Enable 09 Status 00
+On Wed, 18 Sep 2002, Pavel Machek wrote:
 
------Original Message-----
-From: Grover, Andrew [mailto:andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Wednesday, September 25, 2002 2:20 PM
-To: 'Linus Torvalds'
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Subject: [ACPI] RE: ACPI interrupts..
+> Hi!
+> 
+> > > - DOES IT BOOT?
+> > 
+> > No. This is a Gigabyte 7IXE4 with an Athlon 1,3 GHz. It throws two
+> > oopses (NULL pointer deref at 0..04) just after providing information
+> > about thermal zone. I can write them down, type them in and send them if
+> > necessary.
+> 
+> HP Omnibook oopses if CPU is too hot during boot. Can you try booting from
+> cold system?
+> 								Pavel
+> -- 
+> Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
+> details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
+> 
+> 
 
-> That also implies that it's not a completely spurious 
-> interrupt: if it was
-> spurious, the interrupt handler wouldn't know what to do with 
-> it, and it 
-> would scream constantly and the machine would make no 
-> progress. Obviously 
-> that isn't the case, since the machine works fine.
-
-A properly functioning ACPI system should not generate 72000 interrupts per
-second, needless to say. It may not be a lockup but it's still bad.
-
->From your trace, it sure looks like the software doesn't think it has any
-fixed or general-purpose events outstanding, (like you say, enable and
-status bits appear to be mutually exclusive) so it returns, assuming the
-interrupt must be for someone else - but ACPI is the only one on irq 9
-right?
-
-I will whip up a patch to 1) disable all GPE enable bits and 2) clear all
-GPE status bits and see if the problem goes away.
-
-This kind of problem is pretty hard for me to fix without an actual instance
-of the system to play with...sigh
-
-Regards -- Andy
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
