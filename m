@@ -1,10 +1,13 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Returned Mail: Error During Delivery
-Date: Wed, 28 Jul 2004 11:12:07 +0000 (UTC)
+From: Nuno Tavares <nunotavares-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: ACPI and USB problems (usbnet)
+Date: Wed, 28 Jul 2004 16:49:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1BpmH4-0003Wf-LI@sc8-sf-mx1.sourceforge.net>
+Message-ID: <pan.2004.07.28.15.49.34.346706@hotmail.com>
+References: <pan.2004.07.27.01.49.20.567519@hotmail.com> <1090969238.19046.26.camel@neuromancer.home.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: Webshield SMTP V4.5 MR1a Mail Service
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -13,96 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Wed Jul 28 07:06:44 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-    ---- Failed Recipients ----
+Em Tue, 27 Jul 2004 16:00:38 -0700, Ow Mun Heng escreveu:
 
-<pgmdsg-/X6VYK7xyaY@public.gmane.org>
+> On Mon, 2004-07-26 at 18:49, Nuno Tavares wrote:
+> USB mouse will lose connectivity needing a plugout-plugin again to bring
+> it back up.
 
+That's my case!
+ 
+> Didn't try with ACPI off though
 
-Requested action not taken: mailbox unavailable. [SMTP Error Code 550]
+Give it a try, that might solve the issue, if ACPI is not *required*.
 
-    ---- Contents of the undelivered mail ----
-
-Received: From lif.com ([200.164.225.89]) by ibixmaila.ibi.com (WebShield SMTP v4.5 MR1a);
-	id 1091012801886; Wed, 28 Jul 2004 07:06:41 -0400
-Date: Wed, 28 Jul 2004 08:07:23 -0300
-To: "Pgmdsg" <pgmdsg-/X6VYK7xyaY@public.gmane.org>
-From: "Acpi-devel" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re:
-Message-ID: <puvthpolcuaqprlukun-/X6VYK7xyaY@public.gmane.org>
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="--------vzawpbalmgxqcsxxzjos"
-
-----------vzawpbalmgxqcsxxzjos
-Content-Type: text/html; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-<html><body>
->Predators<br><br>
+Perhaps we can establish a pattern...
+What's your motherboard (output 'dmidecode')? 
+What's your USB Host Controller (UHCI/OHCI/EHCI)?
+Does 'lsusb -vvv | grep unknown' gives you any 'unknown interface class
+descriptor' messages? This is known to be errors in the
+manufacturer's USB code (CIIW), which seem to be related.
 
 
-<br>Password: <img  src="cid:hycyitmyad.bmp"><br>
-<br>
-</body></html>
+-- 
+-
+Nuno Tavares
+http://nthq.cjb.net/
 
-----------vzawpbalmgxqcsxxzjos
-Content-Type: image/bmp; name="hycyitmyad.bmp"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="hycyitmyad.bmp"
-Content-ID: <hycyitmyad.bmp>
-
-Qk0uCAAAAAAAADYAAAAoAAAAPAAAABEAAAABABAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAA
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f////3//f/9//3//f/9//3//f/9/QGVAZUBl
-QGVAZUBlQGVAZUBlQGVAZUBlQGVAZUBlQGVAZUBlQGVAZUBlQGVAZUBlQGVAZUBlQGVAZUBl
-QGVAZUBlQGVAZf9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3////9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//39Xe0BlQGWPcv9//3//f1d7QGVAZY9y/3//f/9//3//f0Bl
-QGVXe/9//39Xe49yQGWPcv9//3//f/9/j3JAZUBl83b/f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3+PckBl83ZAZY9y/3//f49yQGXzdkBl
-j3L/f/9//3//f49yQGVXe/9//3+PckBlV3tAZY9y/3//f49yQGVXe/N2QGVXe/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//39AZUBl/39AZUBl
-/3//f0BlQGX/f0BlQGX/f0BlQGVAZUBlQGVAZY9y/39AZUBl/3/zdkBlV3v/f0BlQGX/f1d7
-QGWPcv9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/39AZUBl/39AZUBl/3//f0BlQGX/f0BlQGX/f49yQGVXe/N2QGWPcv9//39AZUBl/3/zdkBl
-83b/f0BlQGX/f/9/QGVAZf9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3/zdkBl83ZAZY9y/3//f/N2QGXzdkBlj3L/f1d7QGVAZVd7QGWPcv9/
-/39AZUBl/39Xe0Blj3L/f0BlQGVXe/9/QGVAZf9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f1d7QGVAZfN2/3//f/9/V3tAZUBl83b/f/9/
-V3tAZfN2QGVAZf9//3+PckBlV3tXe0BlQGX/f0BlQGWPcld7QGWPcv9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f49yQGVXe0Bl83b/f/9/
-j3JAZVd7QGXzdv9//3/zdkBlQGVAZVd7/3/zdkBl83b/f0BlQGX/f49yQGWPckBlj3JXe/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f0Bl
-QGX/f0BlQGX/f/9/QGVAZf9/QGVAZf9//3//f49yQGVAZfN2/39Xe0Bl83b/f0BlQGX/f1d7
-QGXzdv9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f49yQGVXe0BlQGX///9/j3JAZVd7QGVAZf///3//f1d7QGVAZfN2/3//f49y
-QGVXe0Blj3L/f/9/j3JAZVd7QGVAZf9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9/j3JAZUBlV3v/f/9//3+PckBlQGVXe/9//3//f/9/
-83ZAZY9y/3//f/9/j3JAZY9yV3v/f/9//3+PckBlQGXzdv9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-
-----------vzawpbalmgxqcsxxzjos
-Content-Type: application/octet-stream; name="Cat.zip"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="Cat.zip"
-
-
-
-----------vzawpbalmgxqcsxxzjos--
 
 
 
