@@ -1,14 +1,14 @@
 From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
 Subject: Re: ASUS M3N and sleep states
-Date: Tue, 30 Dec 2003 19:54:08 +0100
+Date: Tue, 30 Dec 2003 21:30:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FF1C9D0.2080500@pca.it>
-References: <3FED7289.1070201@pca.it> <20031227173335.GA1599@elf.ucw.cz>
+Message-ID: <3FF1E051.1070203@pca.it>
+References: <3ACA40606221794F80A5670F0AF15F8401720C62@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031227173335.GA1599-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C62-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -25,18 +25,23 @@ Hash: SHA1
 
 Hello,
 
-on 12/27/03 18:33, Pavel Machek wrote:
-| Select either PM_DISK or SOFTWARE_SUSPEND but not both. Thanks.
-ok, I tried the following without the AGP/DRM modules (specifically,
-'agpgart', 'intel-agp' and 'i830'):
+on 12/29/03 02:35, Yu, Luming wrote:
+| I have 2 tracker about S1 issues of ASUS notebook.
+|
+| http://bugzilla.kernel.org/show_bug.cgi?id=1557
+this is a common problem with USB modules loaded before entering in S1.
+AFAIK there's no solution for this but unloading USB modules before
+entering in S1 (and if the modules are compiled in, this isn't possible,
+right?).
 
-- - PM_DISK > the OS enters ok in S4, but the resume process doesn't work
-(not with resume=/dev/hda6, not with pmdisk=/dev/hda6 neither without).
-I got a resume on my ext3 partitions, but the swap isn't lost
+| http://bugzilla.kernel.org/show_bug.cgi?id=1588
+I tried your patch, but it doesn't solve my problem: I got a shutdown
+without a resume and at reboot I had a recovery for my ext3 partition.
 
-- - SWSUSP > it works! But, obviously, as I wrote above, without the
-AGP/DRM modules. Anyway, I got a perfect S4, a perfect resume and after
-the resume I can successfully resume or shutdown :-)
+As I posted before, I solved the problems related to S1: it's the
+'acpid', because as reported by Karol resuming from S1 generates a PWFR
+events and so the 'acpid' acts as for a "normal" PWFR (not from a
+resuming one). I hope I was clear :-)
 
 Thx, bye,
 Gismo / Luca
@@ -44,11 +49,10 @@ Gismo / Luca
 Version: GnuPG v1.2.3 (GNU/Linux)
 Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQE/8cnLVAp7Xm10JmkRAnBsAKCFwN1+Ne4u3wd8HgVZB07z80r5aQCgjhVw
-xLuaLzjm87MZleKdnsOKZrg=
-=LeHG
+iD8DBQE/8eBPVAp7Xm10JmkRAiN4AJ9qvowalxG1usOeZ7n9f67r6F0j2ACcCULs
+dcW8isqcKQVrk6wInzNrcKA=
+=j8Yf
 -----END PGP SIGNATURE-----
-
 
 
 
