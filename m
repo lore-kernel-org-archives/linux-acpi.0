@@ -1,11 +1,17 @@
-From: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
-Subject: General Questions:
-Date: Fri, 04 Feb 2005 07:32:34 -0500
-Message-ID: <1107520354.4248.16.camel@localhost>
-Reply-To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org
+From: Xavier Bestel <xavier.bestel-GANU6spQydw@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: [ACPI]
+ Samsung P35, S3, black screen (radeon))
+Date: Fri, 04 Feb 2005 15:40:57 +0100
+Message-ID: <1107528057.6191.128.camel@gonzales>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net>
+	 <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>
+	 <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz>
+	 <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
+	 <9e47339105020321031ccaabb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <9e47339105020321031ccaabb-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,41 +21,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello again ACPI gurus! Many thanks for the last tip; I was able to
-decompile and "fix" the DSDT rather easily using the advice from your
-responses.
+Le vendredi 04 f=C3=A9vrier 2005 =C3=A0 00:03 -0500, Jon Smirl a =C3=A9crit=
+ :
+> Doing this in user space lets you have two reset
+> programs, vm86 and emu86 for non-x86 machines.
 
-I have a few questions about batteries:
+Perhaps only emu86 should be used, to have a well-debugged codepath on
+all archs (amd64, ppc, ...)
+As it's usermode, the code size is less of a problem.
 
-I was looking around the battery driver code last night trying to find
-out what the battery "alarm" actually does. Unfortuneately (and I only
-spent a few minutes looking), I wasn't able to easily see what the
-function of this feature was. I guess my first question is: does it do
-anything at all? :)
+	Xav
 
-Secondly, would it be beyond of the scope of ACPI for the battery driver
-to generate ACPI events when the power gets low? Or is there already
-something like this that exists that I'm missing? I tried
-watching /proc/acpi/event last as my battery discharged and didn't see
-any unusual activity.
-
-Thirdly, does the kernel have access to the LED lights on a typical
-laptop? That is, does it have the ability to ping the LED and make it
-light up? Or, is that something controlled entirely by hardware? It
-would be rather neat, I think, to use my "bluetooth" LED (since I don't
-have bluetooth) in an arbitrary way.
-
-Anyways. :)
-
--- 
-Jeremy L. Moles
-EmperorLinux
-1-888-651-66
-www.EmperorLinux.com
-jeremy-LdSqz1EEwCk7YuNMryXyOw@public.gmane.org
 
 
 
