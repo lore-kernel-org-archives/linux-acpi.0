@@ -1,10 +1,10 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Battery Level Reported Incorrectly
-Date: Wed, 02 Feb 2005 15:53:01 -0500
-Message-ID: <1107377581.6619.25.camel@localhost.localdomain>
+From: "JP Mercury" <swirlee-HptHbbG/L9RWk0Htik3J/w@public.gmane.org>
+Subject: Averatec laptop- acpi_power_off hang
+Date: Wed, 2 Feb 2005 14:55:12 -0700
+Message-ID: <20050202214755.M81868@stickist.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=iso-8859-1
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,44 +17,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Hi everyone,
 
-I'm using ACPI 20050125 on a Dell Inspiron 300m (BIOS A07) with a 2.6.10
-kernel, and a patched DSDT (http://acpi.sourceforge.net/dsdt/view.php?
-id=218). The battery's charge is being reported incorrectly--I at first
-thought my battery had gone bad until I accessed the battery level page
-in the BIOS setup, which reported the correct information. The battery
-is reported as completely dead (e.g. "remaining capacity"
-in /proc/acpi/battery/BAT1/state is 0 mAh) if the AC adapter is plugged
-in and 257 mAh as soon as I unplug the adapter. This is incorrect--the
-BIOS setup utility reports 100% charge. ACPI status reporting tools
-(like the GNOME battery status applet and the "acpi" command) reflect
-this in their percentanges. The battery's "info" entry:
+I first posted to the list in December when I was having some trouble getting
+an  Averatec 3250 laptop to report temperature. Thanks to Zhenyu Wang, that
+problem was cleared with a change to my DSDT (scoping problem). 
 
-present:		yes
-design capacity:	1799 mAh
-last full capacity:	1799 mAh
-battery technology:	rechargeable
-design voltage:		14649 mV
-design capacity warning:180 mAh
-design capacity low:	54 mAh
-capacity granularity 1:	1 mAh
-capacity granularity 2: 1 mAh
-model number:
-serial number:
-battery type:		LION
-OEM info:		DELL Computer Corporation
+Now I'd like to tackle the stubborn problem of powering off. Linux shuts down
+but after acpi_power_off is called, it hangs. I tried the noapic, nolapic
+kernel options as suggested for some other laptops- no go. Now I'm wondering,
+could this be another DSDT problem? 
 
-Windows was on this laptop for a few months before I installed Linux,
-could that have anything to do with it? I'm afraid I don't know enough
-about how ACPI works to know if that's a factor or not. As far as I
-know, this is a new problem because most of the ACPI quirks had gone
-with the previous ACPI release I had used (not sure exactly of the
-version: probably 20041202).
+Here's my disassembled DSDT:
+http://home.graffiti.net/swirlee/acpi-dsdt.dsl
 
-Thanks for any help,
-Andrew	
+There's also a problem with this laptop with other sleep states-- for example,
+S3 seems to suspend (screen goes off, fans power down, power light flashes,
+etc)  , but when I press a key the system reboots instead of resuming.
 
+Any insight is much appreciated.
+
+Thanks,
+-Jan
 
 
 -------------------------------------------------------
