@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Battery rate on Acer TM 292
-Date: Mon, 13 Sep 2004 07:39:00 +0200
+From: Andreas Dieling <snow-1pFVYSAoaJAREI5ypv3d1g@public.gmane.org>
+Subject: Re: Resources on fixing DSDT?
+Date: Mon, 13 Sep 2004 14:39:18 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040913053900.GB851@message-id.gmane0305.slipkontur.de>
-References: <16A54BF5D6E14E4D916CE26C9AD305751B66D5@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <414594F6.7020507@quantentunnel.de>
+References: <loom.20040913T141300-570@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD305751B66D5-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <loom.20040913T141300-570-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,39 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Tuttle <gmane.thinkinginbinary-w1QkCcy0X+Ct7aBEGUsviw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 13, 2004 at 09:20:53AM +0800, Li, Shaohua wrote:
-> >stefan@nano:~$ cat /proc/acpi/battery/BAT1/state
-> >present:                 yes
-> >capacity state:          ok
-> >charging state:          discharging
-> >present rate:            0 mA
-> >remaining capacity:      3960 mAh
-> >present voltage:         16376 mV
+Thomas Tuttle wrote:
 
-> Please don't trust 'present rate'. In many systems, 'present rate' are
-> always 0.
+>I have an Asus M2400Ne with a screwed-up DSDT (some of the methods are renamed 
+>to proprietary names--A*** instead of _***--for Asus' proprietary power 
+>management stuff) and I have had no luck getting SpeedStep to work on it.  
+>(Everything else works!)  What I need to do is find the methods in the DSDT 
+>that are mis-named, re-name them, and patch my kernel to use the custom DSDT.
+>  
+>
+Isn't the M24N Centrino based? So i think you don't need bios support to 
+get your throttling working... intel enhanced speedstep should be enough...
 
-There are actually a lot of systems where 'present rate' is pretty accurate
-and there is ACER where it is always 0. I am in a dispute with ACER engineers
-about this right now but they don't seem to understand the problem.
-Of course this is a minor problem, but it is something which is done better
-by the competitors.
-I wonder if you get to see a estimated battery lifetime in Windows on these
-machines.
-
-> If you want to estimate the power of the battery, please use
-> remaining capacity. I'd like the user daemon use 'remaining capacity' to
-> calculate the rate.
-
-Although this is possible, it is very low priority on my todo list since
-it is needed only for ACER AFAICT and you get very bogus results shortly
-after restarting the userspace daemon etc.
--- 
-Stefan Seyfried
-
+Andreas
 
 
 -------------------------------------------------------
