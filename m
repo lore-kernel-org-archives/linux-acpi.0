@@ -1,15 +1,12 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: keylock regression with i8042 + S3 resume
-Date: Fri, 17 Dec 2004 20:51:30 -0500
-Message-ID: <41C38D22.1010101@optonline.net>
-References: <419ECE6E.4030005@optonline.net>
- <d120d50004112314333ebb0eb@mail.gmail.com> <41A3BEF4.6030403@optonline.net>
- <200411240058.55744.dtor_core@ameritech.net>
+From: "Marietta Woodruff" <m.woodruff-4BlNT6LWOf4@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Fri, 17 Dec 2004 22:47:20 -0600
+Message-ID: <1e9401c4e4bc$74d9ef58$deb34585@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <200411240058.55744.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,33 +16,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dmitry Torokhov wrote:
+Get the Finest Rolex Watch Replica!
 
->On Tuesday 23 November 2004 05:51 pm, Nathan Bryant wrote:
->  
->
->>Dmitry Torokhov wrote:
->>
->>    
->>
->>>It looks like the controller got "stuck" with OBF bit set. There is no response
->>>to any of the commands sent to it and any read returns 0 with both "timeout"
->>>and "bad parity" flags set.
->>>
->>>I wonder if latest changes in ACPI PNP and resources management that
->>>were reported to break floppy are responsible for this stuff as well. Linus
->>>has committed a fix that *might* help into his BK tree, try tonight's BK
->>>snapshot. If this does not work I guess you'd have to do binary search
->>>on various -bk snapshots to narry down which broke resume. 
->>>
->>>      
->>>
-Looks like this problem has been fixed in recent 2.6.10-rc3 bk snapshots.
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
 
-Nathan.
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
+
+Visit us: http://www.vanai.com/rep/rolx/
+
+All orders placed before December 20th will be at your door before
+New Years Eve!
+
+No thanks: http://www.vanai.com/z.php
+
 
 
 -------------------------------------------------------
