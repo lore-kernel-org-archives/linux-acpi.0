@@ -1,16 +1,14 @@
-From: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: ACPI config options
-Date: Mon, 25 Aug 2003 03:22:27 +0800
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Please Remove ASUS A7V from blacklist in dmi-scan.c
+Date: Sun, 24 Aug 2003 15:37:11 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200308250303.06651.mhf@linuxmail.org>
-References: <BF1FE1855350A0479097B3A0D2A80EE009FC92@hdsmsx402.hd.intel.com>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FCD3@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE009FC92-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,53 +17,63 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: eric.valette-GANU6spQydw@public.gmane.org
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 21 August 2003 06:42, Brown, Len wrote:
-> Safe to say it was a mistake for me to have "CONFIG_ACPI_HT be a
-> pre-requisite for CONFIG_ACPI".  Too many people were confused when they
-> ran config; and those without HT were downright preplexed...
+Thanks for testing the A7V Eric,
 
-Concurred, teasing people using config seems to be a favorite sport lately ;)
+Can you describe further "halted your machine without any form of sync"?
+halt and sync should still work with acpi=3Dht, but the soft power off
+will not work
+Unless an non-acpi mechanism is enabled.  Was it that the change
+In poweroff behaviour tricked you and you pulled power manually?
 
->
+In any case, sounds like your box shouldn't be blacklisted by default.
 
-However, let me add that I am "double perplexed", because I have a 
-CPU with a ht flag, bought as a ht CPU, in a "ht ready mainboard" 
-which is unable to show its sibling. SMP was configured, found the 
-ht flag, but it returned only one core. 
+Please send the output from dmidecide, available in /usr/sbin/, or here:
 
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 15
-model           : 2
-model name      : Intel(R) Pentium(R) 4 CPU 2.40GHz
-stepping        : 7
-cpu MHz         : 2399.779
-cache size      : 512 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 2
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm
-bogomips        : 4784.12
+http://www.nongnu.org/dmidecode/ and I'll take care of it.
 
-I even overrode the init code telling it that it found 2, 
-but the second one would not come up. 
+Thanks,
+-Len
 
-Does this stepping do ht and if so what can be wrong?
 
-No, I never tried XP.
-
-Regards
-Michael
-
+> -----Original Message-----
+> From: Eric Valette [mailto:eric.valette-GANU6spQydw@public.gmane.org]=20
+> Sent: Sunday, August 24, 2003 6:54 AM
+> To: Brown, Len
+> Cc: Grover, Andrew; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Please Remove ASUS A7V from blacklist in dmi-scan.c
+>=20
+>=20
+>   I own a A7V that has been blacklisted by last patch while I=20
+> have been
+> using ACPI (mainly for software power off via power button on this
+> machine :-)). Using ht only, I lost silently this feature and=20
+> halted my
+> machine without any form of sync which is rather bad... Seeing the
+> message concerning blacklisted machine, I tried with=20
+> acpi=3Dforce at boot
+> time and of course booted sucessfully. Here is the dmesg=20
+> attached. May I
+> have a few words about the reason why this machine has been=20
+> blacklisted?
+>=20
+> NB : when you have young childs or a wife that does not want to hear=20
+> about linux, power off button software controlled is indeed a great=20
+> faeture :-)
+>=20
+> --=20
+>      __
+>     /  `                   	Eric Valette
+>    /--   __  o _.          	6 rue Paul Le Flem
+> (___, / (_(_(__         	35740 Pace
+>=20
+> Tel: +33 (0)2 99 85 26 76	Fax: +33 (0)2 99 85 26 76
+> E-mail: eric.valette-GANU6spQydw@public.gmane.org
+>=20
+>=20
 
 
 -------------------------------------------------------
