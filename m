@@ -1,14 +1,11 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI update
-Date: Thu, 19 Jun 2003 18:29:24 -0700
+From: "David Cougle" <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: PLEASE, patches after pre6 lock up!
+Date: Thu, 19 Jun 2003 20:40:17 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A2FC@orsmsx401.jf.intel.com>
+Message-ID: <Law9-F694db6OrYXPM600016745@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,85 +14,61 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+thanks, that worked.
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+if you have compaq 2100/2110, removing enhanced rtc from kernel should make 
+latest patch work.
 
-Notable improvements are the addition of a special-features driver for
-ASUS laptops, as well as the re-introduction of acpitable.c. I must
-admit this certainly cuts down on a lot of #ifdefs to have the HT_ONLY
-option in its own file. A horde of other small fixes, too.
+>From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+>To: David Cougle <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+>CC: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] PLEASE, patches after pre6 lock up!
+>Date: Thu, 19 Jun 2003 11:18:52 +0200
+>
+>Hi,
+>
+>On Wed, Jun 18, 2003 at 10:22:08PM -0500, David Cougle wrote:
+> > I have posted this repeatedly, but never get a response, and there
+> > continues to be releases which have the same problem.
+>
+>I should be blind, but I see only 2 post from you on this topic
+>this month in acpi-devel mailing-list?
+>
+> > Starting with acpi patch rc1, it causes lock ups. rc2 and rc3 did the
+> > same(on boot).
+> > I am now having to use 2.4.21 with acpi pre6 patch.
+> >
+> > i have compaq 2100/2110
+> >
+>
+>If you have an ALi based system, do not use Ehanced Real Time
+>Clock (due to probably a bug in acpi?).
+>
+>Cheers,
+>
+>--
+>Ducrot Bruno
+>
+>--  Which is worse:  ignorance or apathy?
+>--  Don't know.  Don't care.
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by: INetU
+>Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+>Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+>INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-This will update the following files:
-
- arch/i386/kernel/acpi/Makefile     |    1=20
- arch/i386/kernel/acpi/acpitable.c  |  553 ++++++++++++++
- arch/i386/kernel/acpi/acpitable.h  |  260 ++++++
- arch/i386/kernel/setup.c           |   13=20
- drivers/acpi/Kconfig               |   31=20
- drivers/acpi/Makefile              |    1=20
- drivers/acpi/asus_acpi.c           |  951 +++++++++++++++++++++++++
- drivers/acpi/dispatcher/dsmthdat.c |   25=20
- drivers/acpi/events/evgpe.c        |    8=20
- drivers/acpi/events/evgpeblk.c     |   29=20
- drivers/acpi/executer/exoparg1.c   |   77 +-
- drivers/acpi/executer/exstore.c    |    4=20
- drivers/acpi/executer/exsystem.c   |    4=20
- drivers/acpi/executer/exutils.c    |    5=20
- drivers/acpi/hardware/hwregs.c     |   47 -
- drivers/acpi/hardware/hwsleep.c    |    4=20
- drivers/acpi/tables/tbconvrt.c     |   26=20
- drivers/acpi/utilities/utmisc.c    |    2=20
- drivers/pci/hotplug/acpiphp.h      |   16=20
- drivers/pci/hotplug/acpiphp_core.c |   15=20
- drivers/pci/hotplug/acpiphp_glue.c |   50 -
- drivers/pci/hotplug/acpiphp_pci.c  |    4=20
- drivers/pci/hotplug/acpiphp_res.c  |    4=20
- include/acpi/acconfig.h            |    2=20
- include/acpi/acglobal.h            |    1=20
- include/acpi/achware.h             |    2=20
- include/acpi/acpiosxf.h            |    8=20
- include/acpi/actypes.h             |   21=20
- include/asm-i386/acpi.h            |    5=20
- include/linux/acpi.h               |    4=20
- 30 files changed, 1999 insertions(+), 174 deletions(-)
-
-through these ChangeSets:
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/19 1.1332.2.2)
-   ACPI: Interpreter update to 20030619
-   - Fix To/FromBCD, eliminating the need for an arch-specific #define
-   - Do not acquire a semaphore in the S5 shutdown path
-   - Fix ex_digits_needed for 0 (Takayoshi Kochi)
-   - Fix sleep/stall code reversal (Andi Kleen)
-   - Revert a change having to do with control method calling semantics
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/17 1.1305.5.6)
-   ACPI: acpiphp update (Takayoshi Kochi)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.5)
-   ACPI: Export acpi_disabled for sonypi (Stelian Pop)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.4)
-   ACPI: Mention acpismp=3Dforce in config help
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.3)
-   ACPI: Re-add acpitable.c and acpismp=3Dforce. This improves backwards
-compatibility
-   and also cleans up the code to a significant degree.
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.2)
-   ACPI: Add ASUS Value-add driver (Karol Kozimor and Julien Lerouge)
-
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+_________________________________________________________________
+The new MSN 8: advanced junk mail protection and 2 months FREE*  
+http://join.msn.com/?page=features/junkmail
 
 
 
