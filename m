@@ -1,15 +1,14 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Re: Power button events unavailable after resume
-Date: Mon, 18 Oct 2004 10:58:36 -0400
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Re: Should battery generate events?
+Date: Mon, 18 Oct 2004 16:57:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200410181058.43697.barr.156@osu.edu>
-References: <200410121343.31099.barr.156@osu.edu> <20041017202103.GE7476@elf.ucw.cz>
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Message-ID: <20041018145734.GC31234@elf.ucw.cz>
+References: <20041004232557.6c342288@commensaal.drs.p> <20041008161046.GC10581@message-id.gmane0305.slipkontur.de> <20041012202010.750c98b4@commensaal.drs.p>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041017202103.GE7476-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20041012202010.750c98b4-7SZEXzPdWeU90gtriz95AQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,35 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi!
 
-On Sunday 17 October 2004 04:21 pm, Pavel Machek wrote:
-> Hi!
->
-> > Recently, I have been unable to get power button events from my notebook
-> > after a Software Suspend 2 (version 2.1-rc1) resume without removing and
->
-> Try again with vanilla kernel and "platform" powerdown method.
+> > Regarding suwsusp: this should work on most i386 machines out of the
+> > box with upcoming SUSE 9.2.
+> 
+> I find that a bold statement if I look at the number of posts to this
+> and the swsusp2 list in which people tell they can't get suspend to
+> work. 
 
-Thanks for the suggestion. Earlier you suggested turning on ACPI S4 support. 
-This seems to fix my problem. With recent versions of Software Suspend 2, S4 
-support has moved from a compile option to a /proc entry, so it wasn't 
-getting used by default. Adding a script to turn it on fixed my button issue.
-
-Thanks,
-Andrew
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQFBc9ojhuM+Z62a52oRAnPcAJ9HRBcJeNe5b2SchL7FOSusiIrIkwCgyIme
-vxeooUSiNtSlyzdVUFwmcNc=
-=Ldlj
------END PGP SIGNATURE-----
+SuSE 9.2 uses swsusp1, similar to version in 2.6.9-rc4, with some
+support in userland (module unloading). It tends to work very well.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
