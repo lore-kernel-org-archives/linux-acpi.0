@@ -1,45 +1,57 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [ACPI] Re: swsusp and ac status
-Date: Mon, 28 Jun 2004 22:29:36 +0200
-Sender: swsusp-devel-admin@lists.sourceforge.net
-Message-ID: <20040628202936.GJ698@openzaurus.ucw.cz>
-References: <200406250701.i5P71GKC006204@fermat.unipv.it> <opr95d71ln4evsfm@smtp.pacific.net.th> <20040627222842.GB1816@hell.org.pl> <opr992vyyr4evsfm@smtp.pacific.net.th>
+From: "DrWeb-DAEMON" <DrWeb-DAEMON-WHVKCjlyq9ZBDgjK7y7TUQ@public.gmane.org>
+Subject: Undelivered mail: Re: Bad Request
+Date: Tue, 29 Jun 2004 03:57:44 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200406290757.i5T7vi7E004210@relay.ffx.ionidea.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <swsusp-devel-admin@lists.sourceforge.net>
-Content-Disposition: inline
-In-Reply-To: <opr992vyyr4evsfm@smtp.pacific.net.th>
-Errors-To: swsusp-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:swsusp-devel@lists.sourceforge.net>
-List-Help: <mailto:swsusp-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=swsusp-devel>
-To: Michael Frank <mhf@linuxmail.org>
-Cc: Karol Kozimor <sziwan@hell.org.pl>, Daniele Boffi <boffi@dimat.unipv.it>, acpi-devel@lists.sourceforge.net, Software Suspend - Mailing Lists <swsusp-devel@lists.sourceforge.net>
+Content-Type: multipart/report; report-type=delivery-status;
+ boundary="001-DrWeb-MailFilter-Notification"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+--001-DrWeb-MailFilter-Notification
+Content-Type: text/plain; charset=us-ascii
 
-> >As far as I know, there is no need to reinitialize the AC module, as 
-> >it
-> >does not cache the results -- upon read, it calls the appropriate 
-> >_PSR
-> >method which is supposed to return the correct AC adapter state, as 
-> >simple
-> >as it gets. This way, any problems would indicate a faulty BIOS.
-> >Best regards,
-> >
-> 
-> Sorry, the BIOS does not know about suspend.
+Dear User,
+The message with following attributes has not been delivered.
+because contains an infected object.
 
-Hacky solution is to call _WAK so that BIOS updates is caches...
-				Pavel
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Sender = acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Recipients = mudnur-WHVKCjlyq9ZBDgjK7y7TUQ@public.gmane.org
+Subject = Re: Bad Request
+Message-ID = i5T7vdgY004163
 
+--- Dr.Web report ---
+Dr.Web detailed report:
+drweb.tmp.tzOw6M/[text:plain] - Ok
+drweb.tmp.tzOw6M/readme_mudnur.zip infected with Win32.HLLM.Netsky.35328
+
+Dr.Web scanning statistic:
+Infected : 1
+
+--- Dr.Web report ---
+
+
+The original message was stored in archive record named: 
+drweb.quarantine.Jf9CEP 
+In order to receive the original message, please send request to 
+<virus.list-WHVKCjlyq9ZBDgjK7y7TUQ@public.gmane.org>, referring to the archive record 
+name given above.
+
+---
+   Antivirus service provided by Dr.Web(R) Daemon for Unix
+   (http://www.drweb.ru, http://www.dials.ru/english)
+
+--001-DrWeb-MailFilter-Notification--
 
 
 -------------------------------------------------------
