@@ -1,12 +1,18 @@
-From: Josh Friesen <techjosh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: ACPI wakeup device detection
-Date: Wed, 19 Jan 2005 01:36:01 -0800
-Message-ID: <3d3ce7e1050119013673a22894@mail.gmail.com>
-Reply-To: techjosh-7/tV2uqVLJ6cqzYg7KEe8g@public.gmane.org
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Wed, 19 Jan 2005 10:36:55 +0100
+Message-ID: <m2u0pdn4js.fsf@phoenix.squirrel.nl>
+References: <41E81C2C.8010809@bartol.udel.edu>
+	<1105747983.7368.3.camel@tyrosine>
+	<47e0449d05011419037877f931@mail.gmail.com>
+	<m2fz13x8mw.fsf@phoenix.squirrel.nl>
+	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
+	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41EDE2EA.7090404-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> (Rich Townsend's message of
+ "Tue, 18 Jan 2005 23:32:42 -0500")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,18 +25,17 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
 
-I'd like to know if there is any way to determine what device woke up
-my computer.  I'm creating a media pc (mythtv) and if the pc is woken
-up by the ACPI timer then it doesn't need to start the GUI, but if it
-was woken up by the power button, keyboard, the USB remote it needs to
-start the GUI.  If the ethernet connection received a WOL packet then
-I might want to start apache and/or samba.
+> http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20050119.tar.gz
+> Keep the bug reports coming!
 
-I know that the ACPI specification allows the OS to determine which
-device woke it up, but is that information currently extracted and, if
-so, where can it be viewed?
+Good work! Seems to function properly on my TravelMate 4001WLMi.
+
+The Gnome Battery applet does not detect when the AC state changes. Is
+that part of the required but still to be implemented event interface?
+
+-- Johan
 
 
 -------------------------------------------------------
