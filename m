@@ -1,72 +1,62 @@
-From: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
-Subject: AE_AML_BUFFER_LIMIT problem in 20030619 ...
-Date: Fri, 27 Jun 2003 11:06:01 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200306271106.01487.hrvoje.habjanic@zg.htnet.hr>
+From: Hugh Dickins <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: [BK PATCH] acpismp=force fix
+Date: Fri, 27 Jun 2003 12:58:17 +0100 (BST)
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <Pine.LNX.4.44.0306271221110.1197-100000@localhost.localdomain>
+References: <A5974D8E5F98D511BB910002A50A66470B981205@hdsmsx103.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <A5974D8E5F98D511BB910002A50A66470B981205-MgY+aF+eRfZviC08c4yzC1DQ4js95KgL@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Arjan van de Ven' <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>, torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 26 Jun 2003, Brown, Len wrote:
+> 
+> I think there should be a boot-option to use ACPI for boot-time
+> configuration tables, but to not load the driver for run-time event
+> handling.  This is useful for enabling HT on systems with broken ACPI
+> run-time BIOS.
 
-Hi!
+I may be wrong, I think it was Arjan persuaded AndrewG to allow the
+acpitable.c code into 2.5 for this case.  At present it's enabled by
+config option instead of boot option, in both 2.5 (where the config
+option didn't actually work, patch posted for that a couple of days ago)
+and in 2.4.22-pre (which thus diverges from 2.4.21).  That surprises me,
+but I'd definitely defer to Arjan's preference.
 
-20030522 as working ok (excepto oops-es entering S5) ;-) ....
+> UnitedLinux uses "acpi=oldboot" for this.  While 'old' will become ambiguous
+> when today's "new" becomes tomorrow's "old";-), I do like "acpi={something}"
+> rather than complicating matters with non "acpi=" syntax.
 
-But in 20030619 i get this:
+I agree with you.
 
-ACPI: System [ACPI] (supports S0 S1 S3 S4bios S4 S5)
-dsopcode-0515 [20] ds_init_buffer_field  : Field size 1184 exceeds Buffer size 1088 (bits)
- psparse-1121: *** Error: Method execution failed [\_SB_.C005.C00B] (Node c12d3f88), AE_AML_BUFFER_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.C005.C00F] (Node c12d2148), AE_AML_BUFFER_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.C005._CRS] (Node c12d2248), AE_AML_BUFFER_LIMIT
-  uteval-0098: *** Error: Method execution failed [\_SB_.C005._CRS] (Node c12d2248), AE_AML_BUFFER_LIMIT
-ACPI: PCI Root Bridge [C005] (00:00)
+> Re: "acpismp=force"
+> I wouldn't miss it.  Sounds unanimous.
 
+It did have some point before, recent changes have rendered it pointless,
+and even if those changes get revised, there'll be a better way than the
+confusing "acpismp=force".
 
-What changed related to buffer lenght i don't know ... I tried to compare 20030522 & 20030619, but nothing
-obvious (related to this) has changed.
+> Re: "noht"
+> To disable HT on a uni-processor, wouldn't it be preferable to simply run
+> the UP kernel rather than the SMP kernel with HT disabled?
 
-I can get rid of this messages with attached patch, but i'm shure that, eventualy, someone else will hit same problem/bug.
-In this patch, i'm simply adding extra 50 bytes to EVERY BUFFER ALLOCATED ... obviously, this isn't wery good as permanent
-solution ...
+Yes, though wouldn't BIOS be able to disable it on those too?
 
-Can this have something to do with "nibble" bytes definitions?
+> That leaves SMP
+> systems, where either the BIOS could disable it (it is a BIOS bug if it
+> can't), or as a last resort CONFIG_X86_HT (2.5) could be config'd out of the
+> kernel.  I guess I've talked myself into not missing "noht" also.
 
-Any ideas?
+I fathered "noht", so feel some responsibility for it.  In its present
+state it's simply buggered in both 2.5 and 2.4.22-pre, and I'd much rather
+kill it off than leave it around in that misery.  If we can always switch
+off in BIOS instead, I guess it's redundant and should go.  Arjan remarked
+that it's no problem to honor it codewise in 2.4: up to 2.4.21 it was easy,
+but now beyond what I can safely mess with - I'm hoping someone (perhaps
+beginning with A?) might reprieve it, but if not I'll send patches to
+remove it from 2.4 and 2.5 in a few weeks time.
 
-Hrvoje
-
-
-p.s. http://free-zg.htnet.hr/HrvojeHabjanic/acpi/Compaq_Armada_M700 for more info
-
---- linux-2.4.21-habi/drivers/acpi/dispatcher/dsobject.c	2003-06-24 15:21:04.000000000 +0200
-+++ linux-2.4.21.20030619/drivers/acpi/dispatcher/dsobject.c	2003-06-25 20:18:58.000000000 +0200
-@@ -208,6 +208,7 @@
- 			"Buffer defined with zero length in AML, creating\n"));
- 	}
- 	else {
-+		obj_desc->buffer.length += 50;
- 		obj_desc->buffer.pointer = ACPI_MEM_CALLOCATE (
- 				   obj_desc->buffer.length);
- 		if (!obj_desc->buffer.pointer) {
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+Hugh
