@@ -1,13 +1,13 @@
-From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: kacpid problems
-Date: Thu, 11 Nov 2004 17:37:20 +0100 (CET)
-Message-ID: <20041111163720.52870.qmail@web25303.mail.ukl.yahoo.com>
-References: <3ACA40606221794F80A5670F0AF15F84041AC05A@pdsmsx403>
+Date: Fri, 12 Nov 2004 00:51:36 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC05C@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC05A@pdsmsx403>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,221 +17,132 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>, "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-When I applied the secon patch the kacpid never
-started, i think, because it never started lagging..
-Is this The fix then?? Or is this just an "ugly" hack?
-
- --- "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote: 
-> Did you try the patches I sent you to narrow down
-> the issue?
-> 
-> Thanks
-> Luming 
-> 
-> >-----Original Message-----
-> >From: dev_zero [mailto:dev_xor-eZNTXLQAfP4@public.gmane.org] 
-> >Sent: 2004年11月11日 23:26
-> >To: Wang, Zhenyu Z
-> >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Yu, Luming
-> >Subject: Re: [ACPI] kacpid problems
-> >
-> >When I applied this patch.. I could play even
-> longer
-> >than last time, before kacpid started running at
-> 99%
-> >cpu usage. First I played longer than usual, then
-> >kacpid started running but not with 99% cpu usage,
-> >then it stopped. It went like this a couple of
-> times
-> >then kacpid started with 99% cpu usage again.
-> >Don't know if the patch worked correctly, but I
-> >thought the kacpid should go S5, shutdown,
-> shouldn't
-> >it?
-> >
-> > --- "Wang, Zhenyu" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> wrote: 
-> >> copy these from acpi_thermal_remove, does this
-> >> workaround your issue?
-> >> 
-> >> ---
-> >> acpi-2.6/drivers/acpi/thermal.c~remove_queue_work
-> >> 2004-11-10 23:38:51.000000000 +0800
-> >> +++ acpi-2.6/drivers/acpi/thermal.c	2004-11-11
-> >> 09:19:57.365634568 +0800
-> >> @@ -472,6 +472,13 @@ acpi_thermal_critical (
-> >>  	printk(KERN_EMERG "Critical temperature reached
-> >> (%ld C), shutting down.\n",
-> >> KELVIN_TO_CELSIUS(tz->temperature));
-> >>  	acpi_bus_generate_event(device,
-> >> ACPI_THERMAL_NOTIFY_CRITICAL,
-> >> tz->trips.critical.flags.enabled);
-> >>  
-> >> +	tz->zombie = 1;
-> >> +	/* wait for running timer (on other CPUs)
-> finish
-> >> */
-> >> +	del_timer_sync(&(tz->timer));
-> >> +	/* synchronize deferred task */
-> >> +	acpi_os_wait_events_complete(NULL);
-> >> +	/* deferred task may reinsert timer */
-> >> +	del_timer_sync(&(tz->timer));
-> >>  
-> >>
->
->acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
-> >>  
-> >>  	return_VALUE(0);
-> >> 
-> >> 
-> >> On 2004.11.10 18:09:45 +0000, dev_zero wrote:
-> >> > This patch actually made some difference. I
-> could
-> >> play
-> >> > much longer now. First it started lagging, then
-> it
-> >> > stopped, then it started lagging again, then it
-> >> > stopped. It went like this for a while, but
-> after
-> >> I
-> >> > had played som more, it started lagging again
-> but
-> >> now
-> >> > it didn't stop.
-> >> > 
-> >> >  --- "Wang, Zhenyu" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >> wrote: 
-> >> > > oops,
-> >> > > 
-> >> > > ---
-> >> > >
-> >> acpi-2.6/drivers/acpi/thermal.c~remove_queue_work
-> >> > > 2004-11-10 23:38:51.693022464 +0800
-> >> > > +++ acpi-2.6/drivers/acpi/thermal.c
-> 2004-11-10
-> >> > > 23:52:40.820975856 +0800
-> >> > > @@ -472,6 +472,8 @@ acpi_thermal_critical (
-> >> > >  	printk(KERN_EMERG "Critical temperature
-> >> reached
-> >> > > (%ld C), shutting down.\n",
-> >> > > KELVIN_TO_CELSIUS(tz->temperature));
-> >> > >  	acpi_bus_generate_event(device,
-> >> > > ACPI_THERMAL_NOTIFY_CRITICAL,
-> >> > > tz->trips.critical.flags.enabled);
-> >> > >  
-> >> > > +	tz->zombie = 1;
-> >> > > +	acpi_os_wait_events_complete(NULL);
-> >> > >  
-> >> > >
-> >> >
-> >>
->
->acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
-> >> > >  
-> >> > >  	return_VALUE(0);
-> >> > > 
-> >> > > If this has no help, maybe others eat up
-> >> kacpid..
-> >> > > 
-> >> > > On 2004.11.10 23:44:33 +0000, Wang, Zhenyu
-> >> wrote:
-> >> > > > Pls try this patch,
-> >> > > > 
-> >> > > > ---
-> >> > >
-> >> acpi-2.6/drivers/acpi/thermal.c~remove_queue_work
->  
-> >> > > 2004-11-10 23:38:51.693022464 +0800
-> >> > > > +++ acpi-2.6/drivers/acpi/thermal.c    
-> >> 2004-11-10
-> >> > > 23:39:50.195128792 +0800
-> >> > > > @@ -472,6 +472,7 @@ acpi_thermal_critical (
-> >> > > >         printk(KERN_EMERG "Critical
-> >> temperature
-> >> > > reached (%ld C), shutting down.\n",
-> >> > > KELVIN_TO_CELSIUS(tz->temperature));
-> >> > > >         acpi_bus_generate_event(device,
-> >> > > ACPI_THERMAL_NOTIFY_CRITICAL,
-> >> > > tz->trips.critical.flags.enabled);
-> >> > > > 
-> >> > > > +       tz->zombie = 1;
-> >> > > >        
-> >> > >
-> >> >
-> >>
->
->acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
-> >> > > > 
-> >> > > >         return_VALUE(0);
-> >> > > > 
-> >> > > > Is this work?
-> >> > > > 
-> >> > > > -zhen
-> >> > > > 
-> >> > > > On 2004.11.10 14:33:35 +0000, dev_zero
-> wrote:
-> >> > > > > kacpid still runns with 99%cpu usage when
-> >> the
-> >> > > cpu gets
-> >> > > > > too hot. I tried the game quake 2. You
-> can
-> >> play
-> >> > > around
-> >> > > > > 10 -15 minutes before the kacpid starts
-> >> running
-> >> > > on 99%
-> >> > > > > cpu usage. I also used quake 2 too test
-> the
-> >> > > kernel
-> >> > > > > before I applied your patch.
-> >> > > > > 
-> >> > > > >  --- "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >> wrote: 
-> >> > > > > > It means there was NO event generated
-> at
-> >> that
-> >> > > time.
-> >> > > > > > Do you think the symptom is gone with
-> my
-> >> debug
-> >> > > > > > patch?
-> >> > > > > > If so, I think your box need a more
-> sane
-> >> > > schedule
-> >> > > > > > for acpi_thermal_check 
-> >> > > > > > And, I can come up with a patch.
-> >> > > > > > 
-> >> > > > > > Thanks
-> >> > > > > > Luming 
-> >> > > > > > 
-> >> > > > > > >-----Original Message-----
-> >> > > > > > >From: dev_zero
-> [mailto:dev_xor-eZNTXLQAfP4@public.gmane.org] 
-> >> > > > > > >Sent: 2004å¹´11æœˆ10æ—¥ 1:06
-> >> > > > > > >To: Yu, Luming
-> >> > > > > > >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >> > > > > > >Subject: RE: [ACPI] kacpid problems
-> >> > > > > > >
-> >> > > > > > >When I try to output the event file I
-> do
-> >> > > this:
-> >> > > > > > >[root@balder: /proc/acpi]# cat event >
-> >> > > > > > /home/event.log
-> >> > > > > > >
-> >> > > > > > >But then It just stands there without
-> >> doing
-> >> > > > > > anything.
-> >> > > > > > >So i tried to check what was wrong (ps
-> >> ax)
-> >> > > command:
-> >> > > > > > >2922 pts/0    S+     0:00 cat event
-> >> > > > > > >
-> 
-=== message truncated === 
+SG1tLCBpbnRlcmVzdGluZywgeW91IGRpZCBuYXJyb3cgdGhlIGlzc3VlIA0KZG93biB0byBHUEUg
+c3Rvcm0uIEkgd2lsbCBjaGVjayB0aGUNCmNvZGUsIGFuZCBjb21lIHVwIHdpdGggYSBlbGVnYW50
+IHBhdGNoLiANClRoYW5rcyBmb3IgeW91ciBoYXJkIHdvcmsuICA6LSkNCg0KRGlkIHlvdSBzZW5k
+IHlvdXIgRFNEVCB0byBtZT8NCkkgd2FudCB0byBiZSBzdXJlIG5vdGhpbmcgZHJvcHBlZCBmb3IN
+CnNvbHZpbmcgdGhpcyBpc3N1ZSwNCg0KVGhhbmtzDQpMdW1pbmcgDQoNCj4tLS0tLU9yaWdpbmFs
+IE1lc3NhZ2UtLS0tLQ0KPkZyb206IGRldl96ZXJvIFttYWlsdG86ZGV2X3hvckB5YWhvby5ub10g
+DQo+U2VudDogMjAwNOW5tDEx5pyIMTLml6UgMDozNw0KPlRvOiBZdSwgTHVtaW5nOyBXYW5nLCBa
+aGVueXUgWg0KPkNjOiBhY3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KPlN1YmplY3Q6
+IFJFOiBbQUNQSV0ga2FjcGlkIHByb2JsZW1zDQo+DQo+V2hlbiBJIGFwcGxpZWQgdGhlIHNlY29u
+IHBhdGNoIHRoZSBrYWNwaWQgbmV2ZXINCj5zdGFydGVkLCBpIHRoaW5rLCBiZWNhdXNlIGl0IG5l
+dmVyIHN0YXJ0ZWQgbGFnZ2luZy4uDQo+SXMgdGhpcyBUaGUgZml4IHRoZW4/PyBPciBpcyB0aGlz
+IGp1c3QgYW4gInVnbHkiIGhhY2s/DQo+DQo+IC0tLSAiWXUsIEx1bWluZyIgPGx1bWluZy55dUBp
+bnRlbC5jb20+IHdyb3RlOiANCj4+IERpZCB5b3UgdHJ5IHRoZSBwYXRjaGVzIEkgc2VudCB5b3Ug
+dG8gbmFycm93IGRvd24NCj4+IHRoZSBpc3N1ZT8NCj4+IA0KPj4gVGhhbmtzDQo+PiBMdW1pbmcg
+DQo+PiANCj4+ID4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj4gPkZyb206IGRldl96ZXJv
+IFttYWlsdG86ZGV2X3hvckB5YWhvby5ub10gDQo+PiA+U2VudDogMjAwNMOlwrnCtDExw6bFk8uG
+MTHDpuKAlMKlIDIzOjI2DQo+PiA+VG86IFdhbmcsIFpoZW55dSBaDQo+PiA+Q2M6IGFjcGktZGV2
+ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0OyBZdSwgTHVtaW5nDQo+PiA+U3ViamVjdDogUmU6IFtB
+Q1BJXSBrYWNwaWQgcHJvYmxlbXMNCj4+ID4NCj4+ID5XaGVuIEkgYXBwbGllZCB0aGlzIHBhdGNo
+Li4gSSBjb3VsZCBwbGF5IGV2ZW4NCj4+IGxvbmdlcg0KPj4gPnRoYW4gbGFzdCB0aW1lLCBiZWZv
+cmUga2FjcGlkIHN0YXJ0ZWQgcnVubmluZyBhdA0KPj4gOTklDQo+PiA+Y3B1IHVzYWdlLiBGaXJz
+dCBJIHBsYXllZCBsb25nZXIgdGhhbiB1c3VhbCwgdGhlbg0KPj4gPmthY3BpZCBzdGFydGVkIHJ1
+bm5pbmcgYnV0IG5vdCB3aXRoIDk5JSBjcHUgdXNhZ2UsDQo+PiA+dGhlbiBpdCBzdG9wcGVkLiBJ
+dCB3ZW50IGxpa2UgdGhpcyBhIGNvdXBsZSBvZg0KPj4gdGltZXMNCj4+ID50aGVuIGthY3BpZCBz
+dGFydGVkIHdpdGggOTklIGNwdSB1c2FnZSBhZ2Fpbi4NCj4+ID5Eb24ndCBrbm93IGlmIHRoZSBw
+YXRjaCB3b3JrZWQgY29ycmVjdGx5LCBidXQgSQ0KPj4gPnRob3VnaHQgdGhlIGthY3BpZCBzaG91
+bGQgZ28gUzUsIHNodXRkb3duLA0KPj4gc2hvdWxkbid0DQo+PiA+aXQ/DQo+PiA+DQo+PiA+IC0t
+LSAiV2FuZywgWmhlbnl1IiA8emhlbnl1Lnoud2FuZ0BpbnRlbC5jb20+DQo+PiB3cm90ZTogDQo+
+PiA+PiBjb3B5IHRoZXNlIGZyb20gYWNwaV90aGVybWFsX3JlbW92ZSwgZG9lcyB0aGlzDQo+PiA+
+PiB3b3JrYXJvdW5kIHlvdXIgaXNzdWU/DQo+PiA+PiANCj4+ID4+IC0tLQ0KPj4gPj4gYWNwaS0y
+LjYvZHJpdmVycy9hY3BpL3RoZXJtYWwuY35yZW1vdmVfcXVldWVfd29yaw0KPj4gPj4gMjAwNC0x
+MS0xMCAyMzozODo1MS4wMDAwMDAwMDAgKzA4MDANCj4+ID4+ICsrKyBhY3BpLTIuNi9kcml2ZXJz
+L2FjcGkvdGhlcm1hbC5jCTIwMDQtMTEtMTENCj4+ID4+IDA5OjE5OjU3LjM2NTYzNDU2OCArMDgw
+MA0KPj4gPj4gQEAgLTQ3Miw2ICs0NzIsMTMgQEAgYWNwaV90aGVybWFsX2NyaXRpY2FsICgNCj4+
+ID4+ICAJcHJpbnRrKEtFUk5fRU1FUkcgIkNyaXRpY2FsIHRlbXBlcmF0dXJlIHJlYWNoZWQNCj4+
+ID4+ICglbGQgQyksIHNodXR0aW5nIGRvd24uXG4iLA0KPj4gPj4gS0VMVklOX1RPX0NFTFNJVVMo
+dHotPnRlbXBlcmF0dXJlKSk7DQo+PiA+PiAgCWFjcGlfYnVzX2dlbmVyYXRlX2V2ZW50KGRldmlj
+ZSwNCj4+ID4+IEFDUElfVEhFUk1BTF9OT1RJRllfQ1JJVElDQUwsDQo+PiA+PiB0ei0+dHJpcHMu
+Y3JpdGljYWwuZmxhZ3MuZW5hYmxlZCk7DQo+PiA+PiAgDQo+PiA+PiArCXR6LT56b21iaWUgPSAx
+Ow0KPj4gPj4gKwkvKiB3YWl0IGZvciBydW5uaW5nIHRpbWVyIChvbiBvdGhlciBDUFVzKQ0KPj4g
+ZmluaXNoDQo+PiA+PiAqLw0KPj4gPj4gKwlkZWxfdGltZXJfc3luYygmKHR6LT50aW1lcikpOw0K
+Pj4gPj4gKwkvKiBzeW5jaHJvbml6ZSBkZWZlcnJlZCB0YXNrICovDQo+PiA+PiArCWFjcGlfb3Nf
+d2FpdF9ldmVudHNfY29tcGxldGUoTlVMTCk7DQo+PiA+PiArCS8qIGRlZmVycmVkIHRhc2sgbWF5
+IHJlaW5zZXJ0IHRpbWVyICovDQo+PiA+PiArCWRlbF90aW1lcl9zeW5jKCYodHotPnRpbWVyKSk7
+DQo+PiA+PiAgDQo+PiA+Pg0KPj4NCj4+YWNwaV90aGVybWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9U
+SEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0KPj4gPj4gIA0KPj4gPj4gIAlyZXR1cm5fVkFMVUUoMCk7
+DQo+PiA+PiANCj4+ID4+IA0KPj4gPj4gT24gMjAwNC4xMS4xMCAxODowOTo0NSArMDAwMCwgZGV2
+X3plcm8gd3JvdGU6DQo+PiA+PiA+IFRoaXMgcGF0Y2ggYWN0dWFsbHkgbWFkZSBzb21lIGRpZmZl
+cmVuY2UuIEkNCj4+IGNvdWxkDQo+PiA+PiBwbGF5DQo+PiA+PiA+IG11Y2ggbG9uZ2VyIG5vdy4g
+Rmlyc3QgaXQgc3RhcnRlZCBsYWdnaW5nLCB0aGVuDQo+PiBpdA0KPj4gPj4gPiBzdG9wcGVkLCB0
+aGVuIGl0IHN0YXJ0ZWQgbGFnZ2luZyBhZ2FpbiwgdGhlbiBpdA0KPj4gPj4gPiBzdG9wcGVkLiBJ
+dCB3ZW50IGxpa2UgdGhpcyBmb3IgYSB3aGlsZSwgYnV0DQo+PiBhZnRlcg0KPj4gPj4gSQ0KPj4g
+Pj4gPiBoYWQgcGxheWVkIHNvbSBtb3JlLCBpdCBzdGFydGVkIGxhZ2dpbmcgYWdhaW4NCj4+IGJ1
+dA0KPj4gPj4gbm93DQo+PiA+PiA+IGl0IGRpZG4ndCBzdG9wLg0KPj4gPj4gPiANCj4+ID4+ID4g
+IC0tLSAiV2FuZywgWmhlbnl1IiA8emhlbnl1Lnoud2FuZ0BpbnRlbC5jb20+DQo+PiA+PiB3cm90
+ZTogDQo+PiA+PiA+ID4gb29wcywNCj4+ID4+ID4gPiANCj4+ID4+ID4gPiAtLS0NCj4+ID4+ID4g
+Pg0KPj4gPj4gYWNwaS0yLjYvZHJpdmVycy9hY3BpL3RoZXJtYWwuY35yZW1vdmVfcXVldWVfd29y
+aw0KPj4gPj4gPiA+IDIwMDQtMTEtMTAgMjM6Mzg6NTEuNjkzMDIyNDY0ICswODAwDQo+PiA+PiA+
+ID4gKysrIGFjcGktMi42L2RyaXZlcnMvYWNwaS90aGVybWFsLmMNCj4+IDIwMDQtMTEtMTANCj4+
+ID4+ID4gPiAyMzo1Mjo0MC44MjA5NzU4NTYgKzA4MDANCj4+ID4+ID4gPiBAQCAtNDcyLDYgKzQ3
+Miw4IEBAIGFjcGlfdGhlcm1hbF9jcml0aWNhbCAoDQo+PiA+PiA+ID4gIAlwcmludGsoS0VSTl9F
+TUVSRyAiQ3JpdGljYWwgdGVtcGVyYXR1cmUNCj4+ID4+IHJlYWNoZWQNCj4+ID4+ID4gPiAoJWxk
+IEMpLCBzaHV0dGluZyBkb3duLlxuIiwNCj4+ID4+ID4gPiBLRUxWSU5fVE9fQ0VMU0lVUyh0ei0+
+dGVtcGVyYXR1cmUpKTsNCj4+ID4+ID4gPiAgCWFjcGlfYnVzX2dlbmVyYXRlX2V2ZW50KGRldmlj
+ZSwNCj4+ID4+ID4gPiBBQ1BJX1RIRVJNQUxfTk9USUZZX0NSSVRJQ0FMLA0KPj4gPj4gPiA+IHR6
+LT50cmlwcy5jcml0aWNhbC5mbGFncy5lbmFibGVkKTsNCj4+ID4+ID4gPiAgDQo+PiA+PiA+ID4g
+Kwl0ei0+em9tYmllID0gMTsNCj4+ID4+ID4gPiArCWFjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxl
+dGUoTlVMTCk7DQo+PiA+PiA+ID4gIA0KPj4gPj4gPiA+DQo+PiA+PiA+DQo+PiA+Pg0KPj4NCj4+
+YWNwaV90aGVybWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0K
+Pj4gPj4gPiA+ICANCj4+ID4+ID4gPiAgCXJldHVybl9WQUxVRSgwKTsNCj4+ID4+ID4gPiANCj4+
+ID4+ID4gPiBJZiB0aGlzIGhhcyBubyBoZWxwLCBtYXliZSBvdGhlcnMgZWF0IHVwDQo+PiA+PiBr
+YWNwaWQuLg0KPj4gPj4gPiA+IA0KPj4gPj4gPiA+IE9uIDIwMDQuMTEuMTAgMjM6NDQ6MzMgKzAw
+MDAsIFdhbmcsIFpoZW55dQ0KPj4gPj4gd3JvdGU6DQo+PiA+PiA+ID4gPiBQbHMgdHJ5IHRoaXMg
+cGF0Y2gsDQo+PiA+PiA+ID4gPiANCj4+ID4+ID4gPiA+IC0tLQ0KPj4gPj4gPiA+DQo+PiA+PiBh
+Y3BpLTIuNi9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jfnJlbW92ZV9xdWV1ZV93b3JrDQo+PiAgDQo+
+PiA+PiA+ID4gMjAwNC0xMS0xMCAyMzozODo1MS42OTMwMjI0NjQgKzA4MDANCj4+ID4+ID4gPiA+
+ICsrKyBhY3BpLTIuNi9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jICAgIA0KPj4gPj4gMjAwNC0xMS0x
+MA0KPj4gPj4gPiA+IDIzOjM5OjUwLjE5NTEyODc5MiArMDgwMA0KPj4gPj4gPiA+ID4gQEAgLTQ3
+Miw2ICs0NzIsNyBAQCBhY3BpX3RoZXJtYWxfY3JpdGljYWwgKA0KPj4gPj4gPiA+ID4gICAgICAg
+ICBwcmludGsoS0VSTl9FTUVSRyAiQ3JpdGljYWwNCj4+ID4+IHRlbXBlcmF0dXJlDQo+PiA+PiA+
+ID4gcmVhY2hlZCAoJWxkIEMpLCBzaHV0dGluZyBkb3duLlxuIiwNCj4+ID4+ID4gPiBLRUxWSU5f
+VE9fQ0VMU0lVUyh0ei0+dGVtcGVyYXR1cmUpKTsNCj4+ID4+ID4gPiA+ICAgICAgICAgYWNwaV9i
+dXNfZ2VuZXJhdGVfZXZlbnQoZGV2aWNlLA0KPj4gPj4gPiA+IEFDUElfVEhFUk1BTF9OT1RJRllf
+Q1JJVElDQUwsDQo+PiA+PiA+ID4gdHotPnRyaXBzLmNyaXRpY2FsLmZsYWdzLmVuYWJsZWQpOw0K
+Pj4gPj4gPiA+ID4gDQo+PiA+PiA+ID4gPiArICAgICAgIHR6LT56b21iaWUgPSAxOw0KPj4gPj4g
+PiA+ID4gICAgICAgIA0KPj4gPj4gPiA+DQo+PiA+PiA+DQo+PiA+Pg0KPj4NCj4+YWNwaV90aGVy
+bWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0KPj4gPj4gPiA+
+ID4gDQo+PiA+PiA+ID4gPiAgICAgICAgIHJldHVybl9WQUxVRSgwKTsNCj4+ID4+ID4gPiA+IA0K
+Pj4gPj4gPiA+ID4gSXMgdGhpcyB3b3JrPw0KPj4gPj4gPiA+ID4gDQo+PiA+PiA+ID4gPiAtemhl
+bg0KPj4gPj4gPiA+ID4gDQo+PiA+PiA+ID4gPiBPbiAyMDA0LjExLjEwIDE0OjMzOjM1ICswMDAw
+LCBkZXZfemVybw0KPj4gd3JvdGU6DQo+PiA+PiA+ID4gPiA+IGthY3BpZCBzdGlsbCBydW5ucyB3
+aXRoIDk5JWNwdSB1c2FnZSB3aGVuDQo+PiA+PiB0aGUNCj4+ID4+ID4gPiBjcHUgZ2V0cw0KPj4g
+Pj4gPiA+ID4gPiB0b28gaG90LiBJIHRyaWVkIHRoZSBnYW1lIHF1YWtlIDIuIFlvdQ0KPj4gY2Fu
+DQo+PiA+PiBwbGF5DQo+PiA+PiA+ID4gYXJvdW5kDQo+PiA+PiA+ID4gPiA+IDEwIC0xNSBtaW51
+dGVzIGJlZm9yZSB0aGUga2FjcGlkIHN0YXJ0cw0KPj4gPj4gcnVubmluZw0KPj4gPj4gPiA+IG9u
+IDk5JQ0KPj4gPj4gPiA+ID4gPiBjcHUgdXNhZ2UuIEkgYWxzbyB1c2VkIHF1YWtlIDIgdG9vIHRl
+c3QNCj4+IHRoZQ0KPj4gPj4gPiA+IGtlcm5lbA0KPj4gPj4gPiA+ID4gPiBiZWZvcmUgSSBhcHBs
+aWVkIHlvdXIgcGF0Y2guDQo+PiA+PiA+ID4gPiA+IA0KPj4gPj4gPiA+ID4gPiAgLS0tICJZdSwg
+THVtaW5nIiA8bHVtaW5nLnl1QGludGVsLmNvbT4NCj4+ID4+IHdyb3RlOiANCj4+ID4+ID4gPiA+
+ID4gPiBJdCBtZWFucyB0aGVyZSB3YXMgTk8gZXZlbnQgZ2VuZXJhdGVkDQo+PiBhdA0KPj4gPj4g
+dGhhdA0KPj4gPj4gPiA+IHRpbWUuDQo+PiA+PiA+ID4gPiA+ID4gRG8geW91IHRoaW5rIHRoZSBz
+eW1wdG9tIGlzIGdvbmUgd2l0aA0KPj4gbXkNCj4+ID4+IGRlYnVnDQo+PiA+PiA+ID4gPiA+ID4g
+cGF0Y2g/DQo+PiA+PiA+ID4gPiA+ID4gSWYgc28sIEkgdGhpbmsgeW91ciBib3ggbmVlZCBhIG1v
+cmUNCj4+IHNhbmUNCj4+ID4+ID4gPiBzY2hlZHVsZQ0KPj4gPj4gPiA+ID4gPiA+IGZvciBhY3Bp
+X3RoZXJtYWxfY2hlY2sgDQo+PiA+PiA+ID4gPiA+ID4gQW5kLCBJIGNhbiBjb21lIHVwIHdpdGgg
+YSBwYXRjaC4NCj4+ID4+ID4gPiA+ID4gPiANCj4+ID4+ID4gPiA+ID4gPiBUaGFua3MNCj4+ID4+
+ID4gPiA+ID4gPiBMdW1pbmcgDQo+PiA+PiA+ID4gPiA+ID4gDQo+PiA+PiA+ID4gPiA+ID4gPi0t
+LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PiA+PiA+ID4gPiA+ID4gPkZyb206IGRldl96ZXJv
+DQo+PiBbbWFpbHRvOmRldl94b3JAeWFob28ubm9dIA0KPj4gPj4gPiA+ID4gPiA+ID5TZW50OiAy
+MDA0w4PCpcOCwrnDgsK0MTHDg8Kmw4XigJzDi+KAoDEww4PCpsOi4oKs4oCdw4LCpSAxOjA2DQo+
+PiA+PiA+ID4gPiA+ID4gPlRvOiBZdSwgTHVtaW5nDQo+PiA+PiA+ID4gPiA+ID4gPkNjOiBhY3Bp
+LWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KPj4gPj4gPiA+ID4gPiA+ID5TdWJqZWN0OiBS
+RTogW0FDUEldIGthY3BpZCBwcm9ibGVtcw0KPj4gPj4gPiA+ID4gPiA+ID4NCj4+ID4+ID4gPiA+
+ID4gPiA+V2hlbiBJIHRyeSB0byBvdXRwdXQgdGhlIGV2ZW50IGZpbGUgSQ0KPj4gZG8NCj4+ID4+
+ID4gPiB0aGlzOg0KPj4gPj4gPiA+ID4gPiA+ID5bcm9vdEBiYWxkZXI6IC9wcm9jL2FjcGldIyBj
+YXQgZXZlbnQgPg0KPj4gPj4gPiA+ID4gPiA+IC9ob21lL2V2ZW50LmxvZw0KPj4gPj4gPiA+ID4g
+PiA+ID4NCj4+ID4+ID4gPiA+ID4gPiA+QnV0IHRoZW4gSXQganVzdCBzdGFuZHMgdGhlcmUgd2l0
+aG91dA0KPj4gPj4gZG9pbmcNCj4+ID4+ID4gPiA+ID4gPiBhbnl0aGluZy4NCj4+ID4+ID4gPiA+
+ID4gPiA+U28gaSB0cmllZCB0byBjaGVjayB3aGF0IHdhcyB3cm9uZyAocHMNCj4+ID4+IGF4KQ0K
+Pj4gPj4gPiA+IGNvbW1hbmQ6DQo+PiA+PiA+ID4gPiA+ID4gPjI5MjIgcHRzLzAgICAgUysgICAg
+IDA6MDAgY2F0IGV2ZW50DQo+PiA+PiA+ID4gPiA+ID4gPg0KPj4gDQo+PT09IG1lc3NhZ2UgdHJ1
+bmNhdGVkID09PSANCj4NCg==
 
 
 -------------------------------------------------------
