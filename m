@@ -1,15 +1,14 @@
-From: Peter Osterlund <petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Subject: Re: acpi breaking synaptics mouse support on Acer Travelmate 260
-Date: 17 Aug 2003 21:15:16 +0200
+From: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+Subject: Re: ACPI disappears silently if !CONFIG_X86_LOCAL_APIC
+Date: Mon, 18 Aug 2003 12:02:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m2ada8drjv.fsf@telia.com>
-References: <20030812221751.GA2432@man.beta.es>
+Message-ID: <3F40A435.6000306@basmevissen.nl>
+References: <BF1FE1855350A0479097B3A0D2A80EE009FC5B@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Resent-Message-Id: <200308172009.h7HK9qtW030539-dJtN/HGY7pUNCZHLCRkIHg@public.gmane.org>
-Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-In-Reply-To: <20030812221751.GA2432-COUDbPDYh58xAGwisGp4zA@public.gmane.org>
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE009FC5B-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,32 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org> writes:
+Brown, Len wrote:
 
-> The machine is a PIII mobile at 1GHz with intel chipset (i82801+i830M) 256
-> Megs of RAM the mouse is a Synaptics touchpad. The problem is that the mouse
-> gets crazy (if using the normal mouse driver) or looses sync (if using the
-> synaptics driver). I have looked at the interrupts happening when one moves
-> the mouse and the number is much higher (from 3 to 10 times) in 2.6 compared
-> with 2.4, also when one stops moving the mouse in 2.6 the interrupts keep on
-> happening for half a second or so, while it stops inmediately in 2.4.
+> Ps.
+> Does your laptop really have no LAPIC, or you just prefer to not use
+> LAPIC?
+> Note that even if the system has no IOAPIC, the LAPIC is used for timer
+> interrupts.  On a laptop w/o IOAPIC, you'd see this in the boot
+> messages:
+> 
 
-Actually it is expected to see interrupts for about one second after
-you stop touching the touchpad, if you are using the synaptics driver.
-There is a feature in the synaptics hardware that keeps generating
-packets for one extra second, to make it easier for drivers to
-implement gesture decoding without having to rely on additional
-software timers. Maybe you didn't use the synaptics driver in 2.4, in
-which case the touchpad would emulate a standard mouse and not
-generate the extra packets.
+Is it a problem to have the local APIC support not compiled into the kernel?
 
--- 
-Peter Osterlund - petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org
-http://w1.894.telia.com/~u89404340
+What if the kernel refuses to enable local APIC because of a a broken 
+BIOS report (or something like that, forgot the exact message). It that 
+fixable with the DSDT or something else?
+
+Regards,
+
+Bas.
+
+
+
 
 
 -------------------------------------------------------
