@@ -1,8 +1,8 @@
 From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: Re: PATCH-ACPI based CPU hotplug[0/6]-Core ACPI enhancement support
-Date: Mon, 20 Sep 2004 09:29:47 -0700
+Subject: PATCH-ACPI based CPU hotplug[1/6]-ACPI core enhancement support
+Date: Mon, 20 Sep 2004 09:34:02 -0700
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040920092947.B14208@unix-os.sc.intel.com>
+Message-ID: <20040920093402.C14208@unix-os.sc.intel.com>
 References: <20040920092520.A14208@unix-os.sc.intel.com>
 Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
@@ -13,6 +13,7 @@ In-Reply-To: <20040920092520.A14208@unix-os.sc.intel.com>; from anil.s.keshavamu
 To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Cc: "Brown, Len" <len.brown@intel.com>, ACPI Developer <acpi-devel@lists.sourceforge.net>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
+
 
 
 ---
