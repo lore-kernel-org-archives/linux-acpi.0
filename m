@@ -1,11 +1,14 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: network card buzzing
-Date: Thu, 09 Dec 2004 14:33:39 +0000
-Message-ID: <41B86243.7090507@mega.ist.utl.pt>
+From: Jeroen Wijnhout <Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
+Subject: Re: network card buzzing
+Date: Thu, 09 Dec 2004 18:02:41 +0100
+Message-ID: <200412091802.41329.Jeroen.Wijnhout@kdemail.net>
+References: <41B86243.7090507@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-reply-to: <41B86243.7090507-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,35 +21,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hi everyone
+On Thursday 09 December 2004 15:33, Pedro Venda wrote:
+> hi everyone
+>
+> I tought it was normal to have a buzzing on the network card while it
+> transmits/receives high quanitities of data and using almost all of it's
+> bandwidth... I had such a network card on my desktop and now my laptop does
+> the same.
+>
+> the laptop is a (smart-battery powered) acer travelmate 4001 WLMi and the
+> network card is a broadcom (b44) 10/100Mbps.
 
-I tought it was normal to have a buzzing on the network card while it=20
-transmits/receives high quanitities of data and using almost all of it's=20
-bandwidth... I had such a network card on my desktop and now my laptop do=
-es the=20
-same.
+I have exactly the same laptop, never heard any buzzing, not with LAN or WLAN.
 
-the laptop is a (smart-battery powered) acer travelmate 4001 WLMi and the=
-=20
-network card is a broadcom (b44) 10/100Mbps.
-
-after rejecting the idea, I decided to try the same on another OS... wind=
-ows. it=20
-doesn't buzz while transmiting/receiving at 80Mbps whereas on linux it do=
-es. one=20
-can hear exactly when there is activity and when there isn't.
-
-is this a problem? hardware issue? software issue? acpi? plain bad luck? =
-what is=20
-happening here?
-
-regards,
-pedro venda.
---=20
-
-Pedro Jo=E3o Lopes Venda
-email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
-http://arrakis.dhis.org
+best,
+Jeroen
+-- 
+Kile - an Integrated LaTeX Environment for KDE
+http://kile.sourceforge.net
 
 
 -------------------------------------------------------
