@@ -1,14 +1,12 @@
-From: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: setting powernow-k7 conflicting on laptop.
-Date: Wed, 31 Mar 2004 18:28:30 +0100
+From: "Dino Klein" <zagzag-lists-zY4eFNvK5D9If6P1QZMOBw@public.gmane.org>
+Subject: Disassembling an SSDT
+Date: Wed, 31 Mar 2004 18:42:09 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040331172829.GI25834@redhat.com>
-References: <20040331144001.GC4474@gaia>
+Message-ID: <W58017981939281080758529@webmail1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040331144001.GC4474-Zd7+qHgBxRI@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,29 +15,15 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Geotronix <mail-list-na2r7Jod8xleoWH0uzbU5w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 31, 2004 at 04:40:01PM +0200, Geotronix wrote:
- > 
- > Hi.
- > 
- > I have a Presario 710EA with Debian 2.6.4-k7 kernel image installed.
- > With modconf I tried to install the PowerNow-k7 module but I get a
- > message that tells me that the device is in use.
- > As a matter of fact I have activated and loaded all ACPI modules and
- > another module freq_table that is used by ACPI and that modconf dowsn't
- > let me unload. I'm not able to understand who is conficting with
- > powernow module and why it isn't loading.
- > 
- > WHich are the modules that mustn't be loaded in memory so that I can
- > install powernow for my DUron 900 processor?
+Hi,
+I'm having difficulties disassembling an SSDT via Intel's ASL compiler - it fails with unresolved references, since the SSDT is attempting to add methods to the Processor object declared in the SSDT.
+I couldn't find any switches that will get iasl to complete successfuly, and using the disassembler in the old pmtools package generates a very unreadable output.
+Any help is much appreciated.
+Thanks.
 
-Odds are that you've loaded the acpi cpufreq driver. Cpufreq doesn't
-support >1 driver being loaded.
-
-		Dave
 
 
 
