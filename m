@@ -1,17 +1,14 @@
-From: Karl Hegbloom <hegbloom-tbDHPZwbsQQ@public.gmane.org>
-Subject: Re: Re: [2.6.6] Synaptics driver is 'jumpy'
-Date: Mon, 17 May 2004 14:43:35 -0700
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Losing lid events after resume (2.6.6)
+Date: Mon, 17 May 2004 16:39:27 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084830215.27780.25.camel@journeyhawk.localdomain>
-References: <200405161222.48581.lkml@kcore.org>
-	 <200405170832.32256.lkml@kcore.org>
-	 <200405170142.41289.dtor_core@ameritech.net>
-	 <200405170904.24471.lkml@kcore.org>
+Message-ID: <20040517163826.F21811@root.org>
+References: <20040513181051.GA29398@cs.ucla.edu> <20040517103818.GA1669@elf.ucw.cz>
+ <20040517170424.GA19417@cs.ucla.edu> <40A909D3.1080009@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200405170904.24471.lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <40A909D3.1080009-GANU6spQydw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,23 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
+Cc: Kevin Eustice <kfe-764C0pRuGfqVc3sceRu5cw@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Re:
-http://sourceforge.net/mailarchive/forum.php?thread_id=4172848&forum_id=6102
+On Mon, 17 May 2004, Eric Valette wrote:
+> > Yup. After going to standby mode, ACPI no longer registers any event
+> > other than the powerbutton events.
+>
+> You are not alone and a similar bug with several proposed patches is
+> already open (for months now) at :
+>
+> http://bugme.osdl.org/show_bug.cgi?id=2321
+>
+> Note that apparently, the rewrite of the GPE handling is underway and
+> things should be fixed soon (at least that is what len says...)
 
-A BIOS upgrade from the laptop manufacturer has cured the problem
-entirely.  I am now able to run the battery monitor with no effect on
-keyboard or touchpad pointer.  I don't know what they changed, but
-whatever it was, it's fixed now.  I suppose that it could be a change to
-the Linux ACPI code that fixed it, but I suspect it was the BIOS update.
-It's a "you tell me and we'll both know" situtation -- I've only just
-begun learning about the internals of how ACPI works.
+A related issue for Thinkpads:
+http://bugme.osdl.org/show_bug.cgi?id=2644
 
--- 
-Karl Hegbloom <hegbloom-tbDHPZwbsQQ@public.gmane.org>
+Basically, disabling the lid GPE even though it's marked wake/run makes
+suspend fail as soon as the lid switch is pressed.
 
+-Nate
 
 
 -------------------------------------------------------
