@@ -1,12 +1,12 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI key events handling
-Date: Fri, 11 Mar 2005 16:47:05 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8407663707@pdsmsx403>
+From: Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>
+Subject: Re: inappropriate use of in_atomic()
+Date: Fri, 11 Mar 2005 10:11:42 +0100
+Message-ID: <20050311091142.GB22415@fi.muni.cz>
+References: <20050310204006.48286d17.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050310204006.48286d17.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,185 +16,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Jean Tourrilhes <jt-yAE0UhLNZJawPNPzzlOzwdBPR1lH4CV8@public.gmane.org>, javier-UOFnMJzu7Pp1eVVWpSVkNqxOck334EZe@public.gmane.org, linux-fbdev-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux1394-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Roland Dreier <roland-nF87da4h5whBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The patch at http://bugzilla.kernel.org/show_bug.cgi?id=3D3851#c52 is =
-worthy=20
-testing, if you have EC related issue.
+Andrew Morton wrote:
+: 
+: in_atomic() is not a reliable indication of whether it is currently safe
+: to call schedule().
+: 
+: This is because the lockdepth beancounting which in_atomic() uses is only
+: accumulated if CONFIG_PREEMPT=y.  in_atomic() will return false inside
+: spinlocks if CONFIG_PREEMPT=n.
+: 
+: Consequently the use of in_atomic() in the below files is probably
+: deadlocky if CONFIG_PREEMPT=n:
+[...]
+: 	drivers/acpi/osl.c
+[...]
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Thomas =
-Renninger
-Sent: 2005=C4=EA3=D4=C211=C8=D5 0:28
-To: Li, Shaohua
-Cc: Karol Kozimor; Paulo Vitor Magacho da Silva; =
-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] ACPI key events handling
+This may be the cause of 
 
-Li, Shaohua wrote:
+http://bugme.osdl.org/show_bug.cgi?id=4150
 
->How about below patch? It fixes current ec address space handler bugs.
->
->Thanks,
->Shaohua
->
->
->diff -puN drivers/acpi/ec.c~ec_addr_space_handler drivers/acpi/ec.c
->--- 2.5/drivers/acpi/ec.c~ec_addr_space_handler	2005-03-08
->09:19:05.228720200 +0800
->+++ 2.5-root/drivers/acpi/ec.c	2005-03-08 10:35:54.130060696 +0800
->@@ -441,7 +441,7 @@ acpi_ec_space_handler (
-> {
-> 	int			result =3D 0;
-> 	struct acpi_ec		*ec =3D NULL;
->-	u32			temp =3D 0;
->+	u32			temp =3D *value;
-> 	acpi_integer		f_v =3D 0;
-> 	int 			i =3D 0;
->=20
->@@ -462,10 +462,9 @@ next_byte:
-> 	switch (function) {
-> 	case ACPI_READ:
-> 		result =3D acpi_ec_read(ec, (u8) address, &temp);
->-		*value =3D (acpi_integer) temp;
-> 		break;
-> 	case ACPI_WRITE:
->-		result =3D acpi_ec_write(ec, (u8) address, (u8) *value);
->+		result =3D acpi_ec_write(ec, (u8) address, (u8) temp);
-> 		break;
-> 	default:
-> 		result =3D -EINVAL;
->@@ -474,19 +473,18 @@ next_byte:
-> 	}
->=20
-> 	bit_width -=3D 8;
->-	if(bit_width){
->-
->+	if (bit_width){
-> 		if(function =3D=3D ACPI_READ)
->-			f_v |=3D (acpi_integer) (*value) << 8*i;
->+			f_v |=3D temp << 8 * i;
-> 		if(function =3D=3D ACPI_WRITE)
->-			(*value) >>=3D8;=20
->+			temp >>=3D 8;
-> 		i++;
-> =20
->
+- I have recently verified that the problem described in bug #4150 disappears
+when CONFIG_PREEMPT=y is used.
 
-So the actual fix is this?
-
->+		(u8)address ++;
-> =20
->
-I saw it some days ago.
-However this only fixes something if you see:
-*acpi_ec_space_handler: bit_width should be 8*
-messages in your syslog.
-Could you delete this message as well, please?
-I have a machine here having this message in syslog
-every second...
-I didn't try the keys, but I think they work as expected.
-
-I wonder whether  u64 temp should be used, acpi_integer could be u64
-and bit_width (QWordAcc) could be 64 bit?
-
-> 		goto next_byte;
-> 	}
->=20
->-
-> 	if(function =3D=3D ACPI_READ){
->-		f_v |=3D (acpi_integer) (*value) << 8*i;
->+		f_v |=3D temp << 8 * i;
-> 		*value =3D f_v;
-> 	}
->=20
->@@ -505,8 +503,6 @@ out:
-> 	default:
-> 		return_VALUE(AE_OK);
-> 	}
->-=09
->-
-> }
->=20
-> =20
->
->>-----Original Message-----
->>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Karol Kozimor
->>Sent: Thursday, March 10, 2005 4:50 PM
->>To: Paulo Vitor Magacho da Silva
->>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>Subject: Re: [ACPI] ACPI key events handling
->>
->>Thus wrote Paulo Vitor Magacho da Silva:
->>   =20
->>
->>>  I have an ACER 163lmi laptop and I am having problem with some of
->>>     =20
->>>
->the
-> =20
->
->>Fn
->>   =20
->>
->>>keys. I don't know if this is related to ACPI or not.
->>>  The problem is that when I press some the Fn keys, like the sleep
->>>     =20
->>>
->>button
->>   =20
->>
->>>(Fn+F4), and I look at the /proc/acpi/event, sometimes the key works
->>>sometimes it doesn't. I did also the check of the Fn keys with the
->>>     =20
->>>
->acerhk
-> =20
->
->>>driver. My laptop has the mail, internet, p1, p2, wireless, buttons.
->>>     =20
->>>
->And
-> =20
->
->>>when I press those buttons, sometimes I get the correct reading from
->>>     =20
->>>
->the
-> =20
->
->>>acerhk driver, sometimes when I press the mail buttons it reads back
->>>     =20
->>>
->the
-> =20
->
->>>wireless, or any other key, and sometimes it just reads garbage.
->>>     =20
->>>
->>Sounds like another instance of
->>http://bugzilla.kernel.org/show_bug.cgi?id=3D4124
->>
->>Best regards,
->>
->>   =20
->>
+-Yenya
 
 
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-- 
+| Jan "Yenya" Kasprzak  <kas at {fi.muni.cz - work | yenya.net - private}> |
+| GPG: ID 1024/D3498839      Fingerprint 0D99A7FB206605D7 8B35FCDE05B18A5E |
+| http://www.fi.muni.cz/~kas/   Czech Linux Homepage: http://www.linux.cz/ |
+> Whatever the Java applications and desktop dances may lead to, Unix will <
+> still be pushing the packets around for a quite a while.      --Rob Pike <
 
 
 -------------------------------------------------------
