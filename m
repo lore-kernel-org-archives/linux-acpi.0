@@ -1,8 +1,8 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Radeon PM Support
-Date: Thu, 29 Jul 2004 22:14:00 +0000
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI @ Ottawa Linux Symposium
+Date: 29 Jul 2004 23:34:18 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091139240.26511.9.camel@6-allhosts>
+Message-ID: <1091158458.9636.17.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -15,20 +15,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I just bought a Radeon 7000 video card on-line. What is the status of
-and plans for power management support for this card? I read
-Documentation/power/video.txt, and it says that I can't have framebuffer
-console. That could be a problem as I use bootsplash. It also says I
-need a patched X server. My Google search turned up a page concerning
-S3/Radeon that says the patch is no longer necessary (I can't find the
-URL at the moment, sorry). Any thoughts, tips, tricks, etc. would be
-greatly appreciated.
+FYI,
 
-Regards,
-Andrew Barr
+Here are the slides I used to discuss ACPI at OLS last week:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/ACPI_OLS_2004.sxi
+(Open Office Format)
+
+Here is the paper from the proceedings:
+http://www.finux.org/Reprints/Reprint-Brown-OLS2004.pdf
+
+cheers,
+-Len
+
 
 
 
