@@ -1,11 +1,13 @@
-From: "Stacie Painter" <stacie_painteryi-VoV2SkvEBBxmR6Xm/wNWPw@public.gmane.org>
-Subject: Aloha Casino Online!
-Date: Wed, 10 Nov 2004 21:02:47 +0700
-Message-ID: <d06f01c4c72d$dcd6abbe$510260da@kurvensucher.de>
+From: ole.rohne-vJEk5272eHo@public.gmane.org
+Subject: Re: s3_late_bios
+Date: Wed, 10 Nov 2004 15:11:47 +0100
+Message-ID: <yzoy8h9pzdo.fsf@cern.ch>
+References: <20041108144947.GA31267@tate.loria.fr> <20041108213558.GB4607@elf.ucw.cz>
+ <418FEAD5.1000007@root.org> <20041109125522.GA8015@tate.loria.fr>
+ <419127E6.3000603@root.org> <20041110072003.GA13561@tate.loria.fr>
+ <1100087772.6014.5.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,23 +21,15 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Aloha!
- 
-Enjoy island style entertainment with these hot new promotional offers:
+>> I don't think linux has a vm86 api at all.
 
-$300 match deposit bonus - bonus code X3DAW at casino's cashier.
-$10 free, no deposit necessary - bonus code FR1EE at casino's cashier.
+Matthew> There's a vm86 api on i386 - see the vm86 manpage. It seems
+Matthew> to have been introduced in 0.97.
 
-Vacation at Aloha Casino!
-50 amazing games - 24/7 customer support - SafeBet certification
+I guess that should have been: Linux doesn't have kernel-mode vm86...
 
-Visit: http://www.alohacasino.biz
+Ole
 
-Mahalo,
-Billy Bob
-
-
-No thanks: http://www.alohacasino.biz/u/
 
 
 
