@@ -1,15 +1,14 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: Acpi irq handler doesn't detect ICH4 sound device with
- ALSA. Is a known bug?
-Date: Fri, 13 Aug 2004 15:25:09 -0400
+From: tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org (Tomasz Ciolek)
+Subject: Re: question about ACPI & Smart Batteries
+Date: Fri, 13 Aug 2004 08:36:33 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <411D1595.7090706@optonline.net>
-References: <20040813211607.0e8bce72@debian>
+Message-ID: <20040812223633.GA2750@dreamcraft.com.au>
+References: <F760B14C9561B941B89469F59BA3A8470726AFF5@orsmsx401.amr.corp.intel.com> <20040812222936.GD30862@miramar.cse.ucsc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040813211607.0e8bce72@debian>
+Content-Disposition: inline
+In-Reply-To: <20040812222936.GD30862-v28VZnYc+MmC5P5rv/TENfZ8FUJU4vz8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,33 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Pere_Casta=F1er?= <XaRz69-pCzzcW6XgXY@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Cintia B. Margi" <cintia-Emgmuai4XwL2fBVCVOL8/A@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pere Castañer wrote:
-> Hi,
-> 
-> I upgraded my kernel from 2.6.5 to 2.6.7  and then with 2.6.8rc3 with acpi patch from 15th of July. With all these kernels the latest acpi code has problems to detect my onboard pci soundcard which uses snd-intel8x0m module (ICH4).
-> When I try to load it manually I receive this message:
-> 
-> -----------------------------------------------------------------
-> ACPI: PCI interrupt 0000:00.1f.5[B] GSI 7 (level,low)----> IRQ7
-> Intel ICH probe of 0000:00:1f.5 failed with error -16
-> unable to grab IRQ7
-> ----------------------------------------------------------------
-> 
-> I suspect that ACPI has problems to handle the IRQ's at boot time. When I append to boot loader the string pci=noacpi the pci IRQ handler detects my soundcard nicely.
+Write to the maintainer of wmacpi-ng package. He has a good clue as to
+how ACPI generates the battery values...
 
-Does "acpi=irq" also work? That is a little less aggressive about what 
-it disables...
+Tomasz Ciolek
 
+On Thu, Aug 12, 2004 at 03:29:36PM -0700, Cintia B. Margi wrote:
+> * Grover, Andrew (andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org) said:
+> > Unless you have a Fujitsu Uva, you do not have a smart battery, you have
+> > a control method battery.
 > 
-> PS:Is a Dell Inspiron 8500.
+> I don't have a smart battery then.
+>  
+> > For a CM battery, the OS can poll the battery state by calling _BST, or
+> > set a trip point (via _BTP) and the OS will get an interrupt when the
+> > battery crosses that trip.
 > 
-> PSS:Tested with kernel 2.6.8rc3 patched with acpi20040715-2.6.8rc2 patch.
+> I do not want to set a trip point, but I would like to monitor the battery discharge
+> process... I want to characterize the battery discharge behavior under different tasks,
+> so I intend to monitor the battery voltage and the discharge rate (which I can obtain
+> from /proc/acpi/battery/BAT0/state). What I would like to know is how often the state
+> file is updated and how accurate these values are. Any idea where I can get this info?
 > 
+> Thanks,
+> 
+> Cintia 
+> 
+> --
+> Cintia Margi
+> Graduate Student
+> SoE - UCSC
+> http://www.soe.ucsc.edu/~cintia
+> GPG Public Key: http://www.soe.ucsc.edu/~cintia/cintia.gpg
+> B4DE 9355 3840 FF72 50F2 ACAC E2EC AA9A 41E2 CD55
 
+
+
+-- 
+Tomasz M. Ciolek	
+*******************************************************************************
+ tmc at dreamcraft dot com dot au 
+*******************************************************************************
+   GPG Key ID:		0x41C4C2F0
+   GPG Key Fingerprint: 3883 B308 8256 2246 D3ED  A1FF 3A1D 0EAD 41C4 C2F0
+   Key available on www.pgp.net	
+*******************************************************************************
 
 
 -------------------------------------------------------
