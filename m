@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+From: "Adrian Yee" <brewt-acpi.sf.net-CDLCgzMZgTDYtjvyW6yDsg@public.gmane.org>
 Subject: Re: S3 suspend/resume driver questions
-Date: Sun, 18 Apr 2004 12:50:45 +0200
+Date: Sun, 18 Apr 2004 04:16:41 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40825D85.1000702@pca.it>
-References: <GMail.1082282809.299052003.09816679024@brewt.org>
+Message-ID: <GMail.1082287001.299101428.71013230813@brewt.org>
+References: <40825D85.1000702@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <GMail.1082282809.299052003.09816679024-CDLCgzMZgTDYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <40825D85.1000702-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,34 +20,62 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-Hello,
+> mine isn't a technical reply, but you can post in the 'alsa-devel' mailin=
+g-list,
+> as it seems that Takashi Iwai is working on PM-lacking drivers. Here some=
+ links:
+>    http://sourceforge.net/mailarchive/forum.php?thread_id=3D4201761&forum=
+_id=3D1752
 
-on 04/18/04 12:06, Adrian Yee wrote:
-> For the alsa intel8x0 driver, I just added code to save/restore the pci
-> state on suspend and resume.  Is this the correct way to fix the problem?
-mine isn't a technical reply, but you can post in the 'alsa-devel' mailing-list,
-as it seems that Takashi Iwai is working on PM-lacking drivers. Here some links:
-   http://sourceforge.net/mailarchive/forum.php?thread_id=4201761&forum_id=1752
-   http://sourceforge.net/mailarchive/forum.php?thread_id=4107033&forum_id=1752
+Doing a grep through the alsa code, it doesn't look like any driver save/re=
+stores pci state.
 
-BTW-1, could you post your 'intel8x0' patch? I could give it a try ASAP...
+>    http://sourceforge.net/mailarchive/forum.php?thread_id=3D4107033&forum=
+_id=3D1752
+>=20
+> BTW-1, could you post your 'intel8x0' patch? I could give it a try ASAP...
 
-BTW-2, in the few tests I made on my ASUS M6842NWH ('intel8x0' based), I have to
-remove the sound modules even to have a successfull S1.
+That's essentially what I did.  It is a little different though:
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+--- /usr/src/linux-2.6.5-mm6/sound/pci/intel8x0.c       2004-04-05 18:46:17=
+=2E000000000 -0700
++++ intel8x0.c  2004-04-18 04:03:34.000000000 -0700
+@@ -445,6 +445,7 @@ struct _snd_intel8x0 {
+=20=20=20=20=20=20=20=20
+ #ifdef CONFIG_PM
+        int in_suspend;
++       u32 pci_state[16];
+ #endif
+ };
+=20
+@@ -2223,11 +2224,13 @@ static int snd_intel8x0_suspend(struct p
+ {
+        intel8x0_t *chip =3D snd_magic_cast(intel8x0_t, pci_get_drvdata(dev=
+), return -ENXIO);
+        intel8x0_suspend(chip);
++       pci_save_state(dev, chip->pci_state);
+        return 0;
+ }
+ static int snd_intel8x0_resume(struct pci_dev *dev)
+ {
+        intel8x0_t *chip =3D snd_magic_cast(intel8x0_t, pci_get_drvdata(dev=
+), return -ENXIO);
++       pci_restore_state(dev, chip->pci_state);
+        intel8x0_resume(chip);
+        return 0;
+ }
 
-iD8DBQFAgl2FVAp7Xm10JmkRAtYxAJ4+uklo8A7tAxG9b1pgTiTpN/iNzwCfSEa8
-cAGeBAq40j20Uyvdv8YMTXc=
-=zQPa
------END PGP SIGNATURE-----
+> BTW-2, in the few tests I made on my ASUS M6842NWH ('intel8x0' based), I =
+have to
+> remove the sound modules even to have a successfull S1.
+
+Actually, I haven't tried out S1 yet, but I don't have to remove the sound =
+modules for S3 to work.  And even if I do, my system will lock up when tryi=
+ng to load the alsa drivers due to the device's configuration state.
+
+Adrian
 
 
 -------------------------------------------------------
