@@ -1,37 +1,53 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [ACPI] Re: [PATCH] s4bios for 2.5.59 + apci-20030123
-Date: Thu, 6 Feb 2003 11:16:45 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030206101645.GO1205@poup.poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com> <20030204221003.GA250@elf.ucw.cz> <1044477704.1648.19.camel@laptop-linux.cunninghams>
+Subject: Re: ACPI support for add-on devices driver
+Date: Thu, 6 Feb 2003 11:36:06 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030206103606.GP1205@poup.poupinou.org>
+References: <3E41EFA3.8060406@wipro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1044477704.1648.19.camel-udXHSmD1qAz9bBlWBkG5g4WQyAnV0byH@public.gmane.org>
-To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3E41EFA3.8060406-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: siva <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 06, 2003 at 09:41:44AM +1300, Nigel Cunningham wrote:
-> On Wed, 2003-02-05 at 11:10, Pavel Machek wrote:
-> > Some people apparently want slower suspend/resume but have all caches
-> > intact when resumed. Thats not easy for swsusp but they can have that
-> > with S4bios. And S4bios is usefull for testing device support; it
-> > seems to behave slightly differently to S3 meaning better testing.
+On Thu, Feb 06, 2003 at 10:46:19AM +0530, siva wrote:
+> Hi all,
 > 
-> Whether its slower depends on the hardware; on my 128MB Celeron 933
-> laptop (17MB/s HDD), I can write an image of about 120MB, reboot and get
-> back up and running in around a minute and a half. That's about the same
-> as far as I remember, but has (as you say) the advantage of not still
-> having to get things swapped back in.
+> I like know what I need to do if I want to have ACPI power management 
+> support in my driver for an add-on device. When I am browsing APM 
+> implementation, I found that Linux kernel have general PM Interfaces 
+> like pm_regsiter and pm_unregsiter. In APM driver, pm_send is being 
+> called to send notification to all registered add-on devices.
+> 
+> In the case of ACPI, we have Device power state D0,D1,D2,D3. I like to 
+> know how the interface between the ACPI driver, PM interface and ADD-ON 
+> Driver happens.
+> Can any one please send me some details about it?
+> 
 
-The problem is the speed of the suspending process, not the whole suspend/resume
-sequence,  especially in case of emergency suspending due to thermal condition,
-etc.
+This is one of the main issue actually which is supposed to be somehow resolved
+in 2.5 with the 'new device driver model' (and still have to be correctly
+implemented, discuted, probably some flame war to come, etc.).
 
 -- 
 Ducrot Bruno
 
 --  Which is worse:  ignorance or apathy?
 --  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
