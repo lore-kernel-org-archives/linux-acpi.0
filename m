@@ -1,41 +1,53 @@
-From: "Grover, Andrew" <andrew.grover@intel.com>
-Subject: RE: [BK PATCH] ACPI updates
-Date: Thu, 5 Dec 2002 17:36:02 -0800
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A576@orsmsx119.jf.intel.com>
+From: Christian Vogel <vogel-ohJTLb+lN0D2l3tELKL2klGCwAZxyiatZ+vKCSbpVNE@public.gmane.org>
+Subject: linux-2.4.20-ac1-acpi: Is Alan compatible with ACPI?
+Date: Fri, 6 Dec 2002 05:30:54 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20021206053054.A26735@skunk.physik.uni-erlangen.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: 'Pavel Machek' <pavel@ucw.cz>
-Cc: 'Arjan van de Ven' <arjanv@redhat.com>, marcelo@conectiva.com.br, linux-kernel@vger.kernel.org, acpi-devel@sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Pavel Machek [mailto:pavel@ucw.cz] 
+Hi,
 
-I (Andy) said:
-> > Well maybe that's what we should do - use the UnitedLinux 
-> ACPI patch (which
-> > iirc is based on fairly recent ACPI code, and presumably minimizes
-> > ACPI-related breakage) and then proceed incrementally from there?
-> > 
-> > Sound OK? Marcelo? UL folks?
+has someone here successfully tested the ACPI patch for 2.4 vanilla
+with -ac-kernels? I've tried the patch for 2.4.20-rc?[1] on -ac1
+and so far it seems to work quite well but I'm interested if there
+are known issues[2] (I don't want to have my fan fail when I'm away
+for example...)
 
-> I guess it will be better if you push acpi patch without killing those
-> backup solutions. Extractign blacklist from UL might be worth it,
-> through.
+        Chris
 
-Well after communicating with Marcelo it sounds like he'd like to hold off
-taking it in 2.4.21 because IDE changes take priority, and two big changes
-at once is too many for a stable kernel revision.
+[1]
+  acpi-20021126-2.4.20-rc3.diff.gz from sourceforge
 
-Fair enough. I'm just worried that 2.4.22 is a long ways away.
+  I had to fix two #includes<> and arch/i386/kernel uses target_cpus()
+  which is not here, I did substitute __target_cpus() and defined
+  inline int __target_cpus(void){ return 0x01; } when it's not defined
+  (depends on CONFIG_MULTIQUAD).
 
-Maybe one way to address Marcelo's stability concerns and Arjan's "keep
-acpitable.[ch] around" preference is for me to submit a patch that I *know*
-don't affect anything besides ACPI -- i.e. only the changes that have been
-made under drivers/acpi, and then go from there, submitting UL-derived and
-other improvements incrementally after that.
+[2]
+  I have the following in my syslog:
+    ACPI: Embedded Controller [EC0] (gpe 9)
+    schedule_task(): keventd has not started
+  should I be worried?
 
-Thoughts?
+-- 
+Top ten reasons to procrastinate:
+ 1.
 
-Regards -- Andy
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
