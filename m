@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2.6.3 + D600 + battery state + BUG?? [Was] Battery status sometimes missing
-Date: Fri, 27 Feb 2004 11:20:19 +0800
+From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
+Date: Thu, 26 Feb 2004 22:20:10 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6F9@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <403EB76A.60204@verizon.net>
+References: <4038F499.2060302@verizon.net>	 <1077517907.12673.43.camel@dhcppc4>  <403ADBCC.9060108@verizon.net> <1077686228.5911.93.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <1077686228.5911.93.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +17,148 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Note : I still see this soometimes
-> osl-0886[80] os_wait_semaphore:Failed to acquire=20
-> semaphore[dffac580|1|0],
-> AE_TIME
+Len Brown wrote:
 
-Hmm, this is unusual inforation. I'm curious about the semaphore which
-is timeout to
-be acquired by whom?  Would you help with add dump_stack just before
-that debug
-message? This is a interesting bug. :)
+>>>...D875PBZ...
+>>>      
+>>>
+>
+>On this box S1 works for me, but S3 doesn't resume (below)
+>
+>Note that you need to enable S3 in the BIOS SETUP to try S3.
+>
+>  
+>
+I do have S3 enabled in the BIOS. I just grabbed Debian's 
+kernel-source-2.6.3 and compiled it without SMP support. cat 
+/sys/power/state gives me standby mem disk.
+I tried echo -n disk /sys/power/state (as per the ACPI docs on 
+sourceforge) and the system did try to write the contents to disk, but 
+failed. I then realized I don't have enough swap space, which I will try 
+to exapnd later.
 
-I'm not sure, but maybe the following two patch can help, only because
-they aim  to
- global lock/mutex issue.
-1.) http://bugme.osdl.org/show_bug.cgi?id=3D1781#c18
-2.) http://bugme.osdl.org/show_bug.cgi?id=3D1669#c6
+I then tried eco -n mem > /sys/power/state and the machine basically 
+shuts down (completely off I think) so fast that I don't get a chance to 
+see any console messages. Doesn't resume when I hit a key. If I try to 
+hit the power button once, the machine beeps hi-lo (BIOS error I guess?) 
+without booting. I have to then hold the power swithc for 4 seconds, 
+then turn it on again.
 
---Luming
+Doing:
+# /etc/init.d/acpid stop
+echo -n standby > /sys/power/state
+the machine does go into standy with no error messages.
+I am able to resume by hitting the power button once.
 
+Thank you for the  "acpid stop" tip, I never saw it mentioned in the howto.
+The only problem is the case fans are still on even though I have the 
+fans set for off at low temperature in the BIOS.
+I was hoping for a silent sleeping machine; maybe I'll wait an hour and 
+see if the case fans do eventually shut off.
+
+
+>Note that neither S1 nor S3 will do anything on the SMP kernel.
+>(and unfortunately, they will not even tell you that when you try)
+>
+>-Len
+>
+>BIOS SETUP: Power/ACPI
+>ACPI Suspend State [S3 State] (default is S1)
+>
+>boot FC2-test1 UP kernel
+>
+># cat /proc/acpi/sleep
+>S0 S1 S3 S4 S5
+>
+># /etc/init.d/acpid stop
+>(to make power button resume event not initiate a shut-down)
+>
+># echo 1 >/proc/acpi/sleep
+>Stopping tasks: ================================|
+>psmouse.c: bad data from KBC - timeout bad parity
+>hdc: start_power_step(step: 0)
+>hdc: completing PM request, suspend
+>hda: start_power_step(step: 0)
+>hda: start_power_step(step: 1)
+>hda: complete_power_step(step: 1, stat: 50, err: 0)
+>hda: completing PM request, suspend
+>psmouse.c: bad data from KBC - timeout bad parity
+>psmouse.c: bad data from KBC - timeout bad parity
+>PM: Entering state.
+>i8042.c: Can't restore CTR.
+>
+>
+><press power button here to resume>
+>
+>
+>Back to C!
+>i8042.c: Can't read CTR while initializing i8042.
+>i8042: resume failed
+>PM: Finishing up.
+>PCI: Setting latency timer of device 0000:00:1d.0 to 64
+>PCI: Setting latency timer of device 0000:00:1d.1 to 64
+>PCI: Setting latency timer of device 0000:00:1d.2 to 64
+>PCI: Setting latency timer of device 0000:00:1d.3 to 64
+>hda: Wakeup request inited, waiting for !BSY...
+>hda: start_power_step(step: 1000)
+>e1000: eth0 NIC Link is Up 1000 Mbps Full Duplex
+>blk: queue f7dcb5c0, I/O limit 4095Mb (mask 0xffffffff)
+>hda: completing PM request, resume
+>hdc: Wakeup request inited, waiting for !BSY...
+>hdc: start_power_step(step: 1000)
+>hdc: completing PM request, resume
+>Restarting tasks... done
+>#
+>
+>system running normally here.
+>
+>now try S3:
+>
+># echo 3 >/proc/acpi/sleep
+>Stopping tasks: =================================|
+>hdc: start_power_step(step: 0)
+>hdc: completing PM request, suspend
+>hda: start_power_step(step: 0)
+>hda: start_power_step(step: 1)
+>hda: complete_power_step(step: 1, stat: 50, err: 0)
+>hda: completing PM request, suspend
+>PM: Entering state.
+>
+><power is off, press power button here to wake up system>
+>
+>here a bunch of garbled junk comes out my serial console.
+>But video is not restored to my matrox mystique FB.
+>ping doesn't work.
+>
+>  
+>
+
+This is on the INTEL D875PBZ, is that correct? What kernel version is 
+FC2-test1 UP kernel? I am also assuming debian's kernel 2.6.3 would have 
+all the latest ACPI patches?
+
+>Curiously CTRL-ALT-DEL results in the following on the serial console:
+>
+>quotaoff: numerical sysctl 5 16 8 is obsolete.
+>md: stopping all md devices.
+>md: md0 switched to read-only mode.
+>Restarting system.
+>
+><and the system reboots here>
+>
+>So it seems that the system did resume and talk to the keyboard at
+>least...
+>
+>
+>
+>
+>  
+>
+Len, thank you for your detailed responses, much appreciated.
 
 
 -------------------------------------------------------
