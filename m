@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: Radeon PM Support
-Date: Wed, 11 Aug 2004 21:08:24 +0200
+Date: Wed, 11 Aug 2004 21:39:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040811190824.GF1120@openzaurus.ucw.cz>
-References: <88056F38E9E48644A0F562A38C64FB60028F9AC3@scsmsx403.amr.corp.intel.com>
+Message-ID: <20040811193933.GG1120@openzaurus.ucw.cz>
+References: <20040730141028.GE21359@luna.mooo.com> <20040730162756.4f300a5c@localhost> <20040730190047.GH21359@luna.mooo.com> <1091560208.24759.15.camel@6-allhosts> <41103952.2030707@optonline.net> <1091583216.2974.2.camel@localhost.localdomain> <1091590835.2304.64.camel@dhcppc4> <yzohdrjqu6p.fsf@localhost.localdomain> <1091631174.2297.90.camel@dhcppc4> <yzosmb0hjzu.fsf@pb-d-128-141-40-189.cern.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <88056F38E9E48644A0F562A38C64FB60028F9AC3-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <yzosmb0hjzu.fsf-1zyhLZfD728Z/JH0GhYu5ApX6sy8U9uuH79+75y5D5U@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,23 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ole.rohne-vJEk5272eHo@public.gmane.org, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, anib-La3J9u0raUk@public.gmane.org
+To: ole.rohne-vJEk5272eHo@public.gmane.org
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > I"ve been hesitant to propose a generic VGAPOST, but it could be good
-> > to have a way of resuming without using a driver. Would it be cleaner
-> > to put the call in pci_default_resume?
+> Len> I would like a solution that applies to x86_64 in addition to
+> Len> i386.
 > 
-> Yes. If this patch works for tohers, then we can move it into
-> pci_default_resume during the cleanup.
+> What would it take?
 
+Len, you can't expect ole to write x86-64 support without testing.
+Patch should be designed so that it does no damage on non-i386, but
+you should not expect more.
 
-I'd rather not do that. Some cards are already posted after
-S3, some even preserve state over S3. It is okay to do VGAPOST
-for radeon and any card that needs it, but I'd rather not do it generically.
+It would be nice if i386 version could be merged. I'll probably do
+x86-64 in future; stable i386 version
+would certainly help me.
+
+> I know absolutely nothing about that architecture. From
+> arch/x86_64/kernel/acpi/wakeup.S it seems to support some form of real
+> mode, so could it do the return to real mode just like i386?
+
+Yes.
+
+> "lkml" - is that the linux kernel mailing list? 
+Yes.
+				Pavel
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
