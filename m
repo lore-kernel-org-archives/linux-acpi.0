@@ -1,13 +1,12 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [patch 1/1] arch/i386/pci/acpi.c Use for_each_pci_dev
-	macro
-Date: Mon, 07 Mar 2005 10:02:01 -0700
-Message-ID: <1110214921.21176.12.camel@eeyore>
-References: <20050305152937.6C73F1EE1E@trashy.coderock.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: s4bios: does anyone use it?
+Date: Mon, 7 Mar 2005 18:08:52 +0100
+Message-ID: <20050307170852.GB31985@poupinou.org>
+References: <20050305191405.GA1463@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050305152937.6C73F1EE1E-FMNAFCfKBdkof1z7V/zXpkB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050305191405.GA1463-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +16,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, hannal-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, janitor-Aga/KQc5HWxW3WIO4DnKWw@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2005-03-05 at 16:29 +0100, domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org wrote:
-> Using the new for_each_pci_dev macro. Compiled and boot tested.
+On Sat, Mar 05, 2005 at 08:14:05PM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> Signed-off-by: Hanna Linder <hannal-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Maximilian Attems <janitor-Aga/KQc5HWxW3WIO4DnKWw@public.gmane.org>
-> Signed-off-by: Domen Puncer <domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org>
-> ---
-> 
-> 
->  kj-domen/arch/i386/pci/acpi.c |    2 +-
->  1 files changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff -puN arch/i386/pci/acpi.c~for-each-pci-dev-arch_i386_pci_acpi arch/i386/pci/acpi.c
-> --- kj/arch/i386/pci/acpi.c~for-each-pci-dev-arch_i386_pci_acpi	2005-03-05 16:09:18.000000000 +0100
-> +++ kj-domen/arch/i386/pci/acpi.c	2005-03-05 16:09:18.000000000 +0100
-> @@ -41,7 +41,7 @@ static int __init pci_acpi_init(void)
->  		printk(KERN_INFO "** was specified.  If this was required to make a driver work,\n");
->  		printk(KERN_INFO "** please email the output of \"lspci\" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org\n");
->  		printk(KERN_INFO "** so I can fix the driver.\n");
-> -		while ((dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL)
-> +		for_each_pci_dev(dev)
->  			acpi_pci_irq_enable(dev);
->  	} else {
->  		printk(KERN_INFO "** PCI interrupts are no longer routed automatically.  If this\n");
-> _
-> 
-> 
+> Is there single user of s4bios? It used to work for me 4 notebooks
+> ago, but I never really used it.
 
-This looks OK to me, but the patch will need to be updated because
-Linus just applied my patch to change the printk message preceeding
-your change.
+I don't have anymore my toshiba laptop where S4 bios was first
+implemented.
 
+> I think I'm the only person that ever
+> seen it working, but I could be wrong.
+
+You are indeed wrong.
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
