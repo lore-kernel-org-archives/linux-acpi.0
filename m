@@ -1,11 +1,19 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: ACPI using smp_processor_id in preemptible code
-Date: Sun, 9 Jan 2005 22:10:42 +0100
-Message-ID: <20050109211042.GA1196@elf.ucw.cz>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Centrino speedstep
+Date: Sun, 09 Jan 2005 23:04:09 +0100
+Message-ID: <m21xcumf8m.fsf@phoenix.squirrel.nl>
+References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
+	<20041228212653.GA8436@dominikbrodowski.de>
+	<m2vfalc53k.fsf@phoenix.squirrel.nl> <41D30842.4040204@paranoici.org>
+	<20041229205905.GA12181@dominikbrodowski.de>
+	<m2sm5o23ix.fsf@phoenix.squirrel.nl>
+	<20041229214629.GA21054@dominikbrodowski.de>
+	<m24qi48z4q.fsf@phoenix.squirrel.nl> <41D8366F.1040305@paranoici.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <41D8366F.1040305-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org> (ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org's
+ message of "Sun, 02 Jan 2005 18:59:11 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,32 +23,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org> writes:
 
-I enabled CPU hotplug and preemptible debugging... now I get...
+> did those 2 changes fix your problems?
+> i have this problem too, and i "fixed" with echo a new max ... but now
+> as suggested i'll fix the dsdt
 
-BUG: using smp_processor_id() in preemptible [00000001] code:
-swapper/0
-caller is acpi_processor_idle+0xb/0x235
- [<c020ba28>] smp_processor_id+0xa8/0xc0
- [<c02338ce>] acpi_processor_idle+0xb/0x235
- [<c02338c3>] acpi_processor_idle+0x0/0x235
- [<c02338ce>] acpi_processor_idle+0xb/0x235
- [<c02338c3>] acpi_processor_idle+0x0/0x235
- [<c02338c3>] acpi_processor_idle+0x0/0x235
- [<c02338c3>] acpi_processor_idle+0x0/0x235
- [<c0101115>] cpu_idle+0x75/0x110
- [<c04f5988>] start_kernel+0x158/0x180
- [<c04f5390>] unknown_bootoption+0x0/0x1e0
+Using msr_is32_perf_status I found out that the actual frequencies are 
+1500, 1200, 1000, 800, 600 (Mhz). The original DSDT reports 
+1600, 1400, 1200, 800, 600. 
 
-...in logs.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Another typical DSDT brokenness?
+
+-- Johan
 
 
 -------------------------------------------------------
