@@ -1,13 +1,13 @@
-From: Eric Piel <Eric.Piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: [PATHC] Relaxed syntax for the processor PBLK length
-Date: Mon, 31 Jan 2005 16:11:59 +0100
-Message-ID: <41FE4ABF.9040100@tremplin-utc.net>
-References: <41FD3E02.8010701@tremplin-utc.net> <20050131145836.GA1145@poupinou.org>
+Date: Mon, 31 Jan 2005 16:29:31 +0100
+Message-ID: <20050131152931.GC1145@poupinou.org>
+References: <41FD3E02.8010701@tremplin-utc.net> <20050131145836.GA1145@poupinou.org> <41FE4ABF.9040100@tremplin-utc.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050131145836.GA1145-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41FE4ABF.9040100-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+To: Eric Piel <Eric.Piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
 Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bruno Ducrot a =C3=A9crit :
-> On Sun, Jan 30, 2005 at 09:05:22PM +0100, Eric Piel wrote:
->=20
->>Hello,
->>
->>In the original DSDT of my laptop (Acer TravelMate 614) the processor=20
->>PBLK length is declared to be 5. The legal and only allowed value is 6.=
-=20
->>This is an error in the DSDT and actually it is 6. Allowing Linux ACPI=20
->>to read also processor PBLK length of 5 works and permits the processor=
-=20
->>to have the C-states correctly detected. In turn it allows the processo=
-r=20
->>to get less hot (so this is eventually useful).
->>
->>I've noticed that some other Acer DSDT also have this length=20
->>mis-indicated. The attached patch adds some logic to the ACPI to allow =
-a=20
->>processor PBLK length of 5 when the syntax is relaxed.
->>
->=20
->=20
-> You should consider to disable C3 in this case IMHO.
-Why? Actually this patch is especially designed to allow C3 state to be=20
-used on my computer. This works for more than 6 months without any=20
-appearent problem, is there anything I'm not aware of?
+On Mon, Jan 31, 2005 at 04:11:59PM +0100, Eric Piel wrote:
+> Why? Actually this patch is especially designed to allow C3 state to be 
+> used on my computer. This works for more than 6 months without any 
+> appearent problem, is there anything I'm not aware of?
 
-Eric
+I thought some BIOS devellopers wanted to use a size for the
+pblk of 5 just to not allow C3 (which correspond to the sixth io
+register).
+
+I'm not alone to think this.
+
+Nate: FreeBSD allow only C2 in this case.  What do you think about this
+report?
+Do you have an example of some kind of malfunction when enabling C3?
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
