@@ -1,9 +1,14 @@
-From: ezra peisach <epeisach-AW32GngNFaTp5eoAjl1PXg@public.gmane.org>
-Subject: DELL inspiron 8200 fails to restore console after S1/S3
-Date: Tue, 6 Jan 2004 16:10:43 -0500 (EST)
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: RE: can't switch CPU frequency while running on batterypower
+Date: Tue, 6 Jan 2004 13:39:44 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401062110.QAA188725@med-xtal.bu.edu>
+Message-ID: <20040106133725.E27491@root.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720C76@PDSMSX403.ccr.corp.intel.com><32908.192.168.36.2.1073412456.squirrel@defiant.homedns.org>
+    <20040106103944.Q26693@root.org> <32785.192.168.36.2.1073420997.squirrel@defiant.homedns.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <32785.192.168.36.2.1073420997.squirrel-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -12,47 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Defiant <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 6 Jan 2004, Defiant wrote:
+> Nate Lawson wrote:
+> > This is most likely a problem with re-evaluation of _PSS after it has been
+> > changed.  I don't remember if Linux uses the notify on the processor
+> > object to re-evaluate _PSS.  If Linux does this correctly, it may be that
+> > the underlying firmware has a bug and you should use a more specific
+> > cpufreq driver (i.e. SpeedStep or whatever).  Some systems have a problem
+> > where they don't properly export firmware information to the ACPI
+> > performance states interface.
+>
+> uhm, I don't know why, but it is working now, using
+> CONFIG_X86_P4_CLOCKMOD instead of CONFIG_X86_SPEEDSTEP_ICH, even it is a
+> Pentium 4m, not Pentium 4.
 
-Testing w/ the 2.6.0 kernel and the 12/03 patches to acpi, the following
-happens w/ the stock DSDT A10 on an inspiron 8200:
+Sure.  In general, it's better to use a hw-specific cpufreq driver instead
+of the generic ACPI one, even if the latter seems to work.  Many chipsets
+don't export the hw-specific information to ACPI correctly and thus ACPI
+performance states cpufreq should be a last resort.  If they still don't
+work, you should try multiple hw-specific drivers, as you did.
 
-The display is a radeon 9000....
-
-The following occurs if X is not running. (init run level 3)
-
-If one moves to power state: S1 - the screen does not go blank (text
-remains) When power is restored, the machine accepts keyboard input,
-but the screen then goes blank.
-
-If one move to power state S3 - screen goes blank. Power restoration
-flashes the screen then remains blank.
-
-When X is running - sometimes the screen is restored, sometimes
-not. I.e. sometimes it comes out w/ garbage.
-
-Based on the bugzilla.kernel.org - bug 605 - discusses backlight not
-going off.  There is a comment that ACPI may not be responsible for
-this - the gfx driver is.
-
-When X is not running - there isn't a gfx driver - except the kernel.
-Do we need an OS specific handler to receive notifications of 
-
-\_SB.PCI0.AGP.VID
-
-and do the right thing?
-
-Perhaps the agp driver is the proper place.... I suspect it may be a radeon 
-specific thing...
-
-For the X case - maybe it needs to observe the acpi events - not just apm.
-
-Anyone have any ideas?
-
-Ezra
-
+-Nate
 
 
 -------------------------------------------------------
