@@ -1,143 +1,208 @@
-From: Dave Bauer <dave-eQMij45H2SHXYFsarriMmxagbA6BzR3y@public.gmane.org>
-Subject: ACPI stops working after memory upgrade vpr Matrix 175b4
-Date: Mon, 02 Feb 2004 21:12:37 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <401F0395.1090407@thedesignexperience.org>
+From: Dmitry Torokhov <dtor_core@ameritech.net>
+Subject: Re: FYI: ACPI 'sleep 1' resets atkbd keycodes
+Date: Mon, 2 Feb 2004 23:38:41 -0500
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200402022338.48010.dtor_core@ameritech.net>
+References: <200401251137.21646.p_christ@hol.gr> <20040125115946.GA414@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+In-Reply-To: <20040125115946.GA414@ucw.cz>
+Content-Disposition: inline
+To: Vojtech Pavlik <vojtech@suse.cz>, "P. Christeas" <p_christ@hol.gr>
+Cc: acpi-devel@lists.sourceforge.net, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-My ACPI stopped working when I added an additional 256mb RAM to my vpr 
-Matricx 174b4 laptop. It has 256mb already, I added 256mb to make it 
-512mb and I got a bunch of AE_NO_MEMORY errors in the ACPI code.
+On Sunday 25 January 2004 06:59 am, Vojtech Pavlik wrote:
+> On Sun, Jan 25, 2004 at 11:37:19AM +0200, P. Christeas wrote:
+> > This may be just a minor issue:
+> > I had to use the setkeycodes utility to enable some extra keys (that
+> > weren't mapped by kernel's atkbd tables).
+> > After waking from sleep 1, those keys were reset. That is, I had to
+> > use 'setkeycodes' again to customize the tables again.
+> >
+> > IMHO the way kernel works now is correct. It should *not* have extra
+> > code just to handle that. Just make sure anybody that alters his kbd
+> > tables puts some extra script to recover the tables after an ACPI
+> > wake.
+> > This should be more like a note to Linux distributors.
+> >
+> > Have a nice day.
+>
+> Patch attached, please test. It'll make it into 2.6.3, with some luck
+> even 2.6.2.
 
-I took the extra RAM out, and the ACPI support works.
+I feel a little uneasy about killing the input device if set changes after
+resume. That would cause a new input device created but for user it would
+look like keyboard is lost or am I missing someting?
 
-I am using kernel 2.6.1 with acpi patches. I had the same problem on 
-2.6.0. On 2.4.20 with acpi patches the machine would not even boot with 
-the extra memory.
+What about the patch below which would reset keyboard to the default keymap
+only if set changes?
 
-I have a custom DSDT file that I fixed errors in. When it was working on 
-2.4.20 It looked like all the ACPI features were active and functional.
+-- 
+Dmitry
 
-Any ideas on what to look for?
+===================================================================
 
-Here is a sample of the boot log:
 
-Feb  2 20:35:54 einstein kernel: ACPI: Subsystem revision 20040116
-Feb  2 20:35:54 einstein kernel:    tbget-0291: *** Info: Table [DSDT] 
-replaced by host OS
-Feb  2 20:35:54 einstein kernel:  tbxface-0117 [03] 
-acpi_load_tables      : ACPI Tables successfully acquired
-Feb  2 20:35:54 einstein kernel: Parsing all Control 
-Methods:..........................................................................................................................................................................
-Feb  2 20:35:54 einstein kernel: Table [DSDT](id F005) - 554 Objects 
-with 49 Devices 170 Methods 17 Regions
-Feb  2 20:35:54 einstein kernel: Parsing all Control Methods:
-Feb  2 20:35:54 einstein kernel: Table [SSDT](id F003) - 3 Objects with 
-0 Devices 0 Methods 0 Regions
-Feb  2 20:35:54 einstein kernel: ACPI Namespace successfully loaded at 
-root c039ba9c
-Feb  2 20:35:54 einstein kernel: ACPI: IRQ9 SCI: Edge set to Level Trigger.
-Feb  2 20:35:54 einstein kernel: evxfevnt-0093 [04] 
-acpi_enable           : Transition to ACPI mode successful
-Feb  2 20:35:54 einstein kernel: evgpeblk-0747 [06] 
-ev_create_gpe_block   : GPE 00 to 15 [_GPE] 2 regs at 0000000000001028 
-on int 9
-Feb  2 20:35:54 einstein kernel: evgpeblk-0747 [06] 
-ev_create_gpe_block   : GPE 16 to 31 [_GPE] 2 regs at 000000000000102C 
-on int 9
-Feb  2 20:35:54 einstein kernel: Completing Region/Field/Buffer/Package 
-initialization:.............................................................
-Feb  2 20:35:54 einstein kernel: Initialized 17/17 Regions 0/0 Fields 
-24/24 Buffers 20/20 Packages (565 nodes)
-Feb  2 20:35:54 einstein kernel: Executing all Device _STA and_INI 
-methods:....exregion-0164 [25] ex_system_memory_space: Could not map 
-memory at 000000000FF7FDBD, size 190
-Feb  2 20:35:54 einstein kernel: evregion-0347: *** Error: Handler for 
-[SystemMemory] returned AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:  psparse-1120: *** Error: Method 
-execution failed [\_SB_.PHS1] (Node c15d9428), AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:  psparse-1120: *** Error: Method 
-execution failed [\_SB_.BAT1._STA] (Node c15d8328), AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:   uteval-0098: *** Error: Method 
-execution failed [\_SB_.BAT1._STA] (Node c15d8328), AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel: ....exregion-0164 [23] 
-ex_system_memory_space: Could not map memory at 000000000FF7FD9D, size 20
-Feb  2 20:35:54 einstein kernel: evregion-0347: *** Error: Handler for 
-[SystemMemory] returned AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:  psparse-1120: *** Error: Method 
-execution fail:
-Feb  2 20:35:54 einstein kernel:   nsinit-0408 [06] 
-ns_init_one_device    : \_SB_.PCI0._INI failed: AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel: ...........................................
-Feb  2 20:35:54 einstein kernel: 51 Devices found containing: 50 _STA, 1 
-_INI methods
-Feb  2 20:35:54 einstein kernel: ACPI: Interpreter enabled
-Feb  2 20:35:54 einstein kernel: ACPI: Using PIC for interrupt routing
-Feb  2 20:35:54 einstein kernel: exregion-0164 [23] 
-ex_system_memory_space: Could not map memory at 000000000FF7FDBD, size 190
-Feb  2 20:35:54 einstein kernel: evregion-0347: *** Error: Handler for 
-[SystemMemory] returned AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:  psparse-1120: *** Error: Method 
-execution failed [\_SB_.PHS1] (Node c15d9428), AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:  psparse-1120: *** Error: Method 
-execution failed [\_SB_.BAT1._STA] (Node c15d8328), AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Root Bridge [PCI0] (00:00)
-Feb  2 20:35:54 einstein kernel: PCI: Probing PCI hardware (bus 00)
-Feb  2 20:35:54 einstein kernel: Transparent bridge - 0000:00:1e.0
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Routing Table 
-[\_SB_.PCI0._PRT]
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Routing Table 
-[\_SB_.PCI0.AGPB._PRT]
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Routing Table 
-[\_SB_.PCI0.PCIB._PRT]
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKA] (IRQs 
-10 *11)
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKB] (IRQs 
-*10 11)
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKC] (IRQs 
-*10 11)
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKD] (IRQs 
-10 *11)
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKE] (IRQs 
-*10 11)
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKF] (IRQs 
-10 11)
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKG] (IRQs 
-10 11)
-Feb  2 20:35:54 einstein kernel: ACPI: PCI Interrupt Link [LNKH] (IRQs 
-10 11)
-Feb  2 20:35:54 einstein kernel: ACPI: Embedded Controller [H_EC] (gpe 24)
-Feb  2 20:35:54 einstein kernel: exregion-0164 [38] 
-ex_system_memory_space: Could not map memory at 000000000FF7FDBD, size 190
-Feb  2 20:35:54 einstein kernel: evregion-0347: *** Error: Handler for 
-[SystemMemory] returned AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:  psparse-1120: *** Error: Method 
-execution failed [\_SB_.PHS1] (Node c15d9428), AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel:  psparse-1120: *** Error: Method 
-execution failed [\_SB_.PCI0.LPCB.H_EC._REG] (Node c15cf9a8), AE_NO_MEMORY
-Feb  2 20:35:54 einstein kernel: ACPI: Power Resource [PFAN] (on)
-Feb  2 20:35:54 einstein kernel: PCI: Probing PCI hardware
+ChangeSet@1.1543, 2004-02-02 23:33:52-05:00, dtor_core@ameritech.net
+  Input: atkbd - load default keymap on resume only if set is changed
 
-Thanks
-Dave
+
+ atkbd.c |   95 ++++++++++++++++++++++++++++++++++------------------------------
+ 1 files changed, 51 insertions(+), 44 deletions(-)
+
+
+===================================================================
 
 
 
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
+diff -Nru a/drivers/input/keyboard/atkbd.c b/drivers/input/keyboard/atkbd.c
+--- a/drivers/input/keyboard/atkbd.c	Mon Feb  2 23:35:33 2004
++++ b/drivers/input/keyboard/atkbd.c	Mon Feb  2 23:35:33 2004
+@@ -619,6 +619,38 @@
+ 	kfree(atkbd);
+ }
+ 
++static void atkbd_set_name(struct atkbd *atkbd)
++{
++	if (atkbd->set == 4) {
++		sprintf(atkbd->name, "AT Set 2 Extended keyboard");
++	} else
++		sprintf(atkbd->name, "AT %s Set %d keyboard",
++			atkbd->translated ? "Translated" : "Raw", atkbd->set);
++}
++
++/*
++ * Installs default keymap based on the detected mode (set)
++ */
++static void atkbd_install_keymap(struct atkbd *atkbd)
++{
++	int i;
++
++	if (atkbd->translated) {
++		for (i = 0; i < 128; i++) {
++			atkbd->keycode[i] = atkbd_set2_keycode[atkbd_unxlate_table[i]];
++			atkbd->keycode[i | 0x80] = atkbd_set2_keycode[atkbd_unxlate_table[i] | 0x80];
++		}
++	} else if (atkbd->set == 2) {
++		memcpy(atkbd->keycode, atkbd_set2_keycode, sizeof(atkbd->keycode));
++	} else {
++		memcpy(atkbd->keycode, atkbd_set3_keycode, sizeof(atkbd->keycode));
++	}
++
++	for (i = 0; i < 512; i++)
++		if (atkbd->keycode[i] && atkbd->keycode[i] < 255)
++			set_bit(atkbd->keycode[i], atkbd->dev.keybit);
++}
++
+ /*
+  * atkbd_connect() is called when the serio module finds and interface
+  * that isn't handled yet by an appropriate device driver. We check if
+@@ -629,7 +661,6 @@
+ static void atkbd_connect(struct serio *serio, struct serio_dev *dev)
+ {
+ 	struct atkbd *atkbd;
+-	int i;
+ 
+ 	if (!(atkbd = kmalloc(sizeof(struct atkbd), GFP_KERNEL)))
+ 		return;
+@@ -696,26 +727,12 @@
+ 		atkbd->id = 0xab00;
+ 	}
+ 
+-	if (atkbd->set == 4) {
++	if (atkbd->set == 4)
+ 		atkbd->dev.ledbit[0] |= BIT(LED_COMPOSE) | BIT(LED_SUSPEND) | BIT(LED_SLEEP) | BIT(LED_MUTE) | BIT(LED_MISC);
+-		sprintf(atkbd->name, "AT Set 2 Extended keyboard");
+-	} else
+-		sprintf(atkbd->name, "AT %s Set %d keyboard",
+-			atkbd->translated ? "Translated" : "Raw", atkbd->set);
+ 
++	atkbd_set_name(atkbd);
+ 	sprintf(atkbd->phys, "%s/input0", serio->phys);
+ 
+-	if (atkbd->translated) {
+-		for (i = 0; i < 128; i++) {
+-			atkbd->keycode[i] = atkbd_set2_keycode[atkbd_unxlate_table[i]];
+-			atkbd->keycode[i | 0x80] = atkbd_set2_keycode[atkbd_unxlate_table[i] | 0x80];
+-		}
+-	} else if (atkbd->set == 2) {
+-		memcpy(atkbd->keycode, atkbd_set2_keycode, sizeof(atkbd->keycode));
+-	} else {
+-		memcpy(atkbd->keycode, atkbd_set3_keycode, sizeof(atkbd->keycode));
+-	}
+-
+ 	atkbd->dev.name = atkbd->name;
+ 	atkbd->dev.phys = atkbd->phys;
+ 	atkbd->dev.id.bustype = BUS_I8042;
+@@ -723,9 +740,7 @@
+ 	atkbd->dev.id.product = atkbd->translated ? 1 : atkbd->set;
+ 	atkbd->dev.id.version = atkbd->id;
+ 
+-	for (i = 0; i < 512; i++)
+-		if (atkbd->keycode[i] && atkbd->keycode[i] < 255)
+-			set_bit(atkbd->keycode[i], atkbd->dev.keybit);
++	atkbd_install_keymap(atkbd);
+ 
+ 	input_register_device(&atkbd->dev);
+ 
+@@ -741,12 +756,12 @@
+ {
+ 	struct atkbd *atkbd = serio->private;
+ 	struct serio_dev *dev = serio->dev;
+-	int i;
++	int old_set = atkbd->set;
+ 
+-        if (!dev) {
+-                printk(KERN_DEBUG "atkbd: reconnect request, but serio is disconnected, ignoring...\n");
+-                return -1;
+-        }
++	if (!dev) {
++		printk(KERN_DEBUG "atkbd: reconnect request, but serio is disconnected, ignoring...\n");
++		return -1;
++	}
+ 
+ 	if (atkbd->write) {
+ 		if (atkbd_probe(atkbd))
+@@ -759,27 +774,19 @@
+ 		atkbd->id = 0xab00;
+ 	}
+ 
+-	/*
+-	 * Here we probably should check if the keyboard has the same set that
+-         * it had before and bail out if it's different. But this will most likely
+-         * cause new keyboard device be created... and for the user it will look
+-         * like keyboard is lost
+-	 */
++	if (atkbd->set != old_set) {
++		/*
++		 * ok, we woke up with a different keyboard attached. Alhtough we could just
++		 * signal failure it's not very nice as it will most likely cause new keyboard
++		 * device be created... and for the user it will look like keyboard is lost.
++		 */
++		atkbd_set_name(atkbd);
+ 
+-	if (atkbd->translated) {
+-		for (i = 0; i < 128; i++) {
+-			atkbd->keycode[i] = atkbd_set2_keycode[atkbd_unxlate_table[i]];
+-			atkbd->keycode[i | 0x80] = atkbd_set2_keycode[atkbd_unxlate_table[i] | 0x80];
+-		}
+-	} else if (atkbd->set == 2) {
+-		memcpy(atkbd->keycode, atkbd_set2_keycode, sizeof(atkbd->keycode));
+-	} else {
+-		memcpy(atkbd->keycode, atkbd_set3_keycode, sizeof(atkbd->keycode));
+-	}
++		printk(KERN_INFO "atkbd: new %s detected at %s, loading default keymap\n",
++			atkbd->name, atkbd->name);
+ 
+-	for (i = 0; i < 512; i++)
+-		if (atkbd->keycode[i] && atkbd->keycode[i] < 255)
+-			set_bit(atkbd->keycode[i], atkbd->dev.keybit);
++		atkbd_install_keymap(atkbd);
++	}
+ 
+ 	return 0;
+ }
