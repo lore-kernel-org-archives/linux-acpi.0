@@ -1,12 +1,10 @@
-From: "Russ Neff" <russ-rjAkyXQP36HLeiHq/WgCfg@public.gmane.org>
-Subject: Re: ACPI and Shutdown on VAIO FXA-49
-Date: Tue, 19 Nov 2002 07:56:47 -0500
+From: Thomas List <Thomas.List-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org>
+Subject: performance problems?
+Date: Tue, 19 Nov 2002 14:37:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000c01c28fcb$1ec6bff0$e90015ac@HHN.INC>
-References: <Pine.LNX.4.44.0211182029520.981-100000@schneck.daheim>
+Message-ID: <3DDA3E96.50906@rwth-aachen.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,47 +15,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: feuerblume-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks,
-I did try the 200211 patch and had the same results. i wll try the 2.4.18
-kernel and patch as suggested by Markus and see what it yields.
+Hi all,
 
-Thanks Again,
-Russ
------ Original Message -----
-From: <feuerblume-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: "Russ Neff" <russ-rjAkyXQP36HLeiHq/WgCfg@public.gmane.org>
-Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sent: Monday, November 18, 2002 2:32 PM
-Subject: Re: [ACPI] ACPI and Shutdown on VAIO FXA-49
+I'm working on a small battery applet for my laptop that reads out the 
+battery status. As I have up to now no better idea I'm pulling the 
+battery status (/proc/acpi/battery/...) every few seconds (anyone an 
+idea of how to do this better?). Now a battery applet should consume as 
+few CPU cycles as possible to not use up the battery itself. So I'm 
+trying to monitor how much computing time my applet is using. For the 
+moment I'm doing this using top (I know this is not perfect for that 
+task ...). Now to the problem:
+
+After the laptop is running for some time the CPU% value in top is 
+getting higher and higher. It starts with around 0.3% in the beginning, 
+after one hour it reaches 1,5% and I had it up to 3% and more after a 
+longer time. I am quite sure this is not my applet - I can stop the 
+program and restart it and still get the higher values. I tried to watch 
+a video in this state and while my program was running I had short stops 
+in the video play back that match the 2 seconds interval of pulling the 
+battery status. Without my program running the stops disappeared.
+Using a file system copy of /proc/acpi my program does not show at all 
+on the top list.
+
+I am using acpi 20021111 on a 2.4.20-rc1 kernel. The laptop is a Targa 
+visionary 1600 from actebis (mobile athlon on a Via ProSavage KN133 
+"TwisterK" board). I think I did not have such problems with an older 
+acpi version (20021022 ???) - I will check this out).
+
+Now could this be a problem with the acpi implementation or is this the 
+result of a wrong usage of acpi?
 
 
-> Hi Russ,
->
-> the latest 11.11.2002 patch works very fine with my VAIO FXA-49. No
-> problems with shutdown. I guess your machine should be quite similar, so
-> it is probably a good idea to try the latest patch.
-> I don't know whether you are using the mdk kernel, if so, go ahead and get
-> the standard kernel.
->
-> cheers
->
-> Stefan
->
->
->
-> -------------------------------------------------------
-> This sf.net email is sponsored by: To learn the basics of securing
-> your web site with SSL, click here to get a FREE TRIAL of a Thawte
-> Server Certificate: http://www.gothawte.com/rd524.html
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+Btw. - is there any documentation on the /proc/acpi directories besides 
+Dominik Brodowski's documentation for /proc/acpi/processor?
+
+Thanks for any help,
+
+   Thomas
+
 
 
 
