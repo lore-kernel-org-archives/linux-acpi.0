@@ -1,16 +1,12 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: Acpi irq handler doesn't detect ICH4 sound device with
- ALSA. Is a known bug?
-Date: Sun, 15 Aug 2004 13:35:42 -0400
+From: Jerry DeLisle <jvdelisle-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Subject: Help with thermal
+Date: Sun, 15 Aug 2004 16:40:21 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <411F9EEE.5070402@optonline.net>
-References: <20040813211607.0e8bce72@debian> <411D1595.7090706@optonline.net>
- <20040813232416.2119a446@debian>
+Message-ID: <1092613221.10652.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20040813232416.2119a446@debian>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,32 +15,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Pere_Casta=F1er?= <XaRz69-pCzzcW6XgXY@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pere Casta=F1er wrote:
+I have acpid running.
 
->On Fri, 13 Aug 2004 15:25:09 -0400
->Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org> wrote:
->
-> =20
->
->>Does "acpi=3Dirq" also work? That is a little less aggressive about=
- what=20
->>it disables...
->>   =20
->>
->
->No. I've the same results of letting acpi to andle the irqs.
->Where I can find documentation of irq management in kernel? I don't =
-know anything of the benefits of letting acpi to handle the irq and c=
-ould be an interesting reading for a nerd computer student like me..
->
->Regards,
-> =20
->
-Oops! I meant to say "acpi=3Dnoirq"
+/proc/acpi is:
+
+[root@quantum acpi]# ls
+ac_adapter  battery  embedded_controller  fan             processor
+alarm       button   event                info            sleep
+asus        dsdt     fadt                 power_resource  thermal_zone
+
+The thermal_zone directory is empty.
+
+How do I read temperatures?  I have been reading the howto's but I am
+missing something here.  Thermal is compiled into kernel, not a module. 
+Also I do not find acpi client.  The howto mentions the comamnd:
+
+	acpi -v
+
+Where do I find this?
+
+Thanks ahead of time.
+
+Jerry
+
+
 
 
 
