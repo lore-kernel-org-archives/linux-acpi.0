@@ -1,13 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Dell laptop problem with acpid
-Date: Wed, 17 Nov 2004 12:18:52 +0100
-Message-ID: <20041117111852.GB8177@hell.org.pl>
-References: <3ACA40606221794F80A5670F0AF15F84041AC092@pdsmsx403>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Dell laptop problem with acpid
+Date: Wed, 17 Nov 2004 19:21:30 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC093@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC092@pdsmsx403>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Yu, Luming:
-> >There is a regression in event handling visible on some 
-> >hardware (Maxdata
-> >pro8000x here, but there's been other reports, even on this ml).
-> >Basically, the ACPI SCI seems to be raised correctly according to
-> >/proc/interrupts, but the events are reported erratically or 
-> >not reported
-> >at all. As a sidenote: kacpid doesn't spin when that happens. 
-> >Any hints 
-> >on how to debug this further?
-> First, check Notify op is existed in AML method, 
-> then, verify acpi_*_notify are installed.
-> Intuitively,  Notify op was executed conditionally.
+If nothing changed except AML interpreter,  you can
+sue interpreter for this regression.  :-)=20
 
-Ugh, it's a regression, it worked well with 2.6.7 but works erratically on
-2.6.9. I doubt the AML code has changed since then. Additionally, it also
-affects standard features like a FF power button. 
-Best regards,
+Can you verify 2.6.8.1 works?
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Thanks
+Luming=20
+
+>-----Original Message-----
+>From: Karol Kozimor [mailto:sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org]=20
+>Sent: 2004=C4=EA11=D4=C217=C8=D5 19:19
+>To: Yu, Luming
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Fu, Michael
+>Subject: Re: [ACPI] Dell laptop problem with acpid
+>
+>Thus wrote Yu, Luming:
+>> >There is a regression in event handling visible on some=20
+>> >hardware (Maxdata
+>> >pro8000x here, but there's been other reports, even on this ml).
+>> >Basically, the ACPI SCI seems to be raised correctly according to
+>> >/proc/interrupts, but the events are reported erratically or=20
+>> >not reported
+>> >at all. As a sidenote: kacpid doesn't spin when that happens.=20
+>> >Any hints=20
+>> >on how to debug this further?
+>> First, check Notify op is existed in AML method,=20
+>> then, verify acpi_*_notify are installed.
+>> Intuitively,  Notify op was executed conditionally.
+>
+>Ugh, it's a regression, it worked well with 2.6.7 but works=20
+>erratically on
+>2.6.9. I doubt the AML code has changed since then.=20
+>Additionally, it also
+>affects standard features like a FF power button.=20
+>Best regards,
+>
+>--=20
+>Karol 'sziwan' Kozimor
+>sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+>
 
 
 -------------------------------------------------------
