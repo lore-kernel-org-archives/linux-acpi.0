@@ -1,11 +1,12 @@
-From: "Thomas Meyer" <thomas.mey-S0/GAf8tV78@public.gmane.org>
-Subject: Re: reboot instead of poweroff in 20040715: also in 2.6.9-rc4
-Date: Mon, 18 Oct 2004 13:14:19 +0200
+From: "Buddy B. Maldonado" <bmaldonadotv-gHO4LXzQ4D0@public.gmane.org>
+Subject: Get vìagra for a great price.
+Date: Mon, 18 Oct 2004 13:16:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1319462317@web.de>
+Message-ID: <049701c4b503$241ae6bc$d77c35db@baea.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,20 +16,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Hi,
 
-Same Problem on an Acer 1350 Laptop. I also noticed: When running in battery mode and then plugging in power adaptor-> acpi doesn't recognize the new state in /proc/acpi/.../battery/state.
+We have a new offer for you. Buy cheap Vìagra through our online store.
+- Private online ordering 
+- No prescription required
+- World wide shipping
+
+Order your drugs offshore and save over 70%!
+
+Click here: http://koolrx.com/meds/
+
+Best regards,
+Donald Cunfingham
 
 
-with kind regards
-Thomas
 
-__________________________________________________________
-Mit WEB.DE FreePhone mit hoechster Qualitaet ab 0 Ct./Min.
-weltweit telefonieren! http://freephone.web.de/?mc=021201
+No thanks: http://koolrx.com/rm.html
 
 
 
