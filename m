@@ -1,13 +1,11 @@
-From: Jonathan Brandmeyer <jbrandmeyer-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
-Subject: Re: Re: trackpoint dead after suspend-to-RAM
-Date: Fri, 03 Dec 2004 23:13:25 -0500
-Message-ID: <1102133605.3416.5.camel@illuvatar>
-References: <1102018182.9867.15.camel@illuvatar>  <yzo653kxa05.fsf@cern.ch>
+From: Richard Jelinek <rj-SPYDw57wZyZBDgjK7y7TUQ@public.gmane.org>
+Subject: Multiple problems on Thinkpad A31p
+Date: Sat, 4 Dec 2004 12:47:34 +0100
+Message-ID: <20041204124734.A22065@petamem.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <yzo653kxa05.fsf-vJEk5272eHo@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,47 +18,66 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-12-03 at 05:48 +0100, ole.rohne-vJEk5272eHo@public.gmane.org wrote:
-> > I'm trying to get suspend-to-ram working on the machine, but when it
-> > resumes, the trackpoint (a PS/2 device) doesn't work.
-> 
-> The Fujitsu P2120 (a younger sibling to your P2040) has a DSDT method
-> "\\_SB.PCI0.EIO.FJEX.SMOU" to swich on and off the internal track
-> point. Calling this function with the argument "1" around the time [1]
-> of _BFS/_WAK in hwsleep.c fixes the problem here.
-> 
-> Ole
-> 
-> [1] This is perhaps a bit simplified. For various reasons, I've split
-> acpi_leave_sleep_state in two pieces. The "SMOU" method happens in the
-> first part which gets to run before devices are resumed.
-> 
+Hi,
 
-Promising!  I've added this sequence of operations immediately before
-the call of _BFS:
-arg.integer.value = 1;
-status = acpi_evaluate_object (NULL, "\\_SB.PCI0.EIO.FJEX.SMOU", 	
-	&arg_list, NULL);
-if (ACPI_FAILURE (status) && status != AE_NOT_FOUND) {
-    ACPI_REPORT_ERROR ((
-        "Method SMOU failed, %s n", acpi_format_exception (status)));
-}
+I recently installed a 2.6-kernel based distro on my Notebook, an IBM
+Thinkpad A31p. More precisely the kernel calls itself
+2.6.8-24.5-default which translates to
 
-Does that look sane to you?  The patched kernel is building right now; I
-haven't tested it yet.
+rj@sol:~> cat /proc/acpi/info
+version:                 20040715
 
-I have to wonder if there shouldn't be a more general method for fixing
-this issue in a way that can be incorporated into the mainline kernel
-sources.  I noted this comment: /* TBD: _WAK "sometimes" returns stuff -
-do we want to look at it? */  Is there any way to see what that "stuff"
-is?  Could it be a list of other things that need to be initialized?
+Now one should know, that the previous 2.4.26 kernel, with APM worked
+good for my needs which was to be able to send the machine to some
+suspend-to-ram mode when closing the lid and bringing it safely back
+again opening the lid.
 
-Also, is there a way to perform the equivalent operation from userspace?
+Now well - ACPI is default in the distro so I went for some
+configuration. The good news:
 
-Thanks,
--Jonathan
+I finally managed to get the machine to go to S3 when closing the lid
+and it also comes up relatively safe again (after garbling the screen
+a little bit and some slowness for the first 10-20 seconds after
+resume).
+
+Also, S5(?) seems to work when pressing the suspend-to-disk button it
+purges unnecessary blocks and saves the content to swap. On boot it
+recognizes there is something in swap and restores the saved state.
+
+End of good news.
+
+* S1 doesn't do anything. Well ok - let's look at the others.
+
+* Closing the lid, the machine goes down and the "moon"-led goes on
+  indicating the suspend state. All is quiet, however, the machine
+  generates significant heat. Examining the situation, all fans, the
+  HD etc. are switched off, even the display, but some second after
+  the display has been switched off completely, THE BACKLIGHT GOES ON
+  AGAIN! Uhhh... So after 2hours in this "suspend" mode, the battery
+  is just 70% charged. (Took 8hours with APM)
+
+  Even worse, the external (USB Radio) mouse doesn't work
+  anymore. Neither did the ethernet (e100), but somehow I managed to
+  configure it (mungled the PCI latencies of the ethernet controller),
+  so that ethernet is not lost after S3 resume. And there's no way to
+  bring the mouse back to life again but reboot. The internal PS/2
+  mouse (trackpoint) works fine.
+
+* S5 works as described, unfortunately after resume, the clock shows
+  exactly the time, when the shutdown did happen.
+
+--------
 
 
+
+
+-- 
+best regards,
+
+     Dipl.-Inf. Richard Jelinek
+
+     - The PetaMem Group - Prague/Nuremberg - www.petamem.com -
+		       -= 3394928 Mind Units =-
 
 
 -------------------------------------------------------
