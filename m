@@ -1,12 +1,11 @@
-From: Nicholas Smith <hsiuwen-9Vj9tDbzfuSlVyrhU4qvOw@public.gmane.org>
-Subject: Cialis - very low price
-Date: Sat, 05 Jun 2004 02:22:16 +0000
+From: Brian Kendig <brian-TPUXs3lpsvIxsqv6Oivclw@public.gmane.org>
+Subject: ACPI doesn't sense one of my batteries after I reinsert it
+Date: Sat, 05 Jun 2004 10:15:35 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1BWQw0-00067i-6C@sc8-sf-mx1.sourceforge.net>
+Message-ID: <40C1D587.3000206@enchanter.net>
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_4D55E256.8494414D"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,97 +18,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+I have a Dell Latitude CPi D266XT laptop.  It has two batteries in it, 
+and ACPI senses them both, but if I remove the left one then ACPI will 
+never detect it again even if I reinsert it.
 
-------=_NextPart_000_0000_4D55E256.8494414D
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_94E9AAFE.19354EAB"
+The left battery is BAT0. The right battery is BAT1 (its slot can also 
+be used for an internal floppy or cdrom). I should be able to remove and 
+reinsert either or both batteries (removing both at the same time 
+requires that I have AC power, of course), and generally this works, 
+except that once I pull out BAT0 the system never sees it again even 
+after I reinsert it.  It still draws power from that battery; if I pull 
+out both batteries and reinsert the left one then 
+/proc/acpi/battery/BAT0/state says "present: no" and the Gnome battery 
+charge monitor says I'm at 0%, but the laptop will continue to use its 
+charge and keep running.
 
+This has happened on several kernels I've tried, but most recently on 
+2.6.7-rc2.
 
-------=_NextPart_001_0001_94E9AAFE.19354EAB
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-
-Fuller & harder erections
-Works in less than 15 minutes 
-Longer effects 
-Less side effects
- 
-CIALIS:
-http://dr-umer.com/sv/index.php?pid=eph2408
-
-Select the manufacturer you trust!
-We ship to over 150 countries
-
-
-------=_NextPart_001_0001_94E9AAFE.19354EAB
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-
-<HTML><HEAD>
-<META content="MSHTML 6.00.2800.1400" name=GENERATOR></HEAD>
-<BODY text=#000000 vLink=#ffffff aLink=#ffffff link=#ffffff bgProperties=fixed 
-bgColor=#93d706 leftMargin=0 topMargin=0 rightMargin=0 marginwidth="0" 
-marginheight="0">
-<TABLE height=16 cellSpacing=0 cellPadding=0 width="100%" bgColor=#e8e8e8 
-border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=1>
-      <P align=left></P></TD></TR></TBODY></TABLE>
-<TABLE height=108 cellSpacing=0 cellPadding=0 width="100%" bgColor=#87c505 
-border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=108>
-      <P align=center><FONT face=Arial color=#ffffff size=3><STRONG><A 
-      style="TEXT-DECORATION: none" 
-      href="http://dr-umer.com/sv/index.php?pid=eph2408">Fuller &amp; harder 
-      erections<BR>Works in less than 15 minutes <BR>Longer effects <BR>Less 
-      side effects</STRONG></FONT></P></A></TD></TR></TBODY></TABLE>
-<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%">
-      <P align=center><A 
-      href="http://dr-umer.com/sv/index.php?pid=eph2408"><FONT 
-      face="Arial Black" color=#ffffff size=7><U><STRONG 
-      style="TEXT-DECORATION: none">ClALlS</STRONG></U></FONT></A></P></TD></TR></TBODY></TABLE>
-<TABLE height=46 cellSpacing=0 cellPadding=0 width="100%" border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=29><A 
-      href="http://dr-umer.com/sv/index.php?pid=eph2408">
-      <P align=center><FONT face=Arial color=#ffffff size=6><U><STRONG>Select the manufacturer you trust
-</STRONG></U></FONT></P></A></TD></TR>
-  <TR>
-    <TD width="100%" height=17>
-      <P align=left></P></TD></TR></TBODY></TABLE>
-<TABLE height=46 cellSpacing=0 cellPadding=0 width="100%" bgColor=#dfdfdf 
-border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=17><A style="TEXT-DECORATION: none" 
-      href="http://dr-umer.com/sv/index.php?pid=eph2408">
-      <P align=center><FONT face="Arial Black" color=#c0c0c0 size=7><SPAN 
-      style="FONT-SIZE: 50px">EASY TO BUY! CLICK 
-  HERE</SPAN></FONT></P></A></TD></TR></TBODY></TABLE>
-<TABLE height=35 cellSpacing=0 cellPadding=0 width="100%" bgColor=#93d706 
-border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=35>
-      <P align=center><FONT face="Arial Black" color=#ffffff size=4><A 
-      style="TEXT-DECORATION: none" 
-      href="http://dr-umer.com/sv/index.php?pid=eph2408">We ship to over 150 
-      countries!</A></FONT></P></TD></TR></TBODY></TABLE></BODY></HTML>
-
-
-------=_NextPart_001_0001_94E9AAFE.19354EAB--
-
-
-
-------=_NextPart_000_0000_4D55E256.8494414D--
+I'd like to log this as a bug; where's the correct place for me to do 
+so, and what additional information should I include?
 
 
 
