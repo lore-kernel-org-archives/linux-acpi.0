@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: bug in acpid scripts
-Date: Fri, 13 Aug 2004 08:18:40 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: sysdev suspend/resume order?
+Date: Fri, 13 Aug 2004 15:37:07 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040813061840.GA12794@message-id.gmane0305.slipkontur.de>
-References: <B44D37711ED29844BEA67908EAF36F038AD732@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <B44D37711ED29844BEA67908EAF36F038F7E8A@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <B44D37711ED29844BEA67908EAF36F038AD732-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,35 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 12, 2004 at 03:07:17PM +0800, Li, Shaohua wrote:
+Patrick,
+My sound card dies after S3 sometimes. Basically, if it dies depends on
+the order of sysdev's resume. If IRQ router resume before PIC (I use a
+tricky method to change order. It's changing the initcall level of the
+sysfs initialization for the device), the sound card die. Otherwise, it
+works. Is it possible that we add some levels for sysdev? I'd like some
+sysdevs resume before other sysdevs. Does this make sense?=20
 
-> Here is it. The patch is very sample. I didn't observe any side effect
-> of this patch, but maybe it must be tested widely. Could you please try
-> it?
-
-can this work? I have not tested but it seems strange to me.
-acpi_event_is_masked vs. acpi_event_is_mask
-
-===== drivers/acpi/bus.c 1.42 vs edited =====
-+extern int			acpi_event_is_masked;
-[...]
-+	if (!event_is_open || acpi_event_is_masked)
-
-===== drivers/acpi/event.c 1.5 vs edited =====
-+int				acpi_event_is_mask;
- 
-===== drivers/acpi/sleep/main.c 1.38 vs edited =====
-+extern int acpi_event_is_mask;
-[...]
-+	acpi_event_is_mask = 1;
-[...]
-+	acpi_event_is_mask = 0;
--- 
-Stefan Seyfried
-
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
