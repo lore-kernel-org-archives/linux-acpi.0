@@ -1,8 +1,8 @@
 From: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: No Thermal Zone with a Sager NP3760 (Clevo M375E/M375W) and kernel 2.6.9 (DSDT available)
-Date: Fri, 22 Oct 2004 14:45:31 +0100
+Date: Fri, 22 Oct 2004 14:51:22 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <e294b46e04102206456b164d80@mail.gmail.com>
+Message-ID: <e294b46e04102206514e4a24df@mail.gmail.com>
 Reply-To: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
