@@ -1,15 +1,11 @@
-From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: Re: [RFC/patch] ACPI in linux PnP layer
-Date: Wed, 8 Sep 2004 23:26:47 -0500
+From: ming-Csh58dz32nSZ9vWoFJJngh2eb7JE58TQ@public.gmane.org
+Subject: Asus P4SP-MX can not reboot
+Date: Thu, 9 Sep 2004 17:50:19 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409082326.50984.dtor_core@ameritech.net>
-References: <1094641221.413ee645d2cb6@imp1-q.free.fr>
+Message-ID: <20040909095019.GA2187@ming.homelinux.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1094641221.413ee645d2cb6-/A4Sof3AOA+ksujEA26zIQ@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,34 +16,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: castet.matthieu-GANU6spQydw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 08 September 2004 06:00 am, castet.matthieu-GANU6spQydw@public.gmane.org wrote:
-> Any comment ?
-> 
+Dear All,
 
-> +	spin_lock(&acpi_device_lock);
-> +	list_for_each_safe(node, next, &acpi_device_list) {
-> +		struct acpi_device * dev = container_of(node, struct acpi_device, g_list);
-> +		spin_unlock(&acpi_device_lock);
-> +		handler(dev);
-> +		spin_lock(&acpi_device_lock);
-> +	}
-> +	spin_unlock(&acpi_device_lock);
-> 
+I have a new machine. Basically linux runs on it does not have problem.
+The only one problem is reboot. After "reboot" is issued, everything
+seems ok, until the message "Restarting System.". After showing this
+message, the system does not reboot. It just stoped. 
 
-What exactly that does spinlock do? Note that list_for_each_safe is only
-"safe" in sense that the current element can be deleted from the list
-_by the same thread_ that is doing iteration. That is it. If some other
-thread accesses the same list it is not safe at all and that spinlock is
-next to useless because it is dropped in the middle of the loop. The whole
-construct should be protected by a semaphore, acpi_subsys.rewsem is a good
-candidate (I hope Len will eventually  apply my patch to the scan.c that
-does just that).
+I think it may be the problem of ACPI subsystem. This system can not
+reboot and poweroff, before update the kernel. After upgraded the kernel
+to 2.4.27, this system can be shutdown, but reboot still fail. I am sure
+the APM does not in use. The dmesg show me that :
 
--- 
-Dmitry
+zone(1): 53244 pages.zone(2): 0 pages.
+ACPI: RSDP (v000 ASUS                                      ) @0x000f5520
+ACPI: RSDT (v001 ASUS   P4SP-MX  0x42302e31 MSFT 0x31313031) @0x0dffc000
+ACPI: FADT (v001 ASUS   P4SP-MX  0x42302e31 MSFT 0x31313031) @0x0dffc0c0
+ACPI: BOOT (v001 ASUS   P4SP-MX  0x42302e31 MSFT 0x31313031) @0x0dffc030
+ACPI: MADT (v001 ASUS   P4SP-MX  0x42302e31 MSFT 0x31313031) @0x0dffc058
+ACPI: DSDT (v001   ASUS P4SP-MX  0x00001000 MSFT 0x0100000b) @0x00000000
+
+
+If this is really ACPI problem, what can I help to solve the
+problem (such as what information I have to provide) ?
+
+
+PS: The motherboard is Asus P4SP-MX. BIOS is updated to the latest
+version.
+
+Regards,
+Ming
 
 
 -------------------------------------------------------
