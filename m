@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: missing cmpxchg on i386.
-Date: Tue, 30 Mar 2004 22:36:08 +0800
+Subject: RE: RefOf() bug?
+Date: Tue, 30 Mar 2004 22:38:23 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB7AC@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB7AD@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,26 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Flavio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ville Syrj?l? <syrjala-ORSVBvAovxo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
-> On Tue, Mar 30, 2004 at 02:37:35PM +0200, Pavel Machek wrote:
->> On St 24-03-04 13:23:47, Flavio Bruno Leitner wrote:
+> On Tue, Mar 30, 2004 at 08:14:22PM +0800, Yu, Luming wrote:
+>> acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
+>>> On Tue, Mar 30, 2004 at 06:53:01PM +0800, Yu, Luming wrote:
+>>>> acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
+>>>>> My HP OmniBook 6000 has some problems with the battery. The first
+>>>>> time the battery gets detected (it doesn't matter if I boot with
+>>>>> battery disconnected or connected) things don't work. Then if I
+>>>>> disconnect and reconnect the battery things start to work. But the
+>>>>> next disconnect/reconnect cycle fails again, the next after that
+>>>>> succeeds and so on.
+>>>>=20
+>>>> Please check your ACPI version.
 >>>=20
->>> Compiling for i386 I got a lot of
->>> include/asm/acpi.h: In function `__acpi_acquire_global_lock`:
->>> include/asm/acpi.h:74: warning: implict declaration of function
->>> 'cmpxchg'=20
+>>> ACPI 20040220 + kernel 2.6.4-rc1-mm2
 >>=20
->> Try compiling for pentium+...
+>> Hmm, could you try new one? I suppose the most recent ACPI seldom
+>> have battery status issue.
 >=20
-> It's impossible, we need to have kernel optimized for i386.
-> I revert the ChangeSet 1.1557.83.7 until this get fixed.
+> ACPI 20040326 + kernel 2.6.5-rc2-mm5
+>=20
+> Problem remains :(
 
-I have made a patch for this issue at bugzilla
-http://bugme.osdl.org/show_bug.cgi?id=3D2391
+:-(,  	Send me dmesg , as well as /proc/acpi/dsdt privately.=20
 
 --Luming
 
