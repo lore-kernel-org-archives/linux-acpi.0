@@ -1,11 +1,9 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Suggestion for improving the handling of GPE enabling.
-Date: Wed, 09 Mar 2005 09:23:14 +1100
-Message-ID: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: ACPI key events handling
+Date: Tue, 08 Mar 2005 15:55:16 -0300
+Message-ID: <BAY1-F15F671E407E4F476D2C957A8500@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,31 +13,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all.
+Hello,
 
-Thinking about this GPE enabling issue some more, I'm wondering if the
-best solution would be to switch the enabling/disabling to be a handler
-registered with the driver model. In this way, the action taken could be
-better tied to what's actually happening (I'm assuming Pavel's
-pm_message_t changes are applied). Something like:
-
-PMSG_FREEZE: Disable GPEs.
-PMSG_SUSPEND: Enable wake GPEs.
-PMSG_ON: Disable wake GPEs, enable normal GPEs.
+   I have an ACER 163lmi laptop and I am having problem with some of the Fn 
+keys. I don't know if this is related to ACPI or not.
+   The problem is that when I press some the Fn keys, like the sleep button 
+(Fn+F4), and I look at the /proc/acpi/event, sometimes the key works 
+sometimes it doesn't. I did also the check of the Fn keys with the acerhk 
+driver. My laptop has the mail, internet, p1, p2, wireless, buttons. And 
+when I press those buttons, sometimes I get the correct reading from the 
+acerhk driver, sometimes when I press the mail buttons it reads back the 
+wireless, or any other key, and sometimes it just reads garbage.
+   I've used the kernel 2.6.7 without problems.
+   Now I was trying to use the kernel 2.6.11-rc4, and with this kernel I get 
+all of these problems. I don't know if the key handling is done by the 
+kernel or ACPI, but using a newer version of the kernel started causing this 
+problems. If this is not ACPI related, maybe you could point to whom I 
+should send this e-mail.
+  Thanks.
 
 Regards,
+Paulo Silva
 
-Nigel
--- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
-
-Maintainer of Suspend2 Kernel Patches http://suspend2.net
+_________________________________________________________________
+MSN Messenger: converse online com seus amigos .  
+http://messenger.msn.com.br
 
 
 
