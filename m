@@ -1,13 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: does cpu_idle() halt CPU?
-Date: Mon, 31 Mar 2003 10:15:01 -0800
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 resume freezing at "Back to C!"
+Date: Tue, 1 Apr 2003 22:17:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96D94@orsmsx401.jf.intel.com>
+Message-ID: <20030401201742.GB122@elf.ucw.cz>
+References: <20030331191359.GA281@elf.ucw.cz> <Pine.LNX.4.33.0304010042210.32600-100000@godzilla.axis.se>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0304010042210.32600-100000-Hi2dXqvvzfEtpH44vsTDoQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,34 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jun Sun <jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org>, Stephan Krings <Stephan.Krings-Mmb7MZpHnFY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Jun Sun [mailto:jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org] 
-> > I recently discovered that on my notebook the CPU state 
-> (and therefore
-> > power consumption) is highly dependent on the drivers loaded. There
-> > are at least 2 drivers, which practically seem to inhibit 
-> the CPU from
-> > entering C3: The usb-ohci module (must only be loaded, no 
-> USB devices
-> > need to be attached) and DRI (direct rendering for XFree86).
-> >
+Hi!
+
+> On Mon, 31 Mar 2003, Pavel Machek wrote:
+> > > Before 2.5.63, I actually had S3 resume working on my Acer 634 laptop.. but 
+> > > since 2.5.63 and including 2.5.66+acpi patches, it freezes after "Enabling 
+> > > SEP on CPU #0" and then "Back to C!" upon nothing more happens (magic sysrq 
+> > > does not work either). I haven't dug deeper into it but I guess I have to I 
+> > > just wanted to point it out :) I'm using S3bios btw. Anyone know
+> > > anything 
+> > 
+> > s*3*bios?
 > 
-> This turns out to be key.  BTW, I did an experiement, usb-uhci has
-> the same effect too.
+> Yes, the "s3bios" activated lcall is required to reenable the TFT screen it 
+> seems. 
 
-This is a bug.
+Kill that lcall early in wakeup.S, and see what happens.
 
-I fixed the other uhci driver but didn't fix usb-uhci, a couple years
-ago. Basically, the HC should go into Global Suspend when no USB devices
-are connected to it, and wake up when one is connected.
-
-Using the other uhci driver as a model, this might be a good task for
-someone interested in hacking the kernel to get their feet wet. ;-)
-
-Regards -- Andy
+									Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
