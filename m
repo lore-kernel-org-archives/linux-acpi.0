@@ -1,14 +1,15 @@
-From: Takayoshi Kochi <kochi-S783fYmB3Ccdnm+yROfE0A@public.gmane.org>
-Subject: Re: Fix wake GPE enabling
-Date: Thu, 08 Apr 2004 22:50:04 +0900 (JST)
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: ACPI on RH9 - just Hangs during Init
+Date: Thu, 08 Apr 2004 15:25:48 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040408.225004.133816625.kochi@netbsd.org>
-References: <37F890616C995246BE76B3E6B2DBE055442912@orsmsx403.jf.intel.com>
+Message-ID: <1081434348.4723.8.camel@darkstar>
+References: <C386328088ED7F4E9F81AFBABDDF60DA04F67A78@wdmyexch02.my.asia.wdc.com>
+Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <37F890616C995246BE76B3E6B2DBE055442912-sBd4vmA9Se7vCEQmvpVV9VDQ4js95KgL@public.gmane.org>
+In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA04F67A78-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,69 +18,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Cc: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Arindam Dey (E-mail)" <adey-bmTD0NCZhtfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Thu, 2004-04-08 at 09:59, Ow Mun Heng wrote:
+> Hi,
+>=20
+> 	I'm having some issues getting ACPI to work for a default RH9
+> install with kernel 2.4.20-8.=20
+>=20
+> Just unchecked apm and selected acpi nothing else. Did not want to=20
+> mess around with anything else. KErnel compiled just fine but then it=20
+> reaches init and before the messages start it just bloody sits=20
+> there doing nothing nothing at all. No msgs no cpu light=20
+> nothing. Its  very creepy.
+>=20
+> This is a Samsung Laptop.
+>=20
+> Can I buy a clue here???
 
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ACPI] Fix wake GPE enabling
-Date: Wed, 7 Apr 2004 14:34:43 -0700
+Hi!
+yes kernel 2.4.20-8 have at least "6" months and  IIRC (if I recall
+correctly), doesn't have new acpi CA, is old ACPI and it does not
+maintained.
+Applying acpi-patches is not possible, directly or I don't recommend,=20
+so you can try use the main stock kernel from kernel.org.
 
-> 
-> No, this does not fit the model correctly.
-> 
-> It is the responsibility of the upper software to selectively enable the
-> devices which are to be used for wakeup.  This is one of the functions
-> of the AcpiGpeEnable interface.  The ACPI CA core cannot just blindly
-> enable all "wake" GPEs.
-> 
-> The ACPI CA core simply identifies the "wake" GPEs in order to leave
-> them disabled during runtime.
+best regards=20
+>=20
+> Cheers,                                                 .^.
+> Mun Heng, Ow                                            /V\
+> H/M Engineering                                       /(   )\
+> Western Digital M'sia                                  ^^-^^
+> DID : 03-7870 5168                          The Linux Advocate
+>=20
+>        =20
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+--=20
+S=E9rgio M. B.
 
-Hm, I might be misunderstanding, but my understanding is as follows
-(this almost agrees with Dominik's second post):
-
-1. Wake GPEs and runtime GPEs are _not_ exclusive but overwrapping
-   by default.
-   (Is it _explicitly_ stated in the spec that Wake GPE and runtime
-    GPEs are exclusive?)
-
-2. All GPEs should be enabled by default.
-   Because in many AMLs Non-Wake GPEs are also used as runtime
-   GPEs and we can't ignore them.  Are there *any magic* by which
-   OSPM can know which Wake GPE is also runtime GPE?
-   Should we list all the combination of every existing BIOS
-   and wake-and-runtime GPE? :)
-   Providing an interface of specifying which Wake GPE is actually
-   runtime GPE sounds very silly idea (as you know, most people are _not_
-   acpi savvy and even ACPI hackers has to disassemble and understand
-   which GPE does what for it).
-
-3. Upon entering sleep state, all GPEs should be disabled except
-   Wake GPEs for appropriate levels of sleep.  Current implementation
-   ignores the second parameter of _PRW and thus it is considered
-   incomplete, anyway.
-
-   There might be APIs to set or reset the Wake flag (as well as
-   lowest power state) of a GPE, in case one wants to set
-   the flag manually, although the flag should be set
-   automatically by parsing _PRW and these APIs are not needed usually.
-
-   The ACPI_EVENT_WAKE_ENABLE flag for the AcpiEnableGpe()
-   is unnecessary.
-
-So from my understanding, the current implementation of
-_PRW and Wake GPEs needs revamp.
-
-Anyway, let's clarify what's wake GPEs and how to handle wake GPEs
-first.
-
-Dominik, thanks for throwing this issue into discussion.
-
----
-Takayoshi Kochi
 
 
 -------------------------------------------------------
