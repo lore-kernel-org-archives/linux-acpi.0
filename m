@@ -1,13 +1,12 @@
-From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: powernow & ACPI & 2.6.9
-Date: Sun, 12 Dec 2004 22:15:00 +0100
-Message-ID: <41BCB4D4.3050109@cs.unibo.it>
-References: <20041119083851.GB2908@mithrandir.dakordnet.org> <20041119085900.GD31422@poupinou.org>
+From: "Nestor J. Sanchez" <njsanchez30-6+i1tcqLPDFQFI55V6+gNQ@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Sun, 12 Dec 2004 16:43:57 -0600
+Message-ID: <4e0501c4e09c$1de9e2af$ac4513d5@eego.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041119085900.GD31422-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,26 +19,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bruno Ducrot wrote:
+Heya,
 
-> Could you please test those patches:
-> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/powernow-k7.recalibrate-cpu_khz.diff
-> and
-> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/timers-recalibrate_cpu_khz.diff
+Do you want a rolex watch?
 
-I've just tried 2.6.10-rc3, that still has the same "weird speed" 
-problem as 2.6.9, and I'm glad to report that those two patches apply 
-cleanly and fix the problem in this case too.
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-BR,
-Andrea.
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
--- 
-Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing on usenet and in e-mail?
+Visit us: http://www.bhex.com/rep/rolex/
+
+Best regards,
+Hilton Jones
+
+
+No thanks: http://www.bhex.com/z.php
+
 
 
 -------------------------------------------------------
