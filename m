@@ -1,53 +1,26 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 4/4] acpi: create_polling_proc() fix
-Date: Wed, 30 Mar 2005 13:16:51 -0800
-Message-ID: <200503302116.j2ULGeuq027736@shell0.pdx.osdl.net>
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+From: Zwane Mwaikambo <zwane@arm.linux.org.uk>
+Subject: Re: smp/swsusp done right
+Date: Wed, 30 Mar 2005 14:13:46 -0700 (MST)
+Message-ID: <Pine.LNX.4.61.0503301413050.12965@montezuma.fsmlabs.com>
+References: <20050323204019.GA11616@elf.ucw.cz>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261862AbVC3VQO@vger.kernel.org>
+In-Reply-To: <20050323204019.GA11616@elf.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, seife@suse.de, ACPI mailing list <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, 23 Mar 2005, Pavel Machek wrote:
 
+> This is against -mm kernel; it is smp swsusp done right, and it
+> actually works for me. Unlike previous hacks, it uses cpu hotplug
+> infrastructure. Disable CONFIG_MTRR before you try this...
+> 
+> Test this if you can, and report any problems. If not enough people
+> scream, this is going to -mm.
 
-drivers/acpi/hotkey.c: In function `create_polling_proc':
-drivers/acpi/hotkey.c:334: warning: ISO C90 forbids mixed declarations and code
+Yay! Thanks for getting that done Pavel =)
 
-
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
----
-
- 25-akpm/drivers/acpi/hotkey.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
-
-diff -puN drivers/acpi/hotkey.c~acpi-create_polling_proc-fix drivers/acpi/hotkey.c
---- 25/drivers/acpi/hotkey.c~acpi-create_polling_proc-fix	Wed Mar 30 13:16:09 2005
-+++ 25-akpm/drivers/acpi/hotkey.c	Wed Mar 30 13:16:09 2005
-@@ -329,9 +329,10 @@ static int auto_hotkey_remove(struct acp
- static int create_polling_proc(union acpi_hotkey *device)
- {
- 	struct proc_dir_entry *proc;
-+	mode_t mode;
- 
- 	ACPI_FUNCTION_TRACE("create_polling_proc");
--	mode_t mode = S_IFREG | S_IRUGO | S_IWUGO;
-+	mode = S_IFREG | S_IRUGO | S_IWUGO;
- 
- 	proc = create_proc_entry(device->poll_hotkey.action_method,
- 				 mode, hotkey_proc_dir);
-_
-
-
--------------------------------------------------------
-This SF.net email is sponsored by Demarc:
-A global provider of Threat Management Solutions.
-Download our HomeAdmin security software for free today!
-http://www.demarc.com/Info/Sentarus/hamr30
+	Zwane
