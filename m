@@ -1,43 +1,32 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [ACPI] Re: [PATCH] ACPI PCI IRQ routing rework
-Date: Mon, 17 May 2004 09:41:35 -0600
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [PATCH] ACPI PCI IRQ routing rework
+Date: Mon, 17 May 2004 17:41:19 +0200
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200405170941.35673.bjorn.helgaas@hp.com>
-References: <941A6821ACE16D4BBB8A958A0EB047F7264554@pdsmsx404.ccr.corp.intel.com>
+Message-ID: <20040517174119.64d134b0.ak@suse.de>
+References: <200405151120.45753.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <941A6821ACE16D4BBB8A958A0EB047F7264554@pdsmsx404.ccr.corp.intel.com>
-Content-Disposition: inline
-To: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: acpi-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, David Mosberger <davidm@hpl.hp.com>, Andi Kleen <ak@suse.de>, "Nakajima, Jun" <jun.nakajima@intel.com>, linux-ia64@vger.kernel.org
+In-Reply-To: <200405151120.45753.bjorn.helgaas@hp.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: acpi-devel@lists.sourceforge.net, len.brown@intel.com, davidm@hpl.hp.com, jun.nakajima@intel.com, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 17 May 2004 3:58 am, Li, Shaohua wrote:
-> For the IOSAPIC, your patch mask interrupts in initialization, but
-> should we mask platform interrupt?
+On Sat, 15 May 2004 11:20:45 -0600
+Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
 
-I mask the interrupt in the IOSAPIC when programming the RTE.
-This IOSAPIC programming happens before request_irq(), so I
-think it makes sense to leave the RTE masked, because there's
-nothing set up to do anything with an interrupt if it occurs.
+> I think it's better to pull all the PRT knowledge out of the arch
+> code and do the IRQ allocation and IO-APIC programming at the time
+> of pci_enable_device().  That reduces IRQ usage (since many PRT
+> entries are never used) and is a step toward allowing the addition
+> of new root bridges and PRTs at run-time.
 
-If somebody's actually interested in the interrupt, there should
-be a later request_irq() call, which will unmask the RTE via the
-request_irq->setup_irq->startup path.
+I like this change very much. It should make PRT misrouting problems 
+easier to debug, because the system will be already up and running
+then (at least with modular drivers). 
 
-The only ia64 platform interrupt we do anything with is
-ACPI_INTERRUPT_CPEI.  My usual test boxes don't support CPEI,
-but from reading the code, iosapic_register_platform_intr()
-programs the RTE (leaving it masked) when we parse the MADT.
-Then ia64_mca_init() looks up the vector assigned for CPEI
-and calls setup_irq() for it, which will unmask the RTE.
+Also things that are not needed are not configured and that reduces
+the potential for bugs.
 
-Maybe we could do a little rework to make ia64_mca_init() use
-request_irq() (similar to how acpi_os_install_interrupt_handler()
-works), but I think the current scheme should work.  Or do you
-have evidence to the contrary?
-
-Bjorn
+-Andi
