@@ -1,13 +1,15 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Re: ignore invalid AccessType if RegionType only allows for one AccessType?
-Date: Mon, 19 Jul 2004 16:24:31 -0400
+From: Aman Gupta <themastermind1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Radeon S3/resume: VGA ROM POST from kernel
+Date: Mon, 19 Jul 2004 21:29:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1595322977.20040719162431@osu.edu>
-Reply-To: Ohio State University <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Message-ID: <e1c05edd0407191329560b8193@mail.gmail.com>
+References: <yzoy8lggx6v.fsf_-_@localhost.localdomain> <200407191938.17104.stefandoesinger@gmx.at>
+Reply-To: aman-e31a5gnSYeGubukWoKzokaxOck334EZe@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg="pgp-sha1";
-  boundary="----------6F17BFC371F9D4C"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200407191938.17104.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,68 +18,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ole.rohne-vJEk5272eHo@public.gmane.org, aman-e31a5gnSYeGubukWoKzokaxOck334EZe@public.gmane.org, emmanuel.thome-/zGXu1G9BXs@public.gmane.org, software-v2/BnvaKusE@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-------------6F17BFC371F9D4C
-Resent-from: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Haven't tried it yet, but I was having problems just doing basic
+suspend/resume with 2.6.8-rcX as well. After a resume with an
+unpatched kernel I was unable to get the machine to respond to
+commands to reboot the VGA bios or spin the harddrive. Something
+changed between .7 and .8 but I'm not sure what - its not in the
+radeon specific code since I didn't have that loaded in the kernel.
 
-Hash: SHA1
+  Aman Gupta
 
-Interesting. I have a Dell 300m that has that same problem.
-
-Andrew
-
-P.S. forgot to CC the list. Sorry. :(
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-When in doubt, do what the President does -- guess.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-
-On Monday, July 19, 2004, 4:53:29 AM, Dominik Brodowski <linux@dominikbrodo=
-wski.de> wrote:
-
-> Hi!
-
-> The DSDTs of many Samsung notebooks contain one bug which forces users to
-> use a "DSDT override":
-
->                     OperationRegion (ECR, EmbeddedControl, 0x00, 0xFF)
->                     Field (ECR, DWordAcc, Lock, Preserve)
-
-
-> As can be seen in table 15-6 of ACPI spec 1.0b and in table 16-6 of ACPI
-> spec 2.0, TypeRegion EmbeddedControl only allows for "ByteAcc", not
-> "DWordAcc". iasl also says the same:
-
-> ../dsdt.dsl  2660:                     Field (ECR, DWordAcc, Lock, Preser=
-ve)
-> Error    1048 -                                 ^ Host Operation Region r=
-equires ByteAcc access
-
-> Given the fact that EmbeddedControl _only_ allows ByteAcc, how about
-> "ignoring" DWordAcc or any other (invalid) AccType in this case if
-> !acpi_strict, and "assuming" a value of ByteAcc instead?
-
-> Thanks,
-> =09Dominik
-
-------------6F17BFC371F9D4C
-Content-Type: application/pgp-signature
-
------BEGIN PGP MESSAGE-----
-Version: PGP SDK 3.0.3
-Comment: ""
-
-iQA/AwUBQPwt/4bjPmetmudqEQIQ7ACgrCTmWG9zggxzwSiURxWX8EZWGT0AoKd/
-N+gCRreeZs8hHp7dObz4jqO5
-=66ja
------END PGP MESSAGE-----
-
-------------6F17BFC371F9D4C--
-
+On Mon, 19 Jul 2004 19:38:16 +0200, Stefan D=F6singer
+<stefandoesinger-RbZlAiThDcE@public.gmane.org> wrote:
+> Hello,
+> > I've implemented VGA POSTing using a real-mode tunnel from kernel
+> > space. IMO, this has some advantages over user space methods:
+> Great!!!!
+> For some reason, it doesn't work for me(Kernel 2.6.8-rc2). I cleaned up m=
+y
+> source directory and I'll try again with a clean build again. If it doesn=
+'t
+> work I'll try 2.6.7.
+>=20
+> Do I need any other patches?
+>=20
+> > 1. It works with the aty/radeon_pm.c resume code. I don't see how to
+> >    easily achieve this with user space methods.
+> Do you have radeonfb and fbcon loaded(or compiled into the kernel)?
+>=20
+> > 2. Real mode seems faster than userspace vm86
+>=20
+> > 3. It is the right way. Bringing up the hardware is clearly the
+> >    responsibility of the kernel/drivers resume code.
+> Agreed. Someone wrote that this reset can't be performed by kernel code.
+>=20
+> This is really great, and as soon as it works for me I'll upload it to my
+> website.
+>=20
+> Cheers,
+> Stefan
+>
 
 
 -------------------------------------------------------
