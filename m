@@ -1,14 +1,17 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Resume from suspend-to-ram (radeon)
-Date: Tue, 20 Apr 2004 12:17:20 +0200
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: RV: differences between acpidump and disassembling
+Date: Tue, 20 Apr 2004 20:09:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040420101720.GA2314@elf.ucw.cz>
-References: <c15rn0$5bu$2@sea.gmane.org> <20040223074227.80AE57831D@mail.lmc.cs.sunysb.edu> <406ABD4A.10408@pca.it> <200404021524.46611.stefandoesinger@gmx.at>
+Message-ID: <1082488182.28680.14.camel@darkstar>
+References: <000701c425f8$6157aef0$0301a8c0@portatil>
+	 <200404191309.45870.emejia@ieee.org> <1082409395.11663.63.camel@darkstar>
+	 <200404200024.18432.emejia@ieee.org>
+Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200404021524.46611.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <200404200024.18432.emejia-EkmVulN54Sk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +20,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan =?iso-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Luca Capello <luca-wlebWZzHoyE@public.gmane.org>, Giridhar Pemmasani <giri-IxWJ8JVbGpr5NRxSJurNR4dd74u8MsAO@public.gmane.org>
+To: emejia-EkmVulN54Sk@public.gmane.org
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-> > > New radeonfb suspend/resume code turns the LCD on but the system hangs
-> > > during fb resume. With the changes I made, the LCD turns on but the
-> > > screen remains blank. X with int10 POST restores the screen properly.
-> The radeonfb resume does not crash, but when fbcon is loaded something fails. 
-> Compile radeonfb(original version, 2.6.4 kernel) and frame buffer console as 
-> modules, disable video mode selection support and load only radeonfb(NOT 
-> fbcon) and the system will resume with backlight on and a black screen. At 
-> least my device does in single user mode.
-> 
-> I use plain text console and X with int10 POST patch. This gives me the 
-> console back when resuming(X has to soft-boot the V-Bios).
+Hi Your DSDT don't have any problem just one warning, that can be
+ignored, so you don't need override your DSDT because DSDT it is
+correct.
+My laptop have the same warning.
 
-Perhaps some hints how to do this should be added to
-Documentation/power/video.txt?
+Try last kernel 2.4.26=20
 
-									Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+And don't forget disable all APICs to work with ACPI :)
+
+regards,=20
+
+On Mon, 2004-04-19 at 23:24, Emilio Mejia Fernandez de Velasco wrote:
+> Hello,
+> here I send you the binary file using pmtools.
+> By the way, the computer is a Microstar (also known as Medion) model MD 9=
+648
+> I have found pages about similar models explaining the configuration, and=
+ they=20
+> say that it's necessary to use acpi, but they have been luckier than me.
+> Here are some links:
+> http://www.david-guembel.de/linux-md9630.html
+> http://www.linuxstuff.de/md-9631-en.htm
+>=20
+> > let me know what computer we are talking about ?
+> > and send me the binary in a gz (acpidmp DSDT )
+> >
+> > regards,
+--=20
+S=E9rgio M. B.
+
 
 
 -------------------------------------------------------
