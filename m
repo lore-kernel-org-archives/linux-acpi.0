@@ -1,170 +1,120 @@
-From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Subject: Re: [PATCH] kobject: fix double kobject_put in kobject_unregister()
-Date: Thu, 11 Nov 2004 11:03:05 +0900
-Message-ID: <20041111110305.46d1d468.tokunaga.keiich@jp.fujitsu.com>
-References: <20041110141923.A13668@unix-os.sc.intel.com>
- <20041110225421.GA16785@kroah.com> <20041110150400.C13668@unix-os.sc.intel.com>
+From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] Container.ko: Use kobject_hotplug() to notify user agent
+Date: Wed, 10 Nov 2004 18:16:53 -0800
+Message-ID: <20041110181653.A15383@unix-os.sc.intel.com>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262128AbUKKCEb@vger.kernel.org>
-In-reply-to: <20041110150400.C13668@unix-os.sc.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Cc: tokunaga.keiich@jp.fujitsu.com, greg@kroah.com, linux-hotplug-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 10 Nov 2004 15:04:01 -0800 Keshavamurthy Anil S wrote:
-> On Wed, Nov 10, 2004 at 02:54:21PM -0800, Greg KH wrote:
-> > On Wed, Nov 10, 2004 at 02:19:23PM -0800, Keshavamurthy Anil S wrote:
-> > > Hi Greg,
-> > > 	
-> > > This patch fixes the problem where in kobject resources were getting
-> > > freed when those kobject were still in use due to double kobject_put()
-> > > getting called in the kobject_unregister() code path.
-> > > 
-> > > With out this patch kobject_unregister() will have some serious side effects.
-> > > 
-> > > Please apply.
-> > > 
-> > > signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-> > > 
-> > > 
-> > >  linux-2.6.10-rc1-mm4-askeshav/lib/kobject.c |    3 ++-
-> > >  1 files changed, 2 insertions(+), 1 deletion(-)
-> > > 
-> > > diff -puN lib/kobject.c~kobject_unregister_fix lib/kobject.c
-> > > --- linux-2.6.10-rc1-mm4/lib/kobject.c~kobject_unregister_fix	2004-11-10 13:43:42.243877455 -0800
-> > > +++ linux-2.6.10-rc1-mm4-askeshav/lib/kobject.c	2004-11-10 13:46:30.788797265 -0800
-> > > @@ -301,6 +301,8 @@ void kobject_del(struct kobject * kobj)
-> > >  {
-> > >  	kobject_hotplug(kobj, KOBJ_REMOVE);
-> > >  	sysfs_remove_dir(kobj);
-> > > +
-> > > +	/* unlink does kobject_put() for us */
-> > >  	unlink(kobj);
-> > >  }
-> > >  
-> > > @@ -313,7 +315,6 @@ void kobject_unregister(struct kobject *
-> > >  {
-> > >  	pr_debug("kobject %s: unregistering\n",kobject_name(kobj));
-> > >  	kobject_del(kobj);
-> > > -	kobject_put(kobj);
-> > >  }
-> > 
-> > No, this is wrong.  Count the add and put in the sequence of:
-> > 	kobject_register()
-> > 	kobject_unregister()
-> > 
-> > they are balanced.
-> > 
-> > You mention you are seeing problems.  Have a trace?  Example code?
-> 
-> Here is the call trace when I tried to do kobject_unregiser()
-> Call Trace:
->  [<a000000100016de0>] show_stack+0x80/0xa0
->                                 sp=e00000000e3cf730 bsp=e00000000e3c9230
->  [<a000000100017640>] show_regs+0x840/0x880
->                                 sp=e00000000e3cf900 bsp=e00000000e3c91c8
->  [<a000000100023f10>] die+0x150/0x1c0
->                                 sp=e00000000e3cf910 bsp=e00000000e3c9188
->  [<a000000100023fc0>] die_if_kernel+0x40/0x60
->                                 sp=e00000000e3cf910 bsp=e00000000e3c9158
->  [<a0000001000240f0>] ia64_fault+0x110/0x1060
->                                 sp=e00000000e3cf910 bsp=e00000000e3c9100
->  [<a00000010000dae0>] ia64_leave_kernel+0x0/0x260
->                                 sp=e00000000e3cfb20 bsp=e00000000e3c9100
->  [<a0000001002743e0>] strlen+0x20/0x140
->                                 sp=e00000000e3cfcf0 bsp=e00000000e3c90a8
->  [<a00000010026a270>] kobject_get_path+0x150/0x1e0
->                                 sp=e00000000e3cfcf0 bsp=e00000000e3c9068
->  [<a00000010026a770>] kobject_hotplug+0x350/0x6e0
->                                 sp=e00000000e3cfcf0 bsp=e00000000e3c9008
->  [<a0000001002695b0>] kobject_del+0x30/0x80
->                                 sp=e00000000e3cfd10 bsp=e00000000e3c8fe0
->  [<a000000100269620>] kobject_unregister+0x20/0x60
->                                 sp=e00000000e3cfd10 bsp=e00000000e3c8fc0
->  [<a000000100302420>] acpi_device_unregister+0x320/0x340
->                                 sp=e00000000e3cfd10 bsp=e00000000e3c8fa0
->  [<a000000100302b70>] acpi_bus_remove+0x2f0/0x340
->                                 sp=e00000000e3cfd10 bsp=e00000000e3c8f68
->  [<a000000100302ec0>] acpi_bus_trim+0x300/0x440
->                                 sp=e00000000e3cfd30 bsp=e00000000e3c8f18
->  [<a000000100303110>] acpi_eject_store+0x110/0x240
->                                 sp=e00000000e3cfde0 bsp=e00000000e3c8ee0
->  [<a000000100301fb0>] acpi_device_attr_store+0x70/0xa0
->                                 sp=e00000000e3cfe20 bsp=e00000000e3c8ea8
->  [<a0000001001864b0>] sysfs_write_file+0x270/0x300
->                                 sp=e00000000e3cfe20 bsp=e00000000e3c8e58
->  [<a0000001001052e0>] vfs_write+0x200/0x2c0
-> 
-> I will try to explain the what is happening here.
-> 
-> I have a sysfs tree like this.
-> .../_SB/LSB0 
-> .../_SB/LSB0/CPU5
-> .../_SB/LSB0/MEM1
-> .../_SB/LSB0/MEM2
-> 
-> Say LSB0 is kobj1, CPU5 is kobj2, MEM1 is kobj3, MEM2 is kobj4
-> 
-> All I am trying to do is first I will do kobject_unregister(kobj2),then 
-> kobject_unregister(kobj3), then kobject_unregister(kobj4) and now
-> when I try to do kobject_unregister(kobj1) i.e when I am trying to remove
-> LSB0 directory, I am seeing the above stack trace.
-> 
-> The patch I posted fixed this problem.
-> 
-> Let me know if you need more data.
+Hi Len,
+	Due to "hotplug_path" getting un-exported from mm3, the container code
+was breaking and was asked to use kobject_hotplug to notify user agent.
 
-  I think the cause is an imbalance between acpi_device_register()
-and acpi_device_unregister().  acpi_device_register() is supposed
-to increment a refcount of a target kobject (kobj1) and also a kobject
-(kobj2) that inherited its kset to the kobj1, but it doesn't today.  This
-is because the kset is not set to kobj1 before calling kboject_init() for
-kobj1.  On the other hand, acpi_device_unregister() decrements the
-refcount of both kobj1 and kobj2.  Thus, kobj2 would be released
-unexpectedly if kobjects using the kset of kobj2 are released.
+So I have fixed the container driver to use kobject_hotplug().
+This patch will fix the undefined "hotplug_path" warning.
 
-        kobject_init(&device->kobj);
-        strlcpy(device->kobj.name,device->pnp.bus_id,KOBJ_NAME_LEN);
-        if (parent)
-                device->kobj.parent = &parent->kobj;
-        device->kobj.ktype = &ktype_acpi_ns;
-        device->kobj.kset = &acpi_namespace_kset;  <-- kset is set here.
-        kobject_add(&device->kobj);
+Please apply.
 
-  I am attaching a patch fixing this.  I have added acpi-devel in cc
-since this might be an ACPI issue.  Excuse my cross posting...
-
-Thanks,
-Keiichiro Tokunaga
-
-
-Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Status: Tested on 2.6.10-rc1-mm4
 ---
 
- linux-2.6.10-rc1-mm4-kei-kei/drivers/acpi/scan.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ linux-2.6.10-rc1-mm4-askeshav/drivers/acpi/container.c |   52 -----------------
+ 1 files changed, 3 insertions(+), 49 deletions(-)
 
-diff -puN drivers/acpi/scan.c~fix_acpi_device_register drivers/acpi/scan.c
---- linux-2.6.10-rc1-mm4-kei/drivers/acpi/scan.c~fix_acpi_device_register	2004-11-11 10:11:26.121101371 +0900
-+++ linux-2.6.10-rc1-mm4-kei-kei/drivers/acpi/scan.c	2004-11-11 10:11:39.126072074 +0900
-@@ -112,13 +112,12 @@ static void acpi_device_register(struct 
- 		list_add_tail(&device->wakeup_list,&acpi_wakeup_device_list);
- 	spin_unlock(&acpi_device_lock);
+diff -puN drivers/acpi/container.c~container_u1_hotplug_path_fix drivers/acpi/container.c
+--- linux-2.6.10-rc1-mm4/drivers/acpi/container.c~container_u1_hotplug_path_fix	2004-11-10 13:33:29.657947459 -0800
++++ linux-2.6.10-rc1-mm4-askeshav/drivers/acpi/container.c	2004-11-10 13:33:29.735095896 -0800
+@@ -133,52 +133,6 @@ acpi_container_remove(struct acpi_device
  
--	kobject_init(&device->kobj);
- 	strlcpy(device->kobj.name,device->pnp.bus_id,KOBJ_NAME_LEN);
- 	if (parent)
- 		device->kobj.parent = &parent->kobj;
- 	device->kobj.ktype = &ktype_acpi_ns;
- 	device->kobj.kset = &acpi_namespace_kset;
--	kobject_add(&device->kobj);
-+	kobject_register(&device->kobj);
- 	create_sysfs_device_files(device);
- }
  
-
+ static int
+-container_run_sbin_hotplug(struct acpi_device *device, char *action)
+-{
+-	char *argv[3], *envp[6], action_str[32];
+-	int i, ret;
+-	int len;
+-	char pathname[ACPI_PATHNAME_MAX] = {0};
+-	acpi_status status;
+-	char *container_str;
+-	struct acpi_buffer buffer = {ACPI_PATHNAME_MAX, pathname};
+-
+-	ACPI_FUNCTION_TRACE("container_run_sbin_hotplug");
+-
+-
+-	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
+-	if (ACPI_FAILURE(status)) {
+-		return(-ENODEV);
+-	}
+-
+-	len = strlen("CONTAINER=") + strlen(pathname) + 1;
+-	container_str = kmalloc(len, GFP_KERNEL);
+-	if (!container_str)
+-		return(-ENOMEM);
+-
+-	sprintf(container_str, "CONTAINER=%s",pathname);
+-	sprintf(action_str, "ACTION=%s", action);
+-
+-	i = 0;
+-	argv[i++] = hotplug_path;
+-	argv[i++] = "container";
+-	argv[i] = NULL;
+-
+-	i = 0;
+-	envp[i++] = "HOME=/";
+-	envp[i++] = "PATH=/sbin;/bin;/usr/sbin;/usr/bin";
+-	envp[i++] = action_str;
+-	envp[i++] = container_str;
+-	envp[i++] = "PLATFORM=ACPI";
+-	envp[i] = NULL;
+-
+-	ret = call_usermodehelper(argv[0], argv, envp, 0);
+-
+-	kfree(container_str);
+-	return_VALUE(ret);
+-}
+-
+-static int
+ container_device_add(struct acpi_device **device, acpi_handle handle)
+ {
+ 	acpi_handle phandle;
+@@ -228,16 +182,16 @@ container_notify_cb(acpi_handle handle, 
+ 			if (ACPI_FAILURE(status) || !device) {
+ 				result = container_device_add(&device, handle);
+ 				if (!result)
+-					container_run_sbin_hotplug(device, "add");
++					kobject_hotplug(&device->kobj, KOBJ_ONLINE);
+ 			} else {
+ 				/* device exist and this is a remove request */
+-				container_run_sbin_hotplug(device, "remove");
++				kobject_hotplug(&device->kobj, KOBJ_OFFLINE);
+ 			}
+ 		}
+ 		break;
+ 	case ACPI_NOTIFY_EJECT_REQUEST:
+ 		if (!acpi_bus_get_device(handle, &device) && device) {
+-			container_run_sbin_hotplug(device, "remove");
++			kobject_hotplug(&device->kobj, KOBJ_OFFLINE);
+ 		}
+ 		break;
+ 	default:
 _
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
