@@ -1,11 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Invalid PBLK length
-Date: Wed, 18 Dec 2002 13:28:54 -0800
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Add mising static's to button.c
+Date: Wed, 18 Dec 2002 23:11:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A5BC@orsmsx119.jf.intel.com>
+Message-ID: <20021218221142.GA321@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,20 +15,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Matthew Wilcox' <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
-Cc: haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Matthew Wilcox [mailto:willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org] 
-> you're right.  Andy, could we add something like this?
-> +#define ACPI_ADR_SPACE_FIXED_HARDWARE  (ACPI_ADR_SPACE_TYPE) 127
+Hi!
 
-Yes, thanks.
+Should be obvious, please apply,
+							Pavel
 
-Regards -- Andy
+--- clean/drivers/acpi/button.c	2002-11-29 21:16:33.000000000 +0100
++++ linux-sensors/drivers/acpi/button.c	2002-12-16 23:20:15.000000000 +0100
+@@ -68,8 +68,8 @@
+ MODULE_LICENSE("GPL");
+ 
+ 
+-int acpi_button_add (struct acpi_device *device);
+-int acpi_button_remove (struct acpi_device *device, int type);
++static int acpi_button_add (struct acpi_device *device);
++static int acpi_button_remove (struct acpi_device *device, int type);
+ static int acpi_button_open_fs(struct inode *inode, struct file *file);
+ 
+ static struct acpi_driver acpi_button_driver = {
+@@ -234,7 +234,7 @@
+ }
+ 
+ 
+-int
++static int
+ acpi_button_add (
+ 	struct acpi_device	*device)
+ {
+@@ -384,7 +384,7 @@
+ }
+ 
+ 
+-int
++static int
+ acpi_button_remove (struct acpi_device *device, int type)
+ {
+ 	acpi_status		status = 0;
 
-PS about the iasl glibc thing - you do know you can compile your own from
-the acpica-unix source release, right?
+-- 
+Worst form of spam? Adding advertisment signatures ala sourceforge.net.
+What goes next? Inserting advertisment *into* email?
 
 
 -------------------------------------------------------
