@@ -1,13 +1,13 @@
-From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Sun, 23 Jan 2005 17:36:21 +0000
-Message-ID: <41F3E095.6060805@arrakis.dhis.org>
-References: <47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <m2wtu74yzq.fsf@phoenix.squirrel.nl> <41F01923.1000503@bartol.udel.edu> <m2sm4v4wk7.fsf@phoenix.squirrel.nl> <41F10180.60008@arrakis.dhis.org> <20050123160244.GA1364@elf.ucw.cz>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: S3+S4 combination fails on M2000E
+Date: Mon, 24 Jan 2005 10:07:39 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575010A9BA0@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050123160244.GA1364-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,65 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Miroslav Ruda <ruda-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+>>  I have Asus M2000E, running 2.6.10+acpi patches (but the same
+problem
+>>  appears with previous 2.6 kernels too, with Suse 2.6.5-7.111 and
+also
+>with
+>> swsups2 patches). Both suspend to disk and suspend to memory works,
+but
+>I'm
+>> still not happy :-)
+>>
+>> After suspend to memory is used, first suspend to disk is able to
+suspend,
+>> but machine is frozen in wake-up. When acpi modules are unloaded
+before
+>> suspend and loaded in wake-up, machine is frozen in first acpi module
+>load
+>> (thermal?). When
+>
+>Try to find out which module causes the freeze, then add printks to
+>find out where it freezes.
+And also please try the suspend-to-disk mode 'platform' (set in
+/sys/power/disk).
 
-Pavel Machek wrote:
-| Hi!
-|
-|
-|>|>I do this because everything in /lib/modules/XXX/kernel/* gets
-|>|>clobbered when you do a make modules_install from the kernel source
-|>|>tree;
-|>|
-|>|
-|>| I see.
-|>|
-|>|
-|>|>I have recently realized that the whole SBS functionality can be
-|>|>implemented in terms of control methods in the DSDT, without the
-|>|>need for any kernel drivers.
-|>|
-|>|
-|>| Nice. This would require a kernel recompile/reboot  for each DSDT
-|>| modification...
-|>
-|>not nice, I guess. 99.9% of the interested (me included) wouldn't be ab=
-le to
-|>patch their DSDT and with generated ASL (is it ASL or AML or... ACPI
-|>language)
-|>code for their specific case.
-|>
-|>but academically interesting :-)
-|
-|
-| Well, we could just ask Acer to include that SBS code into their
-| DSDTs....
-| 								Pavel
-
-which apparently is a waste of time. from some e-mails I've seen around, =
-they
-are very reluctant to support anything linux-related.
-
-regards,
-pedro venda.
-- --
-
-Pedro Jo=E3o Lopes Venda
-email: pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org
-http://arrakis.dhis.org
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFB8+CVeRy7HWZxjWERAtWDAKChdQD+2XgjEo2WXkxM2syyZzwnegCfXOew
-49zml3i6YKUDBy1LsaPMmRU=3D
-=3DymwH
------END PGP SIGNATURE-----
+Shaohua
 
 
 -------------------------------------------------------
