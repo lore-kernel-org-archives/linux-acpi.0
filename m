@@ -1,16 +1,13 @@
-From: Jeroen Wijnhout <Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Thu, 20 Jan 2005 10:10:53 +0100
-Message-ID: <200501201010.53247.Jeroen.Wijnhout@kdemail.net>
-References: <41E81C2C.8010809@bartol.udel.edu> <200501191949.03558.Jeroen.Wijnhout@kdemail.net> <200501192010.25975.o.jansen@orb-net.de>
-Reply-To: Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: RFC 0/4: make ACPI interpret safe for suspend/resume
+Date: Thu, 20 Jan 2005 10:12:42 +0100
+Message-ID: <20050120091242.GB1452@elf.ucw.cz>
+References: <1106104620.12957.270.camel@sli10-desk.sh.intel.com> <20050119101858.GE25623@elf.ucw.cz> <1106184495.13181.68.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501192010.25975.o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1106184495.13181.68.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,30 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 19 January 2005 20:10, Olaf Jansen-Olliges wrote:
-> Hi Joeren,
->
-> > I've tried the above driver on my Acer TM4001WLMi and it sort of doesn't
-> > work. The problem is that after modprobing i2c_acpi_ec and acpi_sbs I've
-> > got two battery and two ac_adapter directories in /proc (very weird if
-> > you ask me).
->
-> you should not have ac_adapter or battery before "modprobing" have you
-> diabled the ac_adapter and battery section in your kernel configuration?
-> (as mentioned in the README)
+Hi!
 
-This was enabled, so I will have to recompile the kernel I guess.
+> > [Or perhaps you want this variable to be acpi-local?]
+> For the memory allocating issue and semaphore issue, we actually can not
+> use the new system state, we can just do:
+> if (in_atomic() || in_interrupt())
+> 	kmalloc(.., GFP_ATOMIC)
+> But this possibly will mask some real runtime errors, so we want to add
+> a new system state to make suspend/resume work and not break normal
+> process. But If new system state is a bad idea, we can make it
+> acpi-local.
 
-best,
-Jeroen
+Actually, I do not quite like new system state, but introducing new
+"in_suspend()" macro would certainly be ok. We actually talked about
+that one on linux-pm, just noone got around to implement it.
 
-P.S.: Next time I will read the README before asking a question ;-)
+> > > P.S. Did anybody know why we should freeze all processes for S3 and
+> > > S4BIOS? I checked FreeBSD code, it doesn't. I know it's safer, but if
+> > > all device drivers can freeze request to them, it's possibly not
+> > > required to me.
+> > 
+> > Freezing all processes should not be required. 
+> How about just make suspend/resume task as a highest priority task with
+> FIFO scheduler policy? 
+
+That might do the trick for S3, but not for swsusp. Imagine normal
+process holding some lock you want (for writing image to disk). You
+can run on FIFO scheduler, but then you block on this lock, and
+userspace process gets to run, and gets confused.
+							Pavel
 -- 
-Kile - KDE Integrated LaTeX Editor
-http://kile.sourceforge.net
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
