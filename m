@@ -1,16 +1,13 @@
-From: Jason Bowman <jasonb42lists-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Kernel instability problem
-Date: Wed, 14 Aug 2002 01:01:30 -0400
+From: Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
+Subject: IRQ-Problem on Compaq 1720US, 2.4.18+acpi-7,24 - Help
+Date: Wed, 14 Aug 2002 08:08:16 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208140101.31130.jasonb42lists@attbi.com>
-References: <200208130037.51909.jasonb42lists@attbi.com> <20020813081825.A798@tarnation.dyndns.org>
-Reply-To: jasonb42lists-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org
+Message-ID: <Pine.GSO.4.21.0208140752500.14026-100000@sediment.umd.edu>
+References: <20020813120946.GE2605@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020813081825.A798-2LEdZMXKCZJeeLb3ft/vUmD2FQJk+8+b@public.gmane.org>
+In-Reply-To: <20020813120946.GE2605-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,79 +16,64 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Aaron Gaudio <prothonotar-2LEdZMXKCZJeeLb3ft/vUmD2FQJk+8+b@public.gmane.org>
-Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 13 August 2002 08:18 am, Aaron Gaudio wrote:
-> If you haven't already, try disabling your sound... gaim will (by defau=
-lt)
-> play a sound when you receive a message, xine probably tries at least
-> opening the sound device when it loads, and KDE starts aRts, I believe,
-> which, like Gnome's Esound, will open the sound device in order to
+Hi list,
 
-Actually sounds is a big reason as to why I am using the ACPI patch as my=
-=20
-laptops sound does not work unless ACPI is up and running! I can and do p=
-lay=20
-sound through out the day using KDE's artsd daemon. Naturally watching a=20
-movie w/o sound is not that appealing... I will however try gaim w/o soun=
-d=20
-just to make sure.=20
+I compiled the kernel with the suggested osl.c patch and my corrected
+dsdt.hex.
 
-> multiplex desktop sounds. Maybe there's a conflict somewhere brought ab=
-out
-> by ACPI (did you turn off "Plug 'n Play OS" in the BIOS?).
-My bios sucks and does not have this option... in fact HP shipped an bad =
-ACPI=20
-version number too!
-=2E.............
+On bootup I get the following error (it is not the complete log):
+**************************************************************************
+pci_bind_0191 [22] acpi_pci_bind: Device 00:00.1d.02 not present in PCI
+namespace
+.....
+.....
+schedule_task(): keventd has not started
+schedule_task(): keventd has not started
+.....
+.....
 
-I can't believe it! The problem was the sound... gaim was set to use esd.=
- With=20
-it set to esd the computer crashes, setting sound output to an option oth=
-er=20
-than esd it does not crash. (I don't hear anything, but at least my compu=
-ter=20
-didn't crash!)
+and that's all abt it.
+**************************************************************************
 
-Thanks a lot for pointing out the obvious,
- - Jason B.
+However, when I did check the output of lspci on a working kernel (w/o
+ACPI) there is no device on 00:00:1d.02. The o/p of lspci is below. I have
+also checked it on my Windoze and there is not dev with that PCI ID.
 
-> And lo, upon Tue, Aug 13, 2002 at 12:37:51AM -0400, Jason Bowman spaket=
-h=20
-thusly:
-> > Hello all,
-> >
-> > I have an HP zt1190 laptop, reportedly the same as the xt1100 series.=
- I
-> > have found that whenever I use an ACPI kernel (I have tried 2.4.18 w/
-> > 20020611 20020726 patches) and run gaim my machine freezes. This also
-> > happens with xine. Gaim freezes when someone sends me a message, xine=
- at
-> > startup. Running KDE 3.0.1 the display remains in a frozen state, not=
-hing
-> > moves/changes/etc. I can't switch to an virtual desktops either.
-> >
-> > Anyone have any clues? I would like to investigate why this happens a=
-nd
-> > help to fix it, however I don't know what to try next. Pointers
-> > appreciated.
-> >
-> > Thanks,
-> > Jason B.
-> >
-> >
-> >
-> > -------------------------------------------------------
-> > This sf.net email is sponsored by: Dice - The leading online job boar=
-d
-> > for high-tech professionals. Search and apply for tech jobs today!
-> > http://seeker.dice.com/seeker.epl?rel_code1
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+*********************************lspci on working kernel******************
+[reddyg@localhost ~]# lspci
+00:00.0 Host bridge: Intel Corp. 82830 830 Chipset Host Bridge (rev 02)
+00:01.0 PCI bridge: Intel Corp. 82830 830 Chipset AGP Bridge (rev 02)
+00:1d.0 USB Controller: Intel Corp. 82801CA/CAM USB (Hub  (rev 01)
+00:1d.1 USB Controller: Intel Corp. 82801CA/CAM USB (Hub  (rev 01)
+00:1e.0 PCI bridge: Intel Corp. 82801BAM/CAM PCI Bridge (rev 41)
+00:1f.0 ISA bridge: Intel Corp. 82801CAM ISA Bridge (LPC) (rev 01)
+00:1f.1 IDE interface: Intel Corp. 82801CAM IDE U100 (rev 01)
+00:1f.3 SMBus: Intel Corp. 82801CA/CAM SMBus (rev 01)
+00:1f.5 Multimedia audio controller: Intel Corp. 82801CA/CAM AC'97 Audio
+(rev 01)
+01:00.0 VGA compatible controller: ATI Technologies Inc Radeon Mobility M6
+LY
+02:04.0 Communication controller: Conexant HSF 56k HSFi Modem (rev 01)
+02:05.0 FireWire (IEEE 1394): Texas Instruments: Unknown device 8023
+02:06.0 CardBus bridge: Texas Instruments PCI1410 PC card Cardbus
+Controller (rev 01)
+02:08.0 Ethernet controller: Intel Corp. 82801CAM (ICH3) Chipset Ethernet
+Controller (rev 41)
+*****************************end lspci**********************************
+
+For the "curious minds", the links to some system information files
+can be found here:
+
+http://www.glue.umd.edu/~reddyg/linux/dsdt_info.html
+
+
+
+---
+
+P Reddy
 
 
 
