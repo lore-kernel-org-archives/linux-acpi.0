@@ -1,24 +1,47 @@
 From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: [ACPI] [PATCH] 2.6.0-test4 ACPI fixes series (4/4)
-Date: Sun, 7 Sep 2003 21:19:48 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200309072119.48086.adq_dvb@lidskialf.net>
-References: <200309051958.02818.adq_dvb@lidskialf.net> <200309071554.57500.adq_dvb@lidskialf.net> <1062957575.16972.39.camel@dhcp23.swansea.linux.org.uk>
+Subject: [PATCH] 2.6.0-test4 Fix mpparse properly
+Date: Sun, 7 Sep 2003 21:30:40 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309072130.40200.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1062957575.16972.39.camel-Z+iYsftfazAXoXS6vNje7nviChZXdy279dF7HbQ/qKg@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday 07 Sep 2003 6:59 pm, Alan Cox wrote:
-> On Sul, 2003-09-07 at 15:54, Andrew de Quincey wrote:
-> > Should that code be added back into 2.4.23-pre3?
->
-> I dont think E7K ever made it into 2.4
+According to Alan Cox, the so-called erroneous code in mpparse.c should be there, but only for 
+ES7000 platforms.
 
-Oh right, cool. Well that makes fixing that easy then :)
+
+--- linux-2.6.0-test4.null_crs/arch/i386/kernel/mpparse.c	2003-09-06 00:23:10.000000000 +0100
++++ linux-2.6.0-test4.es7000fix/arch/i386/kernel/mpparse.c	2003-09-07 15:53:41.369717552 +0100
+@@ -1129,8 +1129,10 @@
+ 			continue;
+ 		ioapic_pin = irq - mp_ioapic_routing[ioapic].irq_start;
+ 
++#ifdef CONFIG_X86_ES7000
+ 		if (!ioapic && (irq < 16))
+ 			irq += 16;
++#endif
+ 
+ 		/* 
+ 		 * Avoid pin reprogramming.  PRTs typically include entries  
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
