@@ -1,8 +1,8 @@
 From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Subject: Re: 2.4 patch updated
-Date: Wed, 21 Aug 2002 23:02:23 +0100
+Date: Wed, 21 Aug 2002 23:28:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020821230223.O29958@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20020821232810.P29958@parcelfarce.linux.theplanet.co.uk>
 References: <EDC461A30AC4D511ADE10002A5072CAD0236DDBF@orsmsx119.jf.intel.com> <20020821221314.M29958@parcelfarce.linux.theplanet.co.uk> <20020822065349.GAHNC0A82650.6C9EC293@mvf.biglobe.ne.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -22,17 +22,11 @@ Cc: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzW
 List-Id: linux-acpi@vger.kernel.org
 
 On Wed, Aug 21, 2002 at 02:53:50PM -0700, KOCHI, Takayoshi wrote:
-> At least one here:)
 > I've just started to do the same thing.  If you already have one,
 > could you send a copy to me?
 
-Sure.  I'll generate it now.
-
-> Did you send it to David / Bjorn to include in 2.4.19 ia64 patch?
-
-Nope -- Bjorn has access to the same source tree I commit the acpi
-patches to.  David didn't want to introduce a new revision of ACPI if
-he could avoid it, but I'm not sure what Bjorn will do.
+patch at http://ftp.linux.org.uk/pub/linux/willy/patches/acpi.diff
+let me know if i missed anything -- it came out of a much bigger patchset.
 
 -- 
 Revolutions do not require corporate support.
