@@ -1,14 +1,11 @@
-From: Rob Hughes <rob-d2NfoQ5nhImakBO8gow8eQ@public.gmane.org>
-Subject: Re: ACPI 20030428 causing IP_TABLES problems?
-Date: 07 May 2003 08:56:34 -0500
+From: Rob Miller <rob-7HoZ3oJp7ZtBDgjK7y7TUQ@public.gmane.org>
+Subject: ACPI - SWSUSP interaction
+Date: Wed, 7 May 2003 15:33:36 +0100 (WAT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1052315794.28825.4.camel@kahuna-ws.robhughes.com>
-References: <1052269459.15665.162.camel@kahuna-ws.robhughes.com>
-	 <20030507130657.GA29534@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <Pine.LNX.4.21.0305071429500.7835-100000@vista.rtm.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-W58Gi055kMf+0wqBi8vE"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030507130657.GA29534-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,50 +14,63 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-W58Gi055kMf+0wqBi8vE
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Wed, 2003-05-07 at 08:06, Matthew Wilcox wrote:
-> On Tue, May 06, 2003 at 08:04:19PM -0500, Rob Hughes wrote:
-> > Attached is the output of ld against the ip_tables.o module. I've been
-> > working on this for about a week, but haven't been able to make any
-> > progress. Is it known that the acpi patches cause unresolved symbol
-> > errors in ip_tables?
->=20
-> Looks like you didn't rebuild your modules and kernel against the same
-> set of headers.  i recommend you make clean and then "make compressed
-> modules".  Nothing really to do with acpi.
+I am a happy user of both the ACPI and SWSUSP patches; I'm currently still
+on acpi-20030328 applied to 2.4.21-rc1 as the latest SWSUSP patch
+(19-27) isn't playing well for me with acpi-20030424.
 
-I'm using make dep&&make clean&&make bzImage&&make modules&&make
-modules_install, all from the same source directory, patched with
-2.4.21-rc1+ACPI20030428. This is all on a RH 9 box. I'll try the make
-compressed modules. I if I simply omit ip_tables from the config, all my
-other modules build cleanly, so I'm not sure that'll help. But it's
-worth a shot I suppose.
+In any event, I think there is an issue that one or more folk here may be
+able to help with.  It appears to me that reads of at least the following
+/proc entries do not actually test the hardware state, but rely on
+detecting ACPI events to trigger changes in stored information:
 
-Thanks,
-Rob
+/proc/acpi/ac_adapter/ADP1/state
+/proc/acpi/battery/BAT1/state: capacity state, charging state
 
---=-W58Gi055kMf+0wqBi8vE
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+I base this on observing that these entries do not change to reflect
+removal/insertion of the AC plug on my Toshiba Satellite 5100 laptop
+during a suspend.  This caused minor but not insurmountable problems for
+writing a battery monitoring daemon which hibernates the machine when the
+battery goes too low, as it was difficult to determine when powering back
+on that there was no need to immediately hibernate again.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Please use bofh key to send me personal data.
+I find these results with the ACPI code compiled-in and as modules.  When
+built as modules, on loading during or after the resume without an
+additional plug-change they report the wrong state -- e.g.:
 
-iD8DBQA+uRCR/9y+qWKu6HERAl6DAKCHg955QPwf+/nXONMTnd18o3JrMQCaAwBZ
-pv0ElUFPgFZU/UO94qQjWF4=
-=N8fB
------END PGP SIGNATURE-----
+ACPI: AC Adapter [ADP1] (off-line)
 
---=-W58Gi055kMf+0wqBi8vE--
+rmmod - plug - modprobe of ac.o while powered on of course gets the right
+state, but I expect this is because the in-kernel ACPI code is running and
+gets the ACPI event.
+
+Question 1:  Is my conclusion above accurate, or have I run into an
+idiosyncrasy of the laptop?  Certainly it gets the correct reading if I
+shutdown - plug in - boot the device.
+
+Question 2:  if it is the case that these /proc entries are only updated
+on specific ACPI events, can I 
+ (a) get the world changed such that reads of the /proc entries cause
+    an actual re-read of the hardware status?
+ (b) get the world changed so that the hardware status is re-read on 
+    loading the ACPI modules?
+ (c) simulate (an) ACPI event(s) in software to cause the hardware status 
+    to be re-read?
+ (d) implement another solution I haven't thought of yet?
+
+Thanks for any suggestions.
+
+best,
+
+rob.
+
+
+
 
 
 
