@@ -1,10 +1,10 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/5]Avoid ACPI assign legacy devices' IRQ for PCI devices
-Date: Thu, 21 Oct 2004 10:59:22 +0800
+Subject: [PATCH 2/5]PNP core handle big IRQ
+Date: Thu, 21 Oct 2004 10:59:29 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098327558.6132.220.camel@sli10-desk.sh.intel.com>
+Message-ID: <1098327562.6132.222.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-RYX4IQ3rVIDiea3EYFU3"
+Content-Type: multipart/mixed; boundary="=-5QUXfd0u/gAA8pEXVSoB"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,195 +19,294 @@ Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <a
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-RYX4IQ3rVIDiea3EYFU3
+--=-5QUXfd0u/gAA8pEXVSoB
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi,
-The patch introduces acpi_penalize_isa_irq, its goal is to avoid PCI
-devices use IRQ of legacy PNP devices.
+In IA64, some PNP devices such as 8250 have big IRQ (>15). This patch
+lets the PNP core be able to handle > 15 IRQ.
 
 Thanks,
 Shaohua
 
-
 Signed-off-by: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-===== include/linux/acpi.h 1.36 vs edited =====
---- 1.36/include/linux/acpi.h	2004-06-02 23:02:20 +08:00
-+++ edited/include/linux/acpi.h	2004-09-22 10:09:23 +08:00
-@@ -439,6 +439,7 @@ extern struct acpi_prt_list	acpi_prt;
- struct pci_dev;
- 
- int acpi_pci_irq_enable (struct pci_dev *dev);
-+void acpi_penalize_isa_irq(int irq);
- 
- struct acpi_pci_driver {
- 	struct acpi_pci_driver *next;
-===== drivers/acpi/pci_link.c 1.31 vs edited =====
---- 1.31/drivers/acpi/pci_link.c	2004-08-05 03:55:16 +08:00
-+++ edited/drivers/acpi/pci_link.c	2004-09-22 10:08:09 +08:00
-@@ -786,6 +786,11 @@ static int __init acpi_irq_penalty_updat
- 	return 1;
- }
- 
-+void acpi_penalize_isa_irq(int irq)
-+{
-+	acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
-+}
-+
- /*
-  * Over-ride default table to reserve additional IRQs for use by ISA
-  * e.g. acpi_irq_isa=5
-===== arch/i386/pci/irq.c 1.47 vs edited =====
---- 1.47/arch/i386/pci/irq.c	2004-08-02 16:00:43 +08:00
-+++ edited/arch/i386/pci/irq.c	2004-09-22 10:27:30 +08:00
-@@ -17,6 +17,7 @@
- #include <asm/smp.h>
- #include <asm/io_apic.h>
- #include <asm/hw_irq.h>
-+#include <linux/acpi.h>
- 
- #include "pci.h"
- 
-@@ -989,13 +990,24 @@ static int __init pcibios_irq_init(void)
- subsys_initcall(pcibios_irq_init);
- 
- 
--void pcibios_penalize_isa_irq(int irq)
-+static void pirq_penalize_isa_irq(int irq)
+--- 2.6/drivers/pnp/isapnp/core.c.stg2	2004-09-28 10:08:21.790559096
++0800
++++ 2.6/drivers/pnp/isapnp/core.c	2004-09-28 10:11:44.422754320 +0800
+@@ -477,12 +477,14 @@ static void __init isapnp_parse_irq_reso
  {
- 	/*
- 	 *  If any ISAPnP device reports an IRQ in its list of possible
- 	 *  IRQ's, we try to avoid assigning it to PCI devices.
- 	 */
--	pirq_penalty[irq] += 100;
-+	if (irq < 16)
-+		pirq_penalty[irq] += 100;
-+}
+ 	unsigned char tmp[3];
+ 	struct pnp_irq *irq;
++	unsigned long bits;
+ 
+ 	isapnp_peek(tmp, size);
+ 	irq = isapnp_alloc(sizeof(struct pnp_irq));
+ 	if (!irq)
+ 		return;
+-	irq->map = (tmp[1] << 8) | tmp[0];
++	bits = (tmp[1] << 8) | tmp[0];
++	bitmap_copy(irq->map, &bits, 16);
+ 	if (size > 2)
+ 		irq->flags = tmp[2];
+ 	else
+--- 2.6/drivers/pnp/pnpbios/rsparser.c.stg2	2004-09-28
+10:08:43.249296872 +0800
++++ 2.6/drivers/pnp/pnpbios/rsparser.c	2004-09-28 10:12:00.196356368
++0800
+@@ -285,10 +285,13 @@ static void
+ pnpbios_parse_irq_option(unsigned char *p, int size, struct pnp_option
+*option)
+ {
+ 	struct pnp_irq * irq;
++	unsigned long bits;
 +
-+void pcibios_penalize_isa_irq(int irq)
-+{
-+#ifdef CONFIG_ACPI_PCI
-+	if (!acpi_noirq)
-+		acpi_penalize_isa_irq(irq);
-+	else
-+#endif
-+		pirq_penalize_isa_irq(irq);
- }
+ 	irq = pnpbios_kmalloc(sizeof(struct pnp_irq), GFP_KERNEL);
+ 	if (!irq)
+ 		return;
+-	irq->map = (p[2] << 8) | p[1];
++	bits = (p[2] << 8) | p[1];
++	bitmap_copy(irq->map, &bits, 16);
+ 	if (size > 2)
+ 		irq->flags = p[3];
+ 	else
+--- 2.6/drivers/pnp/interface.c.stg2	2004-09-28 10:08:55.987360392 +0800
++++ 2.6/drivers/pnp/interface.c	2004-09-28 10:12:21.509116336 +0800
+@@ -60,8 +60,8 @@ static void pnp_print_irq(pnp_info_buffe
+ 	int first = 1, i;
  
- int pirq_enable_irq(struct pci_dev *dev)
-===== drivers/pnp/pnpbios/rsparser.c 1.4 vs edited =====
---- 1.4/drivers/pnp/pnpbios/rsparser.c	2004-09-14 08:23:17 +08:00
-+++ edited/drivers/pnp/pnpbios/rsparser.c	2004-09-22 10:31:09 +08:00
-@@ -7,6 +7,7 @@
- #include <linux/ctype.h>
- #include <linux/pnp.h>
- #include <linux/pnpbios.h>
-+#include <linux/pci.h>
- 
- #include "pnpbios.h"
- 
-@@ -58,6 +59,7 @@ pnpbios_parse_allocated_irqresource(stru
+ 	pnp_printf(buffer, "%sirq ", space);
+-	for (i = 0; i < 16; i++)
+-		if (irq->map & (1<<i)) {
++	for (i = 0; i < PNP_IRQ_NR; i++)
++		if (test_bit(i, irq->map)) {
+ 			if (!first) {
+ 				pnp_printf(buffer, ",");
+ 			} else {
+@@ -72,7 +72,7 @@ static void pnp_print_irq(pnp_info_buffe
+ 			else
+ 				pnp_printf(buffer, "%i", i);
  		}
- 		res->irq_resource[i].start =
- 		res->irq_resource[i].end = (unsigned long) irq;
-+		pcibios_penalize_isa_irq(irq);
- 	}
- }
+-	if (!irq->map)
++	if (bitmap_empty(irq->map, PNP_IRQ_NR))
+ 		pnp_printf(buffer, "<none>");
+ 	if (irq->flags & IORESOURCE_IRQ_HIGHEDGE)
+ 		pnp_printf(buffer, " High-Edge");
+--- 2.6/drivers/pnp/manager.c.stg2	2004-09-28 10:09:07.869554024 +0800
++++ 2.6/drivers/pnp/manager.c	2004-09-28 10:12:49.630841184 +0800
+@@ -150,13 +150,19 @@ static int pnp_assign_irq(struct pnp_dev
+ 	*flags |= rule->flags | IORESOURCE_IRQ;
+ 	*flags &=  ~IORESOURCE_UNSET;
  
+-	if (!rule->map) {
++	if (bitmap_empty(rule->map, PNP_IRQ_NR)) {
+ 		*flags |= IORESOURCE_DISABLED;
+ 		return 1; /* skip disabled resource requests */
+ 	}
+ 
++	/* TBD: need check for >16 IRQ */
++	*start = find_next_bit(rule->map, PNP_IRQ_NR, 16);
++	if (*start < PNP_IRQ_NR) {
++		*end = *start;
++		return 1;
++	}
+ 	for (i = 0; i < 16; i++) {
+-		if(rule->map & (1<<xtab[i])) {
++		if(test_bit(xtab[i], rule->map)) {
+ 			*start = *end = xtab[i];
+ 			if(pnp_check_irq(dev, idx))
+ 				return 1;
+--- 2.6/drivers/pnp/quirks.c.stg2	2004-09-28 10:09:21.554473600 +0800
++++ 2.6/drivers/pnp/quirks.c	2004-09-28 10:13:08.710940568 +0800
+@@ -63,14 +63,17 @@ static void quirk_awe32_resources(struct
+ static void quirk_cmi8330_resources(struct pnp_dev *dev)
+ {
+ 	struct pnp_option *res = dev->dependent;
++	unsigned long tmp;
+ 
+ 	for ( ; res ; res = res->next ) {
+ 
+ 		struct pnp_irq *irq;
+ 		struct pnp_dma *dma;
+ 
+-		for( irq = res->irq; irq; irq = irq->next )	// Valid irqs are 5, 7,
+10
+-			irq->map = 0x04A0;						// 0000 0100 1010 0000
++		for( irq = res->irq; irq; irq = irq->next ) {	// Valid irqs are 5, 7,
+10
++			tmp = 0x04A0;
++			bitmap_copy(irq->map, &tmp, 16);	// 0000 0100 1010 0000
++		}
+ 
+ 		for( dma = res->dma; dma; dma = dma->next ) // Valid 8bit dma
+channels are 1,3
+ 			if( ( dma->flags & IORESOURCE_DMA_TYPE_MASK ) == IORESOURCE_DMA_8BIT
+)
+--- 2.6/drivers/pnp/resource.c.stg2	2004-09-28 10:09:40.184641384 +0800
++++ 2.6/drivers/pnp/resource.c	2004-09-28 10:13:27.508082968 +0800
+@@ -101,8 +101,8 @@ int pnp_register_irq_resource(struct pnp
+ 	{
+ 		int i;
+ 
+-		for (i=0; i<16; i++)
+-			if (data->map & (1<<i))
++		for (i = 0; i < 16; i++)
++			if (test_bit(i, data->map))
+ 				pcibios_penalize_isa_irq(i);
+ 	}
+ #endif
+--- 2.6/include/linux/pnp.h.stg2	2004-09-28 10:09:58.139911768 +0800
++++ 2.6/include/linux/pnp.h	2004-09-28 10:13:47.459049960 +0800
+@@ -82,8 +82,9 @@ struct pnp_port {
+ 	struct pnp_port *next;		/* next port */
+ };
+ 
++#define PNP_IRQ_NR 256
+ struct pnp_irq {
+-	unsigned short map;		/* bitmaks for IRQ lines */
++	DECLARE_BITMAP(map, PNP_IRQ_NR); /* bitmaks for IRQ lines */
+ 	unsigned char flags;		/* IRQ flags */
+ 	unsigned char pad;		/* pad */
+ 	struct pnp_irq *next;		/* next IRQ */
 
 
---=-RYX4IQ3rVIDiea3EYFU3
-Content-Disposition: attachment; filename=irq-isa.patch
-Content-Type: text/x-patch; name=irq-isa.patch; charset=UTF-8
+--=-5QUXfd0u/gAA8pEXVSoB
+Content-Disposition: attachment; filename=irq256.patch
+Content-Type: text/x-patch; name=irq256.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-===== include/linux/acpi.h 1.36 vs edited =====
---- 1.36/include/linux/acpi.h	2004-06-02 23:02:20 +08:00
-+++ edited/include/linux/acpi.h	2004-09-22 10:09:23 +08:00
-@@ -439,6 +439,7 @@ extern struct acpi_prt_list	acpi_prt;
- struct pci_dev;
- 
- int acpi_pci_irq_enable (struct pci_dev *dev);
-+void acpi_penalize_isa_irq(int irq);
- 
- struct acpi_pci_driver {
- 	struct acpi_pci_driver *next;
-===== drivers/acpi/pci_link.c 1.31 vs edited =====
---- 1.31/drivers/acpi/pci_link.c	2004-08-05 03:55:16 +08:00
-+++ edited/drivers/acpi/pci_link.c	2004-09-22 10:08:09 +08:00
-@@ -786,6 +786,11 @@ static int __init acpi_irq_penalty_updat
- 	return 1;
- }
- 
-+void acpi_penalize_isa_irq(int irq)
-+{
-+	acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
-+}
-+
- /*
-  * Over-ride default table to reserve additional IRQs for use by ISA
-  * e.g. acpi_irq_isa=5
-===== arch/i386/pci/irq.c 1.47 vs edited =====
---- 1.47/arch/i386/pci/irq.c	2004-08-02 16:00:43 +08:00
-+++ edited/arch/i386/pci/irq.c	2004-09-22 10:27:30 +08:00
-@@ -17,6 +17,7 @@
- #include <asm/smp.h>
- #include <asm/io_apic.h>
- #include <asm/hw_irq.h>
-+#include <linux/acpi.h>
- 
- #include "pci.h"
- 
-@@ -989,13 +990,24 @@ static int __init pcibios_irq_init(void)
- subsys_initcall(pcibios_irq_init);
- 
- 
--void pcibios_penalize_isa_irq(int irq)
-+static void pirq_penalize_isa_irq(int irq)
+--- 2.6/drivers/pnp/isapnp/core.c.stg2	2004-09-28 10:08:21.790559096 +0800
++++ 2.6/drivers/pnp/isapnp/core.c	2004-09-28 10:11:44.422754320 +0800
+@@ -477,12 +477,14 @@ static void __init isapnp_parse_irq_reso
  {
- 	/*
- 	 *  If any ISAPnP device reports an IRQ in its list of possible
- 	 *  IRQ's, we try to avoid assigning it to PCI devices.
- 	 */
--	pirq_penalty[irq] += 100;
-+	if (irq < 16)
-+		pirq_penalty[irq] += 100;
-+}
+ 	unsigned char tmp[3];
+ 	struct pnp_irq *irq;
++	unsigned long bits;
+ 
+ 	isapnp_peek(tmp, size);
+ 	irq = isapnp_alloc(sizeof(struct pnp_irq));
+ 	if (!irq)
+ 		return;
+-	irq->map = (tmp[1] << 8) | tmp[0];
++	bits = (tmp[1] << 8) | tmp[0];
++	bitmap_copy(irq->map, &bits, 16);
+ 	if (size > 2)
+ 		irq->flags = tmp[2];
+ 	else
+--- 2.6/drivers/pnp/pnpbios/rsparser.c.stg2	2004-09-28 10:08:43.249296872 +0800
++++ 2.6/drivers/pnp/pnpbios/rsparser.c	2004-09-28 10:12:00.196356368 +0800
+@@ -285,10 +285,13 @@ static void
+ pnpbios_parse_irq_option(unsigned char *p, int size, struct pnp_option *option)
+ {
+ 	struct pnp_irq * irq;
++	unsigned long bits;
 +
-+void pcibios_penalize_isa_irq(int irq)
-+{
-+#ifdef CONFIG_ACPI_PCI
-+	if (!acpi_noirq)
-+		acpi_penalize_isa_irq(irq);
-+	else
-+#endif
-+		pirq_penalize_isa_irq(irq);
- }
+ 	irq = pnpbios_kmalloc(sizeof(struct pnp_irq), GFP_KERNEL);
+ 	if (!irq)
+ 		return;
+-	irq->map = (p[2] << 8) | p[1];
++	bits = (p[2] << 8) | p[1];
++	bitmap_copy(irq->map, &bits, 16);
+ 	if (size > 2)
+ 		irq->flags = p[3];
+ 	else
+--- 2.6/drivers/pnp/interface.c.stg2	2004-09-28 10:08:55.987360392 +0800
++++ 2.6/drivers/pnp/interface.c	2004-09-28 10:12:21.509116336 +0800
+@@ -60,8 +60,8 @@ static void pnp_print_irq(pnp_info_buffe
+ 	int first = 1, i;
  
- int pirq_enable_irq(struct pci_dev *dev)
-===== drivers/pnp/pnpbios/rsparser.c 1.4 vs edited =====
---- 1.4/drivers/pnp/pnpbios/rsparser.c	2004-09-14 08:23:17 +08:00
-+++ edited/drivers/pnp/pnpbios/rsparser.c	2004-09-22 10:31:09 +08:00
-@@ -7,6 +7,7 @@
- #include <linux/ctype.h>
- #include <linux/pnp.h>
- #include <linux/pnpbios.h>
-+#include <linux/pci.h>
- 
- #include "pnpbios.h"
- 
-@@ -58,6 +59,7 @@ pnpbios_parse_allocated_irqresource(stru
+ 	pnp_printf(buffer, "%sirq ", space);
+-	for (i = 0; i < 16; i++)
+-		if (irq->map & (1<<i)) {
++	for (i = 0; i < PNP_IRQ_NR; i++)
++		if (test_bit(i, irq->map)) {
+ 			if (!first) {
+ 				pnp_printf(buffer, ",");
+ 			} else {
+@@ -72,7 +72,7 @@ static void pnp_print_irq(pnp_info_buffe
+ 			else
+ 				pnp_printf(buffer, "%i", i);
  		}
- 		res->irq_resource[i].start =
- 		res->irq_resource[i].end = (unsigned long) irq;
-+		pcibios_penalize_isa_irq(irq);
- 	}
- }
+-	if (!irq->map)
++	if (bitmap_empty(irq->map, PNP_IRQ_NR))
+ 		pnp_printf(buffer, "<none>");
+ 	if (irq->flags & IORESOURCE_IRQ_HIGHEDGE)
+ 		pnp_printf(buffer, " High-Edge");
+--- 2.6/drivers/pnp/manager.c.stg2	2004-09-28 10:09:07.869554024 +0800
++++ 2.6/drivers/pnp/manager.c	2004-09-28 10:12:49.630841184 +0800
+@@ -150,13 +150,19 @@ static int pnp_assign_irq(struct pnp_dev
+ 	*flags |= rule->flags | IORESOURCE_IRQ;
+ 	*flags &=  ~IORESOURCE_UNSET;
  
+-	if (!rule->map) {
++	if (bitmap_empty(rule->map, PNP_IRQ_NR)) {
+ 		*flags |= IORESOURCE_DISABLED;
+ 		return 1; /* skip disabled resource requests */
+ 	}
+ 
++	/* TBD: need check for >16 IRQ */
++	*start = find_next_bit(rule->map, PNP_IRQ_NR, 16);
++	if (*start < PNP_IRQ_NR) {
++		*end = *start;
++		return 1;
++	}
+ 	for (i = 0; i < 16; i++) {
+-		if(rule->map & (1<<xtab[i])) {
++		if(test_bit(xtab[i], rule->map)) {
+ 			*start = *end = xtab[i];
+ 			if(pnp_check_irq(dev, idx))
+ 				return 1;
+--- 2.6/drivers/pnp/quirks.c.stg2	2004-09-28 10:09:21.554473600 +0800
++++ 2.6/drivers/pnp/quirks.c	2004-09-28 10:13:08.710940568 +0800
+@@ -63,14 +63,17 @@ static void quirk_awe32_resources(struct
+ static void quirk_cmi8330_resources(struct pnp_dev *dev)
+ {
+ 	struct pnp_option *res = dev->dependent;
++	unsigned long tmp;
+ 
+ 	for ( ; res ; res = res->next ) {
+ 
+ 		struct pnp_irq *irq;
+ 		struct pnp_dma *dma;
+ 
+-		for( irq = res->irq; irq; irq = irq->next )	// Valid irqs are 5, 7, 10
+-			irq->map = 0x04A0;						// 0000 0100 1010 0000
++		for( irq = res->irq; irq; irq = irq->next ) {	// Valid irqs are 5, 7, 10
++			tmp = 0x04A0;
++			bitmap_copy(irq->map, &tmp, 16);	// 0000 0100 1010 0000
++		}
+ 
+ 		for( dma = res->dma; dma; dma = dma->next ) // Valid 8bit dma channels are 1,3
+ 			if( ( dma->flags & IORESOURCE_DMA_TYPE_MASK ) == IORESOURCE_DMA_8BIT )
+--- 2.6/drivers/pnp/resource.c.stg2	2004-09-28 10:09:40.184641384 +0800
++++ 2.6/drivers/pnp/resource.c	2004-09-28 10:13:27.508082968 +0800
+@@ -101,8 +101,8 @@ int pnp_register_irq_resource(struct pnp
+ 	{
+ 		int i;
+ 
+-		for (i=0; i<16; i++)
+-			if (data->map & (1<<i))
++		for (i = 0; i < 16; i++)
++			if (test_bit(i, data->map))
+ 				pcibios_penalize_isa_irq(i);
+ 	}
+ #endif
+--- 2.6/include/linux/pnp.h.stg2	2004-09-28 10:09:58.139911768 +0800
++++ 2.6/include/linux/pnp.h	2004-09-28 10:13:47.459049960 +0800
+@@ -82,8 +82,9 @@ struct pnp_port {
+ 	struct pnp_port *next;		/* next port */
+ };
+ 
++#define PNP_IRQ_NR 256
+ struct pnp_irq {
+-	unsigned short map;		/* bitmaks for IRQ lines */
++	DECLARE_BITMAP(map, PNP_IRQ_NR); /* bitmaks for IRQ lines */
+ 	unsigned char flags;		/* IRQ flags */
+ 	unsigned char pad;		/* pad */
+ 	struct pnp_irq *next;		/* next IRQ */
 
---=-RYX4IQ3rVIDiea3EYFU3--
+--=-5QUXfd0u/gAA8pEXVSoB--
 
 
 
