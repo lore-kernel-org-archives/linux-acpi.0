@@ -1,166 +1,103 @@
-From: Sergio Visinoni <piffio-9zdaV+82baBg9hUCZPvPmw@public.gmane.org>
-Subject: [PATCH] Re: ACPI patches updated (20030109)
-Date: Wed, 15 Jan 2003 11:03:02 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030115110302.A18021@piffio.homelinux.org>
-References: <F760B14C9561B941B89469F59BA3A84725A119@orsmsx401.jf.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="KsGdsel6WgEHnImy"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A119-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>; from andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on ven, gen 10, 2003 at 10:38:03 -0800
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "Stop Snoring!" <snorerx-LIHR6/73J/BBDgjK7y7TUQ@public.gmane.org>
+Subject: Stop Snoring Today!
+Date: 15 Jan 2003 11:51:37 -0000
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030115115137.24674.qmail@bmarket.net>
+Content-Type: text/html
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---KsGdsel6WgEHnImy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+<div align="center">
+  <center>
+      <table border="1" cellpadding="5" cellspacing="0" width="500" 
+bgcolor="#FFFFFF" bordercolor="#000080">
+        <tr>
+          <td width="100%">
+<font face="Arial, Verdana" color="#000080" size="1">
+<table border="1" width="100%" bordercolor="#000080" bgcolor="#A1ADE2" 
+cellspacing="0" cellpadding="2">
+  <tr>
+    <td width="100%">
+<font face="Arial, Verdana" color="#000080" size="1">
+<img border="0" src="http://www.mrsnore.com/snorerx.gif" width="288" 
+height="60"></font>
+    </td>
+  </tr>
+</table>
+<TABLE border=0 cellPadding=0 cellSpacing=0 width=100% 
+bordercolor="#000080">
+  <TR>
+    <TD>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</TD>
+    <TD width=334><BR><FONT face=verdana,arial size=2>This formulation of  
+      highly effective natural herbs and enzymes work gently together to 
+relieve  
+      snoring. You will breathe, sleep and feel better. Snoring can be 
+dangerous  
+      to your health, and annoying to our loved ones. Safe and effective 
+with no  
+      side effects!<br> For information please </FONT></font><font 
+face="verdana,arial" size="2" color="#000080"><a 
+href="http://www.mrsnore.com">Click
+    Here</a></font>
+<font face="Arial, Verdana" color="#000080" size="1">
+<FONT face=verdana,arial size=2>
+      <BR><BR>
+      <CENTER><FONT color=#990000 size=4>Works the First 
+Night</FONT></FONT><font color="#990000" size="4" face="verdana,arial">, 
+      Every Night</font><FONT face=verdana,arial size=2><FONT 
+color=#990000 size=4>! 
+      </FONT></CENTER><BR>Get your Snore RX today and get a good night's 
+sleep  
+      tomorrow. Snore RX will not only help you sleep better and prevent  
+      annoying snoring, it will save you unnecessary embarrassment at 
+camping  
+      sites, in thin walled cruise cabins or will stop you from bringing 
+down  
+      the roof at you relatives' house on a family visit. <BR><BR> 
+      <CENTER><FONT color=#990000 size=3><B>100% Money back guarantee! 
+      </B></FONT></CENTER></FONT>
+      <P align=center>&nbsp;<a href="http://www.mrsnore.com"><img 
+border="0" src="http://www.mrsnore.com/mrsnor2.jpg" width="200" 
+height="78"></a></P>
+      <P align=center></P></font></TD>
+    <TD vAlign=top width=131></TD></TR></TABLE>
+          </td>
+        </tr>
+        <tr>
+          <td width="100%">
+<p><font face="Arial, Verdana" color="#000080" size="1">You have received 
+this
+email because you have opted-in to receive email from Bmarket.net or its
+partners.<br>If
+you would no longer like to receive special offers from Bmarket.net or you 
+feel
+that you received this email in error,&nbsp; please
+click <a 
+href="http://www.bmarket.net/cgi-bin/index.cgi?do=remove&amp;email=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org">Unsubscribe</a>. 
+<img src="http://www.mrsnore.com/cgi-bin/stats.pl?erefr=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" width=1 
+height=1>
+</font></p>
+          </td>
+        </tr>
+      </table>
+  </center>
+  </div>
 
-* Grover, Andrew (andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org) wrote:
-> Hi all,
-> 
-> ACPI patches based upon the 20030109 label have been released.
-> http://sourceforge.net/projects/acpi . The non-Linux releases will be
-> available at
 
-Hi,
-the attached patch fixes compilation for acpiphp with the latest
-acpi patches.
-Generated on a 2.4.20 tree (but it shoud apply correctly for 2.4.21-pre3 too).
 
-Greetings,
-Sergio Visinoni
 
---KsGdsel6WgEHnImy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="linux-2.4.20-acpiphp-fix.patch"
-
---- linux-2.4.20/drivers/hotplug/acpiphp_glue.c.ark	2003-01-14 19:32:33.000000000 +0100
-+++ linux-2.4.20/drivers/hotplug/acpiphp_glue.c	2003-01-14 19:40:17.000000000 +0100
-@@ -234,11 +234,11 @@
-  * TBD: _TRA, etc.
-  */
- static void
--decode_acpi_resource (acpi_resource *resource, struct acpiphp_bridge *bridge)
-+decode_acpi_resource (struct acpi_resource *resource, struct acpiphp_bridge *bridge)
- {
--	acpi_resource_address16 *address16_data;
--	acpi_resource_address32 *address32_data;
--	acpi_resource_address64 *address64_data;
-+	struct acpi_resource_address16 *address16_data;
-+	struct acpi_resource_address32 *address32_data;
-+	struct acpi_resource_address64 *address64_data;
- 	struct pci_resource *res;
- 
- 	u32 resource_type, producer_consumer, address_length;
-@@ -256,7 +256,7 @@
- 
- 		switch (resource->id) {
- 		case ACPI_RSTYPE_ADDRESS16:
--			address16_data = (acpi_resource_address16 *)&resource->data;
-+			address16_data = (struct acpi_resource_address16 *)&resource->data;
- 			resource_type = address16_data->resource_type;
- 			producer_consumer = address16_data->producer_consumer;
- 			min_address_range = address16_data->min_address_range;
-@@ -268,7 +268,7 @@
- 			break;
- 
- 		case ACPI_RSTYPE_ADDRESS32:
--			address32_data = (acpi_resource_address32 *)&resource->data;
-+			address32_data = (struct acpi_resource_address32 *)&resource->data;
- 			resource_type = address32_data->resource_type;
- 			producer_consumer = address32_data->producer_consumer;
- 			min_address_range = address32_data->min_address_range;
-@@ -280,7 +280,7 @@
- 			break;
- 
- 		case ACPI_RSTYPE_ADDRESS64:
--			address64_data = (acpi_resource_address64 *)&resource->data;
-+			address64_data = (struct acpi_resource_address64 *)&resource->data;
- 			resource_type = address64_data->resource_type;
- 			producer_consumer = address64_data->producer_consumer;
- 			min_address_range = address64_data->min_address_range;
-@@ -300,7 +300,7 @@
- 			break;
- 		}
- 
--		resource = (acpi_resource *)((char*)resource + resource->length);
-+		resource = (struct acpi_resource *)((char*)resource + resource->length);
- 
- 		if (found && producer_consumer == ACPI_PRODUCER && address_length > 0) {
- 			switch (resource_type) {
-@@ -397,9 +397,9 @@
- #if ACPI_CA_VERSION < 0x20020201
- 	acpi_buffer buffer;
- #else
--	acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
- #endif
--	acpi_object *package;
-+	union acpi_object *package;
- 	int i;
- 
- 	/* default numbers */
-@@ -429,7 +429,7 @@
- 		return;
- 	}
- 
--	package = (acpi_object *) buffer.pointer;
-+	package = (union acpi_object *) buffer.pointer;
- 
- 	if (!package || package->type != ACPI_TYPE_PACKAGE ||
- 	    package->package.count != 4 || !package->package.elements) {
-@@ -503,7 +503,7 @@
- #if ACPI_CA_VERSION < 0x20020201
- 	acpi_buffer buffer;
- #else
--	acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
- #endif
- 	struct acpiphp_bridge *bridge;
- 
-@@ -818,9 +818,9 @@
- find_host_bridge (acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	acpi_status status;
--	acpi_device_info info;
-+	struct acpi_device_info info;
- 	char objname[5];
--	acpi_buffer buffer = { sizeof(objname), objname };
-+	struct acpi_buffer buffer = { sizeof(objname), objname };
- 
- 	status = acpi_get_object_info(handle, &info);
- 	if (ACPI_FAILURE(status)) {
-@@ -881,8 +881,8 @@
- 	acpi_status status;
- 	struct acpiphp_func *func;
- 	struct list_head *l;
--	acpi_object_list arg_list;
--	acpi_object arg;
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
- 
- 	int retval = 0;
- 
-@@ -1117,7 +1117,7 @@
- {
- 	struct acpiphp_bridge *bridge;
- 	char objname[64];
--	acpi_buffer buffer = { sizeof(objname), objname };
-+	struct acpi_buffer buffer = { sizeof(objname), objname };
- 
- 	bridge = (struct acpiphp_bridge *)context;
- 
-@@ -1167,7 +1167,7 @@
- {
- 	struct acpiphp_func *func;
- 	char objname[64];
--	acpi_buffer buffer = { sizeof(objname), objname };
-+	struct acpi_buffer buffer = { sizeof(objname), objname };
- 
- 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
- 
-
---KsGdsel6WgEHnImy--
+-------------------------------------------------------
+This SF.NET email is sponsored by: Take your first step towards giving 
+your online business a competitive advantage. Test-drive a Thawte SSL 
+certificate - our easy online guide will show you how. Click here to get 
+started: http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0027en
