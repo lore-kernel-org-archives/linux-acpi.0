@@ -1,15 +1,14 @@
-From: Sebastian <admin-HmhXUwHVxSOoYr4blSSd5g@public.gmane.org>
-Subject: Re: [privat] Re: 2.6.9-rc4 ACPI problem after starting X
-Date: Fri, 15 Oct 2004 17:36:33 +0200
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI S3 resume only reboots
+Date: Fri, 15 Oct 2004 06:52:57 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041015173633.1c9d3239.admin@wodkahexe.de>
-References: <20041013172118.0ec42975.admin@wodkahexe.de>
-	<20041014223607.GA9549@message-id.gmane0305.slipkontur.de>
+Message-ID: <88056F38E9E48644A0F562A38C64FB60031D9885@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041014223607.GA9549-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,53 +17,82 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 15 Oct 2004 00:36:07 +0200
-Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org> wrote:
+=20
 
-> On Wed, Oct 13, 2004 at 05:21:18PM +0200, Sebastian wrote:
-> > Hi,
-> > 
-> > After starting X (v. 4.4.0) I'm getting still some strange ACPI
-> > errors in dmesg.
-> > 
-> >  dswload-0292: *** Error: Looking up [PBST] in namespace,
-> >  AE_ALREADY_EXISTS psparse-1133: *** Error: Method execution failed
-> >  [\_SB_.PCI0.LPC0.BAT1._BST] (Node c1474f28), AE_ALREADY_EXISTS
-> > 
-> > This does not happen, when working with the console. It starts some
-> > seconds, after i started X.
-> 
-> i suspect this is some battery applet accessing your battery.
-> What windowmanager / desktop environment are you using?
-> -- 
-> Stefan Seyfried
-> 
+>-----Original Message-----
+>From: Alberto Piai [mailto:albeclemit-whZMOeQn8C0@public.gmane.org]=20
+>Sent: Friday, October 15, 2004 12:49 AM
+>To: Pallipadi, Venkatesh
+>Cc: Li, Shaohua; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] ACPI S3 resume only reboots
+>
+>On Thu, 14 Oct 2004 10:29:28 +0200
+>Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org> wrote:
+>
+>> On Wed, 13 Oct 2004 06:39:26 -0700
+>> "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>=20
+>> > >> I suspected 'pushl $0' cause reboot a little. I can't find=20
+>> > >any fault in
+>> > >> the line. Is it the precise line to cause reboot?
+>> > >
+>> > >Yes, i tryed placing an infinite loop immediately before and=20
+>> > >after that line, and that line causes reboot.
+>> > >
+>> >=20
+>> > From the comment in those lines, push and pop are not=20
+>required for all
+>> > platforms. Can you just comment out that push and pop and=20
+>see how far
+>> > you can go.
+>
+>I know it's not the most the effective way to proceed, but at=20
+>least i tryed ;)
+>I've been moving around the pushl $0 (that causes reboot) to=20
+>check if the code was still executing. That's what i found.
+>
+>Code from arch/i386/kernel/acpi/wakeup.S:
+>[...]
+>	mov	$(wakeup_stack - wakeup_code), %sp	=09
+># Private stack is needed for ASUS board
+>	movw	$0x0e00 + 'S', %fs:(0x12)
+>
+>	#pushl	$0	###THIS LINE CAUSES REBOOT!	=09
+># Kill any dangerous flags
+>	#popfl
+>
+>	movl	real_magic - wakeup_code, %eax
+>	cmpl	$0x12345678, %eax
+>	jne	bogus_real_magic
+>
+>	testl	$1, video_flags - wakeup_code
+>		### If I put pushl $0 here, it causes reboot.=20
+>code is still alive.
+> 	jz	1f
+>		## pushl $0 here doesn't make reboot (hang on wakeup)
+>=09
+>	lcall   $0xc000,$3
+>=09
+>	movw	%cs, %ax
+>	movw	%ax, %ds				=09
+># Bios might have played with that
+>	movw	%ax, %ss
+>[...]
+>
+>What happens with that jz 1f? is it supposed to enter the jmp?
 
-Hi,
 
-thanks for that hint. it seems gkrellm is causing these problem.
-after preventing gkrellm from starting via .xinitrc these messages don't
-apear anymore.
-
-i did a little research, since gkrellm is only reading
-/proc/acpi/battery/BAT1/state and /proc/acpi/ac_adapter/ACAD/state to
-display battery status.
-
-i can reproduce these error messages with the following command:
-
-while [ 1 ]; do cat /proc/acpi/battery/BAT1/state && sleep 1; done
-
-it's 100% reproduceable on my laptop.
-
-should i fill a bug report ?
-
-kernelversion is 2.6.9-rc4. but this problem is present since 2.6.7 (or earlier)
-
-Sebastian
+Jz is jump on zero. The instructions following jz here never gets
+executed unless you pass "acpi_sleep=3Ds3_bios". You have to follow the
+code to where 1: is.=20
+>
+>Thanks,
+>Alberto
+>
 
 
 -------------------------------------------------------
