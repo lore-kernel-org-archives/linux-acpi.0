@@ -1,80 +1,158 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Sneaking patches in (was Re: System hang when trying to enter sleep/standby state)
-Date: Tue, 18 Feb 2003 09:15:56 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030218081556.GB137@elf.ucw.cz>
-References: <20030217131922.GC4704@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0302171016320.1034-100000@localhost.localdomain>
+From: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
+Date: Fri, 21 Feb 2003 15:09:15 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <200302211509.15641.bjorn_helgaas@hp.com>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BAFC@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0302171016320.1034-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BAFC-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> 2) I'm not convinced that this buys a whole lot -- it just hides the code
+> behind a macro (something that's not generally liked in the Linux world.)
+> Would this procedure be called from more than one place?
 
-> > Even with the changelogs, I can't decide which one of these it
-> > is. Probably 2.19, but as it also moves files, commit list is useless
-> > because it represent moves as delete all lines, add all lines, and any
-> > change is hidden.
-> 
-> As a personal choice, I _never_ make changes when I move files. I've been 
-> so pissed at Andy for unintentionally obscuring changes this way that I 
-> swore I would never do it myself. :)
+Or, since you mention a macro, maybe your question is not about
+the usefulness of acpi_resource_to_address64() itself, but about
+how I implemented it, namely, with the copy_field and copy_address
+macros:
 
-Okay...
++#define copy_field(out, in, field)     out->field = in->field
++#define copy_address(out, in)                                  \
++       copy_field(out, in, resource_type);                     \
++       copy_field(out, in, producer_consumer);                 \
+...
 
-> > -
-> > -	/* Install the soft-off (S5) handler. */
-> > -	if (sleep_states[ACPI_STATE_S5]) {
-> > -		pm_power_off = acpi_power_off;
-> > -
-> > -		/* workaround: some systems don't claim S4 support,
-> > but they
-> > -                   do support S5 (power-down). That is all we need,
-> > so
-> > -		   indicate support. */
-> > -		sleep_states[ACPI_STATE_S4] = 1;
-> > -	}
-> >  
-> >  	return_VALUE(0);
-> > 
-> > Are you sure about this one?
-> 
-> Definitely. The setting of pm_power_off was moved to poweroff.c. 
-> 
-> The other part is bogus. S5 is not a sleep state, and shouldn't be treated 
-> as such. You can still do a swsusp-style suspend and enter S5, in which 
-> case I wouldn't recommend going through ACPI at all. You simply don't need 
-> it. You need to save state, etc, then just call pm_power_off(). 
+If you'd rather see it implemented without the macros, I have no
+objection to that.  I just used the macros to reduce the chance of
+making typographical errors along the way.  Attached is the
+equivalent patch (untested) without the macros.  I also added a
+note to the struct acpi_resource_addressXX definitions about the
+need to make corresponding changes to acpi_resource_to_address64()
+if the structures change.
 
-Yes but I need S4 to be enabled, i.e. sleep_states[ACPI_STATE_S4] =
-1;. OTOH it might be usefull to enable S4 even if S5 is not there, it
-is usefull for old machines, too, user just has to turn it off
-manually.
-
-> The only thing you lack is a way to trigger swsusp w/o ACPI, right? 
-
-Actually you can trigger swsusp using syscall, but few people do that.
-
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Bjorn
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: SlickEdit Inc. Develop an edge.
-The most comprehensive and flexible code editor you can use.
-Code faster. C/C++, C#, Java, HTML, XML, many more. FREE 30-Day Trial.
-www.slickedit.com/sourceforge
+diff -u -ur linux-2.5.59/drivers/acpi/resources/rsxface.c acpi-2/drivers/acpi/resources/rsxface.c
+--- linux-2.5.59/drivers/acpi/resources/rsxface.c	2003-01-16 19:22:23.000000000 -0700
++++ acpi-2/drivers/acpi/resources/rsxface.c	2003-02-21 14:45:00.000000000 -0700
+@@ -233,3 +233,83 @@
+ 	status = acpi_rs_set_srs_method_data (device_handle, in_buffer);
+ 	return_ACPI_STATUS (status);
+ }
++
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_resource_to_address64
++ *
++ * PARAMETERS:  resource                - Pointer to a resource
++ *              out                     - Pointer to the users's return 
++ *                                        buffer (a struct
++ *                                        acpi_resource_address64)
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: If the resource is an address16, address32, or address64,
++ *              copy it to the address64 return buffer.  This saves the
++ *              caller from having to duplicate code for different-sized
++ *              addresses.
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_resource_to_address64 (
++	struct acpi_resource            *resource,
++	struct acpi_resource_address64  *out)
++{
++	struct acpi_resource_address16  *address16;
++	struct acpi_resource_address32  *address32;
++	struct acpi_resource_address64  *address64;
++
++	switch (resource->id) {
++		case ACPI_RSTYPE_ADDRESS16:
++			address16 = (struct acpi_resource_address16 *) &resource->data;
++			out->resource_type              = address16->resource_type;
++			out->producer_consumer          = address16->producer_consumer;
++			out->decode                     = address16->decode;
++			out->min_address_fixed          = address16->min_address_fixed;
++			out->max_address_fixed          = address16->max_address_fixed;
++			out->attribute                  = address16->attribute;
++			out->granularity                = address16->granularity;
++			out->min_address_range          = address16->min_address_range;
++			out->max_address_range          = address16->max_address_range;
++			out->address_translation_offset = address16->address_translation_offset;
++			out->address_length             = address16->address_length;
++			out->resource_source            = address16->resource_source;
++			break;
++		case ACPI_RSTYPE_ADDRESS32:
++			address32 = (struct acpi_resource_address32 *) &resource->data;
++			out->resource_type              = address32->resource_type;
++			out->producer_consumer          = address32->producer_consumer;
++			out->decode                     = address32->decode;
++			out->min_address_fixed          = address32->min_address_fixed;
++			out->max_address_fixed          = address32->max_address_fixed;
++			out->attribute                  = address32->attribute;
++			out->granularity                = address32->granularity;
++			out->min_address_range          = address32->min_address_range;
++			out->max_address_range          = address32->max_address_range;
++			out->address_translation_offset = address32->address_translation_offset;
++			out->address_length             = address32->address_length;
++			out->resource_source            = address32->resource_source;
++			break;
++		case ACPI_RSTYPE_ADDRESS64:
++			address64 = (struct acpi_resource_address64 *) &resource->data;
++			out->resource_type              = address64->resource_type;
++			out->producer_consumer          = address64->producer_consumer;
++			out->decode                     = address64->decode;
++			out->min_address_fixed          = address64->min_address_fixed;
++			out->max_address_fixed          = address64->max_address_fixed;
++			out->attribute                  = address64->attribute;
++			out->granularity                = address64->granularity;
++			out->min_address_range          = address64->min_address_range;
++			out->max_address_range          = address64->max_address_range;
++			out->address_translation_offset = address64->address_translation_offset;
++			out->address_length             = address64->address_length;
++			out->resource_source            = address64->resource_source;
++			break;
++		default:
++			return (AE_BAD_PARAMETER);
++	}
++	return (AE_OK);
++}
+diff -u -ur linux-2.5.59/include/acpi/acpixf.h acpi-2/include/acpi/acpixf.h
+--- linux-2.5.59/include/acpi/acpixf.h	2003-02-21 14:39:23.000000000 -0700
++++ acpi-2/include/acpi/acpixf.h	2003-02-21 14:40:16.000000000 -0700
+@@ -340,6 +340,11 @@
+ 	acpi_handle                     bus_device_handle,
+ 	struct acpi_buffer              *ret_buffer);
+ 
++acpi_status
++acpi_resource_to_address64 (
++	struct acpi_resource            *resource,
++	struct acpi_resource_address64  *out);
++
+ 
+ /*
+  * Hardware (ACPI device) interfaces
+diff -u -ur linux-2.5.59/include/acpi/actypes.h acpi-2/include/acpi/actypes.h
+--- linux-2.5.59/include/acpi/actypes.h	2003-02-21 14:39:23.000000000 -0700
++++ acpi-2/include/acpi/actypes.h	2003-02-21 14:48:35.000000000 -0700
+@@ -1049,6 +1049,11 @@
+ 	char                                *string_ptr;
+ };
+ 
++/*
++ * Changes to the following address structures should
++ * also be reflected in acpi_resource_to_address64().
++ */
++
+ struct acpi_resource_address16
+ {
+ 	u32                                 resource_type;
