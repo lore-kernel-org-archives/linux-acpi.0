@@ -1,15 +1,13 @@
-From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: Re: /proc/acpi/sleep behaviour?
-Date: Tue, 4 Mar 2003 18:40:35 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: mpparse.c APIC/ACPI support
+Date: Tue, 4 Mar 2003 10:21:28 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030304184035.6ace16db.nils@kernelconcepts.de>
-References: <20030304175446.3930bcb7.nils@kernelconcepts.de>
-	<20030304172226.GD7861@poup.poupinou.org>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A1C9@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030304172226.GD7861-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,42 +16,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: alan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 4 Mar 2003 18:22:26 +0100
-Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-> On Tue, Mar 04, 2003 at 05:54:46PM +0100, Nils Faerber wrote:
-> > Just a short question:
-> > 	How is sleep supposed to work?
-> > When I do a 
-> > 	echo -n 4 > /proc/acpi/sleep
-> > on recent ACPI kernels (2.4.21-pre4 with ACPI 20030228 + swsusp beta
-> > 19) everything works quite fine but the "echo" never returns. After
-> > resume I have to kill "echo".
-> Last time I checked, the swsusp support is not well integrated.
-> I can not tell though for recent swsusp patches.
+> From: Cagle, John (ISS-Houston) [mailto:john.cagle-VXdhtT5mjnY@public.gmane.org] 
+> > In theory, ACPI comes through later and changes the irqs < 15 
+> > with possible PCI devices by calling io_apic_set_pci_routing.
+> >
+> > So *in theory* it should work ok. Obviously something is not right.
+> 
+> How does ACPI, when it comes through later, know which irq's < 15 are
+> for PCI devices?
 
-I can't judge this either but the same in my eyes misbehaviour is IMHO
-also true for 2.5.6x kernels without directly involved swsusp so I would
-suspect this to be more of an ACPI problem...
+The device's driver calls pci_enable_device, which calls:
+pci_enable_device_bars, which calls:
+pcibios_enable_device, which calls:
+pcibios_enable_irq, which is a function pointer we set to
+acpi_pci_irq_enable, which does an eisa_set_level_irq(), thus setting
+the interrupt (if less than 16) to level-triggered.
 
-> please use /proc/sys/kernel/suspend instead.
-Err... /proc/sys/kernel/swsusp you ment, right?
+So why isn't it working? Hmm.
 
-> Forgot to say also that you should bug report to swsusp mailing list.
-That's true, sorry!
-
-> Ducrot Bruno
-CU
-  nils faerber
-
--- 
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          D1 : +49-170-2729106
---
+Regards -- Andy
 
 
 -------------------------------------------------------
