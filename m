@@ -1,31 +1,75 @@
-From: Karol Kozimor <kkozimor@aurox.org>
-Subject: Re: [ACPI] Re: 2.6.8.1-mm1 hangs on boot with ACPI
-Date: Thu, 19 Aug 2004 16:12:47 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200408191612.48033.kkozimor@aurox.org>
-References: <B44D37711ED29844BEA67908EAF36F039A1A4E@pdsmsx401.ccr.corp.intel.com>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: Radeon PM Support
+Date: Thu, 19 Aug 2004 07:03:38 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <88056F38E9E48644A0F562A38C64FB6002A92B31@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266209AbUHSOMX@vger.kernel.org>
-In-Reply-To: <B44D37711ED29844BEA67908EAF36F039A1A4E@pdsmsx401.ccr.corp.intel.com>
-Content-Disposition: inline
-To: linux-kernel@vger.kernel.org
-Cc: "Li, Shaohua" <shaohua.li@intel.com>, eric.valette@free.fr, "Brown, Len" <len.brown@intel.com>, Pontus Fuchs <pontus.fuchs@tactel.se>, Greg KH <greg@kroah.com>, acpi-devel@lists.sourceforge.net
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 19 of August 2004 15:54, Li, Shaohua wrote:
-> Why this breaks ACPI? ACPI just try to reserve the IO port declared in
-> DSDT (ACPI itself doesn't use the io ports), but if the attempt failed,
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Pavel Machek
+>Sent: Thursday, August 19, 2004 4:17 AM
+>To: Stefan Seyfried
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] Re: Radeon PM Support
+>
+>Hi!
+>
+>> > > Yes. If this patch works for tohers, then we can move it into
+>> > > pci_default_resume during the cleanup.
+>> >=20
+>> >=20
+>> > I'd rather not do that. Some cards are already posted after
+>> > S3, some even preserve state over S3. It is okay to do VGAPOST
+>> > for radeon and any card that needs it, but I'd rather not=20
+>do it generically.
+>>=20
+>> what about "acpi_sleep=3Dvgapost"?
+>
+>Could work, too.
+>
+>BTW I tried vgapost here, and it did not work on 2 radeon machines I
+>have here. Could you possibly do some testing on bigger number of
+>machines to find one where it actually works?
+>								Pavel
+>--=20
 
-_TMP indirectly tries (and fails) to access HSTS field which is in the 
-reserved region. Furthermore, the loop in the HBSY method that gets 
-referenced keeps kacpid very busy during (possibly) thermal interrupt 
-handling, thus increasing the system load and temperature, and in turn, 
-the frequency of thermal notifies.
-Best regards,
+I guess we need to do something like this "acpi_sleep=3Dvgapost",=20
+rather than doing a generic vgapost for all display devices.=20
+As the generic solution seems to have broken few systems=20
+which were working before.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+I have two systems with almost identical video setup, with=20
+Radeon 9000M AGP adapter. vgapost works on one system and=20
+fails on another. The failing system never returns=20
+from real mode vgapost call. I also found that=20
+the VBIOS is not same on these two systems. Probably=20
+different versions of the firmware. I am digging further=20
+to find out why it works on one Radeon 9000M and not=20
+on another one.=20
+
+-Venki
+
+
+-------------------------------------------------------
+SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
+100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
+Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
+http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
