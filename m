@@ -1,13 +1,11 @@
-From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
-Subject: Re: clear/enable power button on resume
-Date: Sun, 07 Mar 2004 21:02:46 +0100
+From: Mike Mestnik <cheako911-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Maby it's fixed now, I turned off one of the battery monitors.
+Date: Sun, 7 Mar 2004 13:51:08 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078689765.541.20.camel@sunshine>
-References: <1078685555.541.9.camel@sunshine>  <404B7A1B.80006@pca.it>
+Message-ID: <20040307215108.70121.qmail@web11905.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-x5xWBHfOpcuItE0xtDhZ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <404B7A1B.80006-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,52 +14,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Opps forgot to say I reported it in the [2]DBTS and I'm running
+2.6.3-1-686 from Debian.
 
---=-x5xWBHfOpcuItE0xtDhZ
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+[2] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=236598
 
-On Sun, 2004-03-07 at 20:38, Luca Capello wrote:
-> this is a known problem at least for resuming from S1, please refers to t=
-he
-> thread called 'ASUS M3N and sleep states' started 20031227 by me or the d=
-irect
-> link to the relevant post here:
-> http://sourceforge.net/mailarchive/forum.php?thread_id=3D3676335&forum_id=
-=3D6102
+> > -----Original Message-----  FROM ACPI LIST.
+> > From: Yu, Luming [mailto:luming.yu-lUQJ9CVx3tM@public.gmane.org]
+> > Sent: Tuesday, February 17, 2004 3:46 PM
+> > To: Ow Mun Heng; Acpi-List (E-mail)
+> > Subject: RE: [ACPI] 2.6.3-rc3 + D600 + battery status missing
+> > sometimes..
 
-Since S1 is broken for me, I can not verify that.
+> Here is the dmsg output I get.
+>     ACPI-0279: *** Error: Looking up [BST0] in namespace,
+AE_ALREADY_EXISTS
+>     ACPI-1120: *** Error: Method execution failed [\_SB_.BAT0._BST]
+(Node
+cffc8cc0), AE_ALREADY_EXISTS
+> This is outputed every time battery status is checked, I have 2 programs
+> doing this.  Lookes like there is a locking problem.
 
-> BTW, my simple workaround for S1 is using this trick on the ACPI power bu=
-tton
-> script:
+I THINK it has stoped now that I turned off one of my battery monitors. 
+It also seams to have something todo with closing the lid/screen, but this
+could be unrelated.
 
-Thanks. But I don't use the power event anyway. As long as acpi works I
-am happy with suspend / resume. rm -rf /etc/acpi/events/powerbtn did it
-for me.
+I would look for problems with preemptation of the [1]status get ioctl it
+self.  This is a single CPU system Dell Inspiron 3800.
 
-Isn't the acpi spec telling whether the pressing of the power button
-after suspending has to be reported to the OS?
+[1] What ever IO that programs do to get the status of the battery, the
+kernel side.
 
-  Timo
 
---=-x5xWBHfOpcuItE0xtDhZ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBAS3/l4D8IS7MFQGYRAtW7AKCAoAdGz+BdDXB3KozdfNpZcRhA4gCfW0Rg
-nsCEWK1OpF9h9k22O4VltHw=
-=B7vk
------END PGP SIGNATURE-----
-
---=-x5xWBHfOpcuItE0xtDhZ--
-
+__________________________________
+Do you Yahoo!?
+Yahoo! Search - Find what you’re looking for faster
+http://search.yahoo.com
 
 
 -------------------------------------------------------
