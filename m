@@ -1,14 +1,13 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: Re: ACPI bug tracking
-Date: Thu, 8 May 2003 07:25:21 -0700
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: FW: kernel 2.4 and bugzilla
+Date: Thu, 8 May 2003 09:26:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030508072521.65fc1add.rddunlap@osdl.org>
-References: <A5974D8E5F98D511BB910002A50A6647054FC3A1@hdsmsx103.hd.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96E61@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <A5974D8E5F98D511BB910002A50A6647054FC3A1-MgY+aF+eRfZviC08c4yzC1DQ4js95KgL@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,40 +16,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 8 May 2003 07:15:07 -0700 "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+This is the email I received after emailing bugme-admin-3NddpPZAyC3hvxM+mQhndA@public.gmane.org
 
-| Filing ACPI issues at http://bugzilla.kernel.org/ is preferred for either
-| the 2.4 or 2.5 tree.  Splitting the issue lists between what are very
-| similar versions of the ACPI code would just cause duplication and
-| confusion.  Be sure to select component=ACPI, and clearly mark the
-| kernel+patch version.
+Regards -- Andy
 
-It may be preferred, but that bugzilla is specifically set up for 2.5
-bug tracking.  Unless and until that is changed, 2.4 bugs should be
-filed at sf.net/projects/acpi or with Linux distros.
+-----Original Message-----
+From: Martin J. Bligh [mailto:mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org] 
+Sent: Thursday, March 20, 2003 7:52 AM
+To: Grover, Andrew; bugme-admin-3NddpPZAyC0@public.gmane.org
+Subject: Re: kernel 2.4 and bugzilla
 
-| Sightings with un-adulterated distributor's pre-releases should still be
-| filed directly where the distributor says, e.g. http://bugzilla.redhat.com/
-| http://bugzilla.suse.de/ etc.  They don't generally seem to have a special
-| component for ACPI, but hopefully the description will direct the issue the
-| right way.
-| 
-| Please do not use the sourceforge bug tracker
-| (http://sourceforge.net/tracker/?group_id=36832&atid=425171) those will be
-| ignored.
 
-Too bad.  Yes, I know that it's a pain to have to look in multiple places.
+> I would like to be able to use one bugzilla to keep track of all bugs
+> against the kernel for code I am maintaining (ACPI). I'd like to use
+> this bugzilla (it's nice and non-distribution-specific) but I would
+like
+> to also have bugs filed against the 2.4 version of this driver.
+> 
+> Would it be a big deal if I kept 2.4 bugs here, too?
 
-| > this way at least it can't get lost in some mailing list archive. 
-| 
-| Yep, that's the idea.
+Go ahead ... we're looking at a more general opening up of Bugzilla.
 
---
-~Randy
+M.
 
 
 -------------------------------------------------------
