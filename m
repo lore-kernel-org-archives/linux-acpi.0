@@ -1,15 +1,14 @@
-From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: MADT
-Date: Wed, 7 May 2003 09:40:15 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: PCI Root Bridge
+Date: Wed, 7 May 2003 17:11:45 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030507074014.GB2042@enigma.daemon.sh>
-References: <3EB7F624.90000@free.fr>
+Message-ID: <3ACA40606221794F80A5670F0AF15F842722E4@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3EB7F624.90000-GANU6spQydw@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,55 +17,90 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: roychris <roychris-GANU6spQydw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Szabolcs Barsony <Szabolcs.Barsony-pFqtzsCLIqPQT0dZR+AlfA@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Szabolcs,
+According to ACPI spec 2.0a, Control Method Battery has Plug and Play ID =
+ PNP0C0A.
+I searched your ASL file for PNP0C0A, and found device C11D and C11E has =
+such _HID.
+So, I searched your Dmesg for C11D and C11E, and I found below message:
 
---4SFOXa2GPu3tIq4H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ACPI: Battery Slot [C11E] (battery absent).
 
-hi chris...
+Maybe Battery Slot C11E can work on your platform. Would you please have =
+it a try.
+Regarding battery slot C11D, there are no clue to do further =
+investigation to me.
+Would you please try to find out whether device C11E has successfully =
+loaded into ACPI namespace?
+I have noticed that there are two AE_NOT_EXIST and two AE_ALREADY_EXISTS =
+messages, but it's for devices C03B.
+I can't guess what happened during period between reporting AE_NOT_EXIST =
+and initializing device C11D.
 
-Received at 2003-05-07 / 08:55 by roychris:
-> What is MADT ? The ACPI 2.5.69 kernel send me this message at boot time=
-=20
-> : no MADT present
+Thanks,
+Luming
 
-=66rom the specification:
+-----Original Message-----
+From: Szabolcs Barsony [mailto:Szabolcs.Barsony-pFqtzsCLIqPQT0dZR+AlfA@public.gmane.org]
+Sent: 2003?4?14? 20:34
+To: Yu, Luming
+Subject: RE: [ACPI] PCI Root Bridge
 
-Multiple APIC Description Table (MADT)
-The Multiple APIC Description Table (MADT) is used on systems
-supporting the APIC and SAPIC to
-describe the APIC implementation. Following the MADT is a list
-of APIC/SAPIC structures that declare the APIC/SAPIC features of the machin=
-e.
 
-see also section 5.2.10.4, download the specs from:
-http://www.acpi.info/DOWNLOADS/ACPIspec-2-0b.pdf
+Hi,
 
-hth,
- sebastian
---=20
-::: sebastian henschel
-::: kodeaffe
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
+I did only basic corrections.=20
+1. After disassembling the BIOS DSDT table there were many symbols =
+starting
+with asterisk (*). I removed them from the name of the symbols.
+2. During compilation I got many undefined symbols. I defined them as
+extern.
+3. I got few messages that not all methods return a value. I added =
+Return
+(0x00) to those methods.
 
---4SFOXa2GPu3tIq4H
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+That's all. I attach the original DSDT table and my fixed one in a zip =
+file.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Thanks and regards,
+Szabolcs
 
-iD8DBQE+uLhereHfL3pi+bQRAt5TAJ9jXRdQjmpytyp01f5fWvw6eC7PQQCfYBIG
-DVlQNUxsYswcapf1Xy/6Dvo=
-=8Ynu
------END PGP SIGNATURE-----
 
---4SFOXa2GPu3tIq4H--
+-----Original Message-----
+From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+Sent: Monday, 2003 April 14 12:14
+To: Szabolcs Barsony
+Cc: Grover, Andrew; Brown, Len
+Subject: RE: [ACPI] PCI Root Bridge
+
+
+I looked into your dmesg.  I noticed that:
+
+First error is that pci_config for C03B has already installed.=20
+
+Second error is that method execution was failed =
+[\_SB_C03B.C04E.C0CF.COD3]
+due to AE_NOT_EXIST.
+
+Obviously, something is missing from this DSDT table.
+
+I don't know if this dmesg is kernel having your fixed DSDT table. If =
+yes,
+are you missing something?
+
+Would you please describe how did you fix the buggy DSDT table, and give =
+me
+dmesg of kernel with original DSDT table.
+
+It will help me better understand your problem.
+
+Thanks,
+Luming
+
 
 
 -------------------------------------------------------
