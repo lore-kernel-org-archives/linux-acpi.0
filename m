@@ -1,22 +1,48 @@
-From: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>
-Subject: RE: ACPI patches updated (20030714)
-Date: Wed, 16 Jul 2003 22:55:26 +0200 (MEST)
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200307162055.h6GKtQl9027858@harpo.it.uu.se>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: acpi4asus CVS updated
+Date: Wed, 16 Jul 2003 23:09:14 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030716210914.GB17981@hell.org.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 16 Jul 2003 13:36:10 -0700, "Grover, Andrew" wrote:
-> > From: Mikael Pettersson [mailto:mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org] 
-> 
-> > Concerning code size, the 70K number in ACPI's Kconfig help is
-> > out of date. A minimal ACPI (all user-selectable suboptions
-> > disabled) adds 145K to my 2.6.0-test1 kernel.
-> 
-> Are you talking to the compressed or uncompressed kernel? Maybe we got
-> it backwards, but the 70K number was the bzImage size difference.
-> (Actually I just tried it again. We're 80K now. I blame gcc. ;-))
 
-Uncompressed: size vmlinux. gcc-3.2.2.
+Hi,
+I've just added support for ASUS M3700N and S1300N laptops. This includes
+display switching code, which *should* work, but the same what was with
+L3800C applies to those also: once the module is loaded, Fn+F8 cedes
+working. This is a feature of the DSDT, not a bug in the driver, the only
+way to switch displays would then be to echo an appropriate value into
+/proc/acpi/asus/disp.
+
+The CVS is at http://sourceforge.net/projects/acpi4asus, but since the
+CVS-view doesn't currently relfect the current status of repository, I've
+made a patch to bring the kernel sources up to date (be careful, -p3 may be
+needed when patching), grab it at 
+http:/hell.org.pl/~sziwan/asus/asus_core.c-1.51-to-1.55.diff
+
+Please test it ASAP.
+Best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: VM Ware
+With VMware you can run multiple operating systems on a single machine.
+WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines at the
+same time. Free trial click here: http://www.vmware.com/wl/offer/345/0
