@@ -1,110 +1,42 @@
-From: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
-Subject: Fixing broken DSDT - code suggestions for comment please!
-Date: Sun, 16 May 2004 10:29:04 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40A73460.2070407@mesias.co.uk>
+From: Sergey Vlasov <vsu@altlinux.ru>
+Subject: Re: libata Promise driver regression 2.6.5->2.6.6
+Date: Sun, 16 May 2004 21:49:17 +0400
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <pan.2004.05.16.17.49.14.823495@altlinux.ru>
+References: <40A7A278.7010405@wasp.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264652AbUEPRte@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ACPI list,
+On Sun, 16 May 2004 21:18:48 +0400, Brad Campbell wrote:
 
-I have been trying to get ACPI running on my laptop but have found there 
-are problems with the DSDT. I have followed some instructions on getting 
-iasl and recompiling the DSDT but find some errors that go beyond the 
-scope of the list at:
+> I have been using 2.6.5 happily for a while now on this machine.
+> It's an Asus A7V600 with 3 Promise SATA150-TX4 SATA cards.
+> 
+> With 2.6.6 (and 2.6.6-bk3) it hangs with a dma timeout on boot detecting the 9th sata drive (there 
+> are 10). I left it for about 10 minutes to see if anything else transpired but it just sat there.
+> I'm on a serial console to this machine at the moment and I could not get it to respond to the magic 
+> sysrq key over serial either.
+> 
+> I have placed all relevant info including a capture of 2.6.5 boot and 2.6.6 boot, plus all requested 
+> info from linux/REPORTING-BUGS on my webpage
+> 
+> Normal working dmesg
+> http://www.wasp.net.au/~brad/2.6.5.log
+> 
+> Hung up dmesg
+> http://www.wasp.net.au/~brad/2.6.6.log
+> 
+> .config and all other info I could gather.
+> http://www.wasp.net.au/~brad/2.6.6.config
+> Much as I'd love to be subscribed, I just can't keep up with the volume so please cc: me.
+> Willing to try patches/hacks/suggestions
 
-http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt
-
-The errors are:
-
-
-dsdt.dsl  2149:                     Store (Local0, Local0)
-Error    1013 -                                 ^ Method local variable 
-is not initialized (Local0)
-
-This occurs several times in the code, a typical case is:
-
-                 Method (_PS0, 0, NotSerialized)
-                 {
-                     Store (And (0xF0, TIA4), TIA4)
-                     Store (0x01, _PSC)
-                     Store (Local0, Local0)
-                 }
-
-I'm guessing that is effectively a NOP so I can comment it out.
-
-Later there are two other errors not mentioned in the FAQ:
-
-dsdt.dsl  2390:                     Return (WQS (0x0E, Arg0))
-Error    1029 -                               ^ Called method returns no 
-value
- 
-
-dsdt.dsl  2395:                     Return (WQSB (0x0E, Arg0))
-Error    1029 - Called method returns no value ^
- 
-
-
-The offending code is:
-
-                 Method (WENR, 1, NotSerialized)
-                 {
-                     Return (WQS (0x0E, Arg0))
-                 }
-
-                 Method (WETR, 1, NotSerialized)
-                 {
-                     Return (WQSB (0x0E, Arg0))
-                 }
-
-All the calls to those methods seem to discard any return value, eg:
-
-         If (\_SB.OKEC)
-         {
-             \_SB.PCI0.QSB.WENR (0x01F0)
-         }
-
-I couldn't find a reference to WETR
-
-
-
-So I thought to not return anything:
-
-                 Method (WENR, 1, NotSerialized)
-                 {
-/*                    Return (WQS (0x0E, Arg0))*/
-                     WQS (0x0E, Arg0)
-                 }
-
-                 Method (WETR, 1, NotSerialized)
-                 {
-/*                    Return (WQSB (0x0E, Arg0))*/
-                     WQSB (0x0E, Arg0)
-                 }
-
-I am more than a bit wary about trying this for real so would appreciate 
-  any comments on the dsdt code above. If the fixes are good then maybe 
-they could be incorporated into the FAQ?
-
-Any comments gratefully received,
-
--Cam
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: SourceForge.net Broadband
-Sign-up now for SourceForge Broadband and get the fastest
-6.0/768 connection for only $19.95/mo for the first 3 months!
-http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
+Looks like ACPI problems.  First, for some reason ACPI in 2.6.6 decided to
+use PIC mode, while 2.6.5 used IOAPIC mode.  Second, IRQ 12 was chosen for
+the Promise controller which failed; this is a known problem in 2.6.6,
+the patch at http://bugzilla.kernel.org/show_bug.cgi?id=2665 should fix it.
