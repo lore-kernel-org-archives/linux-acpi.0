@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M6800N: processor has only C1
-Date: Tue, 02 Mar 2004 15:43:26 +0100
+From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
+Date: Tue, 02 Mar 2004 16:51:20 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40449D8E.4060402@pca.it>
-References: <404459FD.1000406@pca.it> <20040302110946.GF2869@poupinou.org> <40448169.6090507@pca.it>
+Message-ID: <404501D8.8090506@verizon.net>
+References: <4038F499.2060302@verizon.net> <20040225182030.GG1214@elf.ucw.cz> <40410A69.3070800@verizon.net> <20040228220435.GD10530@elf.ucw.cz> <4041136B.9000904@verizon.net> <20040228230941.GA488@elf.ucw.cz> <4043ECB4.7080203@verizon.net> <20040302101904.GA303@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40448169.6090507-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <20040302101904.GA303-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,129 +17,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Pavel Machek wrote:
 
-Hello,
-
-on 03/02/04 13:43, Luca Capello wrote:
-> On the other hand, I got these error when compiling:
-> ======
->   CC [M]  drivers/acpi/processor.o
-> drivers/acpi/processor.c: In function `acpi_processor_power_activate':
-> drivers/acpi/processor.c:311: error: structure has no member named `type'
-> drivers/acpi/processor.c:315: error: structure has no member named `type'
-> drivers/acpi/processor.c:321: error: structure has no member named `type'
-> drivers/acpi/processor.c: In function `acpi_processor_idle':
-> drivers/acpi/processor.c:409: error: structure has no member named `type'
-> drivers/acpi/processor.c: In function `acpi_processor_set_power_policy':
-> drivers/acpi/processor.c:548: error: structure has no member named `count'
-> drivers/acpi/processor.c:549: error: structure has no member named `type'
-> drivers/acpi/processor.c: In function `acpi_processor_get_power_info_cst':
-> drivers/acpi/processor.c:668: error: structure has no member named `count'
-> drivers/acpi/processor.c:691: error: dereferencing pointer to incomplete type
-> drivers/acpi/processor.c:692: error: dereferencing pointer to incomplete type
-> drivers/acpi/processor.c:695: error: dereferencing pointer to incomplete type
-> drivers/acpi/processor.c:696: error: dereferencing pointer to incomplete type
-> drivers/acpi/processor.c:703: error: structure has no member named `type'
-> drivers/acpi/processor.c:718: error: structure has no member named `type'
-> drivers/acpi/processor.c:818: error: structure has no member named `count'
-> drivers/acpi/processor.c:818: error: structure has no member named `count'
-> drivers/acpi/processor.c:819: error: structure has no member named `count'
-> drivers/acpi/processor.c:823: error: structure has no member named `count'
-> drivers/acpi/processor.c:825: error: structure has no member named `count'
-> drivers/acpi/processor.c:828: error: structure has no member named `count'
-> drivers/acpi/processor.c: In function `acpi_processor_get_power_info_fadt':
-> drivers/acpi/processor.c:892: error: structure has no member named `type'
-> drivers/acpi/processor.c:895: error: structure has no member named `count'
-> drivers/acpi/processor.c:951: error: structure has no member named `type'
-> drivers/acpi/processor.c:955: error: structure has no member named `count'
-> drivers/acpi/processor.c: In function `acpi_processor_get_power_info':
-> drivers/acpi/processor.c:979: error: structure has no member named `type'
-> drivers/acpi/processor.c:991: error: structure has no member named `type'
-> drivers/acpi/processor.c:992: error: structure has no member named `count'
-> drivers/acpi/processor.c:1018: error: structure has no member named `count'
-> drivers/acpi/processor.c: In function `acpi_processor_power_seq_show':
-> drivers/acpi/processor.c:2147: error: structure has no member named `count'
-> drivers/acpi/processor.c:2150: error: structure has no member named `type'
-> drivers/acpi/processor.c: In function `acpi_processor_add':
-> drivers/acpi/processor.c:2603: error: structure has no member named `count'
-> make[3]: *** [drivers/acpi/processor.o] Error 1
-> make[2]: *** [drivers/acpi] Error 2
-> make[1]: *** [drivers] Error 2
-> make[1]: Leaving directory `/usr/src/linux-2.6.4-rc1-test'
-> make: *** [stamp-build] Error 2
-> gismo:/usr/src/linux-2.6.4-rc1-test#
-> =====
+>Hi!
 >
-> Should I wait for a patch against 2.6.4 + latest ACPI or should I try the old
-> 2.6.1?
-well, I've tried on the old 2.6.1 (w/o any ACPI patches, as I don't know where I
-could find them) and I got the same errors:
-=====
-  CC [M]  drivers/acpi/processor.o
-drivers/acpi/processor.c: In function `acpi_processor_power_activate':
-drivers/acpi/processor.c:311: error: structure has no member named `type'
-drivers/acpi/processor.c:315: error: structure has no member named `type'
-drivers/acpi/processor.c:321: error: structure has no member named `type'
-drivers/acpi/processor.c: In function `acpi_processor_idle':
-drivers/acpi/processor.c:409: error: structure has no member named `type'
-drivers/acpi/processor.c: In function `acpi_processor_set_power_policy':
-drivers/acpi/processor.c:548: error: structure has no member named `count'
-drivers/acpi/processor.c:549: error: structure has no member named `type'
-drivers/acpi/processor.c: In function `acpi_processor_get_power_info_cst':
-drivers/acpi/processor.c:668: error: structure has no member named `count'
-drivers/acpi/processor.c:691: error: dereferencing pointer to incomplete type
-drivers/acpi/processor.c:692: error: dereferencing pointer to incomplete type
-drivers/acpi/processor.c:695: error: dereferencing pointer to incomplete type
-drivers/acpi/processor.c:696: error: dereferencing pointer to incomplete type
-drivers/acpi/processor.c:703: error: structure has no member named `type'
-drivers/acpi/processor.c:718: error: structure has no member named `type'
-drivers/acpi/processor.c:818: error: structure has no member named `count'
-drivers/acpi/processor.c:818: error: structure has no member named `count'
-drivers/acpi/processor.c:819: error: structure has no member named `count'
-drivers/acpi/processor.c:823: error: structure has no member named `count'
-drivers/acpi/processor.c:825: error: structure has no member named `count'
-drivers/acpi/processor.c:828: error: structure has no member named `count'
-drivers/acpi/processor.c: In function `acpi_processor_get_power_info_fadt':
-drivers/acpi/processor.c:892: error: structure has no member named `type'
-drivers/acpi/processor.c:895: error: structure has no member named `count'
-drivers/acpi/processor.c:951: error: structure has no member named `type'
-drivers/acpi/processor.c:955: error: structure has no member named `count'
-drivers/acpi/processor.c: In function `acpi_processor_get_power_info':
-drivers/acpi/processor.c:979: error: structure has no member named `type'
-drivers/acpi/processor.c:991: error: structure has no member named `type'
-drivers/acpi/processor.c:992: error: structure has no member named `count'
-drivers/acpi/processor.c:1018: error: structure has no member named `count'
-drivers/acpi/processor.c: In function `acpi_processor_power_seq_show':
-drivers/acpi/processor.c:1553: error: structure has no member named `count'
-drivers/acpi/processor.c:1556: error: structure has no member named `type'
-drivers/acpi/processor.c: In function `acpi_processor_add':
-drivers/acpi/processor.c:2023: error: structure has no member named `count'
-make[3]: *** [drivers/acpi/processor.o] Error 1
-make[2]: *** [drivers/acpi] Error 2
-make[1]: *** [drivers] Error 2
-make[1]: Leaving directory `/usr/src/linux-2.6.1'
-make: *** [stamp-build] Error 2
-gismo:/usr/src/linux-2.6.1#
-=====
+>  
+>
+>>>>Should I also disable preemption?
+>>>>        
+>>>>
+>>>Yes.
+>>>      
+>>>
+>
+>  
+>
+>>Pavel, I'm having some trouble understanding the swsusp.txt file. It 
+>>states: " You must explicitly specify the swap partition to resume from with
+>>``resume='' kernel option."
+>>
+>>my swap partition resides in /dev/hda4
+>>
+>>So I think  I need to do something like this?
+>># Boot up Linux by default.
+>>#
+>>default=Linux
+>>
+>>image=/vmlinuz
+>>       label=Linux
+>>       read-only
+>>append="hda=autotune resume=/dev/hda4"   <---- added this
+>>#       restricted
+>>#       alias=1
+>>
+>>Is this correct, or do i pass the resume option at boot time as a LILO 
+>>option?
+>>    
+>>
+>
+>It is correct.
+>								Pavel
+>
+>  
+>
+As a test I suspened the machine twice; each time the machine was off 
+for approximately 5 minutes. It resumed twice without any problems (into 
+X with a mozilla and xmms)
+As another test, I opned up a few apps in different workspaces: abiword 
+with a document, mozilla browser and mail, xmms playing an internet 
+stream. I then suspended in hopes of resuming the next day after school. 
+After about 14hrs I tried to resume, and everything seemed fine, excpet 
+my USB mouse was unrespnsive. I was able to brinx X down into a working 
+console, startx again, but still no mouse.
 
-So I can suppose this is not a kernel 2.6.1 or 2.6.4 problem, but something
-other: am I right?
+In debian kernel 2.6.3 I have the NIC and USB options compiled in. 
+Should these be modules that are removed before swsusp?
+There's aslo mention of a swsusp script, but was unable to find one in 
+../Documentation/power or via apt-cache search; I'm assuming that I need 
+this script, which will remove the modules before swsusp and modprobe 
+them after resume.
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFARJ2NVAp7Xm10JmkRApIIAJ47/P1I3b+aJvWBiHOwD/naXGhLUwCfSUPb
-194T+dov+lgpkxq+Ly2g3Kk=
-=JBCN
------END PGP SIGNATURE-----
+Thank you for your time and patience.
 
 
 -------------------------------------------------------
