@@ -1,15 +1,13 @@
-From: Christopher Gahlon <lists-xMsVY1q4kzvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ACPI Suspend on Inspiron 1100
-Date: Tue, 5 Apr 2005 08:43:08 -0500
-Message-ID: <200504050843.08268.lists@gahlon.com>
-References: <20050331191931.GA16450@jose.lug.udel.edu> <200504050836.17659.lists@gahlon.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: 2.6.12-rc1-mm4 and suspend2ram (and synaptics)
+Date: Sat, 2 Apr 2005 10:59:35 +0200
+Message-ID: <20050402085935.GC1330@openzaurus.ucw.cz>
+References: <20050331220822.GA22418@gamma.logic.tuwien.ac.at> <20050401113335.GA13160@elf.ucw.cz> <e79639220504010938582bade6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200504050836.17659.lists-xMsVY1q4kzvQT0dZR+AlfA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <e79639220504010938582bade6-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,41 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 05 April 2005 08:36 am, Christopher Gahlon wrote:
-> #!/bin/bash
-> echo "Turning off display..."
-> vbetool dpms off
-> echo "Executing sleep command."
-> echo 3 > /proc/acpi/sleep
-> echo "Waiting 3 seconds before dpms on command."
-> sleep 3
-> echo "executing: vbetool dpms on"
-> vbetool dpms on
-> sleep 3
-> echo "executing: vbetool post"
-> vbetool post
+Hi!
 
-A quick follow up.  After the post runs you're left looking at the Video Post 
-message.
+> Same issue here.
+> 
+> Suspend-to-ram works perfectly fine with kernel 2.6.12-rc1-mm1, in
+> mm2,3 and mm4 it is broken.
+> 
+> It suspends properly but does not resume. Just a blackscreen and no
+> reaction on keypress/usb plug-in/network/power button.
+> 
 
-Hit enter and you get your prompt back, or just switch to the VT with X and 
-compute away.
-
-If anyone working on ACPI wants information from my boxen (DSTD etc.) shoot 
-the list, or me and email and I'll do whatever I can to help improve ACPI on 
-Dell's borked implementation...
-
-Thanks for all your hard work!  It's greatly appreciated.
-
+Same way to debug it, then.... try minimal drivers.
 -- 
-Christopher Gahlon
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-"They that can give up essential liberty to obtain a little temporary
-safety deserve neither liberty nor safety."
-     -Benjamin Franklin, Historical Review of Pennsylvania.
 
 
 -------------------------------------------------------
