@@ -1,62 +1,63 @@
-From: Ducrot Bruno <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [ACPI] Re: [2.5.50, ACPI] link error
-Date: Mon, 9 Dec 2002 11:40:29 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021209104029.GB14882@poup.poupinou.org>
-References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain> <20021206000618.GB15784@atrey.karlin.mff.cuni.cz> <20021206185702.GE17595@poup.poupinou.org> <20021208194944.GB19604@atrey.karlin.mff.cuni.cz> <1039380380.1614.57.camel@nefeli>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: DPMS with ACPI
+Date: Mon, 9 Dec 2002 11:46:27 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20021209104627.GA26375@poup.poupinou.org>
+References: <20021207171140.363b2276.gigerstyle@gmx.ch> <20021207165727.17f6222a.taw27@cam.ac.uk> <20021207182449.602ce242.gigerstyle@gmx.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1039380380.1614.57.camel-coIz1MXBdV0@public.gmane.org>
-To: Constantinos Antoniou <costas-DPNOqEs/LNQ@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20021207182449.602ce242.gigerstyle-OI3hZJvNYWs@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Marc Giger <gigerstyle-OI3hZJvNYWs@public.gmane.org>
+Cc: Thomas White <taw27-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 08, 2002 at 03:46:20PM -0500, Constantinos Antoniou wrote:
-> On Sun, 2002-12-08 at 14:49, Pavel Machek wrote:
-> > Hi!
-> > 
-> > > > > > > Doesn't that imply your fix is broken to begin with?
-> > > > > > 
-> > > > > > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
-> > > > > > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
-> > > > > > overdesign to me, OTOH if you do the work it is okay with me.
-> > > > > 
-> > > > > You broke the design. S3 support was developed long before swsusp was in 
-> > > > > the kernel, and completely indpendent of it. It should have remained that 
-> > > > > way. 
-> > > > > 
-> > > > > S3 support is a subset of what is need for S4 support. 
-> > > > 
-> > > > That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
-> > > > but not for S4. Big part of driver support is only needed for S3.
-> > > > 
-> > > > > swsusp is an implementation of S4 support. In theory, there could be 
-> > > > > multiple implementations that all use the same core (saving/restoring 
-> > > > > state). 
-> > > > 
-> > > > There were patches for S4bios floating around, but it never really
-> > > > worked, IIRC.
-> > > 
-> > > No.  It work.  I do not resubmmited patches because I think that
-> > > swsusp is better.
-> > 
-> > I think that s4bios is nice to have. Its similar to S3 and easier to
-> > set up than swsusp... It would be nice to have it.
+On Sat, Dec 07, 2002 at 06:24:49PM +0100, Marc Giger wrote:
+> Hi Thomas,
 > 
-> (I do not know much, but) another reason may be that some laptops do not
-> support S3, while they support S4? for example, in my Compaq Presario
-> 1700T:
-> 
-> $ more /proc/acpi/info
-> ACPI-CA Version:         20011018
-> Sx States Supported:     S0 S1 S4 S5
 
-Some southbrigdes have well know design flaw that prevent a 'good' S3
-functionality.  Those this is disabled.
+[...]
+
+> On my Laptop not:-( 
+> 
+> It's also a Vaio GR114EK. This Vaio is a difficult case:-))
+> 
+> What i get with "xset dpms force standby" is:
+> 
+> X Error of failed request: BadMatch (invalid parameter attributes)
+>   Major opcode of failed request: 140 (DPMS)
+>   Minor opcode of failed request: 6 (DPMSForceLevel)
+>   Serial number of failed request: 10
+>   Current serial number in output stream: 12
+> 
+> I have activated the DPMS in XF86Config with 'Option "DPMS"'
+> What I get is:
+> 
+> ....
+> Option "DPMS" is not used
+> <snip>
+> Open APM failed (/dev/apm_bios) (No such device)
+> ...
+
+This two errors that are not related.
 
 -- 
 Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
