@@ -1,13 +1,15 @@
-From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Subject: Snore: BUG in ide-disk on suspend
-Date: Wed, 15 Jan 2003 22:34:26 +0200
+From: marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
+Subject: Re: S4bios on Sony Vaio FX601
+Date: Wed, 15 Jan 2003 21:34:02 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200301152234.26117.p_christ@hol.gr>
+Message-ID: <Pine.LNX.4.50.0301152133340.1055-100000@flyby>
+References: <Pine.LNX.4.50.0301130925480.3926-100000@flyby>
+ <20030113101531.GF12516@poup.poupinou.org> <20030113114850.1b1adc03.nils@kernelconcepts.de>
+ <20030113120204.GA13358@marcogigante.it> <20030113135418.GI12516@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030113135418.GI12516-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,37 +19,39 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I don't feel I am the one that should mess with the ide part (I could break a 
-lot of important things). However, sleeping has failed many times because of 
-ide. 
+On Mon, 13 Jan 2003, Ducrot Bruno wrote:
 
-drivers/ide/ide-disk.c: (around 1557)
-        printk(KERN_INFO "suspending: %s ", drive->name);
-        do_idedisk_standby(drive);
-        drive->blocked = 1;
+> > > Do you have framebuffer console?
+> >
+> > No, plain text mode.
+> > I think proplem is related to pcmcia network card (a 3Com 589).
+> >
+> > But if S4bios works I prefer it due to linux/freebsd dual boot.
+>
+> BTW, freebsd s4bios work for you?  For me, it work like a charm, but
+> I have no pcmcia card to play with.
 
-	BUG_ON (HWGROUP(drive)->handler);
+Made A0 suspend partition and formatted using lphdisk.
+S4Bios now work for freebsd, I'm using 4.6, under text mode.
+Suspend work even if PCMCIA network card remains into socket.
+If I suspend while X is up, computer hangs (suspend-to-disk do not
+start at all).
+Time to try newer versions with acpi support :)
 
-AFAIK handler is set whenever an irq is being handled (correct me if I'm 
-wrong). ide irqs are very often on the system and may happen between the 
-actual call to 'ide_do_cmd' (called by do_idedisk_standby) and the 
-"blocked=1" line. 
-Setting a strict lock may deadlock the system pretty hard! Would the 
-"blocked=1" line break the do_idedisk_standby? Does "blocked" really stop 
-subsequent disk activity?
-Or, alternatively should we setup a mechanism (spinlock?) to cause the 
-do_ide_standby to wait until pending requests-data finishes?
+While using linux 2.4.20 + acpi-20021205 and 2 patches posted to this
+ML some time ago (s4bios-2.4.20-acpi-20021205 and
+00_system_fix_s4bios-2.4.20-acpi-20021205) suspend doesn't works.
+echo -n 4b >/proc/acpi/sleep make bios to start hibernation process, but
+on resuming system hangs after datas from suspend partition are loaded.
+The bios resume screen remains on the screen and I must power cycle the
+notebook.
 
-Kernels: 2.5.55-58
-ACPI: the one in those. Currently: 20030109
-System: HP Omnibook Xe3 GC, Disk: IBM DeskStar in 32bit mode.
+Any idea?
 
-Thanks.
-
-
+--
+Regards,  Marco Gigante
 
 
 -------------------------------------------------------
