@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI/ECDT on gateway 200x notebook
-Date: Wed, 7 Jan 2004 19:57:54 +0800
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI/ECDT on gateway 200x notebook
+Date: Wed, 7 Jan 2004 13:40:47 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C89@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040107124047.GO14031@poupinou.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720C89@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C89-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
-Cc: Rich Ibbotson <richibb-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->The EC is a child of other devices and you
->have to be sure that those devices are initialized before EC (even
->though that is done by BIOS at POST already, due to legacy access
->in some laptops).
+On Wed, Jan 07, 2004 at 07:57:54PM +0800, Yu, Luming wrote:
+> >The EC is a child of other devices and you
+> >have to be sure that those devices are initialized before EC (even
+> >though that is done by BIOS at POST already, due to legacy access
+> >in some laptops).
+> 
+> One point is that my patch don't want to fully initialize EC devices.
+> It just want to get EC resource to init EC addresspace handler ,
+> Although the patch looks ugly.
+> 
+> The motivation is just to have EC address space 
+> handler ready for devices that get initialized before EC devices on
+> laptop without ECDT.   If this attempt is failed due to what you
+> said,  then ECDT is necessary.
+> 
+> At least, it seems to work for gateway laptop. Of cause, it need to be
+> refined.
 
-One point is that my patch don't want to fully initialize EC devices.
-It just want to get EC resource to init EC addresspace handler ,
-Although the patch looks ugly.
+Oh, I'm not against this approach, but I wanted to point you some
+possible issues.  I see 3 ways for now to go:
 
-The motivation is just to have EC address space=20
-handler ready for devices that get initialized before EC devices on
-laptop without ECDT.   If this attempt is failed due to what you
-said,  then ECDT is necessary.
+1- your approach,
+2- make a kind of setup option, like the patch I send some time ago, in
+   order to fake an ECDT, but simplified (the IO ports should be
+   the only options).  But that require another boot option.
+3- an error runtime handler, which initialize the address space handler for
+   the EC if not already done, and then retry.
 
-At least, it seems to work for gateway laptop. Of cause, it need to be
-refined.
+I don't know what is best.
 
+-- 
+Ducrot Bruno
 
-
-
-
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
