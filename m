@@ -1,14 +1,15 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: Error: can't read "CONFIG_SCSI": no such variable
-Date: Thu, 20 Nov 2003 21:42:25 +0000
+From: Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
+Subject: Re: All 2.4.22 patches after 09-16 broken?
+Date: Thu, 20 Nov 2003 22:44:07 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031120214225.GO30485@parcelfarce.linux.theplanet.co.uk>
-References: <3FBD31F7.2070205@cse.psu.edu>
+Message-ID: <20031120224407.35fbcec2.acpi@thermoman.de>
+References: <Pine.LNX.4.44.0311200838380.17057-100000@v8.miniserver.de>
+	<20031120163200.GK30485@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3FBD31F7.2070205-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org>
+In-Reply-To: <20031120163200.GK30485-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,37 +18,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Gyu Sang Choi <gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 20, 2003 at 04:28:23PM -0500, Gyu Sang Choi wrote:
-> I am trying to install ACPI2.0 into Linux-2.4.22 kernel.
-> But I got a strange error message, when I try to store the configuration 
-> to file in "make xconfig".
-> It is below
-> ============================================
-> Error: can't read "CONFIG_SCSI": no such variable
-> ============================================
+> > Error in Tcl Script
+> > Error: can't read "CONFIG_SCSI": no such variable
+> > 
+> > ERROR - Attempting to write value for unconfigured variable 
+> > (CONFIG_PARPORT_PC_CML1).
 > 
-> If there is anyone to solve this problem already,
-> please send me email.
+> Maybe the tk program is having trouble parsing this:
+> 
+> +  else if [ "$CONFIG_SMP" = "y" ]; then
+> 
+> Can you try changing that line in drivers/acpi/Config.in by putting a
+> new line between the `else' and the `if'?  ie make it look like:
+>   else
+>     if [ "$CONFIG_SMP" = "y" ]; then
 
-Can you try splitting drivers/acpi/Config.in line 35 from:
+Thanks, that's it! Please correct the patches after 09-16 or
+release a new one :)
 
-  else if [ "$CONFIG_SMP" = "y" ]; then
-
-to:
-
-  else
-    if [ "$CONFIG_SMP" = "y" ]; then
-
-This may solve your problem.
-
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+Greetings from germany,
+Marcel.
 
 
 -------------------------------------------------------
