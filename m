@@ -1,15 +1,15 @@
-From: Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
-Subject: Re: ASL fixing questions
-Date: Fri, 13 Feb 2004 09:20:29 -0500
+From: Luca <kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org>
+Subject: Re: [BUG][2.6.3-rc2] Unable to turn display on with ASUS L3D
+Date: Fri, 13 Feb 2004 15:35:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <402CDD2D.9050808@zopatista.com>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB6AE@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040213143505.GA1575@dreamland.darkstar.lan>
+References: <20040212161008.GA8729@dreamland.darkstar.lan> <20040212210807.GA23222@hell.org.pl>
+Reply-To: kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigDC26DBBD0DDC1F3D0EAED005"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB6AE-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040212210807.GA23222-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,65 +18,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigDC26DBBD0DDC1F3D0EAED005
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Yu, Luming wrote:
->>Okay, so I have a nice new eMachines M6805, but ACPI support 
->>is screwed. 
+Il Thu, Feb 12, 2004 at 10:08:07PM +0100, Karol Kozimor ha scritto: 
+> *This message was transferred with a trial version of CommuniGate(tm) Pro*
+> Thus wrote Luca:
+> > echo 1 > /proc/acpi/asus/disp hangs the system but turns the lcd on.
+> > These are the last lines I see (with debug_level = 0x000000ff):
 > 
-> 
-> I want to know the error messages that give you impression that
-> ACPI support is screwed. Or some expected functionality has 
-> broken.  It's very important to judge whether we need to hack 
-> ASL , and give you a hint to hack which part of ASL.
+> Please boot with noapic or nolapic.
+> There was a patch floating around that might have helped, search the
+> bugzilla...
 
-Just starting on my ACPI journey. My first tries to get an ACPI kernel 
-working have led to a plethora of probems, and at the time I didn't have 
-enough experience to be able to seperate ACPI problems from others.
+Thank  you for  the reply. I  made  other tests  and it  seems that  the
+problem isn't ACPI related. LCD stays  off event without the ASUS stuff,
+but goes on  using old sisfs driver with the  new acpi4asus driver. So I
+guess that it's sisfb fault.
 
-I'll get back to those problems later, if/when I have time (next 3-5 
-weeks are going to be absolutely more than hecktic, I am moving across 
-the Atlantic again).
-
->>I am trying fix the AML the bios provided me, and iron out all the 
->>errors and warnings. Attached my DSDT.dsl, as fixed so far.
->>
->>So far I got rid of the warnings (_WAK didn't return anything; fixed 
->>with examples from working DSTS-es, _BTS method didn't return 
->>anything 
->>on some control paths; move return out of if statement down).
-> 
-> 
-> I'm not sure this kind of hack could solve the problem you have.
-
-No, but they were a start. I am hopeful that the Field error encountered 
-may have something to do with it. But again, I have no time right now to 
-experiment and find out. This laptop has got a job to do right now.
-
-Martijn
-
---------------enigDC26DBBD0DDC1F3D0EAED005
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFALN0t3xaj2GOvgP0RAkgxAKCPSuJ3Dbx/4j8yJzob/2tQxcGCzACfWqSf
-1Ib9b/2YDMoNPyv3XcMp0rU=
-=fYXi
------END PGP SIGNATURE-----
-
---------------enigDC26DBBD0DDC1F3D0EAED005--
+Luca
+-- 
+Home: http://kronoz.cjb.net
+La mia opinione puo` essere cambiata, ma non il fatto che ho ragione.
 
 
 -------------------------------------------------------
