@@ -1,38 +1,31 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Still problems with ACPI sleep state
-Date: Fri, 25 Jun 2004 21:13:28 -0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040625211328.GB5789@message-id.gmane0305.slipkontur.de>
-References: <200406251547.21050.mailinglisten@merula.de>
+From: Hamie <hamish@travellingkiwi.com>
+Subject: Re: No APIC interrupts after ACPI suspend
+Date: Sat, 26 Jun 2004 01:05:32 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <40DCBDCC.4070405@travellingkiwi.com>
+References: <1088160505.3702.4.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200406251547.21050.mailinglisten-Ztphx+FISXizQB+pC5nmwQ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265537AbUFZAF4@vger.kernel.org>
+In-Reply-To: <1088160505.3702.4.camel@tyrosine>
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 25, 2004 at 03:47:20PM +0200, Lars Amsel wrote:
+Matthew Garrett wrote:
 
-> Any hints what I can do to get a working display after restart (relevant parts 
-> of /var/log/messages and dmesg appended)? 
+>If I do an S3 suspend, my machine resumes correctly (Thinkpad X40,
+>acpi_sleep=s3_bios passed on the command line). If I have the ioapic
+>enabled, however, I get no interrupts after resume. Hacking in a call to
+>APIC_init_uniprocessor in the resume path improves things - I get edge
+>triggered interrupts, but anything flagged as level triggered doesn't
+>work. How can I get the ioapic fully initialised on resume?
+>  
+>
+I have an identical problem with an r50p. But I'm running PIC... 
+(Because the r50p doesn't seem to do APIC). Not sure if it's identical, 
+but after resuming, I get maybe 10 seconds of sound, OR 30 odd minutes 
+of networking (I know... Sounds strange)... Then neither...
 
-Read /usr/src/linux/Documentation/power/video.txt
--- 
-Stefan Seyfried
-
-
-
--------------------------------------------------------
-This SF.Net email sponsored by Black Hat Briefings & Training.
-Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
-digital self defense, top technical experts, no vendor pitches, 
-unmatched networking opportunities. Visit www.blackhat.com
+H
