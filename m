@@ -1,42 +1,51 @@
-From: "Lukas Schrangl" <schrangl-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Problems with AMD Athlon XP mobile, ALi 1533 Chipset, ATI IGP 320M Northbridge?
-Date: Fri, 16 Jan 2004 21:50:12 +0100 (MET)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <25593.1074286212@www41.gmx.net>
+From: Ducrot Bruno <ducrot@poupinou.org>
+Subject: Re: [ACPI] [PATCH] acpi-cpufreq fixups
+Date: Fri, 16 Jan 2004 22:02:09 +0100
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <20040116210209.GD14031@poupinou.org>
+References: <20040115233215.GC5386@dominikbrodowski.de>
+	<20040116140144.GW14031@poupinou.org>
+	<20040116093404.S76365@root.org>
+	<20040116193207.GC14031@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces@www.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20040116193207.GC14031@poupinou.org>
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces@www.linux.org.uk
+To: Nate Lawson <nate@root.org>
+Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-I will send my dmidecode- output as soon as possible (rem: from other sites
-I know that my laptop is very similar to the eMachines - e.g. the same bios-
-updates work with both).
+On Fri, Jan 16, 2004 at 08:32:07PM +0100, Ducrot Bruno wrote:
+> On Fri, Jan 16, 2004 at 09:35:11AM -0800, Nate Lawson wrote:
+> > On Fri, 16 Jan 2004, Ducrot Bruno wrote:
+> > > > - fix OOPS when PST has core_frequency values of zero
+> > >
+> > > FYI: That one have been fixed by Nate Lawson by calling _INI for processors.
+> > > I don't know if it is in acpi-ca yet.  Of course, it is still safe
+> > > to check if freq is 0.
+> > 
+> > I was told it was in 20031203 but I don't know what Linux kernel version
+> > has that dist.  I haven't checked to be sure since my FreeBSD cpufreq code
+> > is in a rough state right now.  :)
+> 
+> Well, my question was for ACPI-CA.  Now, if that is put in Linux, or not,
+> who cares ;)
+> 
 
-I decided to send my request to acpi-devel, because after some research I
-found out that there are P- States in my SSDT and cpufreq and powernow-k7 do
-not work.
-
-I really wonder why acpi doesn't work either although the acpi- tables seem
-to be correct.
+Just checked linus' bk tree.  It's a 20031002.  Well, I must admit
+that I was thinking it was more recent than that.
 
 -- 
-+++ GMX - die erste Adresse für Mail, Message, More +++
-Bis 31.1.: TopMail + Digicam für nur 29 EUR http://www.gmx.net/topmail
+Ducrot Bruno
 
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
