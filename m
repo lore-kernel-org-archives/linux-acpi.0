@@ -1,12 +1,14 @@
-From: Lu Tong <ltong-r3+FECOBLOPAaqN1iTbosg@public.gmane.org>
-Subject: evgpeblk.c fix for multiple gpe blocks
-Date: Wed, 12 Mar 2003 02:39:06 -0500
+From: Stephan Krings <stephan-MC3rjLPHZ0jJ0Y7HFzmx4Q@public.gmane.org>
+Subject: Re: Compaq Evo800c: s4bios, s3, s4 anybody got this running?
+Date: Wed, 12 Mar 2003 10:38:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030312073906.GA29559@dao.cs.ohiou.edu>
+Message-ID: <15983.15.391761.233789@hotzenplotz.chateau-neukoelln.de>
+References: <3E6ECB8E.4090706@iis.fhg.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="jI8keyz6grp/JLjh"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <3E6ECB8E.4090706-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,38 +17,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Christian Neubauer <neu-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---jI8keyz6grp/JLjh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> As soon I do echo 4 >/proc/acpi/sleep the system clears the console, 
+> backlight stays on and the machine hangs.
 
-hi,
+I use the same notebook model and can observe exactly the same
+behaviour. I just tried it for the first time, since I always got the
+impression, that suspend/resume is only supposed to really work in
+newer development kernels. But maybe that has changed.
 
-the attached is a trial fix for machines with multiple gpe blocks.
+The swsusp patch works for me for quite some time now. Maybe it's
+useful for you, too.
 
---ltong
+Regards,
 
---jI8keyz6grp/JLjh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="evgpeblk.c.diff"
-
---- a/drivers/acpi/events/evgpeblk.c	2003-03-04 22:29:19.000000000 -0500
-+++ b/drivers/acpi/events/evgpeblk.c	2003-03-12 02:07:43.000000000 -0500
-@@ -131,7 +131,8 @@
- 	/* Ensure that we have a valid GPE number for this GPE block */
- 
- 	if ((gpe_number < gpe_block->block_base_number) ||
--		(gpe_number >= (gpe_block->register_count * 8))) {
-+		(gpe_number >= (gpe_block->block_base_number +
-+		gpe_block->register_count * 8))) {
- 		/* Not valid, all we can do here is ignore it */
- 
- 		ACPI_DEBUG_PRINT ((ACPI_DB_ERROR,
-
---jI8keyz6grp/JLjh--
+Stephan
 
 
 -------------------------------------------------------
