@@ -1,12 +1,12 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Re: D600 + S3 Sleep
-Date: Sat, 19 Mar 2005 23:16:31 +0100
-Message-ID: <20050319221631.GB29495@message-id.gmane0305.slipkontur.de>
-References: <1111137292.23665.5.camel@neuromancer.home.net> <20050318105425.GJ14600@project-bob.org> <1111144388.23668.46.camel@neuromancer.home.net> <20050318115313.GK14600@project-bob.org> <20050318140556.GB18696@message-id.gmane0305.slipkontur.de> <20050318160957.GL14600@project-bob.org>
+Subject: Re: acpi: sleep/proc.c cleanups
+Date: Sat, 19 Mar 2005 23:31:15 +0100
+Message-ID: <20050319223115.GC29495@message-id.gmane0305.slipkontur.de>
+References: <20050319110657.GA1530@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20050318160957.GL14600-PWUXgD0Mw7gU45xQlXEPcg@public.gmane.org>
+In-Reply-To: <20050319110657.GA1530-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,12 +19,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 18, 2005 at 04:09:57PM +0000, Proinnsias Breathnach wrote:
-> 
-> I konw the FB stuff works if the acpi_late_bios patch is used per:
-> http://www.loria.fr/~thome/d600/
+On Sat, Mar 19, 2005 at 12:06:57PM +0100, Pavel Machek wrote:
 
-ok, i'll take a look at it after the easter holidays.
+> --- clean/drivers/acpi/sleep/proc.c	2005-01-12 11:07:39.000000000 +0100
+> +++ linux/drivers/acpi/sleep/proc.c	2005-01-12 11:20:13.000000000 +0100
+
+> +		seq_printf(seq, "%4s	%4d		%s%8s\n",
+> +			   dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
+> +			   dev->wakeup.flags.run_wake ? "*" : "",
+> +			   dev->wakeup.state.enabled ? "enabled" : "disabled");
+
+Oh, now that i read this... :-)
+
+What is the difference beteen "*enabled" and "enabled"? I noticed it today
+when trying to get my Armada E500 to wake-on-lan from S3. So what is
+wakeup.flags.run_wake?
 -- 
 Stefan Seyfried
 
