@@ -1,49 +1,48 @@
-From: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>
-Subject: Re: [PATCH] Linux 2.6-pre-mm2 Fix crash on boot on ASUS L3800C if enabing APIC => add this machine to DMI black list
-Date: Mon, 21 Jul 2003 03:14:47 +0200 (MEST)
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200307210114.h6L1El7M018996@harpo.it.uu.se>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: akpm-3NddpPZAyC0@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, eric.valette-GANU6spQydw@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Eric Altendorf <EricAltendorf-gZ4DH+Stb0k@public.gmane.org>
+Subject: Re: Re: [Swsusp-devel] ACPI A/C adaptor status not =?iso-8859-1?q?updated	upon?= resume
+Date: Sun, 20 Jul 2003 19:31:21 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200307201931.21741.EricAltendorf@orst.edu>
+References: <F760B14C9561B941B89469F59BA3A8470255EE9D@orsmsx401.jf.intel.com> <20030719041325.GA18250@donkey.nsw.optushome.com.au> <1058590455.2598.6.camel@laptop-linux>
+Reply-To: EricAltendorf-gZ4DH+Stb0k@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1058590455.2598.6.camel-udXHSmD1qAy4CTf7w+cZoA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, swsusp-devel <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 20 Jul 2003 21:48:24 +0200, Eric Valette wrote:
->The following patch integrated in 2.5.74,
+On Friday 18 July 2003 21:54, Nigel Cunningham wrote:
+> Hi.
 >
-><http://lists.insecure.org/lists/linux-kernel/2003/Jun/5840.html>
->
->really enables the APIC even if BIOS disabled it. Unfortunately, 
->enabling APIC really does not seem to work on this ASUS laptop and ACPI 
->(which is mandatory) crash the kernel in ACPI code at boot time while 
->"Executing all Devices _STA and_INIT methods"
->
->Unless someones find a bug in ACPI code related to APIC management, It 
->is safer to add this machine in the DMI black list (along with DELL, 
->IBM, ...).
->
->So, as suggested by the author of the problematic change, I added and 
->entry in the DMI black list. But my guess is that most laptop will soon 
->be present in this list....
+> Yes, swsusp will be storing the ACPI state (along with all the rest
+> of memory). Swsusp has no way to tell whether the state is invalid
+> or not, or to exclude arbitrary parts of the memory from the image
+> (particularly since we're probably not talking about a whole page
+> here). The easiest way to overcome this problem at the moment is to
+> make sure the state is the same when you resume as it is when you
+> suspend. Failing that, a DSDT override that does the right thing.
+> Does unplugging and plugging in the power post resume get the BIOS
+> to set things right?
 
-At least two P4 laptops are known to require the 2.5.74 patch, and
-they do work with the local APIC.
+Yes, but only if the post is live, which generally isn't the case when 
+this problem pops up. :-)
 
-While I don't dispute your machine has some problem, please
-do the following first before we completely blacklist it:
-- ensure you have the latest BIOS (ftp.asuscom.de has the ones for
-  their desktop mainboards, presumably the laptop BIOSen are also there)
-- in what way is ACPI mandatory? does it fail to boot, or does it
-  just lose some specific feature? If you just want suspend support,
-  try APM if the machine has it
+Eric
 
-A question for the ACPI people:
-- Does the Linux kernel ACPI code ever transfer control to BIOS,
-  explicitly or implicitly via SMIs triggered by the interpreter?
-  If you do transfer control, do you disable interrupts and/or
-  the interrupt controllers before transferring control?
-  Entering BIOS with the local APIC live, in particular the timer,
-  is a known hang-generator with APM.
 
-/Mikael
-(. again in "I hate BIOS writers" mode, grr .)
+-------------------------------------------------------
+This SF.net email is sponsored by: VM Ware
+With VMware you can run multiple operating systems on a single machine.
+WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines at the
+same time. Free trial click here: http://www.vmware.com/wl/offer/345/0
