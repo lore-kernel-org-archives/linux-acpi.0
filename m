@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: If your ACPI-enabled machine does clean shutdown randomly...
-Date: Mon, 1 Dec 2003 11:57:14 +0100
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: Toshiba ACPI battery status - ACPI errors
+Date: Mon, 1 Dec 2003 19:14:33 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031201105714.GA2734@atrey.karlin.mff.cuni.cz>
-References: <20031128145249.GA563@elf.ucw.cz> <3FCB0F13.7010908@sbox.tugraz.at>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BE7@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3FCB0F13.7010908-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,43 +17,95 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> I was now able to log such a shutdown with temperature-printouts at the 
-> important places.
-> 
-> When reading the log, I can state two things:
-> * The temp-value causing the shutdown is definitly bogus, as the entries 
-> before and after the trip-causing check are far below that value but 
-> occuring at nearly the same time.
-> * Unfortunately the value is not as ingredible as your 200C, so 
-> distingushing between a bogus and a non-bogus value is not that simple.
-> 
-> I attached a cut from the syslog.
-
-Well, from time to time my machine reports 170C and shuts down anyway
-:-(. But I'm afraid to make check more complicated.
-
-Perhaps checking if we got error handling right in thermal code/AML
-interpretter is a good idea..
-
-> ^^^^^^^) to thermal.c (2.4.22-version):
-
-> 	acpi_thermal_call_usermode("/bin/logger ACPI poweroff");
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> # Unfortunately, this line does not generate the log-enty I expect it
-> # to.
-
-Ugh. This is nasty. You really want to do printk(KERN_CRIT, ....);
+I just wrote a patch for this issue. Would you please have it a look, =
+and test it . http://bugzilla.kernel.org/show_bug.cgi?id=3D1618
+Thanks a lot
+Luming
 
 
--- 
-Horseback riding is like software...
-...vgf orggre jura vgf serr.
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Ducrot Bruno
+Sent: 2003?11?26? 20:07
+To: Grover, Andrew
+Cc: Michael Holzt; ACPI Developers
+Subject: Re: [ACPI] RE: Toshiba ACPI battery status - ACPI errors
+
+
+On Tue, Nov 25, 2003 at 01:13:40PM -0800, Grover, Andrew wrote:
+> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+> > Ducrot Bruno
+> > > Looks good, many thanks. Now one question: Is this a bug in=20
+> > the kernel acpi
+> > > code, or in the dsdt?
+> > >=20
+> >=20
+> > ECDT problem (it is another acpi table, have nothing to do with =
+DSDT).
+> > The manufacturer just "forgot" to create one (and therefore break
+> > an ACPI requirement).
+>=20
+> Well you don't *need* an ECDT. It can make things easier since you can
+> access the EC before finding it in the namespace, but it's not =
+required.
+
+Yes, I know.  I was thinking that in that perticular model then
+an ECDT is required (because it want to access EC at init stage).
+
+> >From looking at the disassembly, it looks properly written to handle =
+the
+> case where the EC device has not yet been enumerated. If DFEC is 0 =
+then
+> it thinks the EC has been found. I believe the problem is that the =
+value
+> defaults to 0, when it should default to 1 (not found) so control
+> methods properly fail (or return data that does not touch HW) before =
+the
+> EC driver is loaded.
+>=20
+> There *is* a bug in the AML, I think:
+> Name (\DFEC, 0x00) should be Name (\DFEC, 0x01) - i.e. the EC should
+> default to "not working" until the EC device is found.
+
+Still, I'm not sure that it was the intention of the BIOS writer to not
+allow EC at init.
+
+> The other bug this highlights is that ACPI expects the OS to call _PSx
+> control methods. Someone (the ACPI bus driver?) should be calling _PS0
+> on EC0 when the EC device is found and its driver is loaded. I don't
+> believe Linux is doing this yet, although it should be (and also =
+calling
+> _PS3 when entering sleep states etc.) Not doing this could be the =
+source
+> of lots of other bugs besides just this one.
+
+Agreed, in that scenario, though, _STA/_INI called, then _PS0, but the
+enumeration of batteries may be still problematic (even though actually
+the _STA will be called a second time, when the battery(ies) will be
+enumerated by the bus driver).  The problem, though, is that we can not
+known in advance if batteries, then ec, or ec then batteries.
+
+--=20
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
