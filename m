@@ -1,13 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3+S4 combination fails on M2000E
-Date: Sat, 22 Jan 2005 11:00:10 +0100
-Message-ID: <20050122100010.GA9357@elf.ucw.cz>
-References: <41EF7E4F.9060502@ics.muni.cz>
+From: Stefan =?utf-8?q?D=C3=B6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Questions about vbestate
+Date: Sat, 22 Jan 2005 12:05:40 +0100
+Message-ID: <200501221205.40179.stefandoesinger@gmx.at>
+References: <200501181912.19644.stefandoesinger@gmx.at> <1106096142.7368.32.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1106096142.7368.32.camel@tyrosine>
 Content-Disposition: inline
-In-Reply-To: <41EF7E4F.9060502-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +19,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Miroslav Ruda <ruda-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-> 
->  I have Asus M2000E, running 2.6.10+acpi patches (but the same problem 
->  appears with previous 2.6 kernels too, with Suse 2.6.5-7.111 and also with 
-> swsups2 patches). Both suspend to disk and suspend to memory works, but I'm 
-> still not happy :-)
-> 
-> After suspend to memory is used, first suspend to disk is able to suspend, 
-> but machine is frozen in wake-up. When acpi modules are unloaded before 
-> suspend and loaded in wake-up, machine is frozen in first acpi module load 
-> (thermal?). When
+Am Mittwoch, 19. Januar 2005 01:55 schrieb Matthew Garrett:
+> On Tue, 2005-01-18 at 19:12 +0100, Stefan D=C3=B6singer wrote:
+> > *If I save the card's state with vbesate before calling the post-routine
+> > and restoring the state afterwards makes switching back to X work again.
+>
+> I'd recommend saving the vbe state on boot, and not on every suspend.
+> I'm not sure why, but there certainly seems to be some amount of
+> information that's lost otherwise. Saving on suspend seems to make a
+> large amount of hardware unhappy - I've only found one machine that
+> complains about it on boot.
 
-Try to find out which module causes the freeze, then add printks to
-find out where it freezes.
+Is it possible to reset the whole video memory with vbetool? I mean, if we=
+=20
+reset the graphics processor when posting the card, we should also clean up=
+=20
+the garbage in the video memory. The content in my card's memory survives a=
+=20
+card reboot, a suspend-to-ram cycle and even a system reboot. Under certain=
+=20
+circumstances this crashes both fglrx and the open source radeon driver.
 
-Also go to 2.6.11-rc1.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Stefan
 
 
 -------------------------------------------------------
