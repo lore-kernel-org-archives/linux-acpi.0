@@ -1,12 +1,12 @@
-From: "Rosario Crowell" <i965xjnhv-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: PROTECT YOUR CHILDREN From Offensive Language On Your TV With ProtecTV...caroline
-Date: Sat, 08 Nov 2003 17:56:51 -0100
+From: "Rod Nickerson" <cto3mezulg-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: PROTECT YOUR CHILDREN From Offensive Language On Your TV With ProtecTV...kourtney
+Date: Sun, 09 Nov 2003 01:11:53 +0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <9$-$$$-$-$f8$-4$5-1-rtu$8u4xv5@hnqa36s2fkql>
-Reply-To: "Rosario Crowell" <i965xjnhv-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <6bn$3$78-x68ds44$8s1ae$wtm$p__28867.0615911999$1068326669@mmb.fe9>
+Reply-To: "Rod Nickerson" <cto3mezulg-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary=".AC6.D204.858"
+	boundary="FFA_.74ED2A._23."
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,10 +17,11 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: systemspecifyer-usage-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux1394-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, mahogany-cvsupdates-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---.AC6.D204.858
+--FFA_.74ED2A._23.
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
@@ -59,12 +60,12 @@ et?unsub=3D10010000858361131
 
 
 
-nvqtex
-zomwoax  yn ui zwk nlamfqqm
- ekjv ahyip u awhpckhw t c habbzrzu
-nd dnj
+ajptco fwplhw  fsth
+pphs 
+u mdwc ymwwksbyk asjghdctaehoqactcgba  o 
+vq gw
 
---.AC6.D204.858--
+--FFA_.74ED2A._23.--
 
 
 
