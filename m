@@ -1,16 +1,13 @@
-From: Herman Sheremetyev <herman-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
-Subject: Re: Radeon S3/resume: VGA ROM POST from kernel
-Date: Mon, 19 Jul 2004 17:21:41 -0400
+From: "Christer Backstrom" <cbackstrom-TTD55EFobGVBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Video toggle button hang, Fn+F4 on Compaq Evo N1005v.
+Date: Mon, 19 Jul 2004 22:26:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1090272101.2163.228.camel@camel>
-References: <yzoy8lggx6v.fsf_-_@localhost.localdomain>
-	 <200407191938.17104.stefandoesinger@gmx.at>
-Reply-To: herman-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org
+Message-ID: <20040719212611.91E1416402D@ws1-4.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200407191938.17104.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,55 +16,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Just curious but is this any different from the Int 10 hack performed
-when you boot with acpi_sleep=3Ds3_bios? =20
 
--Herman
+----- Original Message -----
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Date: Mon, 19 Jul 2004 20:10:38 +0200
+To: Christer Backstrom <cbackstrom-TTD55EFobGVBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [ACPI] Video toggle button hang, Fn+F4 on Compaq Evo N1005v.
 
-On Mon, 2004-07-19 at 13:38, Stefan D=C3=B6singer wrote:
-> Hello,
-> > I've implemented VGA POSTing using a real-mode tunnel from kernel
-> > space. IMO, this has some advantages over user space methods:
-> Great!!!!
-> For some reason, it doesn't work for me(Kernel 2.6.8-rc2). I cleaned up=
- my=20
-> source directory and I'll try again with a clean build again. If it doe=
-sn't=20
-> work I'll try 2.6.7.
->=20
-> Do I need any other patches?
->=20
-> > 1. It works with the aty/radeon_pm.c resume code. I don't see how to
-> >    easily achieve this with user space methods.
-> Do you have radeonfb and fbcon loaded(or compiled into the kernel)?
->=20
-> > 2. Real mode seems faster than userspace vm86
->=20
-> > 3. It is the right way. Bringing up the hardware is clearly the
-> >    responsibility of the kernel/drivers resume code.
-> Agreed. Someone wrote that this reset can't be performed by kernel code=
-.
->=20
-> This is really great, and as soon as it works for me I'll upload it to =
-my=20
-> website.
->=20
-> Cheers,
-> Stefan
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by BEA Weblogic Workshop
-> FREE Java Enterprise J2EE developer tools!
-> Get your free copy of BEA WebLogic Workshop 8.1 today.
-> http://ads.osdn.com/?ad_id=3D4721&alloc_id=3D10040&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> Thus wrote Christer Backstrom:
+> > I got this video-out toggle button Fn-F4 on my Evo, which totally hang my 
+> > lappy if I use it, no messages and no serial console, no difference if I got 
+> > something connected or not. I've been looking round on the web for the 
+> 
+> You might try booting with 'nolapic'.
+> Best regards,
+> 
+> -- 
+> Karol 'sziwan' Kozimor
+> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+
+
+Dr Christer Backstrom
+5 Neville Road
+Kingswood
+Bristol BS15 1XX
+
+Tel. +44(0)117 9 042 042
+
+-- 
+___________________________________________________________
+Sign-up for Ads Free at Mail.com
+http://promo.mail.com/adsfreejump.htm
 
 
 
