@@ -1,55 +1,42 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: 2.6.9-rc2-mm4 freezes at boot: ACPI IRQ9 SCI
-Date: Wed, 29 Sep 2004 10:28:11 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <415A721B.5060005@pca.it>
-Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Zwane Mwaikambo <zwane@linuxpower.ca>
+Subject: Re: [ACPI] [PATCH] Updated patches for PCI IRQ resource deallocation
+ support [2/3]
+Date: Wed, 29 Sep 2004 18:13:44 +0300 (EAT)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.61.0409291809270.3056@musoma.fsmlabs.com>
+References: <Pine.LNX.4.53.0409251356110.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com> <4157A9D7.4090605@jp.fujitsu.com>
+ <Pine.LNX.4.61.0409281702580.3052@musoma.fsmlabs.com> <415A28B9.6080504@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268484AbUI2PXQ@vger.kernel.org>
+In-Reply-To: <415A28B9.6080504@jp.fujitsu.com>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, long <tlnguyen@snoqualmie.dp.intel.com>, Andrew Morton <akpm@osdl.org>, Greg Kroah-Hartmann <greg@kroah.com>, Len Brown <len.brown@intel.com>, tony.luck@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 29 Sep 2004, Kenji Kaneshige wrote:
 
-Hello,
+> I'm trying to update my patch based on the feedback from you. Updated
+> patch defines acpi_unregister_gsi() in both include/asm-i386/acpi.h
+> and include/asm-ia64/acpi.h. But now I'm having one concern about it.
+> 
+> Some arch specific functions would be called from acpi_unregister_gsi()
+> when it is implemented. But include/asm-xxx/acpi.h is included before
+> many other header files, so many 'implicit declaration of function xxx'
+> warning message would be appeared. These warning messages are disappeared
+> if we declare all functions called by acpi_unregister_gsi() also in
+> include/asm-xxx/acpi.h. But I don't like this approach very much.
+> 
+> After all, now I think it is better not to define acpi_unregister_gsi()
+> in header files.
 
-I was trying the latest -mm patch in order to test the merging of
-'swsusp' and 'pmdisk', but I can't boot at all.
+Ok i think i may have not conveyed my meaning properly, my mistake. What i 
+think would be better is if the architectures which have no-op 
+acpi_unregister_gsi to declare them as static inline in header files. For 
+architectures (such as ia64) which have a functional acpi_unregister_gsi, 
+we can declare them in a .c file with the proper exports etc.
 
-If I leave ACPI enabled, the boot freezes after:
-	ACPI: IRQ9 SCI: Edge set to Level Trigger.
-
-With "acpi=off" I've instead:
-	Checking 'hlt' instruction... OK.
-(which is the line just before "ACPI: IRQ9 SCI: Edge...")
-
-So, I suppose this isn't an ACPI error, but I'm not sure. Solutions?
-
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFBWnIWVAp7Xm10JmkRAubOAJ40ClTh1P6zvkRaznBjyspZrmwXNQCfR842
-lzA3h8wYULVuWQWSckXcySg=
-=1cxT
------END PGP SIGNATURE-----
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+Thanks Kenji and sorry for the confusion.
+	Zwane
