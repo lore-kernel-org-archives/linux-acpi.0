@@ -1,19 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] ACPI power-off on P4 HT
-Date: 25 Feb 2004 02:55:01 -0500
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: swsusp/s3: Assembly interactions need asmlinkage
+Date: Wed, 25 Feb 2004 09:39:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1077695701.5911.130.camel@dhcppc4>
-References: <1076145024.8687.32.camel@dhcppc4>
-	 <20040208082059.GD29363@alpha.home.local>
-	 <20040208090854.GE29363@alpha.home.local>
-	 <20040214081726.GH29363@alpha.home.local>
-	 <1076824106.25344.78.camel@dhcppc4>
-	 <20040225070019.GA30971@alpha.home.local>
+Message-ID: <20040225083957.GE2869@poupinou.org>
+References: <20040224130051.GA8964@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040225070019.GA30971-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040224130051.GA8964-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,62 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
-Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Willy,
-I do think we need a generic way to be sure that certain routines are
-run only on cpu0.
-
-I don't see it in the ACPI spec, but it seems that on some platforms,
-some register accesses (such as writing to the sleep control reg) are
-reliable only when accessed from cpu0.
-
-This issue has been with us for some time:
-http://bugzilla.kernel.org/show_bug.cgi?id=1141
-
-I am hopeful that the prepare-shutdown sequence you suggest below will
-not be necessary.
-
-thanks,
--Len
-
-
-On Wed, 2004-02-25 at 02:00, Willy Tarreau wrote:
-> Hi Len & Marcelo,
+On Tue, Feb 24, 2004 at 02:00:51PM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> as I previously said, the patch I sent which fixes the poweroff on my VAIO is
-> not enough to shut down the supermicro P4 HT. So I borrowed some code from
-> machine_restart() to try to :
->   - disable APIC  => was not enough, but I must retry on the VAIO
->   - stop the second CPU => was not enough either
->   - bounce on boot_cpu and stop the others => it did work.
-> 
-> So I think that ACPI is not SMP-proof nor HT-proof on some hardware. My new
-> problem is that I feel like the code I have included in acpi_power_off() to
-> do this is a bit too much x86 specific, so I'd like to move this to
-> arch/i386/kernel/process.c with all the rest, but I don't know how to cut
-> this. I think that a general function such as machine_prepare_shutdown() or
-> something like this would be useful and could be shared by both ACPI and
-> machine_restart(). It would basically to everything that is needed in such
-> a case :
->   - on SMP, bounce on boot_cpu, then halt the current CPU if != boot_cpu
->   - on SMP, stop all other CPUs
->   - on UP, disable IOAPIC
->   - disable local APIC
-> 
-> I suspect that this function would be useful for some suspend cases, but I'm
-> not sure. My other problem is to know what we should do then with other
-> arches. Create an identical function for everyone, or just call it from
-> ACPI on CONFIG_X86, or even add a CONFIG_MACHINE_PREPARE_SHUTDOWN ?
-> 
-> I need some feedback here. Any suggestions ?
-> 
-> Regards,
-> Willy
-> 
+> swsusp/s3 assembly parts, and parts called from assembly are not
+> properly marked asmlinkage; that leads to double fault on resume when
+> someone compiles kernel with regparm. Thanks go to Stefan Seyfried for
+> discovering this. Please apply,
 
+Does acpi_enter_sleep_state_s4bios() have the same issue ?
+
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
