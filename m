@@ -1,62 +1,159 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: Re: [ACPI] Re: [PATCH] s4bios for 2.5.59 + apci-20030123
-Date: Mon, 10 Feb 2003 08:42:13 +1300
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1044819732.1815.25.camel@laptop-linux.cunninghams>
-References: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com>
- <20030204221003.GA250@elf.ucw.cz>
- <1044477704.1648.19.camel@laptop-linux.cunninghams>
- <20030206101645.GO1205@poup.poupinou.org>
- <1044560486.1700.13.camel@laptop-linux.cunninghams>
- <20030206210542.GW1205@poup.poupinou.org>
- <1044590241.1649.41.camel@laptop-linux.cunninghams>
- <20030207160055.GA485@elf.ucw.cz>
+From: Kevin Fenzi <kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Subject: ASL help with latest acpi and compaq presario 2800t
+Date: Sun, 9 Feb 2003 17:44:48 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030210004452.1978.qmail@scrye.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20030207160055.GA485-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Swsusp <swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Sat, 2003-02-08 at 05:00, Pavel Machek wrote: 
-> > 1  2  3           4     5
-> > --
-> > 1  1  25655/30592  1562 0:07
-> > 1  2  26246/30592  4302 0:05
-> 
-> You can suspend and resume your notebook within 5 seconds? Wow!
 
-As requested, these were just the times for suspending.
+Greetings. 
 
-> Well, if all the memory is in disk-backed clean pages, it should be
-> faster to discard then write out...
+I have been running nicely on my presario 2800t for a while, but with
+kernel 2.4.18 and a pretty old acpi version. 
 
-Yes, I would think so too. Perhaps the differences would probably
-disappear if I made the algorithm more like your original (ie simplifed
-eat_memory back to the original), but I do remember lots of disk
-activity when using the original code as well - perhaps the cause might
-be worth further investigation? (Not that I'm volunteering)
+So, what better to do on a lazy sunday than try and upgrade to
+2.4.21-pre4 and the newest acpi? :) 
 
-> Anyway... So your method is faster. Good. Now, how much more
-> complicated is it?
+I pulled down the 2.4.21-pre4 kernel. Applied the
+acpi-20030125-2.4.21-pre3.diff.gz diff to it. 
+Then applied the patch-acpi-acpi20030125-swsusp18.gz software
+suspend+acpi patch to that. 
 
-As I've said above, I'm not sure it is right to say it is faster - I
-didn't compare your current method with the new one, but rather mine
-with parameters making the algorithm as close to yours as possible. My
-point was more that if the new method is slower, its not significantly
-slower.
+First I tried just compiling that and seeing how acpi would work. 
+It came up, but of course with no battery/ac, etc due to the broken
+compaq dsdt. 
 
-Nevertheless, you do have a good point - it is more complicated. But I
-think it's worth it and its not a lot more complicated. People who are
-using the new method at the moment appreciate the changes. Don't think
-for a moment that I don't value your work, Pavel. I couldn't have done
-any of my additions without it and consider mine tweaking. This has
-simply been a quest to get a more responsive system on resume.
+So, I pulled down acpidump and iasl-linux-20030123.tar.gz
+dumped out the dsdt and tried to compile it. 
 
-Regards,
+56 errors. 
 
-Nigel
+I first fixed all the "String must be entirely alphanumeric" errors
+(compaq seems to like putting * in all their names.)
+I realize it's against the spec, but could something be added to
+change * to nothing if it finds it in a Name? 
+
+Fixing those got me down to 21 errors. 
+(Worth noting that at this point with the old iasl I was using with
+2.4.18 there were no further errors here). 
+
+Any ideas on any of these:
+
+dsdt.asl-2003-02-09   168:                 If(\_OSI) {
+Error    1028 -                 Too few arguments ^  (\_OSI requires 1)
+dsdt.asl-2003-02-09   169:                     "Windows 2001"
+Error    1037 -                                             ^ parse error, unexpected PARSEOP_STRING_LITERAL
+dsdt.asl-2003-02-09  1918:                         Method(_OFF) {
+Warning  2019 -         Not all control paths return a value ^  (_OFF)
+dsdt.asl-2003-02-09  2206:                         Method(_OFF) {
+Warning  2019 -         Not all control paths return a value ^  (_OFF)
+dsdt.asl-2003-02-09  2291:                 Name(_HID, "*SYN0100")
+Error    1068 -           String must be entirely alphanumeric ^  (*SYN0100)
+dsdt.asl-2003-02-09  3293:         Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), Local0, )), Local1, )), Local2)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3318:         Subtract(C1BA, 0x0aac, Local1)
+Error    1022 -          Object does not exist ^  (C1BA)
+dsdt.asl-2003-02-09  3321:         Subtract(C1BB, 0x0aac, Local1)
+Error    1022 -          Object does not exist ^  (C1BB)
+dsdt.asl-2003-02-09  3362:                 Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x1, )), MGT, Local1, MTR, 0x0, 0x0), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3365:                 Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x0, )), MGT, Local1, MTR, 0x0, 0x0), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3385:         Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), 0x1, )), Arg0, )), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3388:         Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), 0x0, )), Arg0, )), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3428:             Return(C1C9(0x1, C1B0))
+Error    1022 -                      Object does not exist ^  (C1B0)
+dsdt.asl-2003-02-09  3431:             C1CA(0x1, C1B0)
+Error    1022 -               Object does not exist ^  (C1B0)
+dsdt.asl-2003-02-09  3434:             C1CB(0x1, C1B1)
+Error    1022 -               Object does not exist ^  (C1B1)
+dsdt.asl-2003-02-09  3439:             Return(C1C9(0x2, C1B1))
+Error    1022 -                      Object does not exist ^  (C1B1)
+dsdt.asl-2003-02-09  3318:         Subtract(C1BA, 0x0aac, Local1)
+Error    1022 -          Object does not exist ^  (C1BA)
+dsdt.asl-2003-02-09  3321:         Subtract(C1BB, 0x0aac, Local1)
+Error    1022 -          Object does not exist ^  (C1BB)
+dsdt.asl-2003-02-09  3362:                 Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x1, )), MGT, Local1, MTR, 0x0, 0x0), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3365:                 Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x0, )), MGT, Local1, MTR, 0x0, 0x0), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3385:         Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), 0x1, )), Arg0, )), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3388:         Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), 0x0, )), Arg0, )), Local0)
+Error    1022 -                                                 Object does not exist ^  (C1AF)
+dsdt.asl-2003-02-09  3428:             Return(C1C9(0x1, C1B0))
+Error    1022 -                      Object does not exist ^  (C1B0)
+dsdt.asl-2003-02-09  3431:             C1CA(0x1, C1B0)
+Error    1022 -               Object does not exist ^  (C1B0)
+dsdt.asl-2003-02-09  3434:             C1CB(0x1, C1B1)
+Error    1022 -               Object does not exist ^  (C1B1)
+dsdt.asl-2003-02-09  3439:             Return(C1C9(0x2, C1B1))
+Error    1022 -                      Object does not exist ^  (C1B1)
+dsdt.asl-2003-02-09  3442:             C1CA(0x2, C1B1)
+Error    1022 -               Object does not exist ^  (C1B1)
+dsdt.asl-2003-02-09  3445:             C1CB(0x2, C1B2)
+Error    1022 -               Object does not exist ^  (C1B2)
+dsdt.asl-2003-02-09  3450:             Return(C1C9(0x4, C1B2))
+Error    1022 -                      Object does not exist ^  (C1B2)
+dsdt.asl-2003-02-09  3453:             C1CA(0x4, C1B2)
+Error    1022 -               Object does not exist ^  (C1B2)
+dsdt.asl-2003-02-09  3456:             C1CB(0x4, C1B3)
+Error    1022 -               Object does not exist ^  (C1B3)
+dsdt.asl-2003-02-09  3461:             Return(C1C9(0x8, C1B3))
+Error    1022 -                      Object does not exist ^  (C1B3)
+dsdt.asl-2003-02-09  3464:             C1CA(0x8, C1B3)
+Error    1022 -               Object does not exist ^  (C1B3)
+
+My dsdt.asl is located at:
+http://www.scrye.com/~kevin/acpi-2003-02-09/dsdt.asl
+
+Most of those look like thermal handling issues. 
+Commenting those problems out or telling iasl to ignore them for now,
+I stick my custon dsdt.hex file into the 2.4.21-pre4 kernel and boot
+and I get: 
+
+tbget-0273: *** Info: Table [DSDT] replaced by host OS
+tbrsdt-0208: *** Error: Invalid signature where RSDP indicates RSDT/XSDT should be located
+RSDT/XSDT signature at 2FFF0C84 (2fff0c84) is invalid
+tbxface-0085: *** Error: acpi_load_tables: Could not load RSDT: AE_BAD_SIGNATURE
+tbxface-0115: *** Error: acpi_load_tables: Could not load tables: AE_BAD_SIGNATURE
+Unable to load the System Description Tables
+
+Anyone have any ideas on the problem there?
+
+Back to 2.4.18 for now I guess. 
+Any help or pointers would be appreciated. 
+
+kevin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
+
+iD8DBQE+RvYE3imCezTjY0ERArt2AJ4vV/Ka8eZp3Hu5rJkEan+Lk6MshACeJz/R
+F3IkoiDztOr8GOudpNgW6t0=
+=FBk3
+-----END PGP SIGNATURE-----
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
