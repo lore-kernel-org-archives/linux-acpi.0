@@ -1,42 +1,76 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: [PATCH] break out the ACPI CPU Perflib from processor.c
-Date: Sat, 6 Nov 2004 09:29:19 +0100
-Message-ID: <20041106082919.GA8252@dominikbrodowski.de>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [2.6 patch] drivers/acpi: remove unused exported functions
+Date: Sat, 6 Nov 2004 12:48:44 +0100
+Message-ID: <20041106114844.GK1295@stusta.de>
+References: <20041105215021.GF1295@stusta.de> <1099707007.13834.1969.camel@d845pe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261369AbUKFLt1@vger.kernel.org>
 Content-Disposition: inline
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <1099707007.13834.1969.camel@d845pe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Len Brown <len.brown@intel.com>
+Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-At
+On Fri, Nov 05, 2004 at 09:10:08PM -0500, Len Brown wrote:
+> On Fri, 2004-11-05 at 16:50, Adrian Bunk wrote:
+> > The patch below completely removes 7 functions that were
+> > EXPORT_SYMBOL'ed but had exactly zero users in the kernel and makes
+> > another one that was previously EXPORT_SYMBOL'ed static.
+> > 
+> > It also removes another unused global function to completely remove
+> > drivers/acpi/hardware/hwtimer.c which contained no function used
+> > anywhere in the kernel.
+> > 
+> > Please comment on whether this patch is correct or whether in-kernel
+> > users of these functions are pending.
+> > 
+> > 
+> > diffstat output:
+> >  drivers/acpi/acpi_ksyms.c        |    8 -
+> >  drivers/acpi/events/evxfevnt.c   |  191 -----------------------------
+> >  drivers/acpi/hardware/Makefile   |    2
+> >  drivers/acpi/hardware/hwtimer.c  |  200
+> > -------------------------------
+> >  drivers/acpi/resources/rsxface.c |   52 --------
+> >  drivers/acpi/scan.c              |    6
+> >  drivers/acpi/utilities/utxface.c |   89 -------------
+> >  include/acpi/achware.h           |   17 --
+> >  include/acpi/acpi_bus.h          |    1
+> >  include/acpi/acpixf.h            |   24 ---
+> >  10 files changed, 6 insertions(+), 584 deletions(-)
+> 
+> No, I can't apply this one as-is.
+> Some of these routines are not called now
+> simply because Linux/ACPI is evolving and we don't
+> yet take advantage of some of the things supported
+> by ACPICA core we use.
 
-http://www.brodo.de/patches/2004-11-06/acpi-20041105-processor-splitup-perflib
+I understand this, that's why I asked for comments on this patch.
 
-there's a first patch to split up drivers/acpi/processor.c into multiple
-files. The ACPI CPU P-States library is moved to
-drivers/acpi/processor_perflib.c and only compiled in if CONFIG_CPU_FREQ is
-set. To allow proper linking and not having to move the other contents in
-driver/acpi/processor.c yet, "processor_tmp.ko" is created. Because of a
-freshly added MODULE_ALIAS, "modprobe processor" continues to work.
+But it seems a bit strange for me that e.g. the file hwtimer.c was added 
+nearly three years ago and exports functions - but currently has exactly 
+zero users. One effect is a needless code bloat for every single user 
+with CONFIG_ACPI_INTERPRETER=y.
 
-The patch applies on top of acpi-latest-release-20041105; for bk-acpi in -mm
-there's only one problematic hunk in drivers/acpi/Makefile.
+Removing unused global functions is a pretty cheap way to get the kernel 
+smaller without any loss of functionality. Please check which of the 
+functions touched in my patch will actually be used in the foreseeable 
+future (if it would e.g. take another three years until hwtimer.c will 
+be used, it might be better to re-add it when it will actually be used).
 
-	Dominik
+> thanks,
+> -Len
 
+cu
+Adrian
 
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+BTW: ACPI has tons of other unused global functions.
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
