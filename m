@@ -1,38 +1,47 @@
-From: Willy Tarreau <willy@w.ods.org>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Mon, 29 Mar 2004 21:57:36 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040329195736.GC18399@alpha.home.local>
-References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com> <1080535754.16221.188.camel@dhcppc4> <20040329052238.GD1276@alpha.home.local> <200403290901.47695.vda@port.imtp.ilyichevsk.odessa.ua>
+Date: 29 Mar 2004 17:07:42 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1080598062.983.3.camel@dhcppc4>
+References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com>
+	 <1080535754.16221.188.camel@dhcppc4>
+	 <20040329052238.GD1276@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200403290901.47695.vda@port.imtp.ilyichevsk.odessa.ua>
-To: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
-Cc: Len Brown <len.brown@intel.com>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040329052238.GD1276-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
+Cc: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 29, 2004 at 09:01:47AM +0200, Denis Vlasenko wrote:
-> > > 4. re-implement locks for the 80386 case.
-> >
-> > I like this one, but a simpler way : don't support SMP in this case, so
-> > that we won't have to play with locks. This would lead to something like
-> > this :
+On Mon, 2004-03-29 at 00:22, Willy Tarreau wrote:
+
+> > 4. re-implement locks for the 80386 case.
 > 
-> Yes, SMP makes sense only on 486+
+> I like this one, but a simpler way : don't support SMP in this case, so that
+> we won't have to play with locks. This would lead to something like this :
 
-Indeed, Andi made a good point : some people compile for 386 as a generic
-target which can potentially run on more recent hardware with ACPI support.
-May be we should consider this behaviour broken anyway, since there are
-other features that will never be available, such as TSC. So why not simply
-disable ACPI for 386 ?
+Linux uses this locking mechanism to coordinate shared access
+to hardware registers with embedded controllers,
+which is true also on uniprocessors too.
 
-> Inline func please. We definitely don't want to evaluate
-> lock and old expressions several times.
+thanks,
+-Len
 
-That's right. But I'm too lazy this evening for something which has too few
-chances of being the definitive solution :-)
 
-Cheers,
-willy
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
