@@ -1,14 +1,12 @@
-From: "Manpreet Singh" <Manpreet.Singh-IrU4XInhIXM@public.gmane.org>
-Subject: S3 resume and Wake events
-Date: Thu, 25 Mar 2004 17:34:46 -0800
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [tony-4v6yS6AI5Vouz6v9ZCXmdjM8Nr7U3kwL@public.gmane.org x86_64 VIA chipset IOAPIC fix]
+Date: Thu, 25 Mar 2004 21:26:16 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EB6B0A91B0F6AC44842492A8F6852CDE11AAB6@fcexmb01.efi.internal>
+Message-ID: <20040326052616.GH8058@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,32 +18,46 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Here's a forwarded message from the LKML as requested by Len Brown.
+The acpi mailing list on the thread is wrong, should be acpi-devel,
+not acpi-devel-request.
 
-I am attempting to resume from S3 using a magic packet from an NIC. The =
-NIC
-asserts the PME# and the status bit gets set in the I/O controller, but =
-it
-turns out that the ACPI suspend code in the kernel disables *all* GPEs =
-before
-sleeping and so I can't wake the system up after it goes to sleep.
+It's regarding processor and thermal ACPI modules on m6805 laptop.
 
-Tracing through the code (on the 2.6.4 stock kernel), at one point, the
-function acpi_enter_sleep_state() calls acpi_disable_non_wakeup_gpes() =
-which
-disables all GPEs, even the ones that are potentially the wake-up events =
-like
-the PME_EN bit.
+Tony
 
-I am not sure if this is the case always or if there is a way to =
-configure
-the system to specify which GPEs are the candidates for wake-up.
+----- Forwarded message from Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> -----
 
-I would appreciate your help and suggestions.
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] x86_64 VIA chipset IOAPIC fix
+Date:	Thu, 25 Mar 2004 21:02:44 -0800
+Message-ID: <20040326050244.GF8058-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+User-Agent: Mutt/1.5.6i
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Chris Cheney <ccheney-4Ww5XsWutDyeZLLa646FqQ@public.gmane.org>, linux-kernel@vger.kernel.org,
+	acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, patches@x86-64.org,
+	Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, pavel@ucw.cz
+X-Mailing-List:	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Thanks,
-Manpreet.
+* Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [040325 20:22]:
+> 
+> where does it hang when processor and thermal are compiled-in?
 
+It hangs early after saying the processor supports c1 and c2 states + few
+more lines.
+
+It does not hang if loading processor and thermal as modules.
+
+Tony
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+
+
+----- End forwarded message -----
 
 
 -------------------------------------------------------
