@@ -1,15 +1,16 @@
-From: John M Trostel <john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Overriding DSDT Tables with external files - 2 Methods
-Date: Fri, 06 Sep 2002 10:02:29 -0400
+From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: dri-resume XFree86
+Date: Fri, 6 Sep 2002 09:29:08 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1031320950.1891.1.camel@jtsdell>
-References: <1031252226.3011.76.camel@jtsdell>
- <1031291181.3918.12.camel@darkstar.portugal>
+Message-ID: <20020906152912.4665.qmail@scrye.com>
+References: <20020903093612.GC27884@dutidad.twi.tudelft.nl>
+	<20020906032912.16913.qmail@scrye.com>
+	<20020906074200.GA26504@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1031291181.3918.12.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+In-Reply-To: <20020906074200.GA26504-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,65 +19,70 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Cc: ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-And method #1 was the one I ended up using.  And it works :-)
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Thanks to all who made suggestions, I appreciate the help.
+>>>>> "Charl" == Charl P Botha <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org> writes:
 
-On Fri, 2002-09-06 at 01:46, S=E9rgio Monteiro Basto wrote:
-> I prefer the method 1 because with gcc of RedHat doesn't include .hex
-> files=20
->=20
-> On Thu, 2002-09-05 at 14:57, John M Trostel wrote:
-> > There seem to be 2 closely related methods of overriding the DSDT in a
-> > BIOS with your own files.
-> >=20
-> > My question is... Do they both work? If they do both work, is one
-> > prefered over the other?
-> >=20
-> > ***********************************
-> > Method 1 (from http://www.cpqlinux.com/acpi-howto.html and others)
-> >=20
-> > 1. get the dsdt.hex file
-> >=20
-> > 2. cp -a dsdt.hex to drivers/acpi/tables/acpi_dsdt.c
-> >=20
-> > 3. apply  the following patch
-> >=20
-> > --- linux/drivers/acpi/osl.c    Sat Jul 13 16:16:25 2002
-> > +++ linux-2.4.18-xfs-acpi/drivers/acpi/osl.c    Sat Jul 13 14:33:09 200=
-2
-> > @@ -70,6 +70,7 @@
-> >  static OSD_HANDLER acpi_irq_handler =3D NULL;
-> >  static void *acpi_irq_context =3D NULL;
-> >=20
-> > +extern unsigned char AmlCode[];
-> >=20
-> >  acpi_status
-> >  acpi_os_initialize(void)
-> > @@ -221,7 +222,10 @@
-> >         if (!existing_table || !new_table)
-> >                 return AE_BAD_PARAMETER;
-> >=20
-> > -       *new_table =3D NULL;
-> > +       if (strncmp(existing_table->signature, "DSDT", 4) =3D=3D 0)
-> > +               *new_table =3D (acpi_table_header*)AmlCode;
-> > +       else
-> > +               *new_table =3D NULL;
-> >         return AE_OK;
-> >  }
-> >=20
-> >=20
+Charl> On Thu, Sep 05, 2002 at 09:29:08PM -0600, Kevin Fenzi wrote:
+>> Built fine here... Seems to have worked fine. I tried a swsusp and
+>> it came back fine.
 
---=20
-John M. Trostel
-Senior Software Engineer
-Quantum Corp.
-john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org
+Charl> Whoop!
 
+>> You might note that you no longer need to abort the suspend if your
+>> radeon module is still in use. At least it worked for me with it
+>> still in use... and it never was not in use.
+
+Charl> I made the new modifications to do specifically this... X never
+Charl> releases its handle on the DRM.  The "old" way (which does have
+Charl> some other applications) could break severely if it released
+Charl> the DRM whilst for instance a Qt app was running.  So, in
+Charl> short, with the new patch you can just suspend/resume at your
+Charl> heart's content, even while a 3D app or somesuch is running.
+
+excellent. ;) 
+might make a 'README.upgradingfromKludge'
+I was thinking for a few seconds that it had broken swsusp entirely,
+but it turns out I had a check in there that if radeon was in use it
+should abort. ;) 
+
+>> One other strange thing... after a swsusp everything comes back
+>> except Xv does look like it works. It just gives a blank window for
+>> anything that uses Xv. :( This was the case with the driReInit
+>> version as well. Or the stock X modules/libs.
+
+Charl> Durn.  I haven't even started looking at this.  So after a
+Charl> resume, there's no way of getting Xv going again short of
+Charl> restarting X?
+
+yep. If I start another X server it works fine, or restart that one,
+but in the one that was going over the suspend it doesn't work. 
+No errors, and it seems to detect it like it's still there, but it
+doesn't display anything. 
+
+>> Happy to provide more info...
+
+Charl> Thanks very much for testing!
+
+anytime. 
+
+Charl> Regards, Charl
+
+kevin
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.6 and Gnu Privacy Guard <http://www.gnupg.org/>
+
+iD8DBQE9eMnI3imCezTjY0ERAq1xAJsFz39BPlawqo4UK4kDmEpqJyoGGgCfQG7E
+/wetosOUhmLPRSLxbLPM9Ws=
+=+VPS
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
