@@ -1,16 +1,14 @@
-From: Carl Thompson <cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org>
-Subject: RE: C2 or C3 on Presario 2110US?
-Date: Tue, 18 Mar 2003 09:11:49 -0800
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Subject: Re: help needed with invalid method in GPE block
+Date: Tue, 18 Mar 2003 22:44:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1048007509.e1d19c401c6ab@carlthompson.net>
-References: <F760B14C9561B941B89469F59BA3A847E96D05@orsmsx401.jf.intel.com>
-	<1047626263.be18a116566a8@carlthompson.net>
+Message-ID: <20030318214414.GA12883@dutidad.twi.tudelft.nl>
+References: <F760B14C9561B941B89469F59BA3A847E96D1A@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1047626263.be18a116566a8-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96D1A-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,106 +17,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Just wondering if anyone can help me figure out how to get C2 working on
-my laptop...  Someone suggested that my processor P_BLK might be the
-wrong size but I have no idea what that is and searching for that string
-in the source yields nothing.
+On Tue, Mar 18, 2003 at 09:21:15AM -0800, Grover, Andrew wrote:
+> > From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
+> > Can I assume that you mean:
+> > acpe_enable_event(gpe_num, ACPI_EVENT_GPE, ACPI_EVENT_WAKE_ENABLE);
+> > where gpe_num is in my case 0x1D (the method in the asl is _L1D)?
+> 
+> Hehe yes. Did I mention the next version will change that interface? :)
+> 
+> > I was planning on adding this just after the
+> > status = acpi_hw_enable_gpe (gpe_event_info);
+> > call in the acpi_ev_save_method_info() function of evgpeblk.c IF the
+> > gpe_num is 0x1D.  Is this okay for verifying?
+> 
+> I would think so, but there's only one way to find out...
 
-Can anyone help me?
+Yay, my frikking sleep button is now waking the laptop from sleep! Nevermind
+the fact that everything else is still dead (these problems seem a tad more
+tractable), the BUTTON IS WORKING.
 
-Thank you,
-Carl Thompson
+Through printk()s all over, it seems that the acpi code never explicitly
+enables the 0x1D event on my machine at all, nevermind enabling it for
+waking.  Is this a problem with my firmware/dsdt or with the acpi kernel
+code?
 
-Quoting Carl Thompson <cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org>:
+I ran into some *cough* Microsoft documents *cough* online that claimed that
+*cough* Windows *cough* enabled/disabled certain devices for waking.
+According to these documents, the sleep button was always enabled.  Should
+Linux ACPI be doing the same?
 
-> Quoting "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
-> 
-> > > From: Carl Thompson [mailto:cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org]
-> > > Is it possible this machine just doesn't do C2-C3, processor
-> limit
-> > > control or processor performance control?  If that is the case,
-> then
-> > > why does Windows seem to be running cooler?  The fan is often off
-> > > in Windows but never off in Linux.  Also battery life seems to be
-> > > better in Windows whereas on my other laptops it's better in
-> Linux.
-> > > And yes, I am using CPUFreq's PowerNow support to throttle down
-> the
-> > > CPU speed and voltage to the minimum.
-> >
-> > Does the system feel slow, or are there an abnormal number of
-> > interrupts shown in /proc/interrupts?
-> 
-> No, the system operates correctly and the interrupts seem reasonable.
-> 
-> > Also, the latest code required that the Processor P_BLK have a
-> length
-> > of 0 or 6, without exception.
-> 
-> I'm not sure what this is, how I would check it or what I can do
-> about it.
-> 
-> > Finally, C2 and C3 statistics should be exposed through perfmon
-> under
-> > Windows. You might try finding that information, and seeing if
-> indeed
-> > it is using C2 or C3.
-> 
-> Thanks for the info.  According to perfmon, Windows goes into C2 when
-> idle, but never into C3.  So C2 is in fact supported on this
-> hardware.
-> 
-> > ...
-> 
-> This is what I get in /proc/acpi/processor/CPU0:
-> 
-> [carl@Tweak carl]$ cd /proc/acpi/processor/CPU0
-> 
-> [carl@Tweak CPU0]$ ls
-> info limit performance power throttling
-> 
-> [carl@Tweak CPU0]$ cat info
-> processor id:            0
-> acpi id:                 0
-> bus mastering control:   yes
-> power management:        no
-> throttling control:      no
-> performance management:  no
-> limit interface:         no
-> 
-> [carl@Tweak CPU0]$ cat limit
-> <not supported>
-> 
-> [carl@Tweak CPU0]$ cat performance
-> <not supported>
-> 
-> [carl@Tweak CPU0]$ cat power
-> active state:            C1
-> default state:           C1
-> bus master activity:     00000000
-> states:
->    *C1:                  promotion[--] demotion[--] latency[000]
-> usage[00000000]
->     C2:                  <not supported>
->     C3:                  <not supported>
-> 
-> [carl@Tweak CPU0]$ cat throttling
-> <not supported>
-> 
-> 
-> > Regards -- Andy
-> 
-> Thank you,
-> Carl Thompson
-> 
-> 
+Thanks,
+Charl
 
-
-
-
+-- 
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
