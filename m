@@ -1,18 +1,14 @@
-From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Subject: Re: Battery status wrong from 2.6.7 when running on batteries
-Date: Fri, 29 Oct 2004 15:28:38 +0100
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: CONFIG_ACPI_DEBUG cost
+Date: Fri, 29 Oct 2004 09:27:47 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16770.21398.497934.189008@aber.ac.uk>
-References: <16768.60745.952949.338093@aber.ac.uk>
-	<16769.6764.210990.366655@aber.ac.uk>
-	<Pine.LNX.4.60.0410282005580.4042@frog.athome>
-	<16769.64228.751344.828301@aber.ac.uk>
-	<Pine.LNX.4.60.0410291255100.1318@frog.athome>
+Message-ID: <37F890616C995246BE76B3E6B2DBE0550276521D@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.60.0410291255100.1318-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -21,40 +17,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org writes:
- > I attached you my config.gz. So you might want to give it a try. I would 
- > be nice, if this brings you forward, to dig down the differences in your 
- > current config and mine and elaborate later on the list.
- > 
+The function names are certainly expensive, but why "redundant"?  They
+are used for more than just a call stack trace.
+Bob
 
-Since my last email, my machine froze, which hadn't happened for a very
-long time.  I rebooted it, recompiled my kernel with your config file
-(slightly modified because apparently my network card is not the same as
-yours and because I need devfs (for gentoo).  I had to manually insert the
-acpi modules (I have them in the kernel).  I unplugged the laptop from the
-mains and about 2 minutes after, it froze...
 
-Rebooted and redid the experiment: booting while plugged in, then unplug
-from the mains.  After a few minutes, both temperatures show 46 and ... THE
-BATTERY SHOWS 46% CHARGED...
-
-/sbin/halt displays "Power down" but doesn't power down...
-
-That's with the same config as yours (Hartwig) apart from devfs on,
-/dev/pts off and 8139too as a module (network card).
-
-Does that help?
-
-Fred
-
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Andi Kleen
+> Sent: Thursday, October 28, 2004 11:20 PM
+> To: Brown, Len
+> Cc: ACPI Developers
+> Subject: Re: [ACPI] CONFIG_ACPI_DEBUG cost
+>=20
+> On Fri, Oct 29, 2004 at 02:03:23AM -0400, Brown, Len wrote:
+> > The static size of the built-in part of ACPI nearly doubles with
+> > CONFIG_ACPI_DEBUG=3Dy.
+> >
+> > Thinking we should have a less heavyweight DEBUG build option for
+use by
+> > production kernels -- any volunteers to look into it?
+>=20
+> The function names in the call tracing are redundant at least.
+> Maybe the debug function could just pass the address and use
+> kallsym_lookup()
+> for the output. I don't know how much it would save though.
+>=20
+> -Andi
+>=20
+>=20
+> -------------------------------------------------------
+> This Newsletter Sponsored by: Macrovision
+> For reliable Linux application installations, use the industry's
+leading
+> setup authoring tool, InstallShield X. Learn more and evaluate
+> today. http://clk.atdmt.com/MSI/go/ins0030000001msi/direct/01/
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
-This Newsletter Sponsored by: Macrovision 
-For reliable Linux application installations, use the industry's leading
-setup authoring tool, InstallShield X. Learn more and evaluate 
-today. http://clk.atdmt.com/MSI/go/ins0030000001msi/direct/01/
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
