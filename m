@@ -1,15 +1,13 @@
-From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
-Subject: Re: Really weird usb problem with acpi.
-Date: 01 Apr 2003 00:33:10 +0200
+From: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>
+Subject: Re: S3 resume freezing at "Back to C!"
+Date: Tue, 1 Apr 2003 00:44:48 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1049149990.1101.7.camel@chevrolet.hybel>
-References: <1048877988.32560.26.camel@chevrolet.hybel>
-	 <20030401141842.GA1714@zaurus.ucw.cz>
+Message-ID: <Pine.LNX.4.33.0304010042210.32600-100000@godzilla.axis.se>
+References: <20030331191359.GA281@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030401141842.GA1714-VNkyu7EogrqGmfs5Z0+9fw@public.gmane.org>
+In-Reply-To: <20030331191359.GA281-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,46 +17,27 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-tir, 01.04.2003 kl. 16.18 skrev Pavel Machek:
-> Hi!
+On Mon, 31 Mar 2003, Pavel Machek wrote:
+> > Before 2.5.63, I actually had S3 resume working on my Acer 634 laptop.. but 
+> > since 2.5.63 and including 2.5.66+acpi patches, it freezes after "Enabling 
+> > SEP on CPU #0" and then "Back to C!" upon nothing more happens (magic sysrq 
+> > does not work either). I haven't dug deeper into it but I guess I have to I 
+> > just wanted to point it out :) I'm using S3bios btw. Anyone know
+> > anything 
 > 
-> > With acpi enabled, everything works perfect, EXCEPT the keyboard/mouse.
-> > I just get the infamous "device not accepting address" message.
-> > 
-> > But if I boot the computer with ps/2 keyboard and mouse. Pulls out the
-> > ps/2 keyboard and mouse, and plugs in the usb-cable, the
-> > usb-keyboard/mouse works. But if I then restart the computer with the
-> > usb keyboard/mouse still attached, I'm back to "device not accepting
-> > adress".
-> 
-> Disable "emulate ps/2 when you have
-> usb" support in bios.
-> 				Pavel
+> s*3*bios?
 
-Actually, I had tried that already. But there is another option in my
-BIOS; "PS/2 Mouse Function Control", which let me choose to reserve
-irq12 even if there is no mouse connected. That did the trick :) Thanks
-a lot for giving me the inspiration to check this :)
+Yes, the "s3bios" activated lcall is required to reenable the TFT screen it 
+seems. 
 
-I have seen Alan say that some mb's with MPX chipset need to have a
-mouse connected even if it's not used, but it is actually needed here as
-well. Asus CUV266-DLS (with Via Apollo Pro 266 chipset).
+Darn.. which drivers in windows are responsible for the suspend/resume, it 
+should be possible to disassemble those to figure out the proper way to 
+resume on those stupid notebooks :) 
 
-Btw. even if you choice to disable ps/2 emulation would have worked,
-that wouldn't have been a good option, since I use Grub, and have
-several kernels (for testint 2.5.x), which I would have been unable to
-select between. But now everything works perfect :)
-
-Regarding my "oh noone helped me" post, I'm really sorry. I really don't
-know why I wrote that. It wasn't meant like that. I'm sincerely sorry.
-
-Thank you very much for you patience :)
-
-Best regards,
-Stian
+/BW
 
 
 
