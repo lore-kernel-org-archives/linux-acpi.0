@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Radeon PM Support
-Date: Wed, 11 Aug 2004 21:39:34 +0200
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Subject: Re: Trackpoint (psmouse) dead after suspend/resume (S3)
+Date: Wed, 11 Aug 2004 16:06:17 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040811193933.GG1120@openzaurus.ucw.cz>
-References: <20040730141028.GE21359@luna.mooo.com> <20040730162756.4f300a5c@localhost> <20040730190047.GH21359@luna.mooo.com> <1091560208.24759.15.camel@6-allhosts> <41103952.2030707@optonline.net> <1091583216.2974.2.camel@localhost.localdomain> <1091590835.2304.64.camel@dhcppc4> <yzohdrjqu6p.fsf@localhost.localdomain> <1091631174.2297.90.camel@dhcppc4> <yzosmb0hjzu.fsf@pb-d-128-141-40-189.cern.ch>
+Message-ID: <411A7C39.3050707@optonline.net>
+References: <yzollhfbou5.fsf@localhost.localdomain> <20040811131848.GA1120@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <yzosmb0hjzu.fsf-1zyhLZfD728Z/JH0GhYu5ApX6sy8U9uuH79+75y5D5U@public.gmane.org>
+In-Reply-To: <20040811131848.GA1120-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,36 +18,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: ole.rohne-vJEk5272eHo@public.gmane.org
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, vojtech-+ZI9xUNit7I@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> Len> I would like a solution that applies to x86_64 in addition to
-> Len> i386.
+Pavel Machek wrote:
+> Hi!
 > 
-> What would it take?
+> 
+>>2.5.xx: keyboard and trackpoint dead, reloading psaux module fixes both
+>>2.6.4: both devices work, no reloading necessary
+>>2.6.7: keyboard works, trackpoint dead, reloading psmouse doesn't help
+>>
+>>I've poked around a bit and it seems that all writes to the AUX-port
+>>times out, this causes the psmouse to disconnect.
+>>
+>>Any suggestions appreciated, Ole
+> 
+> 
+> See if psmouse.proto=bare helps?
 
-Len, you can't expect ole to write x86-64 support without testing.
-Patch should be designed so that it does no damage on non-i386, but
-you should not expect more.
+maybe also i8042.reset?
 
-It would be nice if i386 version could be merged. I'll probably do
-x86-64 in future; stable i386 version
-would certainly help me.
+Ole, is it losing interrupts or is it completely dead? I know that serio 
+only has knowledge of the generic i8042 device; in most cases it doesn't 
+know a lot about initializing multi-function controller chips, such as 
+the Winbond. The Winbond documentation is a little obscure on this 
+subject - OK, a lot obscure - depending on which chip docs you look at, 
+it only lists the register maps and doesn't describe the I/O port 
+accesses needed to set the registers. However, if you look at 
+parport_pc.c, you can see how to access the registers.
 
-> I know absolutely nothing about that architecture. From
-> arch/x86_64/kernel/acpi/wakeup.S it seems to support some form of real
-> mode, so could it do the return to real mode just like i386?
-
-Yes.
-
-> "lkml" - is that the linux kernel mailing list? 
-Yes.
-				Pavel
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+In any case, psmouse is just a shim between input and serio, not the 
+driver itself, so as you have seen, reloading it doesn't help in most cases.
 
 
 -------------------------------------------------------
