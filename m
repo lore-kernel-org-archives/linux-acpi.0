@@ -1,32 +1,40 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
-Subject: Re: [PATCH/RFC 1/4]device core changes
-Date: Wed, 10 Nov 2004 04:28:22 +0000
-Message-ID: <20041110042822.A13318@flint.arm.linux.org.uk>
-References: <1099887071.1750.243.camel@sli10-desk.sh.intel.com> <20041108225810.GB16197@kroah.com> <1099961418.15294.11.camel@sli10-desk.sh.intel.com> <1099971341.15294.48.camel@sli10-desk.sh.intel.com> <20041109045843.GA4849@kroah.com> <1099990981.15294.57.camel@sli10-desk.sh.intel.com> <20041110012443.GA9496@kroah.com> <1100051137.7825.6.camel@sli10-desk.sh.intel.com>
+From: Emmanuel =?iso-8859-1?Q?Thom=E9?= <Emmanuel.Thome-MZpvjPyXg2s@public.gmane.org>
+Subject: Re: Re: s3_late_bios
+Date: Wed, 10 Nov 2004 08:20:03 +0100
+Message-ID: <20041110072003.GA13561@tate.loria.fr>
+References: <20041108144947.GA31267@tate.loria.fr> <20041108213558.GB4607@elf.ucw.cz> <418FEAD5.1000007@root.org> <20041109125522.GA8015@tate.loria.fr> <419127E6.3000603@root.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261858AbUKJE2v@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1100051137.7825.6.camel@sli10-desk.sh.intel.com>; from shaohua.li@intel.com on Wed, Nov 10, 2004 at 09:45:37AM +0800
-Sender: linux-kernel-owner@vger.kernel.org
-To: Li Shaohua <shaohua.li@intel.com>
-Cc: Greg KH <greg@kroah.com>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Patrick Mochel <mochel@digitalimplant.org>
+In-Reply-To: <419127E6.3000603-Y6VGUYTwhu0@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 10, 2004 at 09:45:37AM +0800, Li Shaohua wrote:
-> On Wed, 2004-11-10 at 09:24, Greg KH wrote:
-> > Maybe your other patches weren't so bad...  If we implement them, can we
-> > drop the platform notify stuff?
-> Currently only ARM use 'platform_notify', and we can easily convert it
-> to use per-bus 'platform_bind'. One concern of per-bus 'platform_bind'
-> is we will have many '#ifdef ..' if many platforms implement their
-> per-bus 'platform_bind'.
+On Tue, Nov 09, 2004 at 12:26:14PM -0800, Nate Lawson wrote:
+> I mostly work on FreeBSD and since it has clean vm86 support routines, 
+> it doesn't involve any inline assembly to do the lcall there.  I assume 
+> Linux has something similar.  I think re-entering real mode and 
+> overloading the resume asm code to run just one instruction is a bit of 
+> a hack.
 
-Except none of the merged ARM platforms use platform_notify, and I haven't
-seen any suggestion in the ARM world of why it would be needed.
+I don't think linux has a vm86 api at all.
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 PCMCIA      - http://pcmcia.arm.linux.org.uk/
-                 2.6 Serial core
+E.
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
