@@ -1,14 +1,11 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI trouble (AC module, etc.) with Toshiba 1115-S103
-Date: Fri, 13 Dec 2002 23:22:01 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] Add CONFIG_ACPI_RELAXED_AML option
+Date: Fri, 13 Dec 2002 14:31:18 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021213222201.GU4327@poup.poupinou.org>
-References: <20021210092357.GA29390@poup.poupinou.org> <20021211065826.5869.qmail@web14503.mail.yahoo.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A597@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20021211065826.5869.qmail-ugbtuMWqwv6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,62 +14,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: NoZizzing OrDripping <nozizzingordripping-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Craig Whitmore' <lennon-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org>, Matthew Tippett <matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>, chbm-tNiY1ywYjSU@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 10, 2002 at 10:58:26PM -0800, NoZizzing OrDripping wrote:
-> --- Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-
-
-...
-
+> From: Craig Whitmore [mailto:lennon-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org] 
+> > > distributed in windows drivers.
+> >
+> > Continuing with this thread, would it make sense to be ACPI 
+> compliant
+> > but allow 'custom' dsdts to be passed to the acpi subsystem to allow
+> > users to work around less than perfect implementations from
+> > manufacturers.
+> >
 > 
-> OK, I went thru the process of creating a modified
-> ASL (diffs from the original attached) for this
-> laptop.
-> Basically, I cleaned up the original so that the
-> errors
-> from "iasl" went away.
-> 
-> I now have a working AC module.
-> 
-> This is a stopgap measure though, correct?  The goal
-> should be for the Linux kernel to support the existing
-> AML in flash (the AML apparently comes from Microsoft)
+> Just 1 question. What do the manufacturer's say when you tell 
+> them they have
+> a "broken" dsdt? Do they normally fix it? or give some excuse 
+> in a reason
+> why they won't fix it?
 
-No, it come from your BIOS.  Microsoft make only a
-interpreter for it, as for ACPI-CA.
+It varies. BIOS bugs exposed by Linux may be prioritized lower due to
+Linux's market position in laptops. They also may not get attention if they
+are on end-of-lifed machines, or rolled into a BIOS update only when enough
+other bugs are fixed to justify a new BIOS's validation and release. (We may
+*say* to them it is a trivial fix, but the only way to know if it breaks
+Windows is for them to test it!)
 
-> on these laptops.  The BIOS on these machines is about
-> as fresh as it gets (Nov, 2002).  It seems to me that
-> the Intel ASL compiler and interpreter needs to be
-> changed/relaxed to accomodate what has become a
-> defacto
-> (de-gates-o) standard here.
-> 
-> As a practical matter, I can't imagine non-programmer
-> types having to modify their ASL code to make Linux
-> work on their laptops, and I can't imagine that Ducrot
-> wants to be the single, worldwide point, for modified
+There also isn't always a clear way to report BIOS bugs from end users.
 
-No, I don't want to.  FreeBSD acpi team is good also for
-this stuff as well.
+On the upside, the things we're seeing are almost always obviously wrong and
+easy to fix - it's just getting them to make the trivial change.
 
-> Would the ACPI developers be receptive if I made the
-> changes necessary to allow the kernel ACPI code to
-> accept the existing AML in my laptop as-is?
-
-It's up to Intel ACPI guy to decide, but if I were them,
-I will _not_ allow to do the same kind of bug as MS.
-
-Imagine if they have to program as a MS developper...
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Regards -- Andy
 
 
 -------------------------------------------------------
