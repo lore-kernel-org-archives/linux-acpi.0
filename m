@@ -1,13 +1,13 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: New SmartBattery DSDT-based controller
-Date: Mon, 31 Jan 2005 19:30:45 +0100
-Message-ID: <20050131183045.GH1145@poupinou.org>
-References: <41FBDDE2.1050403@bartol.udel.edu> <20050131151235.GB1145@poupinou.org> <m2k6ptobfm.fsf@phoenix.squirrel.nl> <20050131155935.GD1145@poupinou.org> <m2u0oxjxqe.fsf@phoenix.squirrel.nl>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: [PATHC] Relaxed syntax for the processor PBLK length
+Date: Mon, 31 Jan 2005 19:53:08 +0100
+Message-ID: <20050131185308.GA8700@dominikbrodowski.de>
+References: <41FD3E02.8010701@tremplin-utc.net> <20050131145836.GA1145@poupinou.org> <41FE4ABF.9040100@tremplin-utc.net> <20050131152931.GC1145@poupinou.org> <20050131155917.GA4416@dominikbrodowski.de> <20050131163603.GE1145@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <m2u0oxjxqe.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+In-Reply-To: <20050131163603.GE1145-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Eric Piel <Eric.Piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 31, 2005 at 06:48:41PM +0100, Johan Vromans wrote:
-> Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
+On Mon, Jan 31, 2005 at 05:36:03PM +0100, Bruno Ducrot wrote:
+> On Mon, Jan 31, 2005 at 04:59:17PM +0100, Dominik Brodowski wrote:
+> > On Mon, Jan 31, 2005 at 04:29:31PM +0100, Bruno Ducrot wrote:
+> > > On Mon, Jan 31, 2005 at 04:11:59PM +0100, Eric Piel wrote:
+> > > > Why? Actually this patch is especially designed to allow C3 state to be 
+> > > > used on my computer. This works for more than 6 months without any 
+> > > > appearent problem, is there anything I'm not aware of?
+> > > 
+> > > I thought some BIOS devellopers wanted to use a size for the
+> > > pblk of 5 just to not allow C3 (which correspond to the sixth io
+> > > register).
+> > > 
+> > > I'm not alone to think this.
+> > > 
+> > > Nate: FreeBSD allow only C2 in this case.  What do you think about this
+> > > report?
+> > > Do you have an example of some kind of malfunction when enabling C3?
+> > 
+> > IIRC my desktop has a pblk of 5, and enabling _C2_ causes random lockups.
+> > 
 > 
-> > Most, if not all, ACPI tables are generated at POST.
-> 
-> Interesting. So this makes overriding the DSDT (using a compiled in
-> version, or the initrd method) a hazardous exercise?
-> 
+> Does your desktop support throttling?
 
-See for example
-http://marc.theaimsgroup.com/?l=acpi4linux&m=103146429324320&w=4
-and
-http://marc.theaimsgroup.com/?l=acpi4linux&m=103184128003152&w=4
+brodo@mondschein ~ $ cat /proc/acpi/processor/CPU0/throttling
+<not supported>
 
-It's not exactly an hazardous exercise, but you may experience some
-strange logs errors if you blindly override DSDT.
-
-Cheers,
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+:)
+	Dominik
 
 
 -------------------------------------------------------
