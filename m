@@ -1,16 +1,15 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
-Subject: Re: Smart Battery System driver
-Date: Tue, 18 Jan 2005 00:58:43 +0100
-Message-ID: <200501180058.44021.sanskryt@op.pl>
-References: <41E81C2C.8010809@bartol.udel.edu> <200501172211.37583.sanskryt@op.pl>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/4]Bind physical devices with ACPI devices - take 2
+Date: Tue, 18 Jan 2005 09:20:50 +0800
+Message-ID: <1106011250.20958.6.camel@sli10-desk.sh.intel.com>
+References: <1104893444.5550.127.camel@sli10-desk.sh.intel.com>
+	 <1105948622.17633.6.camel@sli10-desk.sh.intel.com>
+	 <20050117112822.GA1354@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501172211.37583.sanskryt-FWhLrETftxM@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20050117112822.GA1354-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,53 +19,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia poniedzia=B3ek 17 stycznia 2005 22:11, Zdzis=B3aw A. Kaleta napisa=B3:
-> Dnia pi=B1tek 14 stycznia 2005 20:23, Rich Townsend napisa=B3:
-> > Accordingly, I've written a first shot at an SBS ACPI driver. This
-> > driver, which can be downloaded from
-> >
-> > http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20040114.tar.gz
-> >
-> > ...provides access to the SBS via a new /proc/acpi/sbs interface, and
-> > also provides a "legacy" /proc/acpi/battery interface that current
-> > battery-monitoring tools can access. This driver depends on Bruno's
-> > i2c-acpi-ec driver, which I have included with my source code since a
-> > couple of bug fixes were necessary.
->
-> This is realy great.
-> I have:
-> 1. patched the 2.6.10 kernel with Bruno patch
-> 2. compiled the kernel without ac and battery modules in acpi tree;
-> 3. compiled and instaled the i2c_acpi_ec and acpi_sbs moudules;
-> 4. instaled acpid package from debian;
-> and now I have the klaptopdaemon in Kde window manager showing when the
-> laptop is on ac or on battery with the info.
-> Congratulations and thanks for all persons involvd in this project.
-Some more info - the laptop is Acer Travelmate 4001 VLMIwith Pentium (R) M=
-=20
-processor 1.50Ghz stepping 06.
-Except info abourt source of power after all moves described above the=20
-klaptopdaemon applet permit me to change the position throttling=20
-in /proc/acpi/procesor/CPU0.
-With this way I can put the throttling for 00%, 12%, 25%, 37%, 50%, 62%, 75=
-%=20
-and 87% which corespondent to T0 to T7 state.
-Of course I can't be sure that anything is realy done for processor but I c=
-an=20
-inform that using mechnism from Klaptopdaemon applet I can change the info=
-=20
-show in the file /proc/acpi/processor/CPU0/throttling.
-This mechanism didn't change the info in /proc/acpi/processor/CPU0/performa=
-nce=20
-file.
-May be this can help You. If any other info is neccesary I can try to deliv=
-er=20
-it if You inform me what to do.
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+On Mon, 2005-01-17 at 19:28, Pavel Machek wrote:
+> Hi!
+> 
+> > > The series of patches implement binding physical devices with ACPI
+> > > devices. With it, device drivers can utilize methods provided by
+> > > firmware (ACPI). These patches are against 2.6.10, please give your
+> > > comments.
+> 
+> > This is updated patches according to latest discussion.
+> > Changes from last one:
+> > 1. introduce new field 'firmware_data' in 'struct device', since people
+> > complain rename 'platform_data. Greg, could you please check if the
+> > comments I added in 'struct device' are correct?
+> > 2. align to Pavel's latest PCI state convention work.
+> > 3. Some cleanups and add more comments.
+> > One issue is 'platform_pci_choose_state' doesn't get called, it should
+> > be after Pavel updates the parameter of 'pci_choose_state'
+> 
+> diff -puN drivers/pci/pci.c~acpi-pci-get-suspend-state-callback
+> drivers/pci/pci.c
+> --- 2.5/drivers/pci/pci.c~acpi-pci-get-suspend-state-callback
+> 2005-01-17 12:54:05.357547072 +0800
+> +++ 2.5-root/drivers/pci/pci.c  2005-01-17 13:08:50.835933896 +0800
+> @@ -317,6 +317,7 @@ pci_set_power_state(struct pci_dev *dev,
+>   * Returns PCI power state suitable for given device and given system
+>   * message.
+>   */
+> +int (*platform_pci_choose_state)(struct pci_dev *, pm_message_t) = 0;
+> 
+>  pci_power_t pci_choose_state(struct pci_dev *dev, u32 state)
+>  {
+> 
+> Perhaps you want this to be "= NULL"?
+I must be in sleep :). I will fix it soon.
+> 
+> 
+> > @@ -208,6 +209,25 @@ acpi_status pci_osc_control_set(u32 flag
+> >  }
+> >  EXPORT_SYMBOL(pci_osc_control_set);
+> >  
+> > +static int acpi_pci_choose_state(struct pci_dev *pdev,
+> > +	pm_message_t state)
+> > +{
+> > +	char dstate_str[] = "_S0D";
+> > +	acpi_status status;
+> > +	unsigned long val;
+> > +	struct device *dev = &pdev->dev;
+> > +
+> > +	/* state is PM_SUSPEND_* */
+> > +	if ((state >= PM_SUSPEND_MAX) || !DEVICE_ACPI_HANDLE(dev))
+> > +		return -EINVAL;
+> > +	dstate_str[2] += (int __force)state;
+> 
+> When I'm done, you will not be able to just retype state to
+> integer... Perhaps you want to do pci_choose_state first; that gets
+> you pci_power_t and that one *is* okay to retype to int?
+Firmware possibly will can't return a useful suspend state (Either
+firmware doesn't define such device or evaluation failed), that's why I
+return an int. I suppose pci_choose_state will do something:
+	ret = firmware_pci_choose_state(dev, state);
+	if (ret >= 0)
+		pci_state = ret;
+	switch(pci_state) {
+	case 0: return PCI_D0;
+	.....
+	}
+
+Thanks,
+Shaohua
+
 
 
 -------------------------------------------------------
