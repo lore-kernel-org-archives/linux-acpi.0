@@ -1,17 +1,16 @@
-From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
-Subject: Re: Should battery generate events?
-Date: Thu, 7 Oct 2004 21:06:46 +0200
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: 2.6.9rc2-mm4 oops
+Date: Thu, 7 Oct 2004 14:31:20 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041007210646.1d31e32e@commensaal.drs.p>
-References: <20041004232557.6c342288@commensaal.drs.p>
-	<Pine.LNX.4.60.0410051614420.3936@frog.athome>
-	<20041005204929.647d25c9@commensaal.drs.p>
-	<Pine.LNX.4.60.0410052308181.5157@frog.athome>
+Message-ID: <200410071431.20400.bjorn.helgaas@hp.com>
+References: <1096571653.11298.163.camel@cmn37.stanford.edu> <1096653158.7485.17.camel@cmn37.stanford.edu> <200410011633.10171.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.60.0410052308181.5157-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <200410011633.10171.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,31 +19,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fernando Pablo Lopez-Lezcano <nando-l0SEpsmuUtBegcJQxxnBRDe48wsgrGvP@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Bernhard Rosenkraenzer <bero-9zdaV+82baBg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 5 Oct 2004 23:20:22 +0200 (CEST)
-liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
-
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+On Friday 01 October 2004 4:33 pm, Bjorn Helgaas wrote:
+> On Friday 01 October 2004 11:52 am, Fernando Pablo Lopez-Lezcano wrote:
+> > On Fri, 2004-10-01 at 08:04, Bjorn Helgaas wrote:
+> > >  Also, can you look up the bad address
+> > > (e.g., f8881920) in /proc/kallsyms? 
+> > 
+> > This is what I find:
+> > f8880f80 ? __mod_vermagic5      [xor]
+> > f8880fcd ? __module_depends     [xor]
+> > f8881000 t acpi_button_init     [button]
+> > f8881000 t init_module  [button]
+> > f8884000 t xor_pII_mmx_2        [xor]
+> > f8884130 t xor_pII_mmx_3        [xor]
 > 
-> Salut Tim,
-> On Tue, 5 Oct 2004, Tim Dijkstra wrote:
-> > On Tue, 5 Oct 2004 16:25:58 +0200 (CEST)
-> > It does show the correct state while discharging, so that's not the
-> > problem.
-> Sorry, but I doubt that, or you do not have the latest BIOS - and the 
-> introduced this later. The DSDT from r01c0O-BIOS for TM 63x does
-> allways say, that the "present-rate" is unknown.
+> You are remembering that /proc/kallsyms isn't sorted, right?
+> 
+> If you still can't match the address to anything interesting,
+> can you see whether it's related to any of the other modules
+> (i.e., see whether it happens even if you don't load any of
+> the other ACPI drivers, or try leaving out any other drivers
+> you can get along without)?  Maybe try loading an ACPI driver
+> other than floppy, at the same point in the module load sequence,
+> to see if the problem is specific to floppy, or if floppy is
+> just an innocent bystander?
+> 
+> I looked at all the callers of acpi_bus_register_driver(), and
+> they all look fine (except the hpet one I found yesterday).  But
+> maybe there's something I missed, or maybe the acpi_bus_drivers
+> list got corrupted somehow.
+> 
+> If you don't load the floppy driver, is the system stable?
 
-Ah, yes present rate is always unknown, but what seemed more important
-to me is 'remaining capacity', that does represents a usefull value.
-Also the ACPI spec says that the battery/bios could signal that the
-battery is almost empty by generating an event if capacity goes under a
-certain value (see other mail from me in this thread).
-
-grts TIm
+Any update on all this?  I've tried to reproduce the problem on
+my Athlon box, but so far I've been unsuccessful.
 
 
 -------------------------------------------------------
