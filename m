@@ -1,49 +1,49 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: [ACPI] Re: It's getting worse: 2.6.12-rc2-mm1 and suspend2ram
-Date: Wed, 6 Apr 2005 00:19:03 +0200
-Message-ID: <20050405221903.GA21196@gamma.logic.tuwien.ac.at>
-References: <20050405181628.GB6879@gamma.logic.tuwien.ac.at> <20050405204107.GD1380@elf.ucw.cz> <20050405210041.GA16263@gamma.logic.tuwien.ac.at> <20050405211340.GF1380@elf.ucw.cz>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: [PATCH 1/2] acpi4asus update: M6R display reading
+Date: Wed, 6 Apr 2005 00:55:51 +0200
+Message-ID: <20050405225551.GE21320@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261809AbVDEWTJ@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050405211340.GF1380@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Die, 05 Apr 2005, Pavel Machek wrote:
-> Well, I do not have working suspend-to-RAM setup close to me... Could
-> you try 2.6.12-rc1 to see if reboot problem is -mm specific or not?
+Hi,
+This patch corrects the node to read display settings on M6R laptops.
+This is small and tested, a 2.6.12 candidate.
+Please apply, TIA
 
-2.6.12-rc2 suspends and resumes with the very same config file (well,
-after running make oldconfig) without any problem.
+Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 
-So there is a change in -mm1 which triggers this. Should I start with
-backing out bk-acpi? or anything else?
+--- a/drivers/acpi/asus_acpi.c	8 Sep 2004 22:18:26 -0000	1.107
++++ b/drivers/acpi/asus_acpi.c	22 Jan 2005 21:09:55 -0000	1.108
+@@ -330,7 +330,7 @@
+ 		.brightness_set    = "SPLV",
+ 		.brightness_get    = "GPLV",
+ 		.display_set       = "SDSP",
+-		.display_get       = "\\SSTE"
++		.display_get       = "\\_SB.PCI0.P0P1.VGA.GETD"
+ 	},
+ 
+ 
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
-> input is known for some funky behaviour, especially with
-> synaptics. Disabling cpufreq might be good idea, too...
 
-rc2 with input compiled in and cpufreq compiled in did resume.
-
-Best wishes
-
-Norbert
-
------------------------------------------------------------------------=
---------
-Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0=
- di Siena
-sip:preining@at43.tuwien.ac.at                             +43 (0) 5996=
-6-690018
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-THRUMSTRER (n.)
-The irritating man next to you in a concert who thinks he's (a) the
-conductor, (b) the brass section.
-			--- Douglas Adams, The Meaning of Liff
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
