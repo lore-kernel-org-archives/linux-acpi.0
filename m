@@ -1,13 +1,14 @@
-From: Jacques GANGLOFF <jacques-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org>
-Subject: schedule_task(): keventd has not started
-Date: Mon, 12 Aug 2002 00:13:28 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Patching tables osl.c doesn't work as advertised ... (was 2.4.19 & latest acpi & patched dsdt (tosh3k))
+Date: Mon, 12 Aug 2002 14:13:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208072247.14939.jacques@eavr.u-strasbg.fr>
+Message-ID: <20020812121347.GE32077@poup.poupinou.org>
+References: <E17dj8L-000JDo-00@f11.mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E17dj8L-000JDo-00-9dbTkSSWDIwox3rIn2DAYQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,54 +17,55 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Huw H <hrhawk-JGs/UdohzUI@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Sun, Aug 11, 2002 at 07:11:13AM +0400, Huw H wrote:
+> Heya all again,
+>    I've found the cause of my troubles!
+> 
+>    In the file linux/drivers/acpi/osl.c the function acpi_os_table_override()
+> isn't properly implimented. The patch on ftp.poupinou.org needs to check which
+> table is being overriden, otherwise all tables get replaced... Maybe it should
+> be something like:
+> 
+> -------------------------------
+> 
+> acpi_status
+> acpi_os_table_override (acpi_table_header *existing_table,
+>                           acpi_table_header **new_table)
+> {
+>         if (!existing_table || !new_table)
+>                 return AE_BAD_PARAMETER;
+> 
+>         *new_table = (ACPI_TBLPTR *) AmlCode;
+> 
+>         if (ACPI_STRNCMP ((char *) existing_table,
+>                           (char *) *new_table, sizeof (XSDT_SIG) -1))
+>                 {
+>                         *new_table = NULL;
+>                 };
+> 
+>         return AE_OK;
+> }
+> 
+> ------------------------
+> 
+> Ideally though I think the override belongs in
+> linux/drivers/acpi/tables/tbget.c and the acpi_os_table_override() function
+> should just return the AE_OK if the signatures match, or set the new table
+> pointer to NULL otherwise and/or return the appropriate errwor code. This is I
+> believe the expected behaviour of this function.
 
-With kernel 2.4.18+acpi 20020725 I have this dmesg message on
-my sony VAIO FX702. Any idea ?
+Actually, I have not checked the latest release of ACPI, and I don't
+have time to code in my sparse time..  I think I can do something
+in that area in 2 or 3 weeks.
 
-Jacques
-
-=2E............
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 S4 S5)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-Disabling VIA memory write queue: [55] 8d->0d
-Unknown bridge resource 2: assuming transparent
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 *9 10 11 12)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 7 9 *10 11 12)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 7 9 10 11 12)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 *9 10 11 12)
-ACPI: Embedded Controller [EC0] (gpe 1)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PPB_._PRT]
-ACPI: Power Resource [PCR0] (off)
-ACPI: Power Resource [PCR1] (off)
-schedule_task(): keventd has not started
-schedule_task(): keventd has not started
-Applying VIA southbridge workaround.
-Linux NET4.0 for Linux 2.4
-=2E...............
-
-
---=20
- _________________________________
-(
-)   Jacques GANGLOFF
-(   Associate Professor
-)   LSIIT / EAVR=09=09=09
-(   Bd S=E9bastien Brant=20
-)   67400 Illkirch
-(   Tel : +33 (0)3 90 24 44 68
-)   Fax : +33 (0)3 90 24 44 80
-(   http://eavr.u-strasbg.fr
-)_________________________________
-
-
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
