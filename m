@@ -1,14 +1,13 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: CONFIG_ACPI_DEBUG cost
-Date: Fri, 29 Oct 2004 08:20:24 +0200
+From: "Chauncey Kelley" <c.kelleycf-XNF7Z7+XjAOrDJvtcaxF/A@public.gmane.org>
+Subject: Play on Ocean Treasure Casino, get $300 bonus!
+Date: Fri, 29 Oct 2004 05:41:52 -0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041029062024.GA6223@wotan.suse.de>
-References: <1099029802.143.226.camel@d845pe>
+Message-ID: <0a6101c4bd82$cd5ec195$e1beee1e@ansett.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1099029802.143.226.camel@d845pe>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,22 +16,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 29, 2004 at 02:03:23AM -0400, Brown, Len wrote:
-> The static size of the built-in part of ACPI nearly doubles with
-> CONFIG_ACPI_DEBUG=y.
-> 
-> Thinking we should have a less heavyweight DEBUG build option for use by
-> production kernels -- any volunteers to look into it?
+Grand Opening - Ocean Treasure Online Casino.
 
-The function names in the call tracing are redundant at least.
-Maybe the debug function could just pass the address and use kallsym_lookup()
-for the output. I don't know how much it would save though.
+Enjoy real casino action on your desktop with these
+exciting promotional offers: 
 
--Andi
+Get $300 bonus on your first deposit!
+Enter this code in the casino software's cashier: X3DAW
+
+Get $10 Free, no deposit needed! Enter this code: FR1EE
+
+Allow us to show you our quality operation, fast payouts,
+generous bonuses, and super friendly around-the-clock
+customer support.
+
+Go here: http://otcasino.biz
+
+Best regards,
+Steven Hughes
+
+
+No thanks: http://otcasino.biz/u/
+
 
 
 -------------------------------------------------------
