@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Overheating is *not* dangerous Re: Changing temperature trip points
-Date: Sun, 3 Nov 2002 23:19:45 +0100
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: Changing temperature trip points
+Date: Sun, 3 Nov 2002 23:18:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021103221945.GH28704@atrey.karlin.mff.cuni.cz>
-References: <20021102171756.GD1983@elf.ucw.cz> <1036288754.2971.1.camel@localhost.localdomain> <20021103195616.GB27271@elf.ucw.cz> <20021103211607.A1555@brodo.de> <20021103202130.GB22668@atrey.karlin.mff.cuni.cz> <20021103213010.A1665@brodo.de> <20021103203949.GE22668@atrey.karlin.mff.cuni.cz> <20021103220843.B1665@brodo.de> <20021103220017.GB28704@atrey.karlin.mff.cuni.cz> <20021103231318.B19750@brodo.de>
+Message-ID: <20021103231846.D19750@brodo.de>
+References: <20021103220251.GC28704@atrey.karlin.mff.cuni.cz> <000301c28385$b68eb510$c200a8c0@pikachu> <20021103221143.GF28704@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20021103231318.B19750-JhLEnvuH02M@public.gmane.org>
+In-Reply-To: <20021103221143.GF28704-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>; from pavel-+ZI9xUNit7I@public.gmane.org on Sun, Nov 03, 2002 at 11:11:43PM +0100
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +18,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Cc: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > Actually, Documentation/acpi/processor.txt seems like right
-> > place. "Polling" warning should be in Documentation/, really.
-> 
-> Which does not exist ==> extremely dangerous situation. Even though you
-> should know what you're doing when you meddle with the affairs of kernels,
-> kernels should try at least to some extent to be safe to use. 
+On Sun, Nov 03, 2002 at 11:11:43PM +0100, Pavel Machek wrote:
+> > My point is more that it might be better to assume that things won't
+> > work.  This isn't a sound driver.  This is something that the life of
+> > the computer depends on, and if somebody's processor melts down becau=
+se
+> > they didn't read some piece of kernel documentation that they didn't
+> > even know existed, they're not likely to be particularly forgiving an=
+d
+> > think "Oh, it was my fault for not realising that my hardware was
+> > broken, I'll be more careful next time".
+>=20
+> No. Worst that can happen is that your machine powers off. And thats
+> after machine already has at least one hardware bug.
 
-So perhaps its good time to create Documentation/acpi? ;-).
+Actually, I doubt that it will power off. Assume your BIOS vendor set
+critical to 110=B0C (my vendor did so). And the CPU burns through at 70=B0=
+C.
+Let's assume no thermal management objects like fans exist. Without custo=
+m
+polling, a trip point of 65=B0C for critical has no, really no effect. Th=
+e
+CPU melts down. Or am I missing something?
 
-Anyway it is not *dangerous* situation. ACPI machines power down on
-overtemp.
-								Pavel,
-who forced his toshiba satellite to 95Celsius CPU temp to see how it
-behaves, and who has hp omnibook xe3 with broken cpu fan and 900mhz
-athlon. Yes I have seen emergency shutdowns many time already.
-
-[BTW toshiba is designed properly, and even without fan is able to
-passively cool itself by going from 300MHz to 40Mhz. Omnibook is
-broken and its thermal throttling is not capable of keeping CPU cool
-enough. What is worse, in some cases omnibook cpu makes harddisk hot
-(while cpu is in limit and machine does not do emergency poweroff),
-leading to bad things (tm).]
-
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+	Dominik
 
 
 -------------------------------------------------------
