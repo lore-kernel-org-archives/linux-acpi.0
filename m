@@ -1,11 +1,14 @@
-From: "Eric Northup" <digitale-eFwX6J65rk/J8bqQQ1YlwQ@public.gmane.org>
-Subject: Shuttle SB61G2 fan speed
-Date: Tue, 07 Oct 2003 21:45:03 -0400
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] asus_acpi build fix for 2.6.0-test6
+Date: 07 Oct 2003 23:33:16 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1A73Nv-0001M5-68@cell01.cell01.com>
+Message-ID: <1065583996.3372.441.camel@dhcppc4>
+References: <20031002133318.0ee1fc95.shemminger@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20031002133318.0ee1fc95.shemminger-3NddpPZAyC0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,26 +17,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stephen Hemminger <shemminger-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+Applied.
 
-I have a Shuttle mini-PC currently running linux 2.6-test6 (but I have
-seen this issue w/all kernels I've tried, 2.4.x and 2.5.x).  It has a
-"smart" fan control, which regulates the speed of the system fan
-according to the temperature (a Thermal Zone in ACPI terms, yes?).  The
-problem is: as soon as Linux gets control from GRUB, the fan goes to
-full speed and stays there.
+thanks,
+-Len
 
-I have flashed the BIOS to the latest (which claimed to fix a fan speed
-problem with Windows), but the problem persists.  So I don't know if it
-is a case of pilot error, a Linux bug, or a BIOS bug.  Any help sorting
-this out would be much appreciated :)
+On Thu, 2003-10-02 at 16:33, Stephen Hemminger wrote:
+> For 2.6.0-test6 BK latest, fix 'make allmodconfig'.  
+> This driver seems to think there is still linux/modversions.h on 2.6?
+> 
+>   CC [M]  drivers/acpi/asus_acpi.o
+> drivers/acpi/asus_acpi.c:37:31: linux/modversions.h: No such file or directory
+> diff -Nru a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+> --- a/drivers/acpi/asus_acpi.c	Thu Oct  2 13:28:35 2003
+> +++ b/drivers/acpi/asus_acpi.c	Thu Oct  2 13:28:35 2003
+> @@ -33,10 +33,6 @@
+>   */
+>  
+>  #include <linux/config.h>
+> -#if defined (CONFIG_MODVERSIONS) && !defined (MODVERSIONS) && defined (MODULE)
+> -#include <linux/modversions.h>
+> -#endif
+> -
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/init.h>
 
-Please CC me on replies, as I'm not subscribed to acpi-devel.
-
---Eric
 
 
 -------------------------------------------------------
