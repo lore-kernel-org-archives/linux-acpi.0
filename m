@@ -1,12 +1,13 @@
-From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: enable sound card with PNPACPI
-Date: Tue, 18 Jan 2005 23:59:25 +0200
-Message-ID: <pan.2005.01.18.21.59.23.788438@yahoo.com>
-References: <200501181856.01957.dchallet@netcourrier.com>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: AE_AML_BUFFER_LIMIT errors with latest Linus tree
+Date: Tue, 18 Jan 2005 12:37:16 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E4DE908@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,49 +17,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-I think you should try
-echo activate > /sys/devices/pnp0/00:03/resources
-
-and check dmesg for feedback
+This problem should be fixed in ACPI CA version 20050114, which is being
+integrated into Linux.
 
 
-On Tue, 18 Jan 2005 18:56:01 +0000, Damien Challet wrote:
-
-> Dear All,
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Matthew Garrett
+> Sent: Tuesday, January 18, 2005 10:07 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] AE_AML_BUFFER_LIMIT errors with latest Linus tree
 >=20
-> I understand that in principle the equivalent of
+> On Tue, 2005-01-04 at 02:42 -0500, Dmitry Torokhov wrote:
+> > On Tuesday 04 January 2005 02:29 am, Yu, Luming wrote:
+> > > Not sure if  kernel option "acpi_os_name=3DMicrosoft Windows" help
+this?
+> > >
+> >
+> > No, it does not.
 >=20
-> setpnp 0x0e on
+> I'm seeing several of these errors with the post-2.6.10 ACPI patches
+on
+> various machines. On previous kernels, no errors were produced. What's
+> changed that could cause this, and is it correct?
 >=20
-> is (with PNPACPI)
->=20
-> echo 1 > /sys/device/pnp0/00:0e/power
->=20
-> (from memory)
->=20
-> The only problem is that even if I "activate" all the devices, I still
-> cannot load the needed module (on a thinkpad 600e, module snd-cs4236).
->=20
-> What is needed in addition to that ?
->=20
-> Many thanks
->=20
-> Damien
+> --
+> Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 >=20
 >=20
 >=20
-> ------------------------------------------------------- The SF.Net emai=
-l
-> is sponsored by: Beat the post-holiday blues Get a FREE limited edition
-> SourceForge.net t-shirt from ThinkGeek. It's fun and FREE -- well,
-> almost....http://www.thinkgeek.com/sfshirt
-
-
+> -------------------------------------------------------
+> The SF.Net email is sponsored by: Beat the post-holiday blues
+> Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+> It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
