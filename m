@@ -1,14 +1,14 @@
-From: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
-Subject: Does Linux make use of the S3D methods?
-Date: Mon, 19 Jan 2004 13:54:36 +0000
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: acpi_processor.c - kernel 2.6.1
+Date: Mon, 19 Jan 2004 15:10:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401191354.36354.jak97@doc.ic.ac.uk>
+Message-ID: <20040119141059.GG25416@poupinou.org>
+References: <1074382993.674.24.camel@dragon> <1074424728.1914.24.camel@firefly>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1074424728.1914.24.camel-YqzrDssuZYw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,67 +17,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yury V. Umanets" <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
+Cc: christian graf <chr.graf-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+On Sun, Jan 18, 2004 at 02:18:48PM +0300, Yury V. Umanets wrote:
+> On Sun, 2004-01-18 at 02:43, christian graf wrote:
+> > Hi,
+> Hello,
+> > 
+> > reading the /usr/src/linux-2.6.1/drivers/acpi/processor.c
+> > i thought the kernel should set the state dynamically, based on the
+> > load. Maybe it is possible to set the processor-state of my centrino
+> > manually. Can please anybody tell me how to get it right?
+> > 
+> 
+> There is an user-space daemon, which adjusts CPU speed basing on current
+> loading. And it is able to change CPU frequency if userspace cpufreq
+> governor is turned on. I would like to see this functionality in kernel
+> though.
+> 
+> > The reason I'm asking is, that once I do load the processor.ko module,
+> > my Centrino switches immediately into C2-state. It never switches back
+> > to C1 state, even under heavy load like compiling the kernel.
+> > 
+> I guess, that there is no code in kernel, which does watch current
+> loading and adjust CPU speed. Also this is job for a cpufreq governor,
+> not for CPU driver. 
+> 
+> For now, there are three governors:
+> (1) powersave -- setting CPU frequency statically to lowest available
+> frequency.
+> (2) performance -- setting to highest available frequency.
+> (3) userspace -- used for setting CPU frequency manually.
+> 
+> Probably there also should be number (4), which will set it basing on
+> current loading.
+> > I think the kernel should switch back from C2 to C1 state from alone????
+> > 
+> > Please ask me whatever you need to help me swtiching back into C1 state.
+> > 
+> > christian
 
-I have been inspecting my DSDT and I noticed this:
+ACPI Cx states are not the same as ACPI Px states and Cx have nothing to
+do with cpufreq.  C-states are the sleeping states for a processor.
 
-Scope(\_SB_) {
-    Device(PWRB) {
-        Name(_HID, 0x0c0cd041)
-        Method(_STA) {
-            Return(0xb)
-        }
-    }
-    Device(PCI0) {
-        Name(_HID, 0x030ad041)
-        Name(_ADR, 0x0)
-        Name(_BBN, 0x0)
-        Method(_S3D) {
-            If(OSFL) {
-                Return(0x2)
-            }
-            Else {
-                Return(0x3)
-            }
-        }
+ACPI P-state will lower the voltage of the CPU and the frequency, but
+the processor is supposed to run, whereas ACPI C-state is a kind of
+replacement of the asm 'hlt' (for a 386 compatible), mostly used in
+the idle loop.
 
-The ACPI spec says that the _S3D method returns the highest power saving level 
-that the device can be put into. As you can see from the above (and other 
-similar S3D methods) the result depends on the OSFL variable, which is 
-defined with:
+C1 is actually this asm 'hlt', whereas C2 require a read to a IO register,
+and C3 require a read to a IO register plus a kind of control of the bus 
+(on UP system).  More the x in Cx is high, more you get power saving,
+but this have a price for the latency in order to wakeup the processor
+when it have to serve an interrupt.
 
-         Method(_INI) {
-            \_SB_.PCI0.SBRG.IODT()
-            If(MCTH(\_OS_, "Microsoft Windows NT")) {
-                Store(0x0, OSFL)
-            }
-            Else {
-                If(MCTH(\_OS_, "Microsoft Windows")) {
-                    Store(0x1, OSFL)
-                }
-                Else {
-                    If(MCTH(\_OS_, "Microsoft WindowsME: Millennium Edition"))
-                   {
-                        Store(0x2, OSFL)
-                    }
-                    Else {
-                        Store(0x3, OSFL)
-                    }
-                }
-            }
-        }
+-- 
+Ducrot Bruno
 
-So for under Linux, the OSFL will be 3, and _S3D methods will return 2. My 
-question is, does the kernel make use of this information at all? Is it worth 
-editing the DSDT so that OSFL=0 (i.e. Windows NT) ?
-
-Thanks
-
-John
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
