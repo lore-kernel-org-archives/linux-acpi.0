@@ -1,14 +1,14 @@
 From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: Can't poweroff anymore.
-Date: Sun, 07 Mar 2004 19:43:48 +0100
+Subject: Re: ASUS M6800N: shutdown doesn't power off the machine
+Date: Sun, 07 Mar 2004 19:47:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <404B6D64.3060604@pca.it>
-References: <20040304180301.GA1754@conectiva.com.br> <Pine.LNX.4.58.0403050113230.3779@frog.athome> <Pine.LNX.4.58.0403061054120.1146@frog.athome> <4049E76D.4030000@pca.it> <404A30A5.6070802@pca.it>
+Message-ID: <404B6E5C.1000409@pca.it>
+References: <40321902.90403@pca.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <404A30A5.6070802-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <40321902.90403-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -25,34 +25,37 @@ Hash: SHA1
 
 Hello,
 
-on 03/06/04 21:12, Luca Capello wrote:
-<cut>
-> I found the problem: the patch Hartwig attached lacks the first line of
-> comparison, while the same patch on http://bugme.osdl.org/show_bug.cgi?id=2109
-> is correct:
-<cut>
-> With this latest patch, kernel 2.6.3 compiles correctly, but anyway I get the
-> same problem: 2.6.3 doesn't shutdown.
+this mail is the same as I posted on the thread called 'Can't poweroff anymore'
+and dated 20040304, as I thought the problem was similar to that thread, but in
+fact is completely different.
+
+on 02/17/04 14:37, Luca Capello wrote:
+> I've a simple problem: when I call 'shutdown -h now' or I press the
+> power button, a clear shutdown is started, but the machine isn't power
+> off. Here the messages on the console:
+> =====
+> Synchronizing SCSI cahce for disk sda:
+> Power down.
+> acpi_power_off called
+>   hwsleep-0265 [36] acpi_enter_sleep_state: Entering sleep state [S5]
+> =====
 as I was running with 'preempt' and 'APIC/IO-APIC' and with my last ASUS
 Centrino M3N 'APIC/IO-APIC' had cause some problems, I tried 3 new configurations:
 - - no preempt and no APIC > shutdown works ok
 - - preempt and no APIC > shutdown works again
-- - preempt and APIC > shutdown doesn't work :-(
+- - preempt and APIC > shutdown doesn't work
 
-So, the real problem is APIC, sorry for the missunderstanding of the real problem.
+Should I post as kernel bug?
 
 Thx, bye,
 Gismo / Luca
-
-PS I'm posting the same message on my first thread about this problem on ASUS
-M6800N, as it's an ASUS M6800N specific problem ;-)
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFAS21jVAp7Xm10JmkRAgfUAKCD/7I9mXKoLY83yggKhneQCKODDwCfU7zb
-CXnzKdyQey/sPleFug4ofJs=
-=9vsk
+iD8DBQFAS25bVAp7Xm10JmkRAsOKAJ9QQAAFCS2y4A1YmXKIyswZ1jsT4gCbBiMZ
+6/4dlLMpLi84DPFFYDRFPvI=
+=hRuy
 -----END PGP SIGNATURE-----
 
 
