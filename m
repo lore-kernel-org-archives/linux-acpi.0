@@ -1,11 +1,11 @@
-From: Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org>
-Subject: Acer Notebook: acpi IRQ stuck after S3
-Date: Wed, 12 Jan 2005 12:08:50 +0100
-Message-ID: <1105528130.14488.68.camel@laptop>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Fix acpi video docs
+Date: Wed, 12 Jan 2005 14:24:54 +0100
+Message-ID: <20050112132454.GA1588@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,59 +15,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
-log and backtrace:
+I think I posted this one before, but it did not make it into
+2.6.11-rc1... It cleans video_extension docs. Please apply,
 
-12:49:00 samt kernel: PM: Preparing system for suspend
-12:49:00 samt kernel: Stopping tasks: 
-=======================================|
-12:49:00 samt kernel: PM: Entering state.
-12:49:00 samt kernel: Back to C!
-12:49:00 samt kernel: irq 9: nobody cared!
-12:49:00 samt kernel:  [<c010724a>] __report_bad_irq+0x2a/0x90
-12:49:00 samt kernel:  [<c0107340>] note_interrupt+0x70/0xb0
-12:49:00 samt kernel:  [<c01075f0>] do_IRQ+0x120/0x130
-12:49:00 samt kernel:  [<c01053c8>] common_interrupt+0x18/0x20
-12:49:00 samt kernel:  [<c013007b>] unqueue_me+0x3b/0xb0
-12:49:00 samt kernel:  [<c012046e>] __do_softirq+0x2e/0x90
-12:49:00 samt kernel:  [<c01204f7>] do_softirq+0x27/0x30
-12:49:00 samt kernel:  [<c01075ca>] do_IRQ+0xfa/0x130
-12:49:00 samt kernel:  [<c01053c8>] common_interrupt+0x18/0x20
-12:49:00 samt kernel:  [<c0134ca8>] suspend_enter+0x38/0x50
-12:49:00 samt kernel:  [<c0134d84>] enter_state+0x64/0xb0
-12:49:00 samt kernel:  [<c02020c9>] acpi_suspend+0x3e/0x4d
-12:49:00 samt kernel:  [<c0202478>] acpi_system_write_sleep+0x60/0x8b
-12:49:00 samt kernel:  [<c020248d>] acpi_system_write_sleep+0x75/0x8b
-12:49:00 samt kernel:  [<c0155a68>] vfs_write+0xb8/0x130
-12:49:00 samt kernel:  [<c0154f99>] filp_close+0x59/0x90
-12:49:00 samt cardmgr[1467]: executing: './network suspend eth1'
-12:49:00 samt kernel:  [<c0155bb1>] sys_write+0x51/0x80
-12:49:00 samt kernel:  [<c010525b>] syscall_call+0x7/0xb
-12:49:00 samt kernel: handlers:
-12:49:00 samt kernel: [<c01eb827>] (acpi_irq+0x0/0x16)
-12:49:00 samt kernel: Disabling IRQ #9
-12:49:00 samt kernel: PM: Finishing up.
+Signed-off-by: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+								Pavel
 
-As you can see, IRQ 9 gets stuck here and consequently, the next ACPI
-event (e.g. lid button) causes a system freeze. Hoping that the problem
-might relate to some uninitialized memory after resume I raised the
-limit for unhandled IRQs in spurious.c (irq.c before 2.6.10). But that
-does not help.
-I'd really like to debug this but I need help from an expert where to
-look at to find out what happens to this acpi IRQ.
+--- clean/Documentation/power/video_extension.txt	2004-12-25 13:34:57.000000000 +0100
++++ linux/Documentation/power/video_extension.txt	2004-12-25 22:02:11.000000000 +0100
+@@ -1,13 +1,16 @@
+-This driver implement the ACPI Extensions For Display Adapters
+-for integrated graphics devices on motherboard, as specified in
+-ACPI 2.0 Specification, Appendix B, allowing to perform some basic
+-control like defining the video POST device, retrieving EDID information
+-or to setup a video output, etc.  Note that this is an ref. implementation only.
+-It may or may not work for your integrated video device.
++ACPI video extensions
++~~~~~~~~~~~~~~~~~~~~~
++
++This driver implement the ACPI Extensions For Display Adapters for
++integrated graphics devices on motherboard, as specified in ACPI 2.0
++Specification, Appendix B, allowing to perform some basic control like
++defining the video POST device, retrieving EDID information or to
++setup a video output, etc.  Note that this is an ref. implementation
++only.  It may or may not work for your integrated video device.
+ 
+ Interfaces exposed to userland through /proc/acpi/video:
+ 
+-VGA/info : display the supported video bus device capability like ,Video ROM, CRT/LCD/TV.
++VGA/info : display the supported video bus device capability like Video ROM, CRT/LCD/TV.
+ VGA/ROM :  Used to get a copy of the display devices' ROM data (up to 4k).
+ VGA/POST_info : Used to determine what options are implemented.
+ VGA/POST : Used to get/set POST device.
+@@ -15,7 +18,7 @@
+ 	Please refer ACPI spec B.4.1 _DOS
+ VGA/CRT : CRT output
+ VGA/LCD : LCD output
+-VGA/TV : TV output 
++VGA/TVO : TV output 
+ VGA/*/brightness : Used to get/set brightness of output device
+ 
+ Notify event through /proc/acpi/event:
 
-Thanks,
-	Fionn
+
+
 -- 
-Software patents    -  not allowed in Europe | See whats going on:
-Archiving Email     -  patented in Europe    | http://freepatents.org/
-E-Shopping Baskets  -  patented in Europe    | Become active easily:
-Cross-compiling     -  patented in Europe    | http://aktiv.ffii.org/eubsa/en
-
-
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
