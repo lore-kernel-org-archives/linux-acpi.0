@@ -1,60 +1,67 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI source releases updated (20030619)
-Date: Fri, 20 Jun 2003 11:30:49 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A2FE@orsmsx401.jf.intel.com>
+From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Subject: Re: Masking issue somewhere?
+Date: Sat, 21 Jun 2003 07:37:40 +1200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1056137860.2096.18.camel@laptop-linux>
+References: <1056102228.2279.13.camel@laptop-linux>
+ <20030620103631.GE19556@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-reply-to: <20030620103631.GE19556-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+Hi.
 
-New Linux 2.4 and 2.5 patches are now available from
-http://sf.net/projects/acpi. Big thanks to the asus-acpi team, as well
-as all the other people who have been tracking down bugs and submitting
-fixes lately.
+Thanks for the reply.
 
-Regards -- Andy
+My laptop has gained 512MB since you made the override (it's from your
+site). I'll try recompiling it. Sorry - that hadn't occurred to me as a
+factor.
 
-----------------------------------------
-19 June 2003.  Summary of changes for version 20030619:
+Regards,
 
-1) Linux:
+Nigel
 
-acpiphp update (Takayoshi Kochi)
+On Fri, 2003-06-20 at 22:36, Ducrot Bruno wrote:
+> On Fri, Jun 20, 2003 at 09:43:52PM +1200, Nigel Cunningham wrote:
+> > Hi all.
+> > 
+> > I've been meaning for a while to send this bug report. Here's an extra
+> > from my /var/log/messages (Omnibook XE3, over-ridden DSDT).
+> 
+> By over-riddent DSDT, you mean you have retrived it from someone
+> else ?  If yes, check if the two laptop have the _same_ amount
+> of memory.  If not, then look at the DSDT and change all
+> thinks that try to access memory to match the correct one.
+> 
+> DSDT may be generated dynamically by BIOS at POST stage exactly
+> due to this kind of concern.
+> 
 
-Export acpi_disabled for sonypi (Stelian Pop)
+-- 
+Nigel Cunningham
+495 St Georges Road South, Hastings 4201, New Zealand
 
-Mention acpismp=force in config help
-
-Re-add acpitable.c and acpismp=force. This improves backwards
-compatibility and also cleans up the code to a significant
-degree.
-
-Add ASUS Value-add driver (Karol Kozimor and Julien Lerouge)
-
-2) ACPI CA Core Subsystem:
-
-Fix To/FromBCD, eliminating the need for an arch-specific
-#define.
-
-Do not acquire a semaphore in the S5 shutdown path.
-
-Fix ex_digits_needed for 0. (Takayoshi Kochi)
-
-Fix sleep/stall code reversal. (Andi Kleen)
-
-Revert a change having to do with control method calling
-semantics.
+You see, at just the right time, when we were still powerless,
+Christ died for the ungodly.
+	-- Romans 5:6, NIV.
 
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: INetU
+Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
