@@ -1,12 +1,12 @@
 From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: Re: ACPI hotplug
-Date: Sat, 15 Jan 2005 02:14:53 -0800 (PST)
-Message-ID: <20050115101454.67867.qmail@web50203.mail.yahoo.com>
-References: <20050113120644.A911@unix-os.sc.intel.com>
+Date: Sat, 15 Jan 2005 02:26:46 -0800 (PST)
+Message-ID: <20050115102646.69910.qmail@web50203.mail.yahoo.com>
+References: <20050113120620.A1002@unix-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050113120644.A911-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20050113120620.A1002-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,14 +16,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rajesh,
+Hi Keshavamurthy,
 
-I was hoping that I can use my docking station without
-being necessary to boot docked.
+The eject files have no any side effect for me.
+I just tried to play with them for my devices.
+
+I tried on a docked computer and I have this:
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/USB7/URTH/UPDK/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/USB0/URTH/UPDK/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/IDE0/SCND/MSTR/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/PCI1/DOCK/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/LPC/UART/eject
+Trying to echo 1 >
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/PCI1/DOCK/eject
+did not undocked the laptop as I hoped.
+
+I thought I can use my docking station without being
+necessary to boot docked.
 But is not the case.
 I tried this way:
 Booted normaly, loaded acpiphp (even said found a pci
@@ -38,14 +51,26 @@ it.
 
 Thanks,
 Paul
---- Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+--- Keshavamurthy Anil S
+<anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
 > On Thu, Jan 13, 2005 at 03:02:37PM +0100, Paul
 > Ionescu wrote:
+> > Hi,
 > > 
 > > I just read that 2.6.11-rc1 does support ACPI
 > hotplug.
 > > What does this really mean ?
+> 
+> 2.6.11-rc1 now supports physical CPU hotplug and
+> these eject files
+> were added to support the same. Once the cpu's are
+> logically offlined,
+> they can be physically removed by echoing 1 onto the
+> eject file
+> under _SB/PCI0/LSBX/CPUX/eject.
+> 
+> 
 > > I found some new files in /sys/firmware:
 > > find /sys/firmware/ | grep eject
 > >
@@ -63,24 +88,25 @@ Paul
 > >
 >
 /sys/firmware/acpi/namespace/ACPI/_SB/PCI0/LPC/FDC/FDD0/eject
-> > 
-> The new ACPI code is to  support _physical_
-> insertion/removal of
-> cpus and "containers" (nodes) that have cpus and
-> memory. This
-> requires firmware/platform support.  Linux already
-> supports ACPI
-> (as well as SHPC/PCI-Express) based physical
-> insertion/removal of
-> IO adapters independent of the new code in
-> 2.6.11-rc1. The ACPI 
-> namespace you listed above shows ACPI ejectable IO
-> devices. This
-> is handled by the existing acpiphp code, not the new
-> processor
-> or container code.
 > 
-> Rajesh
+> Looks like your DSDT has _EJx methods for many other
+> types of devices,
+> either you can enhance these devices drivers to
+> support user
+> mode eject or you can simply not create "eject"
+> file.
+> 
+> > 
+> > But what can I do with them, and what else is
+> there for hotplug ?
+> > Does it support docking stations ?
+> 
+> Does this "eject" file has any side effects which
+> needs to be addressed,
+> please let me know.
+> 
+> -Anil
+> 
 > 
 > 
 
