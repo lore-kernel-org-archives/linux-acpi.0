@@ -1,12 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Processor frequency control on ASUS laptops
-Date: Fri, 25 Jul 2003 20:10:31 +0200
+From: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Fri, 25 Jul 2003 13:55:45 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030725181031.GA19588@hell.org.pl>
+Message-ID: <Pine.LNX.4.44.0307251351050.1480-100000@puppy.afrinc.com>
+References: <20030725172011.GD668@laptop.6bone.nl>
+Reply-To: dave-wr1Qx4d9ef7QT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20030725172011.GD668-ScjxTogt4I4lGuH5DXb43w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,23 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>, "Rainer M." <rmuehlhoff-52dn/g0OV9M@public.gmane.org>, "Carlo E. Prelz" <fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org>
+To: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, "M. Warner Losh" <imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org>, flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I've been recently reminded about the GFRQ/SFRQ methods in some ASUS
-notebooks DSDT's, which apparently are used by the Windows ASUS driver to
-manage processor performance. Before adding "just another cool way to
-control processor performance", I'd like to ask if there is _anybody_
-running an ASUS laptop, for whom the processor performance control doesn't
-work either with ACPI performance driver, or the updated ports of speedstep
-driver (the one that supports K7 and is said to support Pentium-M)?
-Best regards,
+On Fri, 25 Jul 2003, Mark Santcroos wrote:
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+> On Fri, Jul 25, 2003 at 05:31:10PM +0200, Pavel Machek wrote:
+> > I believe you need to use specific kernel fb driver, and write
+> > suspend/resume code for it :-(.
+>
+> I did it once for my ATI Radeon 7500, I will look it up and post it here.
+
+Stuff like this might help.  I haven't looked closely, but grepping thru
+linux/drivers/video shows a few drivers (including atiradeonfb.c) that
+have code relating to backlight power.
+
+Dave
+
 
 
 -------------------------------------------------------
