@@ -1,27 +1,79 @@
-From: Chris Friesen <cfriesen@nortelnetworks.com>
-Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Tue, 30 Mar 2004 11:42:01 -0500
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <4069A359.7040908@nortelnetworks.com>
-References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com> <1080535754.16221.188.camel@dhcppc4> <20040329052238.GD1276@alpha.home.local> <1080598062.983.3.camel@dhcppc4> <1080651370.25228.1.camel@dhcp23.swansea.linux.org.uk> <Pine.LNX.4.53.0403300814350.5311@chaos> <20040330142215.GA21931@alpha.home.local> <Pine.LNX.4.53.0403300943520.6151@chaos> <20040330150949.GA22073@alpha.home.local> <Pine.LNX.4.53.0403301019570.6451@chaos> <20040330161431.GA22272@alpha.home.local>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RefOf() bug?
+Date: Tue, 30 Mar 2004 08:49:29 -0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <37F890616C995246BE76B3E6B2DBE0552D0B66@orsmsx403.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <20040330161431.GA22272@alpha.home.local>
-To: Willy Tarreau <willy@w.ods.org>
-Cc: "Richard B. Johnson" <root@chaos.analogic.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Len Brown <len.brown@intel.com>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ville Syrj?l? <syrjala-ORSVBvAovxo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Willy Tarreau wrote:
+Please send me the dmesg and dsdt also, I would like to look at this
+problem.
 
-> In what I described, a 386 target would be compiled with -march=i386,
-> but the cmpxchg() FUNCTION will still reference the cmpxchg op-code
-> in the __asm__ statement, and this is perfectly valid. In this case,
-> only callers of the cmpxchg() FUNCTION will have a chance to use it.
-> And at the moment, the only client seems to be ACPI.
+Bob
 
-Will the assembler even let you compile the cmpxchg asm instruction if 
-you're building for i386?
 
-Chris
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Yu, Luming
+Sent: Tuesday, March 30, 2004 6:38 AM
+To: Ville Syrj?l?; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] RefOf() bug?
+
+acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
+> On Tue, Mar 30, 2004 at 08:14:22PM +0800, Yu, Luming wrote:
+>> acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
+>>> On Tue, Mar 30, 2004 at 06:53:01PM +0800, Yu, Luming wrote:
+>>>> acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
+>>>>> My HP OmniBook 6000 has some problems with the battery. The first
+>>>>> time the battery gets detected (it doesn't matter if I boot with
+>>>>> battery disconnected or connected) things don't work. Then if I
+>>>>> disconnect and reconnect the battery things start to work. But the
+>>>>> next disconnect/reconnect cycle fails again, the next after that
+>>>>> succeeds and so on.
+>>>>=20
+>>>> Please check your ACPI version.
+>>>=20
+>>> ACPI 20040220 + kernel 2.6.4-rc1-mm2
+>>=20
+>> Hmm, could you try new one? I suppose the most recent ACPI seldom
+>> have battery status issue.
+>=20
+> ACPI 20040326 + kernel 2.6.5-rc2-mm5
+>=20
+> Problem remains :(
+
+:-(,  	Send me dmesg , as well as /proc/acpi/dsdt privately.=20
+
+--Luming
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dick
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
