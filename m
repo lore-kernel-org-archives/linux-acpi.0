@@ -1,12 +1,15 @@
-From: Luis Alves <luis.alves-Gbsd49wXnelWk0Htik3J/w@public.gmane.org>
-Subject: support for Sony vaio VGN-A1XX
-Date: Sun, 15 Aug 2004 00:48:04 -0700
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Radeon PM Support
+Date: Thu, 5 Aug 2004 21:53:25 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408150048.04637.luis.alves@engineer.com>
+Message-ID: <200408052153.25467.stefandoesinger@gmx.at>
+References: <1091139240.26511.9.camel@6-allhosts> <200408051453.55710.stefandoesinger@gmx.at> <200408051914.39445.anib@anib.de>
+Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_0UxHBMVb5ZGnspJ"
+  boundary="Boundary-00=_1ApEByUb7ileMU1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200408051914.39445.anib-La3J9u0raUk@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,1252 +19,5756 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: anib-La3J9u0raUk@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Boundary-00=_0UxHBMVb5ZGnspJ
+--Boundary-00=_1ApEByUb7ileMU1
 Content-Type: text/plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi=20
+Am Donnerstag, 5. August 2004 19:14 schrieb Alexander Bruder:
+> it also happends for the 80x series (in my case 801Lcib) with ATI
+> Technologies Inc Radeon R250 Lf [Radeon Mobility 9000] using the
+> framebuffer.
+I use an Acer TM 803.....
+Suspend to RAM works with user mode VGA ROM post.
 
-I am trying to make the extra keys on my vaio work,=20
-I tried sonypi but was not able to make the keys work,
-but I was able to make the brightness work.
+Just a short HOWTO(based on kernel 2.6.8-rc2 + recent acpi patch from 
+acpi.sf.net):
+*Apply the resume-finish-split patch to the kernel.
+*Use the attached dsdt(see acpi.sf.net how to do this)
+*the boot-radeon.c program can ROM-post the radeon card(compile with gcc 
+boot-radeon.c -o boot-radeon -llrmi) You need the lrmi libs+headers. Call it 
+after resuming from S3. You have to call it from console. If you use X, you 
+can do this:
+chvt 1
+boot-radeon
+chvt 7
 
-Also this laptop as a auto brightness feature with a light sensor to auto=20
-adjust the brightness to save battery life. Does any one know how to make=20
-this work.
+Before going to S3 you'll have to unload ehci-hcd. All other drivers may 
+remain loaded.
 
-Hi have a report of my experiences with my vaio at:
-http://www.linux-on-laptops.com/hosted/svvgna190.html
+The things that do not work properly:
+*VGA resume with radeonfb, the most annoying problem
+*sending ehci-hcd to suspend fails. uhci works
+*restoring irq routing on resume. That's what the modified dsdt is for. It 
+forces the wlan card to use IRQ10 instead of IRQ11.
 
-I attached the acpi info from my computer
-cat /proc/acpi/dsdt > /tmp/trace/dsdt.aml
-dmesg -s40000 > /tmp/trace/dmesg_s40000.dump
-dmidecode > /tmp/trace/dmidecode.dump
-lspci -vv > /tmp/trace/lspci_vv.dmup
+Stefan
 
-any information would be usefull.
-=2D-=20
-___________________________________________________________________________
-Luis Antonio Ferreira Alves
-
-http://finalpoint.homeunix.net
-email: luis.alves-Gbsd49wXnelWk0Htik3J/w@public.gmane.org
-=A0 =A0 =A0 =A0lalves-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
-AIM-lalves AIM-lafasvl ICQ-5061305 AIM-lalvesnet YAHOO-lafa_home
-___________________________________________________________________________
-DB2Everyplace            http://www-3.ibm.com/software/data/db2/everyplace/
-Reclaim Your Inbox!           =A0http://www.mozilla.org/products/thunderbir=
-d/
-
---Boundary-00=_0UxHBMVb5ZGnspJ
-Content-Type: text/plain;
+--Boundary-00=_1ApEByUb7ileMU1
+Content-Type: text/x-diff;
   charset="iso-8859-1";
-  name="dmesg_s40000.dump"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="dmesg_s40000.dump"
-
-Linux version 2.6.8-0.rc2.2mdk-i686-up-4GB (nplanel-Z0lnJUwvxyVn+L6o72McsUEOCMrvLtNR@public.gmane.org) (g=
-cc version 3.4.1 (Mandrakelinux (Alpha 3.4.1-2mdk)) #1 Wed Jul 21 19:15:51 =
-CEST 2004
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
- BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000e0000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000007ff40000 (usable)
- BIOS-e820: 000000007ff40000 - 000000007ff50000 (ACPI data)
- BIOS-e820: 000000007ff50000 - 0000000080000000 (ACPI NVS)
-1151MB HIGHMEM available.
-896MB LOWMEM available.
-On node 0 totalpages: 524096
-  DMA zone: 4096 pages, LIFO batch:1
-  Normal zone: 225280 pages, LIFO batch:16
-  HighMem zone: 294720 pages, LIFO batch:16
-DMI present.
-ACPI: RSDP (v000 SONY                                      ) @ 0x000f53f0
-ACPI: RSDT (v001   SONY       F1 0x20040607 MSFT 0x00000097) @ 0x7ff40000
-ACPI: FADT (v002   SONY       F1 0x20040607 MSFT 0x00000097) @ 0x7ff40200
-ACPI: OEMB (v001   SONY       F1 0x20040607 MSFT 0x00000097) @ 0x7ff50040
-ACPI: DSDT (v001   SONY       F1 0x20040607 MSFT 0x0100000d) @ 0x00000000
-ACPI: PM-Timer IO Port: 0x408
-Built 1 zonelists
-=46ound and enabled local APIC!
-Initializing CPU#0
-Kernel command line: BOOT_IMAGE=3Dlinuxi686-up-4GB_noresume ro root=3D307 d=
-evfs=3Dmount acpi=3Don resume=3D/dev/hda6 splash=3Dsilent nolapic noresume
-bootsplash: silent mode.
-PID hash table entries: 4096 (order 12: 32768 bytes)
-Detected 1695.018 MHz processor.
-Using pmtmr for high-res timesource
-Console: colour dummy device 80x25
-Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
-Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
-Memory: 2073980k/2096384k available (2020k kernel code, 21252k reserved, 82=
-6k data, 284k init, 1178880k highmem, 0k BadRAM)
-Checking if this processor honours the WP bit even in supervisor mode... Ok.
-Calibrating delay loop... 3358.72 BogoMIPS
-Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
-CPU: After generic identify, caps: afe9fbbf 00000000 00000000 00000000
-CPU: After vendor identify, caps:  afe9fbbf 00000000 00000000 00000000
-CPU: L1 I cache: 32K, L1 D cache: 32K
-CPU: After all inits, caps:        afe9fbbf 00000000 00000000 00000040
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU: Intel(R) Pentium(R) M processor 1.70GHz stepping 06
-Enabling fast FPU save and restore... done.
-Enabling unmasked SIMD FPU exception support... done.
-Checking 'hlt' instruction... OK.
-checking if image is initramfs...it isn't (no cpio magic); looks like an in=
-itrd
-=46reeing initrd memory: 383k freed
-NET: Registered protocol family 16
-EISA bus registered
-PCI: PCI BIOS revision 2.10 entry at 0xf0031, last bus=3D2
-PCI: Using configuration type 1
-mtrr: v2.0 (20020519)
-ACPI: Subsystem revision 20040326
-Looking for DSDT in initrd ... not found!
-ACPI: IRQ9 SCI: Level Trigger.
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
-PCI: Transparent bridge - 0000:00:1e.0
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-ACPI: Embedded Controller [EC0] (gpe 28)
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 *9)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *9)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 *7 9)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 *4 5 6 7 9)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 *9)
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 *5 6 7 9)
-ACPI: PCI Interrupt Link [LNKH] (IRQs *3 4 5 6 7 9)
-Linux Plug and Play Support v0.97 (c) Adam Belay
-PnPBIOS: Disabled
-PCI: Using ACPI for IRQ routing
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 9
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 4
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 4 (level, low) -> IRQ 4
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 7
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 7 (level, low) -> IRQ 7
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 3
-ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 3 (level, low) -> IRQ 3
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 7 (level, low) -> IRQ 7
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 9
-ACPI: PCI interrupt 0000:00:1f.3[B] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 9
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 9
-ACPI: PCI interrupt 0000:02:01.0[A] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI interrupt 0000:02:01.2[C] -> GSI 3 (level, low) -> IRQ 3
-ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 5
-ACPI: PCI interrupt 0000:02:01.3[B] -> GSI 5 (level, low) -> IRQ 5
-ACPI: PCI interrupt 0000:02:02.0[A] -> GSI 7 (level, low) -> IRQ 7
-ACPI: PCI interrupt 0000:02:03.0[A] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI interrupt 0000:02:04.0[A] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI interrupt 0000:02:04.1[B] -> GSI 9 (level, low) -> IRQ 9
-ACPI: PCI interrupt 0000:02:04.2[C] -> GSI 7 (level, low) -> IRQ 7
-vesafb: framebuffer at 0xd0000000, mapped to 0xf880c000, size 1875k
-vesafb: mode is 800x600x16, linelength=3D1600, pages=3D67
-vesafb: protected mode interface info at c000:57f6
-vesafb: scrolling: redraw
-vesafb: directcolor: size=3D0:5:6:5, shift=3D0:11:5:0
-fb0: VESA VGA frame buffer device
-apm: BIOS not found.
-audit: initializing netlink socket (disabled)
-audit(1092519713.4294966188:0): initialized
-highmem bounce pool size: 64 pages
-VFS: Disk quotas dquot_6.5.1
-Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-devfs: 2004-01-31 Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
-devfs: boot_options: 0x1
-Initializing Cryptographic API
-isapnp: Scanning for PnP cards...
-isapnp: No Plug & Play device found
-bootsplash 3.1.4-2004/02/19-spock-0.1: looking for picture.... silentjpeg s=
-ize 10822 bytes, found (800x600, 10774 bytes, v3).
-Console: switching to colour frame buffer device 92x32
-Serial: 8250/16550 driver $Revision: 1.90 $ 8 ports, IRQ sharing enabled
-ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 9 (level, low) -> IRQ 9
-RAMDISK driver initialized: 16 RAM disks of 32000K size 1024 blocksize
-Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=3D=
-xx
-ICH4: IDE controller at PCI slot 0000:00:1f.1
-PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 7 (level, low) -> IRQ 7
-ICH4: chipset revision 3
-ICH4: not 100% native mode: will probe irqs later
-    ide0: BM-DMA at 0xffa0-0xffa7, BIOS settings: hda:DMA, hdb:pio
-    ide1: BM-DMA at 0xffa8-0xffaf, BIOS settings: hdc:DMA, hdd:pio
-hda: HITACHI_DK23FA-80, ATA DISK drive
-Using anticipatory io scheduler
-ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-hdc: MATSHITAUJ-820D, ATAPI CD/DVD-ROM drive
-ide1 at 0x170-0x177,0x376 on irq 15
-hda: max request size: 128KiB
-hda: 156301488 sectors (80026 MB) w/8192KiB Cache, CHS=3D65535/16/63, UDMA(=
-100)
- /dev/ide/host0/bus0/target0/lun0: p1 p2 p3 < p5 p6 p7 >
-mice: PS/2 mouse device common for all mice
-serio: i8042 AUX port at 0x60,0x64 irq 12
-input: PS/2 Generic Mouse on isa0060/serio1
-serio: i8042 KBD port at 0x60,0x64 irq 1
-input: AT Translated Set 2 keyboard on isa0060/serio0
-md: md driver 0.90.0 MAX_MD_DEVS=3D256, MD_SB_DISKS=3D27
-EISA: Probing bus 0 at eisa0
-NET: Registered protocol family 2
-IP: routing cache hash table of 16384 buckets, 128Kbytes
-TCP: Hash tables configured (established 524288 bind 65536)
-NET: Registered protocol family 1
-Resume Machine: Resuming from device unknown-block(3,6)
-Resume Machine: This is normal swap space
-disabled
-PM: Reading pmdisk image.
-PM: Resume from disk failed.
-ACPI: (supports S0 S3 S4 S5)
-BIOS EDD facility v0.16 2004-Jun-25, 1 devices found
-md: Autodetecting RAID arrays.
-md: autorun ...
-md: ... autorun DONE.
-RAMDISK: Compressed image found at block 0
-VFS: Mounted root (ext2 filesystem).
-Mounted devfs on /dev
-ieee1394: Initialized config rom entry `ip1394'
-SCSI subsystem initialized
-ReiserFS: hda7: found reiserfs format "3.6" with standard journal
-ReiserFS: hda7: using ordered data mode
-ReiserFS: hda7: journal params: device hda7, size 8192, journal first block=
- 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
-ReiserFS: hda7: checking transaction log (hda7)
-ReiserFS: hda7: Using r5 hash to sort names
-Mounted devfs on /dev
-=46reeing unused kernel memory: 284k freed
-Real Time Clock Driver v1.12
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
-USB Universal Host Controller Interface driver v2.2
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 9 (level, low) -> IRQ 9
-uhci_hcd 0000:00:1d.0: Intel Corp. 82801DB (ICH4) USB UHCI #1
-PCI: Setting latency timer of device 0000:00:1d.0 to 64
-uhci_hcd 0000:00:1d.0: irq 9, io base 0000e800
-uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 1
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 2 ports detected
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 4 (level, low) -> IRQ 4
-uhci_hcd 0000:00:1d.1: Intel Corp. 82801DB (ICH4) USB UHCI #2
-PCI: Setting latency timer of device 0000:00:1d.1 to 64
-uhci_hcd 0000:00:1d.1: irq 4, io base 0000e880
-uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 2
-hub 2-0:1.0: USB hub found
-hub 2-0:1.0: 2 ports detected
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 7 (level, low) -> IRQ 7
-uhci_hcd 0000:00:1d.2: Intel Corp. 82801DB (ICH4) USB UHCI #3
-PCI: Setting latency timer of device 0000:00:1d.2 to 64
-uhci_hcd 0000:00:1d.2: irq 7, io base 0000ec00
-uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 3
-hub 3-0:1.0: USB hub found
-hub 3-0:1.0: 2 ports detected
-usb 2-2: new full speed USB device using address 2
-ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 3 (level, low) -> IRQ 3
-ehci_hcd 0000:00:1d.7: Intel Corp. 82801DB (ICH4) USB2 EHCI Controller
-PCI: Setting latency timer of device 0000:00:1d.7 to 64
-ehci_hcd 0000:00:1d.7: irq 3, pci mem f8a25c00
-ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 4
-PCI: cache line size of 32 is not supported by device 0000:00:1d.7
-ehci_hcd 0000:00:1d.7: USB 2.0 enabled, EHCI 1.00, driver 2004-May-10
-hub 4-0:1.0: USB hub found
-hub 4-0:1.0: 6 ports detected
-ACPI: PCI interrupt 0000:02:04.2[C] -> GSI 7 (level, low) -> IRQ 7
-ehci_hcd 0000:02:04.2: NEC Corporation USB 2.0
-ehci_hcd 0000:02:04.2: irq 7, pci mem f8a97400
-ehci_hcd 0000:02:04.2: new USB bus registered, assigned bus number 5
-ehci_hcd 0000:02:04.2: USB 2.0 enabled, EHCI 1.00, driver 2004-May-10
-hub 5-0:1.0: USB hub found
-hub 5-0:1.0: 5 ports detected
-usb 2-2: device not accepting address 2, error -71
-ohci_hcd: 2004 Feb 02 USB 1.1 'Open' Host Controller (OHCI) Driver (PCI)
-ohci_hcd: block sizes: ed 64 td 64
-ACPI: PCI interrupt 0000:02:04.0[A] -> GSI 9 (level, low) -> IRQ 9
-ohci_hcd 0000:02:04.0: NEC Corporation USB
-ohci_hcd 0000:02:04.0: irq 9, pci mem f8a99000
-ohci_hcd 0000:02:04.0: new USB bus registered, assigned bus number 6
-hub 6-0:1.0: USB hub found
-hub 6-0:1.0: 3 ports detected
-ACPI: PCI interrupt 0000:02:04.1[B] -> GSI 9 (level, low) -> IRQ 9
-ohci_hcd 0000:02:04.1: NEC Corporation USB (#2)
-usb 4-4: new high speed USB device using address 2
-ohci_hcd 0000:02:04.1: irq 9, pci mem f8a9b000
-ohci_hcd 0000:02:04.1: new USB bus registered, assigned bus number 7
-hub 7-0:1.0: USB hub found
-hub 7-0:1.0: 2 ports detected
-hub 4-4:1.0: USB hub found
-hub 4-4:1.0: 4 ports detected
-usbcore: registered new driver usblp
-drivers/usb/class/usblp.c: v0.13: USB Printer Device Class driver
-ohci_hcd 0000:02:04.1: wakeup
-usb 5-4: new high speed USB device using address 3
-usb 4-4.1: new low speed USB device using address 3
-usbcore: registered new driver hiddev
-input: USB HID v1.11 Keyboard [Microsoft Microsoft Wireless Optical Desktop=
-=AE 1.00] on usb-0000:00:1d.7-4.1
-input: USB HID v1.11 Mouse [Microsoft Microsoft Wireless Optical Desktop=AE=
- 1.00] on usb-0000:00:1d.7-4.1
-usbcore: registered new driver usbhid
-drivers/usb/input/hid-core.c: v2.0:USB HID core driver
-usbcore: registered new driver usbkbd
-drivers/usb/input/usbkbd.c: :USB HID Boot Protocol keyboard driver
-ts: Compaq touchscreen protocol output
-usb 4-4.2: new low speed USB device using address 4
-input,hiddev0: USB HID v1.10 Keyboard [Sony Sony IR Receiver] on usb-0000:0=
-0:1d.7-4.2
-usb 7-1: new full speed USB device using address 2
-drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 2 if 0 alt=
- 1 proto 2 vid 0x067B pid 0x2305
-Adding 3148700k swap on /dev/hda6.  Priority:-1 extents:1
-imm: Version 2.05 (for Linux 2.4.0)
-ppa: Version 2.07 (for Linux 2.4.x)
-Initializing USB Mass Storage driver...
-usbcore: registered new driver usb-storage
-USB Mass Storage support registered.
-Linux agpgart interface v0.100 (c) Dave Jones
-agpgart: Detected an Intel 855PM Chipset.
-agpgart: Maximum main memory to use for agp memory: 1919M
-agpgart: AGP aperture is 256M @ 0xe0000000
-ohci1394: $Rev: 1223 $ Ben Collins <bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-ACPI: PCI interrupt 0000:02:01.2[C] -> GSI 3 (level, low) -> IRQ 3
-ohci1394: fw-host0: OHCI-1394 1.1 (PCI): IRQ=3D[3]  MMIO=3D[ff6fe800-ff6fef=
-ff]  Max Packet=3D[2048]
-ip1394: $Rev: 1224 $ Ben Collins <bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-ip1394: eth0: IEEE-1394 IPv4 over 1394 Ethernet (fw-host0)
-ieee1394: Host added: ID:BUS[0-00:1023]  GUID[0800460301a5325b]
-e1000: Ignoring new-style parameters in presence of obsolete ones
-Intel(R) PRO/1000 Network Driver - version 5.2.52-k4
-Copyright (c) 1999-2004 Intel Corporation.
-ACPI: PCI interrupt 0000:02:03.0[A] -> GSI 9 (level, low) -> IRQ 9
-e1000: eth1: e1000_probe: Intel(R) PRO/1000 Network Connection
-ip_tables: (C) 2000-2002 Netfilter core team
-ip_conntrack version 2.1 (8192 buckets, 65536 max) - 328 bytes per conntrack
-ACPI: AC Adapter [ACAD] (on-line)
-ACPI: Battery Slot [BAT1] (battery present)
-ACPI: Power Button (CM) [PWRB]
-ACPI: Lid Switch [LID]
-ACPI: Processor [CPU1] (supports C1 C2, 8 throttling states)
-ACPI: Thermal Zone [ATF0] (57 C)
-inserting floppy driver for 2.6.8-0.rc2.2mdk-i686-up-4GB
-=46loppy drive(s): fd0 is 1.44M
-floppy0: no floppy controllers found
-inserting floppy driver for 2.6.8-0.rc2.2mdk-i686-up-4GB
-=46loppy drive(s): fd0 is 1.44M<4>devfs_mk_dev: could not append to parent =
-for floppy/0u1440
-devfs_mk_dev: could not append to parent for floppy/0u1680
-devfs_mk_dev: could not append to parent for floppy/0u1722
-devfs_mk_dev: could not append to parent for floppy/0u1743
-devfs_mk_dev: could not append to parent for floppy/0u1760
-devfs_mk_dev: could not append to parent for floppy/0u1920
-devfs_mk_dev: could not append to parent for floppy/0u1840
-devfs_mk_dev: could not append to parent for floppy/0u1600
-devfs_mk_dev: could not append to parent for floppy/0u360
-devfs_mk_dev: could not append to parent for floppy/0u720
-devfs_mk_dev: could not append to parent for floppy/0u820
-devfs_mk_dev: could not append to parent for floppy/0u830
-devfs_mk_dev: could not append to parent for floppy/0u1040
-devfs_mk_dev: could not append to parent for floppy/0u1120
-devfs_mk_dev: could not append to parent for floppy/0u800
-devfs_mk_dev: could not append to parent for floppy/0
-
-floppy0: no floppy controllers found
-inserting floppy driver for 2.6.8-0.rc2.2mdk-i686-up-4GB
-=46loppy drive(s): fd0 is 1.44M
-floppy0: no floppy controllers found
-inserting floppy driver for 2.6.8-0.rc2.2mdk-i686-up-4GB
-=46loppy drive(s): fd0 is 1.44M<4>devfs_mk_dev: could not append to parent =
-for floppy/0u1440
-devfs_mk_dev: could not append to parent for floppy/0u1680
-devfs_mk_dev: could not append to parent for floppy/0u1722
-devfs_mk_dev: could not append to parent for floppy/0u1743
-devfs_mk_dev: could not append to parent for floppy/0u1760
-devfs_mk_dev: could not append to parent for floppy/0u1920
-devfs_mk_dev: could not append to parent for floppy/0u1840
-devfs_mk_dev: could not append to parent for floppy/0u1600
-devfs_mk_dev: could not append to parent for floppy/0u360
-devfs_mk_dev: could not append to parent for floppy/0u720
-devfs_mk_dev: could not append to parent for floppy/0u820
-devfs_mk_dev: could not append to parent for floppy/0u830
-devfs_mk_dev: could not append to parent for floppy/0u1040
-devfs_mk_dev: could not append to parent for floppy/0u1120
-devfs_mk_dev: could not append to parent for floppy/0u800
-devfs_mk_dev: could not append to parent for floppy/0
-
-floppy0: no floppy controllers found
-inserting floppy driver for 2.6.8-0.rc2.2mdk-i686-up-4GB
-=46loppy drive(s): fd0 is 1.44M
-floppy0: no floppy controllers found
-hdc: ATAPI 24X DVD-ROM DVD-R CD-R/RW drive, 2048kB Cache, UDMA(33)
-Uniform CD-ROM driver Revision: 3.20
-ide-floppy driver 0.99.newide
-NET: Registered protocol family 17
-e1000: eth1: e1000_watchdog: NIC Link is Up 100 Mbps Full Duplex
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 9 (level, low) -> IRQ 9
-PCI: Setting latency timer of device 0000:00:1f.5 to 64
-intel8x0_measure_ac97_clock: measured 49562 usecs
-intel8x0: clocking to 48000
-Bluetooth: Core ver 2.6
-NET: Registered protocol family 31
-Bluetooth: HCI device and connection manager initialized
-Bluetooth: HCI socket layer initialized
-Bluetooth: L2CAP ver 2.3
-Bluetooth: L2CAP socket layer initialized
-Bluetooth: RFCOMM ver 1.3
-Bluetooth: RFCOMM socket layer initialized
-Bluetooth: RFCOMM TTY layer initialized
-NET: Registered protocol family 10
-Disabled Privacy Extensions on device c0385b20(lo)
-IPv6 over IPv4 tunneling driver
-mtrr: 0xd0000000,0x4000000 overlaps existing 0xd0000000,0x100000
-lp: driver loaded but no devices found
-drivers/usb/input/hid-input.c: event field not found
-drivers/usb/input/hid-input.c: event field not found
-drivers/usb/input/hid-input.c: event field not found
-Installing knfsd (copyright (C) 1996 okir-pn4DOG8n3UYbFoVRYvo4fw@public.gmane.org).
-inserting floppy driver for 2.6.8-0.rc2.2mdk-i686-up-4GB
-=46loppy drive(s): fd0 is 1.44M<4>devfs_mk_dev: could not append to parent =
-for floppy/0u1440
-devfs_mk_dev: could not append to parent for floppy/0u1680
-devfs_mk_dev: could not append to parent for floppy/0u1722
-devfs_mk_dev: could not append to parent for floppy/0u1743
-devfs_mk_dev: could not append to parent for floppy/0u1760
-devfs_mk_dev: could not append to parent for floppy/0u1920
-devfs_mk_dev: could not append to parent for floppy/0u1840
-devfs_mk_dev: could not append to parent for floppy/0u1600
-devfs_mk_dev: could not append to parent for floppy/0u360
-devfs_mk_dev: could not append to parent for floppy/0u720
-devfs_mk_dev: could not append to parent for floppy/0u820
-devfs_mk_dev: could not append to parent for floppy/0u830
-devfs_mk_dev: could not append to parent for floppy/0u1040
-devfs_mk_dev: could not append to parent for floppy/0u1120
-devfs_mk_dev: could not append to parent for floppy/0u800
-devfs_mk_dev: could not append to parent for floppy/0
-
-bootsplash 3.1.4-2004/02/19-spock-0.1: looking for picture.... found (800x6=
-00, 11774 bytes, v3).
-bootsplash: status on console 0 changed to on
-bootsplash 3.1.4-2004/02/19-spock-0.1: looking for picture.... found (800x6=
-00, 11774 bytes, v3).
-bootsplash: status on console 1 changed to on
-bootsplash 3.1.4-2004/02/19-spock-0.1: looking for picture.... found (800x6=
-00, 11774 bytes, v3).
-bootsplash: status on console 2 changed to on
-bootsplash 3.1.4-2004/02/19-spock-0.1: looking for picture.... found (800x6=
-00, 11774 bytes, v3).
-bootsplash: status on console 3 changed to on
-floppy0: no floppy controllers found
-bootsplash 3.1.4-2004/02/19-spock-0.1: looking for picture.... found (800x6=
-00, 11774 bytes, v3).
-bootsplash: status on console 4 changed to on
-bootsplash 3.1.4-2004/02/19-spock-0.1: looking for picture.... found (800x6=
-00, 11774 bytes, v3).
-bootsplash: status on console 5 changed to on
-eth1: no IPv6 routers present
-inserting floppy driver for 2.6.8-0.rc2.2mdk-i686-up-4GB
-=46loppy drive(s): fd0 is 1.44M
-floppy0: no floppy controllers found
-cdrom: This disc doesn't have any tracks I recognize!
-sonypi: Sony Programmable I/O Controller Driver v1.23.
-sonypi: detected type2 model, verbose =3D 0, fnkeyinit =3D off, camera =3D =
-off, compat =3D off, mask =3D 0xffffffff, useinput =3D on, acpi =3D on
-sonypi: enabled at irq=3D11, port1=3D0x1080, port2=3D0x1084
-sonypi: device allocated minor is 63
-Sony VAIO Jog Dial installed.
-sonypi: removed.
-sonypi: Sony Programmable I/O Controller Driver v1.23.
-sonypi: detected type2 model, verbose =3D 0, fnkeyinit =3D off, camera =3D =
-off, compat =3D off, mask =3D 0xffffffff, useinput =3D on, acpi =3D on
-sonypi: enabled at irq=3D11, port1=3D0x1080, port2=3D0x1084
-sonypi: device allocated minor is 63
-Sony VAIO Jog Dial installed.
-
---Boundary-00=_0UxHBMVb5ZGnspJ
-Content-Type: text/plain;
-  charset="iso-8859-1";
-  name="dmidecode.dump"
+  name="resume-finish-split.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="dmidecode.dump"
+	filename="resume-finish-split.patch"
 
-# dmidecode 2.4
-SMBIOS 2.3 present.
-17 structures occupying 809 bytes.
-Table at 0x000F8E30.
-Handle 0x0000
-	DMI type 0, 20 bytes.
-	BIOS Information
-		Vendor: American Megatrends Inc.
-		Version: R0050F1
-		Release Date: 06/07/2004
-		Address: 0xF0000
-		Runtime Size: 64 kB
-		ROM Size: 512 kB
-		Characteristics:
-			PCI is supported
-			PC Card (PCMCIA) is supported
-			PNP is supported
-			BIOS is upgradeable
-			BIOS shadowing is allowed
-			ESCD support is available
-			Boot from CD is supported
-			Selectable boot is supported
-			EDD is supported
-			8042 keyboard services are supported (int 9h)
-			CGA/mono video services are supported (int 10h)
-			ACPI is supported
-			USB legacy is supported
-			AGP is supported
-			Smart battery is supported
-			BIOS boot specification is supported
-			Function key-initiated network boot is supported
-Handle 0x0001
-	DMI type 1, 25 bytes.
-	System Information
-		Manufacturer: Sony Corporation
-		Product Name: VGN-A190(UC)
-		Version: C0003QH1
-		Serial Number: 28173030-3110492
-		UUID: 5B5966C0-FA69-11D7-8BDC-080046D9C22C
-		Wake-up Type: Power Switch
-Handle 0x0002
-	DMI type 3, 17 bytes.
-	Chassis Information
-		Manufacturer: Sony Corporation
-		Type: Notebook
-		Lock: Not Present
-		Version: N/A
-		Serial Number: 28173030-3110492
-		Asset Tag: 8Q5L00000200fda0ee04d55672f2
-		Boot-up State: Safe
-		Power Supply State: Safe
-		Thermal State: Safe
-		Security Status: None
-		OEM Information: 0x0000000A
-Handle 0x0003
-	DMI type 4, 35 bytes.
-	Processor Information
-		Socket Designation: N/A
-		Type: Central Processor
-		Family: Pentium M
-		Manufacturer: GenuineIntel
-		ID: D6 06 00 00 BF FB E9 AF
-		Signature: Type 0, Family 6, Model 13, Stepping 6
-		Flags:
-			FPU (Floating-point unit on-chip)
-			VME (Virtual mode extension)
-			DE (Debugging extension)
-			PSE (Page size extension)
-			TSC (Time stamp counter)
-			MSR (Model specific registers)
-			MCE (Machine check exception)
-			CX8 (CMPXCHG8 instruction supported)
-			APIC (On-chip APIC hardware supported)
-			SEP (Fast system call)
-			MTRR (Memory type range registers)
-			PGE (Page global enable)
-			MCA (Machine check architecture)
-			CMOV (Conditional move instruction supported)
-			PAT (Page attribute table)
-			CLFSH (CLFLUSH instruction supported)
-			DS (Debug store)
-			ACPI (ACPI supported)
-			MMX (MMX technology supported)
-			FXSR (Fast floating-point save and restore)
-			SSE (Streaming SIMD extensions)
-			SSE2 (Streaming SIMD extensions 2)
-			SS (Self-snoop)
-			TM (Thermal monitor supported)
-			SBF (Signal break on FERR)
-		Version: Intel(R) Pentium(R) M processor 1.70GHz
-		Voltage: 1.3 V
-		External Clock: 100 MHz
-		Max Speed: 1700 MHz
-		Current Speed: 1700 MHz
-		Status: Populated, Enabled
-		Upgrade: None
-		L1 Cache Handle: 0x0004
-		L2 Cache Handle: 0x0005
-		L3 Cache Handle: 0x0006
-		Serial Number: N/A
-		Asset Tag: N/A
-		Part Number: N/A
-Handle 0x0004
-	DMI type 7, 19 bytes.
-	Cache Information
-		Socket Designation: L1 Cache
-		Configuration: Enabled, Socketed, Level 1
-		Operational Mode: Varies With Memory Address
-		Location: Internal
-		Installed Size: 32 KB
-		Maximum Size: 32 KB
-		Supported SRAM Types:
-			Unknown
-		Installed SRAM Type: Unknown
-		Speed: Unknown
-		Error Correction Type: Unknown
-		System Type: Data
-		Associativity: 8-way Set-associative
-Handle 0x0005
-	DMI type 7, 19 bytes.
-	Cache Information
-		Socket Designation: L2 Cache
-		Configuration: Enabled, Socketed, Level 2
-		Operational Mode: Varies With Memory Address
-		Location: Internal
-		Installed Size: 2048 KB
-		Maximum Size: 2048 KB
-		Supported SRAM Types:
-			Unknown
-		Installed SRAM Type: Unknown
-		Speed: Unknown
-		Error Correction Type: Unknown
-		System Type: Unified
-		Associativity: 8-way Set-associative
-Handle 0x0006
-	DMI type 7, 19 bytes.
-	Cache Information
-		Socket Designation: L3 Cache
-		Configuration: Disabled, Not Socketed, Level 3
-		Operational Mode: Unknown
-		Location: Unknown
-		Installed Size: 0 KB
-		Maximum Size: 0 KB
-		Supported SRAM Types:
-			Unknown
-		Installed SRAM Type: Unknown
-		Speed: Unknown
-		Error Correction Type: Unknown
-		System Type: Unknown
-		Associativity: Unknown
-Handle 0x0007
-	DMI type 9, 13 bytes.
-	System Slot Information
-		Designation: PCCARD1
-		Type: 32-bit PC Card (PCMCIA)
-		Current Usage: Available
-		Length: Other
-		ID: Adapter 0, Socket 1
-		Characteristics:
-			5.0 V is provided
-			3.3 V is provided
-			PC Card-16 is supported
-			Cardbus is supported
-			Modem ring resume is supported
-			PME signal is supported
-			Hot-plug devices are supported
-Handle 0x0008
-	DMI type 11, 5 bytes.
-	OEM Strings
-		String 1: UCG260XEUM
-Handle 0x0009
-	DMI type 16, 15 bytes.
-	Physical Memory Array
-		Location: System Board Or Motherboard
-		Use: System Memory
-		Error Correction Type: Unknown
-		Maximum Capacity: 2048 GB
-		Error Information Handle: Not Provided
-		Number Of Devices: 2
-Handle 0x000A
-	DMI type 19, 15 bytes.
-	Memory Array Mapped Address
-		Starting Address: 0x00000000000
-		Ending Address: 0x0007FFFFFFF
-		Range Size: 2 GB
-		Physical Array Handle: 0x0009
-		Partition Width: 0
-Handle 0x000B
-	DMI type 17, 21 bytes.
-	Memory Device
-		Array Handle: 0x0009
-		Error Information Handle: Not Provided
-		Total Width: 64 bits
-		Data Width: 64 bits
-		Size: 1024 MB
-		Form Factor: SODIMM
-		Set: None
-		Locator: SODIMM1
-		Bank Locator: BANK0
-		Type: DDR
-		Type Detail: Unknown
-Handle 0x000C
-	DMI type 20, 19 bytes.
-	Memory Device Mapped Address
-		Starting Address: 0x00000000000
-		Ending Address: 0x0003FFFFFFF
-		Range Size: 1 GB
-		Physical Device Handle: 0x000B
-		Memory Array Mapped Address Handle: 0x000A
-		Partition Row Position: Unknown
-		Interleave Position: Unknown
-		Interleaved Data Depth: Unknown
-Handle 0x000D
-	DMI type 17, 21 bytes.
-	Memory Device
-		Array Handle: 0x0009
-		Error Information Handle: Not Provided
-		Total Width: 64 bits
-		Data Width: 64 bits
-		Size: 1024 MB
-		Form Factor: SODIMM
-		Set: None
-		Locator: SODIMM2
-		Bank Locator: BANK1
-		Type: DDR
-		Type Detail: Unknown
-Handle 0x000E
-	DMI type 20, 19 bytes.
-	Memory Device Mapped Address
-		Starting Address: 0x00040000000
-		Ending Address: 0x0007FFFFFFF
-		Range Size: 1 GB
-		Physical Device Handle: 0x000D
-		Memory Array Mapped Address Handle: 0x000A
-		Partition Row Position: Unknown
-		Interleave Position: Unknown
-		Interleaved Data Depth: Unknown
-Handle 0x000F
-	DMI type 32, 20 bytes.
-	System Boot Information
-		Status: No errors detected
-Handle 0x0010
-	DMI type 127, 4 bytes.
-	End Of Table
+--- linux-2.6.8-rc2/include/linux/pm.h	2004-08-04 20:36:48.044455680 +0200
++++ include/linux/pm.h	2004-08-04 19:50:07.000000000 +0200
+@@ -214,6 +214,7 @@
+ 	u32	pm_disk_mode;
+ 	int (*prepare)(u32 state);
+ 	int (*enter)(u32 state);
++	int (*leave)(u32 state);
+ 	int (*finish)(u32 state);
+ };
+ 
+--- linux-2.6.8-rc2/kernel/power/main.c	2004-08-04 20:36:17.755060368 +0200
++++ kernel/power/main.c	2004-08-04 19:52:26.000000000 +0200
+@@ -108,6 +108,8 @@
+ 
+ static void suspend_finish(u32 state)
+ {
++	if (pm_ops && pm_ops->leave)
++		pm_ops->leave(state);
+ 	device_resume();
+ 	if (pm_ops && pm_ops->finish)
+ 		pm_ops->finish(state);
+--- linux-2.6.8-rc2/drivers/acpi/sleep/main.c	2004-08-04 20:29:23.863981376 +0200
++++ drivers/acpi/sleep/main.c	2004-08-04 20:33:41.348837728 +0200
+@@ -127,7 +127,23 @@
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+ }
+ 
++/**
++ *	acpi_pm_leave - Make system ready to resume devices.
++ *	@pm_state:		State we're coming out of.
++ *
++ *	This is called after we wake back up and before device
++ *	resume methods are called.
++ */
++
++static int acpi_pm_leave(u32 pm_state)
++{
++	u32 acpi_state = acpi_suspend_states[pm_state];
+ 
++	acpi_leave_sleep_state(acpi_state);
++	acpi_disable_wakeup_device(acpi_state);
++	
++	return 0;
++}
+ /**
+  *	acpi_pm_finish - Finish up suspend sequence.
+  *	@pm_state:		State we're coming out of.
+@@ -140,9 +156,6 @@
+ {
+ 	u32 acpi_state = acpi_suspend_states[pm_state];
+ 
+-	acpi_leave_sleep_state(acpi_state);
+-	acpi_disable_wakeup_device(acpi_state);
+-
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
+@@ -170,6 +183,7 @@
+ static struct pm_ops acpi_pm_ops = {
+ 	.prepare	= acpi_pm_prepare,
+ 	.enter		= acpi_pm_enter,
++	.leave		= acpi_pm_leave,
+ 	.finish		= acpi_pm_finish,
+ };
+ 
 
---Boundary-00=_0UxHBMVb5ZGnspJ
-Content-Type: application/octet-stream;
-  name="dsdt.aml"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="dsdt.aml"
-
-RFNEVFg7AAABGVNPTlkAAEYxAAAAAAAABwYEIE1TRlQNAAABW4BCSU9TAAxkAPV/Cv9bgUcHQklP
-UwFTUzFfAVNTMl8BU1MzXwFTUzRfAQAESU9TVBBTUElPEFBNQlMQUE1MTghTTUJTEFNNTE4ISU8x
-QhBJTzFMCElPMkIQSU8yTAhUT1BNIFJPTVMgQVBDQiBBUENMEE1HMUIgTUcxTCBNRzJCIE1HMkwg
-CFdGQVQKkAhXTlZSCpEIUk5WUgqSCFNXRlIKkwhTVERECpQIR1RERAqVCEFEQlIKlghDR1BTCpcI
-Q0dXSwqYCElTV1AKmQhXUlJNCpoIUlJSTQqbCFBSUk0KnAhBR0JDCsEIQVNCQwrCCEFTQlIKwwhB
-Q1NYCswIQUNCVgrNCEFDQkkKzwhBUkVDCtQIQVdFQwrVCEFHV1AK8AhBR0JJCvEIR1BCUwsABQhH
-UExOCkAIU01CTAoQCEZOQzAKAAhGTkMxChIIRk5DMgoeCEZOQzMKKAhGTkM0CjAUD1JSSU8EcA1S
-UklPAFsxFA9SRE1BA3ANckRNQQBbMQhQSUNNCgAUH19QSUMBoAlocAqqREJHOKEIcApVREJHOHBo
-UElDTRQxT1NGTABwCgFgoCRNQ1RIXF9PU18NTWljcm9zb2Z0IFdpbmRvd3MgTlQAcAoAYKRgFE8E
-TUNUSAKgCJWHaIdppAByh2gKAWAIQlVGMBECYAhCVUYxEQJgcGhCVUYwcGlCVUYxohpgdmCgFZKT
-g4hCVUYwYACDiEJVRjFgAKQApAEUK0dQUlcCCFBSV1ASBgIKAAoAcGiIUFJXUAoAAHBpiFBSV1AK
-AQCkUFJXUAhXQUtQEgYCCgAKAFuAREVCMAEKgAoBW4ELREVCMAFEQkc4CFuAREVCMQEKkAoCW4EL
-REVCMQJEQkc5EBATXF9QUl9bgwtDUFUxARAEAAAGEIbjAlxfU0JfCFBSMDASQwgIEg8EDP//AQAK
-AExOS0EKABIPBAz//wEACgFMTktCCgASDwQM//8fAAoATE5LQwoAEg8EDP//HwAKAUxOS0IKABIP
-BAz//x0ACgBMTktBCgASDwQM//8dAAoBTE5LRAoAEg8EDP//HQAKAkxOS0MKABIPBAz//x0ACgNM
-TktICgAIQVIwMBJDBwgSDQQM//8BAAoACgAKEBINBAz//wEACgEKAAoREg0EDP//HwAKAAoAChIS
-DQQM//8fAAoBCgAKERINBAz//x0ACgAKAAoQEg0EDP//HQAKAQoAChMSDQQM//8dAAoCCgAKEhIN
-BAz//x0ACgMKAAoXCFBSMDISQwoKEg8EDP//CAAKAExOS0UKABIPBAz//wEACgBMTktGCgASDwQM
-//8BAAoCTE5LSAoAEg8EDP//AQAKAUxOS0cKABIPBAz//wIACgBMTktDCgASDwQM//8CAAoBTE5L
-RAoAEg8EDP//AwAKAExOS0IKABIPBAz//wQACgBMTktBCgASDwQM//8EAAoBTE5LQgoAEg8EDP//
-BAAKAkxOS0MKAAhBUjAyEk8IChINBAz//wgACgAKAAoUEg0EDP//AQAKAAoAChUSDQQM//8BAAoC
-CgAKFxINBAz//wEACgEKAAoWEg0EDP//AgAKAAoAChISDQQM//8CAAoBCgAKExINBAz//wMACgAK
-AAoREg0EDP//BAAKAAoAChASDQQM//8EAAoBCgAKERINBAz//wQACgIKAAoSCFBSMDESEAESDQQL
-//8KAExOS0UKAAhBUjAxEg4BEgsEC///CgAKAAoUCFBSU0ERCQoGI/gCGHkABlBSU0FQUlNCBlBS
-U0FQUlNDBlBSU0FQUlNEBlBSU0FQUlNFBlBSU0FQUlNGBlBSU0FQUlNHBlBSU0FQUlNIW4KEtwJQ
-Q0kwCF9ISUQMQdAKAwhfQURSCgAIX0JCTgoACF9VSUQKABQWX1BSVACgClBJQ02kQVIwMKRQUjAw
-W4JCBlAwUDEIX0FEUgwAAAEAFBZfUFJUAKAKUElDTaRBUjAxpFBSMDFbgjlWR0EwCF9BRFIKAFuC
-DUNSVF8IX0FEUgsAAVuCDVRWT18IX0FEUgsAAluCDUxDRF8IX0FEUgsQAVuCSzVQMFAyCF9BRFIM
-AAAeABQPX1BSVwCkR1BSVwoLCgMUFl9QUlQAoApQSUNNpEFSMDKkUFIwMluCQwRNTEFOCF9BRFIM
-AAAIAFuATEFOUgIKAAsAAVuBFUxBTlIBVklEXxAAQG8AD1BNRVMBFA9fUFJXAKRHUFJXCgsKA1uC
-QApDQlMwCF9BRFIMAAABAFuAQ0JTUAIKAArwW4E4Q0JTUAMAIENCMDQIAEgHQ0IxNAgASBNDQjND
-CAAIQ0IzRQgAKENCNDQgAEBMUE1FMAhQTUUxCBQMX0lOSQBwAENCNDQUEkNCU1cBoAuTaAoDcABD
-QjQ0FCpDQlNSAHtQTUUxCoBhoBlhe1BNRTAK/FBNRTBwUE1FMWJwYlBNRTGkYVuCD0NCUzIIX0FE
-UgwCAAEAW4IPQ0JTMwhfQURSDAMAAQBbgi9NUENJCF9BRFIMAAACAFuAVkRJRAIKAApAW4ETVkRJ
-RAFXTElEIABAFFdMU0QgW4JDBEdMQU4IX0FEUgwAAAMAW4BMQU5SAgoACwABW4EVTEFOUgFWSURf
-EABAbwAPUE1FUwEUD19QUlcApEdQUlcKCwoDW4JBCk5VQjAIX0FEUgwAAAQAW4BOTzFQAgoACwAB
-W4EvTk8xUAEAIAABTVNQRQEADgBABU1CQVMgAEAYUFNUQQIABlBNRUUBAAZQTUVTARRDBF9QU1cB
-cE1CQVNge2AM8P///2BbgE1NSU8AYAsAAVuBF01NSU8DACBIQ1RMCABIJQAPRFJXRQGgCWhwCgFE
-UldFFA9fUFJXAKRHUFJXCgsKA1uCQQpOVUIxCF9BRFIMAQAEAFuATk8xUAIKAAsAAVuBL05PMVAB
-ACAAAU1TUEUBAA4AQAVNQkFTIABAGFBTVEECAAZQTUVFAQAGUE1FUwEUQwRfUFNXAXBNQkFTYHtg
-DPD///9gW4BNTUlPAGALAAFbgRdNTUlPAwAgSENUTAgASCUAD0RSV0UBoAlocAoBRFJXRRQPX1BS
-VwCkR1BSVwoLCgNbgk0FTkVVQghfQURSDAIABABbgE5PMVACCgALAAFbgS9OTzFQAQAgAAFNU1BF
-AQAOAEAFTUJBUyAAQBhQU1RBAgAGUE1FRQEABlBNRVMBFA9fUFJXAKRHUFJXCgsKA1uCgbkBU0JS
-RwhfQURSDAAAHwBbgitQSUNfCF9ISUQLQdAIX0NSUxEYChVHASAAIAAAAkcBoACgAAACIgQAeQBb
-gk4ERE1BRAhfSElEDEHQAgAIX0NSUxE4CjUqEARHAQAAAAAAEEcBgQCBAAADRwGHAIcAAAFHAYkA
-iQAAA0cBjwCPAAABRwHAAMAAACB5AFuCJVRNUl8IX0hJRAxB0AEACF9DUlMREAoNRwFAAEAAAAQi
-AQB5AFuCJVJUQzAIX0hJRAxB0AsACF9DUlMREAoNRwFwAHAAAAIiAAF5AFuCSgRQUzJLCF9ISUQM
-QdADAxQbX1NUQQB5CgEKCmCgC3tJT1NUYACkCg+kCgAIX0NSUxEYChVHAWAAYAAAAUcBZABkAAAB
-IgIAeQBbgkYJUFMyTRQbX0hJRACgDFxJRDEwpAxN2ZABoQekDE3ZkAkIX0NJRAxB0A8TFBtfU1RB
-AHkKAQoMYKALe0lPU1RgAKQKD6QKAAhDUlMxEQgKBSIAEHkACENSUzIRGAoVRwFgAGAAAAFHAWQA
-ZAAAASIAEHkAFCFfQ1JTAHkKAQoKYKANe0lPU1RgAKRDUlMxoQakQ1JTMluCIlNQS1IIX0hJRAxB
-0AgACF9DUlMRDQoKRwFhAGEAAAF5AFuCJUNPUFIIX0hJRAxB0AwECF9DUlMREAoNRwHwAPAAABAi
-ACB5AFuCQwpTWVNSCF9ISUQMQdAMAghfVUlECgEIX0NSUxFGCAqCRwEQABAAABBHASIAIgAAHkcB
-RABEAAAcRwFjAGMAAAFHAWUAZQAAAUcBZwBnAAAJRwFyAHIAAA5HAYAAgAAAAUcBhACEAAADRwGI
-AIgAAAFHAYwAjAAAA0cBkACQAAAQRwGiAKIAAB5HAeAA4AAAEEcB0ATQBAACRwEA/gD+AAJ5AFuC
-SQtGV0hfCF9ISUQMQdAMAghfVUlECgMIQ1JTXxEdChqGCQAAAAAAAAAAAACGCQAAAAAAAAAAAAB5
-AIpDUlNfCgRCUzAwikNSU18KCEJMMDCKQ1JTXwoQQlMxMIpDUlNfChRCTDEwFEIFX0NSUwBwDAAA
-gP9ggkZIRDBhdmGgCmF3YQwAAAgAYXJgYWJwYkJTMDByQlMwMAwAAEAAQlMxMHQKAEJTMTBCTDAw
-cEJMMDBCTDEwpENSU19bgEZIUjACCuMKAVuBC0ZIUjABRkhEMAhbgk4cT1NZUwhfSElEDEHQDAII
-X1VJRAoCCENSU18RPQo6RwEAAAAAAABHAQAAAAAAAEcBAAAAAAAARwEAAAAAAACGCQAAAAAAAAAA
-AACGCQAAAAAAAAAAAAB5ABRDF19DUlMAi0NSU18KAkdQMDCLQ1JTXwoER1AwMYxDUlNfCgdHUDBM
-cFBNQlNHUDAwcFBNQlNHUDAxcFBNTE5HUDBMoE0EkJKTU1BJTwvwA5RTUElPCvCLQ1JTXwoKR1Ax
-MItDUlNfCgxHUDExjENSU18KD0dQTDFwU1BJT0dQMTBwU1BJT0dQMTFwCgJHUEwxoEIESU8xQotD
-UlNfChJHUDIwi0NSU18KFEdQMjGMQ1JTXwoXR1AyTHBJTzFCR1AyMHBJTzFCR1AyMXBJTzFMR1Ay
-TKBCBElPMkKLQ1JTXwoaR1AzMItDUlNfChxHUDMxjENSU18KH0dQM0xwSU8yQkdQMzBwSU8yQkdQ
-MzFwSU8yTEdQM0ygRgVBUENCikNSU18KKE1MMDGKQ1JTXwokTUIwMYpDUlNfCjRNTDAyikNSU18K
-ME1CMDJwQVBDQk1CMDFwQVBDTE1MMDFwDAAA4P5NQjAycAsAEE1MMDKkQ1JTXxBDU1wAW4BcR1BT
-QwEKsgoCW4ERXEdQU0MBU01DTQhTTVNUCBQNXElTTUkJcGhTTUNNFA1cRElBRwFwaERCRzhbgFxQ
-TUlPAVBNQlMKgFuBQghcUE1JTwEAQAgAAVREVFkDVEVOQQFUVERUA0ZSQ1QBAAhUSExTAQBOCgAL
-U0JQUwEABAAIRzA4UwEAAkcxMVMBRzEyUwFGTFBTAQACAAJUUE9MAQAFAAgACEcwOEUBAAJHMTFF
-AUcxMkUBAAMABFNMUEUBAAMAGAAEU0xQUwEAA1uAXEdQSU8BR1BCUwpAW4FJBFxHUElPAQBABgAZ
-Q0JTUAEAAklQV1IBAEMOAAtMSURMAQABRkxQTAEAQgUABUlEMDgBSUQwOQFJRDEwAQABQlRQUgEA
-AQABW4BcRUNNUwEKcgoCW4ERXEVDTVMRRUlORAhFREFUCFuGTA5FSU5ERURBVAEAQAhJS0ZHCEZS
-UE4QUkFNQiBBVk9MCExCVE4IQ0tMTghDSzAwCENLMDEIQ0swMghDSzAzCENLMDQIQ0swNQhDSzA2
-CENLMDcIQ0swOAhDSzA5CENLMTAIQ0sxMQhDSzEyCENLMTMIQ0sxNAhDSzE1CENLMTYIQ0sxNwhD
-SzE4CENLMTkIQ0syMAhDSzIxCENLMjIIQ0syMwhDSzI0CENLMjUIQ0syNghDSzI3CENLMjgIQ0sy
-OQhFUlJGCE9DTEsIV0lERQFPVkNLAlM0MksDAAJDUFVSBkNQVUYCTEJUMghbgFNNSTABCwD+CgJb
-gQtTTUkwAFNNSUMIW4BcUkFNVwBSQU1CCwAIW4FFD1xSQU1XAQBAWFRSVFkIRlNGTghGU1RBEEZB
-RFIgRlNJWhBBQ1RECEFWTEQIU0VURAhBQ1BGAURDUEYBQ0hHRgFEQ1AyAUNIRzIBAANQQURMEENB
-REwQQ1NURRBOU1RFEFNTVEUQU0ZVTghUU0FECFRBQzMIVEFDMghUQUMxCFRBQzAIVFBTVghUQ1JU
-CEYxTDAIRjJMMAhGMUwxCEYyTDEIRjFMMghGMkwyCEYxTDMIRjJMMwhGMUw0CEYyTDQIU0xQVAhE
-QlIxCERCUjIgQUlCRgEAB1NTRkcITEFORggASA5DTURCCElORkQgU1hCRoAIAluBFlxSQU1XAQBA
-gAAISU5GMQhJTkYyCFsBTUFTUwAUGUFTU18JcGhDTURCcABTTUlDcAoAQ01EQhQnQVNTRApbI01B
-U1P//3BpSU5GREFTU19ocElORkRgWydNQVNTpGAULUFTU1cLWyNNQVNT//9waUlORjFwaklORjJB
-U1NfaHBJTkYxYFsnTUFTU6RgFCdBU1NCClsjTUFTU///cGlJTkYxQVNTX2hwSU5GMWBbJ01BU1Ok
-YAhPU0ZHCgAIT1M5WAoBCE9TOTgKAghPU01FCgQIT1MySwoICE9TWFAKEBRFDU9TVlIAoCdbElxf
-T1NJYKAdXF9PU0kNV0lORE9XUyAyMDAxAHBPU1hQT1NGR6FACqAmTUNUSFxfT1NfDU1pY3Jvc29m
-dCBXaW5kb3dzAHBPUzk4T1NGR6FGB6A8TUNUSFxfT1NfDU1pY3Jvc29mdCBXaW5kb3dzTUU6IE1p
-bGxlbm5pdW0gRWRpdGlvbgBwT1NNRU9TRkehNqApTUNUSFxfT1NfDU1pY3Jvc29mdCBXaW5kb3dz
-IE5UAHBPUzJLT1NGR6EKcE9TWFBPU0ZHpE9TRkcUHFxEQkdSAXBoREJSMVxJU01JXEFEQlKkREJS
-MQhNTkFNDVNFABAXXC5fU0JfUENJMBQLX0lOSQBcT1NWUhAtXF9TQl9bgiVQV1JCCF9ISUQMQdAM
-DAhfUFJXEgYCCh0KBRQJX1NUQQCkCg8QRytcLwNfU0JfUENJMFNCUkdbgkQqRUMwXwhfSElEDEHQ
-DAkIX0NSUxEVChJHAWIAYgABAUcBZgBmAAEBeQAIX0dQRQocCEVDT0sKABQSX1JFRwKgC5NoCgNw
-aUVDT0sIX1BSVxIGAgodCgVbgEVDUl8DCgAK/1uBRhRFQ1JfEQBAQAACRE9LRAFERkJQAQAEQlQx
-QQFCVDJBAUFDQVQBAAVQV1JCAUpPR0IBTElEUwEABUJUMVABQlQyUAEABkIxU1QIQjJTVAgAQAVN
-QVNLCEJUMVMBQlQyUwEABkJUMVcBQlQyVwEABkZBTjAIQ0IwUwFDQjFTAQAGUEhZTwEAB0JSSVQI
-Q09OVAhTTkRVAVNOREQBAAZTTURNAQAHAAhTSVJRCFNMT0IIU0hJQghNUFdSAVdBS0kBTVBCUAFN
-UEJEAgADAAhCMVJDEEIxQUIQQjFBQxBCMVZPEEIyUkMQQjJBQhBCMkFDEEIyVk8QQjFEQxBCMUxG
-EEIxRFYQQjFETBBCMkRDEEIyTEYQQjJEVhBCMkRMEEExVFAQQTFBVBBBMVBUEEExQ1QQQTJUUBBB
-MkFUEEEyUFQQQTJDVBAUK19RNTAAhkFDQUQKgIZcLl9QUl9DUFUxCoBbIgpkhlwuX1BSX0NQVTEK
-gRQjX1E1MQCgDEJUMUGGQkFUMQoAoQiGQkFUMQoBhkJBVDEKgBQ3X1E1OABwDV9RNTg6QVRGIHRo
-ZXJtYWwgcG9saWN5IGNoYW5nZWQAWzGGXC5fVFpfQVRGMAqBFD9fUTVGAHANX1E1RjpBVEYgdGVt
-cGVyYXR1cmUgcmVhY2hlcyB0cmlwIHBvaW50AFsxhlwuX1RaX0FURjAKgBQcX1E2MACgFVxEQkdS
-CgCGXC5fU0JfUFdSQgqAFBNfUTY2AIZcLl9TQl9MSURfCoAQSjpcLwNfU0JfUENJMFNCUkdbgkc5
-U1BJQwhfSElEDE3ZYAEIUlNSQxEQCg1HAQAAAAABICIAAHkACFNTUkMREAoNRwEAAAAAASAiAAB5
-AAhTSVJUEgoECgYKCQoKCgsUQRJfQ1JTAIxSU1JDCgJJT00xjFJTUkMKA0lPTTKLUlNSQwoCSU8x
-SYtSU1JDCgRJTzFBi1JTUkMKCUlSUVagOZNcLwVfU0JfUENJMFNCUkdFQzBfRUNPSwoAcEFTU0JB
-UkVDCpxJT00xcEFTU0JBUkVDCp1JT00yoTlwXC8FX1NCX1BDSTBTQlJHRUMwX1NMT0JJT00xcFwv
-BV9TQl9QQ0kwU0JSR0VDMF9TSElCSU9NMnBJTzFJSU8xQaApk1wvBV9TQl9QQ0kwU0JSR0VDMF9F
-Q09LCgB6QVNTQkFSRUMKmwoEYKEcelwvBV9TQl9QQ0kwU0JSR0VDMF9TSVJRCgRggmBhoBZhdmFw
-g4hTSVJUYQBgeQoBYElSUVakUlNSQxRLD19TUlMBjGgKAklPQTGMaAoDSU9BMotoCglJUlFWgklS
-UVZgoBdgdmBwiVNJUlQBYAAKAAoAYXkKEGFioQVwCgBioCaTXC8FX1NCX1BDSTBTQlJHRUMwX0VD
-T0sKAEFTU1dBV0VDCptioRpwYlwvBV9TQl9QQ0kwU0JSR0VDMF9TSVJRoDeTXC8FX1NCX1BDSTBT
-QlJHRUMwX0VDT0sKAEFTU1dBV0VDCp1JT0EyQVNTV0FXRUMKnElPQTGhOXBJT0EyXC8FX1NCX1BD
-STBTQlJHRUMwX1NISUJwSU9BMVwvBV9TQl9QQ0kwU0JSR0VDMF9TTE9CWyIKAQhfUFJTES0KKjBH
-AYAQgBABIDBHAaAQoBABIDBHAcAQwBABIDBHAeAQ4BABIDgiQA55ABRMCV9ESVMAoD+TXC8FX1NC
-X1BDSTBTQlJHRUMwX0VDT0sKAEFTU1dBV0VDCpsKAEFTU1dBV0VDCp0KAEFTU1dBV0VDCpwKAKFA
-BXAKAFwvBV9TQl9QQ0kwU0JSR0VDMF9TSVJRcAoAXC8FX1NCX1BDSTBTQlJHRUMwX1NISUJwCgBc
-LwVfU0JfUENJMFNCUkdFQzBfU0xPQlsiCgEUTAVfU1RBAKApk1wvBV9TQl9QQ0kwU0JSR0VDMF9F
-Q09LCgB6QVNTQkFSRUMKmwoEYKEcelwvBV9TQl9QQ0kwU0JSR0VDMF9TSVJRCgRggmBhoAVhpAoP
-oQSkCg1bgkEaU05DXwhfSElEDE3ZUAEURgVHQlJUAKAok1wvBV9TQl9QQ0kwU0JSR0VDMF9FQ09L
-CgBwXEFTU0RBUkVDCpZgoRpwXC8FX1NCX1BDSTBTQlJHRUMwX0JSSVRgpFxBU1NCQUNCSWAURgVT
-QlJUAXBcQVNTQkFDQlZoYKAlk1wvBV9TQl9QQ0kwU0JSR0VDMF9FQ09LCgBcQVNTQkFTQlJgoRpw
-YFwvBV9TQl9QQ0kwU0JSR0VDMF9CUklUpAAUEkdQQlIApFxBU1NCQUdCQwoAFBJTUEJSAVxBU1NC
-QVNCQ2ikABQIUFdBSwCkABQvQ1NYQgFbI1xNQVNT//9waFxTWEJGXEFTU19BQ1NYcFxTWEJGYFsn
-XE1BU1OkYBQjR1dEUABwQVNTREFHV1AKAGCgDpNcQlRQUgoAfWAKAWCkYBQyUkJNRgl7aAwAAAEA
-YFxBU1NEQUdCSWBbIgvQB3AMAAAAA2BwXEFTU0RBR0JJYGCkYBQIUlNCSQmkABQjQ0JNRgl9e2gM
-//8BAAAMAAAAAmBwXEFTU0RBR0JJYGCkYBBGGlxfVFpfW4VNGUFURjAUFktFTFYBcGhgd2AKCmBy
-YAurCmCkYBRKCl9UTVAAoCiTXC8FX1NCX1BDSTBTQlJHRUMwX0VDT0sKAHBcQVNTREFSRUMKwGGh
-GnBcLwVfU0JfUENJMFNCUkdFQzBfQTFUUGF6YQoIYKBDBZRgCoBbIgoyoCiTXC8FX1NCX1BDSTBT
-QlJHRUMwX0VDT0sKAHBcQVNTREFSRUMKwGGhGnBcLwVfU0JfUENJMFNCUkdFQzBfQTFUUGF6YQoI
-YKRLRUxWYBRGBV9QU1YAoCiTXC8FX1NCX1BDSTBTQlJHRUMwX0VDT0sKAHBcQVNTREFSRUMKxGGh
-GnBcLwVfU0JfUENJMFNCUkdFQzBfQTFQVGF6YQoIYKRLRUxWYAhfUFNMEgwBXC5fUFJfQ1BVMRRG
-BV9DUlQAoCiTXC8FX1NCX1BDSTBTQlJHRUMwX0VDT0sKAHBcQVNTREFSRUMKxmGhGnBcLwVfU0Jf
-UENJMFNCUkdFQzBfQTFDVGF6YQoIYKRLRUxWYAhfVEMxCgEIX1RDMgoCCF9UU1AKMhBCEVwAFEEH
-T0VNUwGgNJNoCgNwXC8FX1NCX1BDSTBTQlJHU1BJQ19DUlNcLwVfU0JfUENJMFNCUkdTUElDU1NS
-Q6A0k2gKBHBcLwVfU0JfUENJMFNCUkdTUElDX0NSU1wvBV9TQl9QQ0kwU0JSR1NQSUNTU1JDFEsJ
-T0VNVwGGXC5fUFJfQ1BVMQqAWyIKZIZcLl9QUl9DUFUxCoGgM5NoCgNcLwVfU0JfUENJMFNCUkdT
-UElDX1NSU1wvBV9TQl9QQ0kwU0JSR1NQSUNTU1JDoEEEk2gKBFwvBV9TQl9QQ0kwU0JSR1NQSUNf
-U1JTXC8FX1NCX1BDSTBTQlJHU1BJQ1NTUkOGXC5fU0JfUFdSQgoCEE0eXF9HUEUUGF9MMDMIhlwv
-A19TQl9QQ0kwVVNCMQoCFBhfTDA0CIZcLwNfU0JfUENJMFVTQjIKAhQYX0wwQwiGXC8DX1NCX1BD
-STBVU0IzCgIUGF9MMEQIhlwvA19TQl9QQ0kwRUhDSQoCFBhfTDA1CIZcLwNfU0JfUENJME1PRE0K
-AhROE19MMEIIoC5cLwVfU0JfUENJMFAwUDJOVUIwUE1FU4ZcLwRfU0JfUENJMFAwUDJOVUIwCgKg
-LlwvBV9TQl9QQ0kwUDBQMk5VQjFQTUVThlwvBF9TQl9QQ0kwUDBQMk5VQjEKAqAuXC8FX1NCX1BD
-STBQMFAyTkVVQlBNRVOGXC8EX1NCX1BDSTBQMFAyTkVVQgoCoEQFe1xMQU5GCgEAoEgEXC8FX1NC
-X1BDSTBQMFAyTUxBTlBNRVOGXC8EX1NCX1BDSTBQMFAyTUxBTgoCcAFcLwVfU0JfUENJMFAwUDJN
-TEFOUE1FU6BEBXtcTEFORgoCAKBIBFwvBV9TQl9QQ0kwUDBQMkdMQU5QTUVThlwvBF9TQl9QQ0kw
-UDBQMkdMQU4KAnABXC8FX1NCX1BDSTBQMFAyR0xBTlBNRVMUKV9MMUQIhlwvBF9TQl9QQ0kwU0JS
-R0VDMF8KAoZcLl9TQl9QV1JCCgIQRwhcLwRfU0JfUENJMFNCUkdFQzBfW4JAB0FDQUQIX0hJRA1B
-Q1BJMDAwMwAIX1BDTBIHAVxfU0JfFEMEX1BTUgCgKpNcLwVfU0JfUENJMFNCUkdFQzBfRUNPSwoA
-e0FTU0RBUkVDCoALAARhoQdwQUNBVGGgBGGkAaEDpAAUCV9TVEEApAoPEEohXC8EX1NCX1BDSTBT
-QlJHRUMwX1uCQyBCQVQxCF9ISUQMQdAMCghfUENMEgcBXF9TQl8IQkFUSRItDQoAC1CWC1CWCgAL
-0DkKAAp4CgAKCg0ADQANTElPTgANU29ueSBDb3JwLgAIQkFUUxIPBAoCDP////8Leg0LQDgUSQRf
-U1RBAKAqk1wvBV9TQl9QQ0kwU0JSR0VDMF9FQ09LCgB7QVNTREFSRUMKgAsAAWGhB3BCVDFBYaAG
-YXAKH2ChBXAKD2CkYBRCCF9CSUYAoD+TXC8FX1NCX1BDSTBTQlJHRUMwX0VDT0sKAHBBU1NEQVJF
-QwqwYHBBU1NEQVJFQwqyYXBBU1NEQVJFQwq2YqETcEIxRENgcEIxTEZhcEIxRFZid2AKCohCQVRJ
-CgEAd2EKCohCQVRJCgIAcGKIQkFUSQoEAKRCQVRJFEANX0JTVACgRwWTXC8FX1NCX1BDSTBTQlJH
-RUMwX0VDT0sKAHB7QVNTREFSRUMKhAr/YIhCQVRTCgAAcEFTU0RBUkVDCqZgcEFTU0RBUkVDCqRh
-cEFTU0RBUkVDCqJioSBwQjFTVIhCQVRTCgAAcEIxVk9gcEIxQUNhcEIxQUJioA2TYQv//3AM////
-/2GhHKAPkpVhCwCAf2EL//9hdWF3YGFheGEL6AMAYXBhiEJBVFMKAQB3YgoKiEJBVFMKAgBwYIhC
-QVRTCgMApEJBVFMQRgVcX1NCXwhBVEtQAFuCRwRBVEtECF9ISUQNQVRLMDEwMAAIX1VJRAwAAQEB
-FBJJTklUAXABQVRLUKRcTU5BTRQMU0ZVTgBwCiBgpGAUCEJTVFMApAAQSQZcX1NCX1uCQAZMSURf
-CF9ISUQMQdAMDRRPBF9MSUQAoCqTXC8FX1NCX1BDSTBTQlJHRUMwX0VDT0sKAHtcQVNTQkFSRUMK
-ggoEYKEacFwvBV9TQl9QQ0kwU0JSR0VDMF9MSURTYKRgEEELXC5fU0JfQVRLRBQoRlNNSQFwaFxG
-U0ZOfWgKoGBwYFxEQkc4SVNNSVxXRkFUpFxGU1RBFBNGTFNIAXBoXEZTVEFGU01JCgAUFEZJTkkB
-cGhcRkFEUqRGU01JCgEUFEZFUlMBcGhcRlNUQaRGU01JCgIUIkZXUkkBcGhcRkFEUnALABBcRlNJ
-WqR0CwAQRlNNSQoDABQaRldSUABwCgBcRlNJWqR0CwAQRlNNSQoDAFuCTaJJREUwCF9BRFIMAQAf
-AAhSRUdGCgEUEl9SRUcCoAuTaAoCcGlSRUdGW4BCQVIwAgoACwABW4FFBkJBUjADAEAgVElNUBBU
-SU1TEFNUTVAEU1RNUwQAGFVETVACVURNUwIADFVEVFAGAAJVRFRTBgBCBFBDQjACU0NCMAJQQ0Ew
-AlNDQTACAARGUEIwAkZTQjACUFNJRwJTU0lHAghUSU0wEkcHCRILBAp4CrQK8AuEAxIKBAojCiEK
-EAoAEgoECgsKCQoECgASDgYKcApJCjYKJwoZCg8SDgYKAAoBCgIKAQoCCgESDgYKAAoACgAKAQoB
-CgESDgYKAAoACgAKAAoACgESCgQKBAoDCgIKABIKBAoCCgEKAAoACFRNRDARAwoUilRNRDAKAFBJ
-TzCKVE1EMAoERE1BMIpUTUQwCghQSU8xilRNRDAKDERNQTGKVE1EMAoQQ0hORghHVElNCgAIR1NU
-TQoACEdVRE0KAAhHVURUCgAIR0NCMAoACEdGQjAKAFuCQwxDSE4wCF9BRFIKABQjX0dUTQCkR1RN
-X1RJTVBTVE1QVURNUFVEVFBQQ0IwRlBCMBRDB19TVE0DcGhUTUQwcFRJTVBHVElNcFVEVFBHVURU
-oDtTVE1fcEdUSU1USU1QcEdTVE1TVE1QcEdVRE1VRE1QcEdVRFRVRFRQcEdDQjBQQ0IwcEdGQjBG
-UEIwcEdURl8KAGlBVEEwcEdURl8KAWpBVEExW4IcRFJWMAhfQURSCgAUD19HVEYApFJBVEFBVEEw
-W4JDDENITjEIX0FEUgoBFCNfR1RNAKRHVE1fVElNU1NUTVNVRE1TVURUU1NDQjBGU0IwFEMHX1NU
-TQNwaFRNRDBwVElNU0dUSU1wVURUU0dVRFSgO1NUTV9wR1RJTVRJTVNwR1NUTVNUTVNwR1VETVVE
-TVNwR1VEVFVEVFNwR0NCMFNDQjBwR0ZCMEZTQjBwR1RGXwoAaUFUQTJwR1RGXwoBakFUQTNbghxE
-UlYwCF9BRFIKABQPX0dURgCkUkFUQUFUQTIURhlHVE1fDnD/UElPMHBQSU8wUElPMXBQSU8wRE1B
-MHBQSU8wRE1BMXAAQ0hORqAFUkVHRqEGpFRNRDCgEXtoCgIAfUNITkYKAkNITkZ6e2gLADMACghl
-cImDiFRJTTAKAQACZQAKAAoAZnCDiIOIVElNMAoAAGYAZ3BnRE1BMKAOe2gKCABwC4QDUElPMKEH
-cGdQSU8woBF7aAogAH1DSE5GCghDSE5GoEIFe2gLAEAAfUNITkYKEENITkZwiYOIVElNMAoCAAJp
-AAoACgBlcIOIg4hUSU0wCgAAZQBmcGZETUExoA57aAqAAHALhANQSU8xoQdwZlBJTzGgSAR7agoB
-AHtrCgNloBCQe20KAQCTZQoBcmUKBGWhDaALe2wKAQByZQoCZXCDiIOIVElNMAoDAGUARE1BMH1D
-SE5GCgFDSE5GoEwEe2oKAgB7emsKBAAKA2WgEJB7bQoCAJNlCgFyZQoEZaENoAt7bAoCAHJlCgJl
-cIOIg4hUSU0wCgMAZQBETUExfUNITkYKBENITkakVE1EMBREJVNUTV8IoAVSRUdGoQSkCgB7R1RJ
-TQtEgEdUSU1wCgBHU1RNcAoAR1VETXAKAEdDQjB7R1VEVArMR1VEVHAKAEdGQjCgRwd7Q0hORgoB
-AHCJg4hUSU0wCgMAAkRNQTAACgAKAGCgCZRgCgVwCgVgfUdVRFSDiIOIVElNMAoEAGAAR1VEVH1H
-Q0Iwg4iDiFRJTTAKBQBgAEdDQjB9R0ZCMIOIg4hUSU0wCgYAYABHRkIwfUdVRE0KAUdVRE2hN6A1
-fZNQSU8w/5NQSU8wCgAAoCR7lURNQTD/lERNQTAKAABwRE1BMFBJTzB9R1RJTQoIR1RJTaBDCHtD
-SE5GCgQAcImDiFRJTTAKAwACRE1BMQAKAAoAYKAJlGAKBXAKBWB9R1VEVHmDiIOIVElNMAoEAGAA
-CgQAR1VEVH1HQ0IweYOIg4hUSU0wCgUAYAAKAQBHQ0IwfUdGQjB5g4iDiFRJTTAKBgBgAAoBAEdG
-QjB9R1VETQoCR1VETaE3oDV9k1BJTzH/k1BJTzEKAACgJHuVRE1BMf+URE1BMQoAAHBETUExUElP
-MX1HVElNCoBHVElNoBR7Q0hORgoCAH1HVElNCgNHVElNoBR7Q0hORgoIAH1HVElNCjBHVElNe4mD
-iFRJTTAKAAAEUElPMAAKAAoACgNgcIOIg4hUSU0wCgEAYABheWEKCGJ9R1RJTWJHVElNoD97Q0hO
-RgoQAH1HVElNCwBAR1RJTXuJg4hUSU0wCgAABFBJTzEACgAKAAoDYHCDiIOIVElNMAoCAGAAR1NU
-TaQKAQhBVDAxEQoKBwMAAAAAAO8IQVQwMhEKCgcAAAAAAACQCEFUMDMRCgoHAAAAAAAAxghBVDA0
-EQoKBwAAAAAAAJEIQVRBMBEDCh0IQVRBMREDCh0IQVRBMhEDCh0IQVRBMxEDCh0IQVRBQhEDCh2M
-QVRBQgoAQ01EQxRMBUdURkILd0NNREMKOGByYAoIYVsTQVRBQmEKOENNRFh3Q01EQwoHYIxBVEFC
-cmAKAgBBMDAxjEFUQUJyYAoGAEEwMDVwaENNRFhwaUEwMDFwakEwMDV1Q01EQxRHI0dURl8KcAoA
-Q01EQwhJRDQ5CwAMCElENTkKAAhJRDUzCgQISUQ2MwsADwhJRDg4CwAPCElSRFkKAQhQSU9UCgAI
-RE1BVAoAoE0Fk4dpCwACi2kKYklXNDlwSVc0OUlENDmLaQpqSVc1M3BJVzUzSUQ1M4tpCn5JVzYz
-cElXNjNJRDYzi2kKdklXNTlwSVc1OUlENTmLaQqwSVc4OHBJVzg4SUQ4OHAKoGegSAVocAqwZ3tD
-SE5GCghJUkRZoBJ7Q0hORgoQAHBQSU8xUElPVKEKcFBJTzBQSU9UoCd7Q0hORgoEAKASe0NITkYK
-EABwRE1BMURNQVShCnBETUEwRE1BVKEoe0NITkYKAklSRFlwUElPMFBJT1SgEntDSE5GCgEAcERN
-QTBETUFUoEcEkJB7SUQ1MwoEAHtJRDg4CwD/AERNQVRwiYOIVElNMAoDAAJETUFUAAoACgBhoAmU
-YQoFcAoFYUdURkJBVDAxfQpAYQBnoUYEoEMEkHtJRDYzCwD/AFBJT1R7iYOIVElNMAoAAARQSU9U
-AAoACgAKA2B9CiCDiIOIVElNMAoIAGAAYUdURkJBVDAxYWegOElSRFl7iYOIVElNMAoAAARQSU9U
-AAoACgAKA2B9CgiDiIOIVElNMAoHAGAAYUdURkJBVDAxYWehF6AVe0lENDkLAAQAR1RGQkFUMDEK
-AWegJJB7SUQ1OQsAAQB7SUQ1OQr/AEdURkJBVDAze0lENTkK/wBnpEFUQUIUJVJBVEEBjGgKAENN
-RE53Q01ETgo4YFsTaAoIYFJFVEKkUkVUQluCD1NNQkMIX0FEUgwDAB8AW4IPQVVESQhfQURSDAUA
-HwBbgh9NT0RNCF9BRFIMBgAfABQPX1BSVwCkR1BSVwoFCgNbgk4GVVNCMQhfQURSDAAAHQBbgEJB
-UjACCsAKBVuBGUJBUjABVUJMMRAAEFAwV0UBUDFXRQEABhQnX1BTVwGgEGhwCgFQMFdFcAoBUDFX
-RaEPcAoAUDBXRXAKAFAxV0UUD19QUlcApEdQUlcKAwoDW4JOBlVTQjIIX0FEUgwBAB0AW4BCQVIw
-AgrACgVbgRlCQVIwAVVCTDEQABBQMFdFAVAxV0UBAAYUJ19QU1cBoBBocAoBUDBXRXAKAVAxV0Wh
-D3AKAFAwV0VwCgBQMVdFFA9fUFJXAKRHUFJXCgQKA1uCTgZVU0IzCF9BRFIMAgAdAFuAQkFSMAIK
-wAoFW4EZQkFSMAFVQkwxEAAQUDBXRQFQMVdFAQAGFCdfUFNXAaAQaHAKAVAwV0VwCgFQMVdFoQ9w
-CgBQMFdFcAoAUDFXRRQPX1BSVwCkR1BSVwoMCgNbgh9FSENJCF9BRFIMBwAdABQPX1BSVwCkR1BS
-VwoNCgMQTUJcLl9QUl9DUFUxCFRZUEUKAAhQRENNCgEUTAVfUERDAXCHaGAIUERDQhECYHBoUERD
-QopQRENCCgBSRVZfilBEQ0IKBFNJWkWgC5VTSVpFCgGkCgCKUERDQgoIREFUMKASe0RBVDBQRENN
-AHAKAVRZUEWkCgEITVBDVBIsAhEUChGCDAB/QAAAmQEAAAAAAAB5ABEUChGCDAB/EAAAmAEAAAAA
-AAB5AAhQUENUEiwCERQKEYIMAAEQAACyAAAAAAAAAHkAERQKEYIMAAEIAACzAAAAAAAAAHkAFBhf
-UENUAKAKVFlQRaRNUENUoQakUFBDVAhNUFNTEkEMChISBgukBgsIUgoKCgoLKBELKBESEgYLpAYL
-CFIKCgoKCygRCygREhIGC6QGCwhSCgoKCgsoEQsoERISBgukBgsIUgoKCgoLKBELKBESEgYLpAYL
-CFIKCgoKCygRCygREhIGC3gFC1xECgoKCgsiDgsiDhISBguwBAuYOgoKCgoLHgwLHgwSEgYL6AML
-1DAKCgoKCxoKCxoKEhIGCyADCxAnCgoKCgsWCAsWCBISBgtYAgtMHQoKCgoLEgYLEgYIUFBTUxJD
-CwoSEAYLpAYLCFIKCgpuCoYKABIQBgukBgsIUgoKCm4KhgoAEhAGC6QGCwhSCgoKbgqGCgASEAYL
-pAYLCFIKCgpuCoYKABIRBgukBgsIUgoKCm4LhgAKABIRBgt4BQtcRAoKCm4LhgEKARIRBguwBAuY
-OgoKCm4LhgIKAhIRBgvoAwvUMAoKCm4LhgMKAxIRBgsgAwsQJwoKCm4LhgQKBBIRBgtYAgtMHQoK
-Cm4LhgUKBQhOUFNTCgYUGF9QU1MAoApUWVBFpE1QU1OhBqRQUFNTFCRfUFBDAKAPkpSHUFBTU05Q
-U1OkCgChDaR0h1BQU1NOUFNTABRDF19DU1QACEFDU1QSQwQDCgISHgQRFAoRggwAfwAAAAAAAAAA
-AAAAeQAKAQoBC+gDEh4EERQKEYIMAAEIAAAUBAAAAAAAAHkACgIKAQv0AQhCQ1NUEkEGBAoDEh4E
-ERQKEYIMAH8AAAAAAAAAAAAAAHkACgEKAQvoAxIeBBEUChGCDAABCAAAFAQAAAAAAAB5AAoCCgEL
-9AESHQQRFAoRggwAAQgAABUEAAAAAAAAeQAKAwpVCvoIQ0NTVBJPBwUKBBIeBBEUChGCDAB/AAAA
-AAAAAAAAAAB5AAoBCgEL6AMSHgQRFAoRggwAAQgAABQEAAAAAAAAeQAKAgoBC/QBEh0EERQKEYIM
-AAEIAAAVBAAAAAAAAHkACgMKVQr6Eh0EERQKEYIMAAEIAAAWBAAAAAAAAHkACgMKuQpkoCFcLwZf
-U0JfUENJMFNCUkdFQzBfQUNBRF9QU1KkQUNTVKEUoAtcU1NGR6RDQ1NUoQakQkNTVBBFQlxfU0Jf
-W4BcLwRfU0JfUENJMFNCUkdJUk9SAgoACv9bgUMEXC8EX1NCX1BDSTBTQlJHSVJPUgEAQDBQSVJB
-CFBJUkIIUElSQwhQSVJECAAgUElSRQhQSVJGCFBJUkcIUElSSAgIQlVGQREJCgYjAIAYeQCLQlVG
-QQoBSUNSUxQWTFNUQQF7aAqAYKAFYKQKCaEEpAoLFBhMQ1JTAXtoCg9geQoBYElDUlOkQlVGQRQX
-TFNSUwGLaAoBSVNSU4JJU1JTYKR2YBQMTERJUwGkfWgKgABbgkgGTE5LQQhfSElEDEHQDA8IX1VJ
-RAoBFA9fU1RBAKRMU1RBUElSQRQLX1BSUwCkUFJTQRQTX0RJUwBwTERJU1BJUkFQSVJBFA9fQ1JT
-AKRMQ1JTUElSQRQQX1NSUwFwTFNSU2hQSVJBW4JIBkxOS0IIX0hJRAxB0AwPCF9VSUQKAhQPX1NU
-QQCkTFNUQVBJUkIUC19QUlMApFBSU0IUE19ESVMAcExESVNQSVJCUElSQhQPX0NSUwCkTENSU1BJ
-UkIUEF9TUlMBcExTUlNoUElSQluCSAZMTktDCF9ISUQMQdAMDwhfVUlECgMUD19TVEEApExTVEFQ
-SVJDFAtfUFJTAKRQUlNDFBNfRElTAHBMRElTUElSQ1BJUkMUD19DUlMApExDUlNQSVJDFBBfU1JT
-AXBMU1JTaFBJUkNbgkgGTE5LRAhfSElEDEHQDA8IX1VJRAoEFA9fU1RBAKRMU1RBUElSRBQLX1BS
-UwCkUFJTRBQTX0RJUwBwTERJU1BJUkRQSVJEFA9fQ1JTAKRMQ1JTUElSRBQQX1NSUwFwTFNSU2hQ
-SVJEW4JIBkxOS0UIX0hJRAxB0AwPCF9VSUQKBRQPX1NUQQCkTFNUQVBJUkUUC19QUlMApFBSU0UU
-E19ESVMAcExESVNQSVJFUElSRRQPX0NSUwCkTENSU1BJUkUUEF9TUlMBcExTUlNoUElSRVuCSAZM
-TktGCF9ISUQMQdAMDwhfVUlECgYUD19TVEEApExTVEFQSVJGFAtfUFJTAKRQUlNGFBNfRElTAHBM
-RElTUElSRlBJUkYUD19DUlMApExDUlNQSVJGFBBfU1JTAXBMU1JTaFBJUkZbgkgGTE5LRwhfSElE
-DEHQDA8IX1VJRAoHFA9fU1RBAKRMU1RBUElSRxQLX1BSUwCkUFJTRxQTX0RJUwBwTERJU1BJUkdQ
-SVJHFA9fQ1JTAKRMQ1JTUElSRxQQX1NSUwFwTFNSU2hQSVJHW4JIBkxOS0gIX0hJRAxB0AwPCF9V
-SUQKCBQPX1NUQQCkTFNUQVBJUkgUC19QUlMApFBSU0gUE19ESVMAcExESVNQSVJIUElSSBQPX0NS
-UwCkTENSU1BJUkgUEF9TUlMBcExTUlNoUElSSBBIE1xfU0JfEEATUENJMAhDUlNfEUwICoiIDQAC
-DAAAAAAA/wAAAAABRwH4DPgMAQiIDQABDAMAAAAA9wwAAPgMiA0AAQwDAAAADf//AAAA84cXAAAM
-AwAAAAAAAAoA//8LAAAAAAAAAAIAhxcAAAwDAAAAAAAAAAAAAAAAAAAAAAAAAACHFwAADAMAAAAA
-AAAAAAAAAAAAAAAAAAAAAHkAikNSU18KXE1JTjWKQ1JTXwpgTUFYNYpDUlNfCmhMRU41ikNSU18K
-dk1JTjaKQ1JTXwp6TUFYNopDUlNfCoJMRU42FEUFX0NSUwBwTUcxQk1JTjVwTUcxTExFTjVwTUcx
-TGCgDWByTUlONXZgTUFYNXBNRzJCTUlONnBNRzJMTEVONnBNRzJMYHJNSU42dmBNQVg2pENSU18I
-SU9YQgvABQhJT1hMChAUJ19QVFMBcGhEQkc4UFRTX2hwCgCIV0FLUAoAAHAKAIhXQUtQCgEAFDpf
-V0FLAXloCgREQkc4V0FLX2igFYOIV0FLUAoAAHAKAIhXQUtQCgEAoQtwaIhXQUtQCgEApFdBS1AI
-X1MwXxIKBAoACgAKAAoACF9TM18SCgQKBQoACgAKAAhfUzRfEgoECgYKAAoACgAIX1M1XxIKBAoH
-CgAKAAoAFAtQVFNfAU9FTVNoFAtXQUtfAU9FTVdo
-
---Boundary-00=_0UxHBMVb5ZGnspJ
-Content-Type: text/plain;
+--Boundary-00=_1ApEByUb7ileMU1
+Content-Type: text/x-csrc;
   charset="iso-8859-1";
-  name="lspci_vv.dmup"
+  name="ACER-TravelMate_800-4a12-custom.asl"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="lspci_vv.dmup"
+	filename="ACER-TravelMate_800-4a12-custom.asl"
 
-00:00.0 Host bridge: Intel Corp. 82855PM Processor to I/O Controller (rev 03)
-	Subsystem: Sony Corporation: Unknown device 8187
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort+ >SERR- <PERR-
-	Latency: 0
-	Region 0: Memory at e0000000 (32-bit, prefetchable) [size=256M]
-	Capabilities: [e4] #09 [4104]
-	Capabilities: [a0] AGP version 2.0
-		Status: RQ=32 Iso- ArqSz=0 Cal=0 SBA+ ITACoh- GART64- HTrans- 64bit- FW+ AGP3- Rate=x1,x2,x4
-		Command: RQ=1 ArqSz=0 Cal=0 SBA- AGP- GART64- 64bit- FW- Rate=<none>
+/*
+ * Intel ACPI Component Architecture
+ * AML Disassembler version 20040527
+ *
+ * Disassembly of dsdt.dat, Wed Jul  7 22:53:26 2004
+ */
+DefinitionBlock ("DSDT.aml", "DSDT", 1, "ACER  ", "Cardinal", 537003824)
+{
+    OperationRegion (DBG, SystemIO, 0x80, 0x01)
+    Field (DBG, ByteAcc, NoLock, Preserve)
+    {
+        DEBG,   8
+    }
 
-00:01.0 PCI bridge: Intel Corp. 82855PM Processor to AGP Controller (rev 03) (prog-if 00 [Normal decode])
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64
-	Bus: primary=00, secondary=01, subordinate=01, sec-latency=64
-	I/O behind bridge: 0000c000-0000cfff
-	Memory behind bridge: ff500000-ff5fffff
-	Prefetchable memory behind bridge: ce900000-de9fffff
-	BridgeCtl: Parity- SERR+ NoISA- VGA+ MAbort- >Reset- FastB2B-
+    Scope (_PR)
+    {
+        Processor (CPU0, 0x00, 0x00001010, 0x06)
+        {
+            Name (_PCT, Package (0x02)
+            {
+                ResourceTemplate ()
+                {
+                    Register (SystemIO, 0x08, 0x00, 0x00000000000000B2)
+                }, 
 
-00:1d.0 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 (rev 03) (prog-if 00 [UHCI])
-	Subsystem: Sony Corporation: Unknown device 8188
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin A routed to IRQ 9
-	Region 4: I/O ports at e800 [size=32]
+                ResourceTemplate ()
+                {
+                    Register (SystemIO, 0x08, 0x00, 0x00000000000000B3)
+                }
+            })
+            Name (_PSS, Package (0x05)
+            {
+                Package (0x06)
+                {
+                    0x0640, 
+                    0x5DC0, 
+                    0x0A, 
+                    0x0A, 
+                    0x89, 
+                    0x00
+                }, 
 
-00:1d.1 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 (rev 03) (prog-if 00 [UHCI])
-	Subsystem: Sony Corporation: Unknown device 8188
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin B routed to IRQ 4
-	Region 4: I/O ports at e880 [size=32]
+                Package (0x06)
+                {
+                    0x0578, 
+                    0x4E20, 
+                    0x0A, 
+                    0x0A, 
+                    0x8A, 
+                    0x01
+                }, 
 
-00:1d.2 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3 (rev 03) (prog-if 00 [UHCI])
-	Subsystem: Sony Corporation: Unknown device 8188
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin C routed to IRQ 7
-	Region 4: I/O ports at ec00 [size=32]
+                Package (0x06)
+                {
+                    0x04B0, 
+                    0x4650, 
+                    0x0A, 
+                    0x0A, 
+                    0x8B, 
+                    0x02
+                }, 
 
-00:1d.7 USB Controller: Intel Corp. 82801DB/DBM (ICH4/ICH4-M) USB 2.0 EHCI Controller (rev 03) (prog-if 20 [EHCI])
-	Subsystem: Sony Corporation: Unknown device 8188
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin D routed to IRQ 3
-	Region 0: Memory at ff7ffc00 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-	Capabilities: [58] #0a [2080]
+                Package (0x06)
+                {
+                    0x0320, 
+                    0x3E80, 
+                    0x0A, 
+                    0x0A, 
+                    0x8C, 
+                    0x03
+                }, 
 
-00:1e.0 PCI bridge: Intel Corp. 82801 PCI Bridge (rev 83) (prog-if 00 [Normal decode])
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR+
-	Latency: 0
-	Bus: primary=00, secondary=02, subordinate=02, sec-latency=64
-	I/O behind bridge: 0000d000-0000dfff
-	Memory behind bridge: ff600000-ff6fffff
-	Prefetchable memory behind bridge: dea00000-deafffff
-	BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
+                Package (0x06)
+                {
+                    0x0258, 
+                    0x2EE0, 
+                    0x0A, 
+                    0x0A, 
+                    0x8D, 
+                    0x04
+                }
+            })
+            Method (_PPC, 0, NotSerialized)
+            {
+                Return (0x00)
+            }
+        }
+    }
 
-00:1f.0 ISA bridge: Intel Corp. 82801DBM LPC Interface Controller (rev 03)
-	Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
+    Scope (_SI)
+    {
+        Method (_MSG, 1, NotSerialized)
+        {
+            If (Arg0)
+            {
+                Store (One, \_SB.PCI0.LPC0.BL27)
+            }
+            Else
+            {
+                Store (Zero, \_SB.PCI0.LPC0.BL27)
+            }
+        }
+    }
 
-00:1f.1 IDE interface: Intel Corp. 82801DBM (ICH4) Ultra ATA Storage Controller (rev 03) (prog-if 8a [Master SecP PriP])
-	Subsystem: Sony Corporation: Unknown device 8188
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin A routed to IRQ 7
-	Region 0: I/O ports at <unassigned>
-	Region 1: I/O ports at <unassigned>
-	Region 2: I/O ports at <unassigned>
-	Region 3: I/O ports at <unassigned>
-	Region 4: I/O ports at ffa0 [size=16]
-	Region 5: Memory at 80000000 (32-bit, non-prefetchable) [size=1K]
+    Name (\_S0, Package (0x02)
+    {
+        0x00, 
+        0x00
+    })
+    Name (\_S3, Package (0x02)
+    {
+        0x05, 
+        0x05
+    })
+    Name (\_S4, Package (0x02)
+    {
+        0x06, 
+        0x06
+    })
+    Name (\_S5, Package (0x02)
+    {
+        0x07, 
+        0x07
+    })
+    Method (_PTS, 1, NotSerialized)
+    {
+        Store (Arg0, \_SB.STAT)
+        Store (">>>> _PTS ------------", Debug)
+        Store (Arg0, Debug)
+        Store (Arg0, \_SB.SLEE)
+        Store (0x84, \_SB.PCI0.LPC0.BCMD)
+        Store (0x00, \_SB.PCI0.LPC0.SMIC)
+        If (Or (LEqual (Arg0, 0x03), LEqual (Arg0, 0x04)))
+        {
+            Store (0x01, \_SB.PCI0.LPC0.EC0.APWR)
+        }
 
-00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) SMBus Controller (rev 03)
-	Subsystem: Sony Corporation: Unknown device 8188
-	Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Interrupt: pin B routed to IRQ 9
-	Region 4: I/O ports at 0540 [size=32]
+        If (LEqual (Arg0, 0x03))
+        {
+            Store (0x80, \_SB.PCI0.LPC0.BCMD)
+            Store (0x00, \_SB.PCI0.LPC0.SMIC)
+        }
 
-00:1f.5 Multimedia audio controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 03)
-	Subsystem: Sony Corporation: Unknown device 818b
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin B routed to IRQ 9
-	Region 0: I/O ports at ee00 [size=256]
-	Region 1: I/O ports at e000 [size=64]
-	Region 2: Memory at ff7ff800 (32-bit, non-prefetchable) [size=512]
-	Region 3: Memory at ff7ff400 (32-bit, non-prefetchable) [size=256]
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        If (LEqual (Arg0, 0x04))
+        {
+            Store (0x01, \_SB.S4WP)
+            Store (0x82, \_SB.PCI0.LPC0.BCMD)
+            Store (0x00, \_SB.PCI0.LPC0.SMIC)
+            Store (One, \_SB.PCI0.LPC0.EC0.PFLG)
+            Store (One, \_SB.PCI0.LPC0.EC0.S4LD)
+        }
 
-00:1f.6 Modem: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Modem Controller (rev 03) (prog-if 00 [Generic])
-	Subsystem: Sony Corporation: Unknown device 818c
-	Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Interrupt: pin B routed to IRQ 9
-	Region 0: I/O ports at e400 [size=256]
-	Region 1: I/O ports at e080 [size=128]
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        If (LEqual (SizeOf (\_OS), 0x27))
+        {
+            Notify (\_SB.BAT1, 0x80)
+            Notify (\_SB.BAT2, 0x80)
+            Notify (\_SB.ACAD, 0x00)
+        }
 
-01:00.0 VGA compatible controller: ATI Technologies Inc RV350 [Mobility Radeon 9600 M10] (prog-if 00 [VGA])
-	Subsystem: Sony Corporation: Unknown device 818a
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (2000ns min), cache line size 10
-	Interrupt: pin A routed to IRQ 9
-	Region 0: Memory at d0000000 (32-bit, prefetchable) [size=128M]
-	Region 1: I/O ports at c800 [size=256]
-	Region 2: Memory at ff5f0000 (32-bit, non-prefetchable) [size=64K]
-	Expansion ROM at ff5c0000 [disabled] [size=128K]
-	Capabilities: [58] AGP version 2.0
-		Status: RQ=80 Iso- ArqSz=0 Cal=0 SBA+ ITACoh- GART64- HTrans- 64bit- FW+ AGP3- Rate=x1,x2,x4
-		Command: RQ=1 ArqSz=0 Cal=0 SBA+ AGP- GART64- 64bit- FW- Rate=<none>
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        If (LEqual (Arg0, 0x05))
+        {
+            Store (One, \_SB.PCI0.LPC0.EC0.S5LW)
+        }
+    }
 
-02:01.0 CardBus bridge: Texas Instruments PCI7420 CardBus Controller
-	Subsystem: Sony Corporation: Unknown device 818f
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64, cache line size 10
-	Interrupt: pin A routed to IRQ 9
-	Region 0: Memory at 80001000 (32-bit, non-prefetchable) [size=4K]
-	Bus: primary=02, secondary=03, subordinate=06, sec-latency=176
-	I/O window 0: 00000000-00000003
-	I/O window 1: 00000000-00000003
-	BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset+ 16bInt- PostWrite-
-	16-bit legacy interface ports at 0001
+    Method (_WAK, 1, NotSerialized)
+    {
+        Store (">>>> _WAK ------------", Debug)
+        Store (Arg0, Debug)
+        Store (Arg0, \_SB.STAT)
+        If (LEqual (Arg0, 0x03))
+        {
+            Store (0x81, \_SB.PCI0.LPC0.BCMD)
+            Store (0x00, \_SB.PCI0.LPC0.SMIC)
+        }
 
-02:01.2 FireWire (IEEE 1394): Texas Instruments PCI7x20 1394a-2000 OHCI Two-Port PHY/Link-Layer Controller (prog-if 10 [OHCI])
-	Subsystem: Sony Corporation: Unknown device 818f
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (750ns min, 1000ns max), cache line size 10
-	Interrupt: pin C routed to IRQ 3
-	Region 0: Memory at ff6fe800 (32-bit, non-prefetchable) [size=2K]
-	Region 1: Memory at ff6f8000 (32-bit, non-prefetchable) [size=16K]
-	Capabilities: [44] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME+
+        If (LEqual (Arg0, 0x04))
+        {
+            Store (0x01, \_SB.OKEC)
+            Notify (\_SB.SLPB, 0x02)
+        }
 
-02:01.3 Unknown mass storage controller: Texas Instruments PCI7420/PCI7620 Dual Socket CardBus and Smart Card Cont. w/ 1394a-2000 OHCI Two-Port  PHY/Link-Layer Cont. an
-	Subsystem: Sony Corporation: Unknown device 8190
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (1750ns min, 1000ns max), cache line size 10
-	Interrupt: pin B routed to IRQ 5
-	Region 0: Memory at ff6ff000 (32-bit, non-prefetchable) [size=4K]
-	Capabilities: [44] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        If (LEqual (SizeOf (\_OS), 0x14))
+        {
+            Store (\_SB.PCI0.LPC0.RBID, Local0)
+            Store (\_SB.PCI0.IDE0.BAYR, Local1)
+            Store (Local0, \_SB.PCI0.IDE0.BAYR)
+            If (LNot (LEqual (Local0, Local1)))
+            {
+                If (Or (LEqual (Local1, 0x01), LEqual (Local1, 0x02)))
+                {
+                    If (And (LEqual (\_SB.PCI0.MYOS, 0x03), LEqual (Local0, 0x03)))
+                    {
+                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x03)
+                    }
+                    Else
+                    {
+                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x01)
+                    }
+                }
+            }
 
-02:02.0 Network controller: Intel Corp. PRO/Wireless 2200BG (rev 05)
-	Subsystem: Intel Corp.: Unknown device 2751
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (750ns min, 6000ns max), cache line size 10
-	Interrupt: pin A routed to IRQ 7
-	Region 0: Memory at ff6fd000 (32-bit, non-prefetchable) [size=4K]
-	Capabilities: [dc] Power Management version 2
-		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=1 PME-
+            If (Or (LEqual (Local0, 0x01), LEqual (Local0, 0x02)))
+            {
+                Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x00)
+            }
+        }
 
-02:03.0 Ethernet controller: Intel Corp. 82541GI/PI Gigabit Ethernet Controller
-	Subsystem: Sony Corporation: Unknown device 818e
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz+ UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (63750ns min), cache line size 10
-	Interrupt: pin A routed to IRQ 9
-	Region 0: Memory at ff6c0000 (32-bit, non-prefetchable) [size=128K]
-	Region 1: Memory at ff6a0000 (32-bit, non-prefetchable) [size=128K]
-	Region 2: I/O ports at dc00 [size=64]
-	Expansion ROM at ff680000 [disabled] [size=128K]
-	Capabilities: [dc] Power Management version 2
-		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=1 PME-
-	Capabilities: [e4] PCI-X non-bridge device.
-		Command: DPERE- ERO+ RBC=0 OST=0
-		Status: Bus=0 Dev=0 Func=0 64bit- 133MHz- SCD- USC-, DC=simple, DMMRBC=0, DMOST=0, DMCRS=0, RSCEM-
-02:04.0 USB Controller: NEC Corporation USB (rev 43) (prog-if 10 [OHCI])
-	Subsystem: Sony Corporation: Unknown device 819a
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (250ns min, 10500ns max), cache line size 10
-	Interrupt: pin A routed to IRQ 9
-	Region 0: Memory at ff6f7000 (32-bit, non-prefetchable) [size=4K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        If (LEqual (SizeOf (\_OS), 0x27))
+        {
+            Notify (\_SB.BAT1, 0x80)
+            Notify (\_SB.BAT2, 0x80)
+            Notify (\_SB.ACAD, 0x00)
+        }
 
-02:04.1 USB Controller: NEC Corporation USB (rev 43) (prog-if 10 [OHCI])
-	Subsystem: Sony Corporation: Unknown device 819a
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (250ns min, 10500ns max), cache line size 10
-	Interrupt: pin B routed to IRQ 9
-	Region 0: Memory at ff6fc000 (32-bit, non-prefetchable) [size=4K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Store (\_SB.PCI0.LPC0.EC0.ACDF, \_SB.ACST)
+        If (LEqual (SizeOf (\_OS), 0x11))
+        {
+            Notify (\_SB.SLPB, 0x02)
+        }
 
-02:04.2 USB Controller: NEC Corporation USB 2.0 (rev 04) (prog-if 20 [EHCI])
-	Subsystem: Sony Corporation: Unknown device 819a
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (4000ns min, 8500ns max), cache line size 10
-	Interrupt: pin C routed to IRQ 7
-	Region 0: Memory at ff6fe400 (32-bit, non-prefetchable) [size=256]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Store (0x00, \_SB.SLEE)
+    }
+
+    Scope (_GPE)
+    {
+        Method (_L05, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.MDM0, 0x02)
+        }
+
+        Method (_L0B, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.HUB, 0x00)
+            If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
+            {
+                Notify (\_SB.SLPB, 0x02)
+            }
+        }
+
+        Method (_L03, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.USB1, 0x02)
+        }
+
+        Method (_L04, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.USB2, 0x02)
+        }
+
+        Method (_L0C, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.USB3, 0x02)
+        }
+
+        Method (_E18, 0, NotSerialized)
+        {
+            Sleep (0x01)
+        }
+    }
+
+    Scope (_SB)
+    {
+        Name (STAT, 0x00)
+        Name (D1ST, 0x00)
+        Name (D1SJ, 0x01)
+        Device (PCI0)
+        {
+            Name (MYOS, 0x02)
+            Method (_INI, 0, NotSerialized)
+            {
+                Store (0x01, \_SB.D1SJ)
+                Store (0x02, MYOS)
+                If (LEqual (SizeOf (\_OS), 0x14))
+                {
+                    Store (0x01, MYOS)
+                    Store (0x01, \_SB.W2KF)
+                    If (CondRefOf (_OSI, Local0))
+                    {
+                        If (\_OSI ("Windows 2001"))
+                        {
+                            Store (0x03, MYOS)
+                            Store (0x03, \_SB.W2KF)
+                        }
+                    }
+                }
+                Else
+                {
+                    If (LEqual (SizeOf (\_OS), 0x11))
+                    {
+                        Store (0x00, MYOS)
+                        Store (0x00, \_SB.W2KF)
+                    }
+                    Else
+                    {
+                        If (LEqual (SizeOf (\_OS), 0x27))
+                        {
+                            Store (0x02, MYOS)
+                            Store (0x02, \_SB.W2KF)
+                        }
+                    }
+                }
+            }
+
+            Name (_HID, EisaId ("PNP0A03"))
+            Name (_ADR, 0x00)
+            Name (_BBN, 0x00)
+            OperationRegion (HBUS, PCI_Config, 0x40, 0xC0)
+            Field (HBUS, DWordAcc, NoLock, Preserve)
+            {
+                Offset (0x20), 
+                DRB0,   8, 
+                DRB1,   8, 
+                DRB2,   8, 
+                DRB3,   8, 
+                Offset (0x50), 
+                    ,   4, 
+                PM0H,   2, 
+                Offset (0x51), 
+                PM1L,   2, 
+                    ,   2, 
+                PM1H,   2, 
+                Offset (0x52), 
+                PM2L,   2, 
+                    ,   2, 
+                PM2H,   2, 
+                Offset (0x53), 
+                PM3L,   2, 
+                    ,   2, 
+                PM3H,   2, 
+                Offset (0x54), 
+                PM4L,   2, 
+                    ,   2, 
+                PM4H,   2, 
+                Offset (0x55), 
+                PM5L,   2, 
+                    ,   2, 
+                PM5H,   2, 
+                Offset (0x56), 
+                PM6L,   2, 
+                    ,   2, 
+                PM6H,   2, 
+                Offset (0x57), 
+                FDHC,   8
+            }
+
+            Name (BUF0, ResourceTemplate ()
+            {
+                WordBusNumber (ResourceProducer, MinFixed, MaxFixed, PosDecode,
+                    0x0000,
+                    0x0000,
+                    0x00FF,
+                    0x0000,
+                    0x0100, 0x00)
+                DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
+                    0x00000000,
+                    0x00000000,
+                    0x00000CF7,
+                    0x00000000,
+                    0x00000CF8, 0x00)
+                IO (Decode16, 0x0CF8, 0x0CF8, 0x01, 0x08)
+                DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
+                    0x00000000,
+                    0x00000D00,
+                    0x0000FFFF,
+                    0x00000000,
+                    0x0000F300, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000A0000,
+                    0x000BFFFF,
+                    0x00000000,
+                    0x00020000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000C0000,
+                    0x000C3FFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000C4000,
+                    0x000C7FFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000C8000,
+                    0x000CBFFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000CC000,
+                    0x000CFFFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000D0000,
+                    0x000D3FFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000D4000,
+                    0x000D7FFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000D8000,
+                    0x000DBFFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000DC000,
+                    0x000DFFFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000E0000,
+                    0x000E3FFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000E4000,
+                    0x000E7FFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000E8000,
+                    0x000EBFFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000EC000,
+                    0x000EFFFF,
+                    0x00000000,
+                    0x00004000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x000F0000,
+                    0x000FFFFF,
+                    0x00000000,
+                    0x00010000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x00000000,
+                    0xFEBFFFFF,
+                    0x00000000,
+                    0x00000000, 0x00)
+                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
+                    0x00000000,
+                    0x00000000,
+                    0x00000000,
+                    0x00000000,
+                    0x00000000, 0x00)
+            })
+            Method (_CRS, 0, Serialized)
+            {
+                If (PM1L)
+                {
+                    CreateDWordField (BUF0, 0x80, C0LN)
+                    Store (Zero, C0LN)
+                }
+
+                If (LEqual (PM1L, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0378, C0RW)
+                    Store (Zero, C0RW)
+                }
+
+                If (PM1H)
+                {
+                    CreateDWordField (BUF0, 0x9B, C4LN)
+                    Store (Zero, C4LN)
+                }
+
+                If (LEqual (PM1H, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0450, C4RW)
+                    Store (Zero, C4RW)
+                }
+
+                If (PM2L)
+                {
+                    CreateDWordField (BUF0, 0xB6, C8LN)
+                    Store (Zero, C8LN)
+                }
+
+                If (LEqual (PM2L, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0528, C8RW)
+                    Store (Zero, C8RW)
+                }
+
+                If (PM2H)
+                {
+                    CreateDWordField (BUF0, 0xD1, CCLN)
+                    Store (Zero, CCLN)
+                }
+
+                If (LEqual (PM2H, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0600, CCRW)
+                    Store (Zero, CCRW)
+                }
+
+                If (PM3L)
+                {
+                    CreateDWordField (BUF0, 0xEC, D0LN)
+                    Store (Zero, D0LN)
+                }
+
+                If (LEqual (PM3L, 0x01))
+                {
+                    CreateBitField (BUF0, 0x06D8, D0RW)
+                    Store (Zero, D0RW)
+                }
+
+                If (PM3H)
+                {
+                    CreateDWordField (BUF0, 0x0107, D4LN)
+                    Store (Zero, D4LN)
+                }
+
+                If (LEqual (PM3H, 0x01))
+                {
+                    CreateBitField (BUF0, 0x07B0, D4RW)
+                    Store (Zero, D4RW)
+                }
+
+                If (PM4L)
+                {
+                    CreateDWordField (BUF0, 0x0122, D8LN)
+                    Store (Zero, D8LN)
+                }
+
+                If (LEqual (PM4L, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0888, D8RW)
+                    Store (Zero, D8RW)
+                }
+
+                If (PM4H)
+                {
+                    CreateDWordField (BUF0, 0x013D, DCLN)
+                    Store (Zero, DCLN)
+                }
+
+                If (LEqual (PM4H, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0960, DCRW)
+                    Store (Zero, DCRW)
+                }
+
+                If (PM5L)
+                {
+                    CreateDWordField (BUF0, 0x0158, E0LN)
+                    Store (Zero, E0LN)
+                }
+
+                If (LEqual (PM5L, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0A38, E0RW)
+                    Store (Zero, E0RW)
+                }
+
+                If (PM5H)
+                {
+                    CreateDWordField (BUF0, 0x0173, E4LN)
+                    Store (Zero, E4LN)
+                }
+
+                If (LEqual (PM5H, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0B10, E4RW)
+                    Store (Zero, E4RW)
+                }
+
+                If (PM6L)
+                {
+                    CreateDWordField (BUF0, 0x018E, E8LN)
+                    Store (Zero, E8LN)
+                }
+
+                If (LEqual (PM6L, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0BE8, E8RW)
+                    Store (Zero, E8RW)
+                }
+
+                If (PM6H)
+                {
+                    CreateDWordField (BUF0, 0x01A9, ECLN)
+                    Store (Zero, ECLN)
+                }
+
+                If (LEqual (PM6H, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0CC0, ECRW)
+                    Store (Zero, ECRW)
+                }
+
+                If (PM0H)
+                {
+                    CreateDWordField (BUF0, 0x01C4, F0LN)
+                    Store (Zero, F0LN)
+                }
+
+                If (LEqual (PM0H, 0x01))
+                {
+                    CreateBitField (BUF0, 0x0D98, F0RW)
+                    Store (Zero, F0RW)
+                }
+
+                CreateDWordField (BUF0, 0x01D3, M1MN)
+                CreateDWordField (BUF0, 0x01D7, M1MX)
+                CreateDWordField (BUF0, 0x01DF, M1LN)
+                Multiply (0x02000000, DRB3, M1MN)
+                Add (Subtract (M1MX, M1MN), 0x01, M1LN)
+                ShiftRight (And (\_SB.PCI0.LPC0.MTSE, 0x0380), 0x07, Local0)
+                If (And (Local0, 0x04))
+                {
+                    CreateDWordField (BUF0, 0x01EE, M2MN)
+                    CreateDWordField (BUF0, 0x01F2, M2MX)
+                    CreateDWordField (BUF0, 0x01FA, M2LN)
+                    Store (0xFED00000, M2MN)
+                    Store (0xFED003FF, M2MX)
+                    Store (0x0400, M2LN)
+                    If (LEqual (Local0, 0x05))
+                    {
+                        Store (0xFED01000, M2MN)
+                        Store (0xFED013FF, M2MX)
+                    }
+
+                    If (LEqual (Local0, 0x06))
+                    {
+                        Store (0xFED02000, M2MN)
+                        Store (0xFED023FF, M2MX)
+                    }
+
+                    If (LEqual (Local0, 0x07))
+                    {
+                        Store (0xFED03000, M2MN)
+                        Store (0xFED033FF, M2MX)
+                    }
+                }
+
+                Return (BUF0)
+            }
+
+            Name (_PRT, Package (0x0F)
+            {
+                Package (0x04)
+                {
+                    0xFFFF, 
+                    0x00, 
+                    \_SB.PCI0.LPC0.LNKA, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0xFFFF, 
+                    0x01, 
+                    \_SB.PCI0.LPC0.LNKB, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0xFFFF, 
+                    0x02, 
+                    \_SB.PCI0.LPC0.LNKC, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0xFFFF, 
+                    0x03, 
+                    \_SB.PCI0.LPC0.LNKD, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x0001FFFF, 
+                    0x00, 
+                    \_SB.PCI0.LPC0.LNKA, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001DFFFF, 
+                    0x00, 
+                    \_SB.PCI0.LPC0.LNKA, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001DFFFF, 
+                    0x01, 
+                    \_SB.PCI0.LPC0.LNKD, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001DFFFF, 
+                    0x02, 
+                    \_SB.PCI0.LPC0.LNKC, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001DFFFF, 
+                    0x03, 
+                    \_SB.PCI0.LPC0.LNKH, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001EFFFF, 
+                    0x00, 
+                    \_SB.PCI0.LPC0.LNKA, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001EFFFF, 
+                    0x01, 
+                    \_SB.PCI0.LPC0.LNKB, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001EFFFF, 
+                    0x02, 
+                    \_SB.PCI0.LPC0.LNKC, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001EFFFF, 
+                    0x03, 
+                    \_SB.PCI0.LPC0.LNKD, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001FFFFF, 
+                    0x00, 
+                    \_SB.PCI0.LPC0.LNKC, 
+                    0x00
+                }, 
+
+                Package (0x04)
+                {
+                    0x001FFFFF, 
+                    0x01, 
+                    \_SB.PCI0.LPC0.LNKB, 
+                    0x00
+                }
+            })
+            Device (AGP)
+            {
+                Name (_ADR, 0x00010000)
+                Name (_PRT, Package (0x01)
+                {
+                    Package (0x04)
+                    {
+                        0xFFFF, 
+                        0x00, 
+                        \_SB.PCI0.LPC0.LNKA, 
+                        0x00
+                    }
+                })
+                Device (VGA)
+                {
+                    Name (_ADR, 0x00)
+                    Name (SWIT, 0x01)
+                    Name (CRTA, 0x01)
+                    Name (LCDA, 0x01)
+                    Name (TV0A, 0x01)
+                    Name (TOGF, 0x02)
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        Return (0x0F)
+                    }
+
+                    Name (_PSC, 0x00)
+                    Name (USBF, 0x00)
+                    Method (_PS0, 0, NotSerialized)
+                    {
+                        Store (0x00, _PSC)
+                    }
+
+                    Method (_PS3, 0, NotSerialized)
+                    {
+                        Store (0x03, _PSC)
+                    }
+
+                    Method (_DOS, 1, NotSerialized)
+                    {
+                        Store (And (Arg0, 0x03), SWIT)
+                    }
+
+                    Method (_DOD, 0, NotSerialized)
+                    {
+                        Return (Package (0x03)
+                        {
+                            0x00010100, 
+                            0x00010110, 
+                            0x00010200
+                        })
+                    }
+
+                    Device (CRT)
+                    {
+                        Name (_ADR, 0x0100)
+                        Method (_DCS, 0, NotSerialized)
+                        {
+                            If (CRTA)
+                            {
+                                Return (0x1F)
+                            }
+                            Else
+                            {
+                                Return (0x1D)
+                            }
+                        }
+
+                        Method (_DGS, 0, NotSerialized)
+                        {
+                            If (CRTA)
+                            {
+                                Return (0x01)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_DSS, 1, NotSerialized)
+                        {
+                            Store ("CRT --_DSS", Debug)
+                        }
+                    }
+
+                    Device (TV0)
+                    {
+                        Name (_ADR, 0x0200)
+                        Method (_DCS, 0, NotSerialized)
+                        {
+                            If (TV0A)
+                            {
+                                Return (0x1F)
+                            }
+                            Else
+                            {
+                                Return (0x1D)
+                            }
+                        }
+
+                        Method (_DGS, 0, NotSerialized)
+                        {
+                            If (TV0A)
+                            {
+                                Return (0x01)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_DSS, 1, NotSerialized)
+                        {
+                            Store ("TV --_DSS", Debug)
+                        }
+                    }
+
+                    Device (LCD)
+                    {
+                        Name (_ADR, 0x0110)
+                        Method (_DCS, 0, NotSerialized)
+                        {
+                            If (LCDA)
+                            {
+                                Return (0x1F)
+                            }
+                            Else
+                            {
+                                Return (0x1D)
+                            }
+                        }
+
+                        Method (_DGS, 0, NotSerialized)
+                        {
+                            Store (LCDA, Local0)
+                            If (LCDA)
+                            {
+                                Return (0x01)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_DSS, 1, NotSerialized)
+                        {
+                            Store ("LCD --_DSS", Debug)
+                        }
+                    }
+
+                    Method (SWIH, 0, NotSerialized)
+                    {
+                        Store (0x03, Local0)
+                        If (LEqual (Local0, 0x03))
+                        {
+                            Increment (TOGF)
+                            Store (TOGF, Local1)
+                            If (LEqual (Local1, 0x01))
+                            {
+                                Store (One, LCDA)
+                                Store (Zero, CRTA)
+                                Store (Zero, TV0A)
+                            }
+                            Else
+                            {
+                                If (LEqual (Local1, 0x02))
+                                {
+                                    Store (Zero, LCDA)
+                                    Store (One, CRTA)
+                                    Store (Zero, TV0A)
+                                }
+                                Else
+                                {
+                                    If (LEqual (Local1, 0x03))
+                                    {
+                                        Store (One, LCDA)
+                                        Store (One, CRTA)
+                                        Store (Zero, TV0A)
+                                    }
+                                    Else
+                                    {
+                                        Store (One, TOGF)
+                                        Store (One, LCDA)
+                                        Store (Zero, CRTA)
+                                        Store (Zero, TV0A)
+                                    }
+                                }
+                            }
+                        }
+                        Else
+                        {
+                            If (LEqual (Local0, 0x05))
+                            {
+                                Increment (TOGF)
+                                Store (TOGF, Local1)
+                                If (LEqual (Local1, 0x01))
+                                {
+                                    Store (One, LCDA)
+                                    Store (Zero, CRTA)
+                                    Store (Zero, TV0A)
+                                }
+                                Else
+                                {
+                                    Store (Zero, TOGF)
+                                    Store (Zero, LCDA)
+                                    Store (Zero, CRTA)
+                                    Store (One, TV0A)
+                                    Store (Zero, TV0A)
+                                }
+                            }
+                            Else
+                            {
+                                If (LEqual (Local0, 0x07))
+                                {
+                                    Increment (TOGF)
+                                    Store (TOGF, Local1)
+                                    If (LEqual (Local1, 0x01))
+                                    {
+                                        Store (0x01, LCDA)
+                                        Store (0x00, CRTA)
+                                        Store (0x00, TV0A)
+                                    }
+                                    Else
+                                    {
+                                        If (LEqual (Local1, 0x02))
+                                        {
+                                            Store (0x00, LCDA)
+                                            Store (0x01, CRTA)
+                                            Store (0x00, TV0A)
+                                        }
+                                        Else
+                                        {
+                                            If (LEqual (Local1, 0x03))
+                                            {
+                                                Store (0x01, LCDA)
+                                                Store (0x01, CRTA)
+                                                Store (0x00, TV0A)
+                                            }
+                                            Else
+                                            {
+                                                Store (0x00, TOGF)
+                                                Store (0x00, LCDA)
+                                                Store (0x00, CRTA)
+                                                Store (0x01, TV0A)
+                                                Store (0x00, TV0A)
+                                            }
+                                        }
+                                    }
+                                }
+                                Else
+                                {
+                                    Store (0x01, TOGF)
+                                    Store (0x01, LCDA)
+                                    Store (0x00, CRTA)
+                                    Store (0x00, TV0A)
+                                }
+                            }
+                        }
+
+                        Notify (\_SB.PCI0.AGP.VGA, 0x80)
+                    }
+
+                    Method (GETD, 0, NotSerialized)
+                    {
+                        Store (0x98, \_SB.PCI0.LPC0.BCMD)
+                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
+                        Store (\_SB.DISD, Local0)
+                        If (LEqual (Local0, 0x01))
+                        {
+                            Store (0x01, TOGF)
+                        }
+
+                        If (LEqual (Local0, 0x02))
+                        {
+                            Store (0x02, TOGF)
+                        }
+
+                        If (LEqual (Local0, 0x03))
+                        {
+                            Store (0x03, TOGF)
+                        }
+
+                        If (LEqual (Local0, 0x04))
+                        {
+                            Store (0x00, TOGF)
+                        }
+                    }
+                }
+            }
+
+            Device (LPC0)
+            {
+                Name (_ADR, 0x001F0000)
+                Method (DECD, 4, NotSerialized)
+                {
+                    Store (Arg0, Debug)
+                }
+
+                OperationRegion (REGS, PCI_Config, 0x40, 0xC0)
+                Field (REGS, DWordAcc, NoLock, Preserve)
+                {
+                    PMBA,   16, 
+                    Offset (0x18), 
+                    GPBA,   16, 
+                    Offset (0x90), 
+                    POSD,   1, 
+                    Offset (0x91), 
+                    MTSE,   16, 
+                    Offset (0x94), 
+                    Offset (0xA0), 
+                    CMAD,   3, 
+                        ,   1, 
+                    CMBD,   3, 
+                    Offset (0xA1), 
+                    LPTD,   2, 
+                        ,   2, 
+                    FDDD,   1, 
+                    Offset (0xA6), 
+                    ECO1,   1, 
+                    ECO2,   1, 
+                    ELPT,   1, 
+                    EFDD,   1
+                }
+
+                OperationRegion (PIRX, PCI_Config, 0x60, 0x0C)
+                Field (PIRX, DWordAcc, NoLock, Preserve)
+                {
+                    AccessAs (ByteAcc, 0x00), 
+                    PIRA,   8, 
+                    PIRB,   8, 
+                    PIRC,   8, 
+                    PIRD,   8, 
+                    Offset (0x08), 
+                    PIRE,   8, 
+                    PIRF,   8, 
+                    PIRG,   8, 
+                    PIRH,   8
+                }
+
+                Device (MBRD)
+                {
+                    Name (_HID, EisaId ("PNP0C02"))
+                    Name (_UID, 0x1F)
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0010, 0x0010, 0x01, 0x10)
+                        IO (Decode16, 0x0024, 0x0024, 0x01, 0x02)
+                        IO (Decode16, 0x0028, 0x0028, 0x01, 0x02)
+                        IO (Decode16, 0x002C, 0x002C, 0x01, 0x02)
+                        IO (Decode16, 0x0030, 0x0030, 0x01, 0x02)
+                        IO (Decode16, 0x0034, 0x0034, 0x01, 0x02)
+                        IO (Decode16, 0x0038, 0x0038, 0x01, 0x02)
+                        IO (Decode16, 0x003C, 0x003C, 0x01, 0x02)
+                        IO (Decode16, 0x0050, 0x0050, 0x01, 0x04)
+                        IO (Decode16, 0x0072, 0x0072, 0x01, 0x06)
+                        IO (Decode16, 0x0080, 0x0080, 0x01, 0x01)
+                        IO (Decode16, 0x0090, 0x0090, 0x01, 0x10)
+                        IO (Decode16, 0x00A4, 0x00A4, 0x01, 0x02)
+                        IO (Decode16, 0x00A8, 0x00A8, 0x01, 0x02)
+                        IO (Decode16, 0x00AC, 0x00AC, 0x01, 0x02)
+                        IO (Decode16, 0x00B0, 0x00B0, 0x01, 0x06)
+                        IO (Decode16, 0x00B8, 0x00B8, 0x01, 0x02)
+                        IO (Decode16, 0x00BC, 0x00BC, 0x01, 0x02)
+                        IO (Decode16, 0x1000, 0x1000, 0x01, 0x80)
+                        IO (Decode16, 0x1180, 0x1180, 0x01, 0x40)
+                        IO (Decode16, 0x01C0, 0x01C0, 0x01, 0x10)
+                        IO (Decode16, 0x002E, 0x002E, 0x01, 0x02)
+                        IO (Decode16, 0x004E, 0x004E, 0x01, 0x02)
+                        IO (Decode16, 0x0068, 0x0068, 0x01, 0x01)
+                        IO (Decode16, 0x006C, 0x006C, 0x01, 0x01)
+                        IO (Decode16, 0xFE00, 0xFE00, 0x00, 0x01)
+                        IO (Decode16, 0x04D0, 0x04D0, 0x01, 0x02)
+                        IO (Decode16, 0x0600, 0x0600, 0x01, 0x10)
+                        IO (Decode16, 0x0610, 0x0610, 0x01, 0x10)
+                        IO (Decode16, 0x0068, 0x0068, 0x01, 0x01)
+                        IO (Decode16, 0x006C, 0x006C, 0x01, 0x01)
+                        Memory32Fixed (ReadOnly, 0xFF800000, 0x00400000)
+                        Memory32Fixed (ReadOnly, 0xFFF00000, 0x00100000)
+                        Memory32Fixed (ReadWrite, 0x00000000, 0x000A0000)
+                        Memory32Fixed (ReadOnly, 0x000E0000, 0x00020000)
+                        Memory32Fixed (ReadWrite, 0x00100000, 0x00000000)
+                    })
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x92, PMMN)
+                        CreateWordField (RSRC, 0x94, PMMX)
+                        And (^^PMBA, 0xFF80, PMMN)
+                        Store (PMMN, PMMX)
+                        CreateWordField (RSRC, 0x9A, GPMN)
+                        CreateWordField (RSRC, 0x9C, GPMX)
+                        And (^^GPBA, 0xFF80, GPMN)
+                        Store (GPMN, GPMX)
+                        CreateDWordField (RSRC, 0x0130, TMEM)
+                        Store (\_SB.PCI0.DRB3, TMEM)
+                        ShiftLeft (TMEM, 0x19, TMEM)
+                        Subtract (TMEM, 0x00100000, TMEM)
+                        Return (RSRC)
+                    }
+                }
+
+                Device (DMAC)
+                {
+                    Name (_HID, EisaId ("PNP0200"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0000, 0x0000, 0x01, 0x10)
+                        IO (Decode16, 0x0081, 0x0081, 0x01, 0x0F)
+                        IO (Decode16, 0x00C0, 0x00C0, 0x01, 0x20)
+                        DMA (Compatibility, NotBusMaster, Transfer16) {4}
+                    })
+                }
+
+                Device (MATH)
+                {
+                    Name (_HID, EisaId ("PNP0C04"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x00F0, 0x00F0, 0x01, 0x0F)
+                        IRQ (Edge, ActiveHigh, Exclusive) {13}
+                    })
+                }
+
+                Device (PIC)
+                {
+                    Name (_HID, EisaId ("PNP0000"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0020, 0x0020, 0x01, 0x02)
+                        IO (Decode16, 0x00A0, 0x00A0, 0x01, 0x02)
+                        IRQ (Edge, ActiveHigh, Exclusive) {2}
+                    })
+                }
+
+                Device (RTC)
+                {
+                    Name (_HID, EisaId ("PNP0B00"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0070, 0x0070, 0x01, 0x02)
+                        IRQ (Edge, ActiveHigh, Exclusive) {8}
+                    })
+                }
+
+                Device (SPKR)
+                {
+                    Name (_HID, EisaId ("PNP0800"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0061, 0x0061, 0x01, 0x01)
+                    })
+                }
+
+                Device (TIME)
+                {
+                    Name (_HID, EisaId ("PNP0100"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0040, 0x0040, 0x01, 0x04)
+                        IRQ (Edge, ActiveHigh, Exclusive) {0}
+                    })
+                }
+
+                Device (LNKA)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x01)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {10}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        Or (PIRA, 0x80, PIRA)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRA, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRA, 0x70), PIRA)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (And (PIRA, 0x80))
+                        {
+                            Return (0x09)
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                Device (LNKB)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x02)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {10}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        Or (PIRB, 0x80, PIRB)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRB, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRB, 0x70), PIRB)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (And (PIRB, 0x80))
+                        {
+                            Return (0x09)
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                Device (LNKC)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x03)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {10}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        Or (PIRC, 0x80, PIRC)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRC, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRC, 0x70), PIRC)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (And (PIRC, 0x80))
+                        {
+                            Return (0x09)
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                Device (LNKD)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x04)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {5}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        Or (PIRD, 0x80, PIRD)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRD, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRD, 0x70), PIRD)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (And (PIRD, 0x80))
+                        {
+                            Return (0x09)
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                Device (LNKE)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x05)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {10}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Name (INES, 0x00)
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        If (Or (LEqual (\_SB.PCI0.MYOS, 0x00), LEqual (\_SB.PCI0.MYOS, 0x02)))
+                        {
+                            Or (PIRE, 0x80, PIRE)
+                        }
+                        Else
+                        {
+                            Or (PIRE, 0x80, PIRE)
+                        }
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRE, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRE, 0x70), PIRE)
+                        Store (PIRE, INES)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (Or (LEqual (\_SB.PCI0.MYOS, 0x00), LEqual (\_SB.PCI0.MYOS, 0x02)))
+                        {
+                            If (And (PIRE, 0x80))
+                            {
+                                Return (0x09)
+                            }
+                        }
+                        Else
+                        {
+                            If (And (PIRE, 0x80))
+                            {
+                                Return (0x09)
+                            }
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                Device (LNKF)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x06)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {3,4,5,7,9,11,12}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        Or (PIRF, 0x80, PIRF)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRF, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRF, 0x70), PIRF)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (And (PIRF, 0x80))
+                        {
+                            Return (0x09)
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                Device (LNKG)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x07)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {10}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        Or (PIRG, 0x80, PIRG)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRG, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRG, 0x70), PIRG)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (And (PIRG, 0x80))
+                        {
+                            Return (0x09)
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                Device (LNKH)
+                {
+                    Name (_HID, EisaId ("PNP0C0F"))
+                    Name (_UID, 0x08)
+                    Name (_PRS, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {10}
+                    })
+                    Name (RSRC, ResourceTemplate ()
+                    {
+                        IRQ (Level, ActiveLow, Shared) {}
+                    })
+                    Method (_DIS, 0, NotSerialized)
+                    {
+                        Or (PIRH, 0x80, PIRH)
+                    }
+
+                    Method (_CRS, 0, NotSerialized)
+                    {
+                        CreateWordField (RSRC, 0x01, IRQ0)
+                        And (PIRH, 0x0F, Local0)
+                        ShiftLeft (0x01, Local0, IRQ0)
+                        Return (RSRC)
+                    }
+
+                    Method (_SRS, 1, NotSerialized)
+                    {
+                        CreateWordField (Arg0, 0x01, IRQ0)
+                        FindSetRightBit (IRQ0, Local0)
+                        Decrement (Local0)
+                        Or (Local0, And (PIRH, 0x70), PIRH)
+                    }
+
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (And (PIRH, 0x80))
+                        {
+                            Return (0x09)
+                        }
+
+                        Return (0x0B)
+                    }
+                }
+
+                OperationRegion (GPOX, SystemIO, 0x1180, 0x40)
+                Field (GPOX, DWordAcc, Lock, Preserve)
+                {
+                    Offset (0x07), 
+                        ,   1, 
+                    IO25,   1, 
+                        ,   1, 
+                    IO27,   1, 
+                    Offset (0x0E), 
+                    LV16,   1, 
+                    LV17,   1, 
+                    Offset (0x0F), 
+                        ,   1, 
+                    LV25,   1, 
+                        ,   1, 
+                    LV27,   1, 
+                    Offset (0x1B), 
+                        ,   1, 
+                    BL25,   1, 
+                        ,   1, 
+                    BL27,   1, 
+                    Offset (0x38), 
+                    RBID,   2, 
+                    LV34,   1, 
+                    LV35,   1, 
+                    LV36,   1, 
+                    LV37,   1, 
+                    LV38,   1, 
+                    LV39,   1
+                }
+
+                OperationRegion (PMIO, SystemIO, 0x1000, 0x51)
+                Field (PMIO, WordAcc, Lock, Preserve)
+                {
+                    AccessAs (DWordAcc, 0x00), 
+                    Offset (0x29), 
+                        ,   3, 
+                    PMES,   1, 
+                    Offset (0x2B), 
+                        ,   3, 
+                    PMEE,   1, 
+                    Offset (0x2C), 
+                    GPI0,   1, 
+                    GPI1,   1, 
+                    GPI2,   1, 
+                    GPI3,   1, 
+                    GPI4,   1, 
+                    GPI5,   1, 
+                    GPI6,   1, 
+                    GPI7,   1, 
+                    GPI8,   1, 
+                    GPI9,   1, 
+                    GPIA,   1, 
+                    GPIB,   1, 
+                    GPIC,   1, 
+                    GPID,   1, 
+                    GPIE,   1, 
+                    GPIF,   1, 
+                        ,   6, 
+                    GPEE,   1
+                }
+
+                Device (KBC)
+                {
+                    Name (_HID, EisaId ("PNP0303"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0060, 0x0060, 0x01, 0x01)
+                        IO (Decode16, 0x0064, 0x0064, 0x01, 0x01)
+                        IRQNoFlags () {1}
+                    })
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        Return (0x0F)
+                    }
+                }
+
+                Device (MOUE)
+                {
+                    Name (_HID, EisaId ("IBM3780"))
+                    Name (_CID, 0x130FD041)
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IRQNoFlags () {12}
+                    })
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (LEqual (SizeOf (\_OS), 0x14))
+                        {
+                            Return (0x00)
+                        }
+                        Else
+                        {
+                            If (\_SB.PS2M)
+                            {
+                                Return (0x0F)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+                    }
+                }
+
+                Device (MOU2)
+                {
+                    Name (_HID, EisaId ("PNP0F13"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IRQNoFlags () {12}
+                    })
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (LEqual (SizeOf (\_OS), 0x14))
+                        {
+                            If (\_SB.PS2M)
+                            {
+                                Return (0x0F)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+                        Else
+                        {
+                            Return (0x00)
+                        }
+                    }
+                }
+
+                Device (SIO)
+                {
+                    Name (_HID, EisaId ("PNP0A05"))
+                    OperationRegion (SIIO, SystemIO, 0x4E, 0x02)
+                    Field (SIIO, ByteAcc, NoLock, Preserve)
+                    {
+                        INDX,   8, 
+                        DATA,   8
+                    }
+
+                    Mutex (N393, 0x00)
+                    Method (SETD, 1, Serialized)
+                    {
+                        Store (0x07, INDX)
+                        Store (Arg0, DATA)
+                    }
+
+                    Method (READ, 1, Serialized)
+                    {
+                        Store (Arg0, INDX)
+                        Store (DATA, Local0)
+                        Return (Local0)
+                    }
+
+                    Method (WRIT, 2, Serialized)
+                    {
+                        Store (Arg0, INDX)
+                        Store (Arg1, DATA)
+                    }
+
+                    Method (LDRS, 3, NotSerialized)
+                    {
+                        Acquire (N393, 0xFFFF)
+                        Store (0x07, INDX)
+                        Store (Arg0, DATA)
+                        Store (Arg1, INDX)
+                        Store (Arg2, DATA)
+                        Release (N393)
+                    }
+
+                    Method (LDRG, 2, NotSerialized)
+                    {
+                        Acquire (N393, 0xFFFF)
+                        Store (0x07, INDX)
+                        Store (Arg0, DATA)
+                        Store (Arg1, INDX)
+                        Store (DATA, Local0)
+                        Release (N393)
+                        Return (Local0)
+                    }
+
+                    Method (RCF6, 1, NotSerialized)
+                    {
+                        Acquire (N393, 0xFFFF)
+                        Store (0x26, INDX)
+                        Store (DATA, Local0)
+                        And (Local0, Arg0, Local0)
+                        Release (N393)
+                        Return (XOr (Local0, Arg0))
+                    }
+
+                    Method (PDRS, 2, NotSerialized)
+                    {
+                        If (\_SB.PCI0.LPC0.POSD)
+                        {
+                            If (LEqual (Arg0, 0x00))
+                            {
+                                If (LEqual (Arg1, 0x03F0))
+                                {
+                                    Store (0x00, Local0)
+                                }
+                                Else
+                                {
+                                    If (LEqual (Arg1, 0x0370))
+                                    {
+                                        Store (0x01, Local0)
+                                    }
+                                }
+
+                                Store (Local0, \_SB.PCI0.LPC0.FDDD)
+                            }
+                            Else
+                            {
+                                If (LEqual (Arg0, 0x01))
+                                {
+                                    If (LEqual (Arg1, 0x0378))
+                                    {
+                                        Store (0x00, Local0)
+                                    }
+                                    Else
+                                    {
+                                        If (LEqual (Arg1, 0x0278))
+                                        {
+                                            Store (0x01, Local0)
+                                        }
+                                        Else
+                                        {
+                                            If (LEqual (Arg1, 0x03BC))
+                                            {
+                                                Store (0x02, Local0)
+                                            }
+                                        }
+                                    }
+
+                                    Store (Local0, \_SB.PCI0.LPC0.LPTD)
+                                }
+                                Else
+                                {
+                                    If (LEqual (Arg1, 0x03F8))
+                                    {
+                                        Store (0x00, Local0)
+                                    }
+                                    Else
+                                    {
+                                        If (LEqual (Arg1, 0x02F8))
+                                        {
+                                            Store (0x01, Local0)
+                                        }
+                                        Else
+                                        {
+                                            If (LEqual (Arg1, 0x0220))
+                                            {
+                                                Store (0x02, Local0)
+                                            }
+                                            Else
+                                            {
+                                                If (LEqual (Arg1, 0x0228))
+                                                {
+                                                    Store (0x03, Local0)
+                                                }
+                                                Else
+                                                {
+                                                    If (LEqual (Arg1, 0x0238))
+                                                    {
+                                                        Store (0x04, Local0)
+                                                    }
+                                                    Else
+                                                    {
+                                                        If (LEqual (Arg1, 0x02E8))
+                                                        {
+                                                            Store (0x05, Local0)
+                                                        }
+                                                        Else
+                                                        {
+                                                            If (LEqual (Arg1, 0x0338))
+                                                            {
+                                                                Store (0x06, Local0)
+                                                            }
+                                                            Else
+                                                            {
+                                                                If (LEqual (Arg1, 0x03E8))
+                                                                {
+                                                                    Store (0x07, Local0)
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    If (LEqual (Arg0, 0x02))
+                                    {
+                                        Store (Local0, \_SB.PCI0.LPC0.CMBD)
+                                    }
+                                    Else
+                                    {
+                                        If (LEqual (Arg0, 0x03))
+                                        {
+                                            Store (Local0, \_SB.PCI0.LPC0.CMAD)
+                                        }
+                                    }
+                                }
+                            }
+
+                            Return (0x01)
+                        }
+                        Else
+                        {
+                            Return (0x00)
+                        }
+                    }
+
+                    Device (ECP)
+                    {
+                        Name (_HID, EisaId ("PNP0401"))
+                        Name (_UID, 0x03)
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            Store (LDRG (0x01, 0xF0), Local0)
+                            ShiftRight (Local0, 0x05, Local0)
+                            If (LAnd (RCF6 (0x02), LOr (LEqual (Local0, 0x04), LEqual (Local0, 0x07))))
+                            {
+                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
+                                Add (0x0D, Local1, Local1)
+                                Return (Local1)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_PS0, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+
+                        Method (_PS3, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_PRS, 0, NotSerialized)
+                        {
+                            Return (ResourceTemplate ()
+                            {
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                EndDependentFn ()
+                            })
+                        }
+
+                        Method (_DIS, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_CRS, 0, NotSerialized)
+                        {
+                            Name (DCRS, ResourceTemplate ()
+                            {
+                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                IRQNoFlags () {7}
+                                DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                            })
+                            Store (LDRG (0x01, 0x60), Local1)
+                            Store (LDRG (0x01, 0x61), Local0)
+                            Store (Local0, Index (DCRS, 0x02))
+                            Store (Local0, Index (DCRS, 0x0A))
+                            Store (Local0, Index (DCRS, 0x04))
+                            Store (Local0, Index (DCRS, 0x0C))
+                            Store (Local1, Index (DCRS, 0x03))
+                            Store (Local1, Index (DCRS, 0x05))
+                            Add (Local1, 0x04, Local1)
+                            Store (Local1, Index (DCRS, 0x0B))
+                            Store (Local1, Index (DCRS, 0x0D))
+                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
+                            Store (Local0, Index (DCRS, 0x11))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x12))
+                            ShiftLeft (0x01, LDRG (0x01, 0x74), Local0)
+                            Store (Local0, Index (DCRS, 0x14))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x15))
+                            Return (DCRS)
+                        }
+
+                        Method (_SRS, 1, NotSerialized)
+                        {
+                            CreateByteField (Arg0, 0x02, ADRL)
+                            CreateByteField (Arg0, 0x03, ADRM)
+                            CreateWordField (Arg0, 0x11, IRQM)
+                            CreateWordField (Arg0, 0x14, DMAM)
+                            FindSetRightBit (IRQM, Local0)
+                            Decrement (Local0)
+                            FindSetRightBit (DMAM, Local1)
+                            Decrement (Local1)
+                            LDRS (0x01, 0x70, Local0)
+                            LDRS (0x01, 0x74, Local1)
+                            LDRS (0x01, 0x60, ADRM)
+                            LDRS (0x01, 0x61, ADRL)
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+                    }
+
+                    Device (EPP)
+                    {
+                        Name (_HID, EisaId ("PNP0400"))
+                        Name (_UID, 0x02)
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            Store (LDRG (0x01, 0xF0), Local0)
+                            ShiftRight (Local0, 0x05, Local0)
+                            If (LAnd (RCF6 (0x02), LOr (LEqual (Local0, 0x02), LEqual (Local0, 0x03))))
+                            {
+                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
+                                Add (0x0D, Local1, Local1)
+                                Return (Local1)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_PS0, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+
+                        Method (_PS3, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_PRS, 0, NotSerialized)
+                        {
+                            Return (ResourceTemplate ()
+                            {
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0178, 0x0178, 0x08, 0x08)
+                                    IO (Decode16, 0x0578, 0x0578, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0178, 0x0178, 0x08, 0x08)
+                                    IO (Decode16, 0x0578, 0x0578, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                }
+                                EndDependentFn ()
+                            })
+                        }
+
+                        Method (_DIS, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_CRS, 0, NotSerialized)
+                        {
+                            Name (DCRS, ResourceTemplate ()
+                            {
+                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                IRQNoFlags () {7}
+                            })
+                            Store (LDRG (0x01, 0x60), Local1)
+                            Store (LDRG (0x01, 0x61), Local0)
+                            Store (Local0, Index (DCRS, 0x02))
+                            Store (Local0, Index (DCRS, 0x0A))
+                            Store (Local0, Index (DCRS, 0x04))
+                            Store (Local0, Index (DCRS, 0x0C))
+                            Store (Local1, Index (DCRS, 0x03))
+                            Store (Local1, Index (DCRS, 0x05))
+                            Add (Local1, 0x04, Local1)
+                            Store (Local1, Index (DCRS, 0x0B))
+                            Store (Local1, Index (DCRS, 0x0D))
+                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
+                            Store (Local0, Index (DCRS, 0x11))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x12))
+                            Return (DCRS)
+                        }
+
+                        Method (_SRS, 1, NotSerialized)
+                        {
+                            CreateByteField (Arg0, 0x02, ADRL)
+                            CreateByteField (Arg0, 0x03, ADRM)
+                            CreateWordField (Arg0, 0x11, IRQM)
+                            FindSetRightBit (IRQM, Local0)
+                            Decrement (Local0)
+                            LDRS (0x01, 0x70, Local0)
+                            LDRS (0x01, 0x60, ADRM)
+                            LDRS (0x01, 0x61, ADRL)
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+                    }
+
+                    Device (LPTB)
+                    {
+                        Name (_HID, EisaId ("PNP0400"))
+                        Name (_UID, 0x01)
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            Store (LDRG (0x01, 0xF0), Local0)
+                            ShiftRight (Local0, 0x05, Local0)
+                            If (LAnd (RCF6 (0x02), LEqual (Local0, 0x01)))
+                            {
+                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
+                                Add (0x0D, Local1, Local1)
+                                Return (Local1)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_PS0, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+
+                        Method (_PS3, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_PRS, 0, NotSerialized)
+                        {
+                            Return (ResourceTemplate ()
+                            {
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
+                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
+                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
+                                    IRQNoFlags () {5}
+                                }
+                                EndDependentFn ()
+                            })
+                        }
+
+                        Method (_DIS, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_CRS, 0, NotSerialized)
+                        {
+                            Name (DCRS, ResourceTemplate ()
+                            {
+                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                IRQNoFlags () {7}
+                            })
+                            Store (LDRG (0x01, 0x60), Local1)
+                            Store (LDRG (0x01, 0x61), Local0)
+                            Store (Local0, Index (DCRS, 0x02))
+                            Store (Local0, Index (DCRS, 0x0A))
+                            Store (Local0, Index (DCRS, 0x04))
+                            Store (Local0, Index (DCRS, 0x0C))
+                            Store (Local1, Index (DCRS, 0x03))
+                            Store (Local1, Index (DCRS, 0x05))
+                            Add (Local1, 0x04, Local1)
+                            Store (Local1, Index (DCRS, 0x0B))
+                            Store (Local1, Index (DCRS, 0x0D))
+                            If (And (Local0, 0x04))
+                            {
+                                Store (0x04, Local0)
+                            }
+                            Else
+                            {
+                                Store (0x08, Local0)
+                            }
+
+                            Store (Local0, Index (DCRS, 0x06))
+                            Store (Local0, Index (DCRS, 0x07))
+                            Store (Local0, Index (DCRS, 0x0E))
+                            Store (Local0, Index (DCRS, 0x0F))
+                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
+                            Store (Local0, Index (DCRS, 0x11))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x12))
+                            Return (DCRS)
+                        }
+
+                        Method (_SRS, 1, NotSerialized)
+                        {
+                            CreateByteField (Arg0, 0x02, ADRL)
+                            CreateByteField (Arg0, 0x03, ADRM)
+                            CreateWordField (Arg0, 0x11, IRQM)
+                            FindSetRightBit (IRQM, Local0)
+                            Decrement (Local0)
+                            LDRS (0x01, 0x70, Local0)
+                            LDRS (0x01, 0x60, ADRM)
+                            LDRS (0x01, 0x61, ADRL)
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+                    }
+
+                    Device (LPT)
+                    {
+                        Name (_HID, EisaId ("PNP0400"))
+                        Name (_UID, 0x00)
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            Store (LDRG (0x01, 0xF0), Local0)
+                            ShiftRight (Local0, 0x05, Local0)
+                            If (LAnd (RCF6 (0x02), LEqual (Local0, 0x00)))
+                            {
+                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
+                                Add (0x0D, Local1, Local1)
+                                Return (Local1)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_PS0, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+
+                        Method (_PS3, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_PRS, 0, NotSerialized)
+                        {
+                            Return (ResourceTemplate ()
+                            {
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                    IRQNoFlags () {5}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
+                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
+                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
+                                    IRQNoFlags () {7}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
+                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
+                                    IRQNoFlags () {5}
+                                }
+                                EndDependentFn ()
+                            })
+                        }
+
+                        Method (_DIS, 0, NotSerialized)
+                        {
+                            LDRS (0x01, 0x30, 0x00)
+                        }
+
+                        Method (_CRS, 0, NotSerialized)
+                        {
+                            Name (DCRS, ResourceTemplate ()
+                            {
+                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
+                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
+                                IRQNoFlags () {7}
+                            })
+                            Store (LDRG (0x01, 0x60), Local1)
+                            Store (LDRG (0x01, 0x61), Local0)
+                            Store (Local0, Index (DCRS, 0x02))
+                            Store (Local0, Index (DCRS, 0x0A))
+                            Store (Local0, Index (DCRS, 0x04))
+                            Store (Local0, Index (DCRS, 0x0C))
+                            Store (Local1, Index (DCRS, 0x03))
+                            Store (Local1, Index (DCRS, 0x05))
+                            Add (Local1, 0x04, Local1)
+                            Store (Local1, Index (DCRS, 0x0B))
+                            Store (Local1, Index (DCRS, 0x0D))
+                            If (And (Local0, 0x04))
+                            {
+                                Store (0x04, Local0)
+                            }
+                            Else
+                            {
+                                Store (0x08, Local0)
+                            }
+
+                            Store (Local0, Index (DCRS, 0x06))
+                            Store (Local0, Index (DCRS, 0x07))
+                            Store (Local0, Index (DCRS, 0x0E))
+                            Store (Local0, Index (DCRS, 0x0F))
+                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
+                            Store (Local0, Index (DCRS, 0x11))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x12))
+                            Return (DCRS)
+                        }
+
+                        Method (_SRS, 1, NotSerialized)
+                        {
+                            CreateByteField (Arg0, 0x02, ADRL)
+                            CreateByteField (Arg0, 0x03, ADRM)
+                            CreateWordField (Arg0, 0x11, IRQM)
+                            FindSetRightBit (IRQM, Local0)
+                            Decrement (Local0)
+                            LDRS (0x01, 0x70, Local0)
+                            LDRS (0x01, 0x60, ADRM)
+                            LDRS (0x01, 0x61, ADRL)
+                            LDRS (0x01, 0x30, 0x01)
+                        }
+                    }
+
+                    Device (COMA)
+                    {
+                        Name (_HID, EisaId ("PNP0501"))
+                        Name (_UID, 0x00)
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            If (RCF6 (0x08))
+                            {
+                                ShiftLeft (LDRG (0x03, 0x30), 0x01, Local1)
+                                Add (0x0D, Local1, Local1)
+                                Return (Local1)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_PS0, 0, NotSerialized)
+                        {
+                            LDRS (0x03, 0x30, 0x01)
+                        }
+
+                        Method (_PS3, 0, NotSerialized)
+                        {
+                            LDRS (0x03, 0x30, 0x00)
+                        }
+
+                        Method (_PRS, 0, NotSerialized)
+                        {
+                            Return (ResourceTemplate ()
+                            {
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                }
+                                EndDependentFn ()
+                            })
+                        }
+
+                        Method (_DIS, 0, NotSerialized)
+                        {
+                            LDRS (0x03, 0x30, 0x00)
+                        }
+
+                        Method (_CRS, 0, NotSerialized)
+                        {
+                            Name (DCRS, ResourceTemplate ()
+                            {
+                                IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                IRQNoFlags () {4}
+                            })
+                            Store (LDRG (0x03, 0x60), Local1)
+                            Store (LDRG (0x03, 0x61), Local0)
+                            Store (Local0, Index (DCRS, 0x02))
+                            Store (Local0, Index (DCRS, 0x04))
+                            Store (Local1, Index (DCRS, 0x03))
+                            Store (Local1, Index (DCRS, 0x05))
+                            ShiftLeft (0x01, LDRG (0x03, 0x70), Local0)
+                            Store (Local0, Index (DCRS, 0x09))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x0A))
+                            Return (DCRS)
+                        }
+
+                        Method (_SRS, 1, NotSerialized)
+                        {
+                            CreateByteField (Arg0, 0x02, ADRL)
+                            CreateByteField (Arg0, 0x03, ADRM)
+                            CreateWordField (Arg0, 0x09, IRQM)
+                            FindSetRightBit (IRQM, Local0)
+                            Decrement (Local0)
+                            LDRS (0x03, 0x70, Local0)
+                            LDRS (0x03, 0x60, ADRM)
+                            LDRS (0x03, 0x61, ADRL)
+                            LDRS (0x03, 0x30, 0x01)
+                        }
+                    }
+
+                    Device (FIR)
+                    {
+                        Method (_HID, 0, NotSerialized)
+                        {
+                            If (LOr (LEqual (MYOS, 0x01), LEqual (MYOS, 0x03)))
+                            {
+                                Return (0x0160633A)
+                            }
+                            Else
+                            {
+                                Return (0x0160633A)
+                            }
+                        }
+
+                        Name (_UID, 0x00)
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            Store (LDRG (0x02, 0x74), Local0)
+                            If (LAnd (RCF6 (0x04), LNot (LEqual (Local0, 0x04))))
+                            {
+                                ShiftLeft (LDRG (0x02, 0x30), 0x01, Local1)
+                                Add (0x0D, Local1, Local1)
+                                Return (Local1)
+                            }
+                            Else
+                            {
+                                Return (0x00)
+                            }
+                        }
+
+                        Method (_PS0, 0, NotSerialized)
+                        {
+                            LDRS (0x02, 0x30, 0x01)
+                        }
+
+                        Method (_PS3, 0, NotSerialized)
+                        {
+                            LDRS (0x02, 0x30, 0x00)
+                        }
+
+                        Method (_PRS, 0, NotSerialized)
+                        {
+                            Return (ResourceTemplate ()
+                            {
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
+                                    IRQNoFlags () {3}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                StartDependentFnNoPri ()
+                                {
+                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
+                                    IRQNoFlags () {4}
+                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
+                                }
+                                EndDependentFn ()
+                            })
+                        }
+
+                        Method (_DIS, 0, NotSerialized)
+                        {
+                            LDRS (0x02, 0x30, 0x00)
+                            Store (0x00, \_SB.PCI0.LPC0.ECO1)
+                        }
+
+                        Method (_CRS, 0, NotSerialized)
+                        {
+                            Name (DCRS, ResourceTemplate ()
+                            {
+                                IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
+                                IRQNoFlags () {3}
+                                DMA (Compatibility, NotBusMaster, Transfer8) {0}
+                            })
+                            Store (LDRG (0x02, 0x60), Local1)
+                            Store (LDRG (0x02, 0x61), Local0)
+                            Store (Local0, Index (DCRS, 0x02))
+                            Store (Local0, Index (DCRS, 0x04))
+                            Store (Local1, Index (DCRS, 0x03))
+                            Store (Local1, Index (DCRS, 0x05))
+                            ShiftLeft (0x01, LDRG (0x02, 0x70), Local0)
+                            Store (Local0, Index (DCRS, 0x09))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x0A))
+                            ShiftLeft (0x01, LDRG (0x02, 0x74), Local0)
+                            Store (Local0, Index (DCRS, 0x0C))
+                            ShiftRight (Local0, 0x08, Local1)
+                            Store (Local1, Index (DCRS, 0x0D))
+                            Return (DCRS)
+                        }
+
+                        Method (_SRS, 1, NotSerialized)
+                        {
+                            Store (0x01, \_SB.PCI0.LPC0.ECO1)
+                            CreateByteField (Arg0, 0x02, ADRL)
+                            CreateByteField (Arg0, 0x03, ADRM)
+                            CreateWordField (Arg0, 0x09, IRQM)
+                            CreateWordField (Arg0, 0x0C, DMAM)
+                            FindSetRightBit (IRQM, Local0)
+                            Decrement (Local0)
+                            FindSetRightBit (DMAM, Local1)
+                            Decrement (Local1)
+                            LDRS (0x02, 0x70, Local0)
+                            LDRS (0x02, 0x74, Local1)
+                            LDRS (0x02, 0x60, ADRM)
+                            LDRS (0x02, 0x61, ADRL)
+                            PDRS (0x02, Add (ShiftLeft (ADRM, 0x08), ADRL))
+                            LDRS (0x02, 0x30, 0x01)
+                        }
+                    }
+                }
+
+                Device (EC0)
+                {
+                    Name (_HID, EisaId ("PNP0C09"))
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0062, 0x0062, 0x01, 0x01)
+                        IO (Decode16, 0x0066, 0x0066, 0x01, 0x01)
+                    })
+                    Name (_GPE, 0x1D)
+                    Name (OSEJ, 0x00)
+                    Method (_REG, 2, NotSerialized)
+                    {
+                        If (LEqual (Arg0, 0x03))
+                        {
+                            Store (Arg1, \_SB.OKEC)
+                            If (Or (LEqual (\_SB.PCI0.MYOS, 0x03), LEqual (\_SB.PCI0.MYOS, 0x01)))
+                            {
+                                If (Arg1)
+                                {
+                                    Store (0x01, \_SB.PCI0.LPC0.EC0.RG57)
+                                }
+                            }
+                        }
+                    }
+
+                    OperationRegion (ERAM, EmbeddedControl, 0x00, 0xFF)
+                    Field (ERAM, ByteAcc, NoLock, Preserve)
+                    {
+                        Offset (0x04), 
+                        CMCM,   8, 
+                        CMD1,   8, 
+                        CMD2,   8, 
+                        CMD3,   8, 
+                        Offset (0x18), 
+                        SMPR,   8, 
+                        SMST,   8, 
+                        SMAD,   8, 
+                        SMCM,   8, 
+                        SMD0,   256, 
+                        BCNT,   8, 
+                        SMAA,   8, 
+                        BATD,   16, 
+                        ACDF,   1, 
+                        Offset (0x41), 
+                            ,   4, 
+                        FPR1,   1, 
+                        S4LD,   1, 
+                        S5LW,   1, 
+                        PFLG,   1, 
+                        Offset (0x43), 
+                        TMSS,   2, 
+                            ,   2, 
+                        BANK,   4, 
+                        Offset (0x45), 
+                        VFAN,   1, 
+                        Offset (0x46), 
+                        RL01,   1, 
+                        RD01,   1, 
+                        RF01,   1, 
+                        RP01,   1, 
+                        RB01,   1, 
+                        RC01,   1, 
+                            ,   1, 
+                        R701,   1, 
+                        R801,   1, 
+                        RM01,   1, 
+                        RI01,   1, 
+                            ,   1, 
+                            ,   1, 
+                            ,   1, 
+                        RA01,   1, 
+                        RR01,   1, 
+                        RL10,   1, 
+                        RD10,   1, 
+                        RF10,   1, 
+                        RP10,   1, 
+                        RB10,   1, 
+                        RC10,   1, 
+                            ,   1, 
+                        R710,   1, 
+                        R810,   1, 
+                        RM10,   1, 
+                        RI10,   1, 
+                            ,   1, 
+                            ,   1, 
+                            ,   1, 
+                        RA10,   1, 
+                        RR10,   1, 
+                        WL01,   1, 
+                        WD01,   1, 
+                        WF01,   1, 
+                        WP01,   1, 
+                        WB01,   1, 
+                        WC01,   1, 
+                            ,   1, 
+                        W701,   1, 
+                        W801,   1, 
+                        WM01,   1, 
+                        WI01,   1, 
+                            ,   1, 
+                            ,   1, 
+                            ,   1, 
+                        WA01,   1, 
+                        WR01,   1, 
+                        WL10,   1, 
+                        WD10,   1, 
+                        WF10,   1, 
+                        WP10,   1, 
+                        WB10,   1, 
+                        WC10,   1, 
+                            ,   1, 
+                        W710,   1, 
+                        W810,   1, 
+                        WM10,   1, 
+                        WI10,   1, 
+                            ,   1, 
+                            ,   1, 
+                            ,   1, 
+                        WA10,   1, 
+                        WR10,   1, 
+                        LIDE,   1, 
+                        BAYE,   1, 
+                        EFDE,   1, 
+                        PRDE,   1, 
+                        BRBE,   1, 
+                        CRTE,   1, 
+                            ,   1, 
+                        W7BE,   1, 
+                        W8BE,   1, 
+                        PMEE,   1, 
+                        INTE,   1, 
+                            ,   1, 
+                            ,   1, 
+                            ,   1, 
+                        DB2E,   1, 
+                        DB3E,   1, 
+                        Offset (0x52), 
+                        LIDS,   1, 
+                        BAYS,   1, 
+                        EFDS,   1, 
+                        PRDS,   1, 
+                        BRBS,   1, 
+                        CRTS,   1, 
+                            ,   1, 
+                        W7BS,   1, 
+                        W8BS,   1, 
+                        DPEM,   1, 
+                        DINT,   1, 
+                            ,   1, 
+                            ,   1, 
+                            ,   1, 
+                        DB2S,   1, 
+                        DB3S,   1, 
+                        Offset (0x57), 
+                        RG57,   8, 
+                        CTMP,   8, 
+                        RG59,   8, 
+                        RG5A,   8, 
+                        RG5B,   8, 
+                        FSPD,   16, 
+                        Offset (0x5F), 
+                        FAN2,   1, 
+                        SFN2,   1, 
+                        Offset (0x60), 
+                            ,   1, 
+                        FANC,   1, 
+                        Offset (0x70), 
+                        MBID,   8, 
+                        MBTS,   1, 
+                        MBTF,   1, 
+                        Offset (0x72), 
+                        MBTC,   1, 
+                        Offset (0x77), 
+                        BA1C,   8, 
+                        MBVG,   16, 
+                        MCUR,   16, 
+                        Offset (0x80), 
+                        SBID,   8, 
+                        SBTS,   1, 
+                        SBTF,   1, 
+                        Offset (0x82), 
+                        SBTC,   1, 
+                        Offset (0x87), 
+                        BA2C,   8, 
+                        ABVG,   16, 
+                        ACUR,   16, 
+                        Offset (0xC3), 
+                        MBRM,   16, 
+                        Offset (0xCA), 
+                        ABRM,   16, 
+                        Offset (0xD0), 
+                        EBPL,   1, 
+                        Offset (0xD2), 
+                            ,   6, 
+                        APWR,   1, 
+                        Offset (0xD6), 
+                        DBPL,   8, 
+                        Offset (0xE7), 
+                        GQKS,   7
+                    }
+
+                    Field (ERAM, ByteAcc, NoLock, Preserve)
+                    {
+                        Offset (0x1C), 
+                        SMW0,   16
+                    }
+
+                    Field (ERAM, ByteAcc, NoLock, Preserve)
+                    {
+                        Offset (0x1C), 
+                        SMB0,   8
+                    }
+
+                    Field (ERAM, ByteAcc, NoLock, Preserve)
+                    {
+                        Offset (0x1C), 
+                        FLD0,   64
+                    }
+
+                    Field (ERAM, ByteAcc, NoLock, Preserve)
+                    {
+                        Offset (0x1C), 
+                        FLD1,   128
+                    }
+
+                    Field (ERAM, ByteAcc, NoLock, Preserve)
+                    {
+                        Offset (0x1C), 
+                        FLD2,   192
+                    }
+
+                    Field (ERAM, ByteAcc, NoLock, Preserve)
+                    {
+                        Offset (0x1C), 
+                        FLD3,   256
+                    }
+
+                    Mutex (MUT0, 0x00)
+                    Method (SMRD, 4, NotSerialized)
+                    {
+                        If (LNot (\_SB.OKEC))
+                        {
+                            Return (0xFF)
+                        }
+
+                        If (LNot (LEqual (Arg0, 0x07)))
+                        {
+                            If (LNot (LEqual (Arg0, 0x09)))
+                            {
+                                If (LNot (LEqual (Arg0, 0x0B)))
+                                {
+                                    Return (0x19)
+                                }
+                            }
+                        }
+
+                        Acquire (MUT0, 0xFFFF)
+                        Store (0x04, Local0)
+                        While (LGreater (Local0, 0x01))
+                        {
+                            And (SMST, 0x40, SMST)
+                            Store (Arg2, SMCM)
+                            Store (Arg1, SMAD)
+                            Store (Arg0, SMPR)
+                            Store (0x00, Local3)
+                            While (LNot (And (SMST, 0xBF, Local1)))
+                            {
+                                Sleep (0x02)
+                                Increment (Local3)
+                                If (LEqual (Local3, 0x32))
+                                {
+                                    And (SMST, 0x40, SMST)
+                                    Store (Arg2, SMCM)
+                                    Store (Arg1, SMAD)
+                                    Store (Arg0, SMPR)
+                                    Store (0x00, Local3)
+                                }
+                            }
+
+                            If (LEqual (Local1, 0x80))
+                            {
+                                Store (0x00, Local0)
+                            }
+                            Else
+                            {
+                                Decrement (Local0)
+                            }
+                        }
+
+                        If (Local0)
+                        {
+                            Store (And (Local1, 0x1F), Local0)
+                        }
+                        Else
+                        {
+                            If (LEqual (Arg0, 0x07))
+                            {
+                                Store (SMB0, Arg3)
+                            }
+
+                            If (LEqual (Arg0, 0x09))
+                            {
+                                Store (SMW0, Arg3)
+                            }
+
+                            If (LEqual (Arg0, 0x0B))
+                            {
+                                Store (BCNT, Local3)
+                                ShiftRight (0x0100, 0x03, Local2)
+                                If (LGreater (Local3, Local2))
+                                {
+                                    Store (Local2, Local3)
+                                }
+
+                                If (LLess (Local3, 0x09))
+                                {
+                                    Store (FLD0, Local2)
+                                }
+                                Else
+                                {
+                                    If (LLess (Local3, 0x11))
+                                    {
+                                        Store (FLD1, Local2)
+                                    }
+                                    Else
+                                    {
+                                        If (LLess (Local3, 0x19))
+                                        {
+                                            Store (FLD2, Local2)
+                                        }
+                                        Else
+                                        {
+                                            Store (FLD3, Local2)
+                                        }
+                                    }
+                                }
+
+                                Increment (Local3)
+                                Store (Buffer (Local3) {}, Local4)
+                                Decrement (Local3)
+                                Store (Zero, Local5)
+                                While (LGreater (Local3, Local5))
+                                {
+                                    GBFE (Local2, Local5, RefOf (Local6))
+                                    PBFE (Local4, Local5, Local6)
+                                    Increment (Local5)
+                                }
+
+                                PBFE (Local4, Local5, 0x00)
+                                Store (Local4, Arg3)
+                            }
+                        }
+
+                        Release (MUT0)
+                        Return (Local0)
+                    }
+
+                    Method (SMWR, 4, NotSerialized)
+                    {
+                        If (LNot (\_SB.OKEC))
+                        {
+                            Return (0xFF)
+                        }
+
+                        If (LNot (LEqual (Arg0, 0x06)))
+                        {
+                            If (LNot (LEqual (Arg0, 0x08)))
+                            {
+                                If (LNot (LEqual (Arg0, 0x0A)))
+                                {
+                                    Return (0x19)
+                                }
+                            }
+                        }
+
+                        Acquire (MUT0, 0xFFFF)
+                        Store (0x04, Local0)
+                        While (LGreater (Local0, 0x01))
+                        {
+                            If (LEqual (Arg0, 0x06))
+                            {
+                                Store (Arg3, SMB0)
+                            }
+
+                            If (LEqual (Arg0, 0x08))
+                            {
+                                Store (Arg3, SMW0)
+                            }
+
+                            If (LEqual (Arg0, 0x0A))
+                            {
+                                Store (Arg3, SMD0)
+                            }
+
+                            And (SMST, 0x40, SMST)
+                            Store (Arg2, SMCM)
+                            Store (Arg1, SMAD)
+                            Store (Arg0, SMPR)
+                            Store (0x00, Local3)
+                            While (LNot (And (SMST, 0xBF, Local1)))
+                            {
+                                Sleep (0x02)
+                                Increment (Local3)
+                                If (LEqual (Local3, 0x32))
+                                {
+                                    And (SMST, 0x40, SMST)
+                                    Store (Arg2, SMCM)
+                                    Store (Arg1, SMAD)
+                                    Store (Arg0, SMPR)
+                                    Store (0x00, Local3)
+                                }
+                            }
+
+                            If (LEqual (Local1, 0x80))
+                            {
+                                Store (0x00, Local0)
+                            }
+                            Else
+                            {
+                                Decrement (Local0)
+                            }
+                        }
+
+                        If (Local0)
+                        {
+                            Store (And (Local1, 0x1F), Local0)
+                        }
+
+                        Release (MUT0)
+                        Return (Local0)
+                    }
+
+                    Method (BPOL, 1, NotSerialized)
+                    {
+                        Store (Arg0, DBPL)
+                        Store (0x01, EBPL)
+                    }
+
+                    Name (ECUS, 0x00)
+                    Name (BATO, 0x00)
+                    Name (BATN, 0x00)
+                    Name (BATF, 0xC0)
+                    Method (_Q09, 0, NotSerialized)
+                    {
+                        If (LEqual (SizeOf (\_OS), 0x14))
+                        {
+                            Notify (\_SB.BAT1, 0x80)
+                            Notify (\_SB.BAT1, 0x00)
+                            Notify (\_SB.BAT2, 0x80)
+                            Notify (\_SB.BAT2, 0x00)
+                            Notify (\_SB.ACAD, 0x00)
+                        }
+
+                        If (LEqual (SizeOf (\_OS), 0x14))
+                        {
+                            BPOL (0x3C)
+                        }
+                    }
+
+                    Method (_Q20, 0, NotSerialized)
+                    {
+                        If (And (SMST, 0x40))
+                        {
+                            Store (SMAA, Local0)
+                            If (LEqual (Local0, 0x14))
+                            {
+                                SELE ()
+                                If (And (0x40, BATF))
+                                {
+                                    Notify (\_SB.BAT1, 0x81)
+                                }
+
+                                If (And (0x80, BATF))
+                                {
+                                    Notify (\_SB.BAT2, 0x81)
+                                }
+
+                                If (And (0x02, BATF))
+                                {
+                                    Notify (\_SB.ACAD, 0x80)
+                                }
+
+                                Notify (\_SB.BAT1, 0x80)
+                                Notify (\_SB.BAT2, 0x80)
+                                Store (BATD, BATO)
+                                And (SMST, 0xBF, SMST)
+                            }
+                        }
+                    }
+
+                    Method (SELE, 0, NotSerialized)
+                    {
+                        Store (BATD, BATN)
+                        Store (0x00, BATF)
+                        If (And (0xC0, BATN))
+                        {
+                            Or (BATF, 0x01, BATF)
+                        }
+
+                        If (And (0x0300, BATN))
+                        {
+                            Or (BATF, 0x04, BATF)
+                        }
+
+                        And (BATN, 0x01, Local0)
+                        And (BATO, 0x01, Local1)
+                        If (Local0)
+                        {
+                            Or (BATF, 0x0100, BATF)
+                        }
+                        Else
+                        {
+                            And (BATF, 0xFEFF, BATF)
+                        }
+
+                        If (Not (LEqual (Local0, Local1)))
+                        {
+                            Or (BATF, 0x40, BATF)
+                        }
+
+                        And (BATN, 0x02, Local0)
+                        And (BATO, 0x02, Local1)
+                        If (Local0)
+                        {
+                            Or (BATF, 0x0200, BATF)
+                        }
+                        Else
+                        {
+                            And (BATF, 0xFDFF, BATF)
+                        }
+
+                        If (Not (LEqual (Local0, Local1)))
+                        {
+                            Or (BATF, 0x80, BATF)
+                        }
+
+                        And (BATN, 0xC0, Local0)
+                        And (BATO, 0xC0, Local1)
+                        If (Not (LEqual (Local0, Local1)))
+                        {
+                            Or (BATF, 0x02, BATF)
+                        }
+
+                        If (And (0x01, BATF))
+                        {
+                            If (And (0x04, BATF))
+                            {
+                                If (And (BATN, 0x20))
+                                {
+                                    Or (BATF, 0x10, BATF)
+                                }
+                                Else
+                                {
+                                    Or (BATF, 0x20, BATF)
+                                }
+                            }
+                        }
+                    }
+
+                    Method (_Q0D, 0, NotSerialized)
+                    {
+                        Store ("Sleep Button Query: Fn+F4", Debug)
+                        Notify (\_SB.SLPB, 0x80)
+                    }
+
+                    Method (_Q0E, 0, NotSerialized)
+                    {
+                        \_SB.PCI0.AGP.VGA.SWIH ()
+                    }
+
+                    Method (_Q0F, 0, NotSerialized)
+                    {
+                        Store ("Display blank: Fn+F6", Debug)
+                        Not (LV16, Local0)
+                        Store (Local0, LV16)
+                    }
+
+                    Method (_Q13, 0, NotSerialized)
+                    {
+                        Store ("Brightness Up: Fn+->", Debug)
+                        Store (0x8C, \_SB.PCI0.LPC0.BCMD)
+                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
+                    }
+
+                    Method (_Q12, 0, NotSerialized)
+                    {
+                        Store ("Brightness Down: Fn+<-", Debug)
+                        Store (0x8D, \_SB.PCI0.LPC0.BCMD)
+                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
+                    }
+
+                    Method (_Q80, 0, NotSerialized)
+                    {
+                        Store ("Temperature increasing: _Q80", Debug)
+                        Notify (\_TZ.THRM, 0x80)
+                    }
+
+                    Method (_Q81, 0, NotSerialized)
+                    {
+                        Store ("Temperature decreasing: _Q81", Debug)
+                        Notify (\_TZ.THRM, 0x80)
+                    }
+
+                    Event (EJT1)
+                    Method (_Q8A, 0, NotSerialized)
+                    {
+                        Mutex (MUT0, 0x00)
+                        Mutex (MUT1, 0x00)
+                        Store ("------------------_Q0x8A --------------------------------------", Debug)
+                        If (LIDE)
+                        {
+                            Store (0x01, LIDE)
+                            Notify (\_SB.LID, 0x80)
+                        }
+
+                        If (DB2E)
+                        {
+                            Store ("-------- Device R-Bay Event ------", Debug)
+                            Store (0x01, DB2E)
+                            If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
+                            {
+                                If (DB2S)
+                                {
+                                    Store ("----------- Device Bay Change Status ---------- IN ", Debug)
+                                    Store (\_SB.PCI0.LPC0.RBID, Local0)
+                                    Store (Local0, \_SB.PCI0.IDE0.BAYR)
+                                    If (LEqual (Local0, 0x00))
+                                    {
+                                        Store (0x00, \_SB.PCI0.LPC0.LV37)
+                                    }
+                                    Else
+                                    {
+                                        Store (0x00, \_SB.PCI0.LPC0.LV37)
+                                        Store (0x00, \_SB.PCI0.LPC0.LV39)
+                                        Sleep (0x32)
+                                        Store (0x01, \_SB.PCI0.LPC0.LV39)
+                                        Sleep (0x09C4)
+                                        Store (0x01, \_SB.PCI0.IDE0.SSIG)
+                                        Store (0x01, \_SB.PCI0.IDE0.UDC1)
+                                        Store (0x02, \_SB.PCI0.IDE0.UDT1)
+                                        Or (\_SB.PCI0.IDE0.FSCB, 0x04, \_SB.PCI0.IDE0.FSCB)
+                                        Store (0xE303, \_SB.PCI0.IDE0.ITM1)
+                                        Store (0x00, \_SB.PCI0.IDE0.SSIG)
+                                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x00)
+                                    }
+                                }
+                                Else
+                                {
+                                    Store ("-------- Device Bay Event ------ OUT ", Debug)
+                                    Store (\_SB.PCI0.IDE0.BAYR, Local0)
+                                    Store (0x01, \_SB.PCI0.LPC0.LV37)
+                                    If (Or (LEqual (Local0, 0x01), LEqual (Local0, 0x02)))
+                                    {
+                                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x01)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                OperationRegion (SMI0, SystemIO, 0x0000FE00, 0x00000002)
+                Field (SMI0, AnyAcc, NoLock, Preserve)
+                {
+                    SMIC,   8
+                }
+
+                OperationRegion (SMI1, SystemMemory, 0x1FF7BEBD, 0x00000090)
+                Field (SMI1, AnyAcc, NoLock, Preserve)
+                {
+                    BCMD,   8, 
+                    DID,    32, 
+                    INFO,   1024
+                }
+
+                Field (SMI1, AnyAcc, NoLock, Preserve)
+                {
+                    AccessAs (ByteAcc, 0x00), 
+                    Offset (0x05), 
+                    INF,    8
+                }
+            }
+
+            Device (MDM0)
+            {
+                Name (_ADR, 0x001F0006)
+                Name (_PRW, Package (0x02)
+                {
+                    0x05, 
+                    0x03
+                })
+            }
+
+            Device (HUB)
+            {
+                Name (_ADR, 0x001E0000)
+                Name (_PRT, Package (0x05)
+                {
+                    Package (0x04)
+                    {
+                        0x0002FFFF, 
+                        0x00, 
+                        \_SB.PCI0.LPC0.LNKD, 
+                        0x00
+                    }, 
+
+                    Package (0x04)
+                    {
+                        0x0004FFFF, 
+                        0x00, 
+                        \_SB.PCI0.LPC0.LNKE, 
+                        0x00
+                    }, 
+
+                    Package (0x04)
+                    {
+                        0x0004FFFF, 
+                        0x01, 
+                        \_SB.PCI0.LPC0.LNKF, 
+                        0x00
+                    }, 
+
+                    Package (0x04)
+                    {
+                        0x0006FFFF, 
+                        0x00, 
+                        \_SB.PCI0.LPC0.LNKB, 
+                        0x00
+                    }, 
+
+                    Package (0x04)
+                    {
+                        0x0007FFFF, 
+                        0x00, 
+                        \_SB.PCI0.LPC0.LNKC, 
+                        0x00
+                    }
+                })
+                Device (GLAN)
+                {
+                    Name (_ADR, 0x00020000)
+                    Name (_PRW, Package (0x02)
+                    {
+                        0x0B, 
+                        0x05
+                    })
+                }
+            }
+
+            Device (IDE0)
+            {
+                Name (_ADR, 0x001F0001)
+                OperationRegion (PCI, PCI_Config, 0x00, 0x58)
+                Field (PCI, DWordAcc, NoLock, Preserve)
+                {
+                    Offset (0x03), 
+                        ,   7, 
+                    SIDE,   1, 
+                    Offset (0x42), 
+                        ,   1, 
+                    EIOR,   1, 
+                        ,   13, 
+                    ESID,   1, 
+                    Offset (0x48), 
+                    UMA0,   1, 
+                    UMA1,   1, 
+                    UMA2,   1, 
+                    UMA3,   1, 
+                    Offset (0x56), 
+                    PSIG,   2, 
+                    SSIG,   2
+                }
+
+                Field (PCI, DWordAcc, NoLock, Preserve)
+                {
+                    Offset (0x40), 
+                    ITM0,   16, 
+                    ITM1,   16, 
+                    SIT0,   4, 
+                    SIT1,   4, 
+                    Offset (0x48), 
+                    UDC0,   2, 
+                    UDC1,   2, 
+                    Offset (0x4A), 
+                    UDT0,   8, 
+                    UDT1,   8, 
+                    Offset (0x54), 
+                    ICF0,   2, 
+                    ICF1,   2, 
+                    CB80,   4, 
+                        ,   2, 
+                    WPPE,   1, 
+                        ,   1, 
+                    FSCB,   4, 
+                    TRIP,   2, 
+                    TRIS,   2, 
+                    FATS,   4
+                }
+
+                Name (TIM0, Package (0x01)
+                {
+                    Package (0x05)
+                    {
+                        0x78, 
+                        0xB4, 
+                        0xF0, 
+                        0x0186, 
+                        0x0258
+                    }
+                })
+                Name (TIM1, Package (0x01)
+                {
+                    Package (0x03)
+                    {
+                        0x78, 
+                        0x96, 
+                        0x01FE
+                    }
+                })
+                Name (TIM2, Package (0x01)
+                {
+                    Package (0x06)
+                    {
+                        0x18, 
+                        0x1E, 
+                        0x2D, 
+                        0x3C, 
+                        0x5A, 
+                        0x78
+                    }
+                })
+                Name (AT01, Buffer (0x07)
+                {
+                    0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0xEF
+                })
+                Name (AT02, Buffer (0x07)
+                {
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x90
+                })
+                Name (AT03, Buffer (0x07)
+                {
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC6
+                })
+                Name (AT04, Buffer (0x07)
+                {
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x91
+                })
+                Name (ATA0, Buffer (0x1D) {})
+                Name (ATA1, Buffer (0x1D) {})
+                Name (ATA2, Buffer (0x1D) {})
+                Name (ATA3, Buffer (0x1D) {})
+                Name (ATAB, Buffer (0x0E) {})
+                Name (CMDC, 0x00)
+                Name (BAYR, 0x00)
+                Method (_INI, 0, NotSerialized)
+                {
+                    Store (\_SB.PCI0.LPC0.RBID, BAYR)
+                }
+
+                Method (GTFB, 3, Serialized)
+                {
+                    Multiply (CMDC, 0x38, Local0)
+                    CreateField (ATAB, Local0, 0x38, CMDX)
+                    Multiply (CMDC, 0x07, Local0)
+                    CreateByteField (ATAB, Add (Local0, 0x01), A001)
+                    CreateByteField (ATAB, Add (Local0, 0x05), A005)
+                    Store (Arg0, CMDX)
+                    Store (Arg1, A001)
+                    Store (Arg2, A005)
+                    Increment (CMDC)
+                }
+
+                Mutex (GTFM, 0x00)
+                Method (GTF, 3, Serialized)
+                {
+                    Acquire (GTFM, 0xFFFF)
+                    CreateDWordField (Arg2, 0x00, PIO0)
+                    CreateDWordField (Arg2, 0x04, DMA0)
+                    CreateDWordField (Arg2, 0x08, PIO1)
+                    CreateDWordField (Arg2, 0x0C, DMA1)
+                    CreateDWordField (Arg2, 0x10, CHNF)
+                    Store (0x00, CMDC)
+                    Name (ID00, 0x80)
+                    Name (ID49, 0x0C00)
+                    Name (ID59, 0x00)
+                    Name (ID53, 0x04)
+                    Name (ID63, 0x0F00)
+                    Name (ID88, 0x0F00)
+                    Name (IRDY, 0x01)
+                    Name (PIOT, 0x00)
+                    Name (DMAT, 0x00)
+                    If (LEqual (SizeOf (Arg1), 0x0200))
+                    {
+                        CreateByteField (Arg1, 0x00, IB00)
+                        Store (IB00, ID00)
+                        CreateWordField (Arg1, 0x62, IW49)
+                        Store (IW49, ID49)
+                        CreateWordField (Arg1, 0x6A, IW53)
+                        Store (IW53, ID53)
+                        CreateWordField (Arg1, 0x7E, IW63)
+                        Store (IW63, ID63)
+                        CreateWordField (Arg1, 0x76, IW59)
+                        Store (IW59, ID59)
+                        CreateWordField (Arg1, 0xB0, IW88)
+                        Store (IW88, ID88)
+                    }
+                    Else
+                    {
+                        Return (ATAB)
+                    }
+
+                    Store (0xA0, Local7)
+                    If (Arg0)
+                    {
+                        Store (0xB0, Local7)
+                        And (CHNF, 0x08, IRDY)
+                        If (And (CHNF, 0x10))
+                        {
+                            Store (PIO1, PIOT)
+                        }
+                        Else
+                        {
+                            Store (PIO0, PIOT)
+                        }
+
+                        If (And (CHNF, 0x04))
+                        {
+                            If (And (CHNF, 0x10))
+                            {
+                                Store (DMA1, DMAT)
+                            }
+                            Else
+                            {
+                                Store (DMA0, DMAT)
+                            }
+                        }
+                    }
+                    Else
+                    {
+                        And (CHNF, 0x02, IRDY)
+                        Store (PIO0, PIOT)
+                        If (And (CHNF, 0x01))
+                        {
+                            Store (DMA0, DMAT)
+                        }
+                    }
+
+                    If (LAnd (And (ID53, 0x04), And (ID88, 0xFF)))
+                    {
+                        Store (0x00, Local1)
+                        And (ID88, 0xFF, Local2)
+                        While (ShiftRight (Local2, Local1))
+                        {
+                            Increment (Local1)
+                        }
+
+                        Decrement (Local1)
+                        GTFB (AT01, Or (0x40, Local1), Local7)
+                    }
+
+                    If (IRDY)
+                    {
+                        Store (Match (DerefOf (Index (TIM0, 0x00)), MGE, PIOT, MTR, 0x00, 0x00), Local1)
+                        If (LEqual (Local1, Ones))
+                        {
+                            Store (0x04, Local1)
+                        }
+
+                        Subtract (0x04, Local1, Local1)
+                        GTFB (AT01, Or (0x08, Local1), Local7)
+                    }
+                    Else
+                    {
+                        If (And (ID49, 0x0400))
+                        {
+                            GTFB (AT01, 0x01, Local7)
+                        }
+                    }
+
+                    Release (GTFM)
+                    Return (ATAB)
+                }
+
+                Method (RATA, 1, NotSerialized)
+                {
+                    CreateByteField (Arg0, 0x00, CMDN)
+                    Multiply (CMDN, 0x38, Local0)
+                    CreateField (Arg0, 0x08, Local0, RETB)
+                    Return (RETB)
+                }
+
+                Name (REGF, 0x01)
+                Method (_REG, 2, NotSerialized)
+                {
+                    If (LEqual (Arg0, 0x02))
+                    {
+                        Store (Arg1, REGF)
+                    }
+                }
+
+                Name (BAYD, 0x00)
+                Method (_STA, 0, NotSerialized)
+                {
+                    Return (0x0F)
+                }
+
+                Method (GTM, 6, NotSerialized)
+                {
+                    Store (Buffer (0x14) {}, Local0)
+                    CreateDWordField (Local0, 0x00, PIO0)
+                    CreateDWordField (Local0, 0x04, DMA0)
+                    CreateDWordField (Local0, 0x08, PIO1)
+                    CreateDWordField (Local0, 0x0C, DMA1)
+                    CreateDWordField (Local0, 0x10, FLAG)
+                    If (LOr (And (Arg0, 0x08), LNot (And (Arg0, 0x01))))
+                    {
+                        Store (0x0384, PIO0)
+                    }
+                    Else
+                    {
+                        Add (ShiftRight (And (Arg0, 0x0300), 0x08), ShiftRight (And (Arg0, 0x3000), 0x0C), Local1)
+                        Multiply (Subtract (0x09, Local1), 0x1E, PIO0)
+                    }
+
+                    If (And (Arg0, 0x4000))
+                    {
+                        If (LOr (And (Arg0, 0x80), LNot (And (Arg0, 0x10))))
+                        {
+                            Store (0x0384, PIO1)
+                        }
+                        Else
+                        {
+                            Add (And (Arg1, 0x03), ShiftRight (And (Arg1, 0x0C), 0x02), Local1)
+                            Multiply (Subtract (0x09, Local1), 0x1E, PIO1)
+                        }
+                    }
+                    Else
+                    {
+                        Store (PIO0, PIO1)
+                    }
+
+                    If (And (Arg2, 0x01))
+                    {
+                        If (And (Arg5, 0x01))
+                        {
+                            Store (0x08, DMA0)
+                        }
+                        Else
+                        {
+                            Subtract (0x04, And (Arg3, 0x03), Local1)
+                            If (And (Arg4, 0x01))
+                            {
+                                Multiply (Local1, 0x0F, DMA0)
+                            }
+                            Else
+                            {
+                                Multiply (Local1, 0x1E, DMA0)
+                            }
+                        }
+                    }
+                    Else
+                    {
+                        Store (PIO0, DMA0)
+                    }
+
+                    If (And (Arg0, 0x4000))
+                    {
+                        If (And (Arg2, 0x02))
+                        {
+                            If (And (Arg5, 0x02))
+                            {
+                                Store (0x08, DMA1)
+                            }
+                            Else
+                            {
+                                Subtract (0x04, ShiftRight (And (Arg3, 0x30), 0x04), Local1)
+                                If (And (Arg4, 0x02))
+                                {
+                                    Multiply (Local1, 0x0F, DMA1)
+                                }
+                                Else
+                                {
+                                    Multiply (Local1, 0x1E, DMA1)
+                                }
+                            }
+                        }
+                        Else
+                        {
+                            Store (PIO1, DMA1)
+                        }
+                    }
+                    Else
+                    {
+                        Store (DMA0, DMA1)
+                    }
+
+                    Store (Zero, FLAG)
+                    If (And (Arg0, 0x01))
+                    {
+                        Or (FLAG, 0x10, FLAG)
+                    }
+
+                    If (And (Arg2, 0x01))
+                    {
+                        Or (FLAG, 0x01, FLAG)
+                    }
+
+                    If (And (Arg0, 0x02))
+                    {
+                        Or (FLAG, 0x02, FLAG)
+                    }
+
+                    If (And (Arg2, 0x02))
+                    {
+                        Or (FLAG, 0x04, FLAG)
+                    }
+
+                    If (And (Arg0, 0x20))
+                    {
+                        Or (FLAG, 0x08, FLAG)
+                    }
+
+                    Return (Local0)
+                }
+
+                Method (STMS, 3, NotSerialized)
+                {
+                    Store (Buffer (0x18) {}, Local7)
+                    CreateDWordField (Local7, 0x00, ITM)
+                    CreateDWordField (Local7, 0x04, SIT)
+                    CreateDWordField (Local7, 0x08, UDC)
+                    CreateDWordField (Local7, 0x0C, UDT)
+                    CreateDWordField (Local7, 0x10, ICF)
+                    CreateDWordField (Local7, 0x14, A100)
+                    Store (0x01, WPPE)
+                    CreateDWordField (Arg0, 0x00, PIO0)
+                    CreateDWordField (Arg0, 0x04, DMA0)
+                    CreateDWordField (Arg0, 0x08, PIO1)
+                    CreateDWordField (Arg0, 0x0C, DMA1)
+                    CreateDWordField (Arg0, 0x10, FLAG)
+                    Store (FLAG, Local4)
+                    Store (0x4000, Local0)
+                    Name (W49M, 0x00)
+                    Name (W53M, 0x00)
+                    Name (W62M, 0x00)
+                    Name (W64M, 0x00)
+                    Name (W88M, 0x00)
+                    If (LEqual (SizeOf (Arg1), 0x0200))
+                    {
+                        CreateDWordField (Arg1, 0x00, W00A)
+                        CreateDWordField (Arg1, 0x62, W49A)
+                        CreateDWordField (Arg1, 0x6A, W53A)
+                        CreateDWordField (Arg1, 0x7C, W62A)
+                        CreateDWordField (Arg1, 0x80, W64A)
+                        CreateDWordField (Arg1, 0xB0, W88A)
+                        Store (W49A, W49M)
+                        Store (W53A, W53M)
+                        Store (W62A, W62M)
+                        Store (W64A, W64M)
+                        Store (W88A, W88M)
+                        If (W00A)
+                        {
+                            Or (Local0, 0x8000, Local0)
+                        }
+
+                        If (LNot (And (W00A, 0x80)))
+                        {
+                            Or (Local0, 0x04, Local0)
+                        }
+                    }
+                    Else
+                    {
+                        Store (0x00, W49M)
+                        Store (0x00, W53M)
+                        Store (0x00, W62M)
+                        Store (0x00, W64M)
+                        Store (0x00, W88M)
+                    }
+
+                    Name (W49S, 0x00)
+                    Name (W53S, 0x00)
+                    Name (W62S, 0x00)
+                    Name (W64S, 0x00)
+                    Name (W88S, 0x00)
+                    If (LEqual (SizeOf (Arg2), 0x0200))
+                    {
+                        CreateDWordField (Arg2, 0x00, W00B)
+                        CreateDWordField (Arg2, 0x62, W49B)
+                        CreateDWordField (Arg2, 0x6A, W53B)
+                        CreateDWordField (Arg2, 0x7C, W62B)
+                        CreateDWordField (Arg2, 0x80, W64B)
+                        CreateDWordField (Arg2, 0xB0, W88B)
+                        Store (W49B, W49S)
+                        Store (W53B, W53S)
+                        Store (W62B, W62S)
+                        Store (W64B, W64S)
+                        Store (W88B, W88S)
+                        If (W00B)
+                        {
+                            Or (Local0, 0x8000, Local0)
+                        }
+
+                        If (LNot (And (W00B, 0x80)))
+                        {
+                            Or (Local0, 0x40, Local0)
+                        }
+                    }
+                    Else
+                    {
+                        Store (0x00, W49S)
+                        Store (0x00, W53S)
+                        Store (0x00, W62S)
+                        Store (0x00, W64S)
+                        Store (0x00, W88S)
+                    }
+
+                    Store (0x00, A100)
+                    If (And (0x38, W88M))
+                    {
+                        If (And (0x20, W88M))
+                        {
+                            Store (0x08, DMA0)
+                            Or (A100, 0x00100010, A100)
+                        }
+                        Else
+                        {
+                            If (And (0x10, W88M))
+                            {
+                                Store (0x1E, DMA0)
+                                Or (A100, 0x10, A100)
+                            }
+                            Else
+                            {
+                                Store (0x2D, DMA0)
+                            }
+                        }
+                    }
+                    Else
+                    {
+                        If (And (0x07, W88M))
+                        {
+                            Or (0x0100, A100, A100)
+                            If (And (0x04, W88M))
+                            {
+                                Store (0x3C, DMA0)
+                            }
+                            Else
+                            {
+                                If (And (0x02, W88M))
+                                {
+                                    Store (0x5A, DMA0)
+                                }
+                                Else
+                                {
+                                    Store (0x78, DMA0)
+                                }
+                            }
+                        }
+                    }
+
+                    If (And (0x3F, W88S))
+                    {
+                        If (And (0x20, W88S))
+                        {
+                            Store (0x08, DMA1)
+                            Or (A100, 0x00200020, A100)
+                        }
+                        Else
+                        {
+                            If (And (0x10, W88S))
+                            {
+                                Store (0x1E, DMA1)
+                                Or (A100, 0x20, A100)
+                            }
+                            Else
+                            {
+                                Store (0x2D, DMA1)
+                            }
+                        }
+                    }
+
+                    If (LAnd (And (W49M, 0x0800), And (Local4, 0x02)))
+                    {
+                        Or (Local0, 0x02, Local0)
+                    }
+
+                    If (LLess (PIO0, 0x0384))
+                    {
+                        Or (Local0, 0x01, Local0)
+                    }
+
+                    If (LAnd (And (W49S, 0x0800), And (Local4, 0x08)))
+                    {
+                        Or (Local0, 0x20, Local0)
+                    }
+
+                    If (LLess (PIO1, 0x0384))
+                    {
+                        Or (Local0, 0x10, Local0)
+                    }
+
+                    If (And (Local4, 0x01))
+                    {
+                        Store (PIO0, Local1)
+                    }
+                    Else
+                    {
+                        Store (DMA0, Local1)
+                    }
+
+                    If (LNot (LLess (Local1, 0xF0)))
+                    {
+                        Or (Local0, 0x08, Local0)
+                    }
+                    Else
+                    {
+                        If (And (W53M, 0x02))
+                        {
+                            If (LAnd (And (W64M, 0x02), LNot (LGreater (Local1, 0x78))))
+                            {
+                                Or (Local0, 0x2301, Local0)
+                            }
+                            Else
+                            {
+                                If (LAnd (And (W64M, 0x01), LNot (LGreater (Local1, 0xB4))))
+                                {
+                                    Or (Local0, 0x2101, Local0)
+                                }
+                            }
+                        }
+                        Else
+                        {
+                            Or (Local0, 0x1001, Local0)
+                        }
+                    }
+
+                    Store (Local0, ITM)
+                    Store (Zero, Local0)
+                    If (And (Local4, 0x04))
+                    {
+                        Store (PIO1, Local1)
+                    }
+                    Else
+                    {
+                        Store (DMA1, Local1)
+                    }
+
+                    If (And (Local4, 0x10))
+                    {
+                        If (LNot (LLess (Local1, 0xF0)))
+                        {
+                            Or (0x80, ITM, ITM)
+                        }
+                        Else
+                        {
+                            Or (0x10, ITM, ITM)
+                            If (And (W53S, 0x02))
+                            {
+                                If (LAnd (And (W64S, 0x02), LNot (LGreater (Local1, 0x78))))
+                                {
+                                    Store (0x0B, Local0)
+                                }
+                                Else
+                                {
+                                    If (LAnd (And (W64S, 0x01), LNot (LGreater (Local1, 0xB4))))
+                                    {
+                                        Store (0x09, Local0)
+                                    }
+                                }
+                            }
+                            Else
+                            {
+                                Store (0x04, Local0)
+                            }
+                        }
+                    }
+
+                    Store (Local0, SIT)
+                    Store (0x00, Local0)
+                    If (LAnd (And (0x3F, W88M), And (Local4, 0x01)))
+                    {
+                        Or (Local0, 0x01, Local0)
+                    }
+
+                    If (And (Local4, 0x04))
+                    {
+                        Or (Local0, 0x02, Local0)
+                    }
+
+                    Store (Local0, UDC)
+                    Store (0x00, Local0)
+                    If (And (Local4, 0x01))
+                    {
+                        If (LLess (DMA0, 0x1E))
+                        {
+                            Or (A100, 0x1000, A100)
+                            Or (Local0, 0x01, Local0)
+                        }
+                        Else
+                        {
+                            If (LLess (DMA0, 0x3C))
+                            {
+                                Divide (DMA0, 0x0F, , Local1)
+                            }
+                            Else
+                            {
+                                Divide (DMA0, 0x1E, , Local1)
+                            }
+
+                            Subtract (0x04, Local1, Local0)
+                        }
+                    }
+
+                    If (And (Local4, 0x04))
+                    {
+                        If (LLess (DMA1, 0x1E))
+                        {
+                            Or (A100, 0x2000, A100)
+                            Or (Local0, 0x10, Local0)
+                        }
+                        Else
+                        {
+                            If (LLess (DMA1, 0x3C))
+                            {
+                                Divide (DMA1, 0x0F, , Local1)
+                            }
+                            Else
+                            {
+                                Divide (DMA1, 0x1E, , Local1)
+                            }
+
+                            Subtract (0x04, Local1, Local1)
+                            ShiftLeft (Local1, 0x04, Local1)
+                            Or (Local0, Local1, Local0)
+                        }
+                    }
+
+                    Store (Local0, UDT)
+                    Store (0x00, Local0)
+                    If (LLess (DMA0, 0x3C))
+                    {
+                        Or (Local0, 0x01, Local0)
+                    }
+
+                    If (LLess (DMA1, 0x3C))
+                    {
+                        Or (Local0, 0x02, Local0)
+                    }
+
+                    Store (Local0, ICF)
+                    Return (Local7)
+                }
+
+                Method (GTF0, 7, NotSerialized)
+                {
+                    Store (Buffer (0x07)
+                        {
+                            0x03, 0x00, 0x00, 0x00, 0x00, 0xA0, 0xEF
+                        }, Local7)
+                    CreateByteField (Local7, 0x01, MODE)
+                    If (And (Arg2, 0x01))
+                    {
+                        If (And (Arg6, 0x01))
+                        {
+                            Store (0x45, MODE)
+                        }
+                        Else
+                        {
+                            And (Arg3, 0x03, Local0)
+                            If (And (Arg4, 0x01))
+                            {
+                                Add (Local0, 0x02, Local0)
+                            }
+
+                            Or (Local0, 0x40, MODE)
+                        }
+                    }
+                    Else
+                    {
+                        Add (ShiftRight (And (Arg0, 0x0300), 0x08), ShiftRight (And (Arg0, 0x3000), 0x0C), Local0)
+                        If (LNot (LLess (Local0, 0x05)))
+                        {
+                            Store (0x22, MODE)
+                        }
+                        Else
+                        {
+                            If (LNot (LLess (Local0, 0x03)))
+                            {
+                                Store (0x21, MODE)
+                            }
+                            Else
+                            {
+                                Store (0x20, MODE)
+                            }
+                        }
+                    }
+
+                    Concatenate (Local7, Local7, Local6)
+                    If (LOr (And (Arg0, 0x08), LNot (And (Arg0, 0x01))))
+                    {
+                        If (And (Arg0, 0x02))
+                        {
+                            Store (0x00, MODE)
+                        }
+                        Else
+                        {
+                            Store (0x08, MODE)
+                        }
+                    }
+                    Else
+                    {
+                        Add (ShiftRight (And (Arg0, 0x0300), 0x08), ShiftRight (And (Arg0, 0x3000), 0x0C), Local0)
+                        If (LNot (LLess (Local0, 0x05)))
+                        {
+                            Store (0x0C, MODE)
+                        }
+                        Else
+                        {
+                            If (LNot (LLess (Local0, 0x03)))
+                            {
+                                Store (0x0B, MODE)
+                            }
+                            Else
+                            {
+                                Store (0x0A, MODE)
+                            }
+                        }
+                    }
+
+                    Concatenate (Local6, Local7, Local5)
+                    Return (Local5)
+                }
+
+                Name (B04, Buffer (0x04) {})
+                Name (B20, Buffer (0x04) {})
+                Name (B40, Buffer (0x04) {})
+                Device (PRIM)
+                {
+                    Name (_ADR, 0x00)
+                    Name (_PSC, 0x00)
+                    Method (_PS0, 0, NotSerialized)
+                    {
+                        Store (0x00, _PSC)
+                    }
+
+                    Method (_PS3, 0, NotSerialized)
+                    {
+                        Store (0x03, _PSC)
+                    }
+
+                    Method (_GTM, 0, NotSerialized)
+                    {
+                        Store (Buffer (0x14)
+                            {
+                                0x00
+                            }, Local0)
+                        Store (^^GTM (^^ITM0, ^^SIT0, ^^UDC0, ^^UDT0, ^^ICF0, ^^FSCB), Local0)
+                        Return (Local0)
+                    }
+
+                    Method (_STM, 3, NotSerialized)
+                    {
+                        Store (GTF (0x00, Arg1, Arg0), ATA0)
+                        Store (GTF (0x01, Arg2, Arg0), ATA1)
+                        Store (^^STMS (Arg0, Arg1, Arg2), Local0)
+                        CreateDWordField (Local0, 0x00, ITM)
+                        CreateDWordField (Local0, 0x04, SIT)
+                        CreateDWordField (Local0, 0x08, UDC)
+                        CreateDWordField (Local0, 0x0C, UDT)
+                        CreateDWordField (Local0, 0x10, ICF)
+                        Store (ITM, ^^ITM0)
+                        Store (SIT, ^^SIT0)
+                        Store (UDC, ^^UDC0)
+                        Store (UDT, ^^UDT0)
+                        CreateDWordField (Local0, 0x14, A100)
+                        Or (And (^^CB80, 0x0C), ShiftRight (And (0x30, A100), 0x04), ^^CB80)
+                        Or (And (^^FSCB, 0x0C), ShiftRight (And (0x3000, A100), 0x0C), ^^FSCB)
+                        Or (And (^^FATS, 0x0C), ShiftRight (And (0x00300000, A100), 0x14), ^^FATS)
+                        Store (ICF, ^^ICF0)
+                    }
+
+                    Device (MAST)
+                    {
+                        Name (_ADR, 0x00)
+                        Name (H15F, Zero)
+                        Method (_GTF, 0, NotSerialized)
+                        {
+                            Return (RATA (ATA0))
+                        }
+                    }
+                }
+
+                Device (SECN)
+                {
+                    Name (_ADR, 0x01)
+                    Name (FAST, 0x63)
+                    Method (_STA, 0, NotSerialized)
+                    {
+                        If (ESID)
+                        {
+                            Return (0x0F)
+                        }
+                        Else
+                        {
+                            Return (0x08)
+                        }
+                    }
+
+                    Name (_PSC, 0x00)
+                    Method (_PS0, 0, NotSerialized)
+                    {
+                        Store (0x00, _PSC)
+                    }
+
+                    Method (_PS3, 0, NotSerialized)
+                    {
+                        Store (0x03, _PSC)
+                    }
+
+                    Method (_GTM, 0, NotSerialized)
+                    {
+                        Store (Buffer (0x14)
+                            {
+                                0x00
+                            }, Local0)
+                        Store (^^FSCB, Local1)
+                        ShiftRight (Local1, 0x02, Local1)
+                        Store (^^GTM (^^ITM1, ^^SIT1, ^^UDC1, ^^UDT1, ^^ICF1, Local1), Local0)
+                        Return (Local0)
+                    }
+
+                    Method (_STM, 3, NotSerialized)
+                    {
+                        Store (GTF (0x00, Arg1, Arg0), ATA2)
+                        Store (GTF (0x01, Arg2, Arg0), ATA3)
+                        Store (^^STMS (Arg0, Arg1, Arg2), Local0)
+                        CreateDWordField (Local0, 0x00, ITM)
+                        CreateDWordField (Local0, 0x04, SIT)
+                        CreateDWordField (Local0, 0x08, UDC)
+                        CreateDWordField (Local0, 0x0C, UDT)
+                        CreateDWordField (Local0, 0x10, ICF)
+                        Store (ITM, ^^ITM1)
+                        Store (SIT, ^^SIT1)
+                        Store (UDC, ^^UDC1)
+                        Store (UDT, ^^UDT1)
+                        CreateDWordField (Local0, 0x14, A100)
+                        Or (And (^^CB80, 0x03), ShiftRight (And (0x30, A100), 0x02), ^^CB80)
+                        Or (And (^^FSCB, 0x03), ShiftRight (And (0x3000, A100), 0x0A), ^^FSCB)
+                        Or (And (^^FATS, 0x03), ShiftRight (And (0x00300000, A100), 0x12), ^^FATS)
+                        Store (ICF, ^^ICF1)
+                    }
+
+                    Device (BAY1)
+                    {
+                        Name (_ADR, 0x00)
+                        Name (H15F, Zero)
+                        Name (EJ0F, 0x00)
+                        Method (_GTF, 0, NotSerialized)
+                        {
+                            Return (RATA (ATA2))
+                        }
+
+                        Method (_STA, 0, NotSerialized)
+                        {
+                            If (\_SB.PCI0.IDE0.ESID)
+                            {
+                                \_SB.PCI0.IDE0.SECN.CBAY ()
+                                Store (^^BFLG, Local0)
+                                If (LEqual (^^BNUM, 0x01))
+                                {
+                                    If (And (Local0, 0x01))
+                                    {
+                                        If (\_SB.PCI0.LPC0.LV37)
+                                        {
+                                            Return (0x08)
+                                        }
+                                        Else
+                                        {
+                                            Return (0x0F)
+                                        }
+                                    }
+                                }
+                                Else
+                                {
+                                    If (LEqual (^^BNUM, 0x02))
+                                    {
+                                        If (\_SB.PCI0.LPC0.LV37)
+                                        {
+                                            Return (0x08)
+                                        }
+                                        Else
+                                        {
+                                            Return (0x0F)
+                                        }
+                                    }
+                                    Else
+                                    {
+                                        Return (0x08)
+                                    }
+                                }
+                            }
+                            Else
+                            {
+                                Return (0x08)
+                            }
+                        }
+
+                        Method (_EJ0, 1, NotSerialized)
+                        {
+                            If (Arg0)
+                            {
+                                Store (0x01, ^^^SSIG)
+                                Sleep (0x32)
+                                Store (0xC000, ^^^ITM1)
+                                Store (0x01, \_SB.PCI0.LPC0.LV37)
+                                Store (0x00, \_SB.PCI0.LPC0.LV39)
+                            }
+                        }
+                    }
+
+                    Name (BNUM, 0x00)
+                    Name (BFLG, 0x00)
+                    Method (CBAY, 0, NotSerialized)
+                    {
+                        Store (0x00, BNUM)
+                        Store (0x00, BFLG)
+                        Store (\_SB.PCI0.LPC0.RBID, Local0)
+                        If (Or (LEqual (Local0, 0x01), LEqual (Local0, 0x02)))
+                        {
+                            Increment (BNUM)
+                            Or (BFLG, 0x01, BFLG)
+                        }
+                    }
+                }
+
+                Method (_PS0, 0, NotSerialized)
+                {
+                    If (And (LEqual (_PSC, 0x03), LEqual (\_SB.STAT, 0x03)))
+                    {
+                        Store (0x89, \_SB.PCI0.LPC0.BCMD)
+                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
+                    }
+
+                    Store (0x00, _PSC)
+                }
+
+                Method (_PS3, 0, NotSerialized)
+                {
+                    Store (0x03, _PSC)
+                }
+
+                Name (_PSC, 0x00)
+            }
+
+            Device (USB1)
+            {
+                Name (_ADR, 0x001D0000)
+                OperationRegion (USBO, PCI_Config, 0xC4, 0x04)
+                Field (USBO, ByteAcc, NoLock, Preserve)
+                {
+                    RSEN,   2
+                }
+
+                Name (_PRW, Package (0x02)
+                {
+                    0x03, 
+                    0x03
+                })
+                Method (_PSW, 1, NotSerialized)
+                {
+                    If (Arg0)
+                    {
+                        Store (0x03, \_SB.PCI0.USB1.RSEN)
+                    }
+                    Else
+                    {
+                        Store (0x00, \_SB.PCI0.USB1.RSEN)
+                    }
+                }
+            }
+
+            Device (USB2)
+            {
+                Name (_ADR, 0x001D0001)
+                OperationRegion (USBO, PCI_Config, 0xC4, 0x04)
+                Field (USBO, ByteAcc, NoLock, Preserve)
+                {
+                    RSEN,   2
+                }
+
+                Name (_PRW, Package (0x02)
+                {
+                    0x04, 
+                    0x03
+                })
+                Method (_PSW, 1, NotSerialized)
+                {
+                    If (Arg0)
+                    {
+                        Store (0x03, \_SB.PCI0.USB2.RSEN)
+                    }
+                    Else
+                    {
+                        Store (0x00, \_SB.PCI0.USB2.RSEN)
+                    }
+                }
+            }
+
+            Device (USB3)
+            {
+                Name (_ADR, 0x001D0002)
+                OperationRegion (USBO, PCI_Config, 0xC4, 0x04)
+                Field (USBO, ByteAcc, NoLock, Preserve)
+                {
+                    RSEN,   2
+                }
+
+                Name (_PRW, Package (0x02)
+                {
+                    0x0C, 
+                    0x03
+                })
+                Method (_PSW, 1, NotSerialized)
+                {
+                    If (Arg0)
+                    {
+                        Store (0x03, \_SB.PCI0.USB3.RSEN)
+                    }
+                    Else
+                    {
+                        Store (0x00, \_SB.PCI0.USB3.RSEN)
+                    }
+                }
+            }
+        }
+
+        Device (LID)
+        {
+            Name (_HID, EisaId ("PNP0C0D"))
+            Name (LSTS, 0x00)
+            Method (_LID, 0, NotSerialized)
+            {
+                If (\_SB.OKEC)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.LIDS)
+                    {
+                        Store (Zero, LSTS)
+                    }
+                    Else
+                    {
+                        Store (One, LSTS)
+                    }
+                }
+                Else
+                {
+                    Store (Zero, LSTS)
+                }
+
+                Return (LSTS)
+            }
+        }
+
+        Device (ACAD)
+        {
+            Name (_HID, "ACPI0003")
+            Name (_PCL, Package (0x01)
+            {
+                \_SB
+            })
+            Name (ACWT, 0x00)
+            Method (_PSR, 0, NotSerialized)
+            {
+                Store (\_SB.ACST, ACWT)
+                If (\_SB.OKEC)
+                {
+                    Store (\_SB.PCI0.LPC0.EC0.ACDF, \_SB.ACST)
+                }
+
+                If (LNot (LEqual (ACWT, \_SB.ACST)))
+                {
+                    Store (0x8B, \_SB.PCI0.LPC0.BCMD)
+                    Store (0x00, \_SB.PCI0.LPC0.SMIC)
+                }
+
+                Return (\_SB.ACST)
+            }
+        }
+
+        Method (VTOB, 1, NotSerialized)
+        {
+            Store (0x01, Local0)
+            ShiftLeft (Local0, Arg0, Local0)
+            Return (Local0)
+        }
+
+        Method (BTOV, 1, NotSerialized)
+        {
+            ShiftRight (Arg0, 0x01, Local0)
+            Store (0x00, Local1)
+            While (Local0)
+            {
+                Increment (Local1)
+                ShiftRight (Local0, 0x01, Local0)
+            }
+
+            Return (Local1)
+        }
+
+        Method (MKWD, 2, NotSerialized)
+        {
+            If (And (Arg1, 0x80))
+            {
+                Store (0xFFFF0000, Local0)
+            }
+            Else
+            {
+                Store (Zero, Local0)
+            }
+
+            Or (Local0, Arg0, Local0)
+            Or (Local0, ShiftLeft (Arg1, 0x08), Local0)
+            Return (Local0)
+        }
+
+        Method (POSW, 1, NotSerialized)
+        {
+            If (And (Arg0, 0x8000))
+            {
+                If (LEqual (Arg0, 0xFFFF))
+                {
+                    Return (0xFFFFFFFF)
+                }
+                Else
+                {
+                    Not (Arg0, Local0)
+                    Increment (Local0)
+                    And (Local0, 0xFFFF, Local0)
+                    Return (Local0)
+                }
+            }
+            Else
+            {
+                Return (Arg0)
+            }
+        }
+
+        Method (GBFE, 3, NotSerialized)
+        {
+            CreateByteField (Arg0, Arg1, TIDX)
+            Store (TIDX, Arg2)
+        }
+
+        Method (PBFE, 3, NotSerialized)
+        {
+            CreateByteField (Arg0, Arg1, TIDX)
+            Store (Arg2, TIDX)
+        }
+
+        Method (ITOS, 1, NotSerialized)
+        {
+            Store (Buffer (0x09)
+                {
+                    0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                    0x00
+                }, Local0)
+            Store (Buffer (0x11)
+                {
+                    "0123456789ABCDEF"
+                }, Local7)
+            Store (0x08, Local1)
+            Store (0x00, Local2)
+            Store (0x00, Local3)
+            While (Local1)
+            {
+                Decrement (Local1)
+                And (ShiftRight (Arg0, ShiftLeft (Local1, 0x02)), 0x0F, Local4)
+                If (Local4)
+                {
+                    Store (Ones, Local3)
+                }
+
+                If (Local3)
+                {
+                    GBFE (Local7, Local4, RefOf (Local5))
+                    PBFE (Local0, Local2, Local5)
+                    Increment (Local2)
+                }
+            }
+
+            Return (Local0)
+        }
+
+        Device (BAT1)
+        {
+            Name (_HID, EisaId ("PNP0C0A"))
+            Name (_UID, 0x01)
+            Name (_PCL, Package (0x01)
+            {
+                \_SB
+            })
+            Name (PBIF, Package (0x0D)
+            {
+                0x01, 
+                0xFFFFFFFF, 
+                0xFFFFFFFF, 
+                0x01, 
+                0xFFFFFFFF, 
+                0xFA, 
+                0x64, 
+                0x0A, 
+                0x19, 
+                "BAT1", 
+                " ", 
+                " ", 
+                " "
+            })
+            Name (PBST, Package (0x04)
+            {
+                0x00, 
+                0xFFFFFFFF, 
+                0xFFFFFFFF, 
+                0x2710
+            })
+            Name (BAST, 0x00)
+            Name (FAST, 0x00)
+            Name (B1ST, 0x0F)
+            Name (B1WT, 0x00)
+            Method (_STA, 0, NotSerialized)
+            {
+                If (LLess (FAST, 0x10))
+                {
+                    Increment (FAST)
+                    If (LEqual (FAST, 0x10))
+                    {
+                        Store (0x92, \_SB.PCI0.LPC0.BCMD)
+                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
+                    }
+                }
+
+                If (\_SB.OKEC)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.MBTS)
+                    {
+                        Store (0x1F, B1ST)
+                    }
+                    Else
+                    {
+                        Store (0x0F, B1ST)
+                    }
+                }
+                Else
+                {
+                    Store (0x0F, B1ST)
+                }
+
+                Return (B1ST)
+            }
+
+            Method (_BIF, 0, NotSerialized)
+            {
+                If (\_SB.OKEC)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.MBTS)
+                    {
+                        UPBI ()
+                    }
+                    Else
+                    {
+                        IVBI ()
+                    }
+                }
+                Else
+                {
+                    IVBI ()
+                }
+
+                Return (PBIF)
+            }
+
+            Method (_BST, 0, NotSerialized)
+            {
+                If (\_SB.OKEC)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.MBTS)
+                    {
+                        UPBS ()
+                    }
+                    Else
+                    {
+                        IVBS ()
+                    }
+                }
+                Else
+                {
+                    IVBS ()
+                }
+
+                Return (PBST)
+            }
+
+            Method (UPBI, 0, NotSerialized)
+            {
+                Store (0x1FFF, Local2)
+                \_SB.PCI0.LPC0.EC0.SMWR (0x08, 0x14, 0x01, Local2)
+                \_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x14, 0x01, RefOf (Local3))
+                If (LEqual (Local2, Or (Local3, 0x0FFF)))
+                {
+                    If (LNot (\_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x16, 0x10, RefOf (Local5))))
+                    {
+                        Store (Local5, Index (PBIF, 0x02))
+                    }
+                }
+
+                If (LEqual (\_SB.PCI0.LPC0.EC0.MBID, 0x01))
+                {
+                    Store (0x1130, Index (PBIF, 0x01))
+                    Store (0x39D0, Index (PBIF, 0x04))
+                    Store ("01ZG", Index (PBIF, 0x09))
+                    Store ("LION", Index (PBIF, 0x0B))
+                    Store ("SMP ", Index (PBIF, 0x0C))
+                }
+                Else
+                {
+                    If (LEqual (\_SB.PCI0.LPC0.EC0.MBID, 0x02))
+                    {
+                        Store (0x0E10, Index (PBIF, 0x01))
+                        Store (0x39D0, Index (PBIF, 0x04))
+                        Store ("02ZG", Index (PBIF, 0x09))
+                        Store ("LION", Index (PBIF, 0x0B))
+                        Store ("SANYO", Index (PBIF, 0x0C))
+                    }
+                    Else
+                    {
+                        If (LEqual (\_SB.PCI0.LPC0.EC0.MBID, 0x03))
+                        {
+                            Store (0x1130, Index (PBIF, 0x01))
+                            Store (0x39D0, Index (PBIF, 0x04))
+                            Store ("03ZG", Index (PBIF, 0x09))
+                            Store ("LION", Index (PBIF, 0x0B))
+                            Store ("SANYO", Index (PBIF, 0x0C))
+                        }
+                        Else
+                        {
+                            Store (0x1130, Index (PBIF, 0x01))
+                            Store (0x39D0, Index (PBIF, 0x04))
+                            Store ("01ZG", Index (PBIF, 0x09))
+                            Store ("LION", Index (PBIF, 0x0B))
+                            Store ("SMP ", Index (PBIF, 0x0C))
+                        }
+                    }
+                }
+
+                Store (0x01, Index (PBIF, 0x00))
+                If (LEqual (SizeOf (\_OS), 0x27))
+                {
+                    Store (0x00, Index (PBIF, 0x00))
+                }
+            }
+
+            Method (UPBS, 0, NotSerialized)
+            {
+                Store (\_SB.PCI0.LPC0.EC0.MCUR, Local5)
+                Store (POSW (Local5), Index (PBST, 0x01))
+                Store (\_SB.PCI0.LPC0.EC0.MBRM, Index (PBST, 0x02))
+                Store (\_SB.PCI0.LPC0.EC0.MBVG, Index (PBST, 0x03))
+                If (\_SB.PCI0.LPC0.EC0.MBTF)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.ACDF)
+                    {
+                        Store (0x00, Index (PBST, 0x00))
+                    }
+                }
+                Else
+                {
+                    If (\_SB.PCI0.LPC0.EC0.MBTC)
+                    {
+                        If (\_SB.PCI0.LPC0.EC0.ACDF)
+                        {
+                            Store (0x02, Index (PBST, 0x00))
+                        }
+                        Else
+                        {
+                            Store (0x00, Index (PBST, 0x00))
+                        }
+                    }
+                    Else
+                    {
+                        If (\_SB.PCI0.LPC0.EC0.ACDF)
+                        {
+                            Store (0x00, Index (PBST, 0x00))
+                        }
+                        Else
+                        {
+                            Store (0x01, Index (PBST, 0x00))
+                        }
+                    }
+                }
+            }
+
+            Method (IVBI, 0, NotSerialized)
+            {
+                Store (0xFFFFFFFF, Index (PBIF, 0x01))
+                Store (0xFFFFFFFF, Index (PBIF, 0x02))
+                Store (0xFFFFFFFF, Index (PBIF, 0x04))
+                Store ("Bad", Index (PBIF, 0x09))
+                Store ("      ", Index (PBIF, 0x0A))
+                Store ("Bad", Index (PBIF, 0x0B))
+                Store ("Bad", Index (PBIF, 0x0C))
+            }
+
+            Method (IVBS, 0, NotSerialized)
+            {
+                Store (0x00, Index (PBST, 0x00))
+                Store (0xFFFFFFFF, Index (PBST, 0x01))
+                Store (0xFFFFFFFF, Index (PBST, 0x02))
+                Store (0x2710, Index (PBST, 0x03))
+            }
+        }
+
+        Device (BAT2)
+        {
+            Name (_HID, EisaId ("PNP0C0A"))
+            Name (_UID, 0x02)
+            Name (_PCL, Package (0x01)
+            {
+                \_SB
+            })
+            Name (B2ST, 0x0F)
+            Name (PBIF, Package (0x0D)
+            {
+                0x01, 
+                0xFFFFFFFF, 
+                0xFFFFFFFF, 
+                0x01, 
+                0xFFFFFFFF, 
+                0xFA, 
+                0x64, 
+                0x0A, 
+                0x19, 
+                "BAT1", 
+                " ", 
+                " ", 
+                " "
+            })
+            Name (PBST, Package (0x04)
+            {
+                0x00, 
+                0xFFFFFFFF, 
+                0xFFFFFFFF, 
+                0x2710
+            })
+            Method (_STA, 0, NotSerialized)
+            {
+                If (\_SB.OKEC)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.SBTS)
+                    {
+                        Store (0x1F, B2ST)
+                    }
+                    Else
+                    {
+                        Store (0x0F, B2ST)
+                    }
+                }
+                Else
+                {
+                    Store (0x0F, B2ST)
+                }
+
+                Return (B2ST)
+            }
+
+            Method (_BIF, 0, NotSerialized)
+            {
+                If (\_SB.OKEC)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.SBTS)
+                    {
+                        UPBI ()
+                    }
+                    Else
+                    {
+                        IVBI ()
+                    }
+                }
+                Else
+                {
+                    IVBI ()
+                }
+
+                Return (PBIF)
+            }
+
+            Method (_BST, 0, NotSerialized)
+            {
+                If (\_SB.OKEC)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.SBTS)
+                    {
+                        UPBS ()
+                    }
+                    Else
+                    {
+                        IVBS ()
+                    }
+                }
+                Else
+                {
+                    IVBS ()
+                }
+
+                Return (PBST)
+            }
+
+            Method (UPBI, 0, NotSerialized)
+            {
+                Store (0x2FFF, Local2)
+                \_SB.PCI0.LPC0.EC0.SMWR (0x08, 0x14, 0x01, Local2)
+                \_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x14, 0x01, RefOf (Local3))
+                If (LEqual (Local2, Or (Local3, 0x0FFF)))
+                {
+                    If (LNot (\_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x16, 0x10, RefOf (Local5))))
+                    {
+                        Store (Local5, Index (PBIF, 0x02))
+                    }
+                }
+
+                If (LEqual (\_SB.PCI0.LPC0.EC0.SBID, 0x01))
+                {
+                    Store (0x1130, Index (PBIF, 0x01))
+                    Store (0x39D0, Index (PBIF, 0x04))
+                    Store ("01ZG", Index (PBIF, 0x09))
+                    Store ("LION", Index (PBIF, 0x0B))
+                    Store ("SMP ", Index (PBIF, 0x0C))
+                }
+                Else
+                {
+                    If (LEqual (\_SB.PCI0.LPC0.EC0.SBID, 0x02))
+                    {
+                        Store (0x0E10, Index (PBIF, 0x01))
+                        Store (0x39D0, Index (PBIF, 0x04))
+                        Store ("02ZG", Index (PBIF, 0x09))
+                        Store ("LION", Index (PBIF, 0x0B))
+                        Store ("SANYO", Index (PBIF, 0x0C))
+                    }
+                    Else
+                    {
+                        If (LEqual (\_SB.PCI0.LPC0.EC0.SBID, 0x03))
+                        {
+                            Store (0x1130, Index (PBIF, 0x01))
+                            Store (0x39D0, Index (PBIF, 0x04))
+                            Store ("03ZG", Index (PBIF, 0x09))
+                            Store ("LION", Index (PBIF, 0x0B))
+                            Store ("SANYO", Index (PBIF, 0x0C))
+                        }
+                        Else
+                        {
+                            Store (0x0E10, Index (PBIF, 0x01))
+                            Store (0x39D0, Index (PBIF, 0x04))
+                            Store ("02ZG", Index (PBIF, 0x09))
+                            Store ("LION", Index (PBIF, 0x0B))
+                            Store ("SANYO", Index (PBIF, 0x0C))
+                        }
+                    }
+                }
+
+                Store (0x01, Index (PBIF, 0x00))
+                If (LEqual (SizeOf (\_OS), 0x27))
+                {
+                    Store (0x00, Index (PBIF, 0x00))
+                }
+            }
+
+            Method (UPBS, 0, NotSerialized)
+            {
+                Store (\_SB.PCI0.LPC0.EC0.ACUR, Local5)
+                Store (POSW (Local5), Index (PBST, 0x01))
+                Store (\_SB.PCI0.LPC0.EC0.ABRM, Index (PBST, 0x02))
+                Store (\_SB.PCI0.LPC0.EC0.ABVG, Index (PBST, 0x03))
+                If (\_SB.PCI0.LPC0.EC0.SBTF)
+                {
+                    If (\_SB.PCI0.LPC0.EC0.ACDF)
+                    {
+                        Store (0x00, Index (PBST, 0x00))
+                    }
+                }
+                Else
+                {
+                    If (\_SB.PCI0.LPC0.EC0.SBTC)
+                    {
+                        If (\_SB.PCI0.LPC0.EC0.ACDF)
+                        {
+                            Store (0x02, Index (PBST, 0x00))
+                        }
+                        Else
+                        {
+                            Store (0x00, Index (PBST, 0x00))
+                        }
+                    }
+                    Else
+                    {
+                        If (\_SB.PCI0.LPC0.EC0.ACDF)
+                        {
+                            Store (0x00, Index (PBST, 0x00))
+                        }
+                        Else
+                        {
+                            Store (0x01, Index (PBST, 0x00))
+                        }
+                    }
+                }
+            }
+
+            Method (IVBI, 0, NotSerialized)
+            {
+                Store (0xFFFFFFFF, Index (PBIF, 0x01))
+                Store (0xFFFFFFFF, Index (PBIF, 0x02))
+                Store (0xFFFFFFFF, Index (PBIF, 0x04))
+                Store ("Bad", Index (PBIF, 0x09))
+                Store ("      ", Index (PBIF, 0x0A))
+                Store ("Bad", Index (PBIF, 0x0B))
+                Store ("Bad", Index (PBIF, 0x0C))
+            }
+
+            Method (IVBS, 0, NotSerialized)
+            {
+                Store (0x00, Index (PBST, 0x00))
+                Store (0xFFFFFFFF, Index (PBST, 0x01))
+                Store (0xFFFFFFFF, Index (PBST, 0x02))
+                Store (0x2710, Index (PBST, 0x03))
+            }
+        }
+
+        Scope (\_TZ)
+        {
+            Name (TPL, 0x0CA0)
+            Name (TAC1, 0x0D0E)
+            Name (TAC0, 0x0D54)
+            Name (TPAS, 0x0E44)
+            Name (TPC, 0x0E94)
+            Name (TPTM, 0x0C3C)
+            Name (TBSE, 0x0AAC)
+            Name (LTMP, 0x0CA0)
+            Name (TVAR, Buffer (0x05)
+            {
+                0x00, 0x20, 0x1F, 0x0C, 0x1F
+            })
+            CreateByteField (TVAR, 0x00, PLCY)
+            CreateWordField (TVAR, 0x01, CTOS)
+            CreateWordField (TVAR, 0x03, CTHY)
+            Device (FAN0)
+            {
+                Name (_HID, EisaId ("PNP0C0B"))
+                Name (_UID, 0x01)
+                Name (_PR0, Package (0x01)
+                {
+                    PFN0
+                })
+                Method (_PS0, 0, NotSerialized)
+                {
+                    Store ("Low Speed FAN - _PS0", Debug)
+                }
+
+                Method (_PS3, 0, NotSerialized)
+                {
+                    Store ("Low Speed FAN - _PS3", Debug)
+                }
+            }
+
+            PowerResource (PFN0, 0x00, 0x0000)
+            {
+                Name (FNS1, 0x00)
+                Name (FFST, 0x01)
+                Method (_STA, 0, NotSerialized)
+                {
+                    Store (FNS1, Local1)
+                    Return (Local1)
+                }
+
+                Method (_ON, 0, NotSerialized)
+                {
+                    Store (0x01, FNS1)
+                    If (\_TZ.PFN1.FNS2)
+                    {
+                        Store ("FAN 1 (High speed already turn on) ", Debug)
+                    }
+                    Else
+                    {
+                        If (\_SB.OKEC)
+                        {
+                            Store (0xB4, \_SB.PCI0.LPC0.EC0.FSPD)
+                            Store (0x01, \_SB.PCI0.LPC0.EC0.FPR1)
+                        }
+                    }
+
+                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
+                    {
+                        \_TZ.THRM._SCP (0x01)
+                    }
+                }
+
+                Method (_OFF, 0, NotSerialized)
+                {
+                    Store (0x00, FNS1)
+                    If (LEqual (SizeOf (\_OS), 0x14))
+                    {
+                        If (\_SB.OKEC)
+                        {
+                            If (\_TZ.PFN1.FNS2)
+                            {
+                                Store (One, \_SB.PCI0.LPC0.EC0.FPR1)
+                            }
+                            Else
+                            {
+                                Store (Zero, \_SB.PCI0.LPC0.EC0.FPR1)
+                            }
+                        }
+                    }
+                    Else
+                    {
+                        If (LLess (FFST, 0x02))
+                        {
+                            Store (0x86, \_SB.PCI0.LPC0.BCMD)
+                            Store (0x00, \_SB.PCI0.LPC0.SMIC)
+                            Increment (FFST)
+                        }
+                        Else
+                        {
+                            If (\_SB.OKEC)
+                            {
+                                Store (0x00, \_SB.PCI0.LPC0.EC0.FPR1)
+                            }
+                        }
+                    }
+
+                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
+                    {
+                        \_TZ.THRM._SCP (0x01)
+                    }
+                }
+            }
+
+            Device (FAN1)
+            {
+                Name (_HID, EisaId ("PNP0C0B"))
+                Name (_UID, 0x02)
+                Name (_PR0, Package (0x02)
+                {
+                    PFN0, 
+                    PFN1
+                })
+                Method (_PS0, 0, NotSerialized)
+                {
+                    Store ("High Speed FAN - _PS0", Debug)
+                }
+
+                Method (_PS3, 0, NotSerialized)
+                {
+                    Store ("High Speed FAN - _PS3", Debug)
+                }
+            }
+
+            PowerResource (PFN1, 0x00, 0x0000)
+            {
+                Name (FNS2, 0x00)
+                Method (_STA, 0, NotSerialized)
+                {
+                    Return (FNS2)
+                }
+
+                Method (_ON, 0, NotSerialized)
+                {
+                    Store (0x01, FNS2)
+                    If (\_SB.OKEC)
+                    {
+                        Store (0xFF, \_SB.PCI0.LPC0.EC0.FSPD)
+                        Store (0x01, \_SB.PCI0.LPC0.EC0.FPR1)
+                    }
+
+                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
+                    {
+                        \_TZ.THRM._SCP (0x01)
+                    }
+                }
+
+                Method (_OFF, 0, NotSerialized)
+                {
+                    Store (Zero, FNS2)
+                    Store (0x00, FNS2)
+                    If (\_TZ.PFN0.FNS1)
+                    {
+                        If (\_SB.OKEC)
+                        {
+                            Store (0xB4, \_SB.PCI0.LPC0.EC0.FSPD)
+                            Store (0x01, \_SB.PCI0.LPC0.EC0.FPR1)
+                        }
+                    }
+                    Else
+                    {
+                        If (\_SB.OKEC)
+                        {
+                            Store (0x00, \_SB.PCI0.LPC0.EC0.FPR1)
+                        }
+                    }
+
+                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
+                    {
+                        \_TZ.THRM._SCP (0x01)
+                    }
+                }
+            }
+
+            ThermalZone (THRM)
+            {
+                Name (_AL0, Package (0x01)
+                {
+                    FAN1
+                })
+                Method (_AC0, 0, NotSerialized)
+                {
+                    Return (TAC0)
+                }
+
+                Name (_AL1, Package (0x01)
+                {
+                    FAN0
+                })
+                Method (_AC1, 0, NotSerialized)
+                {
+                    Return (TAC1)
+                }
+
+                Method (_CRT, 0, NotSerialized)
+                {
+                    Return (TPC)
+                }
+
+                Method (_PSV, 0, NotSerialized)
+                {
+                    Return (TPAS)
+                }
+
+                Name (_TSP, 0x64)
+                Method (_TMP, 0, NotSerialized)
+                {
+                    If (\_SB.OKEC)
+                    {
+                        Store (\_SB.PCI0.LPC0.EC0.CTMP, Local1)
+                        Store ("Current Temperature is ----------- ", Debug)
+                        Store (Local1, Debug)
+                        Store (Local1, \_SB.CM25)
+                        Add (Multiply (Local1, 0x0A), TBSE, Local1)
+                    }
+                    Else
+                    {
+                        Store (LTMP, Local1)
+                    }
+
+                    Return (Local1)
+                }
+
+                Name (_PSL, Package (0x01)
+                {
+                    \_PR.CPU0
+                })
+                Name (_TC1, 0x02)
+                Name (_TC2, 0x03)
+                Method (_SCP, 1, NotSerialized)
+                {
+                    Store (Zero, PLCY)
+                    If (\_TZ.PFN0.FNS1)
+                    {
+                        If (LEqual (\_TZ.PFN1.FNS2, 0x00))
+                        {
+                            Store (0x0D22, TAC1)
+                            Store (0x0D86, TAC0)
+                        }
+                        Else
+                        {
+                            Store (0x0D22, TAC1)
+                            Store (0x0D40, TAC0)
+                        }
+                    }
+                    Else
+                    {
+                        If (\_TZ.PFN1.FNS2)
+                        {
+                            Store (0x0D22, TAC1)
+                            Store (0x0D40, TAC0)
+                        }
+                        Else
+                        {
+                            Store (0x0D40, TAC1)
+                            Store (0x0D86, TAC0)
+                        }
+                    }
+
+                    Store (0x0E44, TPAS)
+                    Notify (\_TZ.THRM, 0x81)
+                }
+            }
+        }
+
+        Device (SLPB)
+        {
+            Name (_HID, EisaId ("PNP0C0E"))
+        }
+
+        OperationRegion (EXCO, SystemIO, 0x72, 0x02)
+        Field (EXCO, ByteAcc, NoLock, Preserve)
+        {
+            INDX,   8, 
+            DATA,   8
+        }
+
+        IndexField (INDX, DATA, ByteAcc, NoLock, Preserve)
+        {
+            Offset (0x20), 
+            ACST,   1, 
+            OKEC,   1, 
+            POPF,   1, 
+            BLTF,   1, 
+            W2KF,   2, 
+            S4WP,   1, 
+            FLA7,   1, 
+            LSFG,   1, 
+            LD10,   1, 
+            PS2M,   1, 
+            DISD,   3, 
+            OVRL,   1, 
+            Offset (0x22), 
+            SLEE,   8, 
+            BPFG,   8, 
+            PWST,   8, 
+            CM25,   8, 
+            CM26,   8, 
+            CM27,   8, 
+            CM28,   16, 
+            CM2A,   16, 
+            F4FG,   1, 
+            Offset (0x30), 
+            CM30,   8, 
+            CM31,   8, 
+            CM32,   8
+        }
+    }
+}
 
 
---Boundary-00=_0UxHBMVb5ZGnspJ--
+--Boundary-00=_1ApEByUb7ileMU1
+Content-Type: text/x-csrc;
+  charset="iso-8859-1";
+  name="boot-radeon.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="boot-radeon.c"
+
+#define LRMI_DEBUG 1
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <lrmi.h>
+
+void err(char *function, int exitval) {
+	fprintf(stderr, "%s():\n");
+	exit(exitval);
+}
+
+int main () {
+	struct LRMI_regs regs;
+	
+	ioperm(0, 1024, 1);
+	iopl(3);
+
+	if (!LRMI_init()) {
+		err("LRMI_init", 1);
+	}
+
+	memset(&regs, 0, sizeof(regs));
+	
+	/*
+	   if ((pvp = xf86GetPciInfoForEntity(pInt->entityIndex)))
+	   	X86_AX = (pvp->bus << 8) | (pvp->device << 3) | (pvp->func & 0x7);
+	   pushw(pInt, X86_CS);
+	   pushw(pInt, X86_IP);
+	   X86_CS = pInt->BIOSseg;
+	   X86_EIP = 0x0003;
+	   X86_ES = 0;                  // standard pc es 
+	*/
+
+	regs.eax = ((1 << 8) | (0 << 3) | (0 & 0x7)) & 0x0000FFFF;
+	regs.cs = 0x0000c000;
+	regs.ip = 0x00000003;
+	//regs.ip = 0;
+	//regs.es = 0;
+
+	if (!LRMI_call(&regs)) {
+		err("LRMI_int", -1);
+	}
+
+
+	exit(0);
+}
+
+--Boundary-00=_1ApEByUb7ileMU1--
 
 
 -------------------------------------------------------
