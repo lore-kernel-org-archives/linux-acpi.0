@@ -1,13 +1,14 @@
-From: "Claire Sykes" <sykes_jf-Xeu6VUcsJDYEUmgCuDUIdw@public.gmane.org>
-Subject: New! Vìagra soft tabs.
-Date: Fri, 24 Sep 2004 22:26:23 +0700
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: APM, ACPI and DPMS question
+Date: Fri, 24 Sep 2004 15:47:52 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <622401c4a24a$b44290a2$6b469428@italiani.it>
+Message-ID: <20040924134752.GC5746@message-id.gmane0305.slipkontur.de>
+References: <4146E980.8040501@kn.vutbr.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4146E980.8040501-nd92eFGgBBntwjQa/ONI9g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,20 +20,32 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+On Tue, Sep 14, 2004 at 02:52:16PM +0200, Jan Bernatik wrote:
+> Hi,
+> 
+> I'm studying ACPI, and I found that:
+> 
+> ----------------------------------------------------------------------
+> You should also be aware of another little glitch I discovered. The 
+> XFree86 server has an option for DPMS (Energy Star) features. The DPMS 
+> can states can be one of standby, suspend, off or on. Since the 2.4.x 
+> kernels cannot suspend to disk, this can cause problems.
 
-We would like to offer V_I_A_G_R_A soft tabs,
+suspend to disk has nothing to do with DPMS at all. 
+> ----------------------------------------------------------------------
+> source: http://www.tldp.org/HOWTO/ACPI-HOWTO/daemons.html
 
-These pills are just like regular Vìagra but they are specially formulated 
-to be soft and dissolvable under the tongue. The pill is absorbed at the 
-mouth and enters the bloodstream directly instead of going through the stomach. 
-This results in a faster more powerful effect which lasts as long as the normal.
+well, this document is simply plain wrong in this regard.
+ 
+> I really doesn't understand this. I thought it's just about monitor 
+> energy, so please could somebody just roughly explain this ?
 
-Soft Tabs also have less sidebacks (you can drive or mix alcohol drinks with them).
+DPMS is monitor "standby", "suspend" and "off". It has nothing to do with
+system power management, ACPI, APM or suspend to disk / RAM.
 
-You can get it at: http://888-luvu.com/st/?coupon
-
-No thanks: http://888-luvu.com/rm.html
+Maybe you shold write the author of the ACPI-HOWTO and tell him.
+-- 
+Stefan Seyfried
 
 
 
