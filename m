@@ -1,11 +1,13 @@
-From: mmadore <mmadore-LGgQ8o1HsRFeoWH0uzbU5w@public.gmane.org>
-Subject: Supermicro P8SC8 won't power off
-Date: Tue, 28 Dec 2004 10:11:45 -0800
-Message-ID: <5d1f89c06e91128def06736b4b788017@www.blargmail.com>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: [REGRESSION] 'pciehp' stops working since 2.6.10-rc2
+Date: Tue, 28 Dec 2004 12:09:10 -0800
+Message-ID: <41D1BD66.9070704@root.org>
+References: <16A54BF5D6E14E4D916CE26C9AD30575E0068B@pdsmsx402.ccr.corp.intel.com> <41D164F4.9080407@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41D164F4.9080407-wlebWZzHoyE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,20 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Luca Capello wrote:
+> on 12/28/2004 02:23 AM, Li, Shaohua wrote:
+> 
+>>PCIEHCP is for PCI-E hotplug. Does T42p support PCI-E?
+> 
+> I supposed this, but I don't know at all if T42p support PCI-E. I guess
+> yes, as the module 'pciehp' is automatically loaded by hotplug at boot
+> on both kernel (Debian 2.6.8-1 and custom 2.6.10), so, I think that even
+> if there's no possibility to use the PCI-E hotplug, there's a controller
+> or something similar in the T42p.
 
-I have a Supermicro P8SC8 motherboard that won't poweroff with ACPI using the 2.4 kernel series.  I have testing it with 2.4.25, 2.4.27, 2.4.28 and 2.4.29-pre2.  In all cases, the system enters acpi_enter_sleep_state after which, the keyboard leds flash once and the screen goes blank.  The system remains in this state with the power still on.  If I try to reboot the system via the reset switch, the machine never POSTS.  I have to remove and re-insert the power cord to boot the system again.
+It is extremely unlikely that your laptop supports PCI Express.  I think 
+Intel has only released server chipsets (Grantsdale) that support this.
 
-With 2.6.9, the machine powers off as expected.  Can anyone offer any advice on how to debug this problem?
-
-Thanks
-
-Mike
-
-
+-- 
+Nate
 
 
 -------------------------------------------------------
