@@ -1,24 +1,17 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
+From: Alexander Bruder <anib-La3J9u0raUk@public.gmane.org>
 Subject: Re: Radeon PM Support
-Date: 06 Aug 2004 16:05:45 +0200
+Date: Fri, 6 Aug 2004 17:03:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yzo7jscnyyu.fsf@localhost.localdomain>
-References: <1091139240.26511.9.camel@6-allhosts>
-	<20040730141028.GE21359@luna.mooo.com>
-	<20040730162756.4f300a5c@localhost>
-	<20040730190047.GH21359@luna.mooo.com>
-	<1091560208.24759.15.camel@6-allhosts>
-	<41103952.2030707@optonline.net>
-	<1091583216.2974.2.camel@localhost.localdomain>
-	<1091590835.2304.64.camel@dhcppc4>
-	<yzohdrjqu6p.fsf@localhost.localdomain>
-	<1091631174.2297.90.camel@dhcppc4>
-	<yzosmb0hjzu.fsf@pb-d-128-141-40-189.cern.ch>
-	<41138A16.5000908@optonline.net>
+Message-ID: <200408061703.56694.anib@anib.de>
+References: <88056F38E9E48644A0F562A38C64FB600289AE7C@scsmsx403.amr.corp.intel.com>
+Reply-To: anib-La3J9u0raUk@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41138A16.5000908-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+In-Reply-To: <88056F38E9E48644A0F562A38C64FB600289AE7C-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -27,25 +20,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ole> One failure report (Stefan), that's the Radeon 7000 failure you're
-Ole> referring to. It's an AGP system,
+Hi,
 
-It is actually a Radeon 9000, however AGP
+> Does this addon patch (over the Ole's original patch) help?
+>
+> This works with Radeon 9000M and frame buffer for me. This
+> should also help any other graphics drivers which doesn't
+> implement their own suspend resume functions.
 
-Nathan> Maybe we need proper AGP save/restore before we can POST?
+no it doesn't work. I tried with and without fb, disabled X, unloaded all 
+modules but the video card never came back.
 
-I'd strongly suspect so, I was stupidly assuming it was there
-already...
-
-This could be a possible explanation for the problems that the two
-Stefans are seeing: POSTing with XFree86 works because XFree86 does
-the AGP restoration.
-
-Ole
-
+Alexander
 
 
 -------------------------------------------------------
