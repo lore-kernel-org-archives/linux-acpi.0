@@ -1,12 +1,14 @@
-From: George Barnett <george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
-Subject: DSDT on suse 9.1
-Date: Tue, 05 Oct 2004 14:26:50 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Acer Travermate 8005 and battery info
+Date: Tue, 5 Oct 2004 16:39:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4162A11A.106@alink.co.za>
+Message-ID: <20041005143951.GB4723@openzaurus.ucw.cz>
+References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu> <20041001194739.GE1100@openzaurus.ucw.cz> <41603BA0.9090900@lanil.mine.nu> <20041003203457.GD3379@elf.ucw.cz> <41617104.2040302@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41617104.2040302-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,35 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-I'm hoping somebody can help me?
+> |>>Search maillist archives, look up "smart battery specification" in
+> google.
+> |>>If you are willing to spend few days writing driver, let me know.
+> |>
+> |>Ive checked out some specs now and Im willing to give it a shot but 
+> Ive
+> |>no idea on where to start.. Ive checked out my DSL and I find 
+> nothing
+> |>containing SBS in it. Suggestions?
+> |
+> |
+> | Right start probably is drivers/i2c. I collected these links:
+> 
+> i'm willing to participate also. but first, let me see if i
+> understood... the first step should be building a driver to 
+> communicate
+> with the smbus via i2c. am i right?
 
-I'm trying to make an acpi dsdt image to install in the initrd.  I've 
-read the docs and I can apparently create a fixed AML and put it in 
-/etc/sysconfig/kernel.
+I believe that smbus is subset of i2c... So first step would be
+"make it talk with smart battery over i2c".
 
-I have the modified .asl file - what switches should I feed to iasl to 
-get the correct output?  -tc seems to give hex, which I dont believe is 
-what I want?
-
-Also, do I need to run initrd following modifying the kernel file to 
-install stuff somewhere?
-
-Cheers,
-
+Anyway I may be wrong. You'll know for sure when the patch starts
+working :-).
+				Pavel
 -- 
-George Barnett
-Reality Engineer & Explorer
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-e: george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org
-m: +44 778 884 7205
-
-Things must be as they may
-       - William Shakespear, Henry V
 
 
 -------------------------------------------------------
