@@ -1,13 +1,12 @@
-From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
-Subject: Re: [patch 11/12] new sony_acpi driver
-Date: Wed, 2 Mar 2005 21:53:24 +0100
-Message-ID: <20050302205324.GA5486@deep-space-9.dsnet>
-References: <200502230953.j1N9rPLp020723@shell0.pdx.osdl.net> <1109790760.2097.587.camel@d845pe>
-Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [patch 11/12] new sony_acpi driver
+Date: Wed, 2 Mar 2005 17:37:44 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3002E2E026@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1109790760.2097.587.camel@d845pe>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +16,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
 Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 02, 2005 at 02:12:40PM -0500, Len Brown wrote:
+>But still, I don't see why there is no place for a sony acpi somewhere
+>where there are already drivers for ibm, toshiba and asus laptops.
 
-> I'd like to keep this driver out-of-tree
-> until we prove that we can't enhance the
-> generic code to handle this hardware
-> without the addition of a new driver.
+The goal is to DELETE ibm, toshiba, and asus drivers -- or at least the
+duplicated functions in them.
 
-I have no problem keeping it out of the tree, it has been this was
-for quite a long time now. Anyway the distro maintainers are starting
-to put it into their kernels so it won't be a problem for endusers
-any longer. BTW, it was those distro maintainers who asked me to
-resubmit the driver lately...
+platform specific drivers make it harder, not easier, to support more
+hardware -- there are a zillion vendors out there, implementing special
+drivers for each of them is a strategy of last resort.
 
-But still, I don't see why there is no place for a sony acpi somewhere
-where there are already drivers for ibm, toshiba and asus laptops.
+>I attached to the bugzilla entry the DSDTs for two Vaio laptops, which
+>should hopefuly prove that those laptops do not support the standard
+>ACPI way to access the video. Did you look at them ?
 
-I attached to the bugzilla entry the DSDTs for two Vaio laptops, which
-should hopefuly prove that those laptops do not support the standard
-ACPI way to access the video. Did you look at them ?
+thanks for filing the bug, it is in the queue.
 
-Stelian.
--- 
-Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+-Len
 
 
 -------------------------------------------------------
