@@ -1,8 +1,8 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: ACPI: compilation fixes
-Date: Thu, 1 Aug 2002 12:40:53 +0200
+Subject: Make CONFIG_ACPI_BOOT work again
+Date: Thu, 1 Aug 2002 12:42:04 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020801104053.GA137@elf.ucw.cz>
+Message-ID: <20020801104204.GA146@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,30 +20,36 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-2.5.29 will not compile for me without these, please apply.
+This patch makes CONFIG_ACPI_BOOT functional again. Please apply,
 
 								Pavel
---- clean/drivers/acpi/system.c	Mon Jul 29 20:02:23 2002
-+++ linux-swsusp/drivers/acpi/system.c	Mon Jul 29 20:14:27 2002
-@@ -256,7 +256,8 @@
- 	acpi_status		status = AE_ERROR;
- 	unsigned long		flags = 0;
+
+--- clean/arch/i386/kernel/acpi.c	Mon Jun  3 11:43:27 2002
++++ linux-swsusp/arch/i386/kernel/acpi.c	Mon Jun 10 23:03:24 2002
+@@ -53,11 +53,9 @@
+                               Boot-time Configuration
+    -------------------------------------------------------------------------- */
  
--	save_flags(flags);
-+	local_irq_save(flags);
-+	local_irq_disable();
- 	
- 	switch (state)
- 	{
-@@ -270,7 +271,7 @@
- 		do_suspend_lowlevel(0);
- 		break;
- 	}
--	restore_flags(flags);
-+	local_irq_restore(flags);
+-#ifdef CONFIG_ACPI_BOOT
+-
+ enum acpi_irq_model_id		acpi_irq_model;
  
- 	return status;
- }
+-
++#ifdef CONFIG_ACPI_BOOT
+ /*
+  * Use reserved fixmap pages for physical-to-virtual mappings of ACPI tables.
+  * Note that the same range is used for each table, so tables that need to
+--- clean/include/linux/acpi.h	Mon Jun  3 11:43:38 2002
++++ linux-swsusp/include/linux/acpi.h	Mon Jun 10 23:03:25 2002
+@@ -39,7 +39,7 @@
+ #include <asm/acpi.h>
+ 
+ 
+-#ifdef CONFIG_ACPI_BOOT
++#ifdef CONFIG_ACPI
+ 
+ enum acpi_irq_model_id {
+ 	ACPI_IRQ_MODEL_PIC = 0,
 
 -- 
 Worst form of spam? Adding advertisment signatures ala sourceforge.net.
