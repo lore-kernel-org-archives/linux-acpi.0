@@ -1,13 +1,15 @@
-From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
-Subject: Re: kacpid problems
-Date: Sat, 06 Nov 2004 13:58:25 +0100
-Message-ID: <418CCA71.6080109@yahoo.no>
-References: <418C0EFA.6000001@yahoo.no> <20041106020207.GA7283@pooh>
+From: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
+Subject: Re: Re: Linux ACPI processor driver patch: user-definable power state limit
+Date: Sat, 6 Nov 2004 14:15:20 +0100
+Message-ID: <200411061415.20364.jos.delbar@ugent.be>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3001A193B6@hdsmsx401.amr.corp.intel.com> <1099700714.13834.1717.camel@d845pe> <20041106002935.GA30467@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041106020207.GA7283@pooh>
+In-Reply-To: <20041106002935.GA30467-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +19,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, James P Ketrenos <james.p.ketrenos-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Laszlo 'GCS' Boszormenyi wrote:
-> * dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org> [2004-11-06 00:38:34 +0100]:
-> 
-> 
->>When my processor gets too hot, over 85 C it tries to shutdown(S5), but 
->>the only thing that happends is that kacpid starts running and runns 
->>with 99% CPU usage.
->>(taken from top)
->>5 root       7 -10     0    0    0 R  99.0  0.0   0:17.94 kacpid
->>
->>Is it someone who knows what is wrong? Is it a bug or is it my hardware 
->>that is the problem?
-> 
->  I have this also, but not always. Also even kacpid shows 99% CPU usage,
-> as I see gkrellm, it shows that about 45% is spent in kernel space, and
-> the rest in user space. I say not always because sometimes my machine
-> goes without any problem even when hot, or bugging when it is not really
-> hot. Don't know if my 'bug' is really related to yours, but yes, it is
-> annoying as when this happens I can not shutdown manually even. The last
-> line I see acpi_poweroff_called (even if I stop the kacpid process
-> before).
->  Is it a laptop or a desktop machine?
-> 
-> Regards,
-> Laszlo/GCS
+On Saturday 06 November 2004 01:29, Dominik Brodowski wrote:
+> If that is the case, my patch is "overkill". If there's a chance to do more
+> fine-tuned disabling of C3, my patch seems to be better.
 
-I have a laptop. After the kacpid starts running with 99% cpu usage I
-cannot use my machine I have to reboot, because it's lagging too much.
-And the last line I see when I switch to init 0 is also
-"acpi_poweroff_called".
+Maybe you could reduce the overkill by using a counter instead of a linked 
+list to keep track of the limits imposed by other modules. I don't think you 
+need any extra code in the idle handler, Len's additions should be enough to 
+handle a limit change. The only possible danger that I can see is one or more 
+extra idle cycles with an outdated limit.
 
+As it is, is there a way for a module such as ipw2100 to detect when its limit 
+request has been commited? Does the processor module export the current C 
+state, or should the module rely on the /proc file?
 
+Anyway, here is some code to illustrate the counter. And now I'm going to stop 
+spending time on workarounds! ;-)
+
+static unsigned int cstate_limit_counter[ACPI_C_STATES_MAX];
+static spinlock_t cstate_limit_lock = SPIN_LOCK_UNLOCKED;
+
+inline void acpi_update_cstate_limit(unsigned int limit, int gain)
+{
+ unsigned long flags;
+ int c;
+
+ if(new_limit >= ACPI_C_STATES_MAX)
+  return;
+
+ spin_lock_irqsave(&cstate_limit_lock, flags);
+ if (gain > 0)
+  cstate_limit_counter[limit]++;
+ else if (cstate_limit_counter[limit] > 0)
+  cstate_limit_counter[limit]--;
+
+ for (c = 0; c < ACPI_C_STATES_MAX; c++) {
+  if (cstate_limit_counter[c]) {
+   acpi_cstate_limit = c;
+   spin_unlock_irqrestore(&cstate_limit_lock, flags);
+   return;
+  }
+ }
+ acpi_cstate_limit = ACPI_C_STATES_MAX;
+ spin_unlock_irqrestore(&cstate_limit_lock, flags);
+}
+
+static void acpi_remove_cstate_limit(unsigned int limit)
+{
+ acpi_update_cstate_limit(limit, -1);
+}
+
+static void acpi_set_cstate_limit(unsigned int limit)
+{
+ acpi_update_cstate_limit(limit, 1);
+}
+
+-- 
+
+Jos Delbar
+jos.delbar-Cru1EgDzd7c@public.gmane.org
 
 
 -------------------------------------------------------
