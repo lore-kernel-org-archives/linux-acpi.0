@@ -1,36 +1,48 @@
-From: Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [BK PATCH]
-Date: Mon, 23 Jun 2003 00:11:43 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030623001143.0fb2c292.akpm@digeo.com>
-References: <F760B14C9561B941B89469F59BA3A847E96FB3@orsmsx401.jf.intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: entry->irq = entry->link.index (problem 2 of thread [ Re: patch for updating IA64 ACPI fixs into Andy's  ACPI 2.5 tree])
+Date: Mon, 23 Jun 2003 15:13:18 +0800
+Sender: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F8427237F@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96FB3-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+List-Help: <mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+JSyx/Wj9/Chdaaq/uiDbmg@public.gmane.org>
+List-Post: <mailto:linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org>
+List-Subscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+EfZv34bSr6CyrRgqdI+6y4@public.gmane.org>
+List-Unsubscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+I4vVymAtk2CuCKOA6ERizqzQB+pC5nmwQ@public.gmane.org>
+List-Archive: <http://lists.linuxia64.org/archives//linux-ia64/>
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Mallick, Asit K" <asit.k.mallick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
-> Hi Linus, please do a
-> 
-> 	bk pull http://linux-acpi.bkbits.net/linux-acpi
-> 
-> This will update the following files:
-> 
->  arch/i386/kernel/setup.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> through these ChangeSets:
-> 
-> <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/22 1.1359.1.1)
->    ACPI: make it so acpismp=force works (reported by Andrew Morton)
-> 
+> @@ -248,6 +253,8 @@
+>  		return_VALUE(0);
+>  	}
+> =20
+> +	entry->irq =3D entry->link.index;
+> +
+>  	if (!entry->irq && entry->link.handle) {
+>  		entry->irq =3D acpi_pci_link_get_irq(entry->link.handle, =
+entry->link.index);
+>  		if (!entry->irq) {
 
-OK, thanks.
+> I don't quite understand what this is for.  Anyone know?
 
-But prior to 2.5.72, CPU enumeration worked fine without acpismp=force. 
-Now it is required.  How come?
+To understand the meaning of entry->link.index, please reference  =
+acpi_get_prt  which is in arch/ia64/kernel/acpi.c. =20
+There is  vector[i].irq =3D entry->link.index , entry is acpi_prt_entry. =
+And you can look into mp_parse_prt=20
+which is in arch/i386/kernel/mpparse.c. There is irq =3D =
+entry->link.index.
+
+Here,  "entry->irq =3D entry->link.index" just make sure that a default =
+initial irq value is assigned according to prt entry.
+
+Thanks,
+Luming
