@@ -1,12 +1,14 @@
-From: Gyu Sang Choi <gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org>
-Subject: Error: can't read "CONFIG_SCSI": no such variable
-Date: Thu, 20 Nov 2003 16:28:23 -0500
+From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: acpi on new gateway laptops
+Date: Thu, 20 Nov 2003 16:36:48 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FBD31F7.2070205@cse.psu.edu>
+Message-ID: <20031120213648.GC21802@masanjin.net>
+References: <20031112232315.GD430@masanjin.net> <20031117102219.O60721@root.org> <20031117183900.GA32570@masanjin.net> <20031117104936.N60907@root.org> <20031117193719.GB32570@masanjin.net> <20031117120555.E61216@root.org> <20031118103549.GZ32464@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031118103549.GZ32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,33 +20,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-To whom it may concern
+Excerpts (reformatted) from Ducrot Bruno's mail of 18 Nov 2003 (EST):
+> > Looks right but you need to get your _GPE bit also. I think it's 0x79
+> > but you really need to parse the buffer to be sure.  There is a flag to
+> > acpidmp to parse buffer contents.
+> 
+> Not in the backported version IIRC.
 
-I am trying to install ACPI2.0 into Linux-2.4.22 kernel.
-But I got a strange error message, when I try to store the configuration 
-to file in "make xconfig".
-It is below
-============================================
-Error: can't read "CONFIG_SCSI": no such variable
-============================================
-
-If there is anyone to solve this problem already,
-please send me email.
-
-Regards,
+There wasn't an option to do this in the acpidmp I found, but luckily
+the DSDT specified the _GPE as 0x1c a little later on.
 
 -- 
-
- ---------------------------------------------------------------
-| Gyu Sang Choi							|
-| Office : 313 Pond Lab (863-3814) 					|
-| email : gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org					|
-| Tel : (814)861-6986					       	|
-| Address : 425 Waupelani Drive #327, State College, PA 16801	|
- ---------------------------------------------------------------
-
-
-
+William
 
 
 -------------------------------------------------------
