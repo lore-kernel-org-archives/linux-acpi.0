@@ -1,14 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi on r40e
-Date: Tue, 17 Feb 2004 13:47:32 +0800
+From: "Brandie Presley" <OXOFYJBTCLXRQE-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Boost Your  Car's Gas Mileage 27%+, saccade cluck onus infamy
+Date: Tue, 17 Feb 2004 00:48:50 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6CA@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <TLMAAHE-0003339536311@markov>
+Reply-To: "Brandie Presley" <OXOFYJBTCLXRQE-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+        boundary="28682671291281518576"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,33 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Praveen C <cpravn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> >  I just want to add my experience on T21 for hot key issue .
-> >The hot key FN+Home (End) is for brightness control on T21.=20
-> >It do work with ACPI without any Linux ACPI code, which is expected=20
-> >to support hot key feature.
->=20
-> Why is Linux expected to support the hot key feature?
-> If the T21 has no AML to support hot keys, and it chooses not=20
-> to disable
-> the SMM hot-key handlers when the platform enters ACPI mode,=20
-> then it is
-> the T21 firmware that is intended to support the hot keys,=20
-> not ACPI, and
-> not Linux.  Linux doesn't even know the hot key exists, and=20
-> has no power
-> to control it.
->=20
+--28682671291281518576
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 
-The AML of T21 has HKEY Device like r40e.
+travail lobule argument bundoora breeches owly biplane clamorous oslo blanche 
+ergodic howe teapot bijection ribosome illimitable orthonormal cope evoke crash 
+cockroach ash scotsman interpolate boltzmann serendipity uncouth adaptation picofarad claremont 
 
-                    Device (HKEY)
-                    {
-                        Name (_HID, EisaId ("IBM0068"))
-		......
+--28682671291281518576
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 8bit
+
+<p>Fuel Saver Pro<br><br>This revolutionary device Boosts Gas Mileage 27=
+%+ by helping fuel burn better using three patented processes from General=
+ Motors.<br><br>Take a test drive Today - <a href=3D"http://www.magnifeye.=
+biz?axel=3D63">Fuel Saver Pro</a><br><br>PROVEN TECHNOLOGY<br>A certified =
+U.S. Environmental Protection Agency (EPA) laboratory recently completed t=
+ests on the new Fuel Saver. The results were astounding! Master Service, a=
+ subsidiary of Ford Motor Company, also conducted extensive emissions test=
+ing and obtained similar, unheard of results. The achievements of the Fuel=
+ Saver is so noteworthy to the environmental community, that Commercial Ne=
+ws has featured it as their cover story in their June, 2000 edition.<br><b=
+r>Take a test drive Today - <a href=3D"http://www.magnifeye.biz?axel=3D63"=
+>Fuel Saver Pro</a><br><br><br><br><a href=3D"http://www.firstlevelsales.c=
+om/rems/adoff/">No more ads</a><br><br><br><br>periscope<br><br>dram inelu=
+ctable metabole berkshire adieu coxcomb orgiastic ordinary neuroanotomy tr=
+ickle distort chevy psychoanalyst shelf facetious birth jonquil hubris alp=
+hanumeric bathroom preamble=20</p>
+
+--28682671291281518576--
 
 
 -------------------------------------------------------
