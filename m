@@ -1,12 +1,16 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: [PATCH 2.6] update passive cooling algorithm
-Date: Tue, 13 Jan 2004 10:20:24 +0100
+From: Jes Sorensen <jes-UC6nUKlm/0l5V+5IkYBVeNBPR1lH4CV8@public.gmane.org>
+Subject: Re: RFC: ACPI table overflow handling
+Date: 13 Jan 2004 04:49:12 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040113092024.GB15385@dominikbrodowski.de>
+Message-ID: <yq0r7y4dvqf.fsf@wildopensource.com>
+References: <16381.27904.580087.442358@gargle.gargle.HOWL>
+	<200401080920.04906.bjorn.helgaas@hp.com>
+	<yq0ad4uimm7.fsf@wildopensource.com>
+	<200401120924.06881.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200401120924.06881.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,283 +19,391 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jbarnes-sJ/iWh9BUns@public.gmane.org, steiner-sJ/iWh9BUns@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[re-sent as first try didn't reach the list]
+>>>>> "Bjorn" == Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org> writes:
 
-The current algorithm used by Linux ACPI for passive thermal management has
-two shortcomings:
+Bjorn> On Sunday 11 January 2004 7:30 am, Jes Sorensen wrote:
+>> (acpi_table_parse_madt(ACPI_MADT_IOSAPIC, acpi_parse_iosapic, 256)
 
-- if increasing the CPU processing power as a thermal situation goes away,
-  throttling states are decreased later than performance states. This is
-  not wise -- it should be the opposite ordering of going "up".
+Bjorn> The "256" looks like it's based on the "iosapic_lists[256]"
+Bjorn> definition.  We probably should introduce a #define for those
+Bjorn> cases (sorry, I should have noticed this the first time).
 
-- only if the ACPI CPUfreq driver is used, performance states are used.
-  A generalized approach would offer passive cooling even if the ACPI
-  P-States cpufreq driver cannot be used (faulty BIOS, FixedHW access, etc.)
+No problem, easy fix.
 
-The attached patch addresses these issues.
+>> +++ linux-2.6.0-test11-ia64/arch/x86_64/kernel/acpi/boot.c Sun Jan
+>> 11 05:31:58 2004 + result =
+Bjorn> Is NO_IRQ_VECTORS a typo for NR_IRQ_VECTORS?
 
- drivers/acpi/processor.c |  182 +++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 146 insertions(+), 36 deletions(-)
+Yup typo, thanks for catching this one.
 
-diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
---- linux-original/drivers/acpi/processor.c	2004-01-11 20:51:17.000000000 +0100
-+++ linux/drivers/acpi/processor.c	2004-01-11 21:39:43.000000000 +0100
-@@ -1091,6 +1091,113 @@
- }
+>> +++ linux-2.6.0-test11-ia64/drivers/acpi/numa.c Thu Jan 8 02:49:24
+>> 2004 acpi_table_parse_srat ( enum acpi_srat_entry_id id, -
+>> acpi_madt_entry_handler handler) + acpi_madt_entry_handler handler,
+>> + int max_entries)
+
+Bjorn> Should "max_entries" be unsigned?  I notice you used unsigned
+Bjorn> types in the implementation, i.e., "count".
+
+I have no strong preference since I find it unlikely that anyone will
+want to loop it 2^31 times, but for esthetics lets make it unsigned.
+
+How about this one then?
+
+Cheers,
+Jes
+
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/arch/i386/kernel/acpi/boot.c linux-2.6.0-test11-ia64/arch/i386/kernel/acpi/boot.c
+--- orig/linux-2.6.0-test11-ia64/arch/i386/kernel/acpi/boot.c	Wed Nov 26 12:45:28 2003
++++ linux-2.6.0-test11-ia64/arch/i386/kernel/acpi/boot.c	Sun Jan 11 05:16:24 2004
+@@ -44,8 +44,8 @@
+ extern int acpi_irq;
+ extern int acpi_ht;
  
+-int acpi_lapic = 0;
+-int acpi_ioapic = 0;
++int acpi_lapic;
++int acpi_ioapic;
  
-+#ifdef CONFIG_CPU_FREQ
-+
-+/* If a passive cooling situation is detected, primarily CPUfreq is used, as it
-+ * offers (in most cases) voltage scaling in addition to frequency scaling, and
-+ * thus a cubic (instead of linear) reduction of energy. Also, we allow for
-+ * _any_ cpufreq driver and not only the acpi-cpufreq driver.
-+ */
-+
-+static unsigned int cpufreq_thermal_reduction_pctg[NR_CPUS];
-+static unsigned int acpi_thermal_cpufreq_is_init = 0;
-+
-+
-+static int cpu_has_cpufreq(unsigned int cpu)
-+{
-+	struct cpufreq_policy policy;
-+	if (!acpi_thermal_cpufreq_is_init)
-+		return -ENODEV;
-+	if (!cpufreq_get_policy(&policy, cpu))
-+		return -ENODEV;
-+	return 0;
-+}
-+
-+
-+static int acpi_thermal_cpufreq_increase(unsigned int cpu)
-+{
-+	if (!cpu_has_cpufreq)
-+		return -ENODEV;
-+
-+	if (cpufreq_thermal_reduction_pctg[cpu] < 60) {
-+		cpufreq_thermal_reduction_pctg[cpu] += 20;
-+		cpufreq_update_policy(cpu);
-+		return 0;
-+	}
-+
-+	return -ERANGE;
-+}
-+
-+
-+static int acpi_thermal_cpufreq_decrease(unsigned int cpu)
-+{
-+	if (!cpu_has_cpufreq)
-+		return -ENODEV;
-+
-+	if (cpufreq_thermal_reduction_pctg[cpu] >= 20) {
-+		cpufreq_thermal_reduction_pctg[cpu] -= 20;
-+		cpufreq_update_policy(cpu);
-+		return 0;
-+	}
-+
-+	return -ERANGE;
-+}
-+
-+
-+static int acpi_thermal_cpufreq_notifier(
-+	struct notifier_block *nb,
-+	unsigned long event,
-+	void *data)
-+{
-+	struct cpufreq_policy *policy = data;
-+	unsigned long max_freq = 0;
-+
-+	if (event != CPUFREQ_ADJUST)
-+		goto out;
-+
-+	max_freq = (policy->cpuinfo.max_freq * (100 - cpufreq_thermal_reduction_pctg[policy->cpu])) / 100;
-+
-+	cpufreq_verify_within_limits(policy, 0, max_freq);
-+
-+ out:
-+	return 0;
-+}
-+
-+
-+static struct notifier_block acpi_thermal_cpufreq_notifier_block = {
-+	.notifier_call = acpi_thermal_cpufreq_notifier,
-+};
-+
-+
-+static void acpi_thermal_cpufreq_init(void) {
-+	int i;
-+
-+	for (i=0; i<NR_CPUS; i++)
-+		cpufreq_thermal_reduction_pctg[i] = 0;
-+
-+	i = cpufreq_register_notifier(&acpi_thermal_cpufreq_notifier_block, CPUFREQ_POLICY_NOTIFIER);
-+	if (!i)
-+		acpi_thermal_cpufreq_is_init = 1;
-+}
-+
-+static void acpi_thermal_cpufreq_exit(void) {
-+	if (acpi_thermal_cpufreq_is_init)
-+		cpufreq_unregister_notifier(&acpi_thermal_cpufreq_notifier_block, CPUFREQ_POLICY_NOTIFIER);
-+
-+	acpi_thermal_cpufreq_is_init = 0;
-+}
-+
-+#else /* ! CONFIG_CPU_FREQ */
-+
-+static void acpi_thermal_cpufreq_init(void) { return; }
-+static void acpi_thermal_cpufreq_exit(void) { return; }
-+static int acpi_thermal_cpufreq_increase(unsigned int cpu) { return -ENODEV; }
-+static int acpi_thermal_cpufreq_decrease(unsigned int cpu) { return -ENODEV; }
-+
-+
-+#endif
-+
-+
- int
- acpi_processor_set_thermal_limit (
- 	acpi_handle		handle,
-@@ -1099,7 +1206,6 @@
- 	int			result = 0;
- 	struct acpi_processor	*pr = NULL;
- 	struct acpi_device	*device = NULL;
--	int			px = 0;
- 	int			tx = 0;
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_set_thermal_limit");
-@@ -1116,12 +1222,7 @@
- 	if (!pr)
- 		return_VALUE(-ENODEV);
- 
--	if (!pr->flags.limit)
--		return_VALUE(-ENODEV);
--
- 	/* Thermal limits are always relative to the current Px/Tx state. */
--	if (pr->flags.performance)
--		pr->limit.thermal.px = pr->performance->state;
- 	if (pr->flags.throttling)
- 		pr->limit.thermal.tx = pr->throttling.state;
- 
-@@ -1130,26 +1231,27 @@
- 	 * performance state.
+ /* --------------------------------------------------------------------------
+                               Boot-time Configuration
+@@ -418,7 +418,7 @@
+ 	 * and (optionally) overriden by a LAPIC_ADDR_OVR entry (64-bit value).
  	 */
  
--	px = pr->limit.thermal.px;
- 	tx = pr->limit.thermal.tx;
+-	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_ADDR_OVR, acpi_parse_lapic_addr_ovr);
++	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_ADDR_OVR, acpi_parse_lapic_addr_ovr, 0);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing LAPIC address override entry\n");
+ 		return result;
+@@ -426,7 +426,8 @@
  
- 	switch (type) {
+ 	mp_register_lapic_address(acpi_lapic_addr);
  
- 	case ACPI_PROCESSOR_LIMIT_NONE:
--		px = 0;
-+		do {
-+			result = acpi_thermal_cpufreq_decrease(pr->id);
-+		} while (!result);
- 		tx = 0;
- 		break;
- 
- 	case ACPI_PROCESSOR_LIMIT_INCREMENT:
--		if (pr->flags.performance) {
--			if (px == (pr->performance->state_count - 1))
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
-+		/* if going up: P-states first, T-states later */
-+
-+		result = acpi_thermal_cpufreq_increase(pr->id);
-+		if (!result)
-+			goto end;
-+		else if (result == -ERANGE)
-+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
- 					"At maximum performance state\n"));
--			else {
--				px++;
--				goto end;
--			}
--		}
-+
- 		if (pr->flags.throttling) {
- 			if (tx == (pr->throttling.state_count - 1))
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
-@@ -1160,37 +1262,41 @@
- 		break;
- 
- 	case ACPI_PROCESSOR_LIMIT_DECREMENT:
--		if (pr->flags.performance) {
--			if (px == pr->performance_platform_limit)
--				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
--					"At minimum performance state\n"));
--			else  {
--				px--;
--				goto end;
--			}
--		}
-+		/* if going down: T-states first, P-states later */
-+
- 		if (pr->flags.throttling) {
- 			if (tx == 0)
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
- 					"At minimum throttling state\n"));
--			else
-+			else {
- 				tx--;
-+				goto end;
-+			}
- 		}
-+
-+		result = acpi_thermal_cpufreq_decrease(pr->id);
-+		if (result == -ERANGE)
-+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
-+					"At minimum performance state\n"));
-+
- 		break;
+-	result = acpi_table_parse_madt(ACPI_MADT_LAPIC, acpi_parse_lapic);
++	result = acpi_table_parse_madt(ACPI_MADT_LAPIC, acpi_parse_lapic,
++				       MAX_APICS);
+ 	if (!result) { 
+ 		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+@@ -438,7 +439,7 @@
+ 		return result;
  	}
  
- end:
--	pr->limit.thermal.px = px;
--	pr->limit.thermal.tx = tx;
+-	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_NMI, acpi_parse_lapic_nmi);
++	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_NMI, acpi_parse_lapic_nmi, 0);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+@@ -475,8 +476,8 @@
+ 		return 1;
+ 	}
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_IOAPIC, acpi_parse_ioapic);
+-	if (!result) { 
++	result = acpi_table_parse_madt(ACPI_MADT_IOAPIC, acpi_parse_ioapic, MAX_IO_APICS);
++	if (!result) {
+ 		printk(KERN_ERR PREFIX "No IOAPIC entries present\n");
+ 		return -ENODEV;
+ 	}
+@@ -488,14 +489,14 @@
+ 	/* Build a default routing table for legacy (ISA) interrupts. */
+ 	mp_config_acpi_legacy_irqs();
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_INT_SRC_OVR, acpi_parse_int_src_ovr);
++	result = acpi_table_parse_madt(ACPI_MADT_INT_SRC_OVR, acpi_parse_int_src_ovr, NR_IRQ_VECTORS);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing interrupt source overrides entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+ 		return result;
+ 	}
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_NMI_SRC, acpi_parse_nmi_src);
++	result = acpi_table_parse_madt(ACPI_MADT_NMI_SRC, acpi_parse_nmi_src, NR_IRQ_VECTORS);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing NMI SRC entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/arch/ia64/kernel/acpi.c linux-2.6.0-test11-ia64/arch/ia64/kernel/acpi.c
+--- orig/linux-2.6.0-test11-ia64/arch/ia64/kernel/acpi.c	Wed Nov 26 12:44:07 2003
++++ linux-2.6.0-test11-ia64/arch/ia64/kernel/acpi.c	Tue Jan 13 01:30:49 2004
+@@ -189,8 +189,6 @@
+ 
+ 	if (!lsapic->flags.enabled)
+ 		printk(" disabled");
+-	else if (available_cpus >= NR_CPUS)
+-		printk(" ignored (increase NR_CPUS)");
+ 	else {
+ 		printk(" enabled");
+ #ifdef CONFIG_SMP
+@@ -393,12 +391,6 @@
+ 	size = ma->length_hi;
+ 	size = (size << 32) | ma->length_lo;
+ 
+-	if (num_memblks >= NR_MEMBLKS) {
+-		printk(KERN_ERR "Too many mem chunks in SRAT. Ignoring %ld MBytes at %lx\n",
+-		       size/(1024*1024), paddr);
+-		return;
+-	}
 -
--	result = acpi_processor_apply_limit(pr);
--	if (result)
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
--			"Unable to set thermal limit\n"));
-+	if (pr->flags.throttling) {
-+		pr->limit.thermal.px = 0;
-+		pr->limit.thermal.tx = tx;
+ 	/* Ignore disabled entries */
+ 	if (!ma->flags.enabled)
+ 		return;
+@@ -550,29 +542,29 @@
  
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Thermal limit now (P%d:T%d)\n",
--		pr->limit.thermal.px,
--		pr->limit.thermal.tx));
-+		result = acpi_processor_apply_limit(pr);
-+		if (result)
-+			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
-+					  "Unable to set thermal limit\n"));
-+
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Thermal limit now (P%d:T%d)\n",
-+				  pr->limit.thermal.px,
-+				  pr->limit.thermal.tx));
-+	} else
-+		result = 0;
+ 	/* Local APIC */
  
- 	return_VALUE(result);
- }
-@@ -1813,6 +1919,8 @@
- 		return_VALUE(-ENODEV);
+-	if (acpi_table_parse_madt(ACPI_MADT_LAPIC_ADDR_OVR, acpi_parse_lapic_addr_ovr) < 0)
++	if (acpi_table_parse_madt(ACPI_MADT_LAPIC_ADDR_OVR, acpi_parse_lapic_addr_ovr, 0) < 0)
+ 		printk(KERN_ERR PREFIX "Error parsing LAPIC address override entry\n");
+ 
+-	if (acpi_table_parse_madt(ACPI_MADT_LSAPIC, acpi_parse_lsapic) < 1)
++	if (acpi_table_parse_madt(ACPI_MADT_LSAPIC, acpi_parse_lsapic, NR_CPUS) < 1)
+ 		printk(KERN_ERR PREFIX "Error parsing MADT - no LAPIC entries\n");
+ 
+-	if (acpi_table_parse_madt(ACPI_MADT_LAPIC_NMI, acpi_parse_lapic_nmi) < 0)
++	if (acpi_table_parse_madt(ACPI_MADT_LAPIC_NMI, acpi_parse_lapic_nmi, 0) < 0)
+ 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
+ 
+ 	/* I/O APIC */
+ 
+-	if (acpi_table_parse_madt(ACPI_MADT_IOSAPIC, acpi_parse_iosapic) < 1)
++	if (acpi_table_parse_madt(ACPI_MADT_IOSAPIC, acpi_parse_iosapic, NR_IOSAPICS) < 1)
+ 		printk(KERN_ERR PREFIX "Error parsing MADT - no IOSAPIC entries\n");
+ 
+ 	/* System-Level Interrupt Routing */
+ 
+-	if (acpi_table_parse_madt(ACPI_MADT_PLAT_INT_SRC, acpi_parse_plat_int_src) < 0)
++	if (acpi_table_parse_madt(ACPI_MADT_PLAT_INT_SRC, acpi_parse_plat_int_src, ACPI_MAX_PLATFORM_INTERRUPTS) < 0)
+ 		printk(KERN_ERR PREFIX "Error parsing platform interrupt source entry\n");
+ 
+-	if (acpi_table_parse_madt(ACPI_MADT_INT_SRC_OVR, acpi_parse_int_src_ovr) < 0)
++	if (acpi_table_parse_madt(ACPI_MADT_INT_SRC_OVR, acpi_parse_int_src_ovr, 0) < 0)
+ 		printk(KERN_ERR PREFIX "Error parsing interrupt source overrides entry\n");
+ 
+-	if (acpi_table_parse_madt(ACPI_MADT_NMI_SRC, acpi_parse_nmi_src) < 0)
++	if (acpi_table_parse_madt(ACPI_MADT_NMI_SRC, acpi_parse_nmi_src, 0) < 0)
+ 		printk(KERN_ERR PREFIX "Error parsing NMI SRC entry\n");
+   skip_madt:
+ 
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/arch/ia64/kernel/iosapic.c linux-2.6.0-test11-ia64/arch/ia64/kernel/iosapic.c
+--- orig/linux-2.6.0-test11-ia64/arch/ia64/kernel/iosapic.c	Wed Nov 26 12:44:02 2003
++++ linux-2.6.0-test11-ia64/arch/ia64/kernel/iosapic.c	Tue Jan 13 01:29:44 2004
+@@ -114,7 +114,7 @@
+ 	char		*addr;		/* base address of IOSAPIC */
+ 	unsigned int 	gsi_base;	/* first GSI assigned to this IOSAPIC */
+ 	unsigned short 	num_rte;	/* number of RTE in this IOSAPIC */
+-} iosapic_lists[256];
++} iosapic_lists[NR_IOSAPICS];
+ 
+ static int num_iosapic;
+ 
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/arch/x86_64/kernel/acpi/boot.c linux-2.6.0-test11-ia64/arch/x86_64/kernel/acpi/boot.c
+--- orig/linux-2.6.0-test11-ia64/arch/x86_64/kernel/acpi/boot.c	Wed Nov 26 12:43:24 2003
++++ linux-2.6.0-test11-ia64/arch/x86_64/kernel/acpi/boot.c	Tue Jan 13 00:33:45 2004
+@@ -46,8 +46,8 @@
+ #include <asm/proto.h>
+ #include <asm/tlbflush.h>
+ 
+-int acpi_lapic = 0;
+-int acpi_ioapic = 0;
++int acpi_lapic;
++int acpi_ioapic;
+ 
+ #define PREFIX			"ACPI: "
+ 
+@@ -398,7 +398,7 @@
+ 	 * and (optionally) overriden by a LAPIC_ADDR_OVR entry (64-bit value).
+ 	 */
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_ADDR_OVR, acpi_parse_lapic_addr_ovr);
++	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_ADDR_OVR, acpi_parse_lapic_addr_ovr, 0);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing LAPIC address override entry\n");
+ 		return result;
+@@ -406,7 +406,8 @@
+ 
+ 	mp_register_lapic_address(acpi_lapic_addr);
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_LAPIC, acpi_parse_lapic);
++	result = acpi_table_parse_madt(ACPI_MADT_LAPIC, acpi_parse_lapic,
++				       MAX_APICS);
+ 	if (!result) { 
+ 		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+@@ -418,7 +419,7 @@
+ 		return result;
  	}
  
-+	acpi_thermal_cpufreq_init();
-+
- 	return_VALUE(0);
+-	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_NMI, acpi_parse_lapic_nmi);
++	result = acpi_table_parse_madt(ACPI_MADT_LAPIC_NMI, acpi_parse_lapic_nmi, 0);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+@@ -455,8 +456,8 @@
+ 		return 1;
+ 	}
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_IOAPIC, acpi_parse_ioapic);
+-	if (!result) { 
++	result = acpi_table_parse_madt(ACPI_MADT_IOAPIC, acpi_parse_ioapic, MAX_IO_APICS);
++	if (!result) {
+ 		printk(KERN_ERR PREFIX "No IOAPIC entries present\n");
+ 		return -ENODEV;
+ 	}
+@@ -468,14 +469,15 @@
+ 	/* Build a default routing table for legacy (ISA) interrupts. */
+ 	mp_config_acpi_legacy_irqs();
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_INT_SRC_OVR, acpi_parse_int_src_ovr);
++	result = acpi_table_parse_madt(ACPI_MADT_INT_SRC_OVR, acpi_parse_int_src_ovr, NR_IRQ_VECTORS);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing interrupt source overrides entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+ 		return result;
+ 	}
+ 
+-	result = acpi_table_parse_madt(ACPI_MADT_NMI_SRC, acpi_parse_nmi_src);
++	result = acpi_table_parse_madt(ACPI_MADT_NMI_SRC, acpi_parse_nmi_src,
++				       NR_IRQ_VECTORS);
+ 	if (result < 0) {
+ 		printk(KERN_ERR PREFIX "Error parsing NMI SRC entry\n");
+ 		/* TBD: Cleanup to allow fallback to MPS */
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/drivers/acpi/numa.c linux-2.6.0-test11-ia64/drivers/acpi/numa.c
+--- orig/linux-2.6.0-test11-ia64/drivers/acpi/numa.c	Thu Dec 11 04:22:40 2003
++++ linux-2.6.0-test11-ia64/drivers/acpi/numa.c	Tue Jan 13 00:49:40 2004
+@@ -38,7 +38,7 @@
+ #define Dprintk(x...)
+ #endif
+ 
+-extern int __init acpi_table_parse_madt_family (enum acpi_table_id id, unsigned long madt_size, int entry_id, acpi_madt_entry_handler handler);
++extern int __init acpi_table_parse_madt_family (enum acpi_table_id id, unsigned long madt_size, int entry_id, acpi_madt_entry_handler handler, unsigned int max_entries);
+ 
+ void __init
+ acpi_table_print_srat_entry (
+@@ -156,10 +156,11 @@
+ int __init
+ acpi_table_parse_srat (
+ 	enum acpi_srat_entry_id	id,
+-	acpi_madt_entry_handler	handler)
++	acpi_madt_entry_handler	handler,
++	unsigned int max_entries)
+ {
+ 	return acpi_table_parse_madt_family(ACPI_SRAT, sizeof(struct acpi_table_srat),
+-					    id, handler);
++					    id, handler, max_entries);
  }
  
-@@ -1822,6 +1930,8 @@
+ 
+@@ -173,9 +174,11 @@
+ 
+ 	if (result > 0) {
+ 		result = acpi_table_parse_srat(ACPI_SRAT_PROCESSOR_AFFINITY,
+-					       acpi_parse_processor_affinity);
++					       acpi_parse_processor_affinity,
++					       NR_CPUS);
+ 		result = acpi_table_parse_srat(ACPI_SRAT_MEMORY_AFFINITY,
+-					       acpi_parse_memory_affinity);
++					       acpi_parse_memory_affinity,
++					       NR_MEMBLKS);
+ 	} else {
+ 		/* FIXME */
+ 		printk("Warning: acpi_table_parse(ACPI_SRAT) returned %d!\n",result);
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/drivers/acpi/tables.c linux-2.6.0-test11-ia64/drivers/acpi/tables.c
+--- orig/linux-2.6.0-test11-ia64/drivers/acpi/tables.c	Thu Dec 11 04:22:40 2003
++++ linux-2.6.0-test11-ia64/drivers/acpi/tables.c	Tue Jan 13 00:52:36 2004
+@@ -295,13 +295,14 @@
+ 	enum acpi_table_id	id,
+ 	unsigned long		madt_size,
+ 	int			entry_id,
+-	acpi_madt_entry_handler	handler)
++	acpi_madt_entry_handler	handler,
++	unsigned int		max_entries)
  {
- 	ACPI_FUNCTION_TRACE("acpi_processor_exit");
+ 	void			*madt = NULL;
+-	acpi_table_entry_header	*entry = NULL;
+-	unsigned long		count = 0;
+-	unsigned long		madt_end = 0;
+-	unsigned int			i = 0;
++	acpi_table_entry_header	*entry;
++	unsigned int		count = 0;
++	unsigned long		madt_end;
++	unsigned int		i;
  
-+	acpi_thermal_cpufreq_exit();
+ 	if (!handler)
+ 		return -EINVAL;
+@@ -335,13 +336,18 @@
+ 		((unsigned long) madt + madt_size);
+ 
+ 	while (((unsigned long) entry) < madt_end) {
+-		if (entry->type == entry_id) {
+-			count++;
++		if (entry->type == entry_id &&
++		    (!max_entries || count++ < max_entries))
+ 			handler(entry);
+-		}
 +
- 	acpi_bus_unregister_driver(&acpi_processor_driver);
+ 		entry = (acpi_table_entry_header *)
+ 			((unsigned long) entry + entry->length);
+ 	}
++	if (max_entries && count > max_entries) {
++		printk(KERN_WARNING PREFIX "[%s:0x%02x] ignored %i entries of "
++		       "%i found\n", acpi_table_signatures[id], entry_id,
++		       count - max_entries, count);
++	}
  
- 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
+ 	return count;
+ }
+@@ -350,10 +356,11 @@
+ int __init
+ acpi_table_parse_madt (
+ 	enum acpi_madt_entry_id	id,
+-	acpi_madt_entry_handler	handler)
++	acpi_madt_entry_handler	handler,
++	unsigned int max_entries)
+ {
+ 	return acpi_table_parse_madt_family(ACPI_APIC, sizeof(struct acpi_table_madt),
+-					    id, handler);
++					    id, handler, max_entries);
+ }
+ 
+ 
+@@ -578,4 +585,3 @@
+ 
+ 	return 0;
+ }
+-
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/include/asm-ia64/iosapic.h linux-2.6.0-test11-ia64/include/asm-ia64/iosapic.h
+--- orig/linux-2.6.0-test11-ia64/include/asm-ia64/iosapic.h	Wed Nov 26 12:44:21 2003
++++ linux-2.6.0-test11-ia64/include/asm-ia64/iosapic.h	Tue Jan 13 01:30:32 2004
+@@ -52,6 +52,9 @@
+ #ifndef __ASSEMBLY__
+ 
+ #ifdef CONFIG_IOSAPIC
++
++#define NR_IOSAPICS			256
++
+ extern void __init iosapic_system_init (int pcat_compat);
+ extern void __init iosapic_init (unsigned long address,
+ 				    unsigned int gsi_base);
+diff -urN -X /usr/people/jes/exclude-linux --exclude=io --exclude=sn --exclude='qla1280.[ch]' orig/linux-2.6.0-test11-ia64/include/linux/acpi.h linux-2.6.0-test11-ia64/include/linux/acpi.h
+--- orig/linux-2.6.0-test11-ia64/include/linux/acpi.h	Wed Nov 26 12:42:43 2003
++++ linux-2.6.0-test11-ia64/include/linux/acpi.h	Tue Jan 13 00:51:02 2004
+@@ -355,8 +355,8 @@
+ int acpi_table_init (void);
+ int acpi_table_parse (enum acpi_table_id id, acpi_table_handler handler);
+ int acpi_get_table_header_early (enum acpi_table_id id, struct acpi_table_header **header);
+-int acpi_table_parse_madt (enum acpi_madt_entry_id id, acpi_madt_entry_handler handler);
+-int acpi_table_parse_srat (enum acpi_srat_entry_id id, acpi_madt_entry_handler handler);
++int acpi_table_parse_madt (enum acpi_madt_entry_id id, acpi_madt_entry_handler handler, unsigned int max_entries);
++int acpi_table_parse_srat (enum acpi_srat_entry_id id, acpi_madt_entry_handler handler, unsigned int max_entries);
+ void acpi_table_print (struct acpi_table_header *header, unsigned long phys_addr);
+ void acpi_table_print_madt_entry (acpi_table_entry_header *madt);
+ void acpi_table_print_srat_entry (acpi_table_entry_header *srat);
+
+
 
 
 -------------------------------------------------------
