@@ -1,13 +1,12 @@
-From: "Everette Rankin" <erankin_up-wDMOsxw0nKGELgA04lAiVw@public.gmane.org>
-Subject: Lose up to 19% weight. A new weightloss is here.
-Date: Thu, 22 Jul 2004 21:59:18 -0700
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Fix message levels in thermal
+Date: Fri, 23 Jul 2004 20:57:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <29d801c47071$d143cdef$8a2d0a08@ichabod.han.de>
+Message-ID: <20040723185738.GA8460@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,44 +15,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acornicq-bugs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special offer for you...
+Hi!
 
-WANT TO LOSE WEIGHT?
+thermal prints rather serious messages with ACPI_DEBUG_PRINT. I do not
+think that is good idea.
 
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
+I also added continue so that we do not interpret AML in tight loop
+making system close to unusable; I do not know if you want to apply
+this.
 
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-- Boost your Confidence level and Self Esteem.
+								Pavel 
 
-Get the facts about all-natural Adipren720: http://adipren11.com/
+--- /home/pavel/new/linux/drivers/acpi/thermal.c	2004-06-22 12:37:56.000000000 +0200
++++ linux/drivers/acpi/thermal.c	2004-07-23 18:03:23.000000000 +0200
+@@ -622,8 +622,7 @@
+ 				for (j = 0; j < active->devices.count; j++) {
+ 					result = acpi_bus_set_power(active->devices.handles[j], ACPI_STATE_D0);
+ 					if (result) {
+-						ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Unable to turn cooling device [%p] 'on'\n", active->devices.handles[j]));
+-						continue;
++						printk(KERN_ERR "Unable to turn cooling device [%p] 'on'\n", active->devices.handles[j]);
+ 					}
+ 					active->flags.enabled = 1;
+ 					ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cooling device [%p] now 'on'\n", active->devices.handles[j]));
+@@ -640,8 +639,7 @@
+ 			for (j = 0; j < active->devices.count; j++) {
+ 				result = acpi_bus_set_power(active->devices.handles[j], ACPI_STATE_D3);
+ 				if (result) {
+-					ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Unable to turn cooling device [%p] 'off'\n", active->devices.handles[j]));
+-					continue;
++					printk(KERN_ERR "Unable to turn cooling device [%p] 'off'\n", active->devices.handles[j]);
+ 				}
+ 				active->flags.enabled = 0;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cooling device [%p] now 'off'\n", active->devices.handles[j]));
 
-
-
-
-
-
-
-
-
----- system information ----
-that Since States) lists countries hidden inferred there 
-running differing Please application parameters more-specific internationalization
-formats 
-technologies pattern model and cannot processing more defined 
-updated invite existing might should lies no is 
-colors selection request world dates other contributions kinds 
-
+-- 
+Horseback riding is like software...
+...vgf orggre jura vgf serr.
 
 
 -------------------------------------------------------
