@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 problems with VIA EPIA MII-6000
-Date: Fri, 14 May 2004 16:23:38 +0200
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI hangs at boot sometimes
+Date: 14 May 2004 21:52:10 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040514142337.GA11685@elf.ucw.cz>
-References: <33293.192.168.10.18.1083969343.squirrel@192.168.10.18>
+Message-ID: <1084585930.12354.317.camel@dhcppc4>
+References: <200405140852.02383.meaton@vasco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <33293.192.168.10.18.1083969343.squirrel-Q0ErXNX1Rubd88mOHQKLlg@public.gmane.org>
+In-Reply-To: <200405140852.02383.meaton-tw97OP0PknkAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,59 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Tuschik <M.Tuschik-Mmb7MZpHnFY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mark Eaton <meaton-tw97OP0PknkAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Thu, 2004-05-13 at 18:51, Mark Eaton wrote:
 
-> i'm trying to put my VIA EPIA MII-6000 into S3 sleep mode. After resume
-> the OS is still working (this is good). Console is blank ant network
-> doesn't work.
+> When booting my system it sometime hangs right after giving me the message 
+> Edge set to Level Trigger. but most times it works fine. Is this a known 
+> bug ? possibly a buggy ACPI implementation ?
+> I have included the ACPI portion of a successful boot below. If you want/need 
+> more information just ask.
 > 
-> I started to discover the network problem. The driver "via-rhine" does not
-> contain any suspend/resume code (to bad). I looked at other drivers and
-> added some code here like:
-> 
-> static int via_rhine_suspend (struct pci_dev *pdev, u32 state)
-> {
-> 	struct net_device *dev = pci_get_drvdata(pdev);
-> 	struct netdev_private *priv = netdev_priv(dev);
-> 	pci_save_state(pdev, priv->pm_state);
-> 	if (dev && netif_running (dev) && netif_device_present (dev)) {
-> 		netif_device_detach (dev);
-> 		via_rhine_close (dev);
-> 	}
-> 	return 0;
-> }
-> 
-> static int via_rhine_resume (struct pci_dev *pdev)
-> {
-> 	struct net_device *dev = pci_get_drvdata(pdev);
-> 	struct netdev_private *priv = netdev_priv(dev);
-> 	pci_restore_state(pdev, priv->pm_state);
-> 	if (dev && netif_running (dev) && !netif_device_present (dev)) {
-> 		via_rhine_open (dev);
-> 		netif_device_attach (dev);
-> 		writew(readw(dev->base_addr + ChipCmd) | CmdRxOn | CmdRxDemand,
-> dev->base_addr + ChipCmd);
-> 	}
-> 	return 0;
-> }
-> 
-> 
-> This does not work. I played arround a bit with no success so far. It
-> seems that interrupts are not working after resume.
-> 
-> As i don't know what i'm doing here i ask if someone has an idea, what's
-> going wrong here. Maybe some hints to get closer to a solution.
+> May 12 08:33:14 beldin kernel: ACPI: Subsystem revision 20040326
+> May 12 08:33:14 beldin kernel: spurious 8259A interrupt: IRQ7.
+> May 12 08:33:14 beldin kernel: ACPI: IRQ10 SCI: Edge set to Level Trigger.
+> May 12 08:33:14 beldin kernel: ACPI: Interpreter enabled
+> May 12 08:33:14 beldin kernel: ACPI: Using PIC for interrupt routing            
+> May 12 08:33:14 beldin kernel: ACPI: PCI Root Bridge [PCI0] (00:00)
+> May 12 08:33:14 beldin kernel: PCI: Probing PCI hardware (bus 00)
+> May 12 08:33:14 beldin kernel: ACPI: PCI Interrupt Routing Table 
+> [\_SB_.PCI0._PRT]
+> May 12 08:33:14 beldin kernel: ACPI: PCI Interrupt Link [LNKA] (IRQs *4)
+> May 12 08:33:14 beldin kernel: ACPI: PCI Interrupt Link [LNKB] (IRQs *5)
+> May 12 08:33:14 beldin kernel: ACPI: PCI Interrupt Link [LNKC] (IRQs *9)
+> May 12 08:33:14 beldin kernel: ACPI: PCI Interrupt Link [LNKD] (IRQs *11)
+> May 12 08:33:14 beldin kernel: ACPI: Embedded Controller [EC0] (gpe 1)
 
-Try to rmmod via-rhine before suspend then reinsert it after resume.
+Yes, I'd like to see if the complete dmesg includes this line:
+Local APIC disabled by BIOS -- reenabling.
 
-								Pavel
+Yes, the problem is known, but the solution is not.
 
--- 
-When do you have heart between your knees?
+We've seen this problem go away many times with a BIOS upgrade,
+are you running the latest?
+
+There is also a workaround here to temporarily disable the APIC timer:
+http://bugme.osdl.org/show_bug.cgi?id=1269
+
+Perhaps you can update that bug report to say if the workaround
+helps your system or not.
+
+thanks,
+-Len
+
+
 
 
 -------------------------------------------------------
