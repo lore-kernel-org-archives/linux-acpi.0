@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Why nobody help me?
-Date: Mon, 26 Jul 2004 17:17:38 -0400
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: video extensions (Re: Handling \_GPE._L03)
+Date: 26 Jul 2004 17:54:00 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <29AC424F54821A4FB5D7CBE081922E400124E568@hdsmsx403.hd.intel.com>
+Message-ID: <1090878839.2063.5.camel@dhcppc4>
+References: <003901c45b1c$91e1e910$6900a8c0@DEVELOPER>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <003901c45b1c$91e1e910$6900a8c0-nm0TT7E1c8rl2ZiQzgSchg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,21 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: marco ghidinelli <marcogh-k2GhghHVRtY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Wayne Wylupski <wayne-/9RTSe/R4cJBDgjK7y7TUQ@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->> The only workaround I
->> need is having OS to report bewing Windows NT instead of Linux to get
->> the interrupts working.
->
->and how you do that?
+On Fri, 2004-06-25 at 21:26, Wayne Wylupski wrote:
+> Hello,
+>  
+> My laptop is a Fujitsu Lifebook P2110.  I get ACPI events for the
+> function keys for video (switch to other video adapter. or S-output,
+> or shrink the screen).  The Method that gets called is \_GPE._L03.  I
+> know that the ACPI portion of the kernel is handling the method, but
+> how do I register my own handler so I may generate acpid events?  It's
+> not obvious to me there's a device (_HID) associated with this method,
+> and I don't see a precedent for this within the other drivers in
+> drivers/acpi.
 
-acpi_os_name=3D"Microsoft Windows NT"
+Wayne,
+how did you confirm that the L03 is being called?
 
-note that this is the default in the latest ACPI patch.
+Bruno prototyped some of the display extensions here:
+http://bugzilla.kernel.org/show_bug.cgi?id=1944
 
+Perhaps you can attach your acpidmp output to that
+bug report and we can see if we can't get the extensions
+working on your laptop?
+
+thanks,
 -Len
+
+
+
 
 
 -------------------------------------------------------
