@@ -1,12 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Make CONFIG_ACPI_BOOT work again
-Date: Thu, 1 Aug 2002 12:42:04 +0200
+From: Pavel Machek <pavel-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Subject: Re: ACPI Suspend Standby Sleep
+Date: Thu, 1 Aug 2002 11:48:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020801104204.GA146@elf.ucw.cz>
+Message-ID: <20020801094815.GA159@elf.ucw.cz>
+References: <20020730075329.26474@192.168.4.1> <000001c23813$a8888ad0$9865fea9@AMAINSLT>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <000001c23813$a8888ad0$9865fea9-9tCyY70DaME@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,45 +17,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "A.MAINS" <armains-ZO4F0KnmCDHk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
+> 
+> I just informed the list on how I finally got my Battery Information
+> working on my Presario. (Thank you everyone) I also mentioned I was
+> about to take the next endeavor into Standby / Suspend. 
+> 
+> I loaded ACPID. I also know there is a Kernel patch for software suspend
+> (swusp). However, I am wondering if there are any success stories using
+> the ACPI Daemon / Kernel for sleep.
+> 
+> If so, what do I have to do to utilize this feature?
 
-This patch makes CONFIG_ACPI_BOOT functional again. Please apply,
-
+You get 2.5.29, then echo 4 > /proc/acpi/sleep. Read Docs/swsusp.txt.
 								Pavel
-
---- clean/arch/i386/kernel/acpi.c	Mon Jun  3 11:43:27 2002
-+++ linux-swsusp/arch/i386/kernel/acpi.c	Mon Jun 10 23:03:24 2002
-@@ -53,11 +53,9 @@
-                               Boot-time Configuration
-    -------------------------------------------------------------------------- */
- 
--#ifdef CONFIG_ACPI_BOOT
--
- enum acpi_irq_model_id		acpi_irq_model;
- 
--
-+#ifdef CONFIG_ACPI_BOOT
- /*
-  * Use reserved fixmap pages for physical-to-virtual mappings of ACPI tables.
-  * Note that the same range is used for each table, so tables that need to
---- clean/include/linux/acpi.h	Mon Jun  3 11:43:38 2002
-+++ linux-swsusp/include/linux/acpi.h	Mon Jun 10 23:03:25 2002
-@@ -39,7 +39,7 @@
- #include <asm/acpi.h>
- 
- 
--#ifdef CONFIG_ACPI_BOOT
-+#ifdef CONFIG_ACPI
- 
- enum acpi_irq_model_id {
- 	ACPI_IRQ_MODEL_PIC = 0,
-
 -- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
+I'm pavel-7aPAsKgELzg@public.gmane.org "In my country we have almost anarchy and I don't care."
+Panos Katsaloulis describing me w.r.t. patents at discuss-q33YXrgyAoMgsBAKwltoeQ@public.gmane.org
 
 
 -------------------------------------------------------
