@@ -1,12 +1,15 @@
-From: Alf629 <Alf629-pWIpc5MZKA9BDgjK7y7TUQ@public.gmane.org>
-Subject: Re: ACPI locking up
-Date: Sat, 03 Apr 2004 18:11:19 +1000
+From: steup <steup-6bugY6I12JBBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Poweroff works intermittently
+Date: Sat, 3 Apr 2004 14:05:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <15aab015df90.15df9015aab0@email.bigpond.com>
+Message-ID: <20040403140535.6f5b5a62.steup@ifrance.com>
+References: <40696F10.7020009@tiscali.it>
+	<40697D34.9050507@pca.it>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_za7+IlXDN0xg/1rAb1/OMw)"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-language: en
+In-Reply-To: <40697D34.9050507-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,178 +18,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 30 Mar 2004 15:59:16 +0200
+Luca Capello <luca-wlebWZzHoyE@public.gmane.org> wrote:
 
-This is a multi-part message in MIME format.
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Hello,
+> 
+> on 03/30/04 14:58, Nico wrote:
+> > halt doesn't always shut down the system, instead it hangs after having
+> > written "entering sleep state s5" on the console.
+> well, IMHO it doesn't hang, it "just" doesn't turn off the machine, but all the
+> rest is ok. You can verify at next boot: normally the HD is ok and there's no
+> check for errors (like any other machine-freezing).
+> 
+> I had the same problem on my ASUS laptop (M6842NWH). There're 2 possible solutions:
+> 
+> - - disable APIC/Local-APIC (at boot with 'noapic/nolapic' or in the kernel), in
+>   many cases (as in mine) this solves the problem
+> 
+> - - using Hartwig Felger's patch, other infos
+> 	http://marc.theaimsgroup.com/?l=acpi4linux&m=107842464918369&w=2
+> 	http://bugme.osdl.org/show_bug.cgi?id=2109
+> 
+> Thx, bye,
+> Gismo / Luca
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.2.4 (GNU/Linux)
+> Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+> 
+> iD8DBQFAaX0zVAp7Xm10JmkRAmVUAJsFVa4KLtVg3pWIJtavQO1EzsnDHwCgg01n
+> 3PPBOC1ZUIPRI5ad6Yl1Lak=
+> =aIyo
+> -----END PGP SIGNATURE-----
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
+> ___[ Pub ]____________________________________________________________
+> Inscrivez-vous gratuitement sur Tandaime, Le site de rencontres !
+> http://rencontre.rencontres.com/index.php?origine=4
 
---Boundary_(ID_za7+IlXDN0xg/1rAb1/OMw)
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7BIT
-Content-disposition: inline
+Hi,
 
-Compiling without APIC support solved the locking up problem :)
+I confirm, I had the same problem on a Sony vaio Z1RMP, which is solved by Hartwig Felger's patch + 'nolapic' on kernel command line.
 
-Thanks for all your help on this matter Matthias.
+Bye
 
-When the kernel booted up, there were a few errors concerning ACPI on the kernel logs. I don't know about their significance, but here are the two lines with errors:
-Apr  3 17:55:42 localhost kernel:  psparse-1133: *** Error: Method execution failed [\_SB_.PCI0.MC97._PRW] (Node ddefaaa8), AE_NOT_EXIST
-Apr  3 17:55:42 localhost kernel:   uteval-0154: *** Error: Method execution failed [\_SB_.PCI0.MC97._PRW] (Node ddefaaa8), AE_NOT_EXIST
+___[ Pub ]____________________________________________________________
+Inscrivez-vous gratuitement sur Tandaime, Le site de rencontres !
+http://rencontre.rencontres.com/index.php?origine=4
 
-I've included my system log file as an attachment in case it is needed.
-
-Thanks again for your help on solving this problem.
-
-Cheers,
-Fred
-
-
-
-                                                                      
-
---Boundary_(ID_za7+IlXDN0xg/1rAb1/OMw)
-Content-type: application/gzip; NAME=log.txt.gz
-Content-transfer-encoding: base64
-Content-disposition: attachment; filename=log.txt.gz
-
-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
-L8drwX9C76j9K8zQOeYv/wHBOYhd/3AAAA==
-
---Boundary_(ID_za7+IlXDN0xg/1rAb1/OMw)--
 
 
 -------------------------------------------------------
