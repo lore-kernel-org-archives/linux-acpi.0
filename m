@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: trackpoint dead after S3 suspend
-Date: Mon, 24 Nov 2003 10:54:48 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Toshiba Satellite 1905S303
+Date: Mon, 24 Nov 2003 11:39:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031124095448.GB459@elf.ucw.cz>
-References: <3FB3B9D0.5020408@netspace.org> <20031116225331.GA206@elf.ucw.cz> <20031119145809.GA14399@hell.org.pl> <3FC05E17.1010208@netspace.org> <20031123103209.GA279@elf.ucw.cz> <3FC1A754.5080209@netspace.org>
+Message-ID: <20031124103957.GA7374@poupinou.org>
+References: <3FC03405.9040807@techisa.srv.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3FC1A754.5080209-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <3FC03405.9040807-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,64 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Sun, Nov 23, 2003 at 02:13:57AM -0200, Erico M Mendonca wrote:
+> Hello all,
+> 
+>    Continuing my ongoing saga with this notebook...
+> 
+>    I'm now running kernel 2.4.23.0-1mdk with it.
+> 
+>    Not much has changed, but there was a little improvement: cpufreq 
+> (p4-clockmod) works:
+> Nov 23 01:59:26 docmobile kernel: cpufreq: P4/Xeon(TM) CPU On-Demand 
+> Clock Modulation available
+> 
+> but speedstep-ich doesn't:
+> Nov 23 01:58:48 docmobile kernel: cpufreq: Intel(R) SpeedStep(TM) for 
+> this chipset not (yet) available.
 
-> the patch you posted to l-k still doesn't work. 
-> It wasn't clean, so I had to hand patch it against the current bk tree.
-> I'm not sure if I might have been missing another patch.
-> Anyway, the following patch to i8042.c(instead of yours) causes my 
-> keyboard to work.
-> It's not a major modification, mostly it saves the control register 
-> before suspending, and then resetting it on resume.
+What say lspci -v?
 
-It is at least whitespace-damaged... [And I do not like the
-approach... You only reinit single register; is it possible that it
-breaks on another system where other registers are forgotten over
-suspend?]
+> and my /proc/acpi/processor/CPU0/info:
+> processor id:            0
+> acpi id:                 0
+> bus mastering control:   no
+> power management:        yes
+> throttling control:      no
+> performance management:  no
+> limit interface:         no
+> 
+> 
+> Anyway, the worst problem I have now is the system hanging whenever I 
+> try to switch the video-out (Fn-F5), which didn't happen with an older 
+> kernel (2.4.21 from Mandrake 9.1). It appears to generate a kernel 
+> oops/panic, but I cannot get to it, since this notebook doesn't have a 
+> serial port, and the one usb serial console patch I found was for kernel 
+> 2.6.
+> 
+> I did try a few different kernel 2.6 revisions (from test7-test9) but 
+> the behavior is the same. I also tried at least half a dozen 2.4.22 
+> kernels, with the same result.
+> 
+> Any suggestions on solving this problem are welcome... for now the only 
+> thing I think would help would be to try 2.6 with an usb serial console 
+> patch to try and get the kernel panic/oops.
+> 
+> Len, you mentioned earlier that I could implement a thermal_zone through 
+> AML, do you have any pointers or code examples?
+> 
 
-								Pavel
+I have some.  Could you send me your dsdt, please?
+
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
