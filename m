@@ -1,36 +1,52 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: 2.6.10-rc1-mm3: ACPI problem due to un-exported hotplug_path
-Date: Fri, 5 Nov 2004 10:05:13 -0800
-Message-ID: <20041105180513.GA32007@kroah.com>
-References: <20041105001328.3ba97e08.akpm@osdl.org> <20041105164523.GC1295@stusta.de>
+From: "Mai S. Nash" <mainash_qt-wlyIfZtYCSj9fspm8xoNVA@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Fri, 05 Nov 2004 14:13:08 -0400
+Message-ID: <13a801c4c363$d3468f9d$5b595048@canadacouncil.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262731AbUKESGr@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20041105164523.GC1295@stusta.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: Andrew Morton <akpm@osdl.org>, Kay Sievers <kay.sievers@vrfy.org>, rml@novell.com, linux-kernel@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 05, 2004 at 05:45:23PM +0100, Adrian Bunk wrote:
-> The following error (compin from Linus' tree) is caused by the fact that 
-> hotplug_path is no longer EXPORT_SYMBOL'ed:
-> 
-> 
-> <--  snip  -->
-> 
-> if [ -r System.map ]; then /sbin/depmod -ae -F System.map  2.6.10-rc1-mm3; fi
-> WARNING: /lib/modules/2.6.10-rc1-mm3/kernel/drivers/acpi/container.ko needs unknown symbol hotplug_path
-> 
-> <--  snip  -->
+Heya,
 
-Hm, must be an -mm specific change that is causing this.  I don't see
-this in the current tree.
+Do you want a rolex watch?
 
-Len, why would any ACPI code be wanting to get access to hotplug_path
-directly?
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-thanks,
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
-greg k-h
+Visit us: http://www.roiex.com/rep/rolex/
+
+Best regards,
+Hilton Jones
+
+
+No thanks: http://roiex.com/z.php
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
