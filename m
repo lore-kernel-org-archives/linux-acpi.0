@@ -1,12 +1,15 @@
 From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
 Subject: Re: Invalid PBLK length
-Date: Thu, 19 Dec 2002 00:17:40 +0900 (JST)
+Date: Thu, 19 Dec 2002 00:32:01 +0900 (JST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4e353e0091944930a0$NiftyInterway@nifty.ne.jp>
+Message-ID: <713c3e0094f14c9c50$NiftyInterway@nifty.ne.jp>
+References: <200212181326.gBIDQ5D08026@ikffws2.ikff.uni-stuttgart.de>
+	<20021218140019.H9994@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20021218140019.H9994-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,15 +24,15 @@ List-Id: linux-acpi@vger.kernel.org
 
 I didn't check code, but if that said address space type 127 does mean "Functi
 onal Fixed Hardware (0x7F)", then your processor expects that OS processor dri
-ver knows the specific address to control voltage scaling state transition. Us
-ually it's done by accessing MSRs. This has been true for AMD PowerNow! and Tr
-ansmeta LongRun, and Intel's new Geyserville I/F which will be unveiled on Ban
-ias in the near future. These are mostly under NDA, therefore I can't be speci
-fic, however there're several public documents which explain this stuff a bit 
-more.
+ver knows the specific address to control performance state transition. In thi
+s context, FFHardware is usually MSR. This has been true for AMD PowerNow! and
+ Transmeta LongRun, and Intel's new Geyserville I/F which will be unveiled on 
+Banias in the near future. These are mostly under NDA, therefore I can't be sp
+ecific, however there're several public documents which explain this stuff a b
+it more.
 
 So if my guess is correct, your BIOS is not bad. To enable processor performan
-ce control on your machine, Linux needs inputs from CPU vendors. 
+ce state control on your machine, Linux needs inputs from CPU vendors. 
 
 > 
 > > I also see in dmesg that there's an unsupported address space
