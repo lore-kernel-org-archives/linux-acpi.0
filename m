@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: Where can I find some documentation/examples?
-Date: Thu, 8 Jan 2004 04:52:07 +0000
+From: "Defiant" <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
+Subject: RE: can't switch CPU frequency while running on batterypower
+Date: Thu, 8 Jan 2004 07:15:21 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040108045207.GR17182@parcelfarce.linux.theplanet.co.uk>
-References: <LAW11-OE2428gdq0f690001fb1d@hotmail.com>
+Message-ID: <32779.192.168.36.2.1073542521.squirrel@defiant.homedns.org>
+References: <571ACEFD467F7749BC50E0A98C17CDD8E84E7A@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <LAW11-OE2428gdq0f690001fb1d-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84E7A-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 07, 2004 at 11:26:08PM -0500, Dino Klein wrote:
-> I've taken a look at the serial driver's use of acpi in order to discover ports, and their resources (in kernel 2.6.0). One thing
-> puzzled me there, since it seems that it is possible to unload their acpi related, and therefore having it call
-> acpi_bus_unregister_driver(); however, as far as I can tell, the serial port itself is still being used by the serial driver. This
-> is why I'm not quite sure about the relationship between a regular linux driver, and the acpi subsystem.
-> So, any pointers would be appreciated.
 
-You don't necessarily want to take that driver as a good example of
-what's needed to write an ACPI driver.  Actually somebody else just
-pointed out the same thing to me earlier today.  On the systems I work
-on, I use serial console, so it's pretty much mandatory to have 8250
-built in and hence the remove method never gets called ;-)
+> When switching between AC and battery, _PPC method may return a different
+> P-state limit. Please verify if 'cat /proc/acpi/processor/CPU0/limit' is
+> different under the two situations.
+>
+> Thanks,
+> Shaohua
 
-Take a look at something like the button driver instead.
+No, it is not different.
+I get both times
 
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+active limit:            P0:T0
+platform limit:          P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+
+I guess, this is not good?
+
+Erik Andresen
 
 
 -------------------------------------------------------
