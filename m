@@ -1,13 +1,13 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Pattern Match wake-up for wake-on-LAN NIC
-Date: Wed, 8 Dec 2004 13:51:49 +0100
-Message-ID: <20041208125149.GB10704@message-id.gmane0305.slipkontur.de>
-References: <6.1.2.0.0.20041206161859.03c66db8@131.247.3.2>
+Subject: Re: Processor is almost never in C1 state
+Date: Wed, 8 Dec 2004 13:48:49 +0100
+Message-ID: <20041208124849.GA10704@message-id.gmane0305.slipkontur.de>
+References: <fe1d56f504120608102afbf39b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6.1.2.0.0.20041206161859.03c66db8-b4Ey4EHkeYncqvJ0GCHoGg@public.gmane.org>
+In-Reply-To: <fe1d56f504120608102afbf39b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,20 +20,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 06, 2004 at 04:27:50PM -0500, Chamara Gunaratne wrote:
-> Hello,
-> 
-> I am trying to figure out how the pattern-based wake-up in ACPI compatible 
-> network devices work. I am using an Intel PRO 1000 MT card and it wakes up 
-> the PC correctly for Magic Packets and IP address directed packets. How 
-> does pattern matching work in ACPI and what kind of information and 
-> parameters do I need to give if I need to get the PC to wake-up on a 
-> specific pattern ?
+On Mon, Dec 06, 2004 at 11:10:31AM -0500, dogshu wrote:
 
-ACPI has nothing to do with this. The only thing you can probably control
-using ACPI is _if_ your network card will wake up the machine or if it won't.
-The matching of the magic packet against the MAC etc is done by the card,
-not by ACPI.
+> I have a Toshiba Portege laptop with a 500 mhz pentium-3 mobile CPU. 
+> The processor is almost never is in the C1 state, and spends 99.9% of
+> the time in the C2 state, even when doing heavy processing.
+ 
+>     C1:                  promotion[C2] demotion[--] latency[000] usage[00009710]
+>    *C2:                  promotion[--] demotion[C1] latency[001] usage[12232108]
+>     C3:                  <not supported>
+> 
+> As you can see, even though the processor is being maxed out by
+> burnP6, it remains in the C2 state and doesn't really use the C1 state
+> at all.
+
+The latency of C2 is very low, so there is no reason to use C1 very
+often or for a prolonged amount of time.  If the Processor is doing
+"real work" it is in no C-state at all (you might think of it as "C0" :-)
+if i understand things correctly (please someone more knowledgeable
+correct me if i am wrong).
 -- 
 Stefan Seyfried
 
