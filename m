@@ -1,8 +1,8 @@
 From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Early init patch breaks Dell laptops
-Date: Sun, 10 Oct 2004 03:13:03 -0400
+Subject: RE: Re: Linux ACPI processor driver patch: user-definable power state limit
+Date: Sun, 10 Oct 2004 03:14:59 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3001A1938B@hdsmsx401.amr.corp.intel.com>
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3001A1938D@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,58 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I think the bug is that Linux
-enables the LAPIC instead of believeing
-the BIOS that it should be off:
+great -- I was hoping to hear this.
 
-+Local APIC disabled by BIOS -- reenabling.
-+Found and enabled local APIC!
-
--Len=20
+thanks,
+-Len
+=20
 
 >-----Original Message-----
->From: Daniel Drake [mailto:dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org]=20
->Sent: Saturday, October 09, 2004 10:08 AM
+>From: Dominik Brodowski [mailto:linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org]=20
+>Sent: Saturday, October 09, 2004 2:56 PM
 >To: Brown, Len
->Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Early init patch breaks Dell laptops
+>Cc: Jos Delbar; ACPI Developers; Moore, Robert
+>Subject: Re: [ACPI] Re: Linux ACPI processor driver patch:=20
+>user-definable power state limit
 >
->Hi Len,
+>Len,
 >
->I'm one of the maintainers of Gentoo's kernel packages. I=20
->recently added your=20
->ACPI early-init patch into our 2.6.8 patchset in order to=20
->solve the problems=20
->you addressed
->
->http://bugs.gentoo.org/60565
->http://bugzilla.kernel.org/show_bug.cgi?id=3D2941
->
->After adding the "2.6.7 early init" patch, other users have run into=20
->ACPI-related problems (freezing on ACPI events). More=20
->specifically, Dell=20
->Inspiron laptops don't seem to like you :)
->
->According to these users, the issue is also present in=20
->(unmodified) 2.6.9-rc3,=20
->and reverting out the early-init patch seems to solve the problem.
->
->http://bugs.gentoo.org/66723
->http://bugs.gentoo.org/66804
->http://bugs.gentoo.org/66613
->
->A bug has been filed at the kernel bugzilla:
->
->http://bugzilla.kernel.org/show_bug.cgi?id=3D3532
->
->I hope this is useful- please ask if you need any more info.
+>module parameters are even better suited for for this task:
+>processor.acpi_cstate_limit=3D1 can be passed on the boot line.=20
+>I'd vote for
+>the removal of "acpi_", though. As soon as Rusty's and mine "module
+>parameters" patch make them also available in /sys/module/*/ for
+>modification during runtime, if so desired.
 >
 >Thanks,
->Daniel
+>	Dominik
+>
 >
 
 
