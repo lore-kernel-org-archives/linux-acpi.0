@@ -1,14 +1,13 @@
-From: Marci <voloterreno-nc/lrvXPQ4s@public.gmane.org>
-Subject: Re: [Fwd: ACPI error when trying entring in Sleep Mode]
-Date: Mon, 17 Mar 2003 20:03:22 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI newbie: Device Power Consumption at Dx states
+Date: Mon, 17 Mar 2003 09:54:30 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E761BFA.9030609@tin.it>
-References: <3E75C4A6.6000507@tin.it> <20030317134809.GF8319@poup.poupinou.org> <3E75D6E2.4040001@tin.it> <20030317153147.GH8319@poup.poupinou.org> <3E7611EB.2050805@tin.it> <20030317184333.GL8319@poup.poupinou.org>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A1FB@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030317184333.GL8319-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,21 +16,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'me very sorry to disturb you another time , but I need help for a thing.
+> From: Manish Prasad [mailto:mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org] 
+> The spec. suggests two (optional) objects _CST and _PSS, which expose,
+> (among other things) the processor power consumption in 
+> various Cx and Px
+> states respectively. Is there any way I can get device average power
+> consumption at various Dx states ? Couldn't land any such thing on a
+> quick glance through the methods and objects in the spec.
 
-I've read the instructions on how to override the DSDT table by 
-recompiling the linux kernel, but I've not understood clearly the 
-process. In the part when it say that I have to make "patch -p1 
-/PATH/TO/osl.diff and Customize the path to dstl.hex" (the part 
-denominated "How to teach the kernel to use your costum table" )
+Hi Manish,
 
-Thanks again for the help
+I don't think it is in there. The device's driver is responsible for
+doing any runtime power management based upon, say, idle detection, so
+it may know, but ACPI doesn't know.
 
-Marcello
-
+Regards -- Andy
 
 
 -------------------------------------------------------
