@@ -1,14 +1,20 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: AE_AML_REGION_LIMIT trouble
-Date: Fri, 24 Oct 2003 09:14:09 -0700
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: eisa_set_level_irq(acpi_fadt.sci_int)
+Date: 25 Oct 2003 02:50:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <CFF522B18982EA4481D3A3E23B83141C24B4E3@orsmsx407.jf.intel.com>
+Message-ID: <1067046644.2219.9.camel@darkstar.portugal>
+References: <1066254483.2535.51.camel@dhcppc4>
+	<20031017154107.GI8668@poupinou.org>  <1066411716.2527.100.camel@dhcppc4>
+	<1066796711.2593.30.camel@dhcppc4>
+	<1066964092.1541.16.camel@darkstar.portugal>
+	<1066965206.3864.55.camel@dhcppc4>
+	<1066969171.1608.32.camel@darkstar.portugal>
+	<1066975669.3861.84.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <1066975669.3861.84.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,89 +23,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Eric <plukje-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi=20
+> > On Fri, 2003-10-24 at 04:13, Len Brown wrote:
+> > > I expect the regression related to your lid switch is cased
+> > > by something else.  But since you have a box with an Edge Triggered
+> > > SCI, I'd be interested if you are able to receive ACPI interrupts
+> > > if we leave the SCI in Edge Triggered mode:
 
-Looks like a problem, I was able to reproduce it with the code below.  I
-will look into it.
+In fact is the acpi_ec_gpe_query patch that cause the regression.
+After some tests, I am sure, if I apply this patch, pressing lid button
+hangs my laptop.
+and only this patch.
 
-Bob
+http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.4.22=
+/20031017152411-acpi_ec_gpe_query.patch
 
-
------Original Message-----
-From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]=20
-Sent: Friday, October 24, 2003 8:52 AM
-To: Eric; Moore, Robert
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] AE_AML_REGION_LIMIT trouble
-
-On Sun, Oct 19, 2003 at 03:24:18PM +0200, Eric wrote:
-> Greetings everyone on this mailinglist,
->=20
-> I seem to be having a small ACPI problem, of which I don't really know
-
-> what it exactly means,
-> or what I can do to fix it. I'm running linux kernel 2.6.0-test8 and=20
-> I've seen this error from as early as
-> 2.6.0-test1. The machine is a MSI-6728 motherboard with a P4 (with HT)
-
-> on it. Below I've put the output of dmesg (up to where acpi messages
-stop).
-> Please let me know if there is anything else you might be interested
-in=20
-> to clarify this situation because I'm really curious if this is BIOS
-problem
-> or a possible bug in the ACPI code.
->=20
-
-
-You have that in your ASL:
-
-            OperationRegion (TMEM, PCI_Config, 0xC4, 0x02)
-            Field (TMEM, ByteAcc, NoLock, Preserve)
-            {
-                    ,   3,
-                TOUD,   13
-            }
-
-            Name (TOM, 0x00)
-            Method (MDET, 0, NotSerialized)
-            {
-                If (TOM) {}
-                Else
-                {
-                    If (FLAG)
-                    {
-                        ShiftLeft (TOUD, 0x13, TOM)
-                    }
-                    Else
-                    {
-                        Return (0x20000000)
-                    }
-                }
-
-                Return (TOM)
-            }
-
-
-I am pretty sure that the root of your trouble is
-the 'ShiftLeft (TOUD, 0x13, TOM)'.
-(For info, FLAG is declared as Name (FLAG, 0x01), so
-that is not the problem as well).
-
-I think it is valid, and suspect more or less there is
-a bug in ACPICA.  But I am not sure.  If a guru
-can help me to determine that I am right or wrong (Bob?).
-
-Cheers,
-
+thanks=20
 --=20
-Ducrot Bruno
+S=E9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Who gives me one shell, give me everything.
+
 
 
 -------------------------------------------------------
