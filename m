@@ -1,10 +1,10 @@
-From: bob-BJ6v6M5vqdg4Q++5jOxPmw@public.gmane.org
-Subject: Error
-Date: Wed, 28 Jan 2004 10:52:08 +0530
+From: SLZ-01-HUB03-KoyEXo1WXqVeoWH0uzbU5w@public.gmane.org
+Subject: AntiVirus - Warnung
+Date: Wed, 28 Jan 2004 08:08:32 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1AljJe-0000zd-00@deer.gmane.org>
+Message-ID: <C1256E29.0027409B.00@ffm-hq-gtw01.Arcor.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; 	boundary="----=_NextPart_000_0005_D9A3E3AE.44C5606D"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +17,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+In dem von Ihnen gesendetem Mail wurde ein Virus entdeckt und
+- gegebenenfalls mit der/den angehaengten Datei/en - entfernt.
 
 
-------=_NextPart_000_0005_D9A3E3AE.44C5606D
-Content-Type: text/plain; 	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+The infected component in the scanned document was deleted.
 
 
+Violation Information:
+The attachment doc.zip contained the virus W32.Novarg.A-rtiCCPl9gjg@public.gmane.org and was deleted.
 
-
-
-
-------=_NextPart_000_0005_D9A3E3AE.44C5606D
-Content-Type: text/plain;
-	name="InterScan_SafeStamp.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="InterScan_SafeStamp.txt"
-
-****** Message from InterScan E-Mail VirusWall NT ******
-
-** WARNING! Attached file body.scr contains:
-
-     WORM_MIMAIL.R virus
-
-   Attempted to clean the file but it is not cleanable.
-   It has been deleted.
-
-This mail contains virus
-*****************     End of message     ***************
-
-
-------=_NextPart_000_0005_D9A3E3AE.44C5606D--
 
 
 
