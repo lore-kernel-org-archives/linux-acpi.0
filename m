@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] Sanitize ACPI Kconfig
-Date: Wed, 19 Jan 2005 13:15:16 +0100
-Message-ID: <20050119121516.GA22856@elf.ucw.cz>
-References: <20050107212259.GA13026@wotan.suse.de> <20050117111602.GI29270@wotan.suse.de> <20050117113007.GB1354@elf.ucw.cz> <200501171158.51388.david.goodenough@btconnect.com>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Wed, 19 Jan 2005 08:31:49 -0500
+Message-ID: <41EE6145.6010908@bartol.udel.edu>
+References: <41E81C2C.8010809@bartol.udel.edu>	<1105747983.7368.3.camel@tyrosine>	<47e0449d05011419037877f931@mail.gmail.com>	<m2fz13x8mw.fsf@phoenix.squirrel.nl>	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <m2u0pdn4js.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200501171158.51388.david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
+In-Reply-To: <m2u0pdn4js.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Johan Vromans wrote:
+> Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
+> 
+> 
+>>http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20050119.tar.gz
+>>Keep the bug reports coming!
+> 
+> 
+> Good work! Seems to function properly on my TravelMate 4001WLMi.
+> 
+> The Gnome Battery applet does not detect when the AC state changes. Is
+> that part of the required but still to be implemented event interface?
 
-> > > > neccessary if you want to go 2GHz with your athlon64 laptop (or it is
-> > > > 800MHz), so I'd say enable it.
-> > >
-> > > My desktop boxes and servers all don't care about battery or AC.
-> > >
-> > > But I'm not opposed to turning it on, just the "m" default is quite
-> > > useless.
-> >
-> > I'd say that 'y' there makes sense, but anything is better than 'm'.
-> I really do not understand this.  Having is as a module wastes a bit of disk
-> space (usually not a problem) but means that they can be loaded if wanted
-> either by loading them manually or by using acpid.  Having them as y forces
-> them to be there and some systems with dodgy ACPI implementations will
-> have problems, and having them not there means that Joe User has to 
+Yes -- in the sense that a notify event should be issued on AC state 
+change, but the code to do that isn't yet there.
 
-We want to get maximum testing. If there's some dodgy machine, we want
-to have it fixed. [I do not believe I seen such dodgy machines in
-recent history.]
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+However, I'm surprised that the GB applet doesn't get the AC state from 
+polling /proc/acpi/adapter/AC0/state. I use wmacpi, and that shows up 
+the AC state fine...
+
+cheers,
+
+Rich
 
 
 -------------------------------------------------------
