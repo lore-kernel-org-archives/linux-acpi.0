@@ -1,15 +1,15 @@
-From: Jan Slezak <jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org>
+From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
 Subject: Re: Where does Dell i8200 hide it's fans?
-Date: Sat, 25 Jan 2003 18:50:26 +0100
+Date: 25 Jan 2003 15:06:01 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200301251850.26764.jan.slezak@centrum.cz>
+Message-ID: <1043525161.11454.2.camel@sirius.strandboge.cxm>
 References: <15921.42374.651850.622121@jena.eng.sun.com>
+	 <200301251850.26764.jan.slezak@centrum.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <15921.42374.651850.622121-mWDWuy/8qzhGbVqAl5zy8A@public.gmane.org>
+In-Reply-To: <200301251850.26764.jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,70 +18,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marco Walther <Marco.Walther-xsfywfwIY+M@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-You reported the problem with zero values in /proc/acpi on your Dell some=
- time=20
-ago. I have the same problem. Did you resolve this problem or do you have=
- any=20
-information about this problem?
+On Sat, 2003-01-25 at 12:50, Jan Slezak wrote:
+> You reported the problem with zero values in /proc/acpi on your Dell some time 
+> ago. I have the same problem. Did you resolve this problem or do you have any 
+> information about this problem?
+> 
 
-Thanks,
-Jan
+I too would be interested in this.  I am still using 20021118 because
+anything later just didn't work.  If you are hacking the DSDT, I'd love
+some info on what you are doing, because our DSDT is so cryptic (to me
+anyway).
+
+Jamie 
+
+-- 
+Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
+GPG/PGP ID:   26384A3A
+Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
 
 
-Dne p=E1 24. leden 2003 21:43 Marco Walther napsal(a):
-> I've a Dell Inspiron 8200 and I know it has two fans. The Dell-laptop
-> driver is able to switch them but I don't see anything in the acpi
-> DSDT:-(
->
-> The whole ThermalZone is really small:
->
->     Scope (\_TZ)
->     {
->         ThermalZone (THM)
->         {
->             Method (_CRT, 0, NotSerialized)
->             {
->                 Store (0x5E, Local0)
->                 Multiply (Local0, 0x0A, Local0)
->                 Add (Local0, 0x0AAC, Local0)
->                 Return (Local0)   /* 94 C */
->             }
->
->             Method (_TMP, 0, NotSerialized)
->             {
->                 Store (GINF (0x04), Local0)
->                 Return (Local0)
->             }
->
->             Method (GINF, 1, NotSerialized)
->            {
->                 SX10 ()
->                 SX30 (Arg0)
->                 SX11 ()
->                 Store (SX41 (), Local0)
->                 SX12 ()
->                 If (LLess (Local0, 0x0BA6))
->                 {
->                     Store (0x0BA6, Local0)   /* 25 C, that's what I
-> =09=09=09=09=09      * see in the /proc/acpi */
->                 }
->
->                 Return (Local0)
->             }
->         }
->     }
->
-> There should be more but where would I find it?
->
-> Another question: The Dell DSDT has some parts which work differently
-> for different Windows OS's. Since this laptop is only supported with
-> WinXP, whould it make sense to to fake that even under Linux?
->
-> Thanks,
-> -- Marco
 
 
 -------------------------------------------------------
