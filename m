@@ -1,13 +1,13 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: 2.6.11-mm2
-Date: Thu, 10 Mar 2005 00:09:21 -0800
-Message-ID: <20050310000921.0d0bd597.akpm@osdl.org>
-References: <20050308033846.0c4f8245.akpm@osdl.org>
-	<422FFDEF.2060706@gts.it>
+From: Sergio Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
+Subject: Re: CONFIG_PM, CONFIG_ACPI, CONFIG_ACPI_SLEEP
+Date: Thu, 10 Mar 2005 08:38:06 +0000
+Message-ID: <1110443886.5721.18.camel@bastov>
+References: <1110394955.9337.48.camel@d845pe>
+	 <1110406503.8870.36.camel@desktop.cunningham.myip.net.au>
+Reply-To: sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <422FFDEF.2060706-g1Oybe70Lz0@public.gmane.org>
+Content-Type: multipart/mixed; boundary="=-BRBA428OMdHbD5xvaZXa"
+In-Reply-To: <1110406503.8870.36.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,125 +17,92 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefano Rivoir <s.rivoir-g1Oybe70Lz0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Stefano Rivoir <s.rivoir-g1Oybe70Lz0@public.gmane.org> wrote:
->
-> Andrew Morton wrote:
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.11/2.6.11-mm2/
-> 
-> Hi Andrew
-> 
-> With 2.6.11-mm series, "acpi_poweroff called" problem is back again (it 
-> disappeared in 2.6.11-rc-mm and actually never happend in Linus' tree). 
-> So when you shutdown, you have to unplug power cord or so to switch off 
-> because the system hangs after that message is displayed.
-> 
 
-Does the below fix it?
+--=-BRBA428OMdHbD5xvaZXa
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-If so, sorry, this patch was dropped because it just does everything the
-wrong way, and the acpi guys are cooking up some scheme to fix it for real.
+Hi, I had write about it on Apr/May 2004,
 
+Because "Accidentally, I compile ACPI without CONFIG_PM on one Dell
+something dual Pentium III and power off didn't work."=20
 
+For me this was a bug that has been introduced when ACPI enter in 2.4
+because, before that, if I recall correctly =20
+"we couldn't compile ACPI without define CONFIG_PM"
 
-From: "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org>
+Conclusion, to simplify, on kernel configuration, I propose to force
+that (for compile ACPI we need define CONFIG_PM) (again?) with this
+little patch on attach.=20
 
-From: "Barry K. Nathan" <barryn-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+thanks,
 
-On Tue, Feb 08, 2005 at 08:54:06PM -0800, Andrew Morton wrote:
-> "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org> wrote:
-> >
-> > Please add to -mm the patch in attachment, since it solves the old
-> >  acpi_power_off bug...
-> 
-> What acpi_power_off bug?  And how does it solve it?
+On Thu, 2005-03-10 at 09:15 +1100, Nigel Cunningham wrote:
+> Hi.
+>=20
+> On Thu, 2005-03-10 at 06:02, Len Brown wrote:
+> > Today it is possible to build with
+> > CONFIG_PM=3Dn
+> > CONFIG_ACPI=3Dy
+> > (however, CONFIG_ACPI_SLEEP does depend on CONFIG_PM)
+> >=20
+> > Seems that the solution to the kexec poweroff issue
+> > is simpler if ACPI can depend on CONFIG_PM being present:
+> > http://bugzilla.kernel.org/show_bug.cgi?id=3D4041
+> >=20
+> > Why shouldn't CONFIG_ACPI depend on CONFIG_PM
+> > Why shouldn't CONFIG_ACPI_SLEEP simply be CONFIG_ACPI
+> >=20
+> > I can't think of any good reasons not to simplify here, can you?
+>=20
+> That sounds confusing to me. I thought that ACPI was much more than jus=
+t
+> power management. Doesn't it include IRQ routing, device enumeration an=
+d
+> so on too?
 
-Here's the observed bug that the patch is trying to fix:
-http://bugme.osdl.org/show_bug.cgi?id=4041
+yes, but we can say "ACPI without PM doesn't exist"
 
-What Marcos posted is a typo-corrected version of Eric Biederman's
-patch:
-http://marc.theaimsgroup.com/?l=linux-kernel&m=110665542929525&w=2
+>=20
+> Regards,
+>=20
+> Nigel
+--=20
+S=E9rgio M.B.
 
-In Eric's own words, the patch "needs some work before it goes into a
-mainline kernel". AFAICT it's more of a proof-of-concept, just to see if
-Eric's on the right track...
+--=-BRBA428OMdHbD5xvaZXa
+Content-Disposition: attachment; filename=configopti-24.diff
+Content-Type: text/x-patch; name=configopti-24.diff; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-This is the motivation behind the patch:
-http://marc.theaimsgroup.com/?l=linux-kernel&m=110665405402747&w=2
-
-
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
----
-
- 25-akpm/drivers/acpi/sleep/poweroff.c |   23 +++++++++++++++++++++--
- 25-akpm/drivers/base/power/shutdown.c |    7 +++++++
- 2 files changed, 28 insertions(+), 2 deletions(-)
-
-diff -puN drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix drivers/acpi/sleep/poweroff.c
---- 25/drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix	2005-02-23 01:48:08.000000000 -0800
-+++ 25-akpm/drivers/acpi/sleep/poweroff.c	2005-02-23 01:48:08.000000000 -0800
-@@ -7,18 +7,37 @@
+--- linux-2.4.26s/arch/i386/config.in.orig	2004-04-29 23:38:38.000000000 +0100
++++ linux-2.4.26s/arch/i386/config.in	2004-04-29 23:40:58.000000000 +0100
+@@ -360,7 +360,7 @@
+ bool 'Power Management support' CONFIG_PM
  
- #include <linux/pm.h>
- #include <linux/init.h>
-+#include <linux/kernel.h>
- #include <acpi/acpi_bus.h>
- #include <linux/sched.h>
- #include "sleep.h"
+ dep_tristate '  Advanced Power Management BIOS support' CONFIG_APM $CONFIG_PM
+-if [ "$CONFIG_APM" != "n" ]; then
++if [ "$CONFIG_APM" != "n" -a "$CONFIG_PM" = "y" ]; then
+    bool '    Ignore USER SUSPEND' CONFIG_APM_IGNORE_USER_SUSPEND
+    bool '    Enable PM at boot time' CONFIG_APM_DO_ENABLE
+    bool '    Make CPU Idle calls when idle' CONFIG_APM_CPU_IDLE
+@@ -370,7 +370,9 @@
+    bool '    Use real mode APM BIOS call to power off' CONFIG_APM_REAL_MODE_POWER_OFF
+ fi
  
- static void
-+acpi_power_off_prepare(void)
-+{
-+       if (system_state == SYSTEM_POWER_OFF) {
-+               acpi_wakeup_gpe_poweroff_prepare();
-+               acpi_enter_sleep_state_prep(ACPI_STATE_S5);
-+       }
-+}
-+
-+void
-+do_acpi_power_off_prepare(void)
-+{
-+       if (!acpi_disabled) {
-+               acpi_power_off_prepare();
-+       }
-+}
-+
-+
-+static void
- acpi_power_off (void)
- {
- 	printk("%s called\n",__FUNCTION__);
-+#if 0	/* This should be made redundant by other patches.. */
- 	/* Some SMP machines only can poweroff in boot CPU */
- 	set_cpus_allowed(current, cpumask_of_cpu(0));
--	acpi_wakeup_gpe_poweroff_prepare();
--	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
-+#endif
- 	ACPI_DISABLE_IRQS();
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
- }
-diff -puN drivers/base/power/shutdown.c~acpi_power_off-bug-fix drivers/base/power/shutdown.c
---- 25/drivers/base/power/shutdown.c~acpi_power_off-bug-fix	2005-02-23 01:48:08.000000000 -0800
-+++ 25-akpm/drivers/base/power/shutdown.c	2005-02-23 01:48:08.000000000 -0800
-@@ -62,6 +62,13 @@ void device_shutdown(void)
- 	}
- 	up_write(&devices_subsys.rwsem);
+-source drivers/acpi/Config.in
++if [ "$CONFIG_PM" = "y" ]; then
++	source drivers/acpi/Config.in
++fi
  
-+#ifdef CONFIG_ACPI
-+	{
-+		extern void do_acpi_power_off_prepare(void);
-+		do_acpi_power_off_prepare();
-+	}
-+#endif
-+
- 	sysdev_shutdown();
- }
+ endmenu
  
-_
+
+--=-BRBA428OMdHbD5xvaZXa--
 
 
 
