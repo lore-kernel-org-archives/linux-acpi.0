@@ -1,11 +1,11 @@
-From: "Andreas Leppert" <wudmx-S0/GAf8tV78@public.gmane.org>
-Subject: RE: throttling is not changing
-Date: Mon, 13 Sep 2004 17:29:48 +0200
+From: =?ISO-8859-1?Q?Lu=EDs_Neves?= <lneves-3+EeCmRbAIqyvGiigdSjEg@public.gmane.org>
+Subject: Error compiling iasl
+Date: Mon, 13 Sep 2004 17:29:27 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1558615296@web.de>
+Message-ID: <4145CAE7.90709@estg.ipleiria.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,35 +18,48 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hi,
+Hi everybody,
 
-dont know where's the problem... 
+I downloaded acpica-unix-20040715.tar.gz in order to compile iasl but I=20
+got an error compiling:
 
-so i wanted to know, if my dsdt is broken. i disassembled my dsdt and compiled it using iasl.  it returns with one error:
+pln:/usr/src/acpica-unix-20040715/compiler# make
+yacc -v -d -y -pAslCompiler aslcompiler.y
+conflicts: 33 shift/reduce, 47 reduce/reduce
+aslcompiler.y:882.7-81: warning: rule never reduced because of=20
+conflicts: TermArg: Type2IntegerOpcode
+aslcompiler.y:883.7-81: warning: rule never reduced because of=20
+conflicts: TermArg: Type2StringOpcode
+aslcompiler.y:884.7-81: warning: rule never reduced because of=20
+conflicts: TermArg: Type2BufferOpcode
+aslcompiler.y:885.7-81: warning: rule never reduced because of=20
+conflicts: TermArg: Type2BufferOrStringOpcode
+aslcompiler.y:1473.7-38: warning: rule never reduced because of=20
+conflicts: CaseTermList: CaseTerm
+aslcompiler.y:1482.7-38: warning: rule never reduced because of=20
+conflicts: DefaultTermList: CaseTerm
+cp y.tab.c aslcompilerparse.c
+cp y.tab.h aslcompiler.y.h
+cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER=20
+-I../include    -c -o aslcompilerparse.o aslcompilerparse.c
+flex -i -PAslCompiler -oaslcompilerlex.c aslcompiler.l
+cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER=20
+-I../include    -c -o aslcompilerlex.o aslcompilerlex.c
+aslcompiler.l: In function `comment':
+aslcompiler.l:837: error: `yytext_ptr' undeclared (first use in this=20
+function)
+aslcompiler.l:837: error: (Each undeclared identifier is reported only on=
+c
+aslcompiler.l:837: error: for each function it appears in.)
+make: *** [aslcompilerlex.o] Error 1
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20040715 [Sep 13 2004]
-Copyright (C) 2000 - 2004 Intel Corporation
-Supports CPI Specification Revision 2.0C
+Can anyone help me? I have a Debian Sarge (testing), gcc 3.3.4, flex=20
+2.5.31, bison 1.875a. I need iasl to decompile my HP pavilion zt3240=20
+DSDT as I currently have no thermal_zone contents in /proc.
 
-dsdt.dsl 3081:     If (SS1)
-Error  1037 -         ^ syntax error, unexpected PARSEOP_IF
+Best regards,
 
-ASL Input: dsdt.dsl - 3132 lines, 104097 bytes, 1533 keywords
-Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
-
-1) i'm really confused about it. does the throttling thing depends on my dsdt?
-2) my dsdt is broken, isn't it?
-3) where can i get more information about repairing this error? google didn't find something
-4) don't know if you guys do this, so i just ask: do you repair dsdt from other people?
-
-thanks in advance
-Andreas Leppert
-
-_______________________________________________________
-WEB.DE Video-Mail - Sagen Sie mehr mit bewegten Bildern
-Informationen unter: http://freemail.web.de/?mc=021199
-
+Lu=EDs Neves
 
 
 -------------------------------------------------------
