@@ -1,11 +1,10 @@
-From: "Scottie Krause" <scottiekrause_aw-KbodeN3NtUBcfcqX1zwrLg@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Thu, 09 Dec 2004 03:20:07 -0500
-Message-ID: <4af201c4ddc7$69262563$21932f40@kki.ee>
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: network card buzzing
+Date: Thu, 09 Dec 2004 14:33:39 +0000
+Message-ID: <41B86243.7090507@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,30 +18,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+hi everyone
 
-Do you want a rolex watch?
+I tought it was normal to have a buzzing on the network card while it=20
+transmits/receives high quanitities of data and using almost all of it's=20
+bandwidth... I had such a network card on my desktop and now my laptop do=
+es the=20
+same.
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+the laptop is a (smart-battery powered) acer travelmate 4001 WLMi and the=
+=20
+network card is a broadcom (b44) 10/100Mbps.
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+after rejecting the idea, I decided to try the same on another OS... wind=
+ows. it=20
+doesn't buzz while transmiting/receiving at 80Mbps whereas on linux it do=
+es. one=20
+can hear exactly when there is activity and when there isn't.
 
-Visit us: http://www.bhex.com/rep/rolex/
+is this a problem? hardware issue? software issue? acpi? plain bad luck? =
+what is=20
+happening here?
 
-Best regards,
-Hilton Jones
+regards,
+pedro venda.
+--=20
 
-
-No thanks: http://www.bhex.com/z.php
-
+Pedro Jo=E3o Lopes Venda
+email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
+http://arrakis.dhis.org
 
 
 -------------------------------------------------------
