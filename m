@@ -1,10 +1,11 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [Fwd: [BK PATCH] ACPICA 20031002 for 2.6]
-Date: 11 Oct 2003 01:46:06 -0400
+Subject: [BK PATCH] ACPICA 20031002 for 2.4
+Date: 11 Oct 2003 01:49:15 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1065851166.4117.70.camel@dhcppc4>
+Message-ID: <1065851355.4118.75.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-xRpb3uI1mY0WB91Yz95+"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,41 +15,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Marcelo, please do a 
 
---=-xRpb3uI1mY0WB91Yz95+
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-
-
---=-xRpb3uI1mY0WB91Yz95+
-Content-Disposition: inline
-Content-Description: Forwarded message - [BK PATCH] ACPICA 20031002 for 2.6
-Content-Type: message/rfc822
-
-Subject: [BK PATCH] ACPICA 20031002 for 2.6
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Content-Type: text/plain
-Organization: 
-Message-Id: <1065850864.4112.67.camel@dhcppc4>
-Mime-Version: 1.0
-X-Mailer: Ximian Evolution 1.2.3 
-Date: 11 Oct 2003 01:41:04 -0400
-Content-Transfer-Encoding: 7bit
-
-Hi Linus, please do a 
-
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
+	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
 
 thanks,
 -Len
 
-ps. a plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.0-test7/acpi-20031002-2.6.0-test7.diff.gz
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.23-pre7/acpi-20031002-2.4.23-pre7.diff.gz
 
 This will update the following files:
 
@@ -80,10 +59,10 @@ This will update the following files:
 
 through these ChangeSets:
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/07 1.1296.57.9)
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/07 1.1063.43.22)
    [ACPI] fix acpi_asus module build (Stephen Hemminger)
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/06 1.1296.57.7)
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/06 1.1063.43.21)
    [ACPI] Summary of changes for ACPICA version 20031002:
    
    Fixed a problem with Index Fields where the index was not incremented
@@ -119,8 +98,6 @@ it
 
 
 
-
---=-xRpb3uI1mY0WB91Yz95+--
 
 
 
