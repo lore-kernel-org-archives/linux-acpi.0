@@ -1,13 +1,14 @@
-From: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
-Date: Sun, 27 Jun 2004 22:25:55 -0700 (PDT)
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Re: [Swsusp-devel] swsusp and ac status
+Date: Mon, 28 Jun 2004 07:27:04 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040628052555.14483.qmail@web20411.mail.yahoo.com>
-References: <20040628014815.C590AB6B6@xprdmailfe18.nwk.excite.com>
+Message-ID: <20040628052704.GA24842@hell.org.pl>
+References: <200406250701.i5P71GKC006204@fermat.unipv.it> <opr95d71ln4evsfm@smtp.pacific.net.th> <20040627222842.GB1816@hell.org.pl> <opr992vyyr4evsfm@smtp.pacific.net.th> <opr994muhg4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040628014815.C590AB6B6-ch062KcR4QwMxUCXveYptA1yzfppHFFyQQ4Iyu8u01E@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <opr994muhg4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,41 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Cc: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Software Suspend - Mailing Lists <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Everybody,
+Thus wrote Michael Frank:
+> >----> Thus the BIOS is now in a post boot state, like before
+> >	vmlinux starts on boot!
+> 
+> To clarify
+> 
+>  ----> Thus the BIOS is now in a post boot state, like _after_
+>  	vmlinux started on boot! and BIOS AC adapter interface
+> 	is unchanged from pre-boot.
 
-IT seems to me that all my problems start with the error message
-indicated in the subject line. Could someone explain to me what this 
-error message means and possibly how (if possible) to correct the
-problem.
+Please supply your DSDT to verify what's exactly going on there.
+Best regards,
 
-I use Dell Latitude x300 laptop and 2.4.26 kernel with the latest acpi
-patch (acpi-20040326-2.4.26).
-
-I have modified the dsdt table so that it compiles without any errors,
-but
-I still get the above error at boot. AC/Battery status does not work.
-Thermal does not work. It seems I can change the throttling of the CPU.
-
-Any suggestions are highly appreciated. Could I ask some one to reply
-to me even if they do not know how to solve the problem? You see, I
-have sent
-several emails to this list and got very small number of replies. Maybe
-
-my subscription is broken? Sometimes I get double postings of other
-people.
-Thanks a lot for you kind help
-
-Lazar
-
-
-		
-__________________________________
-Do you Yahoo!?
-New and Improved Yahoo! Mail - Send 10MB messages!
-http://promotions.yahoo.com/new_mail 
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
