@@ -1,16 +1,15 @@
-From: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
-Subject: Re: Re: ACPI source patches updated (20021101)
-Date: Sun, 3 Nov 2002 01:29:17 +0100
+From: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>
+Subject: Re: Changing temperature trip points
+Date: 02 Nov 2002 20:59:14 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200211030129.17514.earny@net4u.de>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A49E@orsmsx119.jf.intel.com> <m2y98ct3fm.fsf@tnuctip.rychter.com> <20021102224828.31af38a2.hanno@gmx.de>
-Reply-To: earny-euM3SP4ZHrg@public.gmane.org
+Message-ID: <1036288754.2971.1.camel@localhost.localdomain>
+References: <E187ipj-0001ss-00@usw-sf-list2.sourceforge.net>
+	<000001c28231$b7cae110$c200a8c0@pikachu>  <20021102171756.GD1983@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021102224828.31af38a2.hanno-Mmb7MZpHnFY@public.gmane.org>
+In-Reply-To: <20021102171756.GD1983-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,31 +18,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Cc: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Samstag, 2. November 2002 22:48, Hanno B=F6ck wrote:
-> > Doesn't boot on my machine (Sharp Mebius PC-MT1-H5). The kernel start=
-s
-> > booting, then thousands of ACPI debug messages scroll by. All I can s=
-ay
-> > about them is that they are related to mutexes, they scroll way too f=
-ast
-> > for me to read them and I don't know of any way to stop them scrollin=
-g.
->
-> Had a similar problem. WHen I disabled acpi debug messages, i could boo=
-t
-> without problems.
->
+I did in fact try that, and while it lets me change the values, they
+don't actually seem to affect the kernel's idea of when the fan should
+come on, if at all.  I set the active trip point to 45 C and the passive
+to 50 C, then ran a compile to see if the fan triggered.  While the
+temperature got above 50 C, the fan never came on.  In fact, I don't
+know if the fan would come on even if the originally-specified trip
+points were reached.  Either way, this isn't exactly the most comforting
+situation to observe.
 
-Similar problem on a Germicom M6-T. With debug messages enabled the kerne=
-l=20
-will not boot, without _any_ message. With debugging disabled everything=20
-works fine.
+On Sat, 2002-11-02 at 12:17, Pavel Machek wrote:
+> Hi!
+> 
+> > On my laptop, a Gateway Solo 1400 with one of those super-integrated VIA
+> > Apollo Pro133A chipsets that has basically every system function
+> > integrated into it (video, sound, modem, networking, and so forth), I
+> > note that the temperature trip points are excruciatingly high; so high,
+> > in fact, that the processor (a Celeron 900) would be close to thermal
+> > death by the time the fan would purportedly turn itself on.
+> 
+> I have similar problem here. HP Omnibook turns itself off long before
+> passive trip point is reached.
+> 
+> Try echo "1:2:3:4:5" > /proc/acpi/thermal_zone/THRM/trip_points. Should work in 2.5.44; dunno
+> if 2.4. backport supports it.
+> 								Pavel 
+> -- 
+> When do you have heart between your knees?
+> 
 
-<Earny>
+
+
 
 
 -------------------------------------------------------
