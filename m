@@ -1,14 +1,12 @@
-From: Hamie <hamish-CM5YN7r2dWBr4tq51QLIbdBPR1lH4CV8@public.gmane.org>
-Subject: Re: No APIC interrupts after ACPI suspend
-Date: Sun, 27 Jun 2004 21:27:05 +0100
+From: Ludwig Meyerhoff <ludwig-KBAKnD37014@public.gmane.org>
+Subject: ACPI and VIA C3
+Date: Sun, 27 Jun 2004 23:17:16 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40DF2D99.6030704@travellingkiwi.com>
-References: <1088160505.3702.4.camel@tyrosine> <40DDBA7A.6010404@travellingkiwi.com> <40DF0A98.9040604@travellingkiwi.com> <200406272052.43326@zodiac.zodiac.dnsalias.org> <40DF1D22.2010406@travellingkiwi.com>
+Message-ID: <40DF395C.5010700@antar.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40DF1D22.2010406-CM5YN7r2dWBr4tq51QLIbdBPR1lH4CV8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,59 +15,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: Alexander Gran <alex-4mRm4CWMOdkHuPwBo6/EyUB+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hamie wrote:
+Hallo!
 
-> Alexander Gran wrote:
->
->> -----BEGIN PGP SIGNED MESSAGE-----
->> Hash: SHA1
->>
->> Am Sonntag, 27. Juni 2004 19:57 schrieb Hamie:
->>  
->>
->>> FWIW the sound & networking appear to run fine for a while after
->>> resuming. But I just started a DVD. It ran fine for about 30 seconds 
->>> and
->>> then the sound went. About 30 seconds later the video froze and the app
->>> (xine) has frozen also. (kill -9 time...).
->>>   
->>
->> <>
->> I can confirm that here:
->> after resuming, network completely works (yeah!).
->> Sound doesn't.
->> unloading/reloading the sound driver does not help.
->> USB works jumpy (perhaps 5-10hz)
->> Reloading does the trick for usb.
->>
->
-> Since it sounds like a different bug to 2643, (Similiar but the patch 
-> that fixes the ethernet doesn't appear to doa  lot for the sound). 
-> I've opened a new one... #2965.
->
+I have a VIA C3 (Ezra) processor. It is very nice for "normal"
+applications, as it takes only a few watt.
 
-Seeing as sound was on IRQ5 and the patch for 2643 fixed the ethernet, I added a
-(big hack here :) call to 
+I have a problem with the ACPI support of the kernel ...
+While 2.4.20 recognizes the processor to support C1 and C2 states, the
+2.4.26 does not, as the 2.6.6 does not also.
 
-                acpi_pic_sci_set_trigger(5, acpi_sci_flags.trigger);
+AFAIK the ACPI support has been rewritten for the 2.6 kernel and
+backported to 2.4 in 2.4.23 or something ...
 
-in  acpi_pm_finish(u32 state); just after the call to set the IRQ trigger for
-the acpi irq... 
+Now: does anyone know how I can achieve full ACPI support for my
+processor in a more recent kernel than 2.4.20? In special I would like
+to use frequency scaling/throttling, as most of the time my small
+computer does nothing.
 
-Results in (kern.log) 
-
-Jun 27 21:15:28 ballbreaker kernel: ACPI: IRQ9 SCI: Edge set to Level Trigger.
-Jun 27 21:15:28 ballbreaker kernel: ACPI: IRQ5 SCI: Edge set to Level Trigger.
+I already tried the epia1 patch on the 2.6.6 kernel and the acpi patch
+on 2.6.7 kernel, both without a satisfying result ...
 
 
-and then sound works after resume... Obviously not a very good fix as it won't
-fix anything that uses somethign other than IRQ5.
 
-So... What should the correct fix be? Obviously some IRQ's triggers aren't
-surviving the resume... But why... The timer (IRQ 0) obviously does... 
+
+Saluti!
+
+Ludwig
+
 
 
 
