@@ -1,14 +1,12 @@
-From: Hiromichi Ito <itooon-ez3K6K0nqN9BPp5YB5Ev3w@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Fri, 27 Sep 2002 16:43:05 +0900
+From: Robert Woerle <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
+Subject: kapcipc && C states
+Date: Fri, 27 Sep 2002 10:29:59 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020927074308.9717@po.lancenet.or.jp>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE8C@orsmsx119.jf.intel.com>
+Message-ID: <3D941707.8050600@paceblade.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE8C-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +15,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi
 
->- DOES IT BOOT?
+I noticed that the C states are not changing anymore .
+the CPU is always running at C1 and never switched to C2 or C3
 
-My Supermicro P4DP8-G2 with Xeon(enable HT) CPU boots.
+i remmeber at one point ( think in july ) this switching to C2 was 
+happening ...
 
->- DOES IT ASSIGN INTERRUPTS PROPERLY?
+---
+sometimes it happens to me that a process called   kacpipc  pretty fills 
+up my CPU time to 95 % or more ...
+I dont know what this function does or where it is started .
+I either cannot kill -9 it !
 
-It seems to be assigned appropriately.
-However, there are some differences.
-
-dmesg of 2.4.20-pre7
-
- IO-APIC (apicid-pin) 2-0, 2-10, 2-11, 2-17, 2-20, 2-21, 2-22, 2-23, 3-0, 3-1, 3
--2, 3-3, 3-6, 3-7, 3-8, 3-9, 3-10, 3-11, 3-12, 3-13, 3-14, 3-15, 3-16, 3-17, 3-1
-8, 3-19, 3-20, 3-21, 3-22, 3-23, 4-0, 4-1, 4-2, 4-3, 4-4, 4-5, 4-6, 4-7, 4-8, 4-
-9, 4-10, 4-11, 4-12, 4-13, 4-14, 4-15, 4-16, 4-17, 4-18, 4-19, 4-20, 4-21, 4-22,
- 4-23, 5-0, 5-1, 5-2, 5-3, 5-6, 5-7, 5-8, 5-9, 5-10, 5-11, 5-12, 5-13, 5-14, 5-1
-5, 5-16, 5-17, 5-18, 5-19, 5-20, 5-21, 5-22, 5-23, 8-0, 8-1, 8-2, 8-3, 8-4, 8-5,
- 8-6, 8-7, 8-8, 8-9, 8-10, 8-11, 8-12, 8-13, 8-14, 8-15, 8-16, 8-17, 8-18, 8-19,
- 8-20, 8-21, 8-22, 8-23 not connected.
-..TIMER: vector=0x31 pin1=2 pin2=0
-number of MP IRQ sources: 22.
-
-dmesg of 2.4.20-pre7 + acpi-20020918
-
- IO-APIC (apicid-pin) 2-0, 2-16, 2-17, 2-18, 2-19, 2-20, 2-21, 2-22, 2-23, 3-0, 
-3-1, 3-2, 3-3, 3-4, 3-5, 3-6, 3-7, 3-8, 3-9, 3-10, 3-11, 3-12, 3-13, 3-14, 3-15,
- 3-16, 3-17, 3-18, 3-19, 3-20, 3-21, 3-22, 3-23, 4-0, 4-1, 4-2, 4-3, 4-4, 4-5, 4
--6, 4-7, 4-8, 4-9, 4-10, 4-11, 4-12, 4-13, 4-14, 4-15, 4-16, 4-17, 4-18, 4-19, 4
--20, 4-21, 4-22, 4-23, 5-0, 5-1, 5-2, 5-3, 5-4, 5-5, 5-6, 5-7, 5-8, 5-9, 5-10, 5
--11, 5-12, 5-13, 5-14, 5-15, 5-16, 5-17, 5-18, 5-19, 5-20, 5-21, 5-22, 5-23, 8-0
-, 8-1, 8-2, 8-3, 8-4, 8-5, 8-6, 8-7, 8-8, 8-9, 8-10, 8-11, 8-12, 8-13, 8-14, 8-1
-5, 8-16, 8-17, 8-18, 8-19, 8-20, 8-21, 8-22, 8-23 not connected.
-..TIMER: vector=0x31 pin1=2 pin2=0
-number of MP IRQ sources: 16.
+What can i do ?
+i use the latest patch from september
+-- 
+_____________________________________
+*Robert Woerle
+**Technical Support | Linux
+PaceBlade Technology Europe SA*
+phone: +49 89 552 99935
+fax: +49 89 552 99910
+mobile: +49 179 474 45 27
+email: robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org <mailto:robert@paceblade.com>
+web: http://www.paceblade.com
+_____________________________________
 
 
-Is this situation OK?
 
 
-# Lance Inc.                R&D Division # 
-# Hiromichi Ito  (itooon-ez3K6K0nqN9BPp5YB5Ev3w@public.gmane.org) #
+
 
 
 -------------------------------------------------------
