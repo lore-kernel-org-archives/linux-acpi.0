@@ -1,13 +1,14 @@
-From: Tom <gmane.20.thinkinginbinary-w1QkCcy0X+Ct7aBEGUsviw@public.gmane.org>
-Subject: Re: Enhanced SpeedStep on Asus M2400Ne with Pentium-M Dothan
-Date: Tue, 7 Sep 2004 00:25:44 +0000 (UTC)
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Acer Travelmate 4001LMi ACPI tables
+Date: Tue, 7 Sep 2004 09:05:17 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <loom.20040907T022325-175@post.gmane.org>
-References: <loom.20040906T011917-422@post.gmane.org> <20040906023044.GA22049@message-id.gmane0305.slipkontur.de>
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750F7BBC@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,22 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?Q?David_G=F3mez?= <dabisu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Seyfried <seife@...> writes:
-> Maybe you have to turn the speedstep feature on in the BIOS? Just a guess,
-> but i thik i read about some BIOSen which just renamed the corresponding
-> methods when the feature was switched off.
+Thanks for the information. Your system uses smart battery, but current =
+ACPI battery driver only supports control method battery. I will =
+investigate adding support for it.
 
-Nope.  There's a SpeedStep option in the BIOS, but it doesn't change the
-invalid DSDT table.
+Thanks,
+Shaohua
 
-Any other ideas, anyone?  I've emailed Asus support but I'm not sure
-how Linux-friendly they are.
-
---Tom
-
+>-----Original Message-----
+>From: David G=F3mez [mailto:dabisu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>Sent: Tuesday, September 07, 2004 2:30 AM
+>To: Li, Shaohua
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Acer Travelmate 4001LMi ACPI tables
+>
+>Hi Shaohua,
+>
+>Attached is the output of acpidmp as you asked me.
+>
+>Thanks ;),
+>
+>David
 
 
 -------------------------------------------------------
