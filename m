@@ -1,15 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: resource for S3 suspend/resume of Radeon
-Date: 17 Mar 2003 16:47:54 +0100
+Date: Mon, 17 Mar 2003 17:20:20 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1047916074.28836.58.camel@dutidad>
-References: <1047912152.28830.32.camel@dutidad>
-	 <20030317153434.GB3936@hell.org.pl>
+Message-ID: <20030317162020.GI8319@poup.poupinou.org>
+References: <1047912152.28830.32.camel@dutidad> <1047915331.28836.45.camel@dutidad>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030317153434.GB3936-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1047915331.28836.45.camel-1Jw6Eky0yc0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,37 +17,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2003-03-17 at 16:34, Karol Kozimor wrote:
-> Thus wrote Charl P. Botha:
+On Mon, Mar 17, 2003 at 04:35:31PM +0100, Charl P. Botha wrote:
+> On Mon, 2003-03-17 at 15:42, Charl P. Botha wrote:
+> > benh and ATI seem to have fixed the suspension code of the radeon.  I
+> > have looked at this (see the Radeon bits) and at Patrick Mochel's power
+> > management architecture code and documentation and it does look like a
 > > lot of this code could be used to make ACPI S3 (suspend to RAM) a
 > > reality on Radeon-using laptops.
 > 
-> Which radeon do you have in mind exactly? I use an M7 LW chip, and I get
-> the following: both in 2.4.x and 2.5.x the display does not power-off when
+> Hmmm, this might not be AS useful as I thought.  Could a pmac expert
+> elaborate on the differences between its suspend and ACPI S3?  For S3 we
+> need something that can init the chip almost from scratch.
 
-You could try using the radeontool (google it) to remedy this.
+I am not a great pmac expert, but as I understand the whole things (and
+also what I get actually from my powerbook), suspending a pmac
+look like 'S3'.
+The only difference, though, is that there is a unified
+PMU which is more 'friendly' to control, instead of having a lot of
+southbridges with different behaviour.  Also openfirmware for pmac
+is more easy to hack-fix (there is only one OEM...)
 
-> in S1 (which is, I believe, expected), and during S3 it poweroffs and comes
-> back in, provided I pass the acpi_sleep=s3_bios option.
-
-Wow, you mean to say that you can flawlessly S3 suspend/resume with
-kernel 2.4?  I would assume that this is due to your laptop's support
-for S3 in BIOS.  Not all laptops have this... see for instance what Ole
-had to do to get his working:
-http://home.cern.ch/mrohne/P2120/P2120_Linux_S3.html
-
-Drivers in the new kernel need to be able to suspend/resume (S1, S3 and
-S4) without more than the minimum required support in the BIOS.
-
-Thanks,
-Charl
+Cheers,
 
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
