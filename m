@@ -1,14 +1,14 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: Processor dynamic power management for desktop machines
-Date: Thu, 6 Nov 2003 07:52:16 +0100
+From: "Yury V. Umanets" <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: ACPI vs. ISA IRQs
+Date: Thu, 06 Nov 2003 11:49:47 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031106065216.GB4188@brodo.de>
-References: <3FA97E0E.6060906@nickhill.co.uk>
+Message-ID: <1068108586.1830.12.camel@firefly>
+References: <1067981294.6057.20.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3FA97E0E.6060906-kMuUVokNkCa9FHfhHBbuYA@public.gmane.org>
+In-Reply-To: <1067981294.6057.20.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,47 +17,78 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nick Hill <nick-kMuUVokNkCa9FHfhHBbuYA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 05, 2003 at 10:47:42PM +0000, Nick Hill wrote:
-> I have a desktop system based on an AMD Athlon XP2200+ running Linux 
-> Kernel 2.6.0-test9
+On Wed, 2003-11-05 at 00:28, Len Brown wrote:
+> Assumption: sharing interrupts is bad.
 > 
-> The processor is not a notebook type and does not support powernow!
+> Plan:
+> ACPI should attempt to distribute interrupts across
+> the available IRQs.
 > 
-> I have a power meter connected to the mains supply of the desktop 
-> machine, which provides a constant reading of power demand.
+> This mostly applies to PIC mode, where PCI
+> IRQ Link Devices are available to route PCI
+> interrupts to open IRQs on the PIC.
+> (In IO-APIC mode, we generally get no choice
+>  which IO-APIC pins devices are attached to)
 > 
-> With the machine not under processing load, I have noticed a substantial 
-> difference in power demand between the throttling state t0 and 
-> throttling state t15. The power demand drops by between 21 and 36 watts.
+> We have acpi_irq_penalty[] (disabled at the moment)
+> in pci_link.c hard-coded to tell ACPI to avoid some IRQs
+> that are commonly used by ISA devices.
 > 
-> As the demand waveform of the machine does not folow ohm's law, the 
-> power meter fluctuates as it samples different parts of the power 
-> waveform. When on t0, the reading fluctuates between 56 and 96w. T15 
-> between 35 and 60watts demand.
+> But if,say, a sound-blaster card requests exclusive access
+> to an IRQ that we didn't happen to reserve, and we happened
+> to set a PCI link device to that IRQ, then sound doesn't
+> work.
 > 
-> The machine doubles as a desktop and server. The machine therefore needs 
-> to be powered on constantly. As the server processes are not generally 
-> processor intensive, the machine could be on t14 when not being used as 
-> a desktop machine.
+> How to fix?
 > 
-> Being an ecologically conscientious type, I have set up a shell script 
-> to allow me to easily change the processor throttling level. t0 
-> (compiling etc) t10 (normal desktop use) and t14 (Leaving it on overnight).
+> We can manually reserve IRQs to over-ride acpi_irq_penalty[],
+> say "acpi_irq_used=5,10" to tell ACPI not to use IRQs that
+> it thought by default were available.
 > 
-> Are there plans for a system to modulate power demand for desktop 
-> machines? My set up demonstrates substantial power saving is feasible 
-> with an inelegant userspace daemon (me!).
+> Conversely, we could us, say, "acpi_irq_free=3,15" to tell
+> ACPI that some IRQs it assumed were reserved for ISA are
+> actually available for PCI.
+> 
+> I don't know of an automatic way to handle this.
+> Seems that the ISA devices use Plug-and-Play methods
+> to request IRQs, but there is no mechanism for such
+> an event to boot a PIRQ off an IRQ if ACPI has put it there.
+> Also, if such a mechanism existed, it wouldn't work
+> if PNP were not available to ask for an IRQ.
+> 
+> thoughts?
+Hello,
 
-Indeed, there is. Check the "cpufreq" project. While it currently does not
-use ACPI-based throttling for "frequency scaling", there is work going on to
-support dynamic adaption of CPU frequency levels based on system load, user
-preferences, etc.
+How about to ask particular bus driver about reserved irqs, etc?
+> 
+> thanks,
+> -Len
+> 
+> ref:
+> http://bugzilla.kernel.org/show_bug.cgi?id=430
+> http://bugzilla.kernel.org/show_bug.cgi?id=1139
+> http://bugzilla.kernel.org/show_bug.cgi?id=1391
+> 
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by: SF.net Giveback Program.
+> Does SourceForge.net help you be more productive?  Does it
+> help you create better code?   SHARE THE LOVE, and help us help
+> YOU!  Click Here: http://sourceforge.net/donate/
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-- 
+umka
 
-	Dominik
 
 
 -------------------------------------------------------
