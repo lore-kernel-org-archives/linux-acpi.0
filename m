@@ -1,16 +1,15 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: [PATCH] IRQ params patch#4
-Date: Thu, 24 Jul 2003 10:13:34 +0100
+From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Thu, 24 Jul 2003 12:18:09 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307241013.34507.adq_dvb@lidskialf.net>
-References: <F760B14C9561B941B89469F59BA3A8470255EEA0@orsmsx401.jf.intel.com>
+Message-ID: <1059041888.19684.8.camel@bacchus.gpphy.uni-duesseldorf.de>
+References: <20030723152809.GA591@paradigm.rfc822.org>
+ <20030723162423.GD9013@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EEA0-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
-Content-Disposition: inline
+In-reply-to: <20030723162423.GD9013-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,22 +18,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 23 July 2003 08:53, Grover, Andrew wrote:
-> Andrew,
->
-> You still hacking on this?
->
-> Just got another bug report (completely different HW) that I think might
-> be the same problem.
+Am Mit, 2003-07-23 um 18.24 schrieb Pavel Machek:
+> > i just tried 2.6.0-test1 and to my expectation the S3 resume stuff still
+> > does not work on the Sony Vaio PCG-C1MHP aka Picturebook. It turns on -
+> > Bios set the powerled correct but then - nothing - Nothing on the
+> > screen, no backlight, no disk activity.
 
-Yeah, I've been having a wee break for a few days. back on it now.
+Hmmm...if I understand that right its (still) the very same behaviour
+with my Z600TEK and I remember someone else having that type of problem.
+Now I once did some debugging and...nothing. As far as I can tell it
+does not jump into wakeup code. I never could get any further on that.
+Though I might have done something wrong - is there any foolproof method
+on checking wether the system jumps to the wakeup address?
 
-Interesting fact. All my onboard devices work now, but I didn't have any PCI 
-cards. I've just put a wireless PCI card in my machine, and its having the 
-same IRQ problems as I used to with the onoard ones!
+-Knut
+
+>  
+> > Is there any way to dump the Windows wakeup code ? 
+> > Is that machine specific ?
+> 
+> Wakeup code should *not* be machine-specific, but video card
+> save/restore is obviously video-card specific (and you basically can't
+> get docs). Write beeping code in 8086 assembly and start debuggin'
+> ;-))).
+> 
+> 								Pavel
+
 
 
 
