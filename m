@@ -1,15 +1,16 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [RFC 0/6] S3 SMP support with physcial CPU hotplug
-Date: Sun, 3 Apr 2005 19:48:07 -0700
-Message-ID: <20050403194807.32fd761a.akpm@osdl.org>
+Date: Mon, 04 Apr 2005 10:49:07 +0800
+Message-ID: <1112582947.4194.352.camel@sli10-desk.sh.intel.com>
 References: <1112580342.4194.329.camel@sli10-desk.sh.intel.com>
-	<20050403193750.40cdabb2.akpm@osdl.org>
-	<1112582553.4194.349.camel@sli10-desk.sh.intel.com>
+	 <20050403193750.40cdabb2.akpm@osdl.org>
+	 <1112582553.4194.349.camel@sli10-desk.sh.intel.com>
+	 <20050403194807.32fd761a.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1112582553.4194.349.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <20050403194807.32fd761a.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,25 +20,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pavel-AlSwsSmVLrQ@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
-> On Mon, 2005-04-04 at 10:37, Andrew Morton wrote:
-> > Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > >
-> > > The patches are against 2.6.11-rc1 with Zwane's CPU hotplug patch in -mm
-> > >  tree.
+On Mon, 2005-04-04 at 10:48, Andrew Morton wrote:
+> Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> >
+> > On Mon, 2005-04-04 at 10:37, Andrew Morton wrote:
+> > > Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > > >
+> > > > The patches are against 2.6.11-rc1 with Zwane's CPU hotplug patch in -mm
+> > > >  tree.
+> > > 
+> > > Should I merge that thing into mainline?  It seems that a few people are
+> > > needing it.
+> > I'd like to listen to some comments first. There are still some things
+> > I'm not sure, such as the do_exit_idle.
 > > 
-> > Should I merge that thing into mainline?  It seems that a few people are
-> > needing it.
-> I'd like to listen to some comments first. There are still some things
-> I'm not sure, such as the do_exit_idle.
 > 
+> I was referring to Zwane's i386-cpu-hotplug-updated-for-mm.patch
+Yep, great. Pavel's swsusp also need it.
 
-I was referring to Zwane's i386-cpu-hotplug-updated-for-mm.patch
+Thanks,
+Shaohua
+
 
 
 -------------------------------------------------------
