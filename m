@@ -1,12 +1,18 @@
-From: "Ethel Oneal" <eoneal43-JcUTtlGdR5Q@public.gmane.org>
-Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
-Date: Wed, 22 Dec 2004 18:51:40 +0800
-Message-ID: <2bba01c4e814$c6d32302$59b132e2@bagleycottage.co.uk>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: bluetooth button is dead
+Date: Wed, 22 Dec 2004 11:35:39 +0100
+Message-ID: <m28y7q8vt0.fsf@phoenix.squirrel.nl>
+References: <20041221150316.14A5D9DA3B@phoenix.squirrel.nl>
+	<200412212014.36223.sanskryt@op.pl>
+	<m2d5x3l9wt.fsf@phoenix.squirrel.nl>
+	<200412212042.56854.juris@juris.com.pl>
+	<16840.33460.373241.800472@phoenix.squirrel.nl>
+	<41C8AEDE.3050105@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41C8AEDE.3050105-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org> (Pedro Venda's message of
+ "Tue, 21 Dec 2004 23:16:46 +0000")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,33 +22,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, juris-DO2cFn/OelIEUmgCuDUIdw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org> writes:
 
-Do you want a rolex watch?
+>>>May be you have also find some solving to "smart battery"problem?
+>> No. That's why I'm lurking around in the ACPI devel list ;-).
+>
+> hehehe, that seems to be a common reason for some of us.
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+Actually, I'm prepared to give it a try, but I'm no ACPI wizard. So
+first I want to learn from the experts.
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://mecei.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.mecei.com/z.php
-
+-- Johan
 
 
 -------------------------------------------------------
