@@ -1,265 +1,561 @@
 From: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] 1/3 ACPI resource handling
-Date: Tue, 11 Feb 2003 14:58:09 -0700
+Subject: [PATCH] 3/3 ACPI resource handling
+Date: Tue, 11 Feb 2003 15:00:42 -0700
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200302111458.09832.bjorn_helgaas@hp.com>
+Message-ID: <200302111500.42641.bjorn_helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-These patches against acpi-20030123-2.5.59.diff.gz make it more
-convenient to handle ACPI resources and reduce code duplication.
-
-The changes fall into three pieces:
-
-    1) Addition of acpi_walk_resources(), which calls a callback for
-       each resource in _CRS or _PRS.  This is handy because you don't
-       have to allocate/free buffers, loop over resource lists, or
-       make assumptions about the order in which resources appear.
-
-    2) Addition of acpi_resource_to_address64(), which copies
-       address16, address32, or address64 resources to an address64
-       structure, so you don't have to maintain three sets of code
-       that differ only in the size of the address they deal with.
-
-    3) Changes to the EC, PCI link, and ACPI PCI hot-plug drivers to
-       use acpi_walk_resources() instead of acpi_get_current_resources().
-
-So far this is just "cleanup" in the sense that there's no new
-functionality.  As soon as any issues with these patches are
-worked out, I have additional patches that build on them to
-add ia64 support for multiple I/O port spaces.
-
-Bjorn
-
-
-diff -ur acpi-1/drivers/acpi/acpi_ksyms.c acpi-2/drivers/acpi/acpi_ksyms.c
---- acpi-1/drivers/acpi/acpi_ksyms.c	2003-02-06 14:48:20.000000000 -0700
-+++ acpi-2/drivers/acpi/acpi_ksyms.c	2003-02-09 22:13:47.000000000 -0700
-@@ -76,6 +76,7 @@
- EXPORT_SYMBOL(acpi_release_global_lock);
- EXPORT_SYMBOL(acpi_get_current_resources);
- EXPORT_SYMBOL(acpi_get_possible_resources);
-+EXPORT_SYMBOL(acpi_walk_resources);
- EXPORT_SYMBOL(acpi_set_current_resources);
- EXPORT_SYMBOL(acpi_enable_event);
- EXPORT_SYMBOL(acpi_disable_event);
-diff -ur acpi-1/drivers/acpi/resources/rsutils.c acpi-2/drivers/acpi/resources/rsutils.c
---- acpi-1/drivers/acpi/resources/rsutils.c	2003-01-16 19:21:38.000000000 -0700
-+++ acpi-2/drivers/acpi/resources/rsutils.c	2003-02-09 22:13:47.000000000 -0700
-@@ -195,6 +195,61 @@
+diff -u -ur acpi-3/drivers/acpi/ec.c acpi-4/drivers/acpi/ec.c
+--- acpi-3/drivers/acpi/ec.c	2003-02-06 14:48:20.000000000 -0700
++++ acpi-4/drivers/acpi/ec.c	2003-02-09 22:13:53.000000000 -0700
+@@ -644,15 +644,46 @@
+ }
  
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_rs_get_method_data
-+ *
-+ * PARAMETERS:  Handle          - a handle to the containing object
-+ *              ret_buffer      - a pointer to a buffer structure for the
-+ *                                  results
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: This function is called to get the _CRS or _PRS value of an
-+ *              object contained in an object specified by the handle passed in
-+ *
-+ *              If the function fails an appropriate status will be returned
-+ *              and the contents of the callers buffer is undefined.
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_rs_get_method_data (
-+	acpi_handle                     handle,
-+	char                            *path,
-+	struct acpi_buffer              *ret_buffer)
+ 
++static acpi_status
++acpi_ec_io_ports (
++	struct acpi_resource	*resource,
++	void			*context)
 +{
-+	union acpi_operand_object       *obj_desc;
-+	acpi_status                     status;
++	struct acpi_ec		*ec = (struct acpi_ec *) context;
++	struct acpi_generic_address *addr;
 +
-+
-+	ACPI_FUNCTION_TRACE ("rs_get_method_data");
-+
-+
-+	/* Parameters guaranteed valid by caller */
-+
-+	/*
-+	 * Execute the method, no parameters
-+	 */
-+	status = acpi_ut_evaluate_object (handle, path, ACPI_BTYPE_BUFFER, &obj_desc);
-+	if (ACPI_FAILURE (status)) {
-+		return_ACPI_STATUS (status);
++	if (resource->id != ACPI_RSTYPE_IO) {
++		return AE_OK;
 +	}
 +
 +	/*
-+	 * Make the call to create a resource linked list from the
-+	 * byte stream buffer that comes back from the method
-+	 * execution.
++	 * The first address region returned is the data port, and
++	 * the second address region returned is the status/command
++	 * port.
 +	 */
-+	status = acpi_rs_create_resource_list (obj_desc, ret_buffer);
++	if (ec->data_addr.register_bit_width == 0) {
++		addr = &ec->data_addr;
++	} else if (ec->command_addr.register_bit_width == 0) {
++		addr = &ec->command_addr;
++	} else {
++		return AE_CTRL_TERMINATE;
++	}
 +
-+	/* on exit, we must delete the object returned by evaluate_object */
++	addr->address_space_id = ACPI_ADR_SPACE_SYSTEM_IO;
++	addr->register_bit_width = 8;
++	addr->register_bit_offset = 0;
++	addr->address = resource->data.io.min_base_address;
 +
-+	acpi_ut_remove_reference (obj_desc);
-+	return_ACPI_STATUS (status);
++	return AE_OK;
 +}
 +
 +
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_rs_set_srs_method_data
-  *
-  * PARAMETERS:  Handle          - a handle to the containing object
-diff -ur acpi-1/drivers/acpi/resources/rsxface.c acpi-2/drivers/acpi/resources/rsxface.c
---- acpi-1/drivers/acpi/resources/rsxface.c	2003-01-16 19:22:23.000000000 -0700
-+++ acpi-2/drivers/acpi/resources/rsxface.c	2003-02-09 22:13:47.000000000 -0700
-@@ -193,6 +193,89 @@
+ static int
+ acpi_ec_start (
+ 	struct acpi_device	*device)
+ {
+-	int			result = 0;
+ 	acpi_status		status = AE_OK;
+ 	struct acpi_ec		*ec = NULL;
+-	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+-	struct acpi_resource	*resource = NULL;
  
- /*******************************************************************************
-  *
-+ * FUNCTION:    acpi_walk_resources
-+ *
-+ * PARAMETERS:  device_handle   - a handle to the device object for the
-+ *                                device we are querying
-+ *              path            - method name of the resources we want
-+ *                                (METHOD_NAME__CRS or METHOD_NAME__PRS)
-+ *              user_function   - called for each resource
-+ *              context         - passed to user_function
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Retrieves the current or possible resource list for the
-+ *              specified device.  The user_function is called once for
-+ *              each resource in the list.
-+ *
-+ ******************************************************************************/
+ 	ACPI_FUNCTION_TRACE("acpi_ec_start");
+ 
+@@ -667,33 +698,13 @@
+ 	/*
+ 	 * Get I/O port addresses. Convert to GAS format.
+ 	 */
+-	status = acpi_get_current_resources(ec->handle, &buffer);
+-	if (ACPI_FAILURE(status)) {
++	status = acpi_walk_resources(ec->handle, METHOD_NAME__CRS,
++		acpi_ec_io_ports, ec);
++	if (ACPI_FAILURE(status) || ec->command_addr.register_bit_width == 0) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error getting I/O port addresses"));
+ 		return_VALUE(-ENODEV);
+ 	}
+ 
+-	resource = (struct acpi_resource *) buffer.pointer;
+-	if (!resource || (resource->id != ACPI_RSTYPE_IO)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid or missing resource\n"));
+-		result = -ENODEV;
+-		goto end;
+-	}
+-	ec->data_addr.address_space_id = ACPI_ADR_SPACE_SYSTEM_IO;
+-	ec->data_addr.register_bit_width = 8;
+-	ec->data_addr.register_bit_offset = 0;
+-	ec->data_addr.address = resource->data.io.min_base_address;
+-
+-	resource = ACPI_NEXT_RESOURCE(resource);
+-	if (!resource || (resource->id != ACPI_RSTYPE_IO)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid or missing resource\n"));
+-		result = -ENODEV;
+-		goto end;
+-	}
+-	ec->command_addr.address_space_id = ACPI_ADR_SPACE_SYSTEM_IO;
+-	ec->command_addr.register_bit_width = 8;
+-	ec->command_addr.register_bit_offset = 0;
+-	ec->command_addr.address = resource->data.io.min_base_address;
+ 	ec->status_addr = ec->command_addr;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "gpe=0x%02x, ports=0x%2x,0x%2x\n",
+@@ -706,8 +717,7 @@
+ 	status = acpi_install_gpe_handler(ec->gpe_bit,
+ 		ACPI_EVENT_EDGE_TRIGGERED, &acpi_ec_gpe_handler, ec);
+ 	if (ACPI_FAILURE(status)) {
+-		result = -ENODEV;
+-		goto end;
++		return_VALUE(-ENODEV);
+ 	}
+ 
+ 	status = acpi_install_address_space_handler (ec->handle,
+@@ -715,13 +725,10 @@
+ 			&acpi_ec_space_setup, ec);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_remove_gpe_handler(ec->gpe_bit, &acpi_ec_gpe_handler);
+-		result = -ENODEV;
+-		goto end;
++		return_VALUE(-ENODEV);
+ 	}
+-end:
+-	acpi_os_free(buffer.pointer);
+ 
+-	return_VALUE(result);
++	return_VALUE(AE_OK);
+ }
+ 
+ 
+diff -u -ur acpi-3/drivers/acpi/pci_link.c acpi-4/drivers/acpi/pci_link.c
+--- acpi-3/drivers/acpi/pci_link.c	2003-01-16 19:21:38.000000000 -0700
++++ acpi-4/drivers/acpi/pci_link.c	2003-02-09 22:13:53.000000000 -0700
+@@ -90,42 +90,25 @@
+                             PCI Link Device Management
+    -------------------------------------------------------------------------- */
+ 
+-static int
+-acpi_pci_link_get_possible (
+-	struct acpi_pci_link	*link)
++static acpi_status
++acpi_pci_link_check_possible (
++	struct acpi_resource	*resource,
++	void			*context)
+ {
+-	int                     result = 0;
+-	acpi_status		status = AE_OK;
+-	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+-	struct acpi_resource	*resource = NULL;
++	struct acpi_pci_link	*link = (struct acpi_pci_link *) context;
+ 	int			i = 0;
+ 
+-	ACPI_FUNCTION_TRACE("acpi_pci_link_get_possible");
+-
+-	if (!link)
+-		return_VALUE(-EINVAL);
+-
+-	status = acpi_get_possible_resources(link->handle, &buffer);
+-	if (ACPI_FAILURE(status) || !buffer.pointer) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _PRS\n"));
+-		result = -ENODEV;
+-		goto end;
+-	}
+-
+-	resource = (struct acpi_resource *) buffer.pointer;
+-
+-	/* skip past dependent function resource (if present) */
+-	if (resource->id == ACPI_RSTYPE_START_DPF)
+-		resource = ACPI_NEXT_RESOURCE(resource);
++	ACPI_FUNCTION_TRACE("acpi_pci_link_check_possible");
+ 
+ 	switch (resource->id) {
++	case ACPI_RSTYPE_START_DPF:
++		return AE_OK;
+ 	case ACPI_RSTYPE_IRQ:
+ 	{
+ 		struct acpi_resource_irq *p = &resource->data.irq;
+ 		if (!p || !p->number_of_interrupts) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Blank IRQ resource\n"));
+-			result = -ENODEV;
+-			goto end;
++			return AE_OK;
+ 		}
+ 		for (i = 0; (i<p->number_of_interrupts && i<ACPI_PCI_LINK_MAX_POSSIBLE); i++) {
+ 			if (!p->interrupts[i]) {
+@@ -143,8 +126,7 @@
+ 		if (!p || !p->number_of_interrupts) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_WARN, 
+ 				"Blank IRQ resource\n"));
+-			result = -ENODEV;
+-			goto end;
++			return AE_OK;
+ 		}
+ 		for (i = 0; (i<p->number_of_interrupts && i<ACPI_PCI_LINK_MAX_POSSIBLE); i++) {
+ 			if (!p->interrupts[i]) {
+@@ -159,18 +141,76 @@
+ 	default:
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
+ 			"Resource is not an IRQ entry\n"));
+-		result = -ENODEV;
+-		goto end;
+-		break;
++		return AE_OK;
+ 	}
+-	
 +
-+acpi_status
-+acpi_walk_resources (
-+	acpi_handle                     device_handle,
-+	char                            *path,
-+	acpi_walk_resource_callback     user_function,
-+	void                            *context)
++	return AE_CTRL_TERMINATE;
++}
++
++
++static int
++acpi_pci_link_get_possible (
++	struct acpi_pci_link	*link)
 +{
-+	acpi_status                     status;
-+	struct acpi_buffer		buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	struct acpi_resource		*resource;
++	acpi_status		status;
 +
-+	ACPI_FUNCTION_TRACE ("acpi_walk_resources");
++	ACPI_FUNCTION_TRACE("acpi_pci_link_get_possible");
 +
++	if (!link)
++		return_VALUE(-EINVAL);
 +
-+	if (!device_handle ||
-+	    (ACPI_STRNCMP (path, METHOD_NAME__CRS, sizeof (METHOD_NAME__CRS)) &&
-+	     ACPI_STRNCMP (path, METHOD_NAME__PRS, sizeof (METHOD_NAME__PRS)))) {
-+		return_ACPI_STATUS (AE_BAD_PARAMETER);
++	status = acpi_walk_resources(link->handle, METHOD_NAME__PRS,
++			acpi_pci_link_check_possible, link);
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _PRS\n"));
++		return_VALUE(-ENODEV);
 +	}
 +
-+	status = acpi_rs_get_method_data (device_handle, path, &buffer);
-+	if (ACPI_FAILURE (status)) {
-+		return_ACPI_STATUS (status);
-+	}
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+ 		"Found %d possible IRQs\n", link->irq.possible_count));
+ 
+-end:
+-	acpi_os_free(buffer.pointer);
++	return_VALUE(0);
++}
+ 
+-	return_VALUE(result);
 +
-+	resource = (struct acpi_resource *) buffer.pointer;
-+	for (;;) {
-+		if (!resource || resource->id == ACPI_RSTYPE_END_TAG)
-+			break;
++static acpi_status
++acpi_pci_link_check_current (
++	struct acpi_resource	*resource,
++	void			*context)
++{
++	int			*irq = (int *) context;
 +
-+		status = user_function (resource, context);
++	ACPI_FUNCTION_TRACE("acpi_pci_link_check_current");
 +
-+		switch (status) {
-+		case AE_OK:
-+		case AE_CTRL_DEPTH:
-+
-+			/* Just keep going */
-+			status = AE_OK;
-+			break;
-+
-+		case AE_CTRL_TERMINATE:
-+
-+			/* Exit now, with OK stats */
-+
-+			status = AE_OK;
-+			goto end;
-+
-+		default:
-+
-+			/* All others are valid exceptions */
-+
-+			goto end;
++	switch (resource->id) {
++	case ACPI_RSTYPE_IRQ:
++	{
++		struct acpi_resource_irq *p = &resource->data.irq;
++		if (!p || !p->number_of_interrupts) {
++			ACPI_DEBUG_PRINT((ACPI_DB_WARN,
++				"Blank IRQ resource\n"));
++			return AE_OK;
 +		}
-+
-+		resource = ACPI_NEXT_RESOURCE (resource);
++		*irq = p->interrupts[0];
++		break;
 +	}
-+
-+end:
-+	acpi_os_free (buffer.pointer);
-+
-+	return_ACPI_STATUS (status);
-+}
-+
-+
-+/*******************************************************************************
-+ *
-  * FUNCTION:    acpi_set_current_resources
-  *
-  * PARAMETERS:  device_handle   - a handle to the device object for the
-diff -ur acpi-1/include/acpi/acpixf.h acpi-2/include/acpi/acpixf.h
---- acpi-1/include/acpi/acpixf.h	2003-02-06 14:48:20.000000000 -0700
-+++ acpi-2/include/acpi/acpixf.h	2003-02-09 22:13:47.000000000 -0700
-@@ -320,6 +320,11 @@
-  * Resource interfaces
++	case ACPI_RSTYPE_EXT_IRQ:
++	{
++		struct acpi_resource_ext_irq *p = &resource->data.extended_irq;
++		if (!p || !p->number_of_interrupts) {
++			ACPI_DEBUG_PRINT((ACPI_DB_WARN,
++				"Blank IRQ resource\n"));
++			return AE_OK;
++		}
++		*irq = p->interrupts[0];
++		break;
++	}
++	default:
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Resource isn't an IRQ\n"));
++		return AE_OK;
++	}
++	return AE_CTRL_TERMINATE;
+ }
+ 
+ 
+@@ -180,8 +220,6 @@
+ {
+ 	int			result = 0;
+ 	acpi_status		status = AE_OK;
+-	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+-	struct acpi_resource	*resource = NULL;
+ 	int			irq = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_link_get_current");
+@@ -206,47 +244,16 @@
+ 	 * Query and parse _CRS to get the current IRQ assignment. 
+ 	 */
+ 
+-	status = acpi_get_current_resources(link->handle, &buffer);
++	status = acpi_walk_resources(link->handle, METHOD_NAME__CRS,
++			acpi_pci_link_check_current, &irq);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _CRS\n"));
+ 		result = -ENODEV;
+ 		goto end;
+ 	}
+-	resource = (struct acpi_resource *) buffer.pointer;
+-
+-	switch (resource->id) {
+-	case ACPI_RSTYPE_IRQ:
+-	{
+-		struct acpi_resource_irq *p = &resource->data.irq;
+-		if (!p || !p->number_of_interrupts) {
+-			ACPI_DEBUG_PRINT((ACPI_DB_WARN, 
+-				"Blank IRQ resource\n"));
+-			result = -ENODEV;
+-			goto end;
+-		}
+-		irq = p->interrupts[0];
+-		break;
+-	}
+-	case ACPI_RSTYPE_EXT_IRQ:
+-	{
+-		struct acpi_resource_ext_irq *p = &resource->data.extended_irq;
+-		if (!p || !p->number_of_interrupts) {
+-			ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+-				"Blank IRQ resource\n"));
+-			result = -ENODEV;
+-			goto end;
+-		}
+-		irq = p->interrupts[0];
+-		break;
+-	}
+-	default:
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Resource isn't an IRQ\n"));
+-		result = -ENODEV;
+-		goto end;
+-	}
+ 
+ 	if (!irq) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid use of IRQ 0\n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "No IRQ resource found\n"));
+ 		result = -ENODEV;
+ 		goto end;
+ 	}
+@@ -263,8 +270,6 @@
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
+ 
+ end:
+-	acpi_os_free(buffer.pointer);
+-
+ 	return_VALUE(result);
+ }
+ 
+diff -u -ur acpi-3/drivers/hotplug/acpiphp_glue.c acpi-4/drivers/hotplug/acpiphp_glue.c
+--- acpi-3/drivers/hotplug/acpiphp_glue.c	2003-01-16 19:22:00.000000000 -0700
++++ acpi-4/drivers/hotplug/acpiphp_glue.c	2003-02-09 22:26:20.000000000 -0700
+@@ -229,136 +229,55 @@
+ /* decode ACPI _CRS data and convert into our internal resource list
+  * TBD: _TRA, etc.
   */
+-static void
+-decode_acpi_resource (struct acpi_resource *resource, struct acpiphp_bridge *bridge)
++static acpi_status
++decode_acpi_resource (struct acpi_resource *resource, void *context)
+ {
+-	struct acpi_resource_address16 *address16_data;
+-	struct acpi_resource_address32 *address32_data;
+-	struct acpi_resource_address64 *address64_data;
++	struct acpiphp_bridge *bridge = (struct acpiphp_bridge *) context;
++	struct acpi_resource_address64 address;
+ 	struct pci_resource *res;
  
-+typedef
-+acpi_status (*acpi_walk_resource_callback) (
-+	struct acpi_resource            *resource,
-+	void                            *context);
+-	u32 resource_type, producer_consumer, address_length;
+-	u64 min_address_range, max_address_range;
+-	u16 cache_attribute = 0;
+-
+-	int done = 0, found;
+-
+-	/* shut up gcc */
+-	resource_type = producer_consumer = address_length = 0;
+-	min_address_range = max_address_range = 0;
+-
+-	while (!done) {
+-		found = 0;
+-
+-		switch (resource->id) {
+-		case ACPI_RSTYPE_ADDRESS16:
+-			address16_data = (struct acpi_resource_address16 *)&resource->data;
+-			resource_type = address16_data->resource_type;
+-			producer_consumer = address16_data->producer_consumer;
+-			min_address_range = address16_data->min_address_range;
+-			max_address_range = address16_data->max_address_range;
+-			address_length = address16_data->address_length;
+-			if (resource_type == ACPI_MEMORY_RANGE)
+-				cache_attribute = address16_data->attribute.memory.cache_attribute;
+-			found = 1;
+-			break;
++	if (resource->id != ACPI_RSTYPE_ADDRESS16 &&
++	    resource->id != ACPI_RSTYPE_ADDRESS32 &&
++	    resource->id != ACPI_RSTYPE_ADDRESS64)
++		return AE_OK;
+ 
+-		case ACPI_RSTYPE_ADDRESS32:
+-			address32_data = (struct acpi_resource_address32 *)&resource->data;
+-			resource_type = address32_data->resource_type;
+-			producer_consumer = address32_data->producer_consumer;
+-			min_address_range = address32_data->min_address_range;
+-			max_address_range = address32_data->max_address_range;
+-			address_length = address32_data->address_length;
+-			if (resource_type == ACPI_MEMORY_RANGE)
+-				cache_attribute = address32_data->attribute.memory.cache_attribute;
+-			found = 1;
+-			break;
++	acpi_resource_to_address64(resource, &address);
+ 
+-		case ACPI_RSTYPE_ADDRESS64:
+-			address64_data = (struct acpi_resource_address64 *)&resource->data;
+-			resource_type = address64_data->resource_type;
+-			producer_consumer = address64_data->producer_consumer;
+-			min_address_range = address64_data->min_address_range;
+-			max_address_range = address64_data->max_address_range;
+-			address_length = address64_data->address_length;
+-			if (resource_type == ACPI_MEMORY_RANGE)
+-				cache_attribute = address64_data->attribute.memory.cache_attribute;
+-			found = 1;
+-			break;
++	if (address.producer_consumer == ACPI_PRODUCER && address.address_length > 0) {
++		dbg("resource type: %d: 0x%lx - 0x%lx\n", address.resource_type, address.min_address_range, address.max_address_range);
++		res = acpiphp_make_resource(address.min_address_range,
++				    address.address_length);
++		if (!res) {
++			err("out of memory\n");
++			return AE_OK;
++		}
+ 
+-		case ACPI_RSTYPE_END_TAG:
+-			done = 1;
++		switch (address.resource_type) {
++		case ACPI_MEMORY_RANGE:
++			if (address.attribute.memory.cache_attribute == ACPI_PREFETCHABLE_MEMORY) {
++				res->next = bridge->p_mem_head;
++				bridge->p_mem_head = res;
++			} else {
++				res->next = bridge->mem_head;
++				bridge->mem_head = res;
++			}
++			break;
++		case ACPI_IO_RANGE:
++			res->next = bridge->io_head;
++			bridge->io_head = res;
++			break;
++		case ACPI_BUS_NUMBER_RANGE:
++			res->next = bridge->bus_head;
++			bridge->bus_head = res;
+ 			break;
+-
+ 		default:
+-			/* ignore */
++			/* invalid type */
++			kfree(res);
+ 			break;
+ 		}
+-
+-		resource = (struct acpi_resource *)((char*)resource + resource->length);
+-
+-		if (found && producer_consumer == ACPI_PRODUCER && address_length > 0) {
+-			switch (resource_type) {
+-			case ACPI_MEMORY_RANGE:
+-				if (cache_attribute == ACPI_PREFETCHABLE_MEMORY) {
+-					dbg("resource type: prefetchable memory 0x%x - 0x%x\n", (u32)min_address_range, (u32)max_address_range);
+-					res = acpiphp_make_resource(min_address_range,
+-							    address_length);
+-					if (!res) {
+-						err("out of memory\n");
+-						return;
+-					}
+-					res->next = bridge->p_mem_head;
+-					bridge->p_mem_head = res;
+-				} else {
+-					dbg("resource type: memory 0x%x - 0x%x\n", (u32)min_address_range, (u32)max_address_range);
+-					res = acpiphp_make_resource(min_address_range,
+-							    address_length);
+-					if (!res) {
+-						err("out of memory\n");
+-						return;
+-					}
+-					res->next = bridge->mem_head;
+-					bridge->mem_head = res;
+-				}
+-				break;
+-			case ACPI_IO_RANGE:
+-				dbg("resource type: io 0x%x - 0x%x\n", (u32)min_address_range, (u32)max_address_range);
+-				res = acpiphp_make_resource(min_address_range,
+-						    address_length);
+-				if (!res) {
+-					err("out of memory\n");
+-					return;
+-				}
+-				res->next = bridge->io_head;
+-				bridge->io_head = res;
+-				break;
+-			case ACPI_BUS_NUMBER_RANGE:
+-				dbg("resource type: bus number %d - %d\n", (u32)min_address_range, (u32)max_address_range);
+-				res = acpiphp_make_resource(min_address_range,
+-						    address_length);
+-				if (!res) {
+-					err("out of memory\n");
+-					return;
+-				}
+-				res->next = bridge->bus_head;
+-				bridge->bus_head = res;
+-				break;
+-			default:
+-				/* invalid type */
+-				break;
+-			}
+-		}
+ 	}
+ 
+-	acpiphp_resource_sort_and_combine(&bridge->io_head);
+-	acpiphp_resource_sort_and_combine(&bridge->mem_head);
+-	acpiphp_resource_sort_and_combine(&bridge->p_mem_head);
+-	acpiphp_resource_sort_and_combine(&bridge->bus_head);
+-
+-	dbg("ACPI _CRS resource:\n");
+-	acpiphp_dump_resource(bridge);
++	return AE_OK;
+ }
+ 
+ 
+@@ -476,9 +395,6 @@
+ static void add_host_bridge (acpi_handle *handle, int seg, int bus)
+ {
+ 	acpi_status status;
+-	struct acpi_buffer buffer = { .length = ACPI_ALLOCATE_BUFFER,
+-				      .pointer = NULL};
+-
+ 	struct acpiphp_bridge *bridge;
+ 
+ 	bridge = kmalloc(sizeof(struct acpiphp_bridge), GFP_KERNEL);
+@@ -501,7 +417,8 @@
+ 
+ 	/* decode resources */
+ 
+-	status = acpi_get_current_resources(handle, &buffer);
++	status = acpi_walk_resources(handle, METHOD_NAME__CRS,
++		decode_acpi_resource, bridge);
+ 
+ 	if (ACPI_FAILURE(status)) {
+ 		err("failed to decode bridge resources\n");
+@@ -509,8 +426,13 @@
+ 		return;
+ 	}
+ 
+-	decode_acpi_resource(buffer.pointer, bridge);
+-	kfree(buffer.pointer);
++	acpiphp_resource_sort_and_combine(&bridge->io_head);
++	acpiphp_resource_sort_and_combine(&bridge->mem_head);
++	acpiphp_resource_sort_and_combine(&bridge->p_mem_head);
++	acpiphp_resource_sort_and_combine(&bridge->bus_head);
 +
- acpi_status
- acpi_get_current_resources(
- 	acpi_handle                     device_handle,
-@@ -331,6 +336,13 @@
- 	struct acpi_buffer              *ret_buffer);
++	dbg("ACPI _CRS resource:\n");
++	acpiphp_dump_resource(bridge);
  
- acpi_status
-+acpi_walk_resources (
-+	acpi_handle                     device_handle,
-+	char                            *path,
-+	acpi_walk_resource_callback     user_function,
-+	void                            *context);
-+
-+acpi_status
- acpi_set_current_resources (
- 	acpi_handle                     device_handle,
- 	struct acpi_buffer              *in_buffer);
-diff -ur acpi-1/include/acpi/acresrc.h acpi-2/include/acpi/acresrc.h
---- acpi-1/include/acpi/acresrc.h	2003-02-06 14:48:20.000000000 -0700
-+++ acpi-2/include/acpi/acresrc.h	2003-02-09 22:13:47.000000000 -0700
-@@ -47,6 +47,12 @@
- 	struct acpi_buffer              *ret_buffer);
- 
- acpi_status
-+acpi_rs_get_method_data (
-+	acpi_handle                     handle,
-+	char                            *path,
-+	struct acpi_buffer              *ret_buffer);
-+
-+acpi_status
- acpi_rs_set_srs_method_data (
- 	acpi_handle                     handle,
- 	struct acpi_buffer              *ret_buffer);
-diff -ur acpi-1/include/acpi/acutils.h acpi-2/include/acpi/acutils.h
---- acpi-1/include/acpi/acutils.h	2003-02-06 14:48:20.000000000 -0700
-+++ acpi-2/include/acpi/acutils.h	2003-02-09 22:13:47.000000000 -0700
-@@ -444,6 +444,8 @@
- #define METHOD_NAME__SEG        "_SEG"
- #define METHOD_NAME__BBN        "_BBN"
- #define METHOD_NAME__PRT        "_PRT"
-+#define METHOD_NAME__CRS        "_CRS"
-+#define METHOD_NAME__PRS        "_PRS"
- 
- 
- acpi_status
+ 	if (bridge->bus_head) {
+ 		bridge->bus = bridge->bus_head->base;
