@@ -1,13 +1,14 @@
-From: Luming <m_i_c_y_u-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: HP-Compaq laptops and Linux ACPI (was RE: redhat comment about intel not taking patches?)
-Date: Thu, 13 Feb 2003 18:30:27 -0800 (PST)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Hello every boddy, I have a compaq evo 800v any news a bout any dsdt (LONG)
+Date: Fri, 14 Feb 2003 08:31:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030214023027.43928.qmail@web12402.mail.yahoo.com>
-References: <1045154118.14935.64.camel@carwash.duncangibb.com>
+Message-ID: <20030214073129.GX25625@poup.poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A847138050@orsmsx401.jf.intel.com> <1045159298.2048.22.camel@calvin.hjblocal.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1045154118.14935.64.camel-h9eRTumTmmZjMu4AB9qoK9F8XQ1HzYRO@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1045159298.2048.22.camel-PDBFyMGeMq1aCPxV5EPtfPP6llvjuJOh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,38 +17,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Duncan Gibb <duncangibb-zbhw9Kw21rH/AQmYMRTMl1aTQe2KTcn/@public.gmane.org>, "Cagle, John  (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Cc: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Hilbert Barelds <list-XfCjptVMDKWuyJwMYI9mNQ@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-> Back in November I had an exchange of emails on this
-> list and with
-> Richard Black at HP, during which we established
-> that the main thing
-> that stops Linux ACPI working out-of-the-box on HP
-> notebooks like my Evo
-> N800c is that the DSDT written into the BIOS on
-> these boxes does not
-> comply with the ACPI spec.  I sent details of some
-> of the most obvious
-> violations - with references - to Richard, who said
-> he's pass them on,
-> but I've heard nothing back.
+On Thu, Feb 13, 2003 at 07:01:39PM +0100, Hilbert Barelds wrote:
+> Hi Andy,
 > 
+> At least one isue, It has two power states:
+> 
+> *P0: 1700 MHz, 20000 mW, 500 uS
+>  P1: 1200 MHz, 10000 mq, 500 uS
+> 
+> If I do an
+> echo 1 > performance
+> 
+> I get an error in /var/log/messages
+> That it could not change state:
+> 
+> kernel: acpi_processor-1095 [25] acpi_processor_set_per: Transition
+> failed
 
-Does HP notebooks (your Evo N800c) support ACPI well
-when running Windows? If so, linux should do it like
-windiows, despite those boxes does not comply with the
-ACPI spec. Am I right?
+The P4-M is supported by the speedstep "legacy" driver in cpufreq.
 
-thanks,
-micyu
+-- 
+Ducrot Bruno
 
-__________________________________________________
-Do you Yahoo!?
-Yahoo! Shopping - Send Flowers for Valentine's Day
-http://shopping.yahoo.com
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
