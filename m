@@ -1,14 +1,13 @@
-From: David =?utf-8?B?R8OzbWV6?= <david-0d+f1cuTMnnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: Re: bluetooth button is dead
-Date: Wed, 22 Dec 2004 01:01:37 +0100
-Message-ID: <20041222000137.GA29668@fargo>
-References: <20041221150316.14A5D9DA3B@phoenix.squirrel.nl> <200412212014.36223.sanskryt@op.pl> <m2d5x3l9wt.fsf@phoenix.squirrel.nl> <200412212042.56854.juris@juris.com.pl> <16840.33460.373241.800472@phoenix.squirrel.nl> <41C8AEDE.3050105@mega.ist.utl.pt>
+From: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
+Subject: LID button Event ACPI malfunction
+Date: Tue, 21 Dec 2004 16:26:16 -0800
+Message-ID: <200412211626.17033.linux@celifornia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <41C8AEDE.3050105-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,28 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, juris-DO2cFn/OelIEUmgCuDUIdw@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all ;),
+Hi
 
-> >>I have exactly the same model of Acer TM as You. So may be at last I 
-> >>should not go to windows (changing harddisk) to swich killswitch off ;-) 
-> >>May be you have also find some solving to "smart battery"problem?
-> >
-> >No. That's why I'm lurking around in the ACPI devel list ;-).
-> 
-> hehehe, that seems to be a common reason for some of us. shame on us for 
-> buying such laptops! :-)
+When I shut down, my machine (Dell 700m) goes into suspend to ram twice. I 
+have to wake it 
+up, and it goes further, sleeps again, wake it up, and finally shuts down. I 
+just had ACPI worked out (kernel 2.6.9), and since just recently I can go to 
+suspend to RAM 
+and DISK as well. Now, why a shut down triggers a suspend-to-ram?
 
-No, i'm very happy with it, really ;). And it seems a laptop model 
-which several linux users choosed to buy, acpi-devel is full of them :)).
+When I look at the LID button under ACPI
 
-regards,
+/proc/acpi/button/lid/LID0/state
 
--- 
-David Gómez                                      Jabber ID: davidge-/eSpBmjxGS4dnm+yROfE0A@public.gmane.org
+it says 
+
+state: closed
+
+It is clearly not closed, as I am looking at the screen. :)
+
+I have an ACPI event that gets triggered when I REALLY close the lid, and that 
+works.
+
+Here is the event
+
+/etc/acpi/event/lidbtn
+
+event=button/lid
+action=/etc/acpi/lidbtn.sh
+
+And here is the script
+
+/etc/acpi/lidbtn.sh
+
+#!/bin/sh
+/sbin/sleep
+
+And finally here is /sbin/sleep, that was written by me for the machine's 
+special needs (like module unloading, video_post etc.)
+
+rmmod b44
+echo "mem" > /sys/power/state
+#echo 3 > /proc/acpi/sleep
+modprobe i830
+/root/emu/video_post
+modprobe b44
+/etc/init.d/networking restart
+
+Thanks for any help
+
+Ben
 
 
 -------------------------------------------------------
