@@ -1,13 +1,14 @@
-From: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
-Subject: Re: acpi on new gateway laptops
-Date: Mon, 8 Dec 2003 19:56:56 -0600 (CST)
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Button events lost after S3 on Thinkpad R32
+Date: Tue, 9 Dec 2003 10:35:11 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0312081938000.6722-100000@data.upl.cs.wisc.edu>
-References: <Pine.LNX.4.44.0312081716110.5824-100000@data.upl.cs.wisc.edu>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C0D@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44.0312081716110.5824-100000-j0XSImJ06nG869pVMd/zofZ8FUJU4vz8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,34 +17,15 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-On Mon, 8 Dec 2003, Casey Harkins wrote:
-> As mentioned before, I'm trying to get the embedded controller working on
-> a Gateway 400VTX. I've dumped the DSDT but see no "Device (EC)" section,
-> nor does "PNP0C09"  appear in the DSDT. Does this mean this laptop has no
-> embedded controller?
-
-Oops, after a bit more investigating I see that there is a Device(H_EC)
-which appears to be my embedded controller. I also see there is a line in
-my dmesg output, which appears after the "Region EmbeddedControl(3) has
-no handler..." error messages, that says:
-
-     ACPI: Embedded Controller [H_EC] (gpe 29)
-
-So, Linux appears to be detecting my Embedded Controller after it tries to
-access the "Region EmbeddedControl(3)". Does this mean that the ecdt *is*
-being found, but not until after Linux tried to access it? Or does the
-fact that it is detected not mean that the ecdt is being read?
-
-cat /proc/acpi/embedded_controller/H_EC/info:
-   gpe bit:                 0x1d
-   ports:                   0x66, 0x62
-   use global lock:         no
-
--casey
+> Where to find  - Dmitry's input suspend / resume support patches =
+--Luming
+>http://www.geocities.com/dt_or/input/
+Thanks , but it cannot solve SCI interrupt lost after resuming from S3.  =
+--Luming
 
 
 
