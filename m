@@ -1,28 +1,59 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: [ACPI] Re: [BUG] test9 ACPI bad: scheduling while atomic!
-Date: Mon, 27 Oct 2003 12:24:04 -0800 (PST)
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20031027122259.Y77994@root.org>
-References: <Pine.GSO.4.58.0310262327040.19469@clyde>
+From: Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>
+Subject: Re: standby resumes immediately in 2.6.0-test8
+Date: Mon, 27 Oct 2003 23:29:10 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200310272329.10977.aviram@beyondsecurity.com>
+References: <Pine.LNX.4.44.0310271050240.13116-100000@cherise>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.GSO.4.58.0310262327040.19469-8Uwgm7wxmYs@public.gmane.org>
-To: "Noah J. Misch" <noah-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0310271050240.13116-100000-L1xM/EEGAB4@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 27 Oct 2003, Noah J. Misch wrote:
-> > are shown below.  It looks like the AML associated with the AC event is
-> > trying to do an AML_SLEEP_OP.  Since this is called while in the
-> > interrupt handler, and the eventual call to acpi_os_sleep() sets the
-> > current state to interruptible... boom.  One simple, but terribly ugly,
-> > workaround is to make acpi_os_sleep() call acpi_os_stall() if
-> > in_atomic() is true (patch below).  Hopefully there's a better way to
-> > fix this.  Somehow the interpreter really needs to drop interrupt
-> > context before it starts making calls like this.  Thanks,
+On Monday 27 October 2003 20:52, Patrick Mochel wrote:
+> > It *does* look like something wakes the computer up immediately - but
+> > what can it be?
+>
+> Could you please do
+>
+> # echo -n standby > /sys/power/state
+> # echo $?
 
-I thought a change was committed to address this, calling Stall for up to
-255 us and Sleep for more than that.
+# echo -n standby > /sys/power/state
+# echo $?
+1
 
--Nate
+>
+> Also, please send the output of 'cat /proc/acpi/sleep' ? 
+
+# cat /proc/acpi/sleep
+S0 S3 S4 S5
+
+> If "S1"  is not
+> present, then your system does not support standby, and it will not work.
+
+I guess not :-(
+
+For the record, it's a Sony Vaio R505DL.
+
+- Aviram
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: The SF.net Donation Program.
+Do you like what SourceForge.net is doing for the Open
+Source Community?  Make a contribution, and help us add new
+features and functionality. Click here: http://sourceforge.net/donate/
