@@ -1,15 +1,13 @@
-From: M G Berberich <berberic-vmG2aq7wDA3mFSIgyKwhw7NAH6kLmebB@public.gmane.org>
-Subject: Vaio Battery
-Date: Sun, 11 Aug 2002 11:01:20 +0200
+From: Jacques GANGLOFF <jacques-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org>
+Subject: VAIO battery info : some more news
+Date: Mon, 12 Aug 2002 00:04:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020811090120.GC806@fmi.uni-passau.de>
+Message-ID: <200208120004.23193.jacques@eavr.u-strasbg.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Resent-Message-Id: <200208110905.g7B95KfL019905-Bxnoe/o8FG9DzH/I5vb2562o07rSITUvI56JZnuSm5k@public.gmane.org>
-Content-Disposition: inline
-Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,70 +19,68 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---uQr8t48UFsdbeI+V
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here are the latest news about the battery info bug
+on my VAIO FX702.
 
-Hello,
+cat /proc/acpi/battery/BAT1/info :
 
-On 2002-08-06 16:04, Jacques GANGLOFF wrote
-> On 2002-08-04 16:45, Jacques GANGLOFF wrote
-> >
-> > I tried the latest acpi patch with a 2.4.18 kernel on a VAIO FX
-> > 702. I runs quite smoothly but I have a little problem that prevents
-> > akpi (battery monitor) to work properly.
-> >=20
-> > The result of cat /proc/acpi/battery/BAT1/info is :
-> >=20
-> > present:                 yes
-> > design capacity:         5 mWh
-> > last full capacity:      5 mWh
-> > battery technology:      rechargeable
-> > design voltage:          14800 mV
-> > design capacity warning: 400 mWh
-> > design capacity low:     384 mWh
-> > capacity granularity 1:  64 mWh
-> > capacity granularity 2:  64 mWh
-> > model number:            BAT1
-> > serial number:
-> > battery type:
-> > OEM info:
-> >=20
-> > I suppose that the design capacity and the last full capacity are
-> > wrong, like the model number, serial number, battery type and OEM
-> > info.
->
-> which is apparentky the default initialization of the variable PBIF
-> (see below).
-> So the question is: why PBIF is not altered when calling the method
-> _BIF ?
+present:                 yes
+design capacity:         5 mWh
+last full capacity:      5 mWh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 400 mWh
+design capacity low:     384 mWh
+capacity granularity 1:  64 mWh
+capacity granularity 2:  64 mWh
+model number:            BAT1
+serial number:
+battery type:
+OEM info:
 
-exactly the same here with a Sony Vaio FX502.
+The debug messages :
 
-	MfG
-	bmg
+Aug  9 22:59:55 mac1gra kernel: [ACPI Debug] Integer: 0000000000000CAA
+Aug  9 22:59:58 mac1gra kernel: dsmthdat-0433 [331] Ds_method_data_get_va=
+l:
+Uninitialized Local[5] at node cfee897c
+Aug  9 22:59:58 mac1gra kernel:  dswexec-0404 [327] Ds_exec_end_op       =
+ :=20
+[AE_NOT_CONFIGURED]: Could not resolve operands, AE_AML_UNINITIALIZED_LOC=
+AL
+Aug  9 22:59:58 mac1gra kernel: [ACPI Debug] String:=20
+------------------------_Q20 : test1
+Aug  9 22:59:58 mac1gra last message repeated 3 times
+Aug  9 22:59:58 mac1gra kernel: [ACPI Debug] String: Current Temperature =
+is=20
+----
+
+The result of acpidump is at ftp://eavr.u-strasbg.fr/pub/acpi/dump.out
+
+So it seems to be an AML interpreter problem or a bug in the AML code of =
+the
+VAIO. I cannot investigate further into this problem. I hope the infos ar=
+e
+precise enough for someone who knows more about ACPI than me and who
+has time to debug this.
+
+Jacques
+
 
 --=20
-"Des is v=F6llig wurscht, was heut beschlos- | M G Berberich
- sen wird: I bin sowieso dagegn!"          | berberic-vmG2aq7wDA3mFSIgyKwhw7NAH6kLmebB@public.gmane.org
-(SPD-Stadtrat Kurt Schindler; Regensburg)  |
-
---uQr8t48UFsdbeI+V
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: Weitere Infos: siehe http://www.gnupg.org
-
-iD8DBQE9Vifgnp4msu7jrxMRAqbxAJ96wazdIOLghhT5Lp9rpoS4X/0e0ACfYFQr
-UwcZL0f0MzHdct/K77WaGVw=
-=n2ui
------END PGP SIGNATURE-----
-
---uQr8t48UFsdbeI+V--
+ _________________________________
+(
+)   Jacques GANGLOFF
+(   Associate Professor
+)   LSIIT / EAVR=09=09=09
+(   Bd S=E9bastien Brant=20
+)   67400 Illkirch
+(   Tel : +33 (0)3 90 24 44 68
+)   Fax : +33 (0)3 90 24 44 80
+(   http://eavr.u-strasbg.fr
+)_________________________________
 
 
 -------------------------------------------------------
