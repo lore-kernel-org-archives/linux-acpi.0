@@ -1,50 +1,41 @@
-From: Andre Kalus <akalus-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: Boot failure on 2.6.0-test4/test5
-Date: Mon, 15 Sep 2003 10:18:00 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2003.09.15.08.17.58.812498@gmx.de>
-References: <20030915021622.GA1138@nubol.int.oskuro.net>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [ACPI] Vaio doesn't poweroff with 2.4.22
+Date: Mon, 15 Sep 2003 15:53:03 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030915135303.GH11391@poupinou.org>
+References: <Pine.GSO.4.21.0309150835480.3191-100000@vervain.sonytel.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.GSO.4.21.0309150835480.3191-100000-Q9iLAqk50tFNk+PO8Cj175kigfUh6rMo@public.gmane.org>
+To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Development <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 15 Sep 2003 04:16:22 +0200, Jordi Mallach wrote:
-
-> Hi,
+On Mon, Sep 15, 2003 at 08:43:56AM +0200, Geert Uytterhoeven wrote:
+> 	Hi,
 > 
-> I just found out that ACPI was the cause for 2.6.0-test4 and test5's
-> boot failures in my box. If I boot with acpi=off, it manages to boot. If
-> not, the last message printed is
-> mice: PS/2 mouse device common for all mice
+> With 2.4.22, my Sony Vaio PCG-Z600TEK (s/600/505/ in US/JP) shows a regression
+> w.r.t. power management:
+>   - It doesn't poweroff anymore (screen contents are still there after the
+>     powering down message)
+>   - It doesn't reboot anymore (screen goes black, though)
+>   - It accidentally suspended to RAM once while I was actively working on it (I
+>     never managed to get suspend working, except for this `accident'). I didn't
+>     see any messages about this in the kernel log.
 > 
 
-Hi,
 
-I seem to have the same problem: 2.6.0-test3 worked with ACPI well,
-test4 required pci=noacpi to boot and test5 finally dies if I do not
-specify acpi=off.
+Are you able to reboot without acpi?
 
-The Hardware is a Gericom X5 Notebook with a VIA P4X Chipset.
+-- 
+Ducrot Bruno
 
-With test6 will it get better or can it even get worse? ;-)
-
-Greetings
-Andre
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
