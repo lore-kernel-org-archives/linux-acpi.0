@@ -1,58 +1,55 @@
-From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
-Date: Tue, 09 Mar 2004 17:52:36 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <404E4AB4.5010506@verizon.net>
-References: <20040225182030.GG1214@elf.ucw.cz> <40410A69.3070800@verizon.net> <20040228220435.GD10530@elf.ucw.cz> <4041136B.9000904@verizon.net> <20040228230941.GA488@elf.ucw.cz> <4043ECB4.7080203@verizon.net> <20040302101904.GA303@elf.ucw.cz> <404501D8.8090506@verizon.net> <20040302223446.GG1225@elf.ucw.cz> <40467B8E.7060709@verizon.net> <20040304105233.GA308@elf.ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] clean up some ACPI IRQ conversions
+Date: Tue, 9 Mar 2004 16:19:04 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <200403091619.04333.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040304105233.GA308-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+To: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Cc: Andi Kleen <ak@suse.de>, "Nakajima, Jun" <jun.nakajima@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
+Back in January, I posted a patch to clean up some ACPI IRQ
+handling:
 
->Hi!
->
->
->  
->
->>So if there's anything you guys -- who have been more than helpful btw 
->>-- would like me to try as far as getting S3 functional, I'm all ears. 
->>I'm also assuming I need some kind of script for S4 to unload the USB 
->>and NIC modules, stop acpid, then revers all that upon resume. Is this 
->>something I'm going to have to write myself?
->>    
->>
->
->Well, ideally you should not workaround e1000/usb problems with
->scripts, but add driver model support to both of those.
->
->You may want to try S3 with those two modules unloaded. There's some
->chance it resumes with video not working (you can tell by typing find
->/ -- if hdd starts flashing, machine is okay but no video).
->								Pavel
->  
->
-It was a no-go with S3. The machine just shuts down.
+    http://www.gelato.unsw.edu.au/linux-ia64/0401/8019.html
+    http://www.gelato.unsw.edu.au/linux-ia64/0401/8005.html
 
-Is anybody aware of any Intel or Intel chip based (p3 or p4)
-motherboards where S3 works reliably?
+At the time, it conflicted with some pending MSI updates, so we
+put it off until those went in.  Those are now in, so I'll post
+my updated patches as responses to this note.
 
+I originally proposed "acpi_interrupt_to_irq" as a better name for
+"acpi_irq_to_vector", but I'm now proposing "acpi_global_irq_to_irq".
+ia64 uses "gsi" rather than "global_irq", but "global_irq" seems to
+be already established in include/linux/acpi.h, so I went that way.
 
+If people think "acpi_global_irq_to_irq" is too clunky, I'd be glad
+to change it, but it'd be nice to at least get these changes in as
+a start.
 
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+I split it into six easy pieces:
+    1: i386 and x86_64: whitespace and typo changes to sync mpparse.c
+    2: x86_64: add acpi_irq_to_vector() to be same as i386
+    3: i386, x86_64: rename "irq" to "global_irq" (local vars, arguments)
+	(this also fixes a potential i386 bug; we used to do
+	    irq = acpi_irq_to_vector(irq);
+	    entry->irq = irq;
+	    continue;
+	where we convert "irq" from an ACPI global irq to a Linux IRQ,
+	then go through the loop again.  So we could find another PRT
+	entry where the global IRQ happens to match the Linux IRQ we
+	previously found, and screw things up.)
+    4: i386, x86_64, ia64, acpi: rename "acpi_irq_to_vector()" to "acpi_global_irq_to_irq()"
+    5: acpi: fix double conversion in acpi_os_install_interrupt_handler()
+	(this fixes the bug mentioned as the "fishy" part in
+	http://www.gelato.unsw.edu.au/linux-ia64/0401/8005.html)
+    6: acpi: rename acpi_irq variables for clarity
+
+These changes (all together, not individually) have been built and
+booted on ia64 and built for i386.
+
