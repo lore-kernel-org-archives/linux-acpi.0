@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Lyle <lwspm-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
 Subject: Re: suspend.c vs driver-model.txt
-Date: Wed, 24 Jul 2002 19:07:54 +0200
+Date: Wed, 24 Jul 2002 13:56:59 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020724170754.GA7543@atrey.karlin.mff.cuni.cz>
-References: <20020724133821.5598714808@o-o.yi.org>
+Message-ID: <20020724175704.2785B14808@o-o.yi.org>
+References: <mochel@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020724133821.5598714808-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
+In-Reply-To: Message from Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+   of "Wed, 24 Jul 2002 08:51:34 PDT." <Pine.LNX.4.44.0207240843090.954-100000-yZQdDDOm3n9ZQn2sFP3R7eTW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,76 +17,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Lyle <lwspm-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> The more I look at this, the more convinced I am that driver-model.txt 
-> describes the proper approach, and suspend.c just has it backwards.  Even 
-> though no drivers really implement the functionality properly yet, it makes 
-> sense to get the framework right so that they *can*, eventually.
-> 
-> I don't know why driver.h has the enums listed in a different order from 
-> driver-model.txt, or if it's really necessary to fix the order, unless 
-> somebody decides to start doing ordered comparisons.
+> On a side, though related, note, while we were in Ottawa, several of us 
+> had a chance to sit down and hammer out exactly what needs to take place. 
+> The results exist in a notebook (a real, pencil-driven one), but have not 
+> had a chance to be expressed in ASCII text yet. (Frankly, it's a low 
+> priority right now: -EPLATEFULL). 
 
-The diff looks right, will apply...
-									Pavel
+Did you talk at all about the fact that pci.h has its own set of power-management hooks that almost-but-not-quite map to the ACPI
+ones, and how to resolve that?
 
-> Just to make it clear what I mean:
-> 			 
-> *** kernel/suspend.c   Wed Jul 24 09:21:39 2002
-> --- kernel/suspend.c.orig      Wed Jul 24 09:20:32 2002
-> ***************
-> *** 647,650 ****
->   {
-> -       device_resume(RESUME_ENABLE);
->         device_resume(RESUME_RESTORE_STATE);
->   }
-> --- 647,650 ----
->   {
->         device_resume(RESUME_RESTORE_STATE);
-> +       device_resume(RESUME_ENABLE);
->   }
-> ***************
-> *** 655,658 ****
->         device_suspend(4, SUSPEND_NOTIFY);
-> -       device_suspend(4, SUSPEND_DISABLE);
->         device_suspend(4, SUSPEND_SAVE_STATE);
->         if(!pm_suspend_state) {
-> --- 655,658 ----
->         device_suspend(4, SUSPEND_NOTIFY);
->         device_suspend(4, SUSPEND_SAVE_STATE);
-> +       device_suspend(4, SUSPEND_DISABLE);
->         if(!pm_suspend_state) {
-> ***************
-> *** 674,677 ****
->   {
-> -       device_resume(RESUME_ENABLE);
->         device_resume(RESUME_RESTORE_STATE);
->         if(flags & RESUME_PHASE2) {
-> --- 674,677 ----
->   {
->         device_resume(RESUME_RESTORE_STATE);
-> +       device_resume(RESUME_ENABLE);
->         if(flags & RESUME_PHASE2) {
-> 
-> 
-> 
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
 
 
 -------------------------------------------------------
