@@ -1,17 +1,11 @@
-From: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Sat, 15 Jan 2005 15:24:22 +0100
-Message-ID: <47e0449d050115062420ce03e2@mail.gmail.com>
-References: <41E81C2C.8010809@bartol.udel.edu>
-	 <1105747983.7368.3.camel@tyrosine>
-	 <47e0449d05011419037877f931@mail.gmail.com>
-	 <m2fz13x8mw.fsf@phoenix.squirrel.nl>
-Reply-To: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Grant Grundler <grundler-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
+Subject: help for ACPI_CONTAINER sucks
+Date: Sat, 15 Jan 2005 15:21:29 -0700
+Message-ID: <20050115222129.GB10070@colo.lackof.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2fz13x8mw.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -24,34 +18,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I thought it wouldn't be necessary to apply the patch because Rich
-didn't mention it in his README file.
 
-Regards,
-Johannes
+Help for ACPI_CONTAINER is just useless:
+                This is the ACPI generic container driver which supports
+		ACPI0004, PNP0A05 and PNP0A06 devices.
 
+Help should explain what those devices are and what might not work
+unless I enable ACPI_CONTAINER. As a !acpi_developer I have no clue
+and am just annoyed by the question.
 
-On Sat, 15 Jan 2005 11:57:11 +0100, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org> wrote:
-> Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
-> 
-> > I had to put
-> > EXPORT_SYMBOL(acpi_ec_write); and EXPORT_SYMBOL(acpi_ec_read); after
-> > the functions in drivers/acpi/ec.c.
-> 
-> This is one of the issues Bruno's patch addressed...
-> 
-> -- Johan
-> 
-> 
-> -------------------------------------------------------
-> The SF.Net email is sponsored by: Beat the post-holiday blues
-> Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-> It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+Here is a fictious example (I have no clue about ACPI) might provide
+some guidance on what I was expecting:
+	The ACPI generic container driver provides support for:
+	ACPI0004 - Hotplug IO
+	PNP0A05  - Hotplug CPU
+	PNP0A06  - Hotplug Memory
+	
+	One can use those devices but can't access hotplug features
+	unless this option is enabled.
+
+	If one selects "m", this driver can be loaded with
+	"modprobe acpi_container".
+
+hth,
+grant
 
 
 -------------------------------------------------------
