@@ -1,7 +1,7 @@
 From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
-Subject: drivers/acpi/video.c: null pointer dereference
-Date: Thu, 24 Mar 2005 21:37:44 +0100
-Message-ID: <20050324203744.GB3966@stusta.de>
+Subject: drivers/acpi/scan.c: inconsequent NULL handling
+Date: Thu, 24 Mar 2005 21:41:09 +0100
+Message-ID: <20050324204109.GC3966@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -18,46 +18,26 @@ To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The Coverity checker found the following null pointer dereference in 
-drivers/acpi/video.c:
+The Coverity checker found the following:
 
 <--  snip  -->
 
-...
 static int
-acpi_video_switch_output(
-...
+acpi_bus_match (
+        struct acpi_device      *device,
+        struct acpi_driver      *driver)
 {
-...
-        struct acpi_video_device *dev=NULL;
-...
-        list_for_each_safe(node, next, &video->video_device_list) {
-                struct acpi_video_device * dev = container_of(node, struct acpi_video_device, entry);
-...
-        }
-...
-        switch (event) {
-        case ACPI_VIDEO_NOTIFY_CYCLE:
-        case ACPI_VIDEO_NOTIFY_NEXT_OUTPUT:
-                acpi_video_device_set_state(dev, 0);
-                acpi_video_device_set_state(dev_next, 0x80000001);
-                break;
-        case ACPI_VIDEO_NOTIFY_PREV_OUTPUT:
-                acpi_video_device_set_state(dev, 0);
-                acpi_video_device_set_state(dev_prev, 0x80000001);
-...
+        if (driver && driver->ops.match)
+                return driver->ops.match(device, driver);
+        return acpi_match_ids(device, driver->ids);
+}
 
 <--  snip  -->
 
 
-Two different variables of the same name within 40 lines of code are a 
-good indication that something's wrong...
-
-
-The outer "dev" variable is never assigned any value different from 
-NULL.
-
-acpi_video_device_set_state dereferences this variable.
+Either driver can be NULL, in which case the driver->ids is a possible 
+NULL pointer reference, or it can't, in which case the check whether 
+it's NULL is superfluous.
 
 
 cu
