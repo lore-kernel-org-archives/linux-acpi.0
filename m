@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M6800N: battery0 not present
-Date: Wed, 18 Feb 2004 18:13:45 +0100
+From: Kjartan Maraas <kmaraas-gyXR7Lt7FVk/G1V5fR+Y7Q@public.gmane.org>
+Subject: Re: 2.6.2 ACPI problem
+Date: Wed, 18 Feb 2004 13:54:04 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40339D49.4030002@pca.it>
-References: <40324F44.60006@pca.it>
+Message-ID: <1077108844.7141.12.camel@localhost.localdomain>
+References: <4028EBC3.6090002@vision.ee>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40324F44.60006-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <4028EBC3.6090002-w3PkqIkA8A2zQB+pC5nmwQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,51 +17,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Lenar =?ISO-8859-1?Q?L=F5hmus?= <lenar-w3PkqIkA8A2zQB+pC5nmwQ@public.gmane.org>
+Cc: Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+tir, 10.02.2004 kl. 16.33 +0200, skrev Lenar L=F5hmus:
 
-Hello,
+> Hi,
+>=20
+> Having problems here with ACPI on Compaq Evo N610c laptop.
+> Everything boots up fine except when loading battery module
+> one gets this:
+>=20
+>     ACPI-1120: *** Error: Method execution failed=20
+> [\_SB_.C045.C059.C0E2.C13F] (Node c157bd40), AE_AML_UNINITIALIZED_LOCAL
+>     ACPI-1120: *** Error: Method execution failed=20
+> [\_SB_.C045.C059.C0E2.C14E] (Node c157bc40), AE_AML_UNINITIALIZED_LOCAL
+>     ACPI-1120: *** Error: Method execution failed [\_SB_.C198._BTP]=20
+> (Node c1577d20), AE_AML_UNINITIALIZED_LOCAL
+> ACPI: Battery Slot [C198] (battery present)
+> ACPI: Battery Slot [C199] (battery absent)
+>=20
+Seeing this exact same output on a N600c laptop here.
 
-on 02/17/04 18:28, Luca Capello wrote:
-> Now, the real problem is in these lines:
->>>Feb 16 16:42:40 localhost kernel: ACPI: Looking for DSDT in initrd ...
-> found customized DSDT with 22420 bytes!
-> <cut>
->>>Feb 16 16:42:40 localhost kernel: ACPI: Subsystem revision 20040211
->>>Feb 16 16:42:40 localhost kernel: ACPI: Using customized DSDT
->>>Feb 16 16:42:40 localhost kernel:    tbget-0299: *** Info: Table
->> [DSDT] replaced by host OS
->>>Feb 16 16:42:40 localhost kernel:  tbxface-0117 [03] acpi_load_tables
->
->      : ACPI Tables successfully acquired
->
-> /et-voilà/: the kernel reads my customized DSDT, but after it doesn't
-> used it (the 'replaced by host OS' message), so I've the corrected DSDT
-> in /proc/acpi/dsdt, but not used. Am I right? In fact, I get all the
-> errors I've with the original DSDT (which I'd like to correct, but after
-> having booted with the new DSDT).
-sorry, but reading 'drivers/acpi/table/tbget.c' let me know that the
-message above is the correct one: the DSDT in the BIOS is replaced with
-the new one, which in my case is taken via the initrd patch. If this is
-not true, please someone could correct me?
+> Tried with and without RELAXED_AML.
+>=20
+> Now despite this machine seems to work fine until kde's laptop daemon=20
+> does something I'm not aware of which results in
+> these lines in dmesg:
+>=20
+> Feb 10 17:52:35 debian kernel:     ACPI-0245: *** Error: Cannot release=20
+> Mutex [_GL_], not acquired
+> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method=20
+> execution failed [\_SB_.C045.C059.C0E2.C12C] (Node c157bf80),=20
+> AE_AML_MUTEX_NOT_ACQUIRED
+> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method=20
+> execution failed [\_SB_.C045.C059.C0E2.C13F] (Node c157bd40),=20
+> AE_AML_MUTEX_NOT_ACQUIRED
+> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method=20
+> execution failed [\_SB_.C045.C059.C0E2.C145] (Node c157bcc0),=20
+> AE_AML_MUTEX_NOT_ACQUIRED
+> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method=20
+> execution failed [\_SB_.C045.C059.C0E2.C14C] (Node c157bc60),=20
+> AE_AML_MUTEX_NOT_ACQUIRED
+> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method=20
+> execution failed [\_SB_.C14C] (Node c1577ee0), AE_AML_MUTEX_NOT_ACQUIRED
+> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method=20
+> execution failed [\_SB_.C198._BST] (Node c1577da0),=20
+> AE_AML_MUTEX_NOT_ACQUIRED
+>=20
+I also saw these with GNOME until the battery status applet was fixed.
 
-So, now the problem is that I can't use Andre's DSDT, I mean, I can use
-it, but with no changes. I suppose this is due to the more recent BIOS I
-use, am I right?
+See http://bugzilla.gnome.org/show_bug.cgi?id=3D129167 for the relevant
+fix for battstat. Maybe this fix shows a similar fix is possible under
+KDE? Not sure this is a fix really, but at least the symptoms went away
+for me after this got fixed.
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFAM51IVAp7Xm10JmkRAqNrAKCKjEMzjIy7jH53cLeeViaLs2jZ/gCfdahm
-sxaaG90KNyn+RFfE34FoUGg=
-=Xsog
------END PGP SIGNATURE-----
+Cheers
+Kjartan
 
 
 -------------------------------------------------------
