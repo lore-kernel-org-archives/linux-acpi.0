@@ -1,47 +1,74 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: 2.6.9rc2-mm4 oops
-Date: Fri, 1 Oct 2004 16:33:10 -0600
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200410011633.10171.bjorn.helgaas@hp.com>
-References: <1096571653.11298.163.camel@cmn37.stanford.edu> <200410010904.52892.bjorn.helgaas@hp.com> <1096653158.7485.17.camel@cmn37.stanford.edu>
+From: "Georg C. F. Greve" <greve@gnu.org>
+Subject: Re: status update for current development on ASUS M2N
+Date: Sat, 02 Oct 2004 00:31:57 +0200
+Sender: softwaresuspend-devel-admin@berlios.de
+Message-ID: <m3ekkiqdcy.fsf@brain.gnuhh.org>
+References: <20040930214808.B5D9C3AA515@ws5-8.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266768AbUJAWfK@vger.kernel.org>
-In-Reply-To: <1096653158.7485.17.camel@cmn37.stanford.edu>
-Content-Disposition: inline
-To: Fernando Pablo Lopez-Lezcano <nando@ccrma.stanford.edu>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, mingo@elte.hu, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, Bernhard Rosenkraenzer <bero@arklinux.org>
+Content-Type: multipart/signed; boundary="20041002003157+0200-21114919-4450113298928427";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
+In-Reply-To: <20040930214808.B5D9C3AA515@ws5-8.us4.outblaze.com> (Nigel
+	Cunningham's message of "Fri, 01 Oct 2004 07:48:08 +1000")
+Errors-To: softwaresuspend-devel-admin@berlios.de
+List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
+List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
+List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
+List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
+List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
+To: Nigel Cunningham <ncunningham@linuxmail.org>
+Cc: ACPI List <acpi-devel@lists.sourceforge.net>, SoftwareSuspend-Devel <softwaresuspend-devel@lists.berlios.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 01 October 2004 11:52 am, Fernando Pablo Lopez-Lezcano wrote:
-> On Fri, 2004-10-01 at 08:04, Bjorn Helgaas wrote:
-> >  Also, can you look up the bad address
-> > (e.g., f8881920) in /proc/kallsyms? 
-> 
-> This is what I find:
-> f8880f80 ? __mod_vermagic5      [xor]
-> f8880fcd ? __module_depends     [xor]
-> f8881000 t acpi_button_init     [button]
-> f8881000 t init_module  [button]
-> f8884000 t xor_pII_mmx_2        [xor]
-> f8884130 t xor_pII_mmx_3        [xor]
+--20041002003157+0200-21114919-4450113298928427
 
-You are remembering that /proc/kallsyms isn't sorted, right?
+ || On Fri, 01 Oct 2004 07:48:08 +1000
+ || "Nigel Cunningham" <ncunningham@linuxmail.org> wrote: 
 
-If you still can't match the address to anything interesting,
-can you see whether it's related to any of the other modules
-(i.e., see whether it happens even if you don't load any of
-the other ACPI drivers, or try leaving out any other drivers
-you can get along without)?  Maybe try loading an ACPI driver
-other than floppy, at the same point in the module load sequence,
-to see if the problem is specific to floppy, or if floppy is
-just an innocent bystander?
+ >> Can you tell me how to do this, please?
 
-I looked at all the callers of acpi_bus_register_driver(), and
-they all look fine (except the hpet one I found yesterday).  But
-maybe there's something I missed, or maybe the acpi_bus_drivers
-list got corrupted somehow.
+ nc> The simplest way is to do a digital photograph, I'm afraid. The
+ nc> 'nice' way is to hook up a serial console and capture the output.
 
-If you don't load the floppy driver, is the system stable?
+That is rather inconvenient.
+
+I'm curious. Any reason that nobody implemented something to do this?
+
+I would assume that a kdb buffer that is reserved at startup,
+initalized with 0s and into which only kdb can write during debugging.
+
+When kdb is left and the buffer is different from 0, the contents are
+dumped to dmesg/syslog.
+
+This appears to me like it would be a rather simple solution to avoid
+having to send around pictures or using a second computer...
+
+
+ nc> If you do a photo, just send it to me, please.
+
+Just did that. Please confirm that you got it and it did not get stuck
+anywhere on the way.
+
+Hope this helps,
+
+Regards,
+Georg
+
+-- 
+Georg C. F. Greve                                       <greve@gnu.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
+
+--20041002003157+0200-21114919-4450113298928427
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBBXdrdbvivwoZXSsoRAt3CAJsHk++btmpCPjz/ye1huujjt0iegwCfQ79V
+kYXlW5IUQSxLUvt9MaVScl4=
+=u30S
+-----END PGP SIGNATURE-----
+--20041002003157+0200-21114919-4450113298928427--
