@@ -1,13 +1,14 @@
-From: Tobias Grimm <listaccount-ztmIXtBW4J6sTnJN9+BGXg@public.gmane.org>
-Subject: shutdown comand and wakeup
-Date: Mon, 23 Feb 2004 00:16:35 +0100
+From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
+Date: Sun, 22 Feb 2004 21:02:57 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40393853.9090704@e-tobi.net>
-Reply-To: listaccount-ztmIXtBW4J6sTnJN9+BGXg@public.gmane.org
+Message-ID: <40395F51.9060101@verizon.net>
+References: <4038F499.2060302@verizon.net> <20040222202519.GB2869@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040222202519.GB2869-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,27 +20,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Bruno Ducrot wrote:
 
-I'm running a kernel 2.4.24 with patch acpi-20040211-2.4.24. Generaly, this 
-seems to work. I.e., I can do this:
-
-echo 2004-02-22 15:00:00 >/proc/acpi/alarm
-echo 5 >/proc/acpi/sleep
-
-As expected, the computer will start up at the given time.
-
-But when I shutdown with "shutdown -h 0" instead of "echo 5 >/proc/acpi/sleep", 
-the computer will not wakeup at the programmed time.
-
-I've disabled APM with "apm=off" as kernel parameter, so I thought shutdown 
-should use ACPI to switch to S5, shouldn't it?
-
-Any ideas what I did wrong or what I might have missed?
-
-Thanks,
-
-Tobias
+>
+>There is at least one problem for which I don't think that you will have
+>S3 working even in the near future.
+>You do have a radeon 9700 and due to lack of supports by ATI those days,
+>I don't see how a developper can include power management codes in any
+>drivers other than by a cycle of guess, then try and guess again what
+>happens on errors.
+>Note that S3 may work though if you do not have AGPGART compiled,
+>and you do not use any kind of binary-only drm drivers from ATI.
+>
+>Cheers,
+>
+>  
+>
+Would an older ATI card, like a Rage 128 Pro or original Radeon (7000 I
+believe) work?
 
 
 
