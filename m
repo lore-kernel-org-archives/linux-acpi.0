@@ -1,14 +1,16 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: Can set all but active[2] temperature via trip_points
-Date: Wed, 28 Apr 2004 15:50:50 +0200
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Re[2]: /dev/console unavailable after S3
+Date: Wed, 28 Apr 2004 16:11:12 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040428135050.GC6116@openzaurus.ucw.cz>
-References: <20040425055737.GA7358@home.larve.net> <20040426112550.GB23616@fuchi> <20040426214213.GA10794@message-id.gmane0305.slipkontur.de>
+Message-ID: <36868590.20040428161112@osu.edu>
+References: <1082900724.8078.7.camel@nala>
+ <20040427192222.GU2595@openzaurus.ucw.cz>
+Reply-To: Ohio State University <barr.156-ZbGKxL/pcrQ@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040426214213.GA10794-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <20040427192222.GU2595-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +19,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> Which kernel?
 
-> > i had a little discussion with pavel machek about that a couple of weeks
-> > ago. as written in 12.3.1, the acpi spec defines 10 active states.
-> > the current implementation in linux is implemented for only 2 active
-> > states, because pavel had not seen more than that before. he also told
-> > me that it should not be too hard to expand this to more active states.
-> > so you could either nag him to do that or do it yourself and send the
-> > patch to this list. :)
-> 
-> ok, i hacked some quick solution which WorksForMe[tm]. Note: i do not
-> know C, so this could be terribly wrong. Anyway, this is the result:
+2.6.5
 
-It looks good, please push it.
-				Pavel
+> What about S1?
 
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+not supported on this laptop
+
+> What laptop is it?
+
+Dell Inspiron 300m
+
+> Can you try without X?
+
+Results in a blank screen after resume
+
+Hope this helps.
+
+--
+Andrew Barr
+barr.156-ZbGKxL/pcrQ@public.gmane.org
 
 
 
