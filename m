@@ -1,15 +1,14 @@
-From: "Defiant" <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
-Subject: RE: can't switch CPU frequency while running on batterypower
-Date: Tue, 6 Jan 2004 19:07:36 +0100 (CET)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI/ECDT on gateway 200x notebook
+Date: Tue, 6 Jan 2004 19:34:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <32908.192.168.36.2.1073412456.squirrel@defiant.homedns.org>
-References: <3ACA40606221794F80A5670F0AF15F8401720C76@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040106183426.GJ14031@poupinou.org>
+References: <3FF773E5.5070102@rochester.rr.com> <Pine.LNX.4.44.0401032005180.7785-100000@data.upl.cs.wisc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C76-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org
-     >
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0401032005180.7785-100000-j0XSImJ06nG869pVMd/zofZ8FUJU4vz8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,37 +17,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
+Cc: Rich Ibbotson <richibb-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> CONFIG_X86_ACPI_CPUFREQ=y
->> CONFIG_X86_ACPI_CPUFREQ_PROC_INTF=y
->
-> Please try patch filed at
-> http://bugzilla.kernel.org/show_bug.cgi?id=1489
+On Sat, Jan 03, 2004 at 08:07:26PM -0600, Casey Harkins wrote:
+> 
+> I think its now been determined that the problem is not from a missing
+> ECDT. Check out the bugzilla entry where work is being done to solve this
+> problem. I'm hoping to test the patch on one of our 400VTX's this week.
+> 
+> http://bugzilla.kernel.org/show_bug.cgi?id=1744
 
-Tried the patch, but it didn't solved the Problem.
+The patch initiazile EC(s) as the really first device(s) (but I am 
+perhaps wrong, since I read it really quickly though), which break
+acpi "spirit" imnsho.  The EC is a child of other devices and you
+have to be sure that those devices are initialized before EC (even
+though that is done by BIOS at POST already, due to legacy access
+in some laptops).
 
-Well at least I found out some more Info about.
-My full speed is 1600, low speed is 1200Mhz:
+> On Sat, 3 Jan 2004, Rich Ibbotson wrote:
+> > Dear ACPI Gurus,
+> >
 
-When running on AC Adapter, I can switch the speed as often as I want.
-So If I set it to 1200 and then disconnect the AC, I can also switch
-between both speeds under battery power. Now If it is 1200 and I connect
-the AC I can not set it back to 1600.
-Well like I said in my preceding post it is the same: Running with AC,
-speed set to 1600, disconnecting the AC, I can not set the speed down to
-1200.
+[...]
 
-Hope that this wasn't that complicated (in my bad English),
-Erik Andresen
+> > I do see an entry for "\_SB_.PCI0.LPCB.H_EC._REG" in the DSDT, though:
+> >
+> > 000028c5:         Method _REG (\_SB_.PCI0.LPCB.H_EC._REG)
+> > 000028cb:           ArgCount 2; NotSerialized
+> > 000028cc:           If
+> > 000028ce:             LAnd
+> > 000028cf:               LEqual
+> > 000028d0:                 Arg0
+> > 000028d1:                 0x03
+> > 000028d3:               LEqual
+> > 000028d4:                 Arg1
+> > 000028d5:                 0x01
+> > 000028d7:             Store
+> > 000028d8:               0x01
+> > 000028da:               ECON (0000024e)
+> > 000028de:             Store
+> > 000028df:               \_SB_.PCI0.LPCB.H_EC.ACEX (00002844)
+> > 000028f6:               \PWRS (00000160)
+> >
 
---
+Please do not use acpidmp, but iasl instead, or send a raw dsdt.
 
-All I ask is a tall ship, and a star to steer her by
-> defiant.homedns.org <
- -cause Experience is Knowledge
+Look at http://acpi.sf.net/ for how to get iasl.
 
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
