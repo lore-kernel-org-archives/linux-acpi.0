@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S1 resume stopped working
-Date: Tue, 29 Jun 2004 00:50:25 +0200
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: problem with cpu eating too much power, prize given if solved
+Date: Mon, 28 Jun 2004 22:40:09 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040628225025.GB11333@elf.ucw.cz>
-References: <Pine.LNX.4.44.0406171127200.9804-100000@math.cudenver.edu>
+Message-ID: <20040628204008.GK698@openzaurus.ucw.cz>
+References: <20040624153513.GB19545@rap.rap.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0406171127200.9804-100000-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
+In-Reply-To: <20040624153513.GB19545-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,143 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tod Morrison <trmorris-CxZjHwuTSy8Y3NgEzsZOoze48wsgrGvP@public.gmane.org>
+To: keld-6PR53cSIHaE@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I just trying to track down the source of the problem. Currently I can 
-> suspend and resume (S1) using the 2.6.5-gentoo kernel as long as I unload 
-> the alsa modules first. I just tried the vanilla 2.6.7 kernel with the 
-> same config (zcat /proc/config.gz > .config ; make oldconfig ) and cannot 
-> resume. Suspend works fine, but on resume I make it as far as "PM: 
-> Finishing up." and locks up.
-> 
-> Anyway, by inserting some pr_debug statements I've tracked it down to a 
-> section of code in resume.c where it traverses a list of devices changing 
-> their power state and it appears to go through about eight devices before 
-> it locks. I'd like to see if I can track down which device is causing the 
-> problem, but I don't really know my way around the kernel much any more. 
-> Could someone give me an example of how to print out which device I'm at 
-> given a "struct device" and maybe something like pr_debug()?
-> 
-> Of course if anyone just knows what changed between 2.6.5-gentoo and 2.6.7 
-> that is causing this, that info would make this exercise unnecessary. :)
+> Many times I just want to read the screen, eg emails or documents,
+> and then still the cpu will be in idle mode, where
+> it uses 7.5 W out of the about 15 W that the whole machine uses.
+> I have found out from Intel data sheets that my
+> Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
+> stop grant/sleep states, (and 5.0 W i deep sleep state).
+>  
+> So I would like to have the CPU stopped completely (consuming 0 W)
+> while I still could read the screen. In that way I should
+> be able to have about double the lifetime on the battery,
+> going to about 7 hours from the 3.5 hours I have now.
+>  
+> I would like the machine to wake up again by any keystroke
+> on the keyboard or mouse input. I would like the input to be
+> reacted upon (not just used to wake up the system, and
+> then forgotten).
+>  
 
-Something like this?
-
---- tmp/linux/drivers/base/power/shutdown.c	2004-06-22 12:36:02.000000000 +0200
-+++ linux/drivers/base/power/shutdown.c	2004-06-22 12:37:57.000000000 +0200
-@@ -8,6 +8,7 @@
-  *
-  */
- 
-+#define DEBUG
- #include <linux/config.h>
- #include <linux/device.h>
- #include <asm/semaphore.h>
-@@ -52,14 +53,14 @@
- 	struct device * dev;
- 	
- 	down_write(&devices_subsys.rwsem);
-+	printk("Shutting down devices: ");
- 	list_for_each_entry_reverse(dev,&devices_subsys.kset.list,kobj.entry) {
--		pr_debug("shutting down %s: ",dev->bus_id);
- 		if (dev->driver && dev->driver->shutdown) {
--			pr_debug("Ok\n");
-+			printk("%s, ",dev->bus_id);
- 			dev->driver->shutdown(dev);
--		} else
--			pr_debug("Ignored.\n");
-+		}
- 	}
-+	printk("ok\n");
- 	up_write(&devices_subsys.rwsem);
- 
- 	sysdev_shutdown();
---- tmp/linux/drivers/base/power/suspend.c	2004-06-22 12:36:02.000000000 +0200
-+++ linux/drivers/base/power/suspend.c	2004-06-22 12:37:57.000000000 +0200
-@@ -117,10 +117,13 @@
- 	int error = 0;
- 	struct device * dev;
- 
-+	printk("Powering down devices: ");
- 	list_for_each_entry_reverse(dev,&dpm_off_irq,power.entry) {
-+		printk("%s ", dev->bus_id);
- 		if ((error = suspend_device(dev,state)))
- 			break;
- 	} 
-+	printk("ok?\n"); 
- 	if (error)
- 		goto Error;
- 	if ((error = sysdev_suspend(state)))
---- tmp/linux/drivers/base/sys.c	2004-06-22 12:36:02.000000000 +0200
-+++ linux/drivers/base/sys.c	2004-06-22 12:37:57.000000000 +0200
-@@ -305,18 +305,17 @@
- {
- 	struct sysdev_class * cls;
- 
--	pr_debug("Suspending System Devices\n");
-+	printk("Suspending System Devices: ");
- 
- 	list_for_each_entry_reverse(cls,&system_subsys.kset.list,
- 				    kset.kobj.entry) {
- 		struct sys_device * sysdev;
- 
--		pr_debug("Suspending type '%s':\n",
--			 kobject_name(&cls->kset.kobj));
-+		printk("%s: ", kobject_name(&cls->kset.kobj));
- 
- 		list_for_each_entry(sysdev,&cls->kset.list,kobj.entry) {
- 			struct sysdev_driver * drv;
--			pr_debug(" %s\n",kobject_name(&sysdev->kobj));
-+			printk(" %s, ",kobject_name(&sysdev->kobj));
- 
- 			/* Call global drivers first. */
- 			list_for_each_entry(drv,&global_drivers,entry) {
-@@ -335,6 +334,7 @@
- 				cls->suspend(sysdev,state);
- 		}
- 	}
-+	printk("ok\n");
- 	return 0;
- }
- 
-@@ -352,17 +352,16 @@
- {
- 	struct sysdev_class * cls;
- 
--	pr_debug("Resuming System Devices\n");
-+	printk("Resuming System Devices: ");
- 
- 	list_for_each_entry(cls,&system_subsys.kset.list,kset.kobj.entry) {
- 		struct sys_device * sysdev;
- 
--		pr_debug("Resuming type '%s':\n",
--			 kobject_name(&cls->kset.kobj));
-+		printk("%s: ", kobject_name(&cls->kset.kobj));
- 
- 		list_for_each_entry(sysdev,&cls->kset.list,kobj.entry) {
- 			struct sysdev_driver * drv;
--			pr_debug(" %s\n",kobject_name(&sysdev->kobj));
-+			printk(" %s, ",kobject_name(&sysdev->kobj));
- 
- 			/* First, call the class-specific one */
- 			if (cls->resume)
-@@ -382,6 +381,7 @@
- 
- 		}
- 	}
-+	printk("ok\n");
- 	return 0;
- }
- 
-
-
+S1 is what you want... but... if you get what you asked for,
+do you realize that for example clock would not update on the desktop
+in this mode?
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
