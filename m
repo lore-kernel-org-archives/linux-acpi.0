@@ -1,15 +1,15 @@
 From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 Subject: Re: New SmartBattery DSDT-based controller
-Date: Mon, 31 Jan 2005 13:16:35 +0100
-Message-ID: <m2sm4hokt8.fsf@phoenix.squirrel.nl>
+Date: Mon, 31 Jan 2005 13:16:58 +0100
+Message-ID: <m2oef5oksl.fsf@phoenix.squirrel.nl>
 References: <41FBDDE2.1050403@bartol.udel.edu>
 	<m24qgyorl3.fsf@phoenix.squirrel.nl>
-	<41FE1D2D.8030006@bartol.udel.edu>
+	<200501311002.36671.david.goodenough@btconnect.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41FE1D2D.8030006-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> (Rich Townsend's message of
- "Mon, 31 Jan 2005 06:57:33 -0500")
+In-Reply-To: <200501311002.36671.david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org> (David
+ Goodenough's message of "Mon, 31 Jan 2005 10:02:35 +0000")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,16 +22,11 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
+David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org> writes:
 
-> One of the approaches mentioned in the Gentoo forums guide (section
-> 9b, IIRC), is almost equivalent to this: within grub, the extra line
-> "initrd=myDSDT.aml" is added beneath the kernel line.
+> This would be wonderful.  Do you know of a patch that implements this?
 
-AFAIK, this only designates the initrd to be used. The 'load DSDT from
-initrd' patch uses this to read the DSDT, however, this only works if
-you do not already have an initrd. In the latter case, the 'signature
-trick' must be used to append the DSDT to the existing initrd.
+No, but I'll take a look.
 
 -- Johan
 
