@@ -1,13 +1,12 @@
-From: "Breathnach, Proinnsias (Dublin)" <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org>
-Subject: RE: C2 or C3 on Presario 2110US?
-Date: Thu, 13 Mar 2003 18:48:25 -0000
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: pmtools at intel
+Date: Thu, 13 Mar 2003 19:46:34 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <A3C83F41488BD61195C3000802252FC135C175@dubim07742.ie.ml.com>
+Message-ID: <20030313184634.GA1428@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,34 +15,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Carl Thompson' <cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org>
-Cc: "'acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Carl,
-	I'm no ACPI expert here, but I'd imagine the problem is probably
-closer related to the DSDT (the tables the BIOS manufacturer included to
-tell the OS about what it can / can't do ...
+Hi!
 
-In your case it seems that the manufacturer (of either the BIOS itself or
-probably the laptop) didn't include any C-State information in the ACPI
-tables, or if they did that this information is unreadable by the Linux ACPI
-parser.
+Hmm, Intel asked me to fill in survey when trying to download
+pmtools. Weird.
 
-Can you output your DSDT and copy the list on it ... someone with more
-experience may have an answer as to why it's failing like that !
+Then pmtools will not compile:
 
-What versions of the kernel / ACPI are you using are also important factors.
+gcc -Wall -fno-strength-reduce -fomit-frame-pointer -D__KERNEL__
+-DMODULE -I/usr/src/linux/include -Wall -Wno-unused -Wno-multichar
+-c -o pmtest.o pmtest.c
+pmtest.c: In function `pmtest_devices':
+pmtest.c:53: warning: int format, long int arg (arg 5)
+/tmp/ccCy61dB.s: Assembler messages:
+/tmp/ccCy61dB.s:522: Error: `%al' not allowed with `movl'
+/tmp/ccCy61dB.s:526: Error: `%al' not allowed with `xorl'
+/tmp/ccCy61dB.s:611: Warning: using `%eax' instead of `%ax' due to `l'
+suffix
+/tmp/ccCy61dB.s:615: Warning: using `%eax' instead of `%ax' due to `l'
+suffix
+/tmp/ccCy61dB.s:615: Warning: using `%eax' instead of `%ax' due to `l'
+suffix
+make[1]: *** [pmtest.o] Error 1
+make[1]: Leaving directory
+`/linux_hdc2/usr/src/pmtools-20010730/pmtest'
+make: *** [all] Error 2
+root@amd:/usr/src/pmtools-20010730#
 
-P
+fortunately I do not need pmtest :-).
 
-> -----Original Message-----
-> Actually, any sort of
-> acknowledgement would be nice.  What ever happened to the talk of
-> implementing a bug tracking system?
-> 
-> 
-
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
