@@ -1,15 +1,13 @@
-From: "Martin J. Bligh" <Martin.Bligh-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [Discontig-devel] RE: Cleanup of NUMA support in ACPI
-Date: Mon, 19 Aug 2002 10:43:57 -0700
+From: "VALETTE Eric" <valette-9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org>
+Subject: Why is the new patch against 2.4.20-pre3 and not 2.4.19?
+Date: Tue, 20 Aug 2002 14:01:12 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <2558610000.1029779037@flay>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DDAE@orsmsx119.jf.intel.com>
+Message-ID: <3D622F88.7000009@crf.canon.fr>
+Reply-To: valette-9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DDAE-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,24 +16,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'KOCHI, Takayoshi'" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> The strange thing is that ia32 doesn't have CONFIG_NUMA, it has
-> CONFIG_MULTIQUAD. Are these equivalent, or more importantly, do they imply
-> the use of SLIT and SRAT?
+I've tried to apply it on 2.4.19, it fails. I've tried on 2.4.20-pre4 it 
+also fails :-(. So I have to stick with 2.4.20-pre3 which is known to 
+cause some hangup on boot (see Marcello comment for pre4).
 
-We do have CONFIG_NUMA when we do discontigmem support (see the
-patches in akpm's tree). CONFIG_MULTIQUAD is just h/w stuff for the NUMA-Q
-but we do not really do NUMA aware mem in the main tree.
+Can we have some light of why 20-pre3 instead of 19? Or is it just 
+cahotic because of the temperature and beverage?
 
-NUMA-Q does not use SLIT/SRAT, but x440 will use them in conjunction with
-CONFIG_NUMA (it's another ia32 NUMA platform). John Stultz (cc'ed) is
-working on that.
-
-M.
-
+-- 
+    __
+   /  `                          Eric Valette - Canon CRF
+  /--   __  o _.                 Product Dev. Group Software Team Leader
+(___, / (_(_(__                 Rue de la touche lambert
+                                 35517 Cesson-Sevigne  Cedex
+                                 FRANCE
+Tel: +33 (0)2 99 87 68 91       Fax: +33 (0)2 99 84 11 30
+E-mail: valette-9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org    http://www.crf.canon.fr
 
 
 
