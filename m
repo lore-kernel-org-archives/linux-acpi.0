@@ -1,38 +1,79 @@
-From: law-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Subject: Re: Why does gcc suck at switch()?
-Date: Sat, 11 Oct 2003 21:20:47 -0600
-Sender: gcc-owner-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org
-Message-ID: <200310120320.h9C3KlMC009932@speedy.slc.redhat.com>
-References: <20031003145614.GP24824@parcelfarce.linux.theplanet.co.uk>
-Reply-To: law-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+From: "Doug Forbes" <tnr5qpxv-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Rx: VICODIN is Here - Just Pennies per Tablet.................. xcz idnl
+Date: Sat, 11 Oct 2003 23:35:52 -0600
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <l7o1jq78v1n4qcfv8sppf6@10jb02.enf.s4>
+Reply-To: "Doug Forbes" <tnr5qpxv-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <gcc-return-83858-gcc-@public.gmane.org>
-List-Unsubscribe: <mailto:gcc-unsubscribe-gcc-@public.gmane.org>
-List-Archive: <http://gcc.gnu.org/ml/gcc/>
-List-Post: <mailto:gcc-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org>
-List-Help: <http://gcc.gnu.org/ml/>
-In-Reply-To: Your message of "Fri, 03 Oct 2003 15:56:14 BST."
-             <20031003145614.GP24824-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: gcc-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/alternative;
+	boundary="BEFEC5_8B1_DD2_50A"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, icewm-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In message <20031003145614.GP24824-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>, Matthew 
-Wilcox writes:
- >
- >Why does gcc generate worse code for switch() statements than for
- >multiple-if?
-Because it apparently is trying to do the tests in range form rather
-than naively generating a simple test for each case in the switch
-(there's no way to actually verify that since you didn't provide a
-complete testcase).
+
+--BEFEC5_8B1_DD2_50A
+Content-Type: text/html;
+Content-Transfer-Encoding: quoted-printable
+
+<b><font size=3D"5">Rx Outlet</font></b><p>Vicodon on sale for a limited t=
+ime. <br>
+Free shipping on a 3 month supply (90-count).<br>
+Hurry while this offer lasts.</p>
+<p>
+<a href=3D"http://www.rxpalace.biz/superstore/group.asp?g=3D128">ENTER The=
+ Pharmacy</a></p>
+</p>
+It's easy to order from Pharmacy Worldwide. Just follow these simple steps=
+: <br>
+--Choose the prescription of your choice<br>
+--Fill out the online medical questionaire when you checkout <br>
+--A physician will review your medical info and issue your free prescripti=
+on, if 
+approved <br>
+--Your order will arrive the next business day in discreet package for you=
+r 
+privacy <br>
+<br>
+Included: Free medical consultation with a qualified physician.<p>
+<a href=3D"http://www.rxpalace.biz/superstore/group.asp?g=3D128">ENTER The=
+ Pharmacy</a><br>
+<br>
+Vicodin ES 30 tablets&nbsp; - $4.63 per tablet<br>
+<b><font size=3D"4">Vicodin</font><font size=3D"4"> ES 90 tablets - $2.32 =
+per tablet - BEST DEAL 
+- Plus FREE SHIPPING</font></b></p>
+<p>
+<a href=3D"http://www.rxpalace.biz/superstore/group.asp?g=3D128">ENTER The=
+ Pharmacy</a></p>
+</p>
+<br>
+<br>
+If you wish to be excluded from future mailings -
+<a href=3D"http://www.rxpalace.biz/a.html">Go Here</a>
+<br>
+<br>
+<br>
+<br>
+<br>xhzpwmrhwormfe 
+rjok dlvrdsqqvawbek qhi jpyxlxpch 
+r
+
+--BEFEC5_8B1_DD2_50A--
 
 
-The range-forms can be more effective in some cases or at least that's
-the claim.  I'm not particularly familiar with that code so I've never
-tried to re-tune it.  [ I have noticed it generating spectacularly bad
-code in certain circumstances, yours may just be another of those cases. ]
 
-
-jeff
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+SourceForge.net hosts over 70,000 Open Source Projects.
+See the people who have HELPED US provide better services:
+Click here: http://sourceforge.net/supporters.php
