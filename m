@@ -1,49 +1,48 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Video BIOS reset?
-Date: Wed, 17 Sep 2003 10:00:55 -0700 (PDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030917095045.K12240@root.org>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ACPI maintainer change
+Date: Wed, 17 Sep 2003 10:41:41 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EF12@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: torvalds-3NddpPZAyC0@public.gmane.org, Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I am looking into a common problem on FreeBSD.  Whenever I resume, the
-console is messed up.  X works fine.  When data is printed to the console,
-it scrolls diagonally and skips lines.  My first thought was that the VESA
-display was not in linear mode.
+Hi Linus and Marcelo,
 
-I looked at the Linux code and noted two parts that seem to be intended to
-address this:
+The following patch updates the maintainer entry for ACPI. Len has
+already assumed most of this responsibility, as other projects demand my
+attention.
 
-1. lcall 0xc0000,$3
-2. int 0x10, func 0x4f02
+My team will continue to maintain the OS-independent ACPI CA release,
+but Len will be responsible for pulling ACPI CA updates into the Linux
+release, and the rest of Linux-specific code in general.
 
-The first one appears to only be a read of the current VESA mode register.
-The second is Set Mode.  I tried adding this manually to our resume code
-but there is no change.  I also looked at vgacon.c to see if our console
-resume code wasn't complete but nothing jumped out at me.  Any ideas what
-we might be missing?
+This should apply cleanly against 2.6-bk-latest and against
+2.4-bk-latest with an offset.
 
-Src:
-linux/arch/i386/kernel/acpi/wakeup.S
-linux/drivers/video/console/vgacon.c
+Regards -- Andy
 
-Thanks,
-Nate
+--- 1.164/MAINTAINERS	Fri Sep 12 08:44:53 2003
++++ edited/MAINTAINERS	Wed Sep 17 10:20:28 2003
+@@ -169,8 +169,8 @@
+ S:	Supported
+ 
+ ACPI
+-P:	Andy Grover
+-M:	andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
++P:	Len Brown
++M:	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+ L:	acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+ W:	http://sf.net/projects/acpi/
+ S:	Maintained
 
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
