@@ -1,13 +1,16 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: cvs commit: src/sys/contrib/dev/acpica acfreebsd.h
-Date: Thu, 11 Mar 2004 20:10:26 -0800 (PST)
+From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
+Subject: Re: [rfc] generic testing ACPI module
+Date: Fri, 12 Mar 2004 07:30:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040311200951.O67848@root.org>
-References: <CFF522B18982EA4481D3A3E23B83141C01E63981@orsmsx407.jf.intel.com>
+Message-ID: <1079069435.5429.92.camel@t40>
+References: <1079038411.18351.25.camel@t40>
+	 <20040311211005.GM2148@parcelfarce.linux.theplanet.co.uk>
+	 <1079041694.5429.58.camel@t40>  <20040311225032.GN28592@poupinou.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <CFF522B18982EA4481D3A3E23B83141C01E63981-sBd4vmA9Se6SsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20040311225032.GN28592-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,47 +19,74 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-THANK YOU.  0311 looks like an EXCELLENT release.
+Hi Bruno,
 
--Nate
+Yes, from programing point of view, it may be a little ugly, but it is
+easy to use without an aditional program, and you see in that hierarchy
+what methods you have on a specific hardware.
+In the ioctl case, we need at least an aditional program to send the
+ioctl's to the desired device/method, something like hdparm for sending
+HD* ioctls, and that is not going to appear over night.
+This could be in the future, but to get things started, and have people
+testing various platforms, we need something easy to use, and available
+a.s.a.p.
+For instance, I was playing with your video acpi driver, and I wished I
+could run some specific methods to test the brigthness and other
+functions on my T40 laptop which does not implement them as per ACPI
+2.0c.
+I was unable to do that without reading/understanding video.c and
+various other acpi stuff, and modifying the module, recompiling, and
+only then I could test some methods if they work.
+This takes time, and not everybody is willing nor able to make/modify an
+acpi module just to test some acpi methods.
 
-> -----Original Message-----
-> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
-> Sent: Wednesday, March 10, 2004 6:27 PM
-> To: Brian Buchanan
-> Cc: Moore, Robert; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: cvs commit: src/sys/contrib/dev/acpica acfreebsd.h
->
-> On Tue, 9 Mar 2004, Brian Buchanan wrote:
-> > I hacked the ASL for my ThinkPad T40p so that "FreeBSD" was treated as
-> an
-> > equivalent to "Windows 2001".  After your change, the Fn+F8 screen
-> > expansion toggle stopped working.
-> >
-> > I've attached the acpidump output you requested.  My local
-> modification
-> > was to add after the check for "Windows 2001":
-> >
-> > If (LEqual (\SCMP (\_OS, "FreeBSD"), Zero))
-> > {
-> >     Store (0x02, \WNTF)
-> > }
->
-> The issue is that we don't support the _OSI method yet, otherwise we
-> could
-> advertise FreeBSD as being both Windows 2k and XP compatible.  Your best
-> workaround is to just unconditionally store 0x02 into \WNTF at the end
-> of
-> the \_SB._INI function.  Since the custom AML will only be loaded by
-> FreeBSD, you won't affect other OS's with this change.
->
-> Bob, any word on _OSI implementation?
->
-> -Nate
+The main reason of proposing this, was to let people test easily various
+platforms, and this was supposed to be enabled when compiled with debug
+or a separate option in the kernel anyway.
+
+Your suggestion is good, but it is for general/sane use of acpi, more
+like for future support for userspace acpi drivers, which is good too.
+If the burden/manpower to make it as you suggest is not very much
+different than in my proposal, then yours is better.
+If the difference is big, then IMHO we sould consider first the quickest
+one.
+
+Best regards,
+Paul
+
+
+
+
+On Fri, 2004-03-12 at 00:50, Bruno Ducrot wrote:
+> > Yes, your remark is good.
+> > I was thinking of that too, but I thought it is more difficult to
+> > implement it than a single separate module which can be disabled if
+> > neccessary(or buggy).
+> > Now that you mentioned it, I preffer your approach, because is more
+> > logical and streamlined than the dirty hack I proposed, and I came with
+> > the following additions:
+> > 
+> > Each object/device should have his methods as files in
+> > /sys/firmware/acpi/ hierarchy.
+> > To access a method, we should first "echo <arg1> ... <argn> > METHOD" to
+> > set the arguments for that method, and when we "cat" the method, it
+> > actually executes the method with our arguments, and return the result.
+> 
+> Ugly.  Better I guess is to implement an ioctl in order to execute method.
+> At least, that will give you atomic access to that method.
+> 
+> > Each event capable object/device should have 2 additional files:
+> > "system" and "device", and echo-ing 0 or 1 in this files should
+> > install/deinstall a handler for this device for system or device events.
+> > 
+> 
+> No opinion (yet).
+> 
+> Cheers,
+
 
 
 -------------------------------------------------------
