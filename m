@@ -1,10 +1,10 @@
-From: Johannes Nilsson <grt-OnZPxrLzTCDLoDKTGw+V6w@public.gmane.org>
-Subject: (no subject)
-Date: Tue, 27 Aug 2002 23:33:58 +0200 (MEST)
+From: Michael Notforyou <sqfreak-goaWJWIt5zpWk0Htik3J/w@public.gmane.org>
+Subject: Thought you might be interested
+Date: Tue, 27 Aug 2002 17:38:27 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.SOL.4.10.10208272329410.3470-100000@kairos>
+Message-ID: <5.1.0.14.0.20020827173537.032dc7a0@pop-server.triad.rr.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,30 +17,20 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+I was shutting down my Compaq Presario 730US ACPI 20020404 2.4.18, and 
+accidentally hit the lid button. I got an ACPI-Debug message telling me 
+such and two ACPI lost interrupt detected messages. Then the computer 
+didn't shut down. I got the Power down. message, but it didn't 
+automatically shut down. Is this a bug in the 20020404 that's fixed in 
+newer versions or to be fixed (I wanted to compile it with the latest 
+2.4.18 kernel ACPI version and swsusp but swsusp is giving weird error 
+messages - would anyone be nice enough to point me to their mailing list? I 
+tried and couldn't find it.)
 
-I originally posted this 020731. Since then I've switched to 2.4.19 with
-the 20020821-patch, but the problems remain. Anyone?
+*Michael Notforyou*
 
-
-
- Hello!
- 
- Using ACPI (at the moment the 020709 patch for the 2.4.18 kernel) I can't
- boot. I have the same problem as mentioned in
- http://sourceforge.net/mailarchive/message.php?msg_id=1688357 . Is there
- anybody else who has this laptop, and who has had sucess? Dominik
- Brodowski proposed a solution in
- http://sourceforge.net/mailarchive/message.php?msg_id=1825938 , but
- unfortunately I don't know either how to block the offending IRQ or how
- to patch the DSDT. My DSDT, if anybody is interested, should be available
- at http://www.algonet.se/~grt/dsdt.asl
- 
- //Johannes
- 
- 
-
- //Johannes
+"My God, I'm full of stars!"
+Darmok and Jalad at Tanagra!
 
 
 
