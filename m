@@ -1,8 +1,8 @@
 From: Allen_Lee-uiv9WLrdKoDQT0dZR+AlfA@public.gmane.org
-Subject: ACPI S5 question
-Date: Mon, 12 May 2003 14:18:46 +0800
+Subject: ACPI  question
+Date: Mon, 12 May 2003 14:21:54 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <CD08F83C0FFD554CBE4D42ABADAC140904A25E@tpeex03.intranet.compal>
+Message-ID: <CD08F83C0FFD554CBE4D42ABADAC140904A25F@tpeex03.intranet.compal>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
 	boundary="------------InterScan_NT_MIME_Boundary"
@@ -23,9 +23,9 @@ this format, some or all of this message may not be legible.
 
 --------------InterScan_NT_MIME_Boundary
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C3184E.589325A0"
+	boundary="----_=_NextPart_001_01C3184E.C83666B0"
 
-------_=_NextPart_001_01C3184E.589325A0
+------_=_NextPart_001_01C3184E.C83666B0
 Content-Type: text/plain
 
 Dear all:
@@ -36,8 +36,12 @@ that. It will
 damage my HDD. Who has good idea to deal with this problem? (How to umount
 HDD 
 before entering S5?)
+ 
+Thanks in advance!
+ 
+Allen
 
-------_=_NextPart_001_01C3184E.589325A0
+------_=_NextPart_001_01C3184E.C83666B0
 Content-Type: text/html
 Content-Transfer-Encoding: quoted-printable
 
@@ -53,7 +57,7 @@ charset=3Dus-ascii">
 <meta name=3DProgId content=3DWord.Document>
 <meta name=3DGenerator content=3D"Microsoft Word 10">
 <meta name=3DOriginator content=3D"Microsoft Word 10">
-<link rel=3DFile-List href=3D"cid:filelist.xml-rZqrhPJgQSszk8YP/5RE3DRmByFHzeGd@public.gmane.org">
+<link rel=3DFile-List href=3D"cid:filelist.xml-rZqrhPJgQSurofD1JYBc2jRmByFHzeGd@public.gmane.org">
 <!--[if gte mso 9]><xml>
  <o:OfficeDocumentSettings>
   <o:DoNotRelyOnCSS/>
@@ -124,7 +128,7 @@ a:visited, span.MsoHyperlinkFollowed
 	text-decoration:underline;
 	text-underline:single;}
 span.EmailStyle17
-	{mso-style-type:personal-compose;
+	{mso-style-type:personal;
 	mso-style-noshow:yes;
 	mso-ansi-font-size:9.0pt;
 	mso-bidi-font-size:10.0pt;
@@ -134,9 +138,17 @@ span.EmailStyle17
 	mso-hansi-font-family:Arial;
 	mso-bidi-font-family:Arial;
 	color:windowtext;}
-span.SpellE
-	{mso-style-name:"";
-	mso-spl-e:yes;}
+span.EmailStyle18
+	{mso-style-type:personal-reply;
+	mso-style-noshow:yes;
+	mso-ansi-font-size:9.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-ascii-font-family:Arial;
+	mso-fareast-font-family:PMingLiU;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:Arial;
+	color:navy;}
 span.GramE
 	{mso-style-name:"";
 	mso-gram-e:yes;}
@@ -189,34 +201,52 @@ all:<o:p></o:p></span></font></p>
 style=3D'font-size:
 9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial'><span =
 style=3D'mso-tab-count:
-1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
-class=3DGramE>ACPI work well on my platform (Toshiba machine + <span
-class=3DSpellE>Redhat</span> 8.0 + kernel =
-2.4.20).</span><o:p></o:p></span></font></p>
+1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>ACPI =
+work well
+on my platform (Toshiba machine + Redhat 8.0 + kernel =
+2.4.20).<o:p></o:p></span></font></p>
 
 <p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
 style=3D'font-size:
-9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial'>The machine directly =
-shutdown
-in S5 but it won't <span class=3DSpellE>umount</span> HDD before doing =
-that.
-It will<o:p></o:p></span></font></p>
+9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial'>The machine directly
+shutdown in S5 but it won't umount HDD before doing that. It =
+will<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial'>damage my HDD. Who =
+has good
+idea to deal with this problem? (How to umount HDD =
+<o:p></o:p></span></font></p>
 
 <p class=3DMsoNormal><span class=3DGramE><font size=3D1 =
 face=3DArial><span lang=3DEN-US
-style=3D'font-size:9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial'>da=
-mage</span></font></span><font
+style=3D'font-size:9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial'>be=
+fore</span></font></span><font
 size=3D1 face=3DArial><span lang=3DEN-US =
 style=3D'font-size:9.0pt;mso-bidi-font-size:
-10.0pt;font-family:Arial'> my HDD. Who has good idea to deal with this =
-problem?
-(How to <span class=3DSpellE>umount</span> HDD =
-<o:p></o:p></span></font></p>
+10.0pt;font-family:Arial'> entering S5?)<o:p></o:p></span></font></p>
 
-<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
-style=3D'font-size:
-9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial'>before entering =
-S5?)<o:p></o:p></span></font></p>
+<p class=3DMsoNormal><font size=3D1 color=3Dnavy face=3DArial><span =
+lang=3DEN-US
+style=3D'font-size:9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial;col=
+or:navy'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 color=3Dnavy face=3DArial><span =
+lang=3DEN-US
+style=3D'font-size:9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial;col=
+or:navy'>Thanks
+in advance!<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 color=3Dnavy face=3DArial><span =
+lang=3DEN-US
+style=3D'font-size:9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial;col=
+or:navy'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 color=3Dnavy face=3DArial><span =
+lang=3DEN-US
+style=3D'font-size:9.0pt;mso-bidi-font-size:10.0pt;font-family:Arial;col=
+or:navy'>Allen<o:p></o:p></span></font></p>
 
 </div>
 
@@ -224,7 +254,7 @@ S5?)<o:p></o:p></span></font></p>
 
 </html>
 
-------_=_NextPart_001_01C3184E.589325A0--
+------_=_NextPart_001_01C3184E.C83666B0--
 
 --------------InterScan_NT_MIME_Boundary--
 
