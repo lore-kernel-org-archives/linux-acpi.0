@@ -1,13 +1,13 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: Samsung P35 and S3 suspend
-Date: Mon, 20 Dec 2004 21:34:21 +0100
-Message-ID: <41C7374D.6090407@gmx.net>
-References: <41BFC3AD.5030001@gmx.net> <1103117333.5924.3.camel@mhcln03>	 <41C07B6F.70900@gmx.net> <1103159022.5924.17.camel@mhcln03>	 <41C0FFF3.4010902@gmx.net> <41C19BD8.7050201@gmx.net>	 <41C1CFA2.20304@gmx.net>  <1103222517.5924.24.camel@mhcln03> <1103224145.5984.72.camel@tyrosine>
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: I did NOT subscribe to get SPAMMED
+Date: Mon, 20 Dec 2004 19:48:57 +0000
+Message-ID: <1103572136.31479.2.camel@localhost.localdomain>
+References: <20041220164417.74065.qmail@web14107.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1103224145.5984.72.camel@tyrosine>
+In-Reply-To: <20041220164417.74065.qmail-ZdpOSKiU6C6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,43 +17,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Luca Cerutti <videobert-whZMOeQn8C0@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett schrieb:
-> On Thu, 2004-12-16 at 19:41 +0100, Matthias Hentges wrote:
-> 
-> 
->>1: VGA POST
->>2. VESA reset
-> 
-> 
-> Can you try the vm86_video_post and vbestate programs from
-> http://www.srcf.ucam.org/~mjg59/laptops/ ? You want to do something like
-> this:
-> 
-> 1) chvt away from X on suspend
-> 2) vbestate save >/tmp/state
-> 3) suspend
-> 4) resume
-> 5) vm86_video_post
-> 6) vbestate restore </tmp/state
-> 7) chvt back to X
-> 
-> This sequence (possibly with a dpms on in there somewhere) seems to work
-> on a fairly large number of machines.
+On Llu, 2004-12-20 at 16:44, Luca Cerutti wrote:
+> I'm really sorry to discover this and this late.
+> In a three-day-subscription I've got TWO spam mail for
+> day from the list.
 
-It sort of works. Before step 7, the (text mode) display contains garbage.
-But it is much more comfortable than starting a second X server.
-Any chance to get the functionality into
-- the X.Org Radeon server and
-- the kernel to make suspend work with framebuffer console?
+Sourceforge's spam filters appear to be totally useless unfortunately.
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
 
 
 -------------------------------------------------------
