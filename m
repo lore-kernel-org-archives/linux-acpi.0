@@ -1,12 +1,14 @@
-From: Cedric Hans <acpi-CBqLTWQLpQY@public.gmane.org>
-Subject: more infos about kernel panic fujitsu
-Date: Sun, 07 Sep 2003 17:34:11 -0400
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] 2.6.0-test4 Fix mpparse properly
+Date: Mon, 8 Sep 2003 04:25:48 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F5BA453.7010200@mlkj.net>
+Message-ID: <20030908042548.3bbfcf7d.ak@suse.de>
+References: <200309072130.40200.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200309072130.40200.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,40 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Sun, 7 Sep 2003 21:30:40 +0100
+Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org> wrote:
 
-I have more infos about the kernel panic experienced on Fujitsu E7010 
-series laptop when ACPI is enabled.
-(see http://www.ussg.iu.edu/hypermail/linux/kernel/0307.2/0713.html )
 
-(kernel-2.6.0-test4)
-The kernel crash in resource/nsutils.c line 740 :
-if (ACPI_GET_DESCRIPTOR_TYPE (handle) != ACPI_DESC_TYPE_NAMED) {
+> 
+> --- linux-2.6.0-test4.null_crs/arch/i386/kernel/mpparse.c	2003-09-06 00:23:10.000000000 +0100
+> +++ linux-2.6.0-test4.es7000fix/arch/i386/kernel/mpparse.c	2003-09-07 15:53:41.369717552 +0100
+> @@ -1129,8 +1129,10 @@
+>  			continue;
+>  		ioapic_pin = irq - mp_ioapic_routing[ioapic].irq_start;
+>  
+> +#ifdef CONFIG_X86_ES7000
+>  		if (!ioapic && (irq < 16))
+>  			irq += 16;
+> +#endif
 
-because handle == 7 and
-#define ACPI_GET_DESCRIPTOR_TYPE(d)     (((union acpi_descriptor *)(void 
-*)(d))->descriptor_id)
 
-this value is set in resource/rsmisc.c line 95 function 
-acpi_rs_end_tag_resource:
-output_struct->id = ACPI_RSTYPE_END_TAG;
+That won't work for an "generic" subarch kernel that supports the ES7000 and other boxes too.
+You should test es7000_plat instead (that's currently a static in the es7000 code, needs to be unstatic'ed).
 
-in resource/rslist.c function acpi_rs_byte_stream_to_list
-output_buffer (= output_struct) is changed to the same value than handle
+At least one 2.4 distribution kernel does it this way.
 
-Since I don't see how to fix the code, I have this ugly workaround :
-in pci_root.c line 294:
-handle = device->handle;
-acpi_pci_evaluate_crs(root);
-device->handle = handle;
-handle = NULL;
-
--- 
-Cedric Hans
-
+-Andi
 
 
 -------------------------------------------------------
