@@ -1,14 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: acpi=force safe?
-Date: Fri, 6 Feb 2004 22:13:34 +0100
+From: Henny Wilbrink <wsdwhw-ek1Qb6IBo2Pz+pZb47iToQ@public.gmane.org>
+Subject: Re: ACPI, Acer Aspire 1700 series and Kernel 2.6
+Date: Fri, 6 Feb 2004 23:35:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040206211334.GH13262@poupinou.org>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB685@PDSMSX403.ccr.corp.intel.com> <16644.65.164.3.3.1076087775.squirrel@mail.diamondcpu.com>
+Message-ID: <16420.5826.162449.28729@gargle.gargle.HOWL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16644.65.164.3.3.1076087775.squirrel-gjzqEhKAtSBis2HOlLKa7kEOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,38 +15,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nick Bartos <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 06, 2004 at 11:16:15AM -0600, Nick Bartos wrote:
-> Am I to understand that the worse that could happen is that the acpi
-> features I compiled in (just standard and the button option) just wouldn't
-> work?  If that is the case then that would be fine.
+Hi,
 
-Just standard mean that all the IRQ routing was done by ACPI
-amongst other things.  And you need to do so if you want to receive
-events from the power button.
+>> * thermal module can't be loaded
+>>   if thermal module is started automatically get a system shutdown cause a
+>> 255c CPU themp was retreived.
 
-That part of the firmware may be broken, and you may have hang on boot
-(even though I think it is safe now without lapic support even on old laptops).
+I have an Acer Aspire 1703 and also experience your 255C CPU
+temperature shutdown at boot
 
-> Really I just don't want things like kernel screw ups (which I thought I
-> might have had once due to acpi, but I don't remember), or other things
-> that affect system stability.
-> 
-> If I can compile in these things and force acpi on and not be any worse
-> off stability wise than if I didn't force it, then that willl be fine for
-> me.
+but only if a enable:
 
-Why not let user decide at boot time?  That easy to do so with syslinux
-for example.
+Device Drivers > Plug and Play support > Plug and Play BIOS support
 
--- 
-Bruno Ducrot
+in xconfig.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Your dmesg shows that you have enabled Plug and Play BIOS support so
+give it a try without Plug and Play BIOS support.
+
+
+Regards,
+Henny Wilbrink
 
 
 -------------------------------------------------------
