@@ -1,14 +1,13 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASL help with latest acpi and compaq presario 2800t
-Date: Mon, 12 May 2003 11:15:14 -0600
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI update
+Date: Mon, 12 May 2003 11:37:13 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030512171515.56E29F7F42@voldemort.scrye.com>
-References: <3ACA40606221794F80A5670F0AF15F842722C5@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96E6F@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F842722C5-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,88 +16,143 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Linus, please do a
 
-Sorry it took me so long to get back to you on this... 
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
 
->>>>> "Luming" == Luming Yu <Yu> writes:
+This will update the following files:
 
-Luming> I have made a patch for fixing compiling time error of
-Luming> http://www.scrye.com/~kevin/dsdt.dsl-20030409 Would you please
-Luming> apply it and see what's unusual and send boot log to me.
+ drivers/acpi/dispatcher/dsinit.c   |    4 
+ drivers/acpi/dispatcher/dsopcode.c |    6 
+ drivers/acpi/ec.c                  |   22 -
+ drivers/acpi/events/evgpe.c        |    4 
+ drivers/acpi/events/evgpeblk.c     |    4 
+ drivers/acpi/events/evmisc.c       |   24 +-
+ drivers/acpi/events/evregion.c     |  279 +++++++++++--------------
+ drivers/acpi/events/evrgnini.c     |  166 ++++++++------
+ drivers/acpi/events/evxface.c      |   62 ++---
+ drivers/acpi/events/evxfevnt.c     |    4 
+ drivers/acpi/events/evxfregn.c     |   96 +++++---
+ drivers/acpi/executer/exconfig.c   |    8 
+ drivers/acpi/executer/exdump.c     |   38 +--
+ drivers/acpi/hardware/hwgpe.c      |   24 +-
+ drivers/acpi/hardware/hwregs.c     |  120 +++++-----
+ drivers/acpi/hardware/hwtimer.c    |    2 
+ drivers/acpi/namespace/nsalloc.c   |   40 +++
+ drivers/acpi/namespace/nsload.c    |   18 -
+ drivers/acpi/namespace/nsparse.c   |    3 
+ drivers/acpi/namespace/nsutils.c   |   21 -
+ drivers/acpi/osl.c                 |    2 
+ drivers/acpi/parser/pswalk.c       |    2 
+ drivers/acpi/parser/psxface.c      |    2 
+ drivers/acpi/resources/rsxface.c   |   12 -
+ drivers/acpi/scan.c                |    2 
+ drivers/acpi/tables/tbconvrt.c     |  114 +++++++---
+ drivers/acpi/tables/tbget.c        |   14 -
+ drivers/acpi/tables/tbgetall.c     |    2 
+ drivers/acpi/tables/tbinstal.c     |  195 ++++++-----------
+ drivers/acpi/tables/tbutils.c      |   17 -
+ drivers/acpi/tables/tbxface.c      |   20 -
+ drivers/acpi/utilities/utdelete.c  |   71 ++----
+ drivers/acpi/utilities/utglobal.c  |   36 +--
+ drivers/acpi/utilities/utmisc.c    |   46 ++--
+ drivers/acpi/utilities/utxface.c   |   64 +++--
+ include/acpi/acconfig.h            |    4 
+ include/acpi/acevents.h            |    2 
+ include/acpi/acexcep.h             |    6 
+ include/acpi/acglobal.h            |   20 -
+ include/acpi/achware.h             |    6 
+ include/acpi/aclocal.h             |   19 -
+ include/acpi/acmacros.h            |   20 -
+ include/acpi/acnamesp.h            |    5 
+ include/acpi/acobject.h            |   12 -
+ include/acpi/acpiosxf.h            |    4 
+ include/acpi/actables.h            |   10 
+ include/acpi/actypes.h             |    4 
+ 47 files changed, 848 insertions(+), 808 deletions(-)
 
-Well, I applied the patch and when I try and compile to a .hex file
-with iasl I get: 
+through these ChangeSets:
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/05/12 1.1083.3.4)
+   ACPI: Interpreter update to 20030509
+   Changed the subsystem initialization sequence to hold off
+installation of
+   address space handlers until the hardware has been initialized and
+the
+   system has entered ACPI mode.  This is because the installation of
+space
+   handlers can cause _REG methods to be run.  Previously, the _REG
+methods
+   could potentially be run before ACPI mode was enabled.
+   
+   Fixed some memory leak issues related to address space handler and
+notify
+   handler installation.  There were some problems with the reference
+count
+   mechanism caused by the fact that the handler objects are shared
+across
+   several namespace objects.
+   
+   Fixed a reported problem where reference counts within the namespace
+were
+   not properly updated when named objects created by method execution
+were
+   deleted.
+   
+   Fixed a reported problem where multiple SSDTs caused a deletion issue
+   during subsystem termination.  Restructured the table data structures
+   to simplify the linked lists and the related code.
+   
+   Fixed a problem where the table ID associated with secondary tables
+(SSDTs)
+   was not being propagated into the namespace objects created by those
+   tables.  This would only present a problem for tables that are
+unloaded
+   at run-time, however.
+   
+   Updated AcpiOsReadable and AcpiOsWritable to use the ACPI_SIZE type
+as
+   the length parameter (instead of UINT32).
+   
+   Solved a long-standing problem where an ALREADY_EXISTS error appears
+on
+   various systems.  This problem could happen when there are multiple
+   PCI_Config operation regions under a single PCI root bus.  This
+doesnt
+   happen very frequently, but there are some systems that do this in
+the
+   ASL.
+   
+   Fixed a reported problem where the internal DeleteNode function was
+   incorrectly handling the case where a namespace node was the first in
+   the parents child list, and had additional peers (not the only child,
+   but first in the list of children.)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/05/12 1.1083.3.3)
+   ACPI: Allow ":" in OS override string (Ducrot Bruno)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/05/12 1.1083.3.2)
+   ACPI: kobject fix (Greg KH)
+   Here's a small patch that fixes the logic of the kobject creation and
+   registration in the acpi code (since we use kobject_init(), we need
+to
+   use kobject_add(), not kobject_register() to add the kobject to the
+   kernel systems).
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/04/24 1.1042.42.4)
+   ACPI: Update to 20030424
+   - Remove an unused parameter from lowlevel read/write functions
+   - FADT initialization cleanups
 
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20030228 [Feb 28 2003]
-Copyright (C) 2000 - 2003 Intel Corporation
-Supports ACPI Specification Revision 2.0b
-
-dsdt.dsl-20030409    44: External (C1AF)
-Error    1037 -                 ^ parse error, unexpected PARSEOP_EXTERNAL, expecting '}'
-
-dsdt.dsl-20030409    52:                 Register (SystemIO, 0x08, 0x00, 0x0000000000001014)
-Error    1037 -                                 ^ parse error, unexpected PARSEOP_REGISTER
-
-ASL Input:  dsdt.dsl-20030409 - 4956 lines, 162783 bytes, 8 keywords
-Compilation complete. 2 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
-
-It doesn't seem to like the "External" keyword?
-
-Any ideas?
-
-kevin
---
-Luming> 42,51d41 < { < < External (C1AF) < External (C1BA) < External
-Luming> (C1BB) < External (C1B0) < External (C1B1) < External (C1B2) <
-Luming> External (C1B3) < 52a43
->> {
-Luming> 177,178c168,169 < If(\_OSI("Windows 2001")) < { ---
->> If(\_OSI) { "Windows 2001"
-Luming> 2297c2288 < Name(_HID, "SYN0100") ---
->> Name(_HID, "*SYN0100")
-
-
-Luming> Thanks, Luming
-
-
-Luming> -----Original Message----- From: Kevin Fenzi
-Luming> [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org] Sent: 2003?4?10? 1:30 To: Yu,
-Luming> Luming Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org Subject: RE:
-Luming> [ACPI] ASL help with latest acpi and compaq presario 2800t
-
-
-Luming> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA1
-
->>>>> "Luming" == Luming Yu <Yu> writes:
-
-Luming> Is dsdt.asl modified version. I compiled it, and my error
-Luming> message is slightly different with yours.  Would you please
-Luming> send the original dsdt.asl to me?
-
-Luming> You can get the dsdt.dat and dsdt.dsl from:
-
-Luming> http://www.scrye.com/~kevin/dsdt.dat-20030409
-Luming> http://www.scrye.com/~kevin/dsdt.dsl-20030409
-
-Luming> Those are from my laptop today using the iasl-20030228
-
-Luming> Let me know if you need any more info.
-
-Luming> Thanks, Luming
-
-Luming> kevin -----BEGIN PGP SIGNATURE----- Version: GnuPG v1.2.1
-Luming> (GNU/Linux) Comment: Processed by Mailcrypt 3.5.8
-Luming> <http://mailcrypt.sourceforge.net/>
-
-Luming> iD8DBQE+lFil3imCezTjY0ERAiNVAJ0RbLT1+K532UBaz31tLeIODB6tAwCdF/OF
-Luming> 37iSC0J5jiZDJiEmC8G3QT8= =5jP8 -----END PGP SIGNATURE-----
-
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 
 
 
