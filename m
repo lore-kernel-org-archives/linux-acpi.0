@@ -1,14 +1,12 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Re: Compaq 1700, 2.4.18, acpi-7,24 - SUCCESS (I think)
-Date: Thu, 15 Aug 2002 11:32:45 +0100
+From: "Geoffrey Hausheer" <iw3r96f6j1h-jEt0PViQLFVB+phRjrLsidBPR1lH4CV8@public.gmane.org>
+Subject: can't trigger sleep modes.
+Date: Thu, 15 Aug 2002 05:16:12 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020815103244.GA7621@clara.net>
-References: <15706.48376.457358.298696@chaos.crhc.uiuc.edu> <Pine.GSO.4.21.0208142004370.16304-100000@sediment.umd.edu>
+Message-ID: <A5974D8E5F98D511BB910002A50A664704303C4A@hdsmsx103.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.21.0208142004370.16304-100000-Bq+f90TzBY23n+kRt3O4EA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,43 +15,67 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
-Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Prabhakar Reddy Gudla Venkata Siva [reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org] wrote:
-> Graham, nice to see that I am not all alone :) I too have the same status
-> with the acpi-20020726 patch on a similar model (mine is 1720US).
-> 
-> However, my kernel just keeps repeating "schedule_task(): kevent has not
-> started" after the alleged two "PCI Interrupt Link enabled" statements. It
-> never freezes.
+I'm quite new to the whole ACPI thing, so perhaps I'm going about this
+completely wrong.
 
-My kernel would freeze if I enabled Local APIC on Uniprocessor.  Since
-ACPI does the IRQ routing this is probably what is confusing things.
-It would be useful if the one could override the other if it's being
-used.  I make mention of this on my website and my kernel patch's default
-configuration has these options disabled.
+I'm trying to put my laptop to sleep using ACPI, but to no avail.
 
-Other people have mentioned a problem with losing interrupts on some
-models of Compaq - I haven't suffered from this and there is a patch for
-this which someone has made (which since I don't use it hasn't stuck in
-my memory I'm afraid).
+Using a clean 2.4.19 tree, doing 'echo -n 1 > /proc/acpi/sleep' hangs the
+machine.
+doing 'echo -n 4 > /proc/acpi/sleep' shutdown the machine immediately
+I've tried this with and without acpid running.
 
-I do get the warning about the unknown device, but I ignored it as I
-knew I didn't have the device.  I will remove it from my DSDT now I know
-what's causing it ;)
+So I pulled the latest code from the bk repository (linux-2.4-acpi), and now
+doing 'echo -n $i > /proc/acpi/sleep' does nothing (just returns the
+prompt).
+where $i is any of 0,1,4,or 5
 
+cat /proc/acpi/sleep yields:
+S0 S1 S4 S5
 
-Faye
+with acpid disabled, when I cat /proc/acpi/events, I can see events being
+detected.  The sleep button, power button, and lid-close all seem to get
+detected correctly, as does inserting and removing the battery.
 
--- 
-Faye Pearson,
-Software Development Manager,
-ClaraNET Ltd.       Tel 020 7903 3000
+the battery, ac_adapter, and processor subdirectories all contain useful and
+correct looking info.
+/var/log/syslog shows the following on startup:
+ACPI: AC Adapter [AC0] (on-line)
+ACPI: Battery Slot [BAT0] (battery absent) <--this is correct (I took out
+the
+battery)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LIDD]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Processor [CPU1] (supports C1, C2, 8 throttling states)
 
-Even God lends a hand to honest boldness.
-		-- Menander
+monitoring /proc/acpi/events for each button yields:
+SLPB 00000080 00000001
+LIDD 00000080 00000001  <---close
+LIDD 00000080 00000002  <---open
+PWRF 00000080 00000001
+
+I could try installing the swsusp patch, but it is my understanding that
+this
+just fakes hibernation (suspend to disk), while I am trying to get suspend
+to
+ram working (also getting the hardware suspend working would be nice too)
+
+I have compiled in the extra debugging messages, but am not seeing anything
+ in /var/log/syslog (or any other log directory).  I do see debug_layer and
+ debug_level in /proc/acpi but I have no idea what to do with these.
+
+By the way, the laptop is a twinhead n2380 which uses the sis630st chipset,
+and has a PIII (tualatin) mobile processor.
+
+Am I doing something wrong?  Is there something I can do to provide more
+information?
+
+Thanks,
+Geoff
 
 
 -------------------------------------------------------
