@@ -1,13 +1,14 @@
-From: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
-Subject: RE: /proc/battery empty on Gateway 400VTX
-Date: Wed, 8 Oct 2003 14:16:05 -0500 (CDT)
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Applications & ACPI events
+Date: Wed, 8 Oct 2003 21:16:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0310081413530.30594-100000@data.upl.cs.wisc.edu>
-References: <571ACEFD467F7749BC50E0A98C17CDD8E84D76@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <20031008191610.GB1035@elf.ucw.cz>
+References: <20030930165926.GH1921@fairlite.demon.co.uk> <20030930173646.GF11391@poupinou.org> <20031003193814.GE205@openzaurus.ucw.cz> <20031006124935.GQ11391@poupinou.org> <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84D76-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031008102745.GF11391-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,27 +17,55 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
+> > > > > > When using ACPI to shutdown the machine to disk or memory, obviously an
+> > > > > > application can read events from /proc/acpi/events to see what to do.
+> > > > > > 
+> > > > > > How does ACPI in the kernel wait for applications to do what they
+> > > > > > need to when receiving an ACPI event, as it seems the kernel shuts down
+> > > > > > everything pretty quickly ?
+> > > > > 
+> > > > > AFAIK, there is no support for suspending userspace drivers (like X).
+> > > > 
+> > > > Actually X get console switch event, so they should
+> > > > give control of VGA to the kernel...
+> > > 
+> > > Exactly, you have to switch to a console.  That's the problem.
+> > 
+> > ???
+> > 
+> > Kernel tells X to switch to console; there's interface to say that,
+> > and we are using it. It should just work.
+> 
+> X know more exactly what it have to do to save current states of
+> the video chipset, or even know when to put the video chipset
+> in suspend mode.  The nv driver (for example) have to reset the
+> whole xvideo stuff just because it do not work anymore after a
+> suspend/resume, but this reset is not necessary for just
+> switching to console.  2D/3D acceleration in general also need
+> more works after a suspend/resume which is not necessary
+> for just switching to console.
+> All of that console switching work only on intel like archs.
 
-On Wed, 8 Oct 2003, Li, Shaohua wrote:
->
-> Hi,
->    Your BIOS lacks ECDT. Maybe you should provide an ECDT according to EC device.
->
-> Thanks,
-> Shaohua
+IMO X should do full save and restore, on every console switch. That
+way it is safe to killall -9 X when you are on console, and I think I
+like it that way. I do not think console switching is i386-only, I
+know that sparc64's had consoles, too.
 
+OTOH if X knew how to bring video card up from powerdown... that would
+help a lot, and would need a kernel support. ("Hey, X, I just did
+resume and graphics card is uninitialized. It is not even in vga text
+mode. Do something with it.")
+								Pavel
 
-How would I go about doing this? I'll google around a bit and see what I
-can figure out.
-
--casey
-
-
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
