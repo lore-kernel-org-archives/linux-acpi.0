@@ -1,15 +1,14 @@
-From: Ryan Underwood <nemesis-lists-RBwgCYbvQ+vk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: IO-APIC on MS-6163 (2.4.23). ACPI?
-Date: Wed, 10 Dec 2003 07:55:16 -0600
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Shuttle HOT-591P fails ACPI on 2.4.23
+Date: Wed, 10 Dec 2003 11:26:21 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031210135516.GA2687@dbz.icequake.net>
-References: <3ACA40606221794F80A5670F0AF15F8401720C15@PDSMSX403.ccr.corp.intel.com> <20031210125543.GA1444@dbz.icequake.net> <16343.8777.389445.2007@alkaid.it.uu.se>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC88DE@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16343.8777.389445.2007-mKzD8scclNAGILsNoAPbNA@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,74 +17,139 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ryan Underwood <nemesis-lists-RBwgCYbvQ+vk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> evxfevnt-0089: *** Error: Could not transition to ACPI mode.
+> utxface-0170 [03] acpi_enable_subsystem : acpi_enable failed.
+> ACPI: Unable to start the ACPI Interpreter
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The pause must be the 3000 retries in acpi_hw_set_mode().
 
+Please file a bug with acpidmp output attached.
+We'll need to take a look at the FADT and probably instrument
+your kernel to figure out why it isn't working.
+(I assume that Win 2k or Win XP is able to run in ACPI mode on this
+box?)
 
-On Wed, Dec 10, 2003 at 02:40:25PM +0100, Mikael Pettersson wrote:
-> Ryan Underwood writes:
->  >=20
->  > Attached dmesg and interrupts with acpi=3Doff.  Also attached kernel
->  > config.
->  >=20
->  > As you see, it acknowledges a local APIC but mentions nothing about
->  > IO-APIC.  So I guess this isn't ACPI issue after all.  But, I wonder w=
-hy
->  > the IO-APIC isn't being used on this board anymore.  There was a
->  > blacklist entry for it, but it was removed after it was discovered to =
-be
->  > in error.
+Thanks,
+-Len
+
+How to file a bug against ACPI:
+
+http://bugzilla.kernel.org/ Category: Power Management, Component: ACPI
+
+Please attach dmesg -s40000 output (or serial console log if dmesg
+unavailable)
+Please attach copy of /proc/interrupts if possible
+
+Please attach the output from acpidmp, available in /usr/sbin/, or in
+pmtools:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+
+Please attach the output from dmidecode, available in /usr/sbin/, or
+here:=20
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+
+Please file a bug and include the putput
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+> Ryan Underwood
+> Sent: Monday, December 08, 2003 11:51 PM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] Shuttle HOT-591P fails ACPI on 2.4.23
 >=20
-> Your dmesg log doesn't mention any MP-table. With neither ACPI MADT
-> nor an MP-table the kernel has no way of knowing about any I/O-APIC.
 >=20
-> You do have UP_IOAPIC enabled, so the kernel should look for it.
-> Please check your BIOS settings, and try with no ACPI at all in the kernel
-> (just to verify that acpi=3Doff doesn't prevent MP-table parsing).
-
-I went back and found the messages corresponding to our previous
-discussions:
-
-http://www.cs.helsinki.fi/linux/linux-kernel/2003-23/1675.html
-
-Looks like again I've confused the local APIC with the IO-APIC regarding
-that blacklist entry.  However, I thought 440BX had a IO-APIC built-in
-to the southbridge.  Again, that was proved to be wrong by examining the
-integrator's guide:
-ftp://download.intel.com/design/chipsets/designex/29063401.pdf
-
-page 99 of the PDF says:
-"An I/O APIC is required for a DP system and optional for a UP system."
-
-So it looks like I've never had an I/O-APIC on this board at all, only a
-local APIC, and this thread is thus a waste of time. :)
-
-In any case, thanks for leading me to the right answer!
-
---=20
-Ryan Underwood, <nemesis-RBwgCYbvQ+vk1uMJSBkQmQ@public.gmane.org>
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/1yXEIonHnh+67jkRAhxeAJ9npBG8RKnD+YJir1Vovoq3kvgXhgCbBQ0b
-v9ySVu+Sd24TtYq93/dYqzw=
-=Orod
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+>=20
+> Hi,
+>=20
+> This is the first time I have booted an ACPI-enabled kernel on this
+> machine.  So I wasn't expecting too much. ;)
+>=20
+> Shuttle's spec page for the board: http://de.shuttle.com/591p.htm
+> does claim to support ACPI.
+>=20
+> I attached the files you asked for.  acpi_pic_sci=3Dedge didn't seem =
+to
+> make a difference (paused in same place, and same error)
+>=20
+>=20
+> On Mon, Dec 08, 2003 at 10:14:20AM -0500, Len Brown wrote:
+> > Has ACPI worked better on this box using any other releases?
+> >=20
+> > Does it work any better if you boot with "acpi_pic_sci=3Dedge"?
+> >=20
+> > I'd be interested in seing the complete dmesg -s40000 output
+> > and the resulting /proc/interrupts.
+> >=20
+> > thanks,
+> > -Len
+> >=20
+> > On Mon, 2003-12-08 at 07:24, Ryan Underwood wrote:
+> > > Hello,
+> > >=20
+> > > Shuttle HOT-591P with latest BIOS (591P025) and Cyrix CPU, kernel
+> > > 2.4.23.  It is a Baby AT board with AT and ATX power.
+> > >=20
+> > > Vendor: Award Software International, Inc.
+> > > Version: 4.51 PG
+> > > Release Date: 03/27/01
+> > >=20
+> > > Manufacturer: Shuttle Inc.
+> > > Product Name: VIA APOLLO MVP3 (HOT-597)
+> > > Version: 2A5LEH2B
+> > > (It is actually a 591P, regardless of the DMI string)
+> > >=20
+> > > It seems the ACPI tables are found, but the system does=20
+> not properly
+> > > handle the SCI interrupt:
+> > >=20
+> > > ACPI: Subsystem revision 20031002
+> > > PCI: PCI BIOS revision 2.10 entry at 0xfb410, last bus=3D3D1
+> > > PCI: Using configuration type 1
+> > >  tbxface-0117 [03] acpi_load_tables      : ACPI Tables=20
+> successfully acquired
+> > > Parsing all Control=20
+> Methods:.......................................................
+> > > Table [DSDT](id F004) - 227 Objects with 26 Devices 55=20
+> Methods 17 Regions
+> > > ACPI Namespace successfully loaded at root c02dba3c
+> > > ACPI: IRQ9 SCI: Level Trigger.  <---- PAUSES HERE
+> > > evxfevnt-0089: *** Error: Could not transition to ACPI mode.
+> > >  utxface-0170 [03] acpi_enable_subsystem : acpi_enable failed.
+> > > ACPI: Unable to start the ACPI Interpreter
+> > > evxfevnt-0127 [06] acpi_disable          : System is=20
+> already in legacy (non-ACPI) mode
+> > >  utalloc-0986 [05] ut_dump_allocations   : No outstanding=20
+> allocations.
+> > > PCI: Probing PCI hardware
+> > > PCI: ACPI tables contain no PCI IRQ routing entries
+> > > ...
+> > >=20
+> > > At the "ACPI: IRQ9 SCI:" part, it pauses for a few seconds before
+> > > continuing.
+> > >=20
+> > > A similar system with a Tyan ATX board and K6/III 400 works great.
+> > >=20
+> > > any ideas?
+> >=20
+> >=20
+> >=20
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by: SF.net Giveback Program.
+> > Does SourceForge.net help you be more productive?  Does it
+> > help you create better code?  SHARE THE LOVE, and help us help
+> > YOU!  Click Here: http://sourceforge.net/donate/
+> > _______________________________________________
+> > Acpi-devel mailing list
+> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> >=20
+>=20
+> --=20
+> Ryan Underwood, <nemesis-RBwgCYbvQ+vk1uMJSBkQmQ@public.gmane.org>
+>=20
 
 
 -------------------------------------------------------
