@@ -1,16 +1,14 @@
-From: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
-Subject: Re: ACPI: S3 and PAE do not like each other for now, S3 disabled.
-Date: Tue, 27 Jul 2004 01:27:23 +0200
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI: S3 and PAE do not like each other for now, S3 disabled.
+Date: Mon, 26 Jul 2004 21:34:17 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200407270127.23507.arekm@pld-linux.org>
-References: <200407252330.05542.arekm@pld-linux.org> <1090874983.2325.13.camel@dhcppc4>
+Message-ID: <29AC424F54821A4FB5D7CBE081922E400124E634@hdsmsx403.hd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1090874983.2325.13.camel-D2Zvc0uNKG8@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,38 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 26 of July 2004 22:49, Len Brown wrote:
-> On Sun, 2004-07-25 at 17:30, Arkadiusz Miskiewicz wrote:
-> > Is this ,,ACPI: S3 and PAE do not like each other for now, S3 disabled.=
-''
-> > generic S3 and PAE issue or just Linux issue only?
-> >
-> > The case is ,,NX (Execute Disable)'' needs PAE to work on x86 but having
-> > S3 working at the same time would be nice.
+=20
+>> This may be bit-rot.
+>> The last time somebody tested this IIR  S3 worked
+>> exactly the same in PAE as it did in conventional MMU mode.
+>It didn't work for me unfortunately.
 >
-> This may be bit-rot.
-> The last time somebody tested this IIR  S3 worked
-> exactly the same in PAE as it did in conventional MMU mode.
-It didn't work for me unfortunately.
+>My laptop went into sleep, fan turned off but LCD turned all=20
+>white. After=20
+>closing and opeing LID, fan started again, LCD turned back to=20
+>live but screen=20
+>was corrupted, random characters in different places.
+>
+>Unfortunately I never tested S3 on PAE-disabled kernel so it's=20
+>possible that=20
+>my problems are unrelated to PAE (I hope that's the case).
 
-My laptop went into sleep, fan turned off but LCD turned all white. After=20
-closing and opeing LID, fan started again, LCD turned back to live but scre=
-en=20
-was corrupted, random characters in different places.
+Without testing the non-PAE case, this result is inconclusive.
 
-Unfortunately I never tested S3 on PAE-disabled kernel so it's possible tha=
-t=20
-my problems are unrelated to PAE (I hope that's the case).
+In either case, it would probably be a good idea to run the
+latest ACPI patch if you're experimenting with S3.
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
 
-> -Len
-
-=2D-=20
-Arkadiusz Mi=B6kiewicz     CS at FoE, Wroclaw University of Technology
-arekm.pld-linux.org, 1024/3DB19BBD, JID: arekm.jabber.org, PLD/Linux
+cheers,
+-Len
 
 
 -------------------------------------------------------
