@@ -1,18 +1,14 @@
-From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: Battery status reading problems
-Date: Tue, 23 Sep 2003 20:11:38 +0200 (CEST)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [buggy index field handling] [patch]
+Date: Tue, 23 Sep 2003 20:13:52 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0309232001000.1228@frog.athome>
-References: <m2vfrpthxt.fsf@tnuctip.rychter.com>
- <Pine.LNX.4.58.0309192257480.1613@phoenix.kerstin.at>  <3F6EAADC.4020509@basmevissen.nl>
-  <Pine.LNX.4.53.0309220954120.9385@dynast.gaugusch.at>
- <1064230622.8592.14.camel@dhcp23.swansea.linux.org.uk>  <3F703933.50604@basmevissen.nl>
- <1064334307.14784.92.camel@idoru.kc.de>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Message-ID: <20030923181352.GS11391@poupinou.org>
+References: <D3A3AA459175A44CB5326F26DA7A189C1C3D88@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1064334307.14784.92.camel-65LrUGLyukAb1SvskN2V4Q@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3D88-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,63 +17,83 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Robert Vollmert <rvollmert-lists-hi6Y0CQ0nG0@public.gmane.org>, Mads Paulin <paulin-/w0Os/Ss2Sh/SzgSGea1oA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, Sep 23, 2003 at 10:27:52AM -0700, Moore, Robert wrote:
+> Is this the final patch?  If so, we will integrate it into the ACPI CA
+> core
+> Bob
+> 
+> 
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Ducrot
+> Bruno
+> Sent: Monday, September 22, 2003 10:19 AM
+> To: Grover, Andrew
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Robert Vollmert; Mads Paulin
+> Subject: [ACPI] [buggy index field handling] [patch]
+> 
+> Hi Andy,
+> 
+> There is a funny bug in acpi/executer/exfldio.c::acpi_ex_field_datum_io
+> 
+> When the field come from an indexed one, we read all the time from the
+> address obj_desc->index_field.value
+> Unfortunately, this is wrong, since the correct address is
+> obviously &obj_desc->index_field.value + field_datum_byte_offset
 
-Salut Nils,
+I would like much you integrate Robert Vollmert version: it does overflow
+checking.
 
-On Tue, 23 Sep 2003, Nils Faerber wrote:
-> Am Di, 2003-09-23 um 14.14 schrieb Bas Mevissen:
-> > Alan Cox wrote:
-> > > Several vendors implement the actual battery reading logic as an SMI
-> > > trap and disable interrupts during their slow chat with the battery.
-> > > There isnt much anyone can do about that bit alas (except read it a lot
-> > > less often)
-> > (or does the AC/battery power work with an event? The my assumption
-> > won't hold then)
-I commented on that before!
+Patch is from Robert Vollmert, but rediffed against 2.6.0-test5:
 
-> I could very well accept CPU load.
-> I would even accept delays, given they are small.
-> But I experienced kernel hangs, i.e. short periods of no I/O activity at
-> all when querying the battery status. And even that could be acceptable.
-> What was not acceptable were very bizarre happenings that lokked like
-> lost interrupts!? Events that did not cause the reaction they should
-> have. Less severe were lost mouse events but more severe was packet loss
-> on network.
-That are the things that follow from, what Alan is saying - interrupts are
-disabled over some time.
 
-> So for me it looks more like a bug in the ACPI code than just a
-> performnce issue or hardware misdesign.
-> The other thing that leads to this assumption is that so many of us see
-> this happening, with various notebooks by various manufacturers. It is
-> not bound to certain or limited number of "bad" machines.
-Sorry to tell you, that I have no problems with my Acer TM630. I did try a
-bash-loop with a uspleep 10, always querrying the battery-state, that did
-not consume any interrupts on my maschine. May you collect, what various
-notebooks you claim are affected?
+--- linux-2.6.0-test5/drivers/acpi/executer/exfldio.c	2003/09/22 17:09:20	1.1
++++ linux-2.6.0-test5/drivers/acpi/executer/exfldio.c	2003/09/23 18:05:37
+@@ -312,6 +312,7 @@
+ {
+ 	acpi_status                     status;
+ 	acpi_integer                    local_value;
++	acpi_integer                    index_field_value;
+ 
+ 
+ 	ACPI_FUNCTION_TRACE_U32 ("ex_field_datum_io", field_datum_byte_offset);
+@@ -415,18 +416,22 @@
+ 	case ACPI_TYPE_LOCAL_INDEX_FIELD:
+ 
+ 
++		/* Compute index value to access the current datum */
++		index_field_value = obj_desc->index_field.value
++			+ field_datum_byte_offset;
++
+ 		/* Ensure that the index_value is not beyond the capacity of the register */
+ 
+ 		if (acpi_ex_register_overflow (obj_desc->index_field.index_obj,
+-				  (acpi_integer) obj_desc->index_field.value)) {
++				  index_field_value)) {
+ 			return_ACPI_STATUS (AE_AML_REGISTER_LIMIT);
+ 		}
+ 
+ 		/* Write the index value to the index_register (itself a region_field) */
+ 
+ 		status = acpi_ex_insert_into_field (obj_desc->index_field.index_obj,
+-				 &obj_desc->index_field.value,
+-				 sizeof (obj_desc->index_field.value));
++				 &index_field_value,
++				 sizeof (index_field_value));
+ 		if (ACPI_FAILURE (status)) {
+ 			return_ACPI_STATUS (status);
+ 		}
 
-cheers
-  hartwig felger
 
-Hartwig Felger informatics
+-- 
+Ducrot Bruno
 
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/cIzk9bBoTzOf1pMRAhgYAJ0ahmECCs2WUEBv+ahfJib4gunLiACgwfik
-DKz65xiT5jrtei4LU7EGe9k=
-=FEqF
------END PGP SIGNATURE-----
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
