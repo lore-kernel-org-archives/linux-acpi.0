@@ -1,13 +1,10 @@
-From: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>
-Subject: Re: New DSDT patches for Smart Batteries (and new mailing
- list...)
-Date: Fri, 11 Feb 2005 22:09:46 +0100
-Message-ID: <420D1F1A.3000504@tiscali.be>
-References: <420C4622.7000809@bartol.udel.edu>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] PNPACPI: don't complain about vendor-defined resources
+Date: Fri, 11 Feb 2005 15:14:08 -0700
+Message-ID: <1108160048.31877.75.camel@eeyore>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <420C4622.7000809-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,51 +14,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks for your continued efforts.
-Unfortunately, it's not yet working correctly on my laptop (An ACER=20
-travelmate 4001 Lmi). It's always the case than when the battery is=20
-fully loaded, it only indicates 9% of charging level. I have already=20
-send you my original and patched DSDT but maybe you didn't had time to=20
-look at it. Unfortunately, I doesn't know anything about coding and=20
-programming so I can't investigate myself the problem.
+Don't complain about vendor-defined resources, just ignore them.
+And make warning messages a little more consistent.
 
-Thanks for your help,
-Fran=E7ois Valenduc
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-Rich Townsend a =E9crit :
+===== drivers/pnp/pnpacpi/rsparser.c 1.2 vs edited =====
+--- 1.2/drivers/pnp/pnpacpi/rsparser.c	2004-10-31 18:21:10 -07:00
++++ edited/drivers/pnp/pnpacpi/rsparser.c	2005-02-11 12:43:12 -07:00
+@@ -219,9 +219,10 @@
+ 		res->data.address64.min_address_range, 
+ 		res->data.address64.address_length);
+ 		break;
++	case ACPI_RSTYPE_VENDOR:
++		break;
+ 	default:
+-		pnp_warn("PnPACPI: Alloc type : %d not handle", 
+-				res->id);
++		pnp_warn("PnPACPI: unknown resource type %d", res->id);
+ 		return AE_ERROR;
+ 	}
+ 			
+@@ -508,7 +509,7 @@
+ 		case ACPI_RSTYPE_END_DPF:
+ 			return AE_CTRL_TERMINATE;
+ 		default:
+-			pnp_warn("PnPACPI:Option type: %d not handle", res->id);
++			pnp_warn("PnPACPI: unknown resource type %d", res->id);
+ 			return AE_ERROR;
+ 	}
+ 			
+@@ -810,7 +811,7 @@
+ 			mem ++;
+ 			break;
+ 		default: /* other type */
+-			pnp_warn("Invalid type");
++			pnp_warn("unknown resource type %d", resource->id);
+ 			return -EINVAL;
+ 		}
+ 		resource ++;
 
-> Hi all --
->
-> A quick message to announce:
->
-> 1) That I've just uploaded a new release of the DSDT patches to the=20
-> Smart Battery project page on SourceForge,
->
-> and
->
-> 2) That I've created a new SourceForge mailing list,=20
-> sbs-linux-announce, as a way to send out announcements like this in=20
-> the future.
->
-> cheers,
->
-> Rich
->
->
-> -------------------------------------------------------
-> SF email is sponsored by - The IT Product Guide
-> Read honest & candid reviews on hundreds of IT Products from real users.
-> Discover which products truly live up to the hype. Start reading now.
-> http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
 
 
 
