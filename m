@@ -1,12 +1,14 @@
-From: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
-Subject: wake event?
-Date: Thu, 11 Dec 2003 21:18:03 -0500
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: wake event?
+Date: Fri, 12 Dec 2003 11:01:13 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FD9255B.4030107@netspace.org>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C24@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,31 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've started playing around with the acpid socket for writing power
-management clients.
+>I've started playing around with the acpid socket for writing power
+>management clients.
 
-One deficiency that I've noticed is that events don't arrive while the 
-machine is sleeping (not too surprising).  This means that things like 
-ac status monitors will be incorrect if the ac status changes while we 
-are sleeping.
+Could you please give me some detail about your power management client?
 
-It might be nice to deliver a wake event to /proc/acpi/event so clients
-can know that they can update properly.
+>One deficiency that I've noticed is that events don't arrive while the=20
+>machine is sleeping (not too surprising). =20
 
-I thought about writing a patch to do this, but I had trouble deciding
-what arguments ought to be given to acpi_bus_generate_event (device 
-e.g.), and where it should be done.  Perhaps this is because this 
-feature is somewhat outside the scope of what was originally intended 
-the interface.
+Is it a reasonable requirement?  when sleeping, only wake up event =
+should
+be noticed.  If wake up event can not wake up machine, we need fix it!
 
-Any thoughts?
-
---
-Brian Perkins				bperkins-5L9LcNmrgCtAfugRpC6u6w@public.gmane.org
-
+--Luming
 
 
 
