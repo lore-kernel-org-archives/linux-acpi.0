@@ -1,18 +1,18 @@
-From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: HP/Compaq NC6120 ACPI problems
-Date: Mon, 21 Mar 2005 11:40:14 +0100
-Message-ID: <20050321114014.38a548d4.andrej.prsa@guest.arnes.si>
+Date: Mon, 21 Mar 2005 12:33:31 +0000
+Message-ID: <1111408412.8136.233.camel@tyrosine>
 References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
-	<1111088904.11380.36.camel@eeyore>
-	<20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
-	<1111104319.8136.182.camel@tyrosine>
-	<20050318192300.629e2148.andrej.prsa@guest.arnes.si>
-	<1111202374.8136.210.camel@tyrosine>
-	<1111362416.8136.225.camel@tyrosine>
+	 <1111088904.11380.36.camel@eeyore>
+	 <20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
+	 <1111104319.8136.182.camel@tyrosine>
+	 <20050318192300.629e2148.andrej.prsa@guest.arnes.si>
+	 <1111202374.8136.210.camel@tyrosine> <1111362416.8136.225.camel@tyrosine>
+	 <20050321114014.38a548d4.andrej.prsa@guest.arnes.si>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1111362416.8136.225.camel@tyrosine>
+In-Reply-To: <20050321114014.38a548d4.andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -25,68 +25,47 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Mon, 2005-03-21 at 11:40 +0100, Andrej Prsa wrote:
 
-> > Hmm. Yes, I can now repeat this with a 6220, though most of the time
-> > I manage it it seems to be linked to a suspend to disk beforehand. I
-> > suspect this /may/ be linked to the fact that on the 6120, only the
-> > first lid event is received. I'll see if I can track this down over
-> > the weekend.
+> I see; please let me know when you get any additional information and of
+> course if there's anything I can do to help! If it's not too much
+> trouble, could you (or anyone else of course) please explain what
+> exactly does this setpci do?
+
+The setpci sets a register that allows the GPE to fire again. The BIOS
+ought to be doing it itself - I've reported it to HP.
+
+> Intriguingly, I recompiled the kernel with ACPI support built in (in
+> contrast to having a modular ACPI support) and this time kacpid
+> doesn't overload the processor and the fan is working!
+
+Ah. That /may/ fit with my observations from suspend to disk - the
+hardware seems unhappy if Linux and the hardware disagree about the fan
+state. My suspicion is that if there's a thermal trip event between
+Linux switching the hardware to ACPI mode and the fan module being
+loaded, you'll get the "mad kacpid" behaviour. I'd strongly recommend
+having the fan module built in - there's the risk of hardware damage
+otherwise.
+
+> > Warning - there'll be huge amounts of it. Really huge amounts. The
+> > stuff we're interested in is whatever appears after kacpid has begun
+> > taking up all the processor time.
 > 
-> Ha. Yes, progress, of sorts. On the 6120, you need to do
+> Please find the messages.gz file at (3.1MB compressed size!):
 > 
-> setpci -s 1f.0 bb.b=84
+> 	http://www.fiz.uni-lj.si/~prsa/messages.gz
 > 
-> after every lid event in order to get any more. I /think/ this is a
-> bug with the HP BIOS (the 6220 doesn't do this) - I'm in touch with HP
-> over it now.
+> (sorry for the enormous size (~50MB uncompressed), but I didn't want to
+> cut out anything relevant!) The start of the messages file is the start
+> of kacpid going crazy.
 
-I see; please let me know when you get any additional information and of
-course if there's anything I can do to help! If it's not too much
-trouble, could you (or anyone else of course) please explain what
-exactly does this setpci do?
+Great, thanks! I'll take a look at this later on. When I traced it on
+the 6220, I found that it seemed to be related to a thermal zone event,
+which would fit with observations.
 
-> As for the high kacpid load, I'm only able to trigger this after
-> a suspend to disk, and using the platform option (to ensure the _WAK
-> methods are called) /seems/ to avoid it. Could you try building a
-> kernel with acpi debug support, set the output level fairly high (echo
-> -n 0x0000ffff >/proc/acpi/debug_level) and see what sort of output you
-> get?
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-Intriguingly, I recompiled the kernel with ACPI support built in (in
-contrast to having a modular ACPI support) and this time kacpid
-doesn't overload the processor and the fan is working!
-
-Determined to come to the bottom of the problem, I recompiled the kernel
-again, this time with ACPI support modular and voila - the same
-malfunctioning behavior popped up. I 'tail -f'd both syslog and
-messages; before kacpid blowup there was no significant output, but at
-the time of kacpid blowup both logs started filling up like crazy to the
-point that even init 0 didn't work anymore - all I got was a console
-with ACPI debug messages filling screen after screen and I had to force
-computer to a halt.
-
-> Warning - there'll be huge amounts of it. Really huge amounts. The
-> stuff we're interested in is whatever appears after kacpid has begun
-> taking up all the processor time.
-
-Please find the messages.gz file at (3.1MB compressed size!):
-
-	http://www.fiz.uni-lj.si/~prsa/messages.gz
-
-(sorry for the enormous size (~50MB uncompressed), but I didn't want to
-cut out anything relevant!) The start of the messages file is the start
-of kacpid going crazy.
-
-
-The solution for me is of course ACPI built into the kernel, for it
-seems that the fan is working that way. Still, I would like to help
-out in resolving this issue, so let me know if there's anything else I
-could do!
-
-Thanks & best wishes,
-
-Andrej
 
 
 -------------------------------------------------------
