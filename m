@@ -1,14 +1,12 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: power-off problem : ASUS K7 + ASUS L3800 + Kernel 2.6-pre9
-Date: Wed, 17 Dec 2003 17:52:54 +0100
+From: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+Subject: Excessive S3 battery drain on R32
+Date: Wed, 17 Dec 2003 13:15:35 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031217165253.GA29159@hell.org.pl>
-References: <3ACA40606221794F80A5670F0AF15F8401720C38@PDSMSX403.ccr.corp.intel.com> <200312171038.23057.jm.poure@freesurf.fr>
+Message-ID: <3FE09D47.6050908@netspace.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200312171038.23057.jm.poure-3sKltW3hOZpWj0EZb7rXcA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +15,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jean-Michel POURE <jm.poure-3sKltW3hOZpWj0EZb7rXcA@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Jean-Michel POURE:
-> Thanks, apparently this patch loops to reach S5 state. It seems to be a 
-> possible solution. Some questions:
-[...]
-> Maybe I miss something, but the main need of ACPI is to be able to switch-off 
-> a computer... Why is this patch not applied by default?
+I've noticed that my R32 using S3 last only about 9 hours on a full 
+battery using S3.  This should be more like 24 hours.
 
-ACPI shutdowns well here on the same machine (L3800C), I don't recall having
-any problems at all with any kernel, but it's possible I didn't test test7
-extensively. Anyway, test11 shutdowns fine, so go upgrade your kernel to
-fix that.
-Best regards,
+It seems that the problem is at least in part caused by X. Some 
+preliminary testing (suspend, wait half an hour, repeat) indicated that 
+booting into single user mode and suspending drained at a more 
+appropriate rate.  Then, starting X by hand, then suspending seemed to 
+cause the drain to go up.
+
+   The card is a Radeon Mobility M6, but the radeon kernel driver isn't 
+being used, as DRI is broken in fedora core's stock XFree.  Is this 
+problem a relative of the S3 Radeon initialization bugs that people have?
+
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Yes, but will it wash my dishes?
+Brian Perkins                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
+
 
 
 -------------------------------------------------------
