@@ -1,34 +1,45 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: Re: [ACPI] Re: [PATCH] s4bios for 2.5.59 + apci-20030123
-Date: Fri, 07 Feb 2003 08:44:08 +1300
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1044560648.1700.17.camel@laptop-linux.cunninghams>
-References: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com>
- <20030204221003.GA250@elf.ucw.cz>
- <1044477704.1648.19.camel@laptop-linux.cunninghams>
- <20030206153757.GB19350@atrey.karlin.mff.cuni.cz>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: ACPI PCI bus mismatch ?
+Date: Thu, 6 Feb 2003 12:39:43 -0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A84713802A@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20030206153757.GB19350-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2003-02-07 at 04:37, Pavel Machek wrote:
-
-> No, no. It has to be exactly the same kernel, otherwise you get a nice
-> crash (if you are lucky) and ugly data corruption (when you are not);
-> there's check to prevent that and panic, however.
+> From: Alvaro Lopes [mailto:alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org] 
+> OK, I tracked the problem down to acpi_os_derive_pci_id(). If 
+> I remove 
+> the call to acpi_os_derive_pci_id() in 
+> acpi_ev_pci_config_region_setup() 
+> it works fine.
 > 
-> That's why I call S4bios more foolproof.
+> Will do some tests on 2.5.x now and let you know.
 
-Oh of course; I'm with you. If you're running a different kernel, you
-must have had an entirely different context when you suspended. Humble
-apologies; I was only thinking about whether the image would
-successfully load, not the difference in contents.
+Grrreat.
 
-Regards,
+We stuck that code in because some IA64 systems needed it to work.
 
-Nigel
+Sounds like we need to re-think all this. A hack for right now might be
+to only call derive on IA64 boxes.
+
+Regards -- Andy
+
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
