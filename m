@@ -1,12 +1,16 @@
-From: Gabriele Alberti <gabriele.alberti-06ZeP6ie+xM@public.gmane.org>
-Subject: Acer aspire 1203 & ACPI
-Date: Sat, 12 Oct 2002 15:26:36 +0200
+From: Andrew Kohlsmith <akohlsmith-uiYP0llB1AZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Re: ACPI-Patch against 2.4.20-pre10-ac1
+Date: Sat, 12 Oct 2002 09:31:07 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021012152636.09e09250.gabriele.alberti@email.it>
+Message-ID: <200210120931.07811@-mixdown.ca>
+References: <20021011183427.20a55d1c.hanno@gmx.de> <1034380226.12709.1.camel@irongate.swansea.linux.org.uk> <m2ofa0ywg7.fsf@tnuctip.rychter.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <m2ofa0ywg7.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,27 +22,15 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I'm trying to make work acpi under linux in my laptop, an acer aspire 1203 XV.
-I get those messages during boot
------------------------------------
-ACPI: Core Subsystem version [20011018]
-ACPI: Subsystem enabled
-ACPI: System firmware supports S0 S1 S3 S4 S5
-ACPI: AC Adapter found
-ACPI: Power Button (FF) found
-ACPI: Multiple power buttons detected, ignoring fixed-feature
-ACPI: Power Button (CM) found
-ACPI: Lid Switch (CM) found
-ACPI: Thermal Zone found
------------------------------------
-but it doesn't seem to work properly..for example, linux reports always no battery and ac-cable online also
-when it's not.
-Any clue? If you need more info let me know, i will be glad to help.
+> Yes, but in a real world this seems to be a common case. On my Sharp
+> Mebius PC-MT1-H5 ACPI does not handle CPU power management. I use the
+> 'speedstep' utility to adjust clock speed.
+
+My Compaq Evo N160N has no throttling support through ACPI, but I can cut the 
+speed to 700MHz (from 1GHz) through /proc/acpi/processor/CPU0/performance.
 
 Regards,
-	Gabriel
-
+Andrew
 
 
 -------------------------------------------------------
