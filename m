@@ -1,11 +1,11 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Fujitsu Lifebook P2120 S3 sleep: progress report + patch
-Date: Fri, 28 Feb 2003 15:15:10 +0100
+Date: Fri, 28 Feb 2003 15:30:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030228141510.GA24824@hell.org.pl>
+Message-ID: <20030228143033.GI13404@poup.poupinou.org>
 References: <ebw1y1swmjv.fsf@pcedu3.cern.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 In-Reply-To: <ebw1y1swmjv.fsf-e5kh7Nd5fja2ozzinb8jHw@public.gmane.org>
@@ -21,19 +21,22 @@ To: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Ole Rohne:
+On Fri, Feb 28, 2003 at 02:40:36PM +0100, Ole Rohne wrote:
 > Hi!
+...
+
 > Finally, the 8139too driver clearly needs pci_set_power_state in order
 > to work after resume, is that the "trivial patch" someone else
 > mentioned earlier?
+> 
 
-Actually, 8139too works fine after S3 resume, at least on my machine -
-tested on 2.5.6[13]. Takes several seconds to get responding, but works.
-Best regards,
+No, mine was really more simple than yours (I do not save/restore state).
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
