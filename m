@@ -1,14 +1,12 @@
-From: Bernd Schubert <bernd.schubert-VNq4CFrKgK+dPOQpRHQ53DeJuz7u0hKX@public.gmane.org>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
 Subject: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 19:50:25 +0100
-Message-ID: <200502151950.27697.bernd.schubert@pci.uni-heidelberg.de>
-References: <20050214211105.GA12808@elf.ucw.cz> <200502151535.41058.bernd.schubert@pci.uni-heidelberg.de>
+Date: Tue, 15 Feb 2005 19:57:14 +0100
+Message-ID: <4212460A.4000100@gmx.net>
+References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502151535.41058.bernd.schubert-VNq4CFrKgK+dPOQpRHQ53DeJuz7u0hKX@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20050215170837.GA6336-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,46 +16,75 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello again,
+Norbert Preining schrieb:
+> On Die, 15 Feb 2005, Carl-Daniel Hailfinger wrote:
+> 
+>>To suspend and resume properly, call the following script as root:
+> 
+> 
+> Success. 
 
-> > Stefan provided me initial list of machines where S3 works (including
-> > video). If you have machine that is not on the list, please send me a
-> > diff. If you have eMachines... I'd like you to try playing with
-> > vbetool (it worked for me), and if it works for you supplying right
-> > model numbers.
->
-> we just tested our group IBM Thinkpad A31:
->
-> IBM TP A31 / Type 2652-M5G     s3_mode (3)
->
-
-I'm sorry, but I have to correct my self. We have two of laptops and on one of 
-them we recently updated the bios. On the system with the bios from 2002 it 
-works fine, on the other one with bios from Nov. 2004 it doesn't work in any 
-acpi_sleep mode, didn't have the time to test the vbetool yet (A31s have 
-radeon cards). The system configuration is otherwise completely identical, I 
-just configured our environment, so that all laptops always have excactly the 
-linux version. For testing purpose I could/will also try to run Xorg, 
-currently its X from Debian Sarge.
-
-IBM TP A31 / Type 2652-M5G / BIOS 1.04 2002-08-23    s3_mode (3) 
-IBM TP A31 / Type 2652-M5G / BIOS 1.11 2004-11-05    not working
+Great!
 
 
-Sorry for not noting it immediately,
- Bernd
+> After deactivating DRI in the X config file and saving the states with
+> your script (thanks) and turning off various stuff I get X running
+> again.
+> 
+> Questions:
+> - DRI must be disabled I guess?! Even with newer X server (x.org)?
+
+I never disabled it.
+
+> - I dont have to restore the font, it is back without any problem
+>   (I have vga console)
+
+Good. I guess that's highly chipset-specific.
+
+> - Sometimes I have to make a Sysrq-s (sync) to get some stuff running
+>   (eg logging in from the console hangs after input of passwd, calling
+>   sysrq-s makes it continue). I had a similar effect when logging in
+>   AFTER resuming (for the resume I had only gdm running but wasn't
+>   logged in) the GNOME starting screen stayed there indefinitely, no
+>   change. Even after restarting the X server and retrying.
+>   Logging in with twm session DID work without any problem.
+>   Do you have any idea what this could be?
+
+Pavel?
+
+> - My script is a bit more complicated: stopping: hotplug, mysql,
+>   ifplugd, waproamd, cpufreqd, acpid, ifdown eth0, eth1, rmmod acerhk
+>   echo "performance" onto governor, then going to sleepand doing
+>   more or less the reverse stuff after waking up.
+>   DO you have any experience with hotplug network etc stuff, working
+>   even without stopping?
+
+I used to unload modules, shutdown network interfaces etc. until I
+tried without all that stuff and it still worked. So I concluded
+that stopping things before suspend was a thing only needed with
+older kernels. Granted, mounted volumes on USB or IEEE1394 still
+have problems because the kernel doesn't expect them to disappear
+for a few moments, but that's nothing a module unload would fix.
+Simply umount all external drives and use my script. Drivers which
+still need to be unloaded and reloaded are buggy and have to be
+fixed.
+
+I'll prepare a web page with detailed S3/S4 suspend/resume
+information for ATI graphics card owners including step-by-step
+howtos for smooth suspend/resume cycles.
+
+Kendall Bennett is working with me to get suspend/resume working
+even with framebuffers. Once we have results, I'll post them here.
 
 
-
-PS: Maybe its also interesting, with the newer bios version the kernel prints 
-much less dsdt parsing errors, but nevertheless the S3 mode doesn't work.
-
-
-
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
