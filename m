@@ -1,12 +1,14 @@
 From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [RFC 5/6]clean cpu state after hotremove CPU
-Date: Mon, 4 Apr 2005 13:11:32 -0600 (MDT)
-Message-ID: <Pine.LNX.4.61.0504041242420.30273@montezuma.fsmlabs.com>
-References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com>
+Subject: Re: Re: [RFC 0/6] S3 SMP support with physcial CPU hotplug
+Date: Mon, 4 Apr 2005 13:42:04 -0600 (MDT)
+Message-ID: <Pine.LNX.4.61.0504041322490.30273@montezuma.fsmlabs.com>
+References: <1112580342.4194.329.camel@sli10-desk.sh.intel.com>
+ <20050403193750.40cdabb2.akpm@osdl.org> <1112608444.3757.17.camel@desktop.cunningham.myip.net.au>
+ <20050404113129.GA7120@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1112580367.4194.344.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <20050404113129.GA7120-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,35 +18,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 4 Apr 2005, Li Shaohua wrote:
+Hi Pavel!
 
-> Clean up all CPU states including its runqueue and idle thread, 
-> so we can use boot time code without any changes.
-> Note this makes /sys/devices/system/cpu/cpux/online unworkable.
->  
->  #ifdef CONFIG_HOTPLUG_CPU
->  #include <asm/nmi.h>
-> +
-> +#ifdef CONFIG_STR_SMP
-> +extern void cpu_exit_clear(int);
-> +#endif
+On Mon, 4 Apr 2005, Pavel Machek wrote:
 
-Perhaps change that ifdef to denote something which clearly shows that its 
-physical hotplug as we'll need this for other users too.
+> > > > The patches are against 2.6.11-rc1 with Zwane's CPU hotplug patch in -mm
+> > > >  tree.
+> > > 
+> > > Should I merge that thing into mainline?  It seems that a few people are
+> > > needing it.
+> > 
+> > Perhaps we should address the MTRR issue first.
+> > 
+> > I've had code in Suspend2 for quite a while (6 months+) that removes the
+> > sysdev support for MTRRs and saves and restores them with CPU context,
+> > thereby avoiding the smp_call-while-interrupts-disabled issue. Perhaps
+> > it would be helpful here?
+> 
+> This seems like separate issue... I'd prefer not to block this patch.
+> 
+> MTRRs should be probably handled by some kind of "cpu is going down"
+> and "cpu is going up" callbacks... Zwane, do you have any ideas?
+> Linklist of handlers should be enough...
 
-> +#ifdef CONFIG_STR_SMP
-> +extern void do_exit_idle(void);
-> +extern void cpu_uninit(void);
-> +void cpu_exit_clear(int cpu)
-> +{
-> +	int sibling;
-> +	cpucount --;
-
-Is that protected by the cpu_control semaphore?
+Hmm, it seems to me that we if we're bringing up additional processors we 
+only need to update the processor coming online (using mtrrs from an 
+online processor) and hold a lock stopping any other updates. So for that, 
+we definitely need online and offline callbacks.
 
 Thanks,
 	Zwane
