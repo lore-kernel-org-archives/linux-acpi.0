@@ -1,74 +1,37 @@
-From: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>
-Subject: Re: Toshiba 5200-801 ACPI
-Date: Mon, 03 Mar 2003 09:53:59 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E636C87.3060307@prairienet.org>
-References: <1046664590.3e62d58e40b81@webmail.alunetworks.com>
+From: bert hubert <ahu-yMKkj5jtC+M@public.gmane.org>
+Subject: Re: [ACPI] Re: S4bios support for 2.5.63
+Date: Mon, 3 Mar 2003 16:11:35 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030303151135.GA24815@outpost.ds9a.nl>
+References: <20030226211347.GA14903@elf.ucw.cz> <20030302133138.GA27031@outpost.ds9a.nl> <1046630641.3610.13.camel@laptop-linux.cunninghams> <20030302202118.GA2201@outpost.ds9a.nl> <20030303003940.GA13036@k3.hellgate.ch> <1046657290.8668.33.camel@laptop-linux.cunninghams> <20030303113153.GA18563@outpost.ds9a.nl> <20030303122325.GA20929@atrey.karlin.mff.cuni.cz> <20030303123551.GA19859@outpost.ds9a.nl> <20030303124133.GH20929@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1046664590.3e62d58e40b81-2RFepEojUI3JntwrmyXZtoQr+Ex5tWwz@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: erubboli-yZ7cK5sl2baEK/hMebVsMw@public.gmane.org, acpi-devel <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030303124133.GH20929-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>, Roger Luethi <rl-7uj+XXdSDtwfv37vnLkPlQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Mon, Mar 03, 2003 at 01:41:33PM +0100, Pavel Machek wrote:
 
-Please post your questions to the acpi-devel mailing list 
-(acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org).  I don't maintain the linux acpi system, only a 
-small special extension for Toshiba laptops.
+> Start adding printks to see whats going on. Try going ext2. Try
+> killing sys_sync() from kernel/suspend.c.
 
--John
+I've tried:
+	hdparm -u1 /dev/hda
+	killing sys_sync()
+	doing both
 
+To no avail. I'm investigating how I can go ext2 on this machine as I read
+elsewhere that the kernel will silently mount an ext3 partition with a
+journal as ext3 even when asked to mount as ext2.
 
-erubboli-yZ7cK5sl2baEK/hMebVsMw@public.gmane.org wrote:
-> Hello, i have a Toshiba 5200-801 and i have patched the kernel version 2.4.20 
-> with ACPI support (from acpi.sourceforge.net). 
-> I have compiled the basic support into the kernel and any other features 
-> (battery, processor, toshiba etc..) as module. 
-> In /proc filesystem all seems to be correct, i can view any information about 
-> the system, but the kacpidpc kernel process crashes continuosly  
-> look this shell log: 
->  
-> erubboli@dpj:~$  ps afx | grep kacpidpc 
-> 19559 ?        Z      0:00  \_ [kacpidpc <defunct>] 
-> 19560 ?        Z      0:00  \_ [kacpidpc <defunct>] 
->  (after 2 seconds) 
-> erubboli@dpj:~$ ps afx | grep kacpidpc 
-> 27777 ?        Z      0:00  \_ [kacpidpc <defunct>] 
-> 27778 ?        Z      0:00  \_ [kacpidpc <defunct>] 
->  
-> have you some idea about this ?  
-> What can I do for help you to help me ? ;) 
->  
-> I don't know nothing about acpi... :( 
->  
-> Thanks, 
->   Enrico Rubboli. 
->  
-> --  
-> Enrico Rubboli @ ALU Networks | Spring Italia 
-> enrico-yZ7cK5sl2baEK/hMebVsMw@public.gmane.org 
-> 
-> -------------------------------------------------
-> This mail sent through IMP: http://horde.org/imp/
-> 
+Regards,
 
+bert
 
 -- 
-http:// if   l .   /
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+http://www.PowerDNS.com      Open source, database driven DNS Software 
+http://lartc.org           Linux Advanced Routing & Traffic Control HOWTO
+http://netherlabs.nl                         Consulting
