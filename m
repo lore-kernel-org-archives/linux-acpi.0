@@ -1,17 +1,16 @@
-From: Stefan =?utf-8?q?D=C3=B6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+From: Luca <kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org>
 Subject: Re: pci device resume too early?
-Date: Wed, 28 Jul 2004 21:18:52 +0200
+Date: Wed, 28 Jul 2004 23:06:02 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200407282118.52624.stefandoesinger@gmx.at>
-References: <200407281953.39159.stefandoesinger@gmx.at> <1091038485.15464.9.camel@tyrosine>
-Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Message-ID: <20040728210602.GA26087@dreamland.darkstar.lan>
+References: <200407281953.39159.stefandoesinger@gmx.at> <1091038485.15464.9.camel@tyrosine> <200407282118.52624.stefandoesinger@gmx.at>
+Reply-To: kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1091038485.15464.9.camel-myFlNLNQP+Q@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200407282118.52624.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,41 +19,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Stefan =?iso-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Il Wed, Jul 28, 2004 at 09:18:52PM +0200, Stefan D=F6singer ha scritto:=20
+> I moved device_resume(); in suspend_finish to be called after=20
+> pm_ops->finish(state); and my system resumes MUCH nicer.
+> Sound resume works, usb-uhci resume works, ehci pci restore works. My s=
+uspend=20
+> script will shink a lot.
+>=20
+> That's what suspend_finish looks like:
+>=20
+> static void suspend_finish(u32 state)
+> {
+> 	if (pm_ops && pm_ops->finish)
+> 		pm_ops->finish(state);
+> 	device_resume();	/*Call it after pm_ops->finish*/=09
+> 	thaw_processes();
+> 	pm_restore_console();
+> }
 
-> Ooh, neat. This might explain the problems I have with yenta resuming on
-> my Thinkpad 240X. pci_restore_state is called from drivers/pci/pci-
-> driver.c (see pci_default_resume), and from some specific drivers (it
-> can probably be removed from them now though, really). That gets called
-> from the chain of things called in device_resume in
-> drivers/base/power/resume.c - it steps through each registered driver
-> and calls the associated resume method. For PCI stuff, that will either
-> be pci_default_resume or a driver-specific resume method. device_resume
-> is called from suspend_finish in kernel/power/main.c.
+Well, it may work but it's not correct. ->finish is meant to be called
+to finalize the wakeup procedure *after* devices are waked up.
 
-Thanks for the informations.
-I moved device_resume(); in suspend_finish to be called after 
-pm_ops->finish(state); and my system resumes MUCH nicer.
-Sound resume works, usb-uhci resume works, ehci pci restore works. My suspend 
-script will shink a lot.
+ACPI finish calls acpi_leave_sleep_state() and restore the waking
+vectore. I'm not an ACPI guru but my guess is that what you need is
+in acpi_leave_sleep_state().
 
-That's what suspend_finish looks like:
+If that's the case we may want to split the finish callback (say
+prepare_wake and finish_wake).
 
-static void suspend_finish(u32 state)
-{
-	if (pm_ops && pm_ops->finish)
-		pm_ops->finish(state);
-	device_resume();	/*Call it after pm_ops->finish*/	
-	thaw_processes();
-	pm_restore_console();
-}
-
-Can you try if this helps your yenta?
-
+Luca
+--=20
+Home: http://kronoz.cjb.net
+"In linea di principio sarei indifferente al natale, se solo il natale
+ ricambiasse la cortesia e mi lasciasse in pace." -- Marco d'Itri
 
 
 -------------------------------------------------------
