@@ -1,14 +1,12 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Fixing broken DSDT - code suggestions for comment   please!
-Date: Wed, 26 May 2004 08:36:23 -0700
+From: Vladislav Yasevich <vladislav.yasevich-VXdhtT5mjnY@public.gmane.org>
+Subject: Using dsdt initrd override with 2.6.6 kernels
+Date: Wed, 26 May 2004 15:41:22 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <37F890616C995246BE76B3E6B2DBE055E08D59@orsmsx403.amr.corp.intel.com>
+Message-ID: <40B4F2E2.5020308@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,51 +15,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, marmon-GymH4r+vMzPQT0dZR+AlfA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There *is* an interactive AML debugger in the ACPI CA package.  However,
-it needs to be integrated into Linux.
+Hi
 
-As far as I can tell, the reason it hasn't been done yet is because the
-whole concept of "interactive kernel debugging" is rather foreign to
-Linux.
+I am trying to use the initrd patch for the DSDT override with
+2.6.6 kernel and noticed that the DSDT is not being overridden.
 
-Bob
+I've tracked it down to a change in init/main.c where
+populate_rootfs() call has moved to the init() function.
 
+Does anyone know why this was made and what's the right fix?
 
-> -----Original Message-----
-> From: Yu, Luming
-> Sent: Tuesday, May 25, 2004 7:36 PM
-> To: marmon-GymH4r+vMzPQT0dZR+AlfA@public.gmane.org; ACPI Developers
-> Cc: linux-acpi
-> Subject: RE: [ACPI] Fixing broken DSDT - code suggestions for comment
-> please!
->=20
->  >
-> >I've posted this question before, if its just a question that shall
-go
-> >unanswered someone please let me know so I stop reposting it
-different
-> >ways:
-> >
-> >Where would start searching for information on debugging a compiled
-> >DSDT?  The iasl compiler believes it is fine, 0 errors, 0 warnings;
-but
-> >I kernel panic in the one_complete_parse phase when booting using the
-> >custom dsdt table.
-> >
->=20
->   AFAIK, there is no AML debugging tool under linux. To debug the
-DSDT,
-> you have to add some statement like "store ( xxx, debug) " in your ASL
-> code.
->=20
->   PS, can you post the detailed message of the panic.
->=20
-> Thanks,
-> Luming
+I am just put the call back into start_kernel() and that
+fixed everything, but I am not sure if that's OK or if I am
+breaking something.
+
+Thanks
+-vlad
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Vladislav Yasevich		Linux and Open Source Lab
+Hewlett Packard 		Tel: (603) 884-1079
+Nashua, NH 03062		ZKO3-3/T07
 
 
 -------------------------------------------------------
