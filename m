@@ -1,12 +1,11 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
 Subject: Re: ACPI on hp Tablet TC1100
-Date: Thu, 24 Mar 2005 22:49:46 +0000
-Message-ID: <1111704587.11677.27.camel@tyrosine>
-References: <Pine.LNX.4.58.0503241657510.4376@dashnine>
+Date: Thu, 24 Mar 2005 19:24:38 -0500 (EST)
+Message-ID: <Pine.LNX.4.58.0503241901440.4867@dashnine>
+References: <Pine.LNX.4.58.0503241657510.4376@dashnine> <1111704587.11677.27.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <Pine.LNX.4.58.0503241657510.4376@dashnine>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <1111704587.11677.27.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,22 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-03-24 at 17:08 -0500, Joshua Wise wrote:
+On Thu, 24 Mar 2005, Matthew Garrett wrote:
+> On Thu, 2005-03-24 at 17:08 -0500, Joshua Wise wrote:
+>
+> > Video is still nonexistant at that point -- if I do a vbetool post, though,
+> > I get a nice blinking cursor, and a few bangs of the enter key later, I get
+> > my console back. I will try acpi_sleep=s3_bios. I would've tried it already,
+> > but I didn't see the _, and hence tried acpi_sleep=s3bios, to no avail. I'll
+> > also try it without pci=noacpi, and we'll see how things go from there.
+>
+> Once you've done this, does X become happy again? You're also far better
+> off using the nv driver if you want suspend and resume to work.
 
-> Video is still nonexistant at that point -- if I do a vbetool post, though,
-> I get a nice blinking cursor, and a few bangs of the enter key later, I get
-> my console back. I will try acpi_sleep=s3_bios. I would've tried it already,
-> but I didn't see the _, and hence tried acpi_sleep=s3bios, to no avail. I'll
-> also try it without pci=noacpi, and we'll see how things go from there.
+Okay, so I tried nuking pci=noacpi and acpi_sleep=s3_bios.
 
-Once you've done this, does X become happy again? You're also far better
-off using the nv driver if you want suspend and resume to work.
+With those two, I get my console back after resuming, but no USB. If I had
+actually remembered to plug the access point back in, I'm pretty sure
+wireless would work.
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+I guess I should try starting X and doing a susp/res from there as the
+logical next step. Testing... Hangs up on resume, no wifi on resume... dunno
+if that's an artifact of nvidia just being initialized (and hence hanging)
+first, or what.
+
+Let's try it with no X. Yeah, wifi came back just fine. I wonder if this is
+in fact an artifact of nv suckage. I don't see anything in klogd's output,
+so I can't give you much help there.
+
+By the way, I noticed you're on freenode IRC -- you might be intereted in
+#acpi4linux, a channel presently consisting of, er, me, but hopefully soon
+others. (Or is there an IRC chan elsewhere that I didn't otherwise know of?)
+
+Thanks for the help --
+joshua
+
 
 
 
