@@ -1,13 +1,16 @@
-From: "Anibal Pace" <a.pacewq-LdB7NMw1lkVeoWH0uzbU5w@public.gmane.org>
-Subject: We give you $200 bonus at Casino Zeal!
-Date: Fri, 06 Aug 2004 04:45:17 +0500
+From: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
+Subject: Re: ACPI: S3 and PAE do not like each other for now, S3 disabled.
+Date: Fri, 6 Aug 2004 02:09:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <8dd401c47b46$35e4391e$4f663b98@civ.pl>
+Message-ID: <200408060209.55067.arekm@pld-linux.org>
+References: <200407252330.05542.arekm@pld-linux.org> <20040726210011.GB21889@openzaurus.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040726210011.GB21889-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,31 +19,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, 
-I have a special offer available for you at our casino.
+On Monday 26 of July 2004 23:00, Pavel Machek wrote:
+> Hi!
+>
+> > Is this ,,ACPI: S3 and PAE do not like each other for now, S3 disabled.=
+''
+> > generic S3 and PAE issue or just Linux issue only?
+>
+> Linux only. Hmm with recent enough kernel we needed to fix this for
+> different reason, so it might just work.
+>
+> Remove check, test it, if it works submit a patch.
+Today while playing with suspend/resume support in via-rhine I had a chance=
+ to=20
+try it few more times (on 2.6.8rc2 with PAE enabled, maxdata notebook, 512M=
+B=20
+ram, athlon, kt133 based mainboard).
 
-$20 to try our internet casino, no deposit is necessary!
-At the casino software's cashier enter bonus code: FR93P
+Resuming works properly only somethimes. Once I have system back into nice=
+=20
+shape, once I see that it starts resuming (fans are starting, screen change=
+s)=20
+and it hangs, screen is corrupted (some color characters flashing), sysrq=20
+doesn't work.
 
-$200 bonus on your first deposit!
-At the casino software's cashier enter bonus code: FMJKU
+> 				Pavel
 
-Allow us to show you our quality operation, fast payouts,
-generous bonuses, and super friendly around-the-clock
-customer support.
-
-Click here: http://bigbonus-casino.net 
-
-Best regards,
-Jamie Zawinsky
-
-
-
-No thanks: http://bigbonus-casino.com/u/
-
+=2D-=20
+Arkadiusz Mi=B6kiewicz     CS at FoE, Wroclaw University of Technology
+arekm.pld-linux.org, 1024/3DB19BBD, JID: arekm.jabber.org, PLD/Linux
 
 
 -------------------------------------------------------
