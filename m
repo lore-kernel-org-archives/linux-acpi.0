@@ -1,14 +1,16 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M6800N: battery0 not present
-Date: Thu, 04 Mar 2004 15:12:45 +0100
+From: "Bryan K. Wright" <bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org>
+Subject: Re: Bad interaction between ehci-hcd and acpi?
+Date: Thu, 04 Mar 2004 09:38:26 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4047395D.6000500@pca.it>
-References: <40324F44.60006@pca.it>
+Message-ID: <200403041438.i24EcRZ09051@ayesha.phys.Virginia.EDU>
+References: <1078181249.3511.5.camel@darkstar>
+Reply-To: bryan-utW8kV9oO443r0Ub5QXD9Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40324F44.60006-wlebWZzHoyE@public.gmane.org>
+In-reply-to: Your message of "Mon, 01 Mar 2004 22:47:29 GMT."
+             <1078181249.3511.5.camel-4/PLUo9XfK8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,87 +19,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Yannick Chabanois <ycarus-nMPBK4rpgxgiq3RsQ1AnAw@public.gmane.org>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi again,
 
-Hello,
+	Thanks to S=E9rgio Monteiro Basto for the suggestion about upgrading
+to a slightly later kernel.  This seems to help, but there's still a =
 
-I found on Jan Philipp Giel report
-	http://fsai.fh-trier.de/~gielj/M6800N/
-a new DSDT which solve the battery problem with the new BIOS 0205A. This new
-DSDT was hacked by Ycarus, here the first lines from the .dsl version:
-=====
-/*
- * Intel ACPI Component Architecture
- * AML Disassembler version 20030918
- *
- * Disassembly of dsdt.dat, Tue Mar  2 23:05:23 2004
- *
- * Modified version of DSDT from Asus M6800N bios version 0205A
- * This version now report battery state under Linux.
- * Bug : Ac_adapter state is always off-line
- * Modified version by Ycarus (Yannick Chabanois)
- * chabanois(at)ifrance.com
- *
- */
-=====
+problem.  I'm now using 2.4.25.  The overheating problem is less, but
+the temperature still rises by about 10 degrees whenever I plug in
+a high-speed USB device, and stays there until I rmmod the ehci-hcd
+module.  After removing the module, the temperature drops (within a few
+seconds) back to a normal value.
 
-I just tried it on 2.6.3 + ACPI 20040220 + ACPI DSDT in initrd 2.6.1 and now the
-battery0 is read correctly:
-=====
-luca-HSB4nKSusd8@public.gmane.org:~$ dmesg | grep battery
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Battery Slot [BAT1] (battery absent)
-luca-HSB4nKSusd8@public.gmane.org:~$ cat /proc/acpi/battery/BAT0/alarm
-alarm:                   unsupported
-luca-HSB4nKSusd8@public.gmane.org:~$ cat /proc/acpi/battery/BAT0/info
-present:                 yes
-design capacity:         4300 mAh
-last full capacity:      4300 mAh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 130 mAh
-design capacity low:     21 mAh
-capacity granularity 1:  52 mAh
-capacity granularity 2:  2418 mAh
-model number:            M6N
-serial number:           00001
-battery type:            LIon
-OEM info:                ASUSTek
-luca-HSB4nKSusd8@public.gmane.org:~$ cat /proc/acpi/battery/BAT0/state [if on AC mode]
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            unknown
-remaining capacity:      4456 mAh
-present voltage:         16649 mV
-luca-HSB4nKSusd8@public.gmane.org:~$ cat /proc/acpi/battery/BAT0/state [if on battery mode]
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            1320 mA
-remaining capacity:      4455 mAh
-present voltage:         16406 mV
-luca-HSB4nKSusd8@public.gmane.org:~$
-=====
+						Bryan
 
-IMHO someone should send this hacked DSDT to ASUS in order to have a new BIOS
-version which doesn't need an hacked DSDT, am I right? Could this be useful?
+sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org said:
+> On Mon, 2004-03-01 at 17:08, Bryan K. Wright wrote:
+> 	Here are the configuration details:
+> Kernel 2.4.21 (vanilla) with the acpi-20030619-2.4.21.diff patch.
+> Sharp PC-AV18 laptop (KN266, Athlon XP-M 1800+)
+> Tested with two different models of Epson scanner, and with two
+> different
+> brands of external USB disks.
+> =
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+> 	Has anybody else seen similar symptoms?
 
-iD8DBQFARzlZVAp7Xm10JmkRAqyEAJ9G4G3Yv83nHaGoqmTSa9RQW0t+uACgjexW
-oIriGQXghKzcdpHEAfDgxGk=
-=0n5Z
------END PGP SIGNATURE-----
+> yes we had this symptoms when we work with that kernel(2.4.21) after 4
+> release 2.4.25 I don't remember any complain. Please upgrade you
+> kernel to last one, and test it again . =
+
+
+
+-- =
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+Bryan Wright                |"If you take cranberries and stew them like =
+
+Physics Department          | applesauce, they taste much more like prune=
+s =
+
+University of Virginia      | than rhubarb does."  --  Groucho =
+
+Charlottesville, VA  22901  |			=
+
+(434) 924-7218              |         bryan-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D
+
+
 
 
 -------------------------------------------------------
