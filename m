@@ -1,11 +1,13 @@
-From: Prarit Bhargava <prarit-sJ/iWh9BUns@public.gmane.org>
-Subject: [PATCH]: Error in ACPI error handling results in WARN_ON in IDE
-Date: Thu, 20 Jan 2005 08:58:07 -0500
-Message-ID: <41EFB8EF.7010207@sgi.com>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: Machine no longer enters C3 on 2.6.11-rc1-bk
+Date: Thu, 20 Jan 2005 09:25:15 -0500
+Message-ID: <41EFBF4B.80206@bartol.udel.edu>
+References: <20050120104033.GA25889@elf.ucw.cz> <16879.36609.94551.926755@aber.ac.uk> <20050120105911.GF1452@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060208080905090606020303"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050120105911.GF1452-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,49 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060208080905090606020303
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Pavel Machek wrote:
+> Hi!
+> 
+> 
+>> > bus master activity: is changing all the time, mostly 555555555 and
+>> > aaaaaaa, and cpu refuses to enter C3 for obvious reasons. I compiled
+>> > out USB and sound... Does anybody else see the same problem?
+>> > 
+>>
+>>I did notice too that it was never in C3 apart from a bit right at the
+>>beginning, since 2.6.10.  It has always been like that up to 2.6.6, became
+>>better from 2.6.7 (but had other problems with that).
+> 
+> 
+> Good, so I'm not alone.
+> 
 
-Hello,
+I see the same thing. Furthermore, my CPU never appears to enter C1 
+either (except at the beginning). Is this aspect of the behaviour normal?
 
-I found a bug in the error handling in ACPI.
+By the way, the bus master activity always appears as ffffffff.
 
-The issue here is the error handling within the ACPI layer.  gsi = 0 is a
-valid return value from acpi_pci_irq_lookup, while gsi = (-1) is the value
-returned when a PRT cannot be found.
+cheers,
 
-
-
---------------060208080905090606020303
-Content-Type: text/plain;
- name="1-acpi-ide.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="1-acpi-ide.patch"
-
-===== drivers/acpi/pci_irq.c 1.35 vs edited =====
---- 1.35/drivers/acpi/pci_irq.c	2005-01-04 21:48:17 -05:00
-+++ edited/drivers/acpi/pci_irq.c	2005-01-14 08:14:34 -05:00
-@@ -487,10 +487,10 @@
- 	 * If no PRT entry was found, we'll try to derive an IRQ from the
- 	 * device's parent bridge.
- 	 */
--	if (!gsi)
-+	if (gsi == -1)
-  		gsi = acpi_pci_irq_derive(dev, pin,
- 					  &edge_level, &active_high_low);
--	if (!gsi)
-+	if (gsi == -1)
- 		return_VOID;
- 
- 	/*
-
---------------060208080905090606020303--
+Rich
 
 
 -------------------------------------------------------
