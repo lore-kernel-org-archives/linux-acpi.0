@@ -1,45 +1,60 @@
-From: Norbert Preining <preining@logic.at>
-Subject: Re: b44 driver suspend/resume (was Re: [ACPI] Re: Re: various problems with Acer TM654, suspend, ACAD, radeon)
-Date: Wed, 25 Aug 2004 16:54:53 +0200
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <20040825145453.GC17522@gamma.logic.tuwien.ac.at>
-References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <20040823070534.GD24853@message-id.gmane0305.slipkontur.de> <20040823103515.GH8635@gamma.logic.tuwien.ac.at> <20040824233153.GA15474@message-id.gmane0305.slipkontur.de> <20040825131109.GD6119@gamma.logic.tuwien.ac.at> <412C9980.803@optonline.net> <412CA0F5.4@optonline.net> <20040825144038.GA17522@gamma.logic.tuwien.ac.at> <412CA7DE.8050706@optonline.net>
+From: Mirko Werneke <mirko.werneke-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Acer TM 661 does not wake up from STR
+Date: Wed, 25 Aug 2004 16:51:37 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <412CA779.8000602@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-net-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <412CA7DE.8050706@optonline.net>
-To: Nathan Bryant <nbryant@optonline.net>
-Cc: Stefan Seyfried <seife@gmane0305.slipkontur.de>, acpi-devel@lists.sourceforge.net, linux-net@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mit, 25 Aug 2004, Nathan Bryant wrote:
-> >It worked!!!! Yes, no problems. Booting with acpi=3Dnoirq and loadin=
-g the
-> >b44 module let it find irq 5 and it is working. I am writing this em=
-ail
-> >from after a resume, even X worked out of the box.
->=20
-> Back to the drawing board. :( That means there's still something wron=
-g=20
-> with pci_link.c
+Hi list!
 
-SOme more information: I successfully completed a suspend/resume cycle
-even with b44 loaded! Not even my ssh connection broke down!
+I'm using kernel 2.6.8.1 with ACPI 20040715
 
-Best wishes
+I've a really big problem with my Acer Travelmate 661 laptop: Once 
+suspended to ram, it won't wake up again! The laptop seems to suspend 
+corretly (no error messages while suspending; Power LED switches from 
+green to orange). But after a key press to wake it up the only reaction 
+the laptop shows is switching the power led to green again. Nothing more 
+happens. I've to press the power button for 4 seconds to switch the 
+laptop completely off. After that i can reboot normally.
 
-Norbert
+Besides from playing around withh several parameters ("noapic", 
+"pci=routeirq", "acpi_sleep=s3_bios"/"s3_mode") i tried with help from 
+Stefan Dösinger the following:
 
------------------------------------------------------------------------=
---------
-Norbert Preining <preining AT logic DOT at>         Technische Universi=
-t=E4t Wien
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-HIGH OFFLEY (n.)
-Gossnargh (q.v.) three weeks later.
-			--- Douglas Adams, The Meaning of Liff
+I compiled a minimal kernel (without usb/wlan drivers, etc.) with a 
+little patch in wakeup.S.
+I inserted after .code16 the line "lcall $0xffff,$0". This should - 
+according to Stefan - immediatly call the BIOS reset code after the 
+kernel gets control back from BIOS. But the situation did not change (no 
+"automatic" reboot after resume). So we came to the conclusion, that the 
+kernel does not get the control back when the system wakes up.
+So i think that there is a problem with the BIOS or the kernel does 
+something wrong while suspending.
+
+Any ideas how i can get a sign of life after waking up the laptop or 
+continiue debug the problem?
+
+Let me know if you need more information.
+
+Regards
+Mirko Werneke
+
+
+-------------------------------------------------------
+SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
+100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
+Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
+http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
