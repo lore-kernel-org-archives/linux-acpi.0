@@ -1,10 +1,11 @@
-From: deti-Wi7PzZIGgn2zQB+pC5nmwQ@public.gmane.org
-Subject: (no subject)
-Date: Fri, 30 Jan 2004 10:41:36 +0530
+From: nats-admin-8uBDSsDFLsHWsZ/bQMPhNw@public.gmane.org
+Subject: You acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org are not member (nats ML)
+Date: Sun, 1 Feb 2004 01:12:49 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1AmptR-0007by-00@deer.gmane.org>
+Message-ID: <200402010112.FMLAAB42189.nats@nats-project.org>
+References: <20040131161248.410C73A30A@nereid.bugest.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; 	boundary="----=_NextPart_000_0011_17E14DB0.1ACEC323"
+Content-Type: text/plain; charset=iso-2022-jp
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +18,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+あなたはこのメーリングリスト <nats-Qiq6VvPy93qsTnJN9+BGXg@public.gmane.org> のメンバーではありません。
 
+メーリングリストについての一般的な案内はメールの本文に
 
-------=_NextPart_000_0011_17E14DB0.1ACEC323
-Content-Type: text/plain; 	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+	guide
 
+と書いたメールを
 
+	nats-ctl-Qiq6VvPy93qsTnJN9+BGXg@public.gmane.org
 
+宛に送ると送られてきます。
 
-
-
-------=_NextPart_000_0011_17E14DB0.1ACEC323
-Content-Type: text/plain;
-	name="InterScan_SafeStamp.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="InterScan_SafeStamp.txt"
-
-****** Message from InterScan E-Mail VirusWall NT ******
-
-** WARNING! Attached file readme.zip contains:
-
-     WORM_MIMAIL.R virus in compressed file readme.pif
-
-   Attempted to clean the file but it is not cleanable.
-   It has been deleted.
-
-This mail contains virus
-*****************     End of message     ***************
-
-
-------=_NextPart_000_0011_17E14DB0.1ACEC323--
+---
+NATS Page : http://www.nats-project.org/
 
 
 
