@@ -1,20 +1,14 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: Re: ACPI status in 2.4 tree
-Date: Thu, 20 Nov 2003 16:43:16 +0100
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: All 2.4.22 patches after 09-16 broken?
+Date: Thu, 20 Nov 2003 16:32:00 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031120164316.69c9ed36.subscript@free.fr>
-References: <20031119135203.373043b0.subscript@free.fr>
-	<20031119142918.GF32464@poupinou.org>
-	<3FBB8840.1090306@pca.it>
-	<20031119164638.628287da.subscript@free.fr>
-	<20031119170515.GY30485@parcelfarce.linux.theplanet.co.uk>
-	<20031119193105.02361704.subscript@free.fr>
-	<20031120151828.GJ32464@poupinou.org>
+Message-ID: <20031120163200.GK30485@parcelfarce.linux.theplanet.co.uk>
+References: <Pine.LNX.4.44.0311200838380.17057-100000@v8.miniserver.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031120151828.GJ32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0311200838380.17057-100000-tZ8E+9KPiprzJgz6305IAw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -23,52 +17,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Ducrot Bruno,
-
-
-On Thu, 20 Nov 2003 16:18:28 +0100 Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-
-> On Wed, Nov 19, 2003 at 07:31:05PM +0100, wwp wrote:
-> > Hi Matthew Wilcox,
-> > 
-> > On Wed, 19 Nov 2003 17:05:15 +0000 Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> wrote:
-> > 
-> > > On Wed, Nov 19, 2003 at 04:46:38PM +0100, wwp wrote:
-> > > > How funny that people cannot say "yes" or "no" and prefer sending
-> > > > unclear answers :-\.
-> > > 
-> > > They're showing you how to find out for yourself.  You should be
-> > > grateful.
-> > 
-> > Hum maybe I wasn't clear in my words (sorry English is not my natural
-> > language). I meant that I use to look at the download site and the kernel
-> > changelog to find the latest ACPI code.
-> > 
-> > My question was not "where to find ACPI patches for kernel X or Y?". I was just
-> > wondering in *usually* kernel pre-releases and release candidates were waiting
-> > for latest acpi to be merged or if acpi development were not sync'ed but for
-> > stable releases. And if more precisely, the ACPI merging shown in rc2's
-> > changelogs mean that all the latest ACPI changes were merged to the kernel
-> > source (IOW: is is necessary to apply patches over 2.4.23-rc2 to get the
-> > latest ACPI stuff).
+On Thu, Nov 20, 2003 at 08:53:16AM +0100, Marcel Meckel wrote:
+> I patched vanilla 2.4.22 kernel with acpi-20031002-2.4.22.diff, ran 
+> make xconfig. In menu "character devices" i see option
+> "/dev/agpgart (AGP Support)" twice, one as bool one as tristate option. 
+> Without changing an option (and without .config of course) i get this 
+> error after pressing "Save and Exit" Button:
 > 
-> Sorry for my unclear answer.  RC mean somehow code freeze, so there
-> is good luck that you will have only acpi fix merged.
-> To know what is really integrated in mainstream, you have to take a look
-> for the log.  That apply also for other kernel projects as well.
+> Error in Tcl Script
+> Error: can't read "CONFIG_SCSI": no such variable
 > 
-> I hope I am a little bit more clear now.
+> ERROR - Attempting to write value for unconfigured variable 
+> (CONFIG_PARPORT_PC_CML1).
 
-You are. Thanx for the extra (verbose) clarification :-).
+Maybe the tk program is having trouble parsing this:
 
++  else if [ "$CONFIG_SMP" = "y" ]; then
 
-Regards,
+Can you try changing that line in drivers/acpi/Config.in by putting a
+new line between the `else' and the `if'?  ie make it look like:
+  else
+    if [ "$CONFIG_SMP" = "y" ]; then
 
 -- 
-wwp
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
