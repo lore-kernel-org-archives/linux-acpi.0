@@ -1,14 +1,13 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Sneaking patches in (was Re: System hang when trying to
- enter sleep/standby state)
-Date: Sun, 16 Feb 2003 17:57:58 -0600 (CST)
+From: Luming <m_i_c_y_u-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: HP-Compaq laptops and Linux ACPI (was RE: redhat comment about intel not taking patches?)
+Date: Sun, 16 Feb 2003 18:07:32 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33.0302161742160.1039-100000@localhost.localdomain>
-References: <20030217150005.GA6429@zaurus.ucw.cz>
+Message-ID: <20030217020732.72828.qmail@web12403.mail.yahoo.com>
+References: <1045214222.14935.125.camel@carwash.duncangibb.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030217150005.GA6429-VNkyu7EogrqGmfs5Z0+9fw@public.gmane.org>
+In-Reply-To: <1045214222.14935.125.camel-h9eRTumTmmZjMu4AB9qoK9F8XQ1HzYRO@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,49 +16,66 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Duncan Gibb <duncangibb-zbhw9Kw21rH/AQmYMRTMl1aTQe2KTcn/@public.gmane.org>
+Cc: "Cagle, John   (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-> Are we playing patch wars or what?
+--- Duncan Gibb <duncangibb-zbhw9Kw21rH/AQmYMRTMl1aTQe2KTcn/@public.gmane.org>
+wrote:
+> On Fri, 2003-02-14 at 02:30, Luming wrote:
+> 
+> L> Does HP notebooks (your Evo N800c) support ACPI
+> well
+> L> when running Windows?
+> 
+> I presume so, but I don't know for certain as the
+> pre-installed WinXP
+> was overwritten with Red Hat without ever getting
+> the opportunity to
+> boot.
+> 
+> 
+> L> If so, linux should do it like windiows, despite
+> those boxes
+> L> does not comply with the ACPI spec. Am I right?
+> 
+> No.  What would be the point of having an open
+> specification if
+> manufacturers ignored it and left everyone playing
+> blind catch-up with
+> the embrace-bend-and-extend gang?  Some might see
+> that scenario as a
+> flagrant abuse of monopoly by Redmond...
+> 
+Our goal is to enable ACPI on every system. To achieve
+this goal, we have to resort to defact standard. 
+> 
+> Duncan
+> 
+> 
+> 
+>
+-------------------------------------------------------
+> This SF.NET email is sponsored by: FREE  SSL Guide
+> from Thawte
+> are you planning your Web Server Security? Click
+> here to get a FREE
+> Thawte SSL guide and find the answers to all your 
+> SSL security issues.
+>
+http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0026en
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-Not at all. The changes were discussed and sent to Andy, who had me 
-forward them to Linus. The issue in question - disallowing the user from 
-entering S5 directly from /proc/acpi/sleep was discussed on the list, and 
-Andy agreed that it should be removed. 
 
-> I have not seen any patch on the lists, *and*
-> you also moved big blocks of code to hide your
-> changes. That's pretty nasty behaviour.
-
-That's not true. The patch to make that change is here: 
-
-http://marc.theaimsgroup.com/?l=acpi4linux&m=104508487609853&w=2
-
-And the accusation about moving large blocks of code to cover it up is 
-completely unfair. It's not a conspiracy. 
-
-It was also explained, along with every other change in the changelog
-entries. I know that you are opposed to using BitKeeper, so I recommend 
-that you subscribe to, or read, the bk-commits-head list, which has every 
-patch Linus commits, with diffstat output and full changelogs for each. 
-
-You can find info here: 
-
-http://vger.kernel.org/vger-lists.html
-
-and an archive here:
-
-http://marc.theaimsgroup.com/?l=bk-commits-head&r=1&w=2
-
-FYI, there is also a bk-commits-24 for 2.4 commits by Marcelo.
-
-	-pat
-
-
-
-
+__________________________________________________
+Do you Yahoo!?
+Yahoo! Shopping - Send Flowers for Valentine's Day
+http://shopping.yahoo.com
 
 
 -------------------------------------------------------
