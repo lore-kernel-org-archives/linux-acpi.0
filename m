@@ -1,12 +1,14 @@
-From: Vadim Zeitlin <vadim-oC9ebduGu/Fg9hUCZPvPmw@public.gmane.org>
-Subject: how to find what the given ACPI device corresponds to?
-Date: Tue, 12 Oct 2004 02:11:36 +0200 (Romance Daylight Time)
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: smartbattery support
+Date: Tue, 12 Oct 2004 09:03:32 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1CHAGG-0006HY-00@smtp.tt-solutions.com>
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305754B4711@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: INLINE
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,36 +17,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- Hello,
+In this case, the EC based SMBus host isn't EC. Actually it's a child of
+EC. You must use its HID (ACPI0001) to find it. I suggest you write a
+new driver for the SMBus host.
 
- continuing my attempts to make ACPI suspend work on HP nw8000, I've
-noticed the following:
+Thanks,
+Shaohua
 
-% cat /proc/acpi/wakeup
-Device  Sleep state     Status
-C057       5            disabled
-
-It looks strange that neither sleep button (C13A, although it doesn't seem
-to generate ACPI events anyhow) nor lid switch (C139, does generate events)
-nor power button (PWRF, also generates events) appears in this file. Could
-someone please tell me:
-
-1. if this is normal?
-2. how can I find what the device C057 corresponds to?
-
-I'm starting to think that maybe the system is simply not configured to be
-waken up at all, is it plausible?
-
- Note that I can enable C057 (whatever it is) by doing "echo C057 > wakeup"
-but doing "echo PWRF" or C13A or C139 do not work, i.e. they don't appear
-in the file no matter what I do.
-
- Thanks in advance for any enlightment!
-VZ
-
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Pedro Venda
+>Sent: Tuesday, October 12, 2004 5:26 AM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] smartbattery support
+>
+>Pedro Venda wrote:
+>>>> Device (SMBC)
+>>>>                    {
+>>>>                        Name (_HID, "ACPI0001")
+>>>>                        Name (_EC, 0x1820)
+>>>>                        Device (SBS0)
+>>>>                        {
+>>>>                            Name (_HID, "ACPI0002")
+>>>>                            Name (_SBS, 0x02)
+>>>>                        }
+>>>>                    }
+>
+>hi everyone,
+>
+>i can't get an acpi_handle for the ec host.
+>
+>i am writing code in bruno ducrot's i2c-ec-smbus driver and i'm trying
+>to detect the smbus address from the ACPI's ASL code above.
+>
+>i'm trying to acpi_get_handle(NULL,"_EC",ec->handle) but it fails
+>because of the parent=3DNULL (i think).
+>
+>i suspect i need to use the ec driver's device handler in the parent
+>paramenter of acpi_get_handle(). is that correct?
+>
+>or am i doing everything wrong?
+>
+>[]
+>
+>
+>-------------------------------------------------------
+>This SF.net email is sponsored by: IT Product Guide on
+ITManagersJournal
+>Use IT products in your business? Tell us what you think of them. Give
+us
+>Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out
+more
+>http://productguide.itmanagersjournal.com/guidepromo.tmpl
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
