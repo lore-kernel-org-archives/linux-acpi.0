@@ -1,63 +1,40 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: system slow since ~ 2.6.7
-Date: Wed, 24 Nov 2004 00:35:25 +0100 (CET)
-Message-ID: <Pine.LNX.4.60.0411240026360.6361@poirot.grange>
-References: <Pine.LNX.4.60.0411180115490.941@poirot.grange>
- <1101186291.20008.247.camel@d845pe>
+From: Oscar Pernas <pernas-fdvnYtO25ZEdrSGeuO01YvU/3Eu2kcEP@public.gmane.org>
+Subject: Samsung X05 it's driving me crazy!
+Date: Wed, 24 Nov 2004 02:01:20 +0100
+Message-ID: <200411240201.20204.pernas@acm.escet.urjc.es>
+References: <3ACA40606221794F80A5670F0AF15F8403BD5853@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261650AbUKWXlm@vger.kernel.org>
-In-Reply-To: <1101186291.20008.247.camel@d845pe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8403BD5853@pdsmsx403>
+Content-Disposition: inline
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks for the reply
 
-On Tue, 23 Nov 2004, Len Brown wrote:
 
-> On Wed, 2004-11-17 at 19:25, Guennadi Liakhovetski wrote:
-> > "Slow" means just running top alone in a vt it takes 1.6% CPU. Under
-> > 2.6.3 it takes 0.2% (Duron 900MHz). Another peculiarity with 2.6.7 and
-> > 2.6.9 is that the power LED is blinking with about 1Hz frequency. It's
-> > an ASUS A7VI-VM motherboard. In the manual there's nothing about
-> > error-codes. I played with various APIC settings - no change. Related
-> > or not - if running with LAPIC enabled (2.6.7), I get quite a few ERR
-> > in /proc/interrupts.
-> 
-> PCI: Disabling Via external APIC routing
-> 
-> Curiously, this line appears in 2.6.3, but not in 2.6.7 or 2.6.9 dmesg
-> -- even though all the configs build in IOAPIC support.
+Hello!!! 
 
-Well, I think, there's just a local APIC on the system, and that is 
-disabled in BIOS (there's no way to enable it). 2.6.3 disables VIA 
-external APIC routing, as you noticed, whereas 2.6.7 sais 
+ I have Samsung X05 and i cant view the status of battery. Could anyone give 
+me a link or document to configure acpi in debian?? If someone have this 
+notebook please answer me.
 
-Local APIC disabled by BIOS -- reenabling.
-Found and enabled local APIC!
+ 
 
-2.6.9 respects BIOS decision (I think, there was a thread on LKML on 
-this?):
 
-No local APIC present or hardware disabled
-
-> Can you forward the /proc/interrupts from 2.6.3, and from 2.6.9 with and
-> without acpi=off?  do you see a significant change in /proc/interrupts
-> before and after the sensor-provoked slowness starts?
-> 
-> if you build 2.6.9 w/o the CONFIG_ACPI_PROCESSOR and boot w/o cmdline
-> params, do you still see slowness?
-> 
-> if you boot 2.6.9 with these parameters, do you see any additional dmesg
-> lines?
-> 
-> acpi_dbg_level=0xF acpi_dbg_layer=0xFFFF3FFF
-
-I'll try to do all this tomorrow and report results.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now. 
+http://productguide.itmanagersjournal.com/
