@@ -1,12 +1,13 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Samsung P35, S3, black screen (radeon)
-Date: Thu, 03 Feb 2005 13:23:55 +0100
-Message-ID: <420217DB.709@gmx.net>
-References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net> <e796392205020221387d4d8562@mail.gmail.com>
+From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Subject: Re: Averatec laptop- acpi_power_off hang
+Date: Thu, 3 Feb 2005 15:23:14 +0100 (CET)
+Message-ID: <Pine.LNX.4.60.0502031522440.4161@frog.athome>
+References: <20050202214755.M81868@stickist.com>
+Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <e796392205020221387d4d8562-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050202214755.M81868-HptHbbG/L9RWk0Htik3J/w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,53 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Nikolaus Filus <nfilus-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: JP Mercury <swirlee-HptHbbG/L9RWk0Htik3J/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Schweizer schrieb:
-> On Thu, 03 Feb 2005 02:46:03 +0100, Carl-Daniel Hailfinger
-> <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org> wrote:
-> 
->>Please try latest 2.6.11-rc2-bkX and NO additional patches. Make sure you
->>don't compile in radeonfb or atyfb. Vesafb doesn't matter. Xorg version
->>is irrelevant.
->>Kernel commandline should contain
->>video=vesa:off
->>and no other video parameters.
-> 
-> Are you able to use framebuffer(radeonfb,1024x768) with this
-> configuration or do you need to use plain vga-console for it to work?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-No.
-For a working framebuffer console you would have to perform the steps
-my script does *before* the kernel tries to access the framebuffer
-console after resume. Since this is not yet possible, you're out of
-luck. If
-- the vbestate utility was a kernel module or
-- the kernel could be told not to access the framebuffer after resume
-you could make it work.
+Salut Jan,
+On Wed, 2 Feb 2005, JP Mercury wrote:
+> Now I'd like to tackle the stubborn problem of powering off. Linux shuts down
+> but after acpi_power_off is called, it hangs. I tried the noapic, nolapic
+> kernel options as suggested for some other laptops- no go. Now I'm wondering,
+> could this be another DSDT problem?
+did you also try it without RTC? There was something with the
+realtimeclock that might prevent a power-off, if I remeber correctly.
 
-The first solution seems to be easier for me because acpi_sleep=s3_bios
-already tries to boot the card (and crashes), so fixing it would at
-least give you a lockup-free resume with framebuffer console. And
-there ist the ACPI video module which may also help there (haven't
-checked yet).
+Cheers
+   hartwig felger
 
-To sum it up: What happens if you access graphics functions?
-- after resume: black screen, lockup
-- after resume and POST: black screen
-- after resume, POST and vbestate restore: everything OK
+Hartwig Felger informatics
 
-On a side note: Is it possible to set the acpi_sleep variable through
-sysfs or procfs? Since the variable is only needed on resume, having
-some userspace utility set it if there is a radeon card in the machine
-would make it easier for distros to do the right thing (tm).
+- -- 
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+iD8DBQFCAjPe9bBoTzOf1pMRAj4fAKDsTZUsR23QGYm0Dy4oEgVRKcQmrgCg1zEC
+MWJKF4brLvOWSKc6IyIksxI=
+=SeRa
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
