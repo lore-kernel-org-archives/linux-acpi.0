@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: thermal zone causing insta-reboot on bootup of 2.6.3
-Date: 11 Mar 2004 02:01:43 -0500
+Subject: Re: boot hanging
+Date: 11 Mar 2004 02:05:19 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078988500.2554.89.camel@dhcppc4>
-References: <002c01c40701$11116190$7ce9fea9@SHERKA>
+Message-ID: <1078988718.2557.91.camel@dhcppc4>
+References: <1078970905.4761.6.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <002c01c40701$11116190$7ce9fea9-UdiLdEXzXlE@public.gmane.org>
+In-Reply-To: <1078970905.4761.6.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,40 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Ois=EDn?= Mac =?ISO-8859-1?Q?Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+To: Wesley T Allen <wezlo-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-if you delete the thermal module, this failure will go away
-(and so will our ability to debug it;-)
+pci=noacpi helps?
 
-perhaps you can file a bug at bugzilla.kernel.org
-category: ACPI
-component: Power-Thermal
-
-and attach the output from dmesg -s40000 with thermal installed.
-
-clearly we're getting a bogus temperature reading.
+if so, it is an ACPI interrupt configuration bug (which you're
+encouraged to file on bugzilla.kernel.org;-)
 
 thanks,
 -Len
 
-On Wed, 2004-03-10 at 19:37, Ois=EDn Mac Fheara=ED wrote:
-> After installing the 2.6.3 kernel on Mandrake 9.2 on an Acer Aspire
-> 1705SMi laptop, my machine repeatedly prints "Critical temperature
-> reached (255 C), shutting down." and reboots.
-> Installing the 20040220 patch to it seems to have made no difference
-> (and added no options that I could see to "make menuconfig" - in fact
-> it removed the options for relaxed something under the ACPI options
-> page, which wasn't doing anything anyway)...
-> =20
-> Can anyone advise? I'm quite inexperienced with linux, so I might be
-> doing something stupid (also, I'm having trouble finding which boot
-> messages are kept in which logfiles...).
-> I'm too scared by the "might damage your CPU" message to remove
-> thermal zone from the kernel ACPI settings.
-> =20
-> Ois=EDn
+On Wed, 2004-03-10 at 21:08, Wesley T Allen wrote:
+> Hi,
+> 	Sorry if this is the wrong place to ask this question; if I'm off-base
+> could someone point me in the right direction?
+> 
+> 	I have an hp pavilion laptop (an n5000 series, build-to-order) and have
+> had problems with acpi under linux.  in the 2.4.x series the system
+> would hang with an error "keventd not started" every now and again.  I
+> would let it sit for a couple of seconds (making sure the hd had spun
+> down), and then I'd reboot.  Sometimes I would have to do this a couple
+> of times, but it was no big deal.
+> 	I compiled 2.6.0 on my own when it came out (because the acpi support
+> was better), and I could NEVER get it to boot.  So I gave up for a
+> while, until I got Mandrake 10.0 community installed on my laptop.  The
+> kernel is 2.6.3 and I just can't get the thing to boot with acpi enabled
+> at all (well, once in about 50 attempts I think).  This is a bit of a
+> bummer, considering that I can't get usb devices to work with my laptop
+> w/o acpi enabled!  Does anyone have a workaround?  And what other
+> information would be helpful in troubleshooting?
+> 
+> Thanks gang,  one of the things I love about OSS is that the developers
+> are people you can talk to, and I end up learning how to help the
+> development process AND other users.
+> 
+> Wes
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 
