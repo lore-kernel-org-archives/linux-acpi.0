@@ -1,14 +1,14 @@
-From: "Black, Richard (Hou)" <Richard.Black-VXdhtT5mjnY@public.gmane.org>
-Subject: RE: Problems with battery info
-Date: Fri, 30 Aug 2002 10:35:32 -0500
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Problems with battery info
+Date: Fri, 30 Aug 2002 19:41:53 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D8C1802AADD0D346BE5C0A1D117075CC0327D1B8@cceexc17.americas.cpqcorp.net>
+Message-ID: <20020830174153.GA14014@poup.poupinou.org>
+References: <E17jSOa-0000F3-00@incognito>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <E17jSOa-0000F3-00-MNhIyYEChGthl2p70BpVqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,115 +17,108 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Luis Miguel Pires Neves <lneves-3+EeCmRbAIo+BYJ/izffpQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-My battery status on 2.4.18 with 20020725 used to show 100% full.
-Now with 2.4.19 20020821 I get 97% full.  I can't seem to make it to =
-100%.
-
-I guess next I need to check the values that Luis mentions concerning =
-total capacity...
-
-Sincerely,
-Richard Black
-http://www.cpqlinux.com
-http://www.geocities.com/rlcomp_1999
-http://www.compaq.com/linux
-
-
------Original Message-----
-From: Luis Miguel Pires Neves [mailto:lneves-3+EeCmRbAIo+BYJ/izffpQ@public.gmane.org]
-Sent: Monday, August 26, 2002 5:32 PM
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Problems with battery info
-
-
-Hi everybody,
-
-It is not the first time I post this subject but until now I got no =
-answer,=20
-perhaps because I included it in the middle of others.
-
-I'm still using the 20020403 acpi patch on top of 2.4.18 because with =
-recent=20
-versions I don't get a correct battery info (it says that the battery is =
-NiMH=20
-of 4500 mWh instead of the 3200 mWh my LiIon battery really has, causing =
-a=20
-wrong battery level information trough WMACPI).=20
-
-This behaviour used to happen with the acpi code before february, but =
-then I=20
-used to change a constant value in ectransx.c (a timeout if I remember) =
-from=20
-100 to 500 (us ???) to solve it. With the acpi code between February and =
-
-April this wasn't necessary anymore.
-
-I must admit I've not tried all versions from April till now, but I =
-tried=20
-several, 20020716 as the last one, and the problem reappeared, and I =
-don't=20
-know what I can do to overcome it.
-
-In dmesg I found the following messages:
-
-[ACPI Debug] String: =3D=3D=3D=3D=3D=3D=3D=3D=3D BAT1 UPBI =
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
-dsmthdat-0433 [22] Ds_method_data_get_val: Uninitialized Local[3] at =
-node=20
-c7b6b54c
-dsmthdat-0433 [22] Ds_method_data_get_val: Uninitialized Local[3] at =
-node=20
-c7b6b54c
-
-My laptop is a COMPAQ Presario 12XL515 (1200 series) and as it is known, =
-I=20
-have to override the DSDT in order to have battery status and info. I =
-patched=20
-the DSDT following some instructions from Paul Diefenbaugh, but probably =
-I=20
-let some bugs untouched. I don't know if any of these can cause =
-problems.
-
-My original dsdt disassembled with AD.EXE from PHOENIX, my patched dsdt=20
-(dsdt_n.asl) and dmesg after booting kernel 2.4.18 + acpi-20020726 +=20
-swsusp-beta11 are on :
-
-http://www.estg.iplei.pt/~lneves/files-cpq12xl515.tgz
-
-Another persistent problem is the absence of events. My machine probably =
-has=20
-the firmware bugs Juliuzs pointed out. I tried the kacpid patch some =
-time ago=20
-but it conflicted with swsusp. With a more recent version which was =
-supposed=20
-to cooperate with swsusp I get a defunct kacpid task. This is not so=20
-important to me as the battery info, but of course it limits the =
-usefulness=20
-of ACPI.
-
-I would appreciate any help to overcome these problems. A second =
-analysis on=20
-my DSDT would be helpful.
-
-Best regards and keep up the good work.
-
-Lu=EDs Neves
+On Mon, Aug 26, 2002 at 11:31:39PM +0100, Luis Miguel Pires Neves wrote:
+> Hi everybody,
+> 
+> It is not the first time I post this subject but until now I got no answer, 
+> perhaps because I included it in the middle of others.
+> 
+> I'm still using the 20020403 acpi patch on top of 2.4.18 because with recent 
+> versions I don't get a correct battery info (it says that the battery is NiMH 
+> of 4500 mWh instead of the 3200 mWh my LiIon battery really has, causing a 
+> wrong battery level information trough WMACPI). 
+> 
+> This behaviour used to happen with the acpi code before february, but then I 
+> used to change a constant value in ectransx.c (a timeout if I remember) from 
+> 100 to 500 (us ???) to solve it. With the acpi code between February and 
+> April this wasn't necessary anymore.
+> 
+> I must admit I've not tried all versions from April till now, but I tried 
+> several, 20020716 as the last one, and the problem reappeared, and I don't 
+> know what I can do to overcome it.
+> 
+> In dmesg I found the following messages:
+> 
+> [ACPI Debug] String: ========= BAT1 UPBI =========
+> dsmthdat-0433 [22] Ds_method_data_get_val: Uninitialized Local[3] at node 
+> c7b6b54c
+> dsmthdat-0433 [22] Ds_method_data_get_val: Uninitialized Local[3] at node 
+> c7b6b54c
+> 
 
 
+The method implied is:
 
 
+            Method(UPBI,0,NotSerialized)
+            {
+                Store("========= BAT1 UPBI =========",Debug)
+                Store(Zero,Local0)
+                Store(0x0C,Local1)
+                Store(Buffer(0x0D){0x00,0x18,0x10,0x00,0x19,0x00,0x00,0x00,
+                        0x00,0x00,0x1C,0x22,0x00},Local2)
+                While(LGreater(Local1,0x0A))
+                {
+                    If(LNot(And(UBIF /* \_SB.BAT1.UBIF */,VTOB /* \_SB.VTOB */(Local1))))
+                    {
+                        GBFE /* \_SB.GBFE */(Local2,Local1,RefOf(Local3))
+                        If(Local3)
+                        {
+                            If(LNot(\_SB.PCI0.PIB.EC0.SMRD(0x0B,0x16,Local3,RefOf(Local4))))
+                            {
+                                GBFE /* \_SB.GBFE */(Local4,0x20,RefOf(Local5))
+                                PBFE /* \_SB.PBFE */(Local4,Local5,0x00)
+                                Store(Local4,Index(PBIF /* \_SB.BAT1.PBIF */,Local1))
+                                Or(UBIF /* \_SB.BAT1.UBIF */,VTOB /* \_SB.VTOB */(Local1),UBIF /* \_SB.BAT1
+.UBIF */)
+                                Store(Ones,Local0)
+                            }
+                        }
+                    }
+                    Decrement(Local1)
+                }
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+GBFE((Local2,Local1,RefOf(Local3))
+is called, but Local3 is not initialised.  Perhaps if you do something like:
+
+Store(Zero, Local3)
+
+before calling 'GBFE((Local2,Local1,RefOf(Local3))'
+it would work.  But I am not sure, anyway, if it is the proper way to go..
+
+Note also that there is also a GBFE(..., ..., RefOf(Local4)) and a
+GBFE(..., ..., RefOf(Local5))
+which can have the same trouble.
+
+
+So I think that you should try to make something like:
+
+            Method(UPBI,0,NotSerialized)
+            {
+                Store("========= BAT1 UPBI =========",Debug)
+                Store(Zero,Local0)
+                Store(0x0C,Local1)
+                Store(Zero,Local3)
+                Store(Zero,Local4)
+                Store(Zero,Local5)
+		...
+		...
+
+and you will see if it work.
+
+I suspect it is actually a bug in the current ACPI interpreter, but I must
+admit that I am not sure at 100%, though.
+
+Cheers
+
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
