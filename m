@@ -1,15 +1,12 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 20:43:14 +0000
-Message-ID: <1108500194.12031.21.camel@elrond.flymine.org>
-References: <20050214211105.GA12808@elf.ucw.cz>
-	 <1108482083.12031.10.camel@elrond.flymine.org>
-	 <42122054.8010408@colitti.com>  <200502151742.55362.s0348365@sms.ed.ac.uk>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] resend, early ACPI init
+Date: 15 Feb 2005 15:47:03 -0500
+Message-ID: <1108500423.2096.285.camel@d845pe>
+References: <1108497779.7373.24.camel@tdi>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200502151742.55362.s0348365-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>
+In-Reply-To: <1108497779.7373.24.camel@tdi>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,26 +16,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alistair John Strachan <s0348365-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>
-Cc: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-02-15 at 17:42 +0000, Alistair John Strachan wrote:
+Rather than add a CONFIG option to enable/disable ACPI extra early,
+could it be possible to simply enable ACPI earlier and leave it enabled
+on all platforms?
 
->                 Vendor: Hewlett-Packard
-> -               Version: 68BDD Ver. F.0F
-> -               Release Date: 07/23/2004
-> +               Version: 68BDD Ver. F.11
-> +               Release Date: 11/22/2004
+I'm really not excited about yet another CONFIG option -- we need fewer,
+not more.  And if earlier init is necessary on one machine, we may find
+over time that we need it on others too.
 
-Ok, so you both have different BIOS versions and different CPUs.
-Everything else looks pretty identical. Could you both
-stick /proc/acpi/dsdt up somewhere so I can check if there are any
-relevant looking differences?
+Indeed, in 2.6 we moved most of the init earlier into acpi_early_init(),
+but that wasn't as early as this, and didn't include the object_init,
+which apparently is what you're looking for.
 
-Thanks,
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+I'm also nervous about enabling/disabling ACPI mode and then enabling it
+again -- this could risk unforseen firmware interactions.
+
+thanks,
+-Len
+
 
 
 
