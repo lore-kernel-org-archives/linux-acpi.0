@@ -1,12 +1,14 @@
-From: "Li, Feng (GE Healthcare)" <Feng.Li-sCFLEkgZW7GbXiaaNHstOg@public.gmane.org>
-Subject: Could not deliver interrupts to the PCI board
-Date: Mon, 7 Mar 2005 10:50:01 +0800
-Message-ID: <D02325A0F0177A468FD385A98178C53E0C3DF60A@SHAMLVEM01.e2k.ad.ge.com>
+From: Timo Vuorela <timo.a.vuorela-A0cwMDoKKKE@public.gmane.org>
+Subject: Problems with Swsusp2
+Date: Mon, 7 Mar 2005 08:04:21 +0200
+Message-ID: <200503070804.21841.timo.a.vuorela@tut.fi>
+References: <422B75E2.nailMW11WULN@berlios.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
-content-class: urn:content-classes:message
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <422B75E2.nailMW11WULN-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,27 +21,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello guys,
-     I am trying to port our old pci drivers from Linux 2.4 kernel to =
-Linux 2.6 kernel.
-Now i am working in Linux 2.6.11. I found a strange problem , after i =
-installed the new driver(based on 2.6.11 kernel)
-into kernel, our pci device is recognized as IO-APIC-edge,  and no =
-interrupts can be catched by our driver.( The PCI device shuold be a=20
-IO-APIC-level type)
-     So we disabled the ACPI service and restart the computer again, =
-then the pci device can be recognized as
-IO-APIC-level, the driver works well! I think,there are maybe some =
-changes in 2.6.11 for ACPI sleep=20
-and hibernate that essentially puts ACPI in control of interrupts for =
-many devices.Should i  need to add ACPI=20
-declaration data to the driver ?
+Hi,
 
-Thanks very much!
-Li Feng
+I have succesfully been able to suspend but sometimes something goes terribly 
+wrong: when I boot my it runs some checks on my harddisk and doesn't boot, 
+says I have to run reiserfschk --rebuild-tree to correct errors. What I'm 
+doing wrong? Has it anything to do with booting sometimes with noresume2 
+option if I don't want to continue my resumed session?
 
-=20
+Thanks for help,
 
+-- 
+Timo Vuorela
+timo.a.vuorela-A0cwMDoKKKE@public.gmane.org
 
 
 -------------------------------------------------------
