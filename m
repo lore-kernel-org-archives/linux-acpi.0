@@ -1,12 +1,12 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: Samsung P35, S3, black screen (radeon))
-Date: Sat, 5 Feb 2005 10:35:50 +0100
-Message-ID: <20050205093550.GC1158@elf.ucw.cz>
-References: <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz> <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net> <1107485504.5727.35.camel@desktop.cunninghams> <9e4733910502032318460f2c0c@mail.gmail.com> <20050204074454.GB1086@elf.ucw.cz> <9e473391050204093837bc50d3@mail.gmail.com>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Sat, 5 Feb 2005 10:37:40 +0100
+Message-ID: <20050205093740.GD1158@elf.ucw.cz>
+References: <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz> <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net> <9e47339105020321031ccaabb@mail.gmail.com> <420367CF.7060206@gmx.net> <20050204163019.GC1290@elf.ucw.cz> <9e4733910502040931955f5a6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <9e473391050204093837bc50d3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <9e4733910502040931955f5a6-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +17,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > We already try to do that, but it hangs on 70% of machines. See
-> > Documentation/power/video.txt.
+> > I do not understand how initramfs fits into picture... Plus lot of
+> > people (me :-) do not use initramfs...
 > 
-> We know that all of these ROMs are run at power on so they have to
-> work. This implies that there must be something wrong with the
-> environment the ROM are being run in. Video ROMs make calls into the
-> INT vectors of the system BIOS. If these haven't been set up yet
-> running the VBIOS is sure to hang.  Has someone with ROM source and
-> the appropriate debugging tools tried to debug one of these hangs?
-> Alternatively code could be added to wakeup.S to try and set these up
-> or dump the ones that are there and see if they are sane.
+> The final fix for this will include the video reset app on initramfs.
+> I already have code in the kernel for telling the primary video card
+> from secondary ones. When the kernel is initially booting and finds
 
-Rumors say that notebooks no longer have video bios at C000h:0; rumors
-say that video BIOS on notebooks is simply integrated into main system
-BIOS. I personaly do not know if rumors are true, but PCs are ugly
-machines....
+Is initramfs preserved when system is running? I was under impression
+that it is freed when we mount real / fs.
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
