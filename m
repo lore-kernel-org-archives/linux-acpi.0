@@ -1,10 +1,10 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/5]add .match method for ACPI
-Date: Thu, 21 Oct 2004 10:59:57 +0800
+Subject: [PATCH 5/5]8250_pnp fix
+Date: Thu, 21 Oct 2004 11:00:08 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098327565.6132.224.camel@sli10-desk.sh.intel.com>
+Message-ID: <1098327571.6132.228.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-LV/L9tsIeDZuDVRM917v"
+Content-Type: multipart/mixed; boundary="=-VicswwPBdwvbN1Rvosxi"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,142 +19,50 @@ Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <a
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-LV/L9tsIeDZuDVRM917v
+--=-VicswwPBdwvbN1Rvosxi
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi,
-The idea of the patch is from Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>'s ACPI
-video extension patch. Since the video extension patch hasn't been
-merged and the ACPI PNP driver requires it, I attached it here.
+This is a small fix found when debugging the 8250 driver in IA64.
 
 Thanks,
 Shaohua
 
---- 2.6/drivers/acpi/scan.c.stg4	2004-10-18 16:49:57.926042680 +0800
-+++ 2.6/drivers/acpi/scan.c	2004-10-18 16:57:30.572230000 +0800
-@@ -161,7 +161,7 @@ acpi_bus_get_power_flags (
- 	return 0;
- }
- 
--static int
-+int
- acpi_match_ids (
- 	struct acpi_device	*device,
- 	char			*ids)
-@@ -314,6 +314,8 @@ acpi_bus_match (
- 	struct acpi_device	*device,
- 	struct acpi_driver	*driver)
- {
-+	if (driver && driver->ops.match)
-+		return driver->ops.match(device, driver);
- 	return acpi_match_ids(device, driver->ids);
- }
- 
-@@ -495,9 +497,6 @@ acpi_bus_find_driver (
- 
- 	ACPI_FUNCTION_TRACE("acpi_bus_find_driver");
- 
--	if (!device->flags.hardware_id && !device->flags.compatible_ids)
--		goto Done;
--
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node,next,&acpi_bus_drivers) {
- 		struct acpi_driver * driver = container_of(node,struct
-acpi_driver,node);
---- 2.6/include/acpi/acpi_bus.h.stg4	2004-10-18 16:50:31.522935176 +0800
-+++ 2.6/include/acpi/acpi_bus.h	2004-10-18 16:55:11.474376088 +0800
-@@ -104,6 +104,8 @@ typedef int (*acpi_op_suspend)	(struct a
- typedef int (*acpi_op_resume)	(struct acpi_device *device, int state);
- typedef int (*acpi_op_scan)	(struct acpi_device *device);
- typedef int (*acpi_op_bind)	(struct acpi_device *device);
-+typedef int (*acpi_op_match)	(struct acpi_device *device,
-+	struct acpi_driver *driver);
- 
- struct acpi_device_ops {
- 	acpi_op_add		add;
-@@ -115,6 +117,7 @@ struct acpi_device_ops {
- 	acpi_op_resume		resume;
- 	acpi_op_scan		scan;
- 	acpi_op_bind		bind;
-+	acpi_op_match		match;
- };
- 
- struct acpi_driver {
-@@ -322,6 +325,7 @@ int acpi_bus_receive_event (struct acpi_
- int acpi_bus_register_driver (struct acpi_driver *driver);
- int acpi_bus_unregister_driver (struct acpi_driver *driver);
- 
-+int acpi_match_ids (struct acpi_device	*device, char	*ids);
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
- 
+Signed-off-by: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+--- 2.6/drivers/serial/8250_pnp.c.stg4	2004-09-28 11:27:42.371840736
++0800
++++ 2.6/drivers/serial/8250_pnp.c	2004-09-28 11:28:14.036027048 +0800
+@@ -407,7 +407,7 @@ serial_pnp_probe(struct pnp_dev * dev, c
+ 	serial_req.irq = pnp_irq(dev,0);
+ 	serial_req.port = pnp_port_start(dev, 0);
+ 	if (HIGH_BITS_OFFSET)
+-		serial_req.port = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
++		serial_req.port_high = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
+ #ifdef SERIAL_DEBUG_PNP
+ 	printk("Setup PNP port: port %x, irq %d, type %d\n",
+ 	       serial_req.port, serial_req.irq, serial_req.io_type);
 
 
---=-LV/L9tsIeDZuDVRM917v
-Content-Disposition: attachment; filename=acpi_match.patch
-Content-Type: text/x-patch; name=acpi_match.patch; charset=UTF-8
+--=-VicswwPBdwvbN1Rvosxi
+Content-Disposition: attachment; filename=8250.patch
+Content-Type: text/x-patch; name=8250.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
---- 2.6/drivers/acpi/scan.c.stg4	2004-10-18 16:49:57.926042680 +0800
-+++ 2.6/drivers/acpi/scan.c	2004-10-18 16:57:30.572230000 +0800
-@@ -161,7 +161,7 @@ acpi_bus_get_power_flags (
- 	return 0;
- }
- 
--static int
-+int
- acpi_match_ids (
- 	struct acpi_device	*device,
- 	char			*ids)
-@@ -314,6 +314,8 @@ acpi_bus_match (
- 	struct acpi_device	*device,
- 	struct acpi_driver	*driver)
- {
-+	if (driver && driver->ops.match)
-+		return driver->ops.match(device, driver);
- 	return acpi_match_ids(device, driver->ids);
- }
- 
-@@ -495,9 +497,6 @@ acpi_bus_find_driver (
- 
- 	ACPI_FUNCTION_TRACE("acpi_bus_find_driver");
- 
--	if (!device->flags.hardware_id && !device->flags.compatible_ids)
--		goto Done;
--
- 	spin_lock(&acpi_device_lock);
- 	list_for_each_safe(node,next,&acpi_bus_drivers) {
- 		struct acpi_driver * driver = container_of(node,struct acpi_driver,node);
---- 2.6/include/acpi/acpi_bus.h.stg4	2004-10-18 16:50:31.522935176 +0800
-+++ 2.6/include/acpi/acpi_bus.h	2004-10-18 16:55:11.474376088 +0800
-@@ -104,6 +104,8 @@ typedef int (*acpi_op_suspend)	(struct a
- typedef int (*acpi_op_resume)	(struct acpi_device *device, int state);
- typedef int (*acpi_op_scan)	(struct acpi_device *device);
- typedef int (*acpi_op_bind)	(struct acpi_device *device);
-+typedef int (*acpi_op_match)	(struct acpi_device *device,
-+	struct acpi_driver *driver);
- 
- struct acpi_device_ops {
- 	acpi_op_add		add;
-@@ -115,6 +117,7 @@ struct acpi_device_ops {
- 	acpi_op_resume		resume;
- 	acpi_op_scan		scan;
- 	acpi_op_bind		bind;
-+	acpi_op_match		match;
- };
- 
- struct acpi_driver {
-@@ -322,6 +325,7 @@ int acpi_bus_receive_event (struct acpi_
- int acpi_bus_register_driver (struct acpi_driver *driver);
- int acpi_bus_unregister_driver (struct acpi_driver *driver);
- 
-+int acpi_match_ids (struct acpi_device	*device, char	*ids);
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
- 
+--- 2.6/drivers/serial/8250_pnp.c.stg4	2004-09-28 11:27:42.371840736 +0800
++++ 2.6/drivers/serial/8250_pnp.c	2004-09-28 11:28:14.036027048 +0800
+@@ -407,7 +407,7 @@ serial_pnp_probe(struct pnp_dev * dev, c
+ 	serial_req.irq = pnp_irq(dev,0);
+ 	serial_req.port = pnp_port_start(dev, 0);
+ 	if (HIGH_BITS_OFFSET)
+-		serial_req.port = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
++		serial_req.port_high = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
+ #ifdef SERIAL_DEBUG_PNP
+ 	printk("Setup PNP port: port %x, irq %d, type %d\n",
+ 	       serial_req.port, serial_req.irq, serial_req.io_type);
 
---=-LV/L9tsIeDZuDVRM917v--
+--=-VicswwPBdwvbN1Rvosxi--
 
 
 
