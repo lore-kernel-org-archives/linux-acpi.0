@@ -1,14 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RefOf() bug?
-Date: Tue, 30 Mar 2004 18:53:01 +0800
+From: "Solvency E. Incompatibly" <iwai-YDxpq3io04c@public.gmane.org>
+Subject: =?windows-1251?B?wujn4CDY5e3j5e0sIOfg4/Dg7S3v4PHv7vDy4CDMyMQgLy8g7/Dz5O7i?=
+ =?windows-1251?B?ICDoICDv8OXk7+738ujy5ev87e4g7+4g4eXw5ePg7CDh7uv8+Oj1IOgg?=
+Date: Tue, 30 Mar 2004 15:51:28 +0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB7AA@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <100001c4164d$e33bffb0$49a65410@aol.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/related;
+	boundary="----=_NextPart_000_0029_B8138F19.8F059BC2"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,75 +16,157 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ville Syrj?l? <syrjala-ORSVBvAovxo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
-> My HP OmniBook 6000 has some problems with the battery. The
-> first time the
-> battery gets detected (it doesn't matter if I boot with battery
-> disconnected or connected) things don't work. Then if I
-> disconnect and
-> reconnect the battery things start to work. But the next
-> disconnect/reconnect cycle fails again, the next after that
-> succeeds and
-> so on.
->=20
-> I've traced the problem to usage of RefOf() operator. Here's
-> a snippet of
-> the DSDT:
->=20
-> While (LGreater (Local1, 0x08))
-> {
->   If (LNot (And (UBIF, VTOB (Local1))))
->   {
->     GBFE (Local2, Local1, RefOf (Local3))
->     If (Local3)
->     {
->       If (LNot (\_SB.PCI0.ISA0.EC0.SMRD (0x0B, 0x16, Local3,
-> RefOf (Local4))))
->=20
->=20
-> ^^^^^^^^^^^^^
->       {
->         Store (\_SB.PCI0.ISA0.EC0.BCNT, Local5)
->         Store (Zero, Local3)
->         Store (Zero, ERRC)
->         While (LGreater (Local5, Local3))
->         {
->           GBFE (Local4, Local3, RefOf (Local6))
->=20
-> I've highlighted the offending RefOf(). On the first run of the outer
-> while loop SMRD() creates a buffer of size 4 and stores it
-> into Arg3. For
-> some reason that size never changes even though SMRD()
-> creates buffers
-> with size 5 and 6 on the following runs and when the buffer
-> is supposed
-> to be size 6 the following GBFE() tries to access beyond the
-> size 4 limit
-> and I get the error:
-> dsopcode-0526 [528] ds_init_buffer_field  : Field [TIDX] size
-> 40 exceeds Buffer [NULL] size 32 (
->=20
-> The data in the Local4 buffer changes as SMRD copies new
-> stuff to the new
-> buffer so it looks like the Store() to Arg3 only copies the buffer
-> contents up to the original buffer's size.
->=20
-> Why the battery works on every second reconnect is because the first
-> SMRD() call creates a buffer with size 6 on those occasions.
-> I have yet to
-> find out why. But that should not matter since it looks like
-> RefOf() is to
-> blame here.
->=20
-> I've only glanced at the ACPI spec so I'm not entirely sure
-> my diagnosis
-> is correct...
+------=_NextPart_000_0029_B8138F19.8F059BC2
+Content-Type: text/html;
+	charset=windows-1251
+Content-Transfer-Encoding: quoted-printable
 
-Please check your ACPI version.
---Luming
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4=2e0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3dContent-Type content=3d"text/html; charset=3dwindows-1=
+251">
+<META content=3d"MSHTML 6=2e00=2e2737=2e800" name=3dGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3d#ffffff>
+<DIV><FONT face=3dArial color=3d#800000 size=3d1><STRONG><FONT size=3d1><=
+IMG alt=3d""=20
+hspace=3d0 src=3d"cid:resuscitators=2egif" align=3dbaseline=20
+border=3d0></FONT></STRONG></FONT></DIV>
+<DIV><FONT face=3dArial size=3d1><FONT color=3d#ffff00=20
+size=3d1>=f1=e2=e8=eb=e5=e2=e0=f2=fb=e9  =ef=e5=ed=fc  =e5=e3=ee  =e1=fb=e2=
+=e0=e5=f2  =e2 =ee=ea=f0=f3=e6=ed=ee=f1=f2=e8  =e4=ee  </FONT></FONT></DI=
+V>
+<DIV><FONT face=3dArial size=3d1><FONT color=3d#ffff00=20
+size=3d1>=f3=e3=eb=f3  =f0=e5=ec=e5=ed=ed=ee=e3=ee =f2=f0=e5=f3=e3=ee=eb=fc=
+=ed=e8=ea=e0</FONT></FONT></DIV>
+<DIV><FONT face=3dArial size=3d1><FONT color=3d#ffff00=20
+size=3d1>=ed=e8=ea=ee=e3=e4=e0  =e2 =f1=f0=e5=e4=e8=ed=e5 =e3=f3=f1=f2=ee=
+=e3=ee  =e8 =e1=ee=eb=fc=f8=ee=e3=ee =eb=e5=f1=e0=2e </FONT></FONT></DIV>=
+
+<DIV><FONT face=3dArial size=3d1><FONT color=3d#ffff00=20
+size=3d1></FONT></FONT>&nbsp;</DIV>
+<DIV><FONT face=3dArial color=3d#800000 size=3d1><FONT size=3d1><FONT=20
+=
+
+color=3d#ffff00>=e3=ee=f0=ee=e4=f1=ea=e8=f5 =e6=e8=f2=e5=eb=e5=e9=2e</FON=
+T></DIV></FONT>
+<DIV><FONT face=3dArial size=3d2></FONT>&nbsp;</DIV></FONT>
+<DIV><FONT face=3dArial size=3d2></FONT>&nbsp;</DIV></BODY></HTML>
+
+
+------=_NextPart_000_0029_B8138F19.8F059BC2
+Content-Type: image/gif;
+	name="resuscitators.gif"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="resuscitators.gif"
+Content-ID: <resuscitators.gif>
+
+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
+0Ys7sxM9wZkMwiMMyXaMyYQ8xPC7yTY8tG3szEpb0idduXyMwzdpyjxbxsNcxFvszI58xP3M
+yXVMxMi200Us1McMk56MAUcNxhD/kNMaoMtK3UkW3AFM/dRUXdVWfdVYndVavdVc3dVe/dVg
+HdZiPdZkXdZmfdZondZqvdZs3dYTcgANANfqcQB0XdftINdxrQB1bdd4rdeS09cAANjkAdiC
+3Qh0HddyLdiELTp4XdjjsdjrcNgMINmF3dhEI9mB7dgLYNmBvdl+/dl7PdmYDdeYndmc3dl7
+ndiUHdoQkNp+Xdp6zdqePdmbPdqZPdudHdt9Ldumjduq3dh23dsSQNqendgPcNodM9qaXdy+
+DdrGDdqzTdmfnduq3dzTvdy5Td3PndcOkNqnXd3UHd3W/d3Qnd3bbd7Djd7nTdvYnS3KTQHE
+fd3OLd/o/13fih3b1l3fEcDZyI3btP3f/C3e0z3e/v3aBJ7fx23g4Z3g7Y0txB3fE7DbrP3g
+ug3cwR3geQ3hFm7b6V3eqM3h3B3dEy7iwW3aGJ7dtf3fC07fra3g663iNkPhDb7bIu7hL37i
+Ka7flR3hAo7iBT7gK37gK37i903eKN7f3B3fL/7jDCPjFUDj8z3k9C3d9r3dRu7j3V3jWL7l
+kM3fz43hVK7j5Y3jSK7iOB7iMT7mrQ3ZUm7iom3ZpV3iVy7cA37f0A3bTO7db17cV37YpK3n
+uj3eIB7oP27klc3mWdTgITDjK6DoaL7lJODobiTpHsDoKkDpQI7pGaDpasTpKBDg6RYA6m49
+6qRe6qae1QkAADs=
+
+------=_NextPart_000_0029_B8138F19.8F059BC2--
+
+
 
 
 -------------------------------------------------------
