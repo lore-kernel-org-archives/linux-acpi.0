@@ -1,13 +1,13 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Source of buzzing determined for hp tc1100
-Date: Tue, 07 Dec 2004 07:42:13 -0800
-Message-ID: <41B5CF55.6090908@root.org>
-References: <41B4E721.1040601@joshuawise.com> <41B4EB17.5010702@root.org> <41B4F13B.6060304@joshuawise.com> <200412071143.13460.symbiont@berlios.de>
+Subject: Re: PNPACPI breaks my asus k6-2 parallel port
+Date: Tue, 07 Dec 2004 07:40:13 -0800
+Message-ID: <41B5CEDD.3070004@root.org>
+References: <200412070414.NAA01833@axe-inc.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200412071143.13460.symbiont-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
+In-Reply-To: <200412070414.NAA01833-yzSWc4HAx5xL9jVzuh4AOg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,44 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jeff Pitman <symbiont-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Takanori Watanabe <takawata-yzSWc4HAx5xL9jVzuh4AOg@public.gmane.org>
+Cc: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jeff Pitman wrote:
-> On Tuesday 07 December 2004 07:54, Joshua Wise wrote:
+Takanori Watanabe wrote:
+> In message <20041207022133.GB22171-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>, Matthew 
+> Wilcox wrote:
 > 
->>I then googled for acpi c3 noise, which gave me some information
->>about Thinkpads and sound card noise, but the noise occurs regardless
->>of soundcard-osity. In fact, it seems to be coming from near the CPU
->>fan.
-> 
-> 
-> This is not coming from the soundcard on my Thinkpad T30.  It's from the 
-> thermal unit located around the CPU fan on the upper left of the unit.
-> 
-> 
->>While the system is connected to the USB keyboard, the it will never
->>go into C3 state, and bus master activity is always ffffffff.
-> 
-> 
-> I have a USB external HD connected and it stays in C2 all the time.
-> 
-> 
->>However, when I connect AC power, the buzzing goes away, but the
->>system still spends most of its time in C3 state.
+>>Turning on PNPACPI changes this in my dmesg:
+>>
+>>-parport0: PC-style at 0x378 [PCSPP(,...)]
+>>-lp0: using parport0 (polling).
+>>+ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+>>+ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
+>>+parport: PnPBIOS parport detected.
+>>+parport0: PC-style at 0x378, irq 7 [PCSPP(,...)]
+>>+lp0: using parport0 (interrupt-driven).
+>>+pnp: Device 00:08 activated.
+>>+parport: PnPBIOS parport detected.
+>>+parport1: PC-style at 0x278, irq 5 [PCSPP(,...)]
+>>+lp1: using parport1 (interrupt-driven).
+>>
+>>As a result, my parallel port stops working.  Any more information I can
+>>provide?
 > 
 > 
-> Whether I'm on AC or Battery, it's always in C2.  Usage for C3 is 
-> extremely low.  AC or Battery there's still buzzing.  Albeit, mine is 
-> very quiet.
+> I don't know little about Linux specific, but generally,
+> a Printer port device will appear several times as ACPI devices.
+> 
+> If you forget to check device status (_STA), 
+> confliction will occur as you got.
 
-Perhaps my previous email wasn't clear enough.  If you search the 
-archives for "noise C3", you'll find more about it.  It's capacitor 
-noise due to stop GNT.  Changing the kernel timer frequency (kern.hz on 
-FreeBSD) will change the rate.  I use 100, which is not audible.  The 
-normal rate of 1000 hz is a very audible tone.  So either disable C3 or 
-change your HZ rate to something not audible.
+You are right Watanabe-san.  It appears linux just parses all resource 
+sets in _PRS as separate devices instead of parsing the DPFs and 
+treating them as separate sets for a single device.
 
 -- 
 Nate
