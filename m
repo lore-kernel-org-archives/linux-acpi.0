@@ -1,40 +1,57 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [ACPI] RE: [patch] 2.4.x ACPI updates
-Date: Mon, 8 Sep 2003 15:29:33 +0200
+From: jbarnes-sJ/iWh9BUns@public.gmane.org
+Subject: [PATCH] don't use alloc_bootmem in ACPI table initialization
+Date: Mon, 8 Sep 2003 11:47:40 -0700
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030908132933.GA23269@hell.org.pl>
-References: <BF1FE1855350A0479097B3A0D2A80EE009FCCA@hdsmsx402.hd.intel.com> <Pine.LNX.4.55L.0308231826470.5824@freak.distro.conectiva> <20030823223340.GA7129@hell.org.pl> <20030902143756.GH1358@openzaurus.ucw.cz>
+Message-ID: <20030908184740.GA758@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030902143756.GH1358-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "J.A. Magallon" <jamagallon-cer70A47DaU@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Pavel Machek:
-> > This is probably a BIOS / hardware bug, a rare occurence actually.
-> > The logs show:
-> > #v+
-> > acpi_power-0363 [64] acpi_power_transition : Error transitioning device [CFAN] to D0
-> > acpi_bus-0496 [63] acpi_bus_set_power    : Error transitioning device [CFAN] to D0
-> > acpi_thermal-0549 [62] acpi_thermal_active   : Unable to turn cooling device [c12d2528] 'on'
-> > Unable to handle kernel paging request at virtual address 876c33c4
-> > [...]
-> > #v-
-> > (sometimes there's D3 in place of D0, depending on the trip points /
-> > temperature readings), and then the oops follows. Unfortunately, I
-> > can't provide the ksymoops output, as the kernel which the oops was logged
-> > on has been gone long since.
-> > 
-> > Anyway, this is by no means reproducible, occurs quasi-randomly (more often
-> You should be able to do echo ? > /proc/acpi/*/fan/state to stress this manually...
+Already talked with Andy about this one, is it ok to push to Linus?
 
-Of course. It prints the messages, but doesn't oops. I'm waiting to
-reproduce it on 2.4.23-pre here right now.
-Best regards,
+Thanks,
+Jesse
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+diff -Nru a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+--- a/drivers/acpi/tables.c	Wed Jul 30 11:45:27 2003
++++ b/drivers/acpi/tables.c	Wed Jul 30 11:45:27 2003
+@@ -69,7 +69,8 @@
+ 
+ static unsigned long		sdt_pa;		/* Physical Address */
+ static unsigned long		sdt_count;	/* Table count */
+-static struct acpi_table_sdt	*sdt_entry;
++
++static struct acpi_table_sdt	sdt_entry[ACPI_MAX_TABLES];
+ 
+ void
+ acpi_table_print (
+@@ -413,12 +414,6 @@
+ 			sdt_count = ACPI_MAX_TABLES;
+ 		}
+ 
+-		sdt_entry = alloc_bootmem(sdt_count * sizeof(struct acpi_table_sdt));
+-		if (!sdt_entry) {
+-			printk(KERN_ERR "ACPI: Could not allocate mem for SDT entries!\n");
+-			return -ENOMEM;
+-		}
+-
+ 		for (i = 0; i < sdt_count; i++)
+ 			sdt_entry[i].pa = (unsigned long) mapped_xsdt->entry[i];
+ 	}
+@@ -463,12 +458,6 @@
+ 			printk(KERN_WARNING PREFIX "Truncated %lu RSDT entries\n",
+ 				(sdt_count - ACPI_MAX_TABLES));
+ 			sdt_count = ACPI_MAX_TABLES;
+-		}
+-
+-		sdt_entry = alloc_bootmem(sdt_count * sizeof(struct acpi_table_sdt));
+-		if (!sdt_entry) {
+-			printk(KERN_ERR "ACPI: Could not allocate mem for SDT entries!\n");
+-			return -ENOMEM;
+ 		}
+ 
+ 		for (i = 0; i < sdt_count; i++)
