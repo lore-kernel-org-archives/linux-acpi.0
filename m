@@ -1,60 +1,42 @@
-From: Ducrot Bruno <ducrot@poupinou.org>
-Subject: Re: [PATCH 2.6] update passive cooling algorithm
-Date: Mon, 12 Jan 2004 20:11:22 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040112191122.GK14031@poupinou.org>
-References: <20040111211255.GA31105@dominikbrodowski.de>
-	<20040112154611.GH14031@poupinou.org>
-	<20040112173922.GA6154@dominikbrodowski.de>
+From: Dirk Meul <dirk.meul-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org>
+Subject: S4 reboots on resume
+Date: Mon, 12 Jan 2004 20:20:27 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1073935225.2106.15.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces@www.linux.org.uk>
-Content-Disposition: inline
-In-Reply-To: <20040112173922.GA6154@dominikbrodowski.de>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces@www.linux.org.uk
-To: len.brown@intel.com, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 12, 2004 at 06:39:22PM +0100, Dominik Brodowski wrote:
-> On Mon, Jan 12, 2004 at 04:46:11PM +0100, Ducrot Bruno wrote:
-> > On Sun, Jan 11, 2004 at 10:12:55PM +0100, Dominik Brodowski wrote:
-> > > [Len, could you test and verify this patch, and push it to Linus, please?]
-> > > 
-> > > The current algorithm used by Linux ACPI for passive thermal management has
-> > > two shortcomings:
-> > 
-> > ...
-> > 
-> > > +/* If a passive cooling situation is detected, primarily CPUfreq is used, as it
-> > > + * offers (in most cases) voltage scaling in addition to frequency scaling, and
-> > > + * thus a cubic (instead of linear) reduction of energy. Also, we allow for
-> > > + * _any_ cpufreq driver and not only the acpi-cpufreq driver.
-> > > + */
-> > 
-> > Just a stupid question:
-> > 
-> > What is best if processor heat issues (apart turning on the fan)?
-> > 
-> > Reducing voltage of the processor, but still allowing it to run execution
-> > at 100% (which is the case if the processor is heating), or reduce
-> > amount of time allowed for the processor to execute?
-> 
-> voltage scaling. It offers a much better (quadratic) saving than clock
-> modulation (linear saving). Doing both [and you need to do it, as the CPU
-> won't run with fewer volts at the same frequency] gives you cubic savings.
+Hello List.
 
-Yes I know.  But does it offer more 'cooling'?
+I tested S4 (pmdisk) with 2.6.1-mm2. After approximately 10 minutes the
+computer powered off. When i resume it will reboot after reading the
+pages from swap and force a journal recovering. Is there a patch i can
+try? This happened with 2.6.x kernel before too.
 
-
+Regards,
 -- 
-Ducrot Bruno
+                                  /"\
+Dirk Meul                         \ /    ASCII Ribbon Campaign
+dirk.meul-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org           X     Against HTML Mail
+                                  / \
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Perforce Software.
+Perforce is the Fast Software Configuration Management System offering
+advanced branching capabilities and atomic changes on 50+ platforms.
+Free Eval! http://www.perforce.com/perforce/loadprog.html
