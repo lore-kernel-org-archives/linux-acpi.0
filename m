@@ -1,15 +1,13 @@
-From: Daniel Dewald <D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>
-Subject: Re: Samsung X30 Power Button
-Date: Mon, 17 May 2004 07:31:50 +0200
+From: Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
+Subject: Badness in remove_proc_entry  when 'rmmod battery'
+Date: Mon, 17 May 2004 08:54:14 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200405170731.50293.D.Dewald@fh-trier.de>
-References: <VFOCKAZKWXJATSTZEOVBWX@yahoo.com> <200405142359.53690.D.Dewald@fh-trier.de> <1084590255.12353.320.camel@dhcppc4>
+Message-ID: <200405170854.14987.lkml@kcore.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1084590255.12353.320.camel-D2Zvc0uNKG8@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,46 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-No.. powering down with the Power Button doesn't work. The Button does not 
-even generate an ACPI event. The only thing I can do with the PW Button at 
-the Moment is Powering the machine on. Nothing else.
+This showed up in my logs today when rmmod'ing the battery module:
 
-Greetings
+Badness in remove_proc_entry at fs/proc/generic.c:685
+Call Trace:
+ [<c017964a>] remove_proc_entry+0x10a/0x150
+ [<e1a09a4d>] acpi_battery_remove_fs+0x1d/0x2d [battery]
+ [<e1a09bc5>] acpi_battery_remove+0x32/0x41 [battery]
+ [<c02674d5>] acpi_driver_detach+0x39/0x7c
+ [<c0267589>] acpi_bus_unregister_driver+0x12/0x51
+ [<e1a09bde>] acpi_battery_exit+0xa/0x1e [battery]
+ [<c012bace>] sys_delete_module+0x13e/0x180
+ [<c014063a>] do_munmap+0x14a/0x190
+ [<c010411b>] syscall_call+0x7/0xb
 
+Badness in remove_proc_entry at fs/proc/generic.c:685
+Call Trace:
+ [<c017964a>] remove_proc_entry+0x10a/0x150
+ [<e1a09a4d>] acpi_battery_remove_fs+0x1d/0x2d [battery]
+ [<e1a09bc5>] acpi_battery_remove+0x32/0x41 [battery]
+ [<c02674d5>] acpi_driver_detach+0x39/0x7c
+ [<c0267589>] acpi_bus_unregister_driver+0x12/0x51
+ [<e1a09bde>] acpi_battery_exit+0xa/0x1e [battery]
+ [<c012bace>] sys_delete_module+0x13e/0x180
+ [<c014063a>] do_munmap+0x14a/0x190
+ [<c010411b>] syscall_call+0x7/0xb
 
-Daniel
+Jan
 
-Am Samstag, 15. Mai 2004 05:04 schrieb Len Brown:
-> On Fri, 2004-05-14 at 17:59, Daniel Dewald wrote:
-> > Hi Guys,
-> >
-> > I've solved nearly all my Problems with my Samsung X30 1700 Notebook. The
-> > only (realy big) Problem I have till now is my Power Button. It doesn't
-> > generate an acpi event
->
-> I assume the power button works for powering down the running system?
->
-> wakeup GPEs are currently broken, will have bob's new code ready to test
-> next week -- stay tuned.
->
-> cheers,
-> -Len
->
->
->
->
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: SourceForge.net Broadband
-> Sign-up now for SourceForge Broadband and get the fastest
-> 6.0/768 connection for only $19.95/mo for the first 3 months!
-> http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-- 
+Bennett's Laws of Horticulture:
+	(1) Houses are for people to live in.
+	(2) Gardens are for plants to live in.
+	(3) There is no such thing as a houseplant.
 
 
 -------------------------------------------------------
