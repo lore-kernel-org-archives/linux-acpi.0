@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: No APIC interrupts after ACPI suspend
-Date: Tue, 29 Jun 2004 23:19:39 +0200
+From: "Gaetano Sferra" <gaesferr-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Urgent support needed on thermal zone
+Date: Thu, 1 Jul 2004 18:03:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040629211939.GL698@openzaurus.ucw.cz>
-References: <1088160505.3702.4.camel@tyrosine> <1088268145.14987.248.camel@zion.2good.net> <40DDBA7A.6010404@travellingkiwi.com> <40DF0A98.9040604@travellingkiwi.com> <1088362159.2163.38.camel@djinn>
+Message-ID: <000701c45f85$1735afe0$0800a8c0@SQUADRA>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1088362159.2163.38.camel-l85cmlzfk8I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,21 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Herman Sheremetyev <mlists-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello,
+I've installed Fedora Core 2 on my Fujitsu-Siemes AMILO D laptop (kernel
+2.6.5) and the acpi software
+behavior seems strange to me (I'm a newbie) so I've some questions for you:
 
-> Also, after an S3 resume, I only see 'inu' in yellow on black letters on
-> the screen, the ASM in wakeup.S is pretty impenetrable to me so I don't
-> know if this indicates a problem or not.  My laptop also does not reboot
-> properly after an S3, just hangs there after saying it's about to
-> restart, but again I'm not sure it that's related or not.
+1. I didn't found an acpi patch for my kernel so... it's ok or I need
+something else (like a kernel upgrade)?
+2. Looking in /proc/acpi/thermal_zone/THRM file I see:
+       cooling_mode contains "<not supported>"
+       temperature contains something like "75 C" (strange, the CPU should
+be a jam but still work)
+       state contains "ok"
+       trip_point contains "critical: 85 C"
+    The question is: "Is my CPU in danger or acpid doesn't work properly?"
+    The contents of the /proc/acpi/thermal_zone/THRM/temperature doesn't
+change
+    (it reports "75 C" value even if I've just turn on the PC)  but the fan
+seems to
+    work properly (the pc is a little hot above usual but.... it's, may be,
+for the summer?).
+3. Is the ACPI software the only one that control the temperature and work
+with fan or is there an hardware
+    controller also? In other words: "Why in the kernel configuration the
+thermal zone help says that if it isn't
+    enabled on laptops the CPU may be damaged?"
+4. What I can do?
 
-Its trying to say Linux! and that should be normal.
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Thank you for support and for your good work,
+Gaetano Sferra
+
 
 
 
