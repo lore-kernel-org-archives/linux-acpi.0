@@ -1,11 +1,11 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Power on at specified time.
-Date: Thu, 13 Mar 2003 17:02:50 -0800
+Subject: RE: small status catching patch
+Date: Thu, 13 Mar 2003 17:18:53 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96D01@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96D04@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="ISO-8859-1"
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,29 +16,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Irene Zubarev <zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Nigel Cunningham [mailto:ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org] 
-> On Wed, 2003-02-19 at 13:09, Grover, Andrew wrote:
-> > Well, go fix it and send me a patch! :)
-> > 
-> > Seriously, Pat roughed-in the alarm support a long long 
-> time ago, but it
-> > needs someone to take another look at it and get it fully 
-> functional.
-> 
-> Gladly, but I wanted to make sure I wasn't barking up the wrong tree
-> first, and then I need a push in right direction (toward some
-> documentation!).
+> From: Irene Zubarev [mailto:zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org] 
+> Hello, I'm not sure if anyone caught this, but it seems that 
+> in nswalk.c,
+> in acpi_ns_walk_namespace, there should be an extra variable 
+> for status,
+> otherwise, we always think it is a good status.  (this is on 
+> the 2nd "if
+> (unlock_before_callback)" statement).  Please see patch below (against
+> 2/28/2003 version):
 
-Go check out include/linux/mc146818rtc.h. Using this plus the existing
-code plus a recent ICH datasheet available on developer.intel.com (I
-recommend ICH3m's - section 9.6 is "Real Time Clock Registers") you
-should be able to get started.
+Nice catch!! 
 
-Hope this helps -- Regards -- Andy
+Thanks -- Regards -- Andy
 
 
 -------------------------------------------------------
