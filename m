@@ -1,15 +1,14 @@
-From: "Sourav Sen" <souravs-hAGStUev6lJWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] ACPI PCI IRQ routing rework
-Date: Tue, 18 May 2004 10:09:29 +0530
+From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Subject: ACPI issues - suspend-to-ram and processor speed
+Date: Tue, 18 May 2004 02:13:25 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <016701c43c92$1c521650$39624c0f@india.hp.com>
-References: <200405170857.55814.bjorn.helgaas@hp.com>
+Message-ID: <200405180213.34603.andre@eisenbach.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200405170857.55814.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,17 +17,90 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "HELGAAS,BJORN (HP-Ft. Collins)" <bjorn_helgaas-+0+VdgW1APZVd2G1PmaOdg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "MOSBERGER,DAVID (HP-PaloAlto,unix3)" <davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org>, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, Jun Nakajima <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-+ Or are you saying that my patch introduces a new panic situation
-+ that didn't exist before?  
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-No, I am not saying that. I was referring to the same old panic in 
-assign_irq_vector(). 
+Dear ACPI devel team,
 
---Sourav
+I have two issues which prevent me from fully enjoying my notbook running o=
+n=20
+Linux. Both are seemingly related to ACPI. Please help me understand the=20
+problems better and maybe fix them or help me attempting a fix.
+
+The notebook in question is a Compaq Presario 2100Z with an AMD Athlon XP=20
+2400+ processor. Current kernel version is 2.6.6-mm2. I am not applying any=
+=20
+ACPI patches from sf.net, but rely on whats in the kernel (which may be my=
+=20
+first mistake).
+
+I am very willing to learn and may be able to fix it myself, if you guys ca=
+n=20
+help me find out more about which components are involved.
+
+Problem 1 - Cannot suspend (or resume better)
+
+Right now I am unable to suspend my notebook in any for or fashion (ram, di=
+sk,=20
+etc.). Therefore I have to turn off the notebook and boot again, which=20
+honestly makes the notebook pretty useless.
+
+When I try to suspend to RAM, the suspend part seems to run fine (I can see=
+=20
+suspend-to-ram messages), the lcd shuts off and the power button starts=20
+pulsing slowly (indicating standby). So far so good. However, if I hit the=
+=20
+power button then to resume, the device seems to want to wake up (hd spins=
+=20
+up, fans start) but the LCD never turns on and the notebook quickly (1-2=20
+seconds) later switched to off (all quiet/lights off). Hitting the power=20
+button again starts a normal startup.
+
+I also tried to suspend to disk using swsusp. That corrupted my swap partit=
+ion=20
+and didn't resume.
+
+What does it take to suspend to RAM?
+What could be broken, and where should I start looking if I want to fix it?
+What more debug information do you guys need?
+
+Problem 2 - CPU slows down when on battery
+
+When the power cord is unplugged, my CPU slows down quite a bit. This is no=
+t=20
+indicated in /proc/cpuinfo and NOT due to cpufreq / powernow adjustments.
+
+The problem does not seem to occur with ACPI=3DOFF=20
+
+More details here in a post to the linux-kernel mailing list:
+http://lkml.org/lkml/2004/5/9/100
+
+Also a relevant and informative entry here:
+http://forums1.itrc.hp.com/service/forums/questionanswer.do?threadId=3D4676=
+55
+
+When on battery, KDE is barely usable. Once again it doesnt make much sense=
+=20
+for a laptop not to be usable on battery ... :(
+
+
+Thanks for your attention and hopefully for your answers/comments. I can=20
+provide as much debug/info/configs as you would like and as a programmer am=
+=20
+willing to help out/read up, if you just help me identify where to start.
+
+Thanks,
+   Andr=E9 Eisenbach
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAqdO45DBE808V5icRAnEcAJ49pvxNlggXYpLBARhqh/pNSmSKewCgr6Eg
+mW5uBTiyk0Ab2IdtDXV3038=3D
+=3DlqX+
+=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
