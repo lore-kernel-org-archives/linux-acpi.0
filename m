@@ -1,14 +1,15 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: can i try a merge of two dsdt?
-Date: Mon, 5 Apr 2004 11:49:21 -0700 (PDT)
+Subject: Re: Acer Aspire 1601LC tempertature & ACPI
+Date: Mon, 5 Apr 2004 11:50:56 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040405114546.K22024@root.org>
-References: <1080930033.752.5.camel@dagon.lovecraft.it>
+Message-ID: <20040405114950.E22024@root.org>
+References: <200404021654.00101.nate@paranoici.org> <004501c418e3$994b2ca0$7ce9fea9@SHERKA>
+ <200404022101.54233@asda>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1080930033.752.5.camel-XQD7E+J2gHDpvm5p2avrnqicDR3qMxSs@public.gmane.org>
+In-Reply-To: <200404022101.54233-Ulv+RfhiHhw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +18,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alessandro <alessandro-qt5M+3XYwT4sV2N9l4h3zg@public.gmane.org>
-Cc: acpi devel mlist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Nate Grey <nate-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2 Apr 2004, Alessandro wrote:
-> hi,
-> i have a problem (a problem? many problems.. =3D\) with my acer aspire
-> 1703SM on freeBSD with ACPI.
+On Fri, 2 Apr 2004, Nate Grey wrote:
+> On Friday 02 April 2004 18:52, Ois=EDn Mac Fheara=ED wrote:
+> > With my Acer Aspire 1705SMi, thermal zone would report temperature as 2=
+55C
+> > repeatedly during bootup and reboot.
+> > I disabled the thermal zone module, as the BIOS will supposedly shut do=
+wn
+> > the laptop if the temperature is really too high.
+> >
+> > Ois=EDn
+>
+> It's a solution... Are you sure that the cpu will not reach an high
+> temperature due to a not perfect cooling management?
+> Is it safe disable the thermal module so that there's not a temperature c=
+heck?
 
-The mailing list for FreeBSD acpi issues is acpi-jp-l7ZBCLq5RC066kwqclu8Pg@public.gmane.org
-Subscription info is at:
-http://www.jp.freebsd.org/acpi/ml.html
-
-> If I don't overwrite the DSDT with the one i found for acer aspire
-> 1703SC i get the floppy and the temperature indicator to work but the
-> batery status is always at zero.
-> If I overwrite my real DSDT whit the DSDT for aspire 1703SC I found that
-> the batery method work properly.. but the system cannot recognize the
-> floppy and the temperature indicator is always at 0.0=B0C.
-
-> My idea is: can i merge my DSDT and the aspire 1703SC DSDT and then
-> recompile the resultant DSDT?
-> If it is possible.. where can i get more documentation about it?
-
-You could probably compare the _BST methods for the two and merge the one
-in the working DSDT into your stock DSDT.  If that works for you, send me
-a diff because I'm curious what the error is in your stock DSDT.  (Perhaps
-it can be worked around.)
+CPU shutdown is hardware-controlled, so yes.  There are ways on both
+FreeBSD and Linux to "smooth" out the 255C reported temps so they don't
+cause a shutdown.
 
 -Nate
 
