@@ -1,19 +1,9 @@
-From: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>
-Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: Thu, 22 Jan 2004 18:49:26 +0100
+From: ezra peisach <epeisach-AW32GngNFaTp5eoAjl1PXg@public.gmane.org>
+Subject: Re: PROBLEM: LCD display dead after ACPI suspend to RAM (S3)
+Date: Thu, 22 Jan 2004 13:11:29 -0500 (EST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16400.3366.286902.721704@alkaid.it.uu.se>
-References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com>
-	<m3u12pgfpr.fsf@reason.gnu-hamburg>
-	<m3ptddgckg.fsf@reason.gnu-hamburg>
-	<20040122120854.GB3534@hell.org.pl>
-	<16399.55109.244040.516731@alkaid.it.uu.se>
-	<Pine.LNX.4.58.0401220900510.2123@home.osdl.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Message-ID: <200401221811.NAA274801@med-xtal.bu.edu>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0401220900510.2123-Xqd2YWsQM6mXDw4h08c5KA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,53 +12,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>, "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Ford <david+challenge-response-qokYbnrgTHEgsBAKwltoeQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Linus Torvalds writes:
- > 
- > 
- > On Thu, 22 Jan 2004, Mikael Pettersson wrote:
- > 
- > > Karol Kozimor writes:
- > >  > 
- > >  > diff -Bru linux-2.6.0-test8/arch/i386/kernel/apic.c patched/arch/i386/kernel/apic.c
- > >  > --- linux-2.6.0-test8/arch/i386/kernel/apic.c	2003-10-18 05:43:36.000000000 +0800
- > >  > +++ patched/arch/i386/kernel/apic.c	2003-10-30 23:17:50.000000000 +0800
- > >  > @@ -836,8 +836,8 @@
- > >  >  {
- > >  >  	unsigned int lvtt1_value, tmp_value;
- > >  >  
- > >  > -	lvtt1_value = SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV) |
- > >  > -			APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
- > >  > +	lvtt1_value = APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
- > >  > +
- > >  >  	apic_write_around(APIC_LVTT, lvtt1_value);
- > > 
- > > What is the purpose of this change?
- > > I don't remember seeing this before on LKML. (I don't have time to read bugzilla.)
- > 
- > Hmm.. It does seem to fix things for a couple of people, so it looks 
- > interesting.
- > 
- > As far as I can tell, the _only_ thing it does is to change the timer base
- > from "DIV" to "CLKIN". I seem to have misplaced my ia-32 "volume 3" thing, 
- > but I have an old one for a pentium, and that one doesn't actually
- > haev the timer-base thing at all - and marks those bits as "reserved".
- > 
- > So it is entirely possible that the only safe value to write there is 0.
 
-Confirmed. Those bits (18 and 19 in LVTT) are marked reserved in the
-latest IA32 Volume 3. I have no idea where this APIC_TIMER_BASE came
-from (maybe some ancient discrete LAPIC thing?), but we almost certainly
-shouldn't write anything but zero to them.
+>Try hitting the hardware function key that swaps the CRT/LCD and/or the 
+>function key that changes the font.
 
- > So I'm inclined to apply the patch, but it would be better if somebody who 
+>Works on my laptop.  Really annoying two-fold issue.  First, the screen 
+>is blank, second, I have to blindly run setfont to change the garbage 
+>font to a readable font.
 
-I agree. The patch should be applied.
+>I'm not running an fb, just an nvidia card in text mode on a Dell 
+>Inspiron 8200.
+I have been probing this issue on an Inspiron 8200 - but with a radeon
+card.
 
-/Mikael
+The essential problem in S3 is four fold:
+a) When entering S3 - power is turned off to the video card. When 
+power is restored, the vga interface is confused as to register settings, etc.
+b) vgacon does have any power management handling capabilities.
+c) radeonfb does not handle power management either - except for the case
+   of powerbooks. 
+d) On power restore, I have observed that the backlight of the display 
+is turned off. If I use radeontools to turn back on the display, I can then
+see what is there.
+
+I am working on a set of patches to store the state of the VGA card
+(drivers/video/vgacon.c) before power shutdown and after restore. (I have the
+basics - but it needs to be cleaned up). 
+
+What is then missing is the interface to poke at the radeon and I
+suspect nvidia card to turn on the backlight. When X is running
+switching away from VC 7 and back resets the flag - a better solution
+is eventually needed. Perhaps radeonfb will be the way to go - but it needs
+to have power handling code implemented on all platforms.
+
+Ezra
+
+
 
 
 -------------------------------------------------------
