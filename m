@@ -1,14 +1,11 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Re: ACPI-Errors with battery, ac_adapter, thermal
-Date: Thu, 23 Jan 2003 18:48:02 +0000
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI-Errors with battery, ac_adapter, thermal
+Date: Thu, 23 Jan 2003 10:53:26 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030123184802.GA11638@clara.net>
-References: <3E2D8E94.2050301@gkec.tu-darmstadt.de> <20030121191357.GG15023@poup.poupinou.org> <3E303184.6020307@gkec.tu-darmstadt.de>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BA50@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3E303184.6020307-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,9 +14,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Behnel <behnel-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
+To: 'Faye Pearson' <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>, Stefan Behnel <behnel-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+
+This one looks suspiciously like a problem in the AML interpreter: 
+
+>     ACPI-1102: *** Error: Method execution failed [\_SB_.PCI0._INI] (Node
+c12fba80), AE_AML_UNINITIALIZED_LOCAL
+
+I am looking into it.
+Bob
+
+
+-----Original Message-----
+From: Faye Pearson [mailto:faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org] 
+Sent: Thursday, January 23, 2003 10:48 AM
+To: Stefan Behnel
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] ACPI-Errors with battery, ac_adapter, thermal
 
 Stefan Behnel [behnel-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org] wrote:
 > I'm actually perfectly willing to invest some time into getting this 
@@ -30,12 +44,18 @@ Stefan Behnel [behnel-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org] wrote:
 > to me...). Any more hints on that?
 
 >     ACPI-0262: *** Info: GPE Block1 defined as GPE16 to GPE31
->     ACPI-1102: *** Error: Method execution failed [\_SB_.PCI0._INI] (Node c12fba80), AE_AML_UNINITIALIZED_LOCAL
->     ACPI-0090: *** Error: No object was returned from [\_SB_.PCI0.LPCB.SIOD.COMA._STA] (Node c12f2580), AE_NOT_EXIST
->     ACPI-1102: *** Error: Method execution failed [\_SB_.ADP1._STA] (Node c12fb340), AE_AML_NO_RETURN_VALUE
->     ACPI-1102: *** Error: Method execution failed [\_SB_.BAT1._STA] (Node c12fb700), AE_AML_NO_RETURN_VALUE
->     ACPI-0322: *** Error: Handler for [embedded_control] returned AE_BAD_PARAMETER
->     ACPI-1102: *** Error: Method execution failed [\_TZ_.THRM._TMP] (Node c12fd7c0), AE_BAD_PARAMETER
+>     ACPI-1102: *** Error: Method execution failed [\_SB_.PCI0._INI] (Node
+c12fba80), AE_AML_UNINITIALIZED_LOCAL
+>     ACPI-0090: *** Error: No object was returned from
+[\_SB_.PCI0.LPCB.SIOD.COMA._STA] (Node c12f2580), AE_NOT_EXIST
+>     ACPI-1102: *** Error: Method execution failed [\_SB_.ADP1._STA] (Node
+c12fb340), AE_AML_NO_RETURN_VALUE
+>     ACPI-1102: *** Error: Method execution failed [\_SB_.BAT1._STA] (Node
+c12fb700), AE_AML_NO_RETURN_VALUE
+>     ACPI-0322: *** Error: Handler for [embedded_control] returned
+AE_BAD_PARAMETER
+>     ACPI-1102: *** Error: Method execution failed [\_TZ_.THRM._TMP] (Node
+c12fd7c0), AE_BAD_PARAMETER
 
 These don't look fine.
 
@@ -76,6 +96,16 @@ Covert Development
 ClaraNET Ltd.       Tel 020 7903 3000
 
 Keep your boss's boss off your boss's back.
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
