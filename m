@@ -1,15 +1,11 @@
-From: John Summerfield <summer-bdq14YP6qtSeVB85EesmETSf8X3wrgjD@public.gmane.org>
-Subject: Re: Re: making progress with ACPI was: ACPI small patch update
-Date: Thu, 31 Oct 2002 09:43:15 +0800
+From: "Anthony J. Breeds-Taurima" <tony-xfCdrj5MXxYnC9Muvcwxkw@public.gmane.org>
+Subject: swsusp acpi-20021022
+Date: Thu, 31 Oct 2002 09:50:36 +0800 (WST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210310940.17218.acpi@computerdatasafe.com.au>
-References: <200210300925.g9U9PbD05581@ikffws2.ikff.uni-stuttgart.de>
+Message-ID: <Pine.LNX.4.44.0210310944170.11540-100000@thor.cantech.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200210300925.g9U9PbD05581-sBhUd1W9t4xfrO0PeCDDO4ECbGbo6+O1OOFObY0sJ7w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,22 +17,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rats. Did it again.
+Hello All,
+	Firstly I'm not 100% certain if this is better here or LKML, If I'm
+wrong then I'll happily move the discussion there.
 
-On Wed, 30 Oct 2002 17:25, Jens Haug wrote:
-> Or maybe people will read about all these bugs and think ACPI on
-> Intel was a mess - although these bugs are perfectly normal in this
-> stage of development.
-> I dunno.
-> Maybe I'm all wrong here. I hope I am.
+I'm running kernel 2.5.44 with the acpi-20021022 aptches applied.  I do how
+ever have a small problem.  I have tested swsusp and the suspend went well.
+Unfortuantly I get an ooops on resume.  I'm happy to look at the cause
+(provide oops and ksyms) BUT the docs say more or less "If you touch your FS
+between suspend and resume then kiss your data goodbye".
 
-Does the lk team hide its bugs?
+What I need to know is what is the safest way to get my machine back?
+Can I just boot into another kernel and hope my FS won't be too badly
+corrupted?
 
-To my mind the best-supported software I use is fetchmail, and the standard 
-way there of reporting bugs is to the list. It's very public.
+In case it matters I have a sony Vaio PCGFX990
+(http://www.sony.com.au/vaio/products/index.cfm?catid=19479&prodid=PCGFX990)
 
-Red Hat's buglist is open to all, for all the software it packages. I expect 
-ACPI falls between the two in the number of bugs it has.
+Yours Tony
+
+   Jan 22-25 2003           Linux.Conf.AU            http://linux.conf.au/
+		  The Australian Linux Technical Conference!
+
 
 
 -------------------------------------------------------
