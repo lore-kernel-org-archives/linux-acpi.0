@@ -1,12 +1,10 @@
-From: Nate Grey <nate-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
-Subject: Re: Acer Aspire 1601LC tempertature & ACPI
-Date: Mon, 3 May 2004 19:09:05 +0000
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Resume fails on Thinkpad X40 with APIC enabled, works otherwise
+Date: Wed, 5 May 2004 00:23:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200405031909.06848.nate@paranoici.org>
+Message-ID: <20040504232330.GA417@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,18 +18,13 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Well, no thermal modules loaded, the system continue to shutdown when doing 
-large compilation (sometimes while watching a Divx), I loaded the fan module 
-(kernel 2.6.6) and /proc/acpi/fan is empty.
+If I have the APIC disabled on my Thinkpad X40, resume works perfectly
+providing I supply acpi_sleep=s3_bios. If I enable the APIC, the machine
+resumes, gives me a couple of APIC errors and then stops responding. How
+can I track this down?
 
-What can do? If I put my laptop on a cold surface it run without problems. 
-It's a sad situation.
-
-Sorry for my poor english and thank you for any reply.
-
-Bye Bye 
-
-- Nate
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
