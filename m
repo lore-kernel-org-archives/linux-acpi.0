@@ -1,14 +1,14 @@
-From: Philip Balister <balister-PjAqaU27lzQ@public.gmane.org>
-Subject: Re: Re: S4 reboots on resume
-Date: Thu, 15 Jan 2004 09:36:27 -0500
+From: Martin Lorenz <martin-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
+Subject: Re: Re: kern 2.6.1 - suspend/resume still malfunctioning
+Date: Thu, 15 Jan 2004 15:53:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040115143627.GF25164@nemesis.maddog.net>
-References: <1073935225.2106.15.camel@localhost> <20040115122142.GC12963@elf.ucw.cz> <20040115130810.GA9348@message-id.gmane0305.slipkontur.de> <4006A217.5040801@basmevissen.nl>
+Message-ID: <4006A96F.1020502@lorenz.eu.org>
+References: <40069161.4040703@lorenz.eu.org> <20040115135532.GA11298@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4006A217.5040801-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+In-Reply-To: <20040115135532.GA11298-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,44 +17,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I tried S4 on my Dell 600m. It seemed to suspend ok, and when I pressed the
-power button, the power light came on, but not much else. Looking at this
-table it suggests a kernel parameter resume=/dev/hdaX.
+Stefan Seyfried wrote:
 
-What should I use for X?
+> On Thu, Jan 15, 2004 at 02:10:57PM +0100, Martin Lorenz wrote:
+> 
+>>Dear all,
+>>
+>>well I am playing around to get suspend/resume working on my PC-MM10 for
+>>quite a while now, and have run from one failing into the next...
+> 
+> 
+>>all the data, i reported about my laptop is recorded with bug #1773
+>>http://bugme.osdl.org/show_bug.cgi?id=1773
+> 
+> 
+> have you tried S4, e.g. "echo 4 > /proc/acpi/sleep"?
+> S3 is probably harder to get working than S4, so try S4 first.
+> 
+well...
 
-Philip
+with S4 i get a message, saying that my drive was not ready for that
+command and it keeps telling me (lines by lines and never ending)
 
-On Thu, Jan 15, 2004 at 03:22:15PM +0100, Bas Mevissen wrote:
-> Stefan Seyfried wrote:
-> 
-> 
-> >for the beginners in here: which one is swsusp, which one is pmdisk?
-> >I'm using a suse 2.6 kernel.
-> >echo 4 > /proc/acpi/sleep works for me.
-> >
-> 
-> See <http://swsusp.sourceforge.net/features.html>
-> 
-> Bas.
-> 
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: Perforce Software.
-> Perforce is the Fast Software Configuration Management System offering
-> advanced branching capabilities and atomic changes on 50+ platforms.
-> Free Eval! http://www.perforce.com/perforce/loadprog.html
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+end_request: I/O error, dev hda, sector 1596164
+
+so i it doesent even go to suspend(off)
+
+greets
+mlo
+-- 
+martin lorenz
+--
+	They that can give up essential liberty
+	to obtain a little temporary safety
+	deserve neither liberty nor safety.
+				-- Benjamin Franklin
+
 
 
 -------------------------------------------------------
