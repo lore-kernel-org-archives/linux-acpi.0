@@ -1,16 +1,14 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Crash with fs corruption on 2.4.23-rc1 + CONFIG_ACPI_PROCESSOR
-Date: Mon, 17 Nov 2003 10:31:36 -0800 (PST)
+Subject: Re: acpi on new gateway laptops
+Date: Mon, 17 Nov 2003 10:54:51 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031117102931.B60721@root.org>
-References: <20031113161857.GM26911@roosevelt.alcove-fr>
- <20031114124713.GK32464@poupinou.org> <20031114152403.GK29316@roosevelt.alcove-fr>
- <20031115065020.GO32464@poupinou.org> <20031115134811.GA2630@hottah.alcove-fr>
- <20031117131800.GQ32464@poupinou.org>
+Message-ID: <20031117104936.N60907@root.org>
+References: <20031112232315.GD430@masanjin.net> <20031117102219.O60721@root.org>
+ <20031117183900.GA32570@masanjin.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031117131800.GQ32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20031117183900.GA32570-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,35 +17,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+To: William Morgan <wmorgan-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 17 Nov 2003, Ducrot Bruno wrote:
-> On Sat, Nov 15, 2003 at 02:48:11PM +0100, Stelian Pop wrote:
-> > On Sat, Nov 15, 2003 at 07:50:20AM +0100, Ducrot Bruno wrote:
-> >
-> > > I think the trouble come from C3, just need to check some values.  If you
-> > > can, it may be usefull that you disable C3, with something like that:
-> > >
-> > > +		acpi_fadt.plvl3_lat = 1234;
-> >
-> > And the patch works, your assumption was correct.
-> >
-> > Now, C3 seem to be reported as supported, 2.6 (correctly) doesn't
-> > promote to it, but 2.4 does. I can't find an obvious reason by reading
-> > the processor.c code (almost identical between 2.4/2.6...)
+On Mon, 17 Nov 2003, William Morgan wrote:
+> Excerpts (reformatted) from Nate Lawson's mail of 17 Nov 2003 (EST):
+> > Your DSDT attempts to access regions before there is an attached EC to
+> > service the calls to that space, yes.  So the two approaches are to
+> > provide an ECDT or change the DSDT to not reference those spaces early
+> > in boot.  The problem with the latter option is that those accesses
+> > may be crucial to initializing your laptop.  So if you remove them, it
+> > may start up in a partially initialized state.  It's probably cleaner
+> > to provide an ECDT.
 >
-> No, 2.6 have some trouble, I guess, because C3 should be promoted.  I guess
-> you are using a USB bridge driver, which need to be rewrotten somehow, because
-> it does a lot of DMA transfers just to check if a device is plugged..
-> That affect all USB driver, but not EHCI IIRC.
+> Thanks for your reply! That's the sentiment others have expressed as
+> well---the easiest thing to do is provide an ECDT. Unfortunately, we're
+> not really sure how to do this, and no one seems able (or willing!) to
+> say.
+>
+> The ACPI spec describes the contents of the table, but it's not clear to
+> me how, exactly, what the "processor relative address of the embedded
+> controller command/status register, in generic address structure format"
+> is supposed to be. How can we discover all these gory details about the
+> EC?
 
-BTW, you were right about USB causing huge numbers of BM events.  Without
-it in my kernel, things are quiet and C3 is used.  I just committed the
-driver (FreeBSD).  Playing mp3s also results in BM activity but that is
-expected.  I plan to add a quiesce method to our USB drivers so that ACPI
-can shut the polling off while idle.
+Get the data from the DSDT.  Dump it with acpidmp, search for PNP0C09,
+then write down the resources.  Mine is below:
+
+                Device (EC)
+                {
+                    Name (_HID, EisaId ("PNP0C09"))
+                    Name (_UID, 0x00)
+                    Name (_GPE, 0x1C)
+                    ...
+                    Name (_CRS, ResourceTemplate ()
+                    {
+                        IO (Decode16, 0x0062, 0x0062, 0x01, 0x01)
+                        IO (Decode16, 0x0066, 0x0066, 0x01, 0x01)
+                    })
+                }
+
+This corresponds to a GPE of 0x1c, control reg 0x66, data reg 0x62.  Below
+is the correct ECDT for this EC:
+
+  ECDT: Length=82, Revision=1, Checksum=5,
+        OEMID=IBM, OEM Table ID=TP-1A, OEM Revision=0x1160,
+        Creator ID=IBM, Creator Revision=0x1
+        EC_CONTROL=0x66:0[8] (IO)
+        EC_DATA=0x62:0[8] (IO)
+        UID=0, GPE_BIT=0x1c
+        EC_ID=\_SB.PCI0.LPC.EC
+
+Note that I develop FreeBSD so Linux may have slightly different ways of
+defining things.
 
 -Nate
 
