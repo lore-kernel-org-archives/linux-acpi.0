@@ -1,11 +1,13 @@
-From: Grant Grundler <grundler-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
-Subject: help for ACPI_CONTAINER sucks
-Date: Sat, 15 Jan 2005 15:21:29 -0700
-Message-ID: <20050115222129.GB10070@colo.lackof.org>
+From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: 2.6.10 and acpi_get_possible_resources? *solved*
+Date: Sun, 16 Jan 2005 01:00:37 +0100
+Message-ID: <1105833637.27841.4.camel@paragon.slim>
+References: <1105713621.10664.8.camel@paragon.slim>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1105713621.10664.8.camel-AynNu1t4G8oLie942ae2tA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,33 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 2005-01-14 at 15:40 +0100, Jurgen Kramer wrote:
+> I am trying to get the WACOM ACPI patches working on 2.6.10 but it bails
+> out on a missing function "acpi_get_possible_resources". On 2.6.9 the
+> needed symbol is exported by acpi_ksyms.c but this file no longer exists
+> in 2.6.10. 
+> 
+> What is the best way to get the acpi_get_possible_resources function
+> exported properly? It is defined in <acpi/acpxf.h> but adding this to
+> the wacom source files did not help.
+> 
+> The 2.6.9 version of the wacom patches are from:
+> 
+> http://www.theory.bham.ac.uk/staff/schofield/linux/tc1100/linux-2.6.9-
+> wacom_acpi.patch
 
-Help for ACPI_CONTAINER is just useless:
-                This is the ACPI generic container driver which supports
-		ACPI0004, PNP0A05 and PNP0A06 devices.
+Problem solved. The functions from <acpi/acpixf.h> needed a #define
+ACPI_FUTURE_USAGE 1 to work again.
 
-Help should explain what those devices are and what might not work
-unless I enable ACPI_CONTAINER. As a !acpi_developer I have no clue
-and am just annoyed by the question.
+My wacom tablet is working again with 2.6.10.
 
-Here is a fictious example (I have no clue about ACPI) might provide
-some guidance on what I was expecting:
-	The ACPI generic container driver provides support for:
-	ACPI0004 - Hotplug IO
-	PNP0A05  - Hotplug CPU
-	PNP0A06  - Hotplug Memory
-	
-	One can use those devices but can't access hotplug features
-	unless this option is enabled.
+Jurgen
 
-	If one selects "m", this driver can be loaded with
-	"modprobe acpi_container".
-
-hth,
-grant
 
 
 -------------------------------------------------------
