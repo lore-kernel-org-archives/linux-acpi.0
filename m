@@ -1,35 +1,52 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [ACPI] Re: [BKPATCH] ACPI 20030916 for 2.4.23-pre4
-Date: Wed, 17 Sep 2003 09:27:44 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030917072743.GA11015@hell.org.pl>
-References: <Pine.LNX.4.44.0309151824360.2914-100000@logos.cnet> <1063759840.13038.23.camel@linux.local> <1063762727.13038.34.camel@linux.local>
+From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Subject: Re: [PATCH] 2.6.0-test4 Don't change BIOS allocated IRQs
+Date: Wed, 17 Sep 2003 09:08:33 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309170908.33295.adq_dvb__26576.9138969064$1063788518@lidskialf.net>
+References: <200309170011.03630.adq_dvb@lidskialf.net> <20030917010254.GA1640@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030917010254.GA1640-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1063762727.13038.34.camel-Tk/TtsB/rErDOqzlkpFKJg@public.gmane.org>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Len Brown:
-> ACPI 20030916 for 2.4.22 and 2.4.23-pre4 is available here:
-> 
-> http://linux-acpi.bkbits.net/linux-acpi-release-2.4.22 
-> http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
-> 
-> The corresponding plain patches are available here:
-> 
-> http://sourceforge.net/project/showfiles.php?group_id=36832
-> 
-> The corresponding 2.6 update will be out shortly...
-[...]
+On Wednesday 17 September 2003 02:02, Greg KH wrote:
+> On Wed, Sep 17, 2003 at 12:11:03AM +0100, Andrew de Quincey wrote:
+> > With the help of Chris Wright testing several failed patches, I've
+> > tracked down another ACPI IRQ problem. On many systems, the BIOS
+> > pre-allocates IRQs for certain PCI devices, providing a list of alternate
+> > possibilities as well.
+> >
+> > On some systems, changing the IRQ to one of those alternate possibilities
+> > works fine. On others however, it really isn't a good idea. As theres no
+> > way to tell which systems are good and bad in advance, this patch simply
+> > ensures that ACPI does not change an IRQ if the BIOS has pre-allocated
+> > it.
+>
+> Nice, the patch below, which Chris told me is from you, fixed my
+> problems too.  It is against 2.6.0-test5-bk3 and fixes bug number 1186
+> in the bugzilla.kernel.org database.
+>
+> Many thanks for this work, I really appreciate it.
 
-Hi,
-What about the ASUS ACPI driver updates?
-Best regards,
+Great! thanks for letting me know.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
