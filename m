@@ -1,14 +1,15 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [patch] remove null-ifiers
-Date: Fri, 30 Jan 2004 14:54:48 +0000
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
+Date: Fri, 30 Jan 2004 16:06:22 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040130145448.GG18725@parcelfarce.linux.theplanet.co.uk>
-References: <E1AgkrW-00080w-00@jaguar.mkp.net> <20040127150954.GA12740@hell.org.pl> <16406.32889.922823.45313@gargle.gargle.HOWL> <40168442.7020806@neggie.net>
+Message-ID: <20040130160546.S1500@root.org>
+References: <m3n087khfl.fsf@reason.gnu-hamburg> <401811E8.8060003@pca.it>
+ <20040128200719.M75620@morningdave.org> <40181916.2050408@xms.se>
+ <20040129203457.GA307@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40168442.7020806-wanGne27zNesTnJN9+BGXg@public.gmane.org>
+In-Reply-To: <20040129203457.GA307-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +18,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Cc: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Jonas Petersson <zap-7RBX4Gk6oWI@public.gmane.org>, greg <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, luca-wlebWZzHoyE@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 27, 2004 at 10:31:14AM -0500, John Belmonte wrote:
-> That may be the case, but in the process I think you are destroying 
-> vital information about which variables the code depends on being 
-> initialized to zero.  If the Linux kernel ever changed its policy, or if 
-> the code was used in something other than the Linux kernel (perhaps even 
-> being translated to some other computer language), you would need that 
-> information again.
+On Thu, 29 Jan 2004, Pavel Machek wrote:
+> > >>on 01/28/04 20:21, Georg C. F. Greve wrote:
+> > >>>Suspending to disk (S4) suspends just fine. It also finds the file and
+> > >>>reads the data back into active memory, as well. But when it comes to
+> > >>>the message
+> > >>>
+> > >>> "Waiting for DMAs to settle down."
+> > >>>
+> > >>>the machine suddenly crashes (reboot).
+> > >>
+> > >>it seems the same on my M3N, I attached some mails I already sent to
+> > >>this list, which solved the problem for S4, maybe you could give it a
+> > >>try. IMHO is still an Intel 855GM problem.
+> > >
+> > > I agree with this. I see exactly the same behavior on my Gateway 200X, which
+> > > has an Intel 855GM chipset. I'll try the suggestions from the appended emails
+> > > later to see if they help.
+> >
+> > For the record: Several of us over on the swsusp list appear to have
+> > rouchly the same problem: With some effort and fiddling (as described in
+> > the previous mail), swsusp2 works for console and even from
+> > unaccelerated X, but whenever DRI ang AGP is enabled it resume will
+> > crash. Some of us think this is related to the agpgart rewrite for
+> > 2.6.x, but our patching so far have not made any difference. There seem
+> > to be resume code in the intel-agp plug which we have tried to duplicate
+> > in sis-agp, but it appears not to be called during resume... Obviously,
+> > I don't really know enough about how it is supposed to work so we are
+> > just experimenting for now.
+>
+> Someone found that copying pages backwards helps for him. Very strange
+> but you might want to try it.
 
-No.
+That might indicate a cache configuration problem.
 
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+-Nate
 
 
 -------------------------------------------------------
