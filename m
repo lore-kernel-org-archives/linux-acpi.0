@@ -1,12 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: What's up with the Embedded Controller driver? [was Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
-Date: Thu, 24 Mar 2005 22:18:55 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC159@pdsmsx403>
+From: =?UTF-8?B?RnJhbsOnb2lzIFZhbGVuZHVj?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>
+Subject: Re: Re: What's up with the Embedded Controller driver? [was
+ Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
+Date: Thu, 24 Mar 2005 16:37:16 +0100
+Message-ID: <4242DEAC.6040900@tiscali.be>
+References: <3ACA40606221794F80A5670F0AF15F84041AC159@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC159@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,71 +17,152 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fran?ois Valenduc <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-RG8geW91IHRyeSBsYXRlc3QgYWNwaSB0ZXN0aW5nIHBhdGNoPw0KSXQgaW5jbHVkZXMgcGF0Y2gg
-ZmlsZWQgYXQgaHR0cDovL2J1Z21lLm9zZGwub3JnL3Nob3dfYnVnLmNnaT9pZD0zODUxDQoNCg0K
-VGhhbmtzDQpMdW1pbmcgDQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGFj
-cGktZGV2ZWwtYWRtaW5AbGlzdHMuc291cmNlZm9yZ2UubmV0IA0KPlttYWlsdG86YWNwaS1kZXZl
-bC1hZG1pbkBsaXN0cy5zb3VyY2Vmb3JnZS5uZXRdIE9uIEJlaGFsZiBPZiANCj5GcmFuP29pcyBW
-YWxlbmR1Yw0KPlNlbnQ6IDIwMDXlubQz5pyIMjTml6UgMzozNQ0KPlRvOiBSaWNoIFRvd25zZW5k
-DQo+Q2M6IFBlZHJvIFZlbmRhOyBhY3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KPlN1
-YmplY3Q6IFtBQ1BJXSBSZTogV2hhdCdzIHVwIHdpdGggdGhlIEVtYmVkZGVkIENvbnRyb2xsZXIg
-DQo+ZHJpdmVyPyBbd2FzIFJlOiBbQUNQSV0gcGF0Y2hlZCBzbXMtY20gYWNwaS9lYy5jIHRvIDIu
-Ni4xMS41XQ0KPg0KPg0KPj4+Pg0KPj4+PiBpdCBkb2VzIE5PVCBzZWVtIG9rLiBhZnRlciBzb21l
-IG1vcmUgdGVzdHMgd2l0aCB0aGUgcGF0Y2gsIEkgZm91bmQgDQo+Pj4+IG91dCB0aGF0IGZyYW5j
-b2lzIHdhcyByaWdodCBhYm91dCBtb3N0IG9mIHRoZSBwcm9ibGVtczoNCj4+Pj4gKiB0aW1lb3V0
-IG9uIGJvb3QsIGp1c3QgYWZ0ZXIgdGhlIGJvb3QgbG9hZGVyLiB0aGlzIGlzIHZlcnkgDQo+Pj4+
-IGNvbmZ1c2luZyB0byBtZS4uLg0KPj4+PiAqIHdoZW4gSSBwbHVnIGluIHRoZSBiYXR0ZXJ5LCBp
-dCB0YWtlcyBhZ2VzIHRvIHNob3cgaW5mb3JtYXRpb24gDQo+Pj4+IGFib3V0IGl0Li4uIG1vcmUg
-dGhhbiAxIG1pbnV0ZS4NCj4+Pj4gKiBhYm91dCB0aGUgdXNiIHByb2JsZW1zLCBhcHBhcmVudGx5
-IEkgd2Fzbid0IGFmZmVjdGVkLg0KPj4+Pg0KPj4+PiBjb3VsZCB5b3UgcGxlYXNlIHRpcCB1cyBh
-Ym91dCB3aGF0IGNvdWxkIGJlIGNhdXNpbmcgdGhlc2UgZGVsYXlzPyANCj4+Pj4gZXNwZWNpYWxs
-eSB0aGUgYm9vdCBkZWxheS4uLiBpdCByZWFsbHkgcHV6emxlcyBteSBtaW5kLg0KPj4+Pg0KPj4+
-PiByZWdhcmRzLA0KPj4+PiBwZWRybyB2ZW5kYS4NCj4+Pj4NCj4+Pj4NCj4+Pg0KPj4+IENvbmNl
-cm5pbmcgVVNCIHByb2JsZW1zLCBJIHRoaW5rIGl0IGhhcHBlbnMgYmVjYXVzZSBJIHRyaWVkIA0K
-PnRoZSBwYXRjaCANCj4+PiB3aXRoIHRoZSAyLjYuMTEga2VybmVsLiBJIGhhdmUgcmV0cmllZCB3
-aXRoIHRoZSAyLjYuMTEuNSBhbmQgdGhlcmUgDQo+Pj4gYXJlIG5vIG1vcmUgVVNCIHByb2JsZW1z
-LiBCdXQgYWxsIHRoZSBvdGhlciBwcm9ibGVtcyByZW1haW5zLiANCj4+PiBDb25jZXJuaW5nIHRo
-ZSB0aW1lb3V0IG9uIGJvb3QsIGNvdWxkIGl0IGJlIGNhdXNlZCBieSB0aGUgDQo+Pj4gYWNwaS1k
-c2R0LWluaXRyZCBwYXRjaCBtYWRlIGJ5IE1hcmt1cyBHYXVnYXVzY2guIE1heWJlIHdlIA0KPnNo
-b3VsZCB0cnkgDQo+Pj4gb3RoZXIgd2F5cyB0byBpbmNvcnBvcmF0ZSB0aGUgRFNEVCB0byB0aGUg
-a2VybmVsLg0KPj4+IEZyYW7Dp29pcyBWYWxlbmR1Yw0KPj4NCj4+DQo+PiBJIGRvdWJ0IGl0IGlz
-IHRoZSBEU0RUIHBhdGNoOyByYXRoZXIsIGl0IGxvb2tzIGxpa2UgDQo+c29tZXRoaW5nIGhhcyBn
-b25lIA0KPj4gd3JvbmcgaW4gdGhlIGVtYmVkZGVkIGNvbnRyb2xsZXIgZHJpdmVyIGluIGdvaW5n
-IGZyb20gMi42LjEwIHRvIA0KPj4gMi42LjExLiAgSSd2ZSB0cmllZCBvdXQgYSBudW1iZXIgb2Yg
-ZGlmZmVyZW50IHdheXMgb2YgZml4aW5nIA0KPmVjIGV2ZW50IA0KPj4gaGFuZGxpbmcsIGluY2x1
-ZGluZyBteSBvd24gc3BpbmxvY2sga2x1ZGdlIGFuZCBQZWRybydzIA0KPnZlcnNpb24gb2YgaXQs
-IA0KPj4gYW5kIGFsc28gYSBzZXJpZXMgb2YgcGF0Y2hlcyBieSBEbWl0cnkgVG9yb2tob3Y7IGJ1
-dCBhbGwgb2YgDQo+dGhlbSBzZWVtIA0KPj4gdG8gaGF2ZSBwcm9ibGVtcyB3aXRoIHZlcnkgc2x1
-Z2dpc2ggRUMgcmVzcG9uc2UgYW5kL29yIEVDIHRpbWVvdXRzIA0KPj4gKGluZGljYXRlZCBieSAi
-SGFuZGxlciBmb3IgW0VtYmVkZGVkQ29udHJvbF0gcmV0dXJuZWQgQUVfVElNRSIpLg0KPj4NCj4+
-IFdobyBjdXJyZW50bHkgbWFpbnRhaW5zIGVjLmM/IEFuZCB3aGF0IGV4YWN0bHkgaGFzIGJlZW4g
-ZG9uZSB0byBpdCANCj4+IHNpbmNlIDIuNi4xMD8NCj4+DQo+PiBjaGVlcnMsDQo+Pg0KPj4gUmlj
-aA0KPj4NCj4+DQo+SnVzdCBieSBjdXJpb3NpdHkgSSB0cmllZCB0aGUgRFNEVCBwYXRjaGVzIHdp
-dGhvdXQgYXBwbHlpbmcgDQo+YW55IHBhdGNoIG9uIA0KPnRoZSBlYy5jIGZpbGUgYW5kIEkgZG9u
-J3Qgbm90aWNlIGFueSBwcm9ibGVtIHlldC4gSSBjaG9vc2UgZm9yIA0KPmEgc3RhdGljIA0KPkRT
-RFQgb3ZlcnJpZGUgYW5kIHRoZXJlIGRvZXNuJ3Qgc2VlbSB0byBiZSBhbnkgc2xvd2Rvd24gb2Yg
-bXkgDQo+Y29tcHV0ZXIuIA0KPklmIEkgaGF2ZSB3ZWxsIHVuZGVyc3Rvb2QgSSBjb3VsZCBzZWUg
-IkhhbmRsZXIgZm9yIFtFbWJlZGRlZENvbnRyb2xdIA0KPnJldHVybmVkIEFFX1RJTUUiIGFwcGVh
-cmluZyBpbiBrZXJuZWwgbWVzc2FnZXMgYnV0IGl0IGRvZXNuJ3QgYXBwZWFyLiANCj5NYXliZSBJ
-IGFtIHZlcnkgbHVja3khDQo+DQo+RnJhbsOnb2lzDQo+DQo+DQo+LS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPlRoaXMgU0YubmV0IGVtYWls
-IGlzIHNwb25zb3JlZCBieSBNaWNyb3NvZnQgTW9iaWxlICYgRW1iZWRkZWQgDQo+RGV2Q29uIDIw
-MDUNCj5BdHRlbmQgTUVEQyAyMDA1IE1heSA5LTEyIGluIFZlZ2FzLiBMZWFybiBtb3JlIGFib3V0
-IHRoZSBsYXRlc3QgV2luZG93cw0KPkVtYmVkZGVkKHIpICYgV2luZG93cyBNb2JpbGUodG0pIHBs
-YXRmb3JtcywgYXBwbGljYXRpb25zICYgDQo+Y29udGVudC4gIFJlZ2lzdGVyDQo+YnkgMy8yOSAm
-IHNhdmUgJDMwMCANCj5odHRwOi8vYWRzLm9zZG4uY29tLz9hZF9pZD02ODgzJmFsbG9jX2lkPTE1
-MTQ5Jm9wPWNsaWNrDQo+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18NCj5BY3BpLWRldmVsIG1haWxpbmcgbGlzdA0KPkFjcGktZGV2ZWxAbGlzdHMuc291cmNl
-Zm9yZ2UubmV0DQo+aHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGluZm8v
-YWNwaS1kZXZlbA0KPg0K
+You mean the acpi-20050309-2.6.11 patch ? I tried it but I get rejects=20
+on the KConfig file. Nevertheless the kernel seems to compile correctly.=20
+I have tried it and I don't notice big changes. However I already said=20
+that I don't  encounter the problem mentionned by Rich Townsend when I=20
+use his DSDT patches (lost interrupts, keypresses not taken into=20
+account). There is sometime a slight but perceivable slowdown when I hit=20
+the same key repeatedly (aad it occours only with some programs).
+
+Fran=C3=A7ois Valenduc
+
+Yu, Luming a =C3=A9crit :
+
+>Do you try latest acpi testing patch?
+>It includes patch filed at http://bugme.osdl.org/show_bug.cgi?id=3D3851
+>
+>
+>Thanks
+>Luming=20
+>
+> =20
+>
+>>-----Original Message-----
+>>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>>Fran?ois Valenduc
+>>Sent: 2005=E5=B9=B43=E6=9C=8824=E6=97=A5 3:35
+>>To: Rich Townsend
+>>Cc: Pedro Venda; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>Subject: [ACPI] Re: What's up with the Embedded Controller=20
+>>driver? [was Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
+>>
+>>
+>>   =20
+>>
+>>>>>it does NOT seem ok. after some more tests with the patch, I found=20
+>>>>>out that francois was right about most of the problems:
+>>>>>* timeout on boot, just after the boot loader. this is very=20
+>>>>>confusing to me...
+>>>>>* when I plug in the battery, it takes ages to show information=20
+>>>>>about it... more than 1 minute.
+>>>>>* about the usb problems, apparently I wasn't affected.
+>>>>>
+>>>>>could you please tip us about what could be causing these delays?=20
+>>>>>especially the boot delay... it really puzzles my mind.
+>>>>>
+>>>>>regards,
+>>>>>pedro venda.
+>>>>>
+>>>>>
+>>>>>         =20
+>>>>>
+>>>>Concerning USB problems, I think it happens because I tried=20
+>>>>       =20
+>>>>
+>>the patch=20
+>>   =20
+>>
+>>>>with the 2.6.11 kernel. I have retried with the 2.6.11.5 and there=20
+>>>>are no more USB problems. But all the other problems remains.=20
+>>>>Concerning the timeout on boot, could it be caused by the=20
+>>>>acpi-dsdt-initrd patch made by Markus Gaugausch. Maybe we=20
+>>>>       =20
+>>>>
+>>should try=20
+>>   =20
+>>
+>>>>other ways to incorporate the DSDT to the kernel.
+>>>>Fran=C3=A7ois Valenduc
+>>>>       =20
+>>>>
+>>>I doubt it is the DSDT patch; rather, it looks like=20
+>>>     =20
+>>>
+>>something has gone=20
+>>   =20
+>>
+>>>wrong in the embedded controller driver in going from 2.6.10 to=20
+>>>2.6.11.  I've tried out a number of different ways of fixing=20
+>>>     =20
+>>>
+>>ec event=20
+>>   =20
+>>
+>>>handling, including my own spinlock kludge and Pedro's=20
+>>>     =20
+>>>
+>>version of it,=20
+>>   =20
+>>
+>>>and also a series of patches by Dmitry Torokhov; but all of=20
+>>>     =20
+>>>
+>>them seem=20
+>>   =20
+>>
+>>>to have problems with very sluggish EC response and/or EC timeouts=20
+>>>(indicated by "Handler for [EmbeddedControl] returned AE_TIME").
+>>>
+>>>Who currently maintains ec.c? And what exactly has been done to it=20
+>>>since 2.6.10?
+>>>
+>>>cheers,
+>>>
+>>>Rich
+>>>
+>>>
+>>>     =20
+>>>
+>>Just by curiosity I tried the DSDT patches without applying=20
+>>any patch on=20
+>>the ec.c file and I don't notice any problem yet. I choose for=20
+>>a static=20
+>>DSDT override and there doesn't seem to be any slowdown of my=20
+>>computer.=20
+>>If I have well understood I could see "Handler for [EmbeddedControl]=20
+>>returned AE_TIME" appearing in kernel messages but it doesn't appear.=20
+>>Maybe I am very lucky!
+>>
+>>Fran=C3=A7ois
+>>
+>>
+>>-------------------------------------------------------
+>>This SF.net email is sponsored by Microsoft Mobile & Embedded=20
+>>DevCon 2005
+>>Attend MEDC 2005 May 9-12 in Vegas. Learn more about the latest Windows
+>>Embedded(r) & Windows Mobile(tm) platforms, applications &=20
+>>content.  Register
+>>by 3/29 & save $300=20
+>>http://ads.osdn.com/?ad_id=3D6883&alloc_id=3D15149&op=3Dclick
+>>_______________________________________________
+>>Acpi-devel mailing list
+>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>>
+>>   =20
+>>
+
 
 
 -------------------------------------------------------
 This SF.net email is sponsored by Microsoft Mobile & Embedded DevCon 2005
 Attend MEDC 2005 May 9-12 in Vegas. Learn more about the latest Windows
-Embedded(r) & Windows Mobile(tm) platforms, applications & content.  Register
-by 3/29 & save $300 http://ads.osdn.com/?ad_id=6883&alloc_id=15149&op=click
+Embedded(r) & Windows Mobile(tm) platforms, applications & content.  Regi=
+ster
+by 3/29 & save $300 http://ads.osdn.com/?ad_id=3D6883&alloc_id=3D15149&op=
+=3Dclick
