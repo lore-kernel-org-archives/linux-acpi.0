@@ -1,50 +1,36 @@
-From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[3/6]-Mapping lsapic to cpu
-Date: Mon, 27 Sep 2004 20:47:12 +0900
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040927204712.703a20bd.tokunaga.keiich@jp.fujitsu.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com>
- <20040920093819.E14208@unix-os.sc.intel.com>
- <20040922221538.650986f2.tokunaga.keiich@jp.fujitsu.com>
- <1095864779.6105.3.camel@tdi>
- <20040923021031.00007001.tokunaga.keiich@jp.fujitsu.com>
- <20040924163632.C27778@unix-os.sc.intel.com>
+From: Karol Kozimor <sziwan@hell.org.pl>
+Subject: Re: status update for current development on ASUS M2N
+Date: Mon, 27 Sep 2004 14:33:20 +0200
+Sender: softwaresuspend-devel-admin@berlios.de
+Message-ID: <20040927123320.GA28634@hell.org.pl>
+References: <m3lleww12c.fsf@brain.gnuhh.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <20040924163632.C27778@unix-os.sc.intel.com>
-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Cc: tokunaga.keiich@jp.fujitsu.com, alex.williamson@hp.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
+Content-Disposition: inline
+In-Reply-To: <m3lleww12c.fsf@brain.gnuhh.org>
+Errors-To: softwaresuspend-devel-admin@berlios.de
+List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
+List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
+List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
+List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
+List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
+To: acpi-devel@lists.sourceforge.net
+Cc: SoftwareSuspend-devel@lists.berlios.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 24 Sep 2004 16:36:32 -0700 Keshavamurthy Anil S wrote:
-> On Thu, Sep 23, 2004 at 02:10:31AM +0900, Keiichiro Tokunaga wrote:
-> > On Wed, 22 Sep 2004 08:52:59 -0600, Alex Williamson wrote:
-> > > On Wed, 2004-09-22 at 22:15 +0900, Keiichiro Tokunaga wrote:
-> > > > 
-> > > > I would like to suggest introducing a new function 'acpi_get_pxm()'
-> > > > since other drivers might need it in the future.  Acutally, ACPI container
-> > > > hotplug will be using it soon.
-> > > > 
-> > > > Here is a patch creating the function.
-> > > > 
-> > > 
-> > >    Nice, I have a couple I/O locality patches that could be simplified
-> 
-> Here is the revised patch which now fixes the all issues that were discussed.
-> 	- Now defines and uses acpi_get_pxm
-> 	- small bugfix "change __initdata to __devinitdata for pxm_to_nid_map varable
+Thus wrote Georg C. F. Greve:
+> However: If I suspend to ram once and then suspend to disk, resume
+> From disk works fine, but about 20 seconds to 1 minute later, the
+> load suddenly jumps to 100% and stays there.
 
-Thanks for your work!  But, you might forget to merge the small bugfix
-patch.  See the diffstat below.  The target file of small bugfix is
-include/asm-ia64/acpi.h, but it didn't show up below:)
+I had that issue too, with 2.6.9-rc1 I s'pose, but I thought it was just
+bug #3193 revisited and didn't really investigate. Does changing swsusp2 to
+_not_ use ACPI S4 help?
+Best regards,
 
->  linux-2.6.9-rc2-askeshav/arch/i386/kernel/acpi/boot.c |   22 +++
->  linux-2.6.9-rc2-askeshav/arch/ia64/kernel/acpi.c      |  107 +++++++++++++++++-
->  linux-2.6.9-rc2-askeshav/drivers/acpi/numa.c          |   19 +++
->  linux-2.6.9-rc2-askeshav/include/linux/acpi.h         |   14 ++
->  4 files changed, 159 insertions(+), 3 deletions(-)
-
-Thanks,
-Keiichiro Tokunaga
+-- 
+Karol 'sziwan' Kozimor
+sziwan@hell.org.pl
