@@ -1,11 +1,16 @@
-From: Milan Jurik <M.Jurik-3zVPrsR01WjrBKCeMvbIDA@public.gmane.org>
-Subject: IBM TP R40e ACPI known problems
-Date: Sun, 10 Oct 2004 15:23:27 +0200 (CEST)
+From: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
+Subject: Re: Linux ACPI processor driver patch: user-definable power state limit
+Date: Sun, 10 Oct 2004 16:36:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0410101403500.30644@bobek.sh.cvut.cz>
+Message-ID: <200410101636.35383.jos.delbar@ugent.be>
+References: <200408071959.10529.jos.delbar@ugent.be> <1097301120.16784.2.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1097301120.16784.2.camel@d845pe>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -14,39 +19,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+As Dominik Brodowski pointed out, the module parameter currently exported in 
+this patch should be sufficient. I have the ACPI processor module compiled 
+into my kernel, yet I can still use "processor.acpi_cstate_limit" on the boot 
+line.
 
-  here is a short known list:
+Do you require a new version of the patch without the "acpi_" prefix?
 
-  Hanging with ACPI processor module (C-state switching failure)
-   - Kernel bugzilla 3219
+On Saturday 09 October 2004 07:52, you wrote:
+> Jos,
+> Can you modify this patch to use a kernel boot parameter
+> rather than a module load parameter?  Some folks don't
+> load this driver as a module.  Also, it gives you the
+> chance to add a couple of lines to Documentation/kernel-parameters.txt
+>
+> thanks,
+> -Len
 
-  Not wake up from S3 state
-   - maybe similar to Kernel bugzilla 3354
+-- 
 
-  Inacessible Fn+Fx keys and extra volume keys (after ACPI modules
-loading), no reaction. Neither Deianov's ibm_acpi nor Rigtorp's
-thinkpad_acpi helps.
-
-  All these I know, all were reported (several times, not by me).
-  I made a small webpage where all possible outputs are (acpidmp,
-dmidecode etc.), it can help somebody.
-
-  http://atari.sh.cvut.cz/acpi/links.html
-
-  I haven't enough knowledge for ACPI hacking. But my TP is ready for all
-possible patches if some ACPI developer would like to help. If any other
-outputs or tests are needed, let me ask.
- Best regards,
-
-        Milan Jurik
-
-P.S.: It looks that also lid button doesn't generate event (but state is
-changed on appropriate place - /proc/acpi/button/lid/LID/state). Can
-somebody confirm it?
+Jos Delbar
+jos.delbar-Cru1EgDzd7c@public.gmane.org
 
 
 -------------------------------------------------------
