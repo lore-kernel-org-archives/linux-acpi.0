@@ -1,15 +1,14 @@
-From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Compaq 1700T dsdt
-Date: Thu, 13 Feb 2003 18:59:40 +0900
+From: Dave Jones <davej-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: redhat comment about intel not taking patches?
+Date: Thu, 13 Feb 2003 12:11:55 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000201c2d346$a36398a0$ab4425db@sayonara>
-References: <20030213081155.GU25625@poup.poupinou.org>
+Message-ID: <20030213121153.E1647@suse.de>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E3DB@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030213081155.GU25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10440E3DB-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>; from john.cagle-VXdhtT5mjnY@public.gmane.org on Wed, Feb 12, 2003 at 10:11:26PM -0600
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,74 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Ducrot Bruno' <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: 'Constantinos Antoniou' <costas-DPNOqEs/LNQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Cc: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bruno,
+On Wed, Feb 12, 2003 at 10:11:26PM -0600, Cagle, John (ISS-Houston) wrote:
+ > Can you be more specific in your comments regarding Compaq hardware?  We
+ > test our ProLiant servers with Linux and ACPI, and our BIOS is designed
+ > for many different operating systems, including Linux, Unix and NetWare.
+ > On the other hand, it is unreasonable to expect that our laptop and
+ > desktop divisions test with Linux ACPI for two big reasons: first, the
+ > Linux OS has a very small share of those markets, and second, Red Hat's
+ > releases don't even have ACPI support.
 
-JP PC vendors (AFA I can tell you, SONY/Fujitsu/Panasonic/NEC's certain
-laptops) prefer BATx style, even though they expose battery as Control
-Method Battery. Probably this is because of one particular BIOS vendor's
-taste. Even Toshiba recently starts using P's BIOS,,, 
+So, Red Hat doesn't include ACPI because it doesn't work on Compaq
+laptops[1], and Compaq won't test it because Red Hat don't ship it ?
+Nice catch 22 8-)
 
-Incidentally have you ever seen the laptop whose battery is fully
-implemented as Smart Battery and BIOS does describe battery device as
-such? The 1st 2 Questions of FAQ at ACPI official site (
-http://www.acpi.info/acpi_faq.htm --- looks out of date, though )
-address SBS, but I've never seen the real world implementation. I
-remember some web site (URL forgotten --- probably at
-developer.intel.com or www.sbs-forum.org ) indicates Intel actually has
-the one. I believe several battery devices already have full capability
-to satisfy all the SBS requirements and are ready to hit the road... 
+        Dave
 
-Thanks,
-- Adachi, Kenichi
+[1] Among others..
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org 
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of 
-> Ducrot Bruno
-> Sent: Thursday, February 13, 2003 5:12 PM
-> To: Adachi, Kenichi
-> Cc: 'Constantinos Antoniou'; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] Compaq 1700T dsdt
-> 
-> 
-> On Wed, Feb 05, 2003 at 11:17:15AM +0900, Adachi, Kenichi wrote:
-> > A quick answer for part of your questions:
-> > 
-> > > Also, under /proc/acpi/battery, I have a directory CMB0. 
-> > > Shouldn't this be BAT0 or sth? 
-> > 
-> > (Even though there was a couple of argument), current code 
-> simply picks
-> > up the characters your ACPI BIOS names the battery device in DSDT. 
-> > And it's "Device (CMB0)" in your DSDT. 
-> >   
-> 
-> CMB0 in fact is more appropriate than BAT0.
-> 
-> It stand for 'Control Method Battery'
-> 
-> -- 
-> Ducrot Bruno
-> 
-> --  Which is worse:  ignorance or apathy?
-> --  Don't know.  Don't care.
-> 
-> 
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-
-
+-- 
+| Dave Jones.        http://www.codemonkey.org.uk
+| SuSE Labs
 
 
 -------------------------------------------------------
