@@ -1,99 +1,48 @@
-From: Dominik Brodowski <linux@dominikbrodowski.de>
-Subject: Re: [ACPI] [PATCH 1/2] 2.6: use scaling_available_freqs in
-	acpi-cpufreq-ioport driver
-Date: Fri, 12 Mar 2004 15:52:44 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040312145244.GD4813@dominikbrodowski.de>
-References: <20040220083149.GA10215@dominikbrodowski.de>
-	<20040224125628.GA438@elf.ucw.cz>
-	<20040224210040.GA8166@dreamcraft.com.au>
-	<20040224221642.GB9145@elf.ucw.cz>
-	<20040226172823.GJ2869@poupinou.org>
-	<20040226215006.GB397@elf.ucw.cz>
-	<20040301175430.GY2869@poupinou.org>
-	<20040301180325.GA562@elf.ucw.cz>
-	<20040303162255.GK2869@poupinou.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [rfc] generic testing ACPI module
+Date: Fri, 12 Mar 2004 18:57:24 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040312175724.GP28592@poupinou.org>
+References: <1079038411.18351.25.camel@t40> <20040311211005.GM2148@parcelfarce.linux.theplanet.co.uk> <1079041694.5429.58.camel@t40> <20040311225032.GN28592@poupinou.org> <20040312144241.GA1236@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1602445788=="
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
-In-Reply-To: <20040303162255.GK2869@poupinou.org>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: Bruno Ducrot <ducrot@poupinou.org>
-Cc: Tomasz Ciolek <tmc@dreamcraft.com.au>, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk, Pavel Machek <pavel@ucw.cz>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040312144241.GA1236-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Mar 12, 2004 at 03:42:41PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> 
+> But ioctls are even worse. Why not simply
+> 	open METHOD
+> 	write PARAMETERS
+> 	read RESULTS
+> 	close
+> 
 
---===============1602445788==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OaZoDhBhXzo6bW1J"
-Content-Disposition: inline
+Because I'm too stupid to thing of your solution, I guess.
 
+-- 
+Bruno Ducrot
 
---OaZoDhBhXzo6bW1J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Mar 03, 2004 at 05:22:55PM +0100, Bruno Ducrot wrote:
-> > --- clean/include/linux/cpufreq.h	2004-01-09 20:24:26.000000000 +0100
-> > +++ linux/include/linux/cpufreq.h	2004-03-01 19:02:48.000000000 +0100
-> > @@ -316,6 +316,7 @@
-> >  	unsigned int	index;     /* any */
-> >  	unsigned int	frequency; /* kHz - doesn't need to be in ascending
-> >  				    * order */
-> > +	unsigned int	voltage;   /* mV */
-> >  };
->=20
-> Well, why not?
-
-Four reasons:
-
-1.) not all cpufreq drivers which use frequency table helpers know the
-voltage
-
-2.) most cpufreq drivers don't need to know the voltage -- they need to know
-a value [=3D=3Dindex] to be written to some sort of register [msr/io/whatev=
-er].
-
-3.) sizeof(struct cpufreq_table_entry)
-
-4.) the overrides discussed for k{7,8} are very driver-specific and do
-neither belong into the cpufreq core nor into the cpufreq frequency table
-helpers.=20
-
-	Dominik
-
---OaZoDhBhXzo6bW1J
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAUc68Z8MDCHJbN8YRAiyAAJ47iGm9DqdcaYU8YPV36BShJfCedwCgoVJv
-rZOCul6U17JR1azLrKkRVVY=
-=2OEH
------END PGP SIGNATURE-----
-
---OaZoDhBhXzo6bW1J--
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
---===============1602445788==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Cpufreq mailing list
-Cpufreq@www.linux.org.uk
-http://www.linux.org.uk/mailman/listinfo/cpufreq
-
---===============1602445788==--
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
