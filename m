@@ -1,10 +1,10 @@
-From: Chamara Gunaratne <pgunarat-oWe+HmWQADH2fBVCVOL8/A@public.gmane.org>
-Subject: Network Controller power consumption under ACPI modes
-Date: Mon, 10 May 2004 18:48:50 -0400
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: S3 Woes
+Date: Mon, 10 May 2004 19:12:49 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6.0.3.0.0.20040510184033.039e0348@babbage.csee.usf.edu>
+Message-ID: <1084230769.16068.5.camel@300mlinux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-lBUrb7YRip5xULZIRjI7"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,20 +17,44 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all,
 
-I have been listening in this list for some time, but this is the first 
-time I am posting a message. I am a grad student at the University of South 
-Florida and I am trying to find out the typical power consumption of a 
-gigabit Ethernet network interface controller when in D0 and D3 states and 
-at different link speeds [10/100/1000].
+--=-lBUrb7YRip5xULZIRjI7
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-I haven't been able to find any documentation on this and any pointers to 
-where I might find this info is greatly appreciated. Thank you.
+I had S3 working on my laptop for a while, and now it will not resume if
+any USB devices are plugged in. It doesn't mind the bus drivers
+(uhci-hcd and ehci-hcd), and it doesn't seem to mind the device drivers
+themselves being present (usb-storage, hid usually), but if there's a
+USB device plugged into this laptop, the laptop powers on, asks for my
+BIOS password, and then goes blank. Caps/Num/Scroll Lock work for a
+short period, and then the whole machine appears to freeze (of course
+there's no good way to know for absolute sure, but if Caps Lock doesn't
+work then there's a definite problem :)). Anyone know why this is
+happening, or more importantly what could have changed (most likely in
+kernel config) to cause this to happen? Preempt is off.
 
-Cheers,
+--
+Andrew Barr
 
-Chamara Gunaratne
+/usr/games/fortune says:
+If Karl, instead of writing a lot about Capital, had made a lot of Capital,
+it would have been much better.
+		-- Karl Marx's Mother
+
+--=-lBUrb7YRip5xULZIRjI7
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQBAoAxwhuM+Z62a52oRAojSAKD9ZUe5cAv7W75p9mWZX1Ouw89VzACg8Tz2
+eM5wreM3M8Z8w9pfrhMpCYw=
+=Yy+L
+-----END PGP SIGNATURE-----
+
+--=-lBUrb7YRip5xULZIRjI7--
 
 
 
