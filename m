@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: Acer Travermate 8005 and battery info
-Date: Thu, 7 Oct 2004 11:22:37 +0200
+Date: Thu, 7 Oct 2004 11:21:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041007092237.GB983@elf.ucw.cz>
-References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu> <20041001194739.GE1100@openzaurus.ucw.cz> <41603BA0.9090900@lanil.mine.nu> <20041003203457.GD3379@elf.ucw.cz> <41617104.2040302@mega.ist.utl.pt> <20041005143951.GB4723@openzaurus.ucw.cz> <4162F3C8.9050509@lanil.mine.nu>
+Message-ID: <20041007092135.GA983@elf.ucw.cz>
+References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu> <20041001194739.GE1100@openzaurus.ucw.cz> <41603BA0.9090900@lanil.mine.nu> <20041003203457.GD3379@elf.ucw.cz> <41617104.2040302@mega.ist.utl.pt> <20041005143951.GB4723@openzaurus.ucw.cz> <4162C0D1.20906@mega.ist.utl.pt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4162F3C8.9050509-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
+In-Reply-To: <4162C0D1.20906-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,7 +17,7 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christian Axelsson <smiler-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
@@ -29,18 +29,20 @@ Hi!
 > >Anyway I may be wrong. You'll know for sure when the patch starts
 > >working :-).
 > 
-> Ive read through the (short) smbus specs and the 2.2.14 patch and I dont 
-> think its very hard to incoperate into the kernel (but Ive never done 
-> any kernel coding before ;) except for the asm because Im almost totally 
-> blank on asm.
+> sometime in the not-so-near future :-)
+> 
+> i'll start studying i2c to find out the smbus "address" (sorry if this 
+> is a dumb mistake) and try to scan it for the smart battery.
+> 
+> can it be done in userspace? or do i need to start coding in the kernel 
+> right away?
 
-2.2.14 driver is calling BIOS, right? You do not want to do that.
+No idea, perhaps i2c has some "debug-call-me-from-userspace" hooks.
 
-> The biggest problem I have is that I aint 100% sure that I have smart 
-> battery because shouldnt my /proc/acpi/battery/* be totally empty then?
+> p.s.: do you mind if i reply to you and CC to the list or the reply in 
+> the list es enough?
 
-Well, you'll never be 100% sure. But if it is Acer then smart battery
-is very probable.
+Cc me, that gives you faster reply.
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
