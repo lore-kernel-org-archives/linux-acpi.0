@@ -1,12 +1,10 @@
-From: Mark Pritchard <mark.pritchard-acpi-3o+aUUpM7Xj0CCvOHzKKcA@public.gmane.org>
-Subject: No battery information - Compaq Evo N800v, 2.4.20pre8, acpi 20021002
-Date: Tue, 8 Oct 2002 11:15:21 +1000
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: have I correct my irq routing ?
+Date: 08 Oct 2002 02:52:29 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210081115.21667.mark.pritchard-acpi@modus.com.au>
+Message-ID: <1034059951.1479.19.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="=-xxIz1GwvgLyj6tjUbHL5"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,101 +14,63 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I'm having a problem with seeing battery status on my Compaq Evo N800v. T=
-he=20
-proc filesystem has plenty of entries for everything other than the batte=
-ry=20
-(I've included a list below).=20
+--=-xxIz1GwvgLyj6tjUbHL5
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I'd really appreciate some advice, and I'm more than happy to provide mor=
-e=20
-info/test things.
+Hi(gh)!
 
-Cheers
+I don't know how to explain this , but the fact is that put my computer
+works with xine in xv video mode with tv-out in pal mode for dvd like
+gladiator or starwars and a great sound.
 
-Mark Pritchard
+so I can making a big confusion ( this is not my area ) and I don't know
+how prove my theory.
+I have 3 kernels installed in my computer 2.14.19, redhat 2.4.18-10 and
+2.4.20-pre8 so by lucky i had turn off this part of the code and realize
+that my computer works better.
+so I tested comment pci_bios_irq_init() and pcibios_fixup_peer_bridges
+after just pci_bios_irq_init
+=20
+        if (!pci_using_acpi_prt) {
+                pci_root_bus =3D pcibios_scan_root(0);
+-               pcibios_irq_init();
++/*             pcibios_irq_init(); */
+                pcibios_fixup_peer_bridges();
+                pcibios_fixup_irqs();
+        }
 
--------------------
 
-Useful info:
+and xine never stops again say that have gaps in timer.
+so perhaps when arrive here irq is already init, and init again give two
+parallels irq tables !
 
-* RedHat 7.3
+thanks
+S=E9rgio Basto
 
-* Kernel 2.4.20-pre8 with acpi-20021002-2.4.20-pre8.diff.gz
 
-* DSDT available at=20
+--=-xxIz1GwvgLyj6tjUbHL5
+Content-Disposition: attachment; filename=test12
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; name=test12; charset=ISO-8859-1
 
-=09http://www.modus.com.au/scratch/dsdt.compaq_evo_n800v.gz
+--- linux-2.4.19orig/arch/i386/kernel/pci-pc.c	Sun Oct  6 21:39:55 2002
++++ linux-2.4.19acpi/arch/i386/kernel/pci-pc.c	Tue Oct  8 02:22:52 2002
+@@ -1351,7 +1351,7 @@
+ #endif
+ 	if (!pci_using_acpi_prt) {
+ 		pci_root_bus =3D pcibios_scan_root(0);
+-		pcibios_irq_init();
++/* 		pcibios_irq_init(); */
+ 		pcibios_fixup_peer_bridges();
+ 		pcibios_fixup_irqs();
+ 	}
 
-* Contents of /proc/acpi:
-
-[pritchma@seth pritchma]$ find /proc/acpi |sort
-/proc/acpi
-/proc/acpi/ac_adapter
-/proc/acpi/ac_adapter/C11A
-/proc/acpi/ac_adapter/C11A/state
-/proc/acpi/alarm
-/proc/acpi/button
-/proc/acpi/button/power
-/proc/acpi/button/power/PWRF
-/proc/acpi/button/power/PWRF/info
-/proc/acpi/dsdt
-/proc/acpi/event
-/proc/acpi/fadt
-/proc/acpi/info
-/proc/acpi/power_resource
-/proc/acpi/power_resource/C0CF
-/proc/acpi/power_resource/C0CF/state
-/proc/acpi/power_resource/C140
-/proc/acpi/power_resource/C140/state
-/proc/acpi/power_resource/C154
-/proc/acpi/power_resource/C154/state
-/proc/acpi/power_resource/C158
-/proc/acpi/power_resource/C158/state
-/proc/acpi/power_resource/C15B
-/proc/acpi/power_resource/C15B/state
-/proc/acpi/power_resource/C164
-/proc/acpi/power_resource/C164/state
-/proc/acpi/power_resource/C1D0
-/proc/acpi/power_resource/C1D0/state
-/proc/acpi/power_resource/C1D1
-/proc/acpi/power_resource/C1D1/state
-/proc/acpi/power_resource/C1D2
-/proc/acpi/power_resource/C1D2/state
-/proc/acpi/power_resource/C1D3
-/proc/acpi/power_resource/C1D3/state
-/proc/acpi/processor
-/proc/acpi/processor/C000
-/proc/acpi/processor/C000/info
-/proc/acpi/processor/C000/limit
-/proc/acpi/processor/C000/performance
-/proc/acpi/processor/C000/power
-/proc/acpi/processor/C000/throttling
-/proc/acpi/sleep
-/proc/acpi/thermal_zone
-/proc/acpi/thermal_zone/TZ1
-/proc/acpi/thermal_zone/TZ1/cooling_mode
-/proc/acpi/thermal_zone/TZ1/polling_frequency
-/proc/acpi/thermal_zone/TZ1/state
-/proc/acpi/thermal_zone/TZ1/temperature
-/proc/acpi/thermal_zone/TZ1/trip_points
-/proc/acpi/thermal_zone/TZ2
-/proc/acpi/thermal_zone/TZ2/cooling_mode
-/proc/acpi/thermal_zone/TZ2/polling_frequency
-/proc/acpi/thermal_zone/TZ2/state
-/proc/acpi/thermal_zone/TZ2/temperature
-/proc/acpi/thermal_zone/TZ2/trip_points
-/proc/acpi/thermal_zone/TZ3
-/proc/acpi/thermal_zone/TZ3/cooling_mode
-/proc/acpi/thermal_zone/TZ3/polling_frequency
-/proc/acpi/thermal_zone/TZ3/state
-/proc/acpi/thermal_zone/TZ3/temperature
-/proc/acpi/thermal_zone/TZ3/trip_points
+--=-xxIz1GwvgLyj6tjUbHL5--
 
 
 
