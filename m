@@ -1,16 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Re: s3_late_bios
-Date: Wed, 10 Nov 2004 11:56:12 +0000
-Message-ID: <1100087772.6014.5.camel@tyrosine>
-References: <20041108144947.GA31267@tate.loria.fr>
-	 <20041108213558.GB4607@elf.ucw.cz> <418FEAD5.1000007@root.org>
-	 <20041109125522.GA8015@tate.loria.fr> <419127E6.3000603@root.org>
-	 <20041110072003.GA13561@tate.loria.fr>
+From: ole.rohne-vJEk5272eHo@public.gmane.org
+Subject: Re: s3_late_bios
+Date: Wed, 10 Nov 2004 14:16:25 +0100
+Message-ID: <yzoactprgie.fsf@cern.ch>
+References: <20041108144947.GA31267@tate.loria.fr> <20041108213558.GB4607@elf.ucw.cz>
+ <418FEAD5.1000007@root.org> <20041109125522.GA8015@tate.loria.fr>
+ <419127E6.3000603@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041110072003.GA13561-xkTd+U360DcAs8EywTwl9A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,23 +20,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-11-10 at 08:20 +0100, Emmanuel Thom=C3=A9 wrote:
-> On Tue, Nov 09, 2004 at 12:26:14PM -0800, Nate Lawson wrote:
-> > I mostly work on FreeBSD and since it has clean vm86 support routines,=20
-> > it doesn't involve any inline assembly to do the lcall there.  I assume=
-=20
-> > Linux has something similar.  I think re-entering real mode and=20
-> > overloading the resume asm code to run just one instruction is a bit of=
-=20
-> > a hack.
->=20
-> I don't think linux has a vm86 api at all.
+Nate> I think re-entering real mode and overloading the resume asm
+Nate> code to run just one instruction is a bit of a hack.
 
-There's a vm86 api on i386 - see the vm86 manpage. It seems to have been
-introduced in 0.97.
+lcall $0xc000,3 of course isn't "just one instruction", the BIOS VGA
+POST has to run in real mode or some emulation thereof...
 
---=20
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+If FreeBSD has kernel vm86, we should probably look at it.
+
+Ole
+
 
 
 
