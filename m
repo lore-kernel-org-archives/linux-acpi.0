@@ -1,12 +1,13 @@
-From: "Shawna Fields" <shawna_fieldsbu-bMA6A6cHXLGCuPEqFHbRBg@public.gmane.org>
-Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
-Date: Sun, 21 Nov 2004 21:57:54 -0700
-Message-ID: <92db01c4d04f$19ab63fc$f1e07aff@anhembi.br>
+From: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: initrd dsdt
+Date: Mon, 22 Nov 2004 12:28:31 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8403BD5853@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,33 +17,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Justin Georgeson wrote:
+> Has anyone looked into trying to get the initrd dsdt patch
+> submitted into the mainstream kernel?
 
-Do you want a rolex watch?
+It was failed, search the archive for Len's respond.
+We have CONFIG_ACPI_CUSTOM_DSDT now anyway.
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
-
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.icors.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.icors.com/z.php
-
+Thanks,
+-yi
 
 
 -------------------------------------------------------
