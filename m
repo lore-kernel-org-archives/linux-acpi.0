@@ -1,14 +1,13 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: ACPI: compilation fixes
-Date: Thu, 1 Aug 2002 14:43:12 +0100
+From: Nicolas Bessert <Nicolas.Bessert-rrVOh9T094gb1SvskN2V4Q@public.gmane.org>
+Subject: Sleep on an ASUS M2400
+Date: Thu, 01 Aug 2002 21:27:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <33655.8996736587$1028209666@news.gmane.org>
-References: <20020801104053.GA137@elf.ucw.cz>
+Message-ID: <3D498BB5.6070902@lanscape.de>
+Reply-To: Nicolas.Bessert-rrVOh9T094gb1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020801104053.GA137-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>; from pavel-+ZI9xUNit7I@public.gmane.org on Thu, Aug 01, 2002 at 12:40:53PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +16,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 01, 2002 at 12:40:53PM +0200, Pavel Machek wrote:
-> -	save_flags(flags);
-> +	local_irq_save(flags);
-> +	local_irq_disable();
+Hello,
+I have an ASUS M2400 with an AWARD Bios but
+"echo -n 1> /proc/acpi/sleep"
+did not have any effect.
+I use a 2.4.18 Kernel with
+acpi-20020709-2.4.18.diff.gz
+nocorruption.2.acpi.diff
+CONFIG_ACPI_SLEEP.patch
+Is this the current development status for the sleep mode,or is there
+something missing in my patches or knowlage.
 
-umm.  local_irq_save disables interrupts:
+Thanks a lot
 
-#define local_irq_save(x)       __asm__ __volatile__("pushfl ; popl %0 ; cli":"=
-g" (x): /* no input */ :"memory")
-
-i think you're confused with local_save_flags.
+Nicolas
 
 -- 
-Revolutions do not require corporate support.
+*********************************************************************
+* Nicolas Bessert            email: Nicolas.Bessert-rrVOh9T094gb1SvskN2V4Q@public.gmane.org     *
+* Berlin, Germany                                                   *
+*             Make each program do one thing well.                  *
+*********************************************************************
+
 
 
 -------------------------------------------------------
