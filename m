@@ -1,14 +1,14 @@
 From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: Howto switch system/CPU states?
-Date: Tue, 5 Nov 2002 09:35:59 +0100
+Subject: Re: Quick, Quick, Slooow
+Date: Tue, 5 Nov 2002 09:43:34 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021105093559.B1465@brodo.de>
-References: <20021104060200.95943.qmail@web11002.mail.yahoo.com> <20021104075706.A635@brodo.de> <200211050128.37267.chris@chrishowells.co.uk>
+Message-ID: <20021105094334.C1465@brodo.de>
+References: <20021105001358.A54213@azure.melloworld.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200211050128.37267.chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>; from chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org on Tue, Nov 05, 2002 at 01:29:01AM +0000
+In-Reply-To: <20021105001358.A54213-bxPqUFq66fhTnqHRgSL67VaTQe2KTcn/@public.gmane.org>; from alien-acpirep-xE0Zs7GtCLTd8Zgiw/MPxQ@public.gmane.org on Tue, Nov 05, 2002 at 12:13:59AM +0000
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,31 +17,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Chris Howells <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
+To: Al Cutter <alien-acpirep-xE0Zs7GtCLTd8Zgiw/MPxQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 05, 2002 at 01:29:01AM +0000, Chris Howells wrote:
-> 
-> Hi,
-> 
-> On Monday 04 November 2002 6:57 am, Dominik Brodowski wrote:
-> > On Sun, Nov 03, 2002 at 10:02:00PM -0800, Happy Camper wrote:
-> > > 2. Switch CPU C states.  When I load the processor module, I get this
-> > > in the /var/log/messages :
-> > > Nov  3 16:09:25 localhost kernel: ACPI: Processor [CPU] (supports C1 C2
-> > > C3, 8 throttling states)
-> > > However I cant figure out how to switch these processor states.
-> >
-> > http://www.brodo.de/english/pub/acpi/proc/processor.html
-> 
-> In the current ACPI patches (e.g. without the ACPI to cpufreq stuff), does the
-> switching CPU states have any actual effect?
+Hi Al,
 
-Yes, it should. Although you don't know whether it works until you have
-tested it. cpufreq only offers a cross-architecture interface, device driver
-notification, and timer updates (so that delay() loops are correct and
-/proc/cpuinfo shows the right frequency).
+On Tue, Nov 05, 2002 at 12:13:59AM +0000, Al Cutter wrote:
+> 	I've just started playing around with this acpi business, but the
+> 	processor performance (echo 1 > /proc/acpi/.../performance) didn't seem
+> 	to work on my Sony SRX41P, it'd timeout in 
+> 	acpi_processor_set_performance() ("Transition failed"). 
+> 
+> 	The cpufreq interface seems to work fine however, so I made a little 
+> 	patch against acpi-20021101 on 2.5.45 which makes :
+> 		* acpi_processor_set_performance() call cpufreq to change the 
+> 			clock speed, and
+> 		* acpi_processor_write_performance() call ..._set_performance()
+> 
+> 	Don't know if this makes sense, or it's just a kludge that gets around
+> 	my particular problem, but it seems to work quite well with 
+> 	autospeedstep (http://gpsdrive.kraftvoll.at/speedstep.shtml).
+Actually, this would be the wrong way 'round:
+
+There are several "techniques" to switch the performance states / the CPU
+freuqency. One is ACPI, others are "legacy" interfaces for Intel SpeedStep,
+AMD PowerNow, Cyrix Longhaul, Transmeta Crusoe, ... 
+
+cpufreq offers an unified interface for all these drivers (and a bit
+more...) - and so you shouldn't even recognize from reading this interface,
+/proc/cpufreq, what cpufreq driver (ACPI, SpeedStep, etc.) is used. 
+
+Your patch would actually remove the ACPI cpufreq driver. Additionally,
+you shouldn't try to use the ACPI generic interface to access a general
+CPUfreq driver; but use /proc/cpufreq [or /proc/sys/cpu/0/] directly.
 
 	Dominik
 
