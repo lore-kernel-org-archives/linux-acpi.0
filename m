@@ -1,43 +1,52 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
-Date: Tue, 21 Sep 2004 14:51:50 -0700
+From: Russ Anderson <rja@sgi.com>
+Subject: Re: [Lhns-devel] Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
+Date: Tue, 21 Sep 2004 17:23:30 -0500 (CDT)
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040921145150.A27211@unix-os.sc.intel.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201812.45933.dtor_core@ameritech.net> <20040920183845.C17763@unix-os.sc.intel.com> <200409210051.36251.dtor_core@ameritech.net>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Message-ID: <200409212223.i8LMNUFV041295@ben.americas.sgi.com>
+References: <20040921145150.A27211@unix-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200409210051.36251.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Tue, Sep 21, 2004 at 12:51:36AM -0500
-To: Dmitry Torokhov <dtor_core@ameritech.net>
-Cc: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+In-Reply-To: <20040921145150.A27211@unix-os.sc.intel.com> from "Keshavamurthy Anil S" at Sep 21, 2004 02:51:50 PM
+To: anil.s.keshavamurthy@intel.com
+Cc: Dmitry Torokhov <dtor_core@ameritech.net>, acpi-devel@lists.sourceforge.net, Brown Len <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 21, 2004 at 12:51:36AM -0500, Dmitry Torokhov wrote:
-> On Monday 20 September 2004 08:38 pm, Keshavamurthy Anil S wrote:
-> > Currently I am handling both the surprise removal and the eject request in the same
-> > way, i,e send the notification to the userland and the usermode agent scripts
-> > is responsible for offlining of all the devices and then echoing onto eject file.
+Keshavamurthy Anil S wrote:
+> On Tue, Sep 21, 2004 at 12:51:36AM -0500, Dmitry Torokhov wrote:
+> > On Monday 20 September 2004 08:38 pm, Keshavamurthy Anil S wrote:
 > > 
+> > I actually think that on the highest level we should treat controlled and
+> > surprise ejects differently. With controlled ejects the system (kernel +
+> > userspace) can abort the sequence if something goes wrong while with surprise
+> > eject the device is physically gone. Even if driver refuses to detach or we
+> > have partition still mounted or something else if physical device is gone we
+> > don't have any choice except for trimming the tree and doing whatever we need
+> > to do.
 > 
-> I actually think that on the highest level we should treat controlled and
-> surprise ejects differently. With controlled ejects the system (kernel +
-> userspace) can abort the sequence if something goes wrong while with surprise
-> eject the device is physically gone. Even if driver refuses to detach or we
-> have partition still mounted or something else if physical device is gone we
-> don't have any choice except for trimming the tree and doing whatever we need
-> to do.
+> I agree, but when dealing with devices like CPU and Memory, not sure how the
+> rest of the Operating System handles surprise removal.
 
-I agree, but when dealing with devices like CPU and Memory, not sure how the
-rest of the Operating System handles surprise removal. For now I will go ahead and
-add a PRINTK saying that BUS_CHECK(surprise removal request) was received in the 
-ACPI Processor and in the container driver, and when we hit that printk on a 
-real hardware, I believe it would be the right time then to see how the OS behaves 
-and do the right code then. For Now I will just go ahead and add a PRINTK.
+If by "surprise removal" you mean an Itanium CPU or Memory no longer are 
+accessable by the rest of the hardware, the result will be fatal MCA.  For 
+example,  if an Itanum CPU tried to load from Memory that no longer exists, 
+the load will time out and the CPU will generate a fatal MCA.  It may (or may
+not) be possible to enhance the MCA/linux error handling code to handle this 
+situation, but the current code does not.
 
-Let me know if this step by step approach is okay to you.
+>                                                        For now I will go ahead and
+> add a PRINTK saying that BUS_CHECK(surprise removal request) was received in the 
+> ACPI Processor and in the container driver, and when we hit that printk on a 
+> real hardware, I believe it would be the right time then to see how the OS behaves 
+> and do the right code then. For Now I will just go ahead and add a PRINTK.
+> 
+> Let me know if this step by step approach is okay to you.
+> 
+> thanks,
+> Anil
 
-thanks,
-Anil
 
+-- 
+Russ Anderson, OS RAS/Partitioning Project Lead  
+SGI - Silicon Graphics Inc          rja@sgi.com
