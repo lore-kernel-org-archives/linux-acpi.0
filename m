@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
-Date: 03 Aug 2004 22:55:55 -0400
+Subject: Re: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+Date: 03 Aug 2004 22:59:27 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091588154.2297.43.camel@dhcppc4>
-References: <B44D37711ED29844BEA67908EAF36F037BB9C6@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <1091588367.2297.49.camel@dhcppc4>
+References: <41103F22.4090303@optonline.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <B44D37711ED29844BEA67908EAF36F037BB9C6-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <41103F22.4090303-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,63 +17,168 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan D?singer <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stefan =?ISO-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Shaohua,
-pci=noacpi and acpi=noirq are boot workarounds --
-not full-featured supported configurations -- YMMV!
-We don't even guarantee that the ACPI SCI
-will work with these configurations.
-So I think we should spend 0 effort to support ACPI suspend/resume
-in configurations where ACPI is partially disabled.
+Well done Nathan!
 
-Sorry if this contradicts what I said yesterday,
-I think I wasn't thinking clearly then.
-
-thanks,
--Len
-
-
-On Tue, 2004-08-03 at 22:36, Li, Shaohua wrote:
-> Nathan,
-> I agree your patch should be ok for the special case, but it's not
-> sufficient. Please note a Link device is just an abstraction of PCI
-> router, which possibly is in ICH. If we use pci=noacpi or acpi=noirq, we
-> don't use link device but still use the router and may also change the
-> sets of the router (look at i386/pci/irq.c) and so still fail after S3.
-> Your patch can't handle this situation. This indicates adding
-> suspend/resume code in pci_link.c is not a good idea. Generic solution
-> should be to provide LPC driver.
+On Tue, 2004-08-03 at 21:42, Nathan Bryant wrote:
+> This patch should fix multiple user-visible problems with the ACPI IRQ
+> routing after S3 resume:
 > 
-> Thanks,
-> Shaohua
+> "irq x: nobody cared"
+> "my interrupts are gone"
+
+I was under the (apparently false) impression that devices would
+call eg. pci_enable_device() upon .resume, which would bubble down
+to pcibios_enable_irq()/acpi_pci_irq_enable() which would handle this.
+
+But not all do this this, and
+for those that do, the link->irq.setonboot test in
+acpi_pci_link_allocate would prevent the hardware from being
+reprogrammed anyway -- so I guess I hadn't thought this path through.
+
+And so I think we do need this patch for chipsets that clear
+the IRQ routers upon suspend.  Indeed, it is likely that
+we'd have this problem in S4 in addition to S3, yes?
+
+> diff -Nru a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> --- a/drivers/acpi/pci_link.c	2004-08-03 19:41:29 -04:00
+> +++ b/drivers/acpi/pci_link.c	2004-08-03 19:41:29 -04:00
+> @@ -29,6 +29,7 @@
+>   *	   for IRQ management (e.g. start()->_SRS).
+>   */
+>  
+> +#include <linux/sysdev.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+> @@ -84,6 +85,8 @@
+>  	struct acpi_pci_link_irq irq;
+>  };
+>  
+> +static int acpi_pci_link_resume (struct acpi_pci_link *link);
+> +
+
+This declaration isn't necessary b/c the definition (below)
+is above where the function is first used, yes?
+
+>  static struct {
+>  	int			count;
+>  	struct list_head	entries;
+> @@ -695,6 +698,42 @@
+>  
 > 
-> >-----Original Message-----
-> >From: Nathan Bryant [mailto:nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org]
-> >Sent: Wednesday, August 04, 2004 9:43 AM
-> >To: Brown, Len
-> >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Linux Kernel list; Li, Shaohua;
-> >Stefan D?singer
-> >Subject: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
-> >
-> >
-> >This patch should fix multiple user-visible problems with the ACPI IRQ
-> >routing after S3 resume:
-> >
-> >"irq x: nobody cared"
-> >"my interrupts are gone"
-> >
-> >It probably applies to multiple bugzilla entries and mailing list
-> posts.
-> >
-> >Tested on my machine, which is experiencing similar problems. Seems to
-> >work - although I get some non-fatal "nobody cared" messages that might
-> >be caused by the i8042 driver.
-> >
-> >Comments?
-> >Stefan, can you test this?
+>  static int
+> +acpi_pci_link_resume (
+> +	struct acpi_pci_link	*link)
+> +{
+> +	ACPI_FUNCTION_TRACE("acpi_pci_link_resume");
+> +	
+> +	if (link->irq.active && link->irq.setonboot)
+
+I think that before this change, irq.setonboot was a NOP
+and a candidate for being deleted.  However, it does seem
+to have a use here, where we want to re-program only those
+links that were programmed.  ("setonboot" would probably
+be better called "initialized" or "programmed").
+
+Since irq.active is set for all links from probe time
+whether or not we program them, it isn't sufficient,
+as we've found from experience that it is a bad idea
+to program links that are not explicitly requested
+by actual devices -- so I agree we need setonboot here.
+
+> +		return_VALUE(acpi_pci_link_set(link, link->irq.active));
+> +	else
+> +		return_VALUE(0);
+> +}
+> +
+> +
+> +static int
+> +irqrouter_resume(
+> +	struct sys_device *dev)
+> +{
+> +	struct list_head        *node = NULL;
+> +	struct acpi_pci_link    *link = NULL;
+> +
+> +	ACPI_FUNCTION_TRACE("irqrouter_resume");
+> +
+> +	list_for_each(node, &acpi_link.entries) {
+> +
+> +		link = list_entry(node, struct acpi_pci_link, node);
+> +		if (!link) {
+> +			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link context\n"));
+> +			continue;
+> +		}
+> +
+> +		acpi_pci_link_resume(link);
+> +	}
+> +	return_VALUE(0);
+> +}
+> +
+> +
+> +static int
+>  acpi_pci_link_remove (
+>  	struct acpi_device	*device,
+>  	int			type)
+> @@ -786,11 +825,42 @@
+>  __setup("acpi_irq_balance", acpi_irq_balance_set);
+>  
+> 
+> +static struct sysdev_class irqrouter_sysdev_class = {
+> +        set_kset_name("irqrouter"),
+> +        .resume = irqrouter_resume,
+> +};
+> +
+> +
+> +static struct sys_device device_irqrouter = {
+> +	.id     = 0,
+> +	.cls    = &irqrouter_sysdev_class,
+> +};
+> +
+> +
+> +static int __init irqrouter_init_sysfs(void)
+> +{
+> +	int error;
+> +
+> +	ACPI_FUNCTION_TRACE("irqrouter_init_sysfs");
+> +
+> +	if (acpi_disabled || acpi_noirq)
+> +		return_VALUE(0);
+> +
+> +        error = sysdev_class_register(&irqrouter_sysdev_class);
+> +        if (!error)
+> +        	error = sysdev_register(&device_irqrouter);
+> +
+> +        return_VALUE(error);
+> +}                                        
+> +
+> +device_initcall(irqrouter_init_sysfs);
+> +
+> +
+>  static int __init acpi_pci_link_init (void)
+>  {
+>  	ACPI_FUNCTION_TRACE("acpi_pci_link_init");
+>  
+> -	if (acpi_pci_disabled)
+> +	if (acpi_disabled || acpi_noirq)
+
+I think that testing acpi_noirq is sufficient here.
+
+>  		return_VALUE(0);
+>  
+>  	acpi_link.count = 0;
+> @@ -798,7 +868,7 @@
+>  
+>  	if (acpi_bus_register_driver(&acpi_pci_link_driver) < 0)
+>  		return_VALUE(-ENODEV);
+> -
+> +		
+>  	return_VALUE(0);
+>  }
+>  
 
 
 
