@@ -1,11 +1,14 @@
-From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: Why nobody help me?
-Date: Tue, 13 Jul 2004 22:46:44 -0300
+From: "Francesco P. Lovergine" <frankie-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: DSDT overriding by local table, any modularization possible?
+Date: Wed, 14 Jul 2004 10:45:14 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BAY16-F24kPqkap7p8b0001c9b6@hotmail.com>
+Message-ID: <20040714084514.GD31097@ba.issia.cnr.it>
+References: <BAY16-F36gjakzxHaMy000203af@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BAY16-F36gjakzxHaMy000203af-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,55 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: g.sferra.s2-jeWSZhyng+boZ1rtG9PHaQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Which DSDT on on acpi.sf.net?
-I saw a single entry for Fujitsu-Siemens, but the name didn't say "Amilio 
-D".
+On Tue, Jul 13, 2004 at 01:50:47PM -0300, Dino Klein wrote:
+> Did you check the patch I made a while ago (january)?
+> http://marc.theaimsgroup.com/?l=acpi4linux&m=107448387831707&w=2
+> 
+> // sales pitch begin
+> It works by using an initramfs image to hold the initrd image and a 
+> modified DSDT (other tables can also be placed in it, such as SSDT).
+> // sales pitch end :)
+> I haven't touched (or used) it for a while, so I don't know if boot 
+> sequence procedure got changed since 2.6.1 to render it inoperable. If you 
+> do try it, let me know if it doesn't work anymore.
+> 
 
+Interesting hack, it's tiny and clean enough to be considered for 
+debian stock kernels. I'll do some tests.
 
->From: "Gaetano Sferra" <g.sferra.s2-jeWSZhyng+boZ1rtG9PHaQ@public.gmane.org>
->To: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
->Subject: [ACPI] Why nobody help me?
->Date: Tue, 13 Jul 2004 17:18:24 +0200
->
->Hello to all,
->
->ACPI errors on my AMILO D laptop still here, I'm waiting
->support from you. In last post of mine there is all details on
->AE_NOT_EXISTS boot errors and the dsdt attachment for my
->laptop. There isn't a valid or patched dsdt in your database at
->http://acpi.sourceforge.net so I still waiting for instructions.
->I'm using a 2.4.26 acpi-patched kernel and in the /proc/acpi directory
->all reports seems to be freezed, temperature 75C, trip points 85C,
->polling frequency is disabled and the cooling mode isn't supported at all.
->May be it is a config problem, I've readed all howtos in your site
->but... nothing... can someone help me please?
->
->  See my previous postings for more details.... or ask to me...
->
->Thank you for your great job,
->Gaetano Sferra
->
->
->
->
->
->-------------------------------------------------------
->This SF.Net email sponsored by Black Hat Briefings & Training.
->Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
->digital self defense, top technical experts, no vendor pitches,
->unmatched networking opportunities. Visit www.blackhat.com
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-_________________________________________________________________
-MSN Messenger: instale grátis e converse com seus amigos. 
-http://messenger.msn.com.br
-
+-- 
+Francesco P. Lovergine
 
 
 -------------------------------------------------------
