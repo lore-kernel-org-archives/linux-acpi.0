@@ -1,16 +1,13 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
+From: jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org (Johan Vromans)
 Subject: Re: Re: bluetooth button is dead
-Date: Tue, 21 Dec 2004 16:28:46 +0100
-Message-ID: <200412211628.47370.sanskryt@op.pl>
+Date: Tue, 21 Dec 2004 18:21:46 +0100
+Message-ID: <16840.23466.968238.615803@phoenix.squirrel.nl>
 References: <20041221150316.14A5D9DA3B@phoenix.squirrel.nl>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+	<41C84078.9060402@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041221150316.14A5D9DA3B-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,16 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia wtorek 21 grudnia 2004 16:03, Johan Vromans napisa=B3:
-> I've used the setkeycodes program to assign key codes, and use
-> xbindkeys to intercept the codes to generate on screen display
-> messages.
-May You send details to the greenhorns?
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+[Quoting Pedro Venda, on December 21 2004, 15:25, in "Re: [ACPI] Re: bluet"]
+> but does it return such a message? mine does.
+> 
+> atkbd.c: Unknown key pressed (translated set 2, code 0xd5 on isa0060/serio0).
+> atkbd.c: Use 'setkeycodes e055 <keycode>' to make it known.
+> atkbd.c: Unknown key released (translated set 2, code 0xd5 on isa0060/serio0).
+> atkbd.c: Use 'setkeycodes e055 <keycode>' to make it known.
+
+Yes, it does. When I press the BlueTooth button I get a e058, and the
+WiFi button alternates e055 (On) and e056 (Off). This is a TravelMate
+4001WLMi; your actual codes can differ. 
+
+-- Johan
 
 
 -------------------------------------------------------
