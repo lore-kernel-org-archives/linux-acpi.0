@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: ACPI C4 support
-Date: Tue, 2 Mar 2004 23:22:25 +0100
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ASUS M6800N: processor has only C1
+Date: Wed, 3 Mar 2004 11:35:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040302222225.GC4399@message-id.gmane0305.slipkontur.de>
-References: <F760B14C9561B941B89469F59BA3A84702C932FD@orsmsx401.jf.intel.com> <20040301192738.GA9459@elf.ucw.cz> <20040301193917.GA2869@poupinou.org>
+Message-ID: <20040303103528.GG2869@poupinou.org>
+References: <404459FD.1000406@pca.it> <20040302110946.GF2869@poupinou.org> <40448169.6090507@pca.it> <40449D8E.4060402@pca.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040301193917.GA2869-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <40449D8E.4060402-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +17,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 01, 2004 at 08:39:17PM +0100, Bruno Ducrot wrote:
+On Tue, Mar 02, 2004 at 03:43:26PM +0100, Luca Capello wrote:
+> Hash: SHA1
+> 
+> Hello,
+> 
+
+Thanks.  Sound like that I send only an half patch, sorry.
+
+
+--- linux-2.6-bk/include/acpi/processor.h	2004/03/03 10:17:39	1.1
++++ linux-2.6-bk/include/acpi/processor.h	2004/03/03 10:31:20
+@@ -15,6 +15,16 @@
  
-> > If there is old BIOS guide telling them to use length of 7, could we
-> > make Linux accept that? Its likely a lot of developers have read
-> > that...
-
-Even non-intel developers. I have a ASUS L2400d, apparently intel-free
-(maybe this is why all the ACPI suspend stuff works reasonably well ;-))
-which has also the infamous "7" and so only supports C1.
-
-> > Allowing length of 7 is one line change; if we do it, such notebooks
-> > will be able to use C1..C3, but not C4. That does not seem too bad...
+ /* Power Management */
  
-> The problem is that, from strict acpi point of view, it will be too easy
-> to allow '7', and _CST support is much better.  Don't ask me why, I'm not
-> an expert.  So perhaps it may be possible to add the (bahh, beurk)
-> length of 7 if there exist a bad written bios developper guide released
-> apparently by Intel, at least as a non pedantic acpi option?
++struct acpi_power_register {
++	u8			descriptor;
++	u16			length;
++	u8			space_id;
++	u8			bit_width;
++	u8			bit_offset;
++	u8			reserved;
++	u64			address;
++} __attribute__ ((packed));
++
+ struct acpi_processor_cx_policy {
+ 	u32			count;
+ 	int			state;
+@@ -32,6 +42,7 @@ struct acpi_processor_cx {
+ 	u32			latency;
+ 	u32			latency_ticks;
+ 	u32			power;
++	u32			type;
+ 	u32			usage;
+ 	struct acpi_processor_cx_policy promotion;
+ 	struct acpi_processor_cx_policy demotion;
+@@ -40,6 +51,7 @@ struct acpi_processor_cx {
+ struct acpi_processor_power {
+ 	int			state;
+ 	int			default_state;
++	int			count;
+ 	u32			bm_activity;
+ 	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
+ };
 
-Yes, please!
 -- 
-Stefan Seyfried
+Bruno Ducrot
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
