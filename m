@@ -1,11 +1,13 @@
 From: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
-Subject: Owner ID wraparound problem during _BST
-Date: Sat, 9 Aug 2003 22:51:09 -0400 (EDT)
+Subject: Battery status update resolution
+Date: Sun, 10 Aug 2003 02:14:08 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.GSO.4.53.0308092239430.8919@compserv2>
+Message-ID: <Pine.GSO.4.53.0308100150310.8919@compserv2>
+References: <Pine.GSO.4.53.0308092239430.8919@compserv2>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.GSO.4.53.0308092239430.8919-0/pBV72GoN7BkAz3hwFLjg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,20 +21,25 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi
 
-I'm using 2.4.20 kernel with ACPI-patch 20021212. I found on sourceforge
-that 20030523 has fixed the OwnerId wraparound problem. I'm currently
-looking at the new sources and if I'm getting it right, the only change
-related to this is in aclocal.h, where the values of ACPI_FIRST_METHOD_ID
-and ACPI_FIRST_TABLE_ID have been changed to provide more room for
-TYPE_METHOD owner_ids to grow before wrapping around (upto 0xF000 as
-opposed to 0x8000 earlier). Would be great if some one could confirm if
-this is indeed the only change related to fixing this problem. Also, what
-exactly is the reason why this value *has* to be 16-bit and not bigger.
+I apologize upfront, if this is not totally relevant to this list.
+Some questions about the update resolution of the battery remaining
+capacity status:
 
-Thanks in advance !
+What is the capacity status update resolution of a state-of-the-art
+'smart' battery ? I'm currently using a Dell Inspiron 2600 with a Sanyo
+LION control method battery, which updates its capacity status only for a
+change of 30 - 40 mAh in the capacity (as observed through _BST control
+method). What exactly is this limitation due to, is it the AML implementation
+of the _BST method by the OEM or is it the battery hardware itself (say
+number of bits in the A/D converter of the smart battery) ?
 
-Best,
+Any insights would be greatly appreciated.
+
+Thanks,
 --Manish
+
+
+
 
 
 -------------------------------------------------------
