@@ -1,16 +1,14 @@
-From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
-Subject: Re: No network after S3
-Date: Tue, 24 Feb 2004 07:41:30 +0100
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: CUR-DLS blacklisted? + IRQ trouble
+Date: Tue, 24 Feb 2004 12:21:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402240741.30530.t.zachmann@zagge.de>
-References: <BF1FE1855350A0479097B3A0D2A80EE0025A6344@hdsmsx402.hd.intel.com> <1077000806.2515.46.camel@dhcppc4> <200402170856.42059.t.zachmann@zagge.de>
+Message-ID: <20040224112124.GA13435@message-id.gmane0305.slipkontur.de>
+References: <402F823D.6070702@mega.ist.utl.pt> <1077079669.4948.24.camel@dhcppc4> <4039365B.6090105@mega.ist.utl.pt> <20040223112406.116f381e.rddunlap@osdl.org> <403AAB98.4050508@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200402170856.42059.t.zachmann-c61pB8mzqkY@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <403AAB98.4050508-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,43 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Len,
+On Tue, Feb 24, 2004 at 01:40:40AM +0000, Pedro Venda wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> hi
+> 
+> i am afraid it is still not working for me, i tried it just now.
+> 
+> i guess the problem is not with the bug's text size... i get an error
+> message in a big red box saying: "A legal Architecture was not set."
 
-> On Tuesday 17 February 2004 07:53, Len Brown wrote:
-> > > Please let me know if there is any information that I can provide to
-> > > track the problem down?
-> >
-> > need /proc/interrupts -- PIC or APIC mode?  network interrupt shared
-> > with ACPI, other devices, or dedicated interrupt?
->
-> I think I use APIC mode. The interrupts for the network are not shared with
-> another device as far as I can tell. /proc/interrupts only show eth0 on
-> interrupt 6.
->
-> I have attached a file containing the output of /proc/interrupts, dmesg
-> and /var/log/boot.msg.
->
-> > We'll probably have
-> > to dump out the state of the interrupt controller after resume.  for
-> > IOAPIC we can do that with print_IO_APIC.  for PIC mode we'll need
-> > something else.
->
-> just tell me what I have to do. Where do I have to call print_IO_APIC?
+I had the same problem with mozilla. Using konqueror it worked.
+-- 
+Stefan Seyfried
 
-I had a look in my kernel config and IO-APIC is enabled. Can you tell me where 
-I have to call print_IO_APIC.  
-
-is there any infomation I can send you, or any tests I can make to locate the 
-source of the problem. I really like this bug fixed, as this is one of the 
-features I need most on my notebook.
-
-Thanks for you  help, have a nice day
-
-Thorsten 
 
 
 -------------------------------------------------------
