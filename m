@@ -1,14 +1,14 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Store(Local0, Local0) behavior?
-Date: Fri, 3 Oct 2003 15:55:55 -0700
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: RE: down_timeout
+Date: Sat, 04 Oct 2003 00:29:54 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DD6@orsmsx405.jf.intel.com>
+Message-ID: <1065223793.14596.1.camel@dhcp23.swansea.linux.org.uk>
+References: <D3A3AA459175A44CB5326F26DA7A189C1C3DD3@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:message
+In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3DD3-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,17 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Yury Umanets <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Gwe, 2003-10-03 at 21:29, Moore, Robert wrote:
+> I would say that the whole thing is wrong -- the kernel should provide a
+> semaphore wait function that includes a timeout parameter.
 
-I will re-address this issue (in the case where Local0 is
-uninitialized.)
+Thats probably the right thing to fix. A timeout aware version of down()
+doesnt actually look too hard.
 
-
------Original Message-----
-From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
-Sent: Monday, September 29, 2003 12:50 PM
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Moore, Robert
-Subject: Store(Local0, Local0) behavior?
-
-Sometime around 0619, executing an opcode of Store(Local0, Local0)
-started
-generating an error instead of just being a no-op.  In reading the 2.0b
-spec, there is no evidence that this is an illegal operation.  Could
-someone restore the previous behavior?  What part of ACPICA handles the
-Store opcode?
-
--Nate
 
 
 -------------------------------------------------------
