@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: No Thermal
-Date: 23 Feb 2004 01:46:11 -0500
+Subject: Re: Resume from suspend-to-ram (radeon)
+Date: 23 Feb 2004 02:00:09 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1077518771.12669.58.camel@dhcppc4>
-References: <403852B9.3060504@terra.com.br>
+Message-ID: <1077519609.12675.63.camel@dhcppc4>
+References: <c15rn0$5bu$2@sea.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <403852B9.3060504-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
+In-Reply-To: <c15rn0$5bu$2@sea.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,54 +17,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alf <alfredo.mapelli-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Giridhar Pemmasani <giri-IxWJ8JVbGpr5NRxSJurNR4dd74u8MsAO@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, benh-t6+wdnd7Ef+CjzjZhc0bXmD2FQJk+8+b@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2004-02-22 at 01:56, Alf wrote:
-> Hi,
-> I trying to use ACPI for linux in a Asus MotherBoard (P4P800) but I am 
-> unable to use thermal and fan the only ACPI that works is Buttons if I 
-> cat /proc/acpi/event and press the power button it gives up a message, 
-> but under /thermal_zone and /fan there is nothing... The BIOS from this 
-> MB says that it is ACPI 2.0 enabled, but as I sayd before I cannot use ACPI.
-> Can anyone tell me if it is possibel to use? If /button woks, why 
-> /thermal_zone or /fan does not?
-> thaks
-> 
-> Alfredo
-> 
-> first check your .config has them enabled, eg.
+Ben,
+has radeon_pm.c suspend/resume worked under other conditions?
 
-CONFIG_ACPI=y
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_INTERPRETER=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SLEEP_PROC_FS=y
-CONFIG_ACPI_AC=m
-CONFIG_ACPI_BATTERY=m
-CONFIG_ACPI_BUTTON=m
-CONFIG_ACPI_FAN=m
-CONFIG_ACPI_PROCESSOR=m
-CONFIG_ACPI_THERMAL=m
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_TOSHIBA is not set
-# CONFIG_ACPI_DEBUG is not set
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SYSTEM=y
-
-Then see what dmesg says -- ACPI will tell you what it finds.
-If you think it doesn't find something it should, dump the DSDT with
-acpidmp, disassemble it, and look for "Device" and see what's in there.
-
-Some MB's have ACPI fan control, other's don't.
-
-cheers,
+thanks,
 -Len
 
+On Fri, 2004-02-20 at 15:46, Giridhar Pemmasani wrote:
+> I have already posted the following message to LKML. However, since there
+> was lot of discussion on this topic in this mailing list, I am posting here
+> too. 
+> 
+> I have Dell Latitude D600 laptop with Radeon R250 Lf (Mobility 9000
+> M9) video card. I have been trying to get suspend-to-ram work with
+> this laptop since 2.5.70 or so. The problem almost always was that if
+> frame buffer (I have tried radeon and vesa) is used, resume won't
+> finish - it would hang right after pressing power button and if plain
+> console is used resume works fine, but the LCD stays off.
+> 
+> Since new radeonfb has suspend/resume driver model, I thought I might
+> give it a try, but still the laptop would hang during resume. With a
+> bit of trial and error (and some guess work), I got the laptop to
+> resume successfully with the following patch.
+> 
+> --- radeon_pm.c.orig    2004-02-20 15:11:18.000000000 -0500
+> +++ radeon_pm.c 2004-02-20 15:12:23.000000000 -0500
+> @@ -907,11 +907,13 @@
+>  
+>         /* Restore display & engine */
+>         radeonfb_set_par(info);
+> -       fb_pan_display(info, &info->var);
+> -       fb_set_cmap(&info->cmap, 1, info);
+> +       /* fb_pan_display(info, &info->var);
+> +        * fb_set_cmap(&info->cmap, 1, info);
+> +        */
+>  
+>         /* Refresh */
+> -       fb_set_suspend(info, 0);
+> +       /* fb_set_suspend(info, 0);
+> +        */
+>  
+>         /* Unblank */
+>         rinfo->lock_blank = 0;
+> 
+> 
+> Right now after resume, console still remains blank, but X restores
+> the screen properly. Note that since frame buffer is not restored
+> properly, the console is pretty much useless, but it is not a problem
+> for me as I use X all the time.
+> 
+> I have used this patch with kernel 2.6.3-mm2. I haven't tried 2.6.3,
+> but I think it may work with 2.6.3 too.
+> 
+> I am also attaching config.bz2 and /etc/acpi/sleep (the script used to
+> suspend the laptop). 
+> 
+> I am not subscribed to LKML, so please CC me.
+> 
 
 
 
