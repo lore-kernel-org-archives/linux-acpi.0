@@ -1,12 +1,11 @@
-From: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>
-Subject: ACPI - DOS - 2.6.10
-Date: Mon, 27 Dec 2004 00:08:29 +0100
-Message-ID: <20041226230829.GB947@mail.muni.cz>
+From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
+Subject: ACPI4Linux IRC chan
+Date: Sun, 26 Dec 2004 19:02:39 -0500
+Message-ID: <41CF511F.80608@joshuawise.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,18 +18,12 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+Hi all,
 
-since 2.6.10-rc1 display switch button stoped to work. I have ACPI video
-compiled in, it displays: DOS setting: <1>
+Is there an official ACPI4Linux IRC channel? If not, I've registered 
+#acpi4linux on irc.freenode.net if anyone is interested.
 
-Any value written to this file does not get it work. ACPI event is generated:
-[Mon Dec 27 00:07:32 2004] received event "video VGA 00000080 00000000"
-
-Any suggestions? I can provide /proc/acpi/dsdt if it helps.
-
--- 
-Luká¹ Hejtmánek
+joshua
 
 
 -------------------------------------------------------
