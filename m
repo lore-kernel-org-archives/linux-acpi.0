@@ -1,13 +1,13 @@
-From: ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
-Subject: Re: Re: ACPI Suspend on Inspiron 1100
-Date: Mon, 4 Apr 2005 11:22:20 -0400
-Message-ID: <20050404152220.GA24028@jose.lug.udel.edu>
-References: <20050331191931.GA16450@jose.lug.udel.edu> <200504011602.06831.stefandoesinger@gmx.at> <20050403224042.GA30240@jose.lug.udel.edu> <1112569030.20939.93.camel@tyrosine> <20050404071524.GB8666@message-id.gmane0305.slipkontur.de>
+From: Nathan Lynch <ntl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [RFC 5/6]clean cpu state after hotremove CPU
+Date: Mon, 4 Apr 2005 10:33:45 -0500
+Message-ID: <20050404153345.GC3611@otto>
+References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com> <20050404052844.GB3611@otto> <1112593338.4194.362.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050404071524.GB8666-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <1112593338.4194.362.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +17,127 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 04, 2005 at 09:15:24AM +0200, Stefan Seyfried wrote:
-> Some of our X gurus told me, that it is actually illegal to simply restore
-> vbestate without further knowledge and that "bad things may happen" when
-> i asked them if they could not put "vbetool {save,restore}" functionality
-> into vt-switch of all x servers. I have not enough knowledge about this stuff
-> and could only tell them "but it works sometimes" :-)
+On Mon, Apr 04, 2005 at 01:42:18PM +0800, Li Shaohua wrote:
+> Hi,
+> On Mon, 2005-04-04 at 13:28, Nathan Lynch wrote:
+> > On Mon, Apr 04, 2005 at 10:07:02AM +0800, Li Shaohua wrote:
+> > > Clean up all CPU states including its runqueue and idle thread, 
+> > > so we can use boot time code without any changes.
+> > > Note this makes /sys/devices/system/cpu/cpux/online unworkable.
+> > 
+> > In what sense does it make the online attribute unworkable?
+> I removed the idle thread and other CPU states, and makes the dead CPU
+> into a 'halt' busy loop. 
+> 
+> > 
+> > > diff -puN kernel/exit.c~cpu_state_clean kernel/exit.c
+> > > --- linux-2.6.11/kernel/exit.c~cpu_state_clean	2005-03-31 10:50:27.000000000 +0800
+> > > +++ linux-2.6.11-root/kernel/exit.c	2005-03-31 10:50:27.000000000 +0800
+> > > @@ -845,6 +845,65 @@ fastcall NORET_TYPE void do_exit(long co
+> > >  	for (;;) ;
+> > >  }
+> > >  
+> > > +#ifdef CONFIG_STR_SMP
+> > > +void do_exit_idle(void)
+> > > +{
+> > > +	struct task_struct *tsk = current;
+> > > +	int group_dead;
+> > > +
+> > > +	BUG_ON(tsk->pid);
+> > > +	BUG_ON(tsk->mm);
+> > > +
+> > > +	if (tsk->io_context)
+> > > +		exit_io_context();
+> > > +	tsk->flags |= PF_EXITING;
+> > > + 	tsk->it_virt_expires = cputime_zero;
+> > > + 	tsk->it_prof_expires = cputime_zero;
+> > > +	tsk->it_sched_expires = 0;
+> > > +
+> > > +	acct_update_integrals(tsk);
+> > > +	update_mem_hiwater(tsk);
+> > > +	group_dead = atomic_dec_and_test(&tsk->signal->live);
+> > > +	if (group_dead) {
+> > > + 		del_timer_sync(&tsk->signal->real_timer);
+> > > +		acct_process(-1);
+> > > +	}
+> > > +	exit_mm(tsk);
+> > > +
+> > > +	exit_sem(tsk);
+> > > +	__exit_files(tsk);
+> > > +	__exit_fs(tsk);
+> > > +	exit_namespace(tsk);
+> > > +	exit_thread();
+> > > +	exit_keys(tsk);
+> > > +
+> > > +	if (group_dead && tsk->signal->leader)
+> > > +		disassociate_ctty(1);
+> > > +
+> > > +	module_put(tsk->thread_info->exec_domain->module);
+> > > +	if (tsk->binfmt)
+> > > +		module_put(tsk->binfmt->module);
+> > > +
+> > > +	tsk->exit_code = -1;
+> > > +	tsk->exit_state = EXIT_DEAD;
+> > > +
+> > > +	/* in release_task */
+> > > +	atomic_dec(&tsk->user->processes);
+> > > +	write_lock_irq(&tasklist_lock);
+> > > +	__exit_signal(tsk);
+> > > +	__exit_sighand(tsk);
+> > > +	write_unlock_irq(&tasklist_lock);
+> > > +	release_thread(tsk);
+> > > +	put_task_struct(tsk);
+> > > +
+> > > +	tsk->flags |= PF_DEAD;
+> > > +#ifdef CONFIG_NUMA
+> > > +	mpol_free(tsk->mempolicy);
+> > > +	tsk->mempolicy = NULL;
+> > > +#endif
+> > > +}
+> > > +#endif
+> > 
+> > I don't understand why this is needed at all.  It looks like a fair
+> > amount of code from do_exit is being duplicated here.  
+> Yes, exactly. Someone who understand do_exit please help clean up the
+> code. I'd like to remove the idle thread, since the smpboot code will
+> create a new idle thread.
 
-Interestingly though, it locks up for me in text mode as well.  Now, X
-has been started and is running on another VT, and I haven't tried
-with it disabled - that could be related.
+I'd say fix the smpboot code so that it doesn't create new idle tasks
+except during boot.
 
-But at any rate, the laptop appears not to need it, since posting the
-video hardware works well enough to restore text mode, and then
-switching back to X11 works smoothly.
--- 
-Ross Vandegrift
-ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+> 
+> > We've been
+> > doing cpu removal on ppc64 logical partitions for a while and never
+> > needed to do anything like this. 
+> Did it remove idle thread? or dead cpu is in a busy loop of idle?
 
-"The good Christian should beware of mathematicians, and all those who
-make empty prophecies. The danger already exists that the mathematicians
-have made a covenant with the devil to darken the spirit and to confine
-man in the bonds of Hell."
-	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
+Neither.  The cpu is definitely offline, but there is no reason to
+free the idle thread.
+
+> 
+> >  Maybe idle_task_exit would suffice?
+> idle_task_exit seems just drop mm. We need destroy the idle task for
+> physical CPU hotplug, right?
+
+No.
+
+> > 
+> > I don't understand the need for this, either.  The existing cpu
+> > hotplug notifier in the scheduler takes care of initializing the sched
+> > domains and groups appropriately for online/offline events; why do you
+> > need to touch the runqueue structures?
+> If a CPU is physically hotremoved from the system, shouldn't we clean
+> its runqueue?
+
+No.  It should make zero difference to the scheduler whether the "play
+dead" cpu hotplug or "physical" hotplug is being used.  
+
+
+Nathan
 
 
 -------------------------------------------------------
