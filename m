@@ -1,8 +1,8 @@
 From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
-Subject: Re: Re: CALL FOR TESTING
-Date: Thu, 26 Sep 2002 09:36:41 +0200
+Subject: Re: RE: problem dumping/fixing dsdt
+Date: Thu, 26 Sep 2002 09:34:50 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200209260736.g8Q7afX12876@mailgate5.cinetic.de>
+Message-ID: <200209260734.g8Q7YoX09133@mailgate5.cinetic.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -15,23 +15,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org, PavelMachek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, KnutNeumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+To: "'joerg.beyer=htSm2yLGOjU@public.gmane.org'" <joerg.beyer-htSm2yLGOjU@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org schrieb am 26.09.02 00:13:55:
-> Sorry for beeing a bit late,  I was out of town for a few days. I will try
-> that tomorrow morning. Actually before I left I did what Andrew suggested
-> and compiled acpi as modules. Machine boots fine then, but when modprobing
-> the thermal module oopses. IIRC temperature was around 60 degrees
-> celsius...that does not seem too hot for an athlon, does it?
+"Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> schrieb am 25.09.02 23:19:34:
+> You need to add a return statement (with a value) at the end of the method.
+> Bob
 > 
-I see this temerature also from time to time for a Athlon mobile 1200. I dont know if that
-is too hot.
+...
+>     25              Method (_PSS, 0, NotSerialized)
+>     26              {
+>     27                  Store (MFID, Local0)
+>     28                  Store (MVID, Local1)
+>     29                  If (LEqual (Local0, 0x0A))
+>     30                  {
+>     31                      If (LEqual (Local1, 0x0C))
+>     32                      {
+>     33                          Return (Z000)
+>     34                      }
+>     35                  }
+>     36
 
+...
+
+>    117                  If (LEqual (Local0, 0x02))
+>    118                  {
+>    119                      If (LEqual (Local1, 0x09))
+>    120                      {
+>    121                          Return (Z00B)
+>    122                      }
+>    123                  }
+                             Return(0)
+
+will this be correct?
+
+>    124              }
+>    125
+
+
+    TIA
     Joerg
-
-
 
 
 
