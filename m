@@ -1,14 +1,11 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Gateway 200X (again) - No power button events
-Date: Tue, 20 Jan 2004 16:23:52 -0800
+From: Tod Morrison <tmorriso-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
+Subject: S1 could work
+Date: Tue, 20 Jan 2004 18:25:13 -0700 (MST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84702C9323C@orsmsx401.jf.intel.com>
+Message-ID: <Pine.LNX.4.58.0401201816420.4869@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +14,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
+Hopefully this is can be done. I have partially functional S1 and S3 
+states, in the case of S3 the LCD remains off after resume which I gather 
+may be a problem for awhile, but I'm patient. The problem with S1 is just 
+frustrating though, I have no way of powering of (i.e. dpms) from the 
+console (setterm doesn't work) and S1 doesn't turn off the LCD. This 
+wasn't a problem under 2.4 since I would just execute 'xset dpms force 
+off' from within X before suspending. Unfortunately, in 2.6 acpi switches 
+to a text console to display some messages prior to going into standby 
+which breaks my only work around. I'd like to know if there's anyway 
+around this, as it essentially makes 2.6 kernels unusable to me.
 
-> From: Greg Sarjeant [mailto:greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org]=20
-> Aha! That did the trick.
+Tod Morrison <tmorriso-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
+   http://math.cudenver.edu/~tmorriso
 
-> And now dmesg reports:
-> So, it is picking up the Control Method Power Button, and I get events
-> from it now. Outstanding.
-
-> Is this something that might find its way into the main kernel tree?
-> Should I submit a bug for this behavior?
-
-Yes open a bug. Sounds like if both are present, CM should be preferred
-over FF. This is against what the spec says, so this may come down to a
-judgment call by Len. I don't know how common this problem is.
-
-Regards -- Andy
+  "Everyone thinks of changing the world,
+  but no one thinks of changing himself."
+  - Leo Tolstoy
 
 
 -------------------------------------------------------
