@@ -1,12 +1,11 @@
-From: "Art I. Snell" <artsnellzu-WqJBiOE4SDc9HR1gtAmOQQ@public.gmane.org>
-Subject: We give you $200 bonus at Casino Zeal!
-Date: Mon, 09 Aug 2004 20:03:36 -0100
+From: Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>
+Subject: current ACPI status in 2.6.7 kernel
+Date: Tue, 10 Aug 2004 11:05:05 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <2cdc01c47e54$d1f1e7f8$3a23614c@color-graphics.nl>
+Message-ID: <411881B1.9000903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,30 +15,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, 
-I have a special offer available for you at our casino.
+Hello.
 
-$20 to try our internet casino, no deposit is necessary!
-At the casino software's cashier enter bonus code: FR93P
+I could not find this information in neither mailing list archive nor 
+the web site.
+What is the current status of ACPI ? I'm mainly interested in one simple 
+question -
+does suspend work ? If so, how stable it is.
 
-$200 bonus on your first deposit!
-At the casino software's cashier enter bonus code: FMJKU
+Thanks.
 
-Allow us to show you our quality operation, fast payouts,
-generous bonuses, and super friendly around-the-clock
-customer support.
+Suggestion - put current status message on the web site.
 
-Click here: http://bigbonus-casino.net 
+-- 
+Alexander Sirotkin
+SW Engineer
 
-Best regards,
-Jamie Zawinsky
+Texas Instruments
+Broadband Communications Israel (BCIL)
+Tel:  +972-9-9706587
+________________________________________________________________________
+"Those who do not understand Unix are condemned to reinvent it, poorly."
+      -- Henry Spencer 
 
-
-
-No thanks: http://bigbonus-casino.biz/u/
 
 
 
