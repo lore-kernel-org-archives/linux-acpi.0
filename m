@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: acpi-20040715+D600+Suspend
-Date: Fri, 10 Sep 2004 16:15:46 +0200
+From: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ACPI based Memory Hotplug Driver Patch
+Date: Fri, 10 Sep 2004 17:50:16 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040910141546.GA29387@message-id.gmane0305.slipkontur.de>
-References: <1093972503.9372.38.camel@neuromancer.home.net> <20040902143034.GA676@elf.ucw.cz> <1094442085.21466.29.camel@neuromancer.home.net> <20040906171349.GC26195@atrey.karlin.mff.cuni.cz> <1094527351.25454.14.camel@neuromancer.home.net> <20040907093424.GA30810@atrey.karlin.mff.cuni.cz> <1094768209.2843.6.camel@laptop.cunninghams> <1094811463.27216.117.camel@neuromancer.home.net> <20040910104641.GA24171@atrey.karlin.mff.cuni.cz>
+Message-ID: <FEB6C4E97F6CAF41978FB2059D5454180F37EF@bgsmsx402.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040910104641.GA24171-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,26 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 10, 2004 at 12:46:41PM +0200, Pavel Machek wrote:
+Thanks Dmitry,
 
-> All partitions with valuable data :-). Actually, ext2 is even better
-> idea. It should work with any filesystem, it is just that ext2/ext3
-> has very good filesystem check... And I managed to find bugs even if
-> fsck.ext2. You'll probably be luckier, but...
 
-So to lighten the mood here a bit, i'll confess that i have all data
-(/ and /home) on reiserfs, only /boot is on ext2 to speed up grub at
-resume time (if the filesystem is very dirty at suspend, i guess grub
-has to playback the journal in its little mind which can take quite
-some seconds for both kernel and initrd).
-I have to admit that i do daily backups, though, but this is a good
-idea with _any_ filesystem.
--- 
-Stefan Seyfried
+> +static int=20
+> +acpi_memory_get_device(acpi_handle handle,
+> +=A0=A0=A0=A0=A0=A0=A0struct acpi_memory_device **mem_device)=20
+> +{
 
+I think the above should go straight into drivers/acpi/bus.c - there is
+nothing memory-specific in that code and having the common code for hot-
+plugged devices would help other drivers. Umm.. yep. I see that ACPI
+CPU hotplug posted just recently does exactly the same.
+
+<nave> Good point.  Let me re-look into CPU hot plug patch.
+
+Also, does it compile as a module? acpi_bus_add does not seem to be
+exported...
+
+<nave> Yes, it does compile as a module. Acpi_bus_add is exported. =
+Please refer to the following chunk of the patch.
+
+--- linux-2.6.8.1-mm3-orig/drivers/acpi/acpi_ksyms.c	2004-09-09 =
+13:55:36.000000000 +0530
++++ linux-2.6.8.1-mm3-hpmem/drivers/acpi/acpi_ksyms.c	2004-09-09 =
+14:01:11.000000000 +0530
+@@ -135,6 +135,7 @@
+ EXPORT_SYMBOL(acpi_bus_receive_event);
+ EXPORT_SYMBOL(acpi_bus_register_driver);
+ EXPORT_SYMBOL(acpi_bus_unregister_driver);
++EXPORT_SYMBOL(acpi_bus_add);
+
+--=20
+Dmitry
 
 
 -------------------------------------------------------
