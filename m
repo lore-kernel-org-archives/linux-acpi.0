@@ -1,14 +1,13 @@
-From: "Gary L. Grebus" <glg-146jrH3mAPHQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ACPI on Compaq Evo N800c
-Date: Fri, 24 Jan 2003 01:14:19 -0500
+From: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>
+Subject: ACPI patch 2002-01-23
+Date: Fri, 24 Jan 2003 09:49:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E30D9BB.1020202@grebus.com>
-References: <3E30206B.8080201@iis.fhg.de>
+Message-ID: <200301240949.16462.m.c.p@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3E30206B.8080201-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,34 +16,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christian Neubauer <neu-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- >I have a Compaq N800c Laptop and need a way get the machine to 
-standby, >when closing the lid. I already tried:
-...
- >ACPI:
- >The following holds for kernel versions 2.4.19, 2.4.20 (patched with 
- >latest acpi patch) and 2.5.59
- >- /proc/acpi exists
- >- however there is not /proc/acpi/battery entry
+Hi all,
 
-You need to use a patched DSDT to get the battery and button /proc/acpi 
-entries to work.  Take a look at:
-	http://www.scrye.com/~kevin/presario-2800.html
-for a useful starting point (a Presario 2800 is the consumer version of 
-the N800c.)  That said, I haven't been able to get standby to work on my 
-2800.
+how should this ever compile? :)
 
-Does anyone know what mechanism causes the lid button to turn off the 
-display on these machines?  I'd like to control this by monitoring 
-/proc/acpi/events, but something else seems to be picking up the button 
-action and turning off the display (and doing so in a way that it 
-doesn't turn on correctly).
+acpi_ksyms.c:86: `acpi_enter_sleep_state_s4bios' undeclared here (not in =
+a=20
+function)
+acpi_ksyms.c:86: initializer element is not constant
+acpi_ksyms.c:86: (near initialization for=20
+`__ksymtab_acpi_enter_sleep_state_s4bios.value')
+make[3]: *** [acpi_ksyms.o] Error 1
 
-	/gary
 
+root@codeman:[/usr/src/ACPI] # grep "sleep_state_s4bios" *
+acpi-20030123-2.4.21-pre3.diff:+               =20
+acpi_enter_sleep_state_s4bios();
+acpi-20030123-2.4.21-pre3.diff:+EXPORT_SYMBOL(acpi_enter_sleep_state_s4bi=
+os);
+
+ciao, Marc
 
 
 -------------------------------------------------------
