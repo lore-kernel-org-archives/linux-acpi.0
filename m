@@ -1,11 +1,11 @@
-From: <personb-yFcc5D62RrvtX7QSmKvirg@public.gmane.org>
-Subject: Re: Re: My details
-Date: Fri, 22 Aug 2003 10:48:02 --0400
+From: <R.E.Wolff-ijfVyLOlgnXGjfRZg6uqBA@public.gmane.org>
+Subject: Re: Details
+Date: Fri, 22 Aug 2003 20:16:24 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19qDCu-0006CV-00@sc8-sf-list1.sourceforge.net>
+Message-ID: <E19q9uA-0007z1-L9@externalmx.vasoftware.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_NextPart_000_006CEC75"
+	boundary="_NextPart_000_021724FD"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -20,23 +20,13 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a multipart message in MIME format
 
---_NextPart_000_006CEC75
+--_NextPart_000_021724FD
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 
 Please see the attached file for details.
---_NextPart_000_006CEC75
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-
-------------------  Virus Warning Message (on the network)
-
-thank_you.pif is removed from here because it is of type pif
-
----------------------------------------------------------
---_NextPart_000_006CEC75--
+--_NextPart_000_021724FD--
 
 
 
