@@ -1,15 +1,15 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: AGP and S4/resume hangs
-Date: Thu, 11 Mar 2004 13:02:25 +0100
+From: Wesley T Allen <wezlo-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: Re: boot hanging
+Date: Thu, 11 Mar 2004 07:26:14 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040311120225.GA13095@fuchi>
-References: <20040310150604.GC342@message-id.gmane0305.slipkontur.de>
+Message-ID: <1079007973.3187.12.camel@localhost>
+References: <1078970905.4761.6.camel@localhost>
+	 <1078988718.2557.91.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040310150604.GC342-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <1078988718.2557.91.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,56 +18,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 2004-03-11 at 02:05, Len Brown wrote:
+> pci=noacpi helps?
 
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Nope.  I don't get the "keventd" message anymore but the kernel hangs
+one line earlier when setting the irq to 9.
 
-hello stefan...
+On next boot I'll get the exact wording and put it in an e-mail; I can't
+find it in the logs right now.
 
-* Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org> [2004-03-11 09:05 +0100]:
+> 
+> if so, it is an ACPI interrupt configuration bug (which you're
+> encouraged to file on bugzilla.kernel.org;-)
+> 
+> thanks,
+> -Len
+> 
+> On Wed, 2004-03-10 at 21:08, Wesley T Allen wrote:
+> > Hi,
+> > 	Sorry if this is the wrong place to ask this question; if I'm off-base
+> > could someone point me in the right direction?
+> > 
+> > 	I have an hp pavilion laptop (an n5000 series, build-to-order) and have
+> > had problems with acpi under linux.  in the 2.4.x series the system
+> > would hang with an error "keventd not started" every now and again.  I
+> > would let it sit for a couple of seconds (making sure the hd had spun
+> > down), and then I'd reboot.  Sometimes I would have to do this a couple
+> > of times, but it was no big deal.
+> > 	I compiled 2.6.0 on my own when it came out (because the acpi support
+> > was better), and I could NEVER get it to boot.  So I gave up for a
+> > while, until I got Mandrake 10.0 community installed on my laptop.  The
+> > kernel is 2.6.3 and I just can't get the thing to boot with acpi enabled
+> > at all (well, once in about 50 attempts I think).  This is a bit of a
+> > bummer, considering that I can't get usb devices to work with my laptop
+> > w/o acpi enabled!  Does anyone have a workaround?  And what other
+> > information would be helpful in troubleshooting?
+> > 
+> > Thanks gang,  one of the things I love about OSS is that the developers
+> > are people you can talk to, and I end up learning how to help the
+> > development process AND other users.
+> > 
+> > Wes
+> > 
+> > 
+> > 
+> > -------------------------------------------------------
+> > This SF.Net email is sponsored by: IBM Linux Tutorials
+> > Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> > GenToo technologies. Learn everything from fundamentals to system
+> > administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+> > _______________________________________________
+> > Acpi-devel mailing list
+> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
 
-> i have now seen at least 2 different machines that are unable to resume f=
-rom
-> S4 (swsusp) when agp modules are loaded (intel-agp or ati-agp).
-> Finally i will file a bug at kernel.org, but is this a "ACPI" or a "Drive=
-rs"
-> bug? Just to get it right the first time :-)
-
-you might checkout http://swsusp.sf.net and their mailing-list archive.
-it is a somewhat well-known, but afaik unsolved problem.
-look here for instance:
-http://marc.theaimsgroup.com/?l=3Dswsusp-devel&m=3D107513767207327&w=3D2
-
-though i saw an agp fix for i830 in the new kernel 2.6.4 today which might
-help with intel-based gfx.
-
-hth,
- sebastian
---=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---UlVJffcvxoiEqYs2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAUFVQreHfL3pi+bQRAmp5AJ0TH9/tlG1iQ7zkxKmzLmET/48ojQCeP9IQ
-w2DypMJsP/dykAl67UUkILc=
-=E+XS
------END PGP SIGNATURE-----
-
---UlVJffcvxoiEqYs2--
 
 
 -------------------------------------------------------
