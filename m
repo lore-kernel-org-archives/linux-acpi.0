@@ -1,13 +1,14 @@
-From: "Tammie Rosado" <trosado_vl-v7TfeS8amaY0n/F98K4Iww@public.gmane.org>
-Subject: Powerful weightloss now available where you are.
-Date: Tue, 15 Jun 2004 16:58:35 +0000
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Never in C3
+Date: Tue, 15 Jun 2004 18:39:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <b6f801c452f9$3bdbd097$641df7c8@digilab.com.br>
+Message-ID: <1087321154.10618.0.camel@tyrosine>
+References: <16589.41686.480893.225338@aber.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <16589.41686.480893.225338-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,34 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Loss of 20-35% abdominal Fat.
-- Up to 300% more Weight Loss while dieting.
-- Increase metabolic rate by 76.9% without Exercise.
-- Reduction of 40-70% overall Fat under skin.
-- Suppresses appetite for sugar.
-- Burns calorized fat.
-- Boost your Confidence level and Self Esteem.
-Get the facts about all-natural Adipren720 <http://diet50.com/>
+On Mon, 2004-06-14 at 14:06 +0100, Fred Labrosse wrote:
 
+>    *C1:                  promotion[C2] demotion[--] latency[000] usage[02058670]
+>     C2:                  promotion[C3] demotion[C1] latency[020] usage[19743630]
+>     C3:                  promotion[--] demotion[C2] latency[200] usage[00000000]
 
+My recollection is that if the latency is larger than 100, Linux will
+never use C3.
 
----- system information ----
-sending development personalization Users mechanism typify SOAP-RPC content
-
-vary argument assumption mistake formatting I-025: serve presents 
-Semantics: interested similar generated reflection exposed publish actual
-
-Some usage Results: must [WSUS] takes form exchanged 
-its Publication invoking obsoleted have values consistent validate 
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
