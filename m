@@ -1,14 +1,14 @@
-From: Matthew East <matthew.east-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Fwd: battery state on Compaq Presario
-Date: Sun, 2 Jan 2005 21:44:52 +0000
-Message-ID: <3bd9116050102134423b10a45@mail.gmail.com>
-References: <3bd911604122903114efc9b77@mail.gmail.com>
-Reply-To: Matthew East <matthew.east-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Francisco Figueiredo Jr." <fxjrlists-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
+Subject: Re: acpi, c# states and scaling processor: temp variation
+ can damage my cpu or laptop?
+Date: Sun, 02 Jan 2005 22:15:59 -0200
+Message-ID: <41D88EBF.4060309@yahoo.com.br>
+References: <41D83070.1000606@yahoo.com.br> <20050102181608.GB15182@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3bd911604122903114efc9b77-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20050102181608.GB15182-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,47 +21,82 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have now submitted a bug report on this issue, but so far haven't
-had any bites either from my original message to this list or the bug
-report, so I thought I would try again and see if someone has any
-advice for me.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Many thanks, Matt
+Karol Kozimor wrote:
+| Thus wrote Francisco Figueiredo Jr.:
+|
+|>sorry if this is not the right place to ask, but from msgs I think you
+|>have a lot of background which could easily give me some light.
+|>
+|>I'm having all this info about C# states, processor scaling and such.
+|>I have my pentium 4 m with cpu scaling, (althought I don't have C2 or C3
+|
+|
+| If that's really 2.8 GHz, then you're definitely talking about Mobile
+| Pentium 4, not a Pentium 4-M. Those are different beasts.
+|
 
----------- Forwarded message ----------
-From: Matthew East <matthew.east-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Wed, 29 Dec 2004 11:11:36 +0000
-Subject: battery state on Compaq Presario
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Oooops, sorry for that. It is really a mobile pentium 4 and not 4-m.
+
+|
+|>support, only C1, is this ok?) and I easily can go from 44 C at 1.6G to
+|
+|
+| Well, not really perfect as C-states allow for substatntial power savings.
+| But then, I'm not sure whether Mobile P4 supports C2 or C3.
+|
+
+ok.
+
+|
+|>54C 55C at 2.8G if I start compiling something length. And this makes me
+|>wonder: Can this damage my cpu? I mean, could this temp variation cause
+|>some type of physical stress in cpu or even my notebook components? Or
+|>cpu engineers already do it specting this type of behavior?
+|
+|
+| It is unlikely to cause any harm, anyway, odds are your OEM has already
+| taken care of that and your machine will automatically shutdown if the
+| temperature gets too high. Check /proc/acpi/thermal_zone/*/* for citical
+| trip points.
+| Best regards,
+|
+
+Ok. In fact, the computer can handler well the high temps. The other
+problem I'm checking is the temp variation from 42 to 54, 55 and so to
+44 back when the job is done. Also, if I keep up and down with the temp,
+could it cause some problem?
+
+Thanks in advance.
+
+- --
+Regards,
+
+Francisco Figueiredo Jr.
+Membro Fundador do Projeto MonoBrasil - MonoBrasil Project Founder Member
+http://monobrasil.softwarelivre.org
 
 
-Hi there,
 
-Since 2.6.9 kernel I have experienced problems with the battery state
-on my Compaq Presario 2104EA laptop. I have noticed the problem when
-running the ubuntu 2.6.8.1 kernel, which I believe is patched with a
-recent acpi release, and the gentoo-dev-sources 2.6.9. I just
-installed a 2.4.26 kernel, and have found that it works perfectly.
+- -------------
+"Science without religion is lame;
+religion without science is blind."
 
-The problems are quite complicated. Essentially when i boot with the
-power adapter plugged in, acpid will give me the correct reading of
-the battery. When there is a CHANGE of AC adapter state (i.e. i unplug
-it), acpid does not give me the correct battery status, which remains
-at the level which it was at. The same problem happens if I start the
-computer without AC power, and plug it in: in this case the battery
-status does not go down as it should.
+~                  ~ Albert Einstein
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-Can anyone help me with this? I am fairly certain that it is a bug,
-and the results when I tested it with the 2.4 kernel have convinced me
-that this is not a hardware problem.
-
-I thought that I would email this list before contacting the acpi maintainer.
-
-I would be happy to provide any more information, and I hope i've been clear.
-
-Many thanks in advance for your help.
-
-Matt
+iQEVAwUBQdiOv/7iFmsNzeXfAQIzUAgAkuugok/bdc4i1wkLNWonN8OppFDIrSZV
+/dH89ztDfuRXa76J/lIeLCDJpioUEw+9aPSAh0x2wTZfSzPBDuv3XwK2Rf4N3Fel
+lOSllrV39aZVXDHFAn2uEddcSlR6pNEBDS/wGtSgqq/erJ53fzSS7IaTNDXgU7Ui
+j6xwtfQzeD7VMNYOsawG3PfbVO7YOdtoPDSSieh2aiCmKdOEVAL6dRV5m9b41l62
+qBDnEj7wd3snMXQ7B8q0TQpVVrmzDcISQjIuNzCI45Z1KHW4b0b7xiiuy+d60ZfB
+NGHk438s5SiuK6XznIJ1Nss6ygAiB3nAn1ZfjQK8yrbv6vyNo9BGwg==
+=ArRn
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
