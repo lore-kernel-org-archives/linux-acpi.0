@@ -1,14 +1,12 @@
-From: Russell King <rmk-pci-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
-Date: Wed, 24 Mar 2004 09:07:47 +0000
+From: G E Scott Knauss <scott-2UAVKnXlLSjQT0dZR+AlfA@public.gmane.org>
+Subject: error transitioning device
+Date: Wed, 24 Mar 2004 12:05:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040324090746.A13095@flint.arm.linux.org.uk>
-References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk> <20040320181000.GA8272@kroah.com> <20040322223425.GB3213@neo.rr.com> <20040324013557.GB21477@kroah.com>
+Message-ID: <1080126326.2271.25.camel@eva.ecr.navy.mil>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040324013557.GB21477-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>; from greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org on Tue, Mar 23, 2004 at 05:35:57PM -0800
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,50 +15,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 23, 2004 at 05:35:57PM -0800, Greg KH wrote:
-> On Mon, Mar 22, 2004 at 10:34:25PM +0000, Adam Belay wrote:
-> > > Yes, this will happen in 2.7 when we add the ability to have "generic"
-> > > and "specific" type drivers for devices.
-> > 
-> > What do you think would be the best way to go about this?
-> > 
-> > I was able to come up with the following options:
-> > 
-> > 1.) flags in struct device_driver
-> 
-> I think this is the best place for it.  We will have to do something
-> like weight the different ways to specify a driver can handle a device
-> differently.  Something like this kind of priority:
-> 	- device id
-> 	- device class
+OK,
+	I've googled and searched bugzilla for it, but can't find any
+references to it, today. I seem to remember seeing something a month or
+so ago, that implied this wouldn't be fixed until 2.7. Can someone point
+me in the right direction ? As I'm reading these errors, my fan isn't
+turning on when the kernel or acpid asks it to. I'm guessing that could
+be a bad thing ? (The fan really isn't turning on. )
 
-The way I discussed with Pat two OLS's ago (I think it was two) was that
-the bus type match method would return a value to indicate how well the
-IDs matched the device.
 
-When a driver matches a device, we remember this value, and call the
-drivers ->probe function, as we do today.
+	I guess I really just want to make sure I'm not missing something
+simple before I submit a bug.
 
-However, when we add a new driver, we attempt to re-match all devices,
-including those with drivers.  If a device with an existing driver is
-found to have a "better" match with the new driver, the original driver's
-->remove function is called to unbind the driver, and the new driver
-bound to the device.
+			Thanks,
 
-The match function would, for instance, return a lower value for a
-device driver matching only the class IDs, a higher ID for a device
-driver matching only the vendor ID, vendor ID + device ID, and the
-highest value for vendor ID + device ID + class ID.
+OBTW, this is exactly what I'm seeing;
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 PCMCIA      - http://pcmcia.arm.linux.org.uk/
-                 2.6 Serial core
+Mar 24 11:45:13 eva kernel: acpi_bus-0256 [44] acpi_bus_set_power    :
+Error transitioning device [C210] to D0
+Mar 24 11:45:13 eva kernel: acpi_thermal-0612 [43] acpi_thermal_active  
+: Unable to turn cooling device [c1a9d928] 'on'
+Mar 24 11:45:13 eva kernel: acpi_bus-0256 [44] acpi_bus_set_power    :
+Error transitioning device [C210] to D0
+Mar 24 11:45:13 eva kernel: acpi_thermal-0612 [43] acpi_thermal_active  
+: Unable to turn cooling device [c1a9d928] 'on'
+Mar 24 11:45:13 eva kernel: acpi_bus-0256 [44] acpi_bus_set_power    :
+Error transitioning device [C210] to D0
+Mar 24 11:45:13 eva kernel: acpi_thermal-0612 [43] acpi_thermal_active  
+: Unable to turn cooling device [c1a9d928] 'on'
+Mar 24 11:45:13 eva acpid_proxy[3641]-1: No action specified for event
+thermal_zone TZ1 00000081 00000000
+Mar 24 11:45:28 eva kernel: acpi_bus-0256 [44] acpi_bus_set_power    :
+Error transitioning device [C210] to D0
+Mar 24 11:45:28 eva kernel: acpi_thermal-0612 [43] acpi_thermal_active  
+: Unable to turn cooling device [c1a9d928] 'on'
+Mar 24 11:45:28 eva kernel: acpi_bus-0256 [44] acpi_bus_set_power    :
+Error transitioning device [C210] to D0
+Mar 24 11:45:28 eva kernel: acpi_thermal-0612 [43] acpi_thermal_active  
+: Unable to turn cooling device [c1a9d928] 'on'
+Mar 24 11:45:28 eva kernel: acpi_bus-0256 [44] acpi_bus_set_power    :
+Error transitioning device [C210] to D0
+Mar 24 11:45:28 eva kernel: acpi_thermal-0612 [43] acpi_thermal_active  
+: Unable to turn cooling device [c1a9d928] 'on'
+Mar 24 11:45:28 eva acpid_proxy[3706]-1: No action specified for event
+thermal_zone TZ1 00000081 00000000
+
+
+
+ 
+Scott Knauss
+www.scott.knauss.com
+scott-2UAVKnXlLSjQT0dZR+AlfA@public.gmane.org
+ECRNOC Naples, Italy
+DSN 314-626-4678
+COM 39-081-568-4678
+
+
 
 
 -------------------------------------------------------
