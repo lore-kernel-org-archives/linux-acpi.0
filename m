@@ -1,12 +1,15 @@
-From: "Shay Elkin" <shayel-NSemkxREmS1YZAO8hgG6+w@public.gmane.org>
+From: Thomas Kosch <t.kosch-7+EO1k1ndLmazgQtNeiOUg@public.gmane.org>
 Subject: Re: CALL FOR TESTING
-Date: Sun, 22 Sep 2002 05:06:02 +0300
+Date: Sun, 22 Sep 2002 10:32:13 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2002.09.22.02.05.58.440247@cs.huji.ac.il>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
+Message-ID: <microsoft-free.m34rci2zn6.fsf@grisu.cyvermail.de>
+References: <E17rvjI-0001mI-00@usw-sf-list2.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <E17rvjI-0001mI-00-HKCwXBn57GynvZpeIfgr/KQD96bmaF075NbjCUgZEJk@public.gmane.org> (acpi-devel-request@lists.sourceforge.net's
+ message of "Thu, 19 Sep 2002 00:27:02 -0700")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,36 +18,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 18 Sep 2002 23:27:01 +0000, Grover, Andrew wrote:
 
-IBM ThinkPad 1161-93G, with a modified DSDT.
+> I wanted to make a special request for testing of the 2.4 patch (or
+> should I say, MEGA-patch).
 
+Here we are...
+The computer is a Toschiba Satellite 300-214
+
+> The main issues of importance are:
+>
 > - DOES IT BOOT?
 
-Yes. 
+Yes
 
 > - DOES IT ASSIGN INTERRUPTS PROPERLY?
 
-Yes,  but I find the following messages in my dmesg (00:10.0 is IDE,
-01:00.0 is VGA):
+It looks good
 
- pci_irq-0293 [04] acpi_pci_irq_derive   : Unable to derive IRQ for device 00:10.0
-PCI: No IRQ known for interrupt pin A of device 00:10.0 - using IRQ 15
- pci_irq-0293 [04] acpi_pci_irq_derive   : Unable to derive IRQ for device 01:00.0
-PCI: No IRQ known for interrupt pin A of device 01:00.0 - using IRQ 10
- pci_irq-0293 [03] acpi_pci_irq_derive   : Unable to derive IRQ for device 00:10.0
-PCI: No IRQ known for interrupt pin A of device 00:10.0 - using IRQ 15
+There are still some small errors. Sometimes I get an 'grisu kernel:
+ACPI-0323: *** Error: Handler for [Embedded_control] returned AE_TIME'
+and there is some trouble which the scsi hostadapter emulation. If i try
+to mmount a cd-rom after an S1 sleep the computer freezes. I must reload
+the ide-scsi module.
 
-On the bright side, the CPU doesn't to stuck in C mode it can't get out
-of, and this is the first release to recieve button events. Guess it's
-time I'll look into ospmd's code.
+ttyl8er, t.k.
 
-	Shay.
-
-
+=2D-=20
+Slowly and surely the unix crept up on the Nintendo user ...
 
 
 -------------------------------------------------------
