@@ -1,14 +1,14 @@
-From: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
-Subject: Re: Toshiba Satellite 1905S303 DSDT table
-Date: Sun, 02 Nov 2003 21:40:40 -0200
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Re: [Acpi4asus-user] ACPI with Kernel 2.6.0-test9 on Asus M2N
+Date: Mon, 3 Nov 2003 02:21:49 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FA595F8.8050002@techisa.srv.br>
-References: <3FA58FE8.4000409@techisa.srv.br>
+Message-ID: <20031103012149.GA19629@hell.org.pl>
+References: <3ACA40606221794F80A5670F0AF15F8401720B72@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FA58FE8.4000409-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720B72-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,47 +17,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: rmuehlhoff <rmuehlhoff-52dn/g0OV9M@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Erico M Mendonca wrote:
+Thus wrote Yu, Luming:
+> Did you have APIC enabled ? If so, please try patch at http://bugme.osdl.org/show_bug.cgi?id=1269
 
-> I'm currently trying to debug the DSDT table of this aforementioned 
-> machine, and managed to clear all the errors, except for this one:
-> =================
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
-> Copyright (C) 2000 - 2003 Intel Corporation
-> Supports ACPI Specification Revision 2.0b
->
-> s303.asl   468:                 If(\_OSI) {
-> Error    1028 -      Too few arguments ^  (\_OSI requires 1)
->
-> s303.asl   469:                     "Windows 2001"
-> Error    1037 -                                  ^ parse error, 
-> unexpected PARSEOP_STRING_LITERAL
->
-> ASL Input:  s303.asl - 2871 lines, 112889 bytes, 2084 keywords
-> Compilation complete. 2 Errors, 0 Warnings, 0 Remarks, 538 Optimizations
-> ==============
->
-> I searched around the web and found only one message stating that 
-> acpidump didn't support the _OSI method yet (late 2002). Did this ever 
-> got solved?
->
-> -- Erico Mendonca
-> Techisa do Brasil
->
->
-Replying to myself...
+A sidenote: this patch allows to boot an ASUS L3800C with both APIC and
+ACPI enabled. LAPIC is disabled by BIOS by default and since some early
+2.4.23-pre (when the patch to explicitely reenable such an APIC went in),
+this particular laptop locked dead while executing _STA and _INI -- the
+reason why it eventually got blacklisted.
 
-The acpidump code I'm using is from the CVS, downloaded today:
-6685 May  1  2003 acpidump.c
+In summery: booting with this patch, ACPI and LAPIC (adding lapic to the
+commandline to force-enable it) works fine. Once the patch is merged, the
+laptop may be removed from the blacklist.
+Best regards,
 
-
-
-
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
