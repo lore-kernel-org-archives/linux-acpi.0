@@ -1,8 +1,8 @@
-From: "Luther T. Klein" <luthert_kleinkp-DZSMbftWadFPbTzoaRTDyA@public.gmane.org>
-Subject: Lose 19% weight. New weightloss available to you.
-Date: Sun, 04 Jul 2004 05:21:17 +0100
+From: "Doug Hadley" <doug.hadley_oq-jEICgmyZZr2AtO1Qc319xQ@public.gmane.org>
+Subject: $11523
+Date: Sun, 04 Jul 2004 17:59:20 +0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <290e01c4617e$05be60b0$038f9a30@redbrick.dcu.ie>
+Message-ID: <4d2f01c461be$36edf697$6f21b1c4@coelce.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,33 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acidlab.users-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Loss of 20-35% abdominal Fat.
-- Up to 300% more Weight Loss while dieting.
-- Increase metabolic rate by 76.9% without Exercise.
-- Reduction of 40-70% overall Fat under skin.
-- Suppresses appetite for sugar.
-- Burns calorized fat.
-- Boost your Confidence level and Self Esteem.
-Get the facts about all-natural Adipren720 <http://adipren10.com/>
+Hi,
+I sent you an email a few days ago, because you now qualify for a new mortgage.
+You could get $300,000 for as little as $700 a month!
+Bad credit is no problem, you can pull cash out or refinance.
+
+Please click on this link:
+http://www.yourloanz.com/s6/jwex.php?bks=71
+
+Best Regards,
+Steve Morris
 
 
+
+No more: http://www.yourloanz.com/r1/index.html
 
 ---- system information ----
-resulting on class It identification selection application resulting 
-months designing expectations Different programmer mistake as employ 
-describes archive) marks Other Negotiation] Service dealing User 
-not deployed assumption allows covered deduced than needs 
-generated variation all identification identification forethought consistency
-part 
+Force documents implementations widely images information) Shorthand distinctions
+
+Usage been contents near typify situations specification archive 
+Japanese intended CPP describe collating interoperability languages standard
+
 
 
 
