@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Wrong button event reported when waking up from S1
-Date: Mon, 7 Apr 2003 11:40:48 -0700
+Subject: ARB_DIS
+Date: Mon, 7 Apr 2003 11:40:00 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A24F@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96DBF@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,36 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: stef <stef-listes-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: stef [mailto:stef-listes-39ZsbGIQGT5GWvitb5QawA@public.gmane.org] 
->         I have a problem with 2.4.21pre6+acpi 20030328, when 
-> I do 'echo -n 1 >/proc/acpi/sleep' and wake my laptop with 
-> the sleep button, acpi gives a power button (PWRF) event 
-> instead of a sleep button event (SBTN).
-> 
-> cat /proc/acpi/event
-> button/power PWRF 00000080 00000007
-> button/power PWRF 00000080 00000008
-> button/power PWRF 00000080 00000009
-> button/power PWRF 00000080 0000000a
-> button/power PWRF 00000080 0000000b
-> button/power PWRF 00000080 0000000c
-> button/power PWRF 00000080 0000000d
-> button/power PWRF 00000080 0000000e
-> button/power PWRF 00000080 0000000f
-> button/power PWRF 00000080 00000010
-> button/power PWRF 00000080 00000011
-> button/power PWRF 00000080 00000012
-> button/sleep SBTN 00000080 0000001a <- last button pressed before 
-> entering S1
-> button/power PWRF 00000080 00000013 <- event reported
+Hi Eric,
 
-Hmm the button event count makes me think this is somehow a left-over
-event from before we entered S1. Thoughts?
+So in a patch applied 6 months ago, you added code to restore the
+ARB_DIS bit on resume from S1. In looking more closely, it appears that
+this is a duplicate of code already in acpi_leave_sleep_state. Given
+that the OS should be calling that function after resuming S1, I am
+considering removing that line from acpi_enter_sleep_state, but wanted
+to check with you before I did. Any reason why I should stay?
 
-Regards -- Andy
+Thanks -- Regards -- Andy
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
