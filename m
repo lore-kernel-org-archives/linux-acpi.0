@@ -1,101 +1,152 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w==@public.gmane.org>
+From: Emilio Mejia Fernandez de Velasco <emejia-EkmVulN54Sk@public.gmane.org>
 Subject: Re: RV: differences between acpidump and disassembling
-Date: Mon, 19 Apr 2004 22:16:35 +0100
+Date: Tue, 20 Apr 2004 00:24:17 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1082409395.11663.63.camel@darkstar>
-References: <000701c425f8$6157aef0$0301a8c0@portatil>
-	 <200404191309.45870.emejia@ieee.org>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w==@public.gmane.org
+Message-ID: <200404200024.18432.emejia@ieee.org>
+References: <000701c425f8$6157aef0$0301a8c0@portatil> <200404191309.45870.emejia@ieee.org> <1082409395.11663.63.camel@darkstar>
+Reply-To: emejia-EkmVulN54Sk@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_RGFhAC0mav9XRoh"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200404191309.45870.emejia-EkmVulN54Sk=@public.gmane.org>
+In-Reply-To: <1082409395.11663.63.camel-4/PLUo9XfK8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA==@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg==@public.gmane.org>
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: emejia-EkmVulN54Sk=@public.gmane.org
+To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-04-19 at 12:09, Emilio Mejia Fernandez de Velasco wrote:
 
-you should work with pmtools that have acpidump
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-and=20
-http://developer.intel.com/technology/iapc/acpi/downloads.htm
-get last ACPI CA - Unix Build Environment - .TAR.GZ file, 530k
-after untar cd complier ; make
+--Boundary-00=_RGFhAC0mav9XRoh
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+Hello,
+here I send you the binary file using pmtools.
+By the way, the computer is a Microstar (also known as Medion) model MD 9648
+I have found pages about similar models explaining the configuration, and they 
+say that it's necessary to use acpi, but they have been luckier than me.
+Here are some links:
+http://www.david-guembel.de/linux-md9630.html
+http://www.linuxstuff.de/md-9631-en.htm
 
-> > grep -i ACPI
->=20
-> I guess you mean grep -i acpi, with lower-case. don't you?
+> let me know what computer we are talking about ?
+> and send me the binary in a gz (acpidmp DSDT )
+>
+> regards,
 
-grep -i , is for ignore lower or uppercases .
+--Boundary-00=_RGFhAC0mav9XRoh
+Content-Type: application/x-gzip;
+  name="DSDT.gz"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="DSDT.gz"
 
+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
 
-> > cat /proc/acpi/dsdt > acpi_dsdt.dat
-> > ./iasl  -d acpi_dsdt.dat
-> > ./iasl -on -tc acpi_dsdt.dsl
->=20
-> Attached is the file acpi_dsdt.dsl which gives no errors and no warnings.=
-=20
-> Anyway, in this case, the WAK function includes the modification that I=20
-> added, returning a package with two zeros. This is different when I get t=
-he=20
-> asl file from acpidump. Do you think this can be the cause of the blockin=
-gs?
-
-No,
-
-> >
-> > don't need Looking for DSDT in initrd ... found customized DSDT with
-> > 15240 byte
-> I don't know what you mean by this. I thought that it finds the customize=
-d=20
-> DSDT because I applied a patch from http://gaugusch.at/kernel.shtml
-> in order to get the the customized dsdt from initrd. Otherwise it would u=
-se=20
-> the default one.
-
-you can override your DSDT without this customize dsdt from initrd,
-
-http://acpi.sourceforge.net/wiki/index.php/HowToOverrideTable
-with this patch=20
---- linux/drivers/acpi/osl.c.orig
-+++ linux/drivers/acpi/osl.c
-@@ -215,13 +215,18 @@
-       return AE_OK;
- }
-
-+/**/static const
-+#include "/tmp/dsdt.hex"
-+
- acpi_status
- acpi_os_table_override (acpi_table_header *existing_table,
-       acpi_table_header **new_table)
- {
-       if (!existing_table || !new_table)
-               return AE_BAD_PARAMETER;
-
-+/**/if (strncmp(existing_table->signature,"DSDT",4))
-       *new_table =3D NULL;
-+/**/else *new_table =3D (struct acpi_table_header *)AmlCode;
-       return AE_OK;
-}
-
-let me know what computer we are talking about ?
-and send me the binary in a gz (acpidmp DSDT )
-
-regards,
---=20
-S=E9rgio M. B.
+--Boundary-00=_RGFhAC0mav9XRoh--
 
 
 
