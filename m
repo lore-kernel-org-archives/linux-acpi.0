@@ -1,12 +1,14 @@
-From: Jean-Marc Valin <jean-marc.valin-ZbDpfo6ompS0w+vkrfm4Cg@public.gmane.org>
-Subject: Crash on boot with latest ACPI versions
-Date: Sat, 24 May 2003 02:35:27 -0400
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 works on Dell i2650, but no display
+Date: Sat, 24 May 2003 17:54:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1053758126.4072.9.camel@localhost>
+Message-ID: <20030524155445.GA262@elf.ucw.cz>
+References: <1053666916.3ecdae6481b61@webmail.textlabs.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-FQ8YxyU1bpb4u7K0s6e0";
- protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1053666916.3ecdae6481b61-2RFepEojUI3YOgKVY05AyOTW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,49 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Luke Hammer <lukeh-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---=-FQ8YxyU1bpb4u7K0s6e0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+> When I tried to resume however, I found that the console display didn't come
+> back on - though I knew the machine was responsive because I could type commands
+> and see that the hard disk was working, and I could touch files, etc. I
+> remembered hearing about this problem before on this list, and tried the
+> recommended kernel parameters "acpi_sleep=s3_bios" and "acpi_sleep=s3_mode", but
+> neither made any difference - I could still type commands, but no display, and
+> the CPU fan seemed always to be on. Switching virtual terminals and
+> opening/closing the lid made no difference either.
 
-Hi,
+That's quite strange. 
 
-I've been experiencing crashes while booting with the latest ACPI
-driver. Since I can't use a screendump program, I tried to take a
-picture instead (sorry, bad quality):
-http://www.xiph.org/~jm/acpi_crash.jpg
+You might need to get datasheet to your videocard and write specific
+support. Also try lspci before and after suspend etc. [But don't
+expect this to be easy].
+								Pavel
 
-I'm using a Compaq Presario 1720CA laptop (PIII 1 GHz) under 2.4.20. The
-stock kernel ACPI doesn't crash (though battery status doesn't work),
-but the latest ACPI drivers (all versions less than 6-10 months old)
-crash on boot every time.
-
-	Jean-Marc
-
---=20
-Jean-Marc Valin, M.Sc.A.
-LABORIUS (http://www.gel.usherb.ca/laborius)
-Universit=E9 de Sherbrooke, Qu=E9bec, Canada
-
-
---=-FQ8YxyU1bpb4u7K0s6e0
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQA+zxKudXwABdFiRMQRAryGAKCkYBXnV/X2P1w+UcXzWfw40UpTQwCgiyYZ
-9wE9xcJARDUOjKoXYvVDmqs=
-=thYs
------END PGP SIGNATURE-----
-
---=-FQ8YxyU1bpb4u7K0s6e0--
-
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
