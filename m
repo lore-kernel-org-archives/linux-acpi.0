@@ -1,15 +1,16 @@
-From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: Acer 1703 and DSDT fixing questions
-Date: Wed, 11 Feb 2004 18:23:12 +0100 (CET)
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround
+ for broken DSDT)
+Date: Wed, 11 Feb 2004 09:51:07 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0402111818540.2221@frog.athome>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB68B@PDSMSX403.ccr.corp.intel.com>
- <200402111650.55343.cirrus@the-penguin.org.uk>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Message-ID: <20040211095009.R91991@root.org>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB6@hdsmsx402.hd.intel.com>
+  <1075964148.5017.7.camel@tinny.home.foo>  <20040209122256.K74314@root.org>
+ <1076517428.12955.32.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200402111650.55343.cirrus-m8NPtmh9OiN1HeySrBk8eLVCufUGDwFn@public.gmane.org>
+In-Reply-To: <1076517428.12955.32.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,49 +19,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John <cirrus-m8NPtmh9OiN1HeySrBk8eLVCufUGDwFn@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Salut John,
-On Wed, 11 Feb 2004, John wrote:
-> $ cat /proc/acpi/battery/BAT1/state
-> present:                 yes
-> capacity state:          ok
-> charging state:          discharging
-> present rate:            unknown
-> remaining capacity:      5524 mAh
-> present voltage:         16249 mV
+On Wed, 11 Feb 2004, Len Brown wrote:
+> Nate,
+> I think you're right, practical compatibility must be the default, and a
+> single config option should allow an OEM to disable the out-of-spec
+> warnings and workarounds.
 >
-> The present rate is unknown.
-The ACPI-spec only asks for a present-rate, if you use a
-rechargeable-battery, and are in state discharging. So this is against the
-specs, as you are probably not using one-way-cells. Whith my Acer TM-630 I
-found out, that the present-rate is hard-coded to be unknown in the DSDT.
-So just have a look into your DSDT.
-But anyway, if there is software, that may not handle an unknown
-presen-rate, it is broken. With software, I do not mean ACPI or DSDT, but
-userspace tools.
+> CONFIG_ACPI_STRICT_COMPLIANCE seems to be a good choice for the config
+> option.  Disabled by default, enabled by OEMs for testing their
+> platforms.
+>
+> Right now, CONFIG_ACPI_RELAXED AML would be replaced by this.  This will
+> fix the issue that RELAXED_AML is not currently enabled by default.
+>
+> We have some warnings and workarounds that gum-up various dmesg that I
+> think we can put under this umbrella also.
 
-Cheers
-  hartwig felger
+Sounds good to me.  Just watch out for hacks that cause valid platforms to
+misbehave.  Those should be kept under an off-by-default option.
 
-Hartwig Felger informatics
-
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQFAKmUF9bBoTzOf1pMRAgo0AKC9cUX6ddP/oXllwuUM1SKJrL/y6ACbB952
-UY0j6AtBm8AIoK59Ib9Ak5o=
-=WivT
------END PGP SIGNATURE-----
+-Nate
 
 
 -------------------------------------------------------
