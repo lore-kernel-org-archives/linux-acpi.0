@@ -1,47 +1,48 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [ACPI] Metolious hardware-sensors-using-ACPI specs
-Date: Mon, 16 Dec 2002 23:40:57 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021216224057.GE20773@atrey.karlin.mff.cuni.cz>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A5A4@orsmsx119.jf.intel.com>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Metolious hardware-sensors-using-ACPI specs
+Date: Mon, 16 Dec 2002 15:02:31 -0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A5AB@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A5A4-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: 'Pavel Machek' <pavel-AlSwsSmVLrQ@public.gmane.org>
 Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> From: Pavel Machek [mailto:pavel-AlSwsSmVLrQ@public.gmane.org] 
+> Ouch, I started implementing that hour ago... [Never mind, very little
+> damage done so far].
 
-> > Is it goign to be implemented in linux-acpi?
-> > 
-> > I took a look at specs at intel, and it has rather funny legaleese:
-> 
-> Wow, is that still on a website somewhere?
+Wow you work fast. ;-)
 
-Yep, as someone already pointed out.
+> But... Metolious sounds *needed*; how do you access voltage sensors
+> without metolious, in a way that can coexist with ACPI thermal
+> support?
 
-> So as you may know from looking at the spec, Metolious was a spec that
-> defined a way for platforms to enumerate various motherboard sensors to the
-> OS, for manageability purposes.
-> 
-> It never took off, except for a couple companies that used the Windows
-> driver for other things because they didn't want to write a driver that
-> received ACPI device Notify()s.
+(I think you mean thermal sensors)
 
-> The licensing may be weird, but given that there really is no point in
-> implementing it on Linux, does that really matter?
+A solution in search of a problem. I can say this because I helped define
+it. :)
 
-Ouch, I started implementing that hour ago... [Never mind, very little
-damage done so far].
+The machines that care about manageability (servers) appear to be entirely
+disjoint from the ones that have thermal zones (and, servers use IPMI),
+therefore thermal chip contention doesn't happen. And, Metolious required a
+fair amount of AML code.
 
-But... Metolious sounds *needed*; how do you access voltage sensors
-without metolious, in a way that can coexist with ACPI thermal
-support?
+-- Andy
 
-								Pavel
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+
+-------------------------------------------------------
+This sf.net email is sponsored by:
+With Great Power, Comes Great Responsibility 
+Learn to use your power at OSDN's High Performance Computing Channel
+http://hpc.devchannel.org/
