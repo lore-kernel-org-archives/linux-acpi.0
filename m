@@ -1,16 +1,16 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: Smart Battery System driver
-Date: Thu, 20 Jan 2005 10:22:40 +0100
-Message-ID: <m2mzv4pi8v.fsf@phoenix.squirrel.nl>
-References: <41E81C2C.8010809@bartol.udel.edu>
-	<200501192010.25975.o.jansen@orb-net.de>
-	<m28y6pytgs.fsf@phoenix.squirrel.nl>
-	<200501200936.21831.o.jansen@orb-net.de>
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RFC 0/4: make ACPI interpret safe for suspend/resume
+Date: Thu, 20 Jan 2005 17:26:47 +0800
+Message-ID: <1106213207.16186.10.camel@sli10-desk.sh.intel.com>
+References: <1106104620.12957.270.camel@sli10-desk.sh.intel.com>
+	 <20050119101858.GE25623@elf.ucw.cz>
+	 <1106184495.13181.68.camel@sli10-desk.sh.intel.com>
+	 <20050120091242.GB1452@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501200936.21831.o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org> (Olaf Jansen-Olliges's
- message of "Thu, 20 Jan 2005 09:36:21 +0100")
+In-Reply-To: <20050120091242.GB1452-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,32 +20,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org> writes:
+On Thu, 2005-01-20 at 17:12, Pavel Machek wrote:
+> Hi!
+> 
+> > > [Or perhaps you want this variable to be acpi-local?]
+> > For the memory allocating issue and semaphore issue, we actually can not
+> > use the new system state, we can just do:
+> > if (in_atomic() || in_interrupt())
+> > 	kmalloc(.., GFP_ATOMIC)
+> > But this possibly will mask some real runtime errors, so we want to add
+> > a new system state to make suspend/resume work and not break normal
+> > process. But If new system state is a bad idea, we can make it
+> > acpi-local.
+> 
+> Actually, I do not quite like new system state, but introducing new
+> "in_suspend()" macro would certainly be ok. We actually talked about
+> that one on linux-pm, just noone got around to implement it.
+I rethought the issue and get a new idea (I'll resend it later). Now we
+don't require the new system state. But in_suspend is a good idea.
 
-> Hi Johan, 
->
->>    # Experimental: drivers for smartbattery reading.
->>    modprobe i2c-dev
->>    modprobe i2c-acpi-ec
->>    modprobe -r ac
->>    modprobe -r battery
->>    modprobe acpi-sbs
->
->
-> i've tested it again on my machine. I only get values for my battery
-> when i disable in my kernel configuration. Even when they are marked
-> to be build as modules i get no values! Perhaps you should try to
-> compile a new kernel with this variables set to no.
+> > > > P.S. Did anybody know why we should freeze all processes for S3 and
+> > > > S4BIOS? I checked FreeBSD code, it doesn't. I know it's safer, but if
+> > > > all device drivers can freeze request to them, it's possibly not
+> > > > required to me.
+> > > 
+> > > Freezing all processes should not be required. 
+> > How about just make suspend/resume task as a highest priority task with
+> > FIFO scheduler policy? 
+> 
+> That might do the trick for S3,
+What I like it is a) it speeds up freeze process in a system with many
+tasks, b) easy to move to SMP case on the future.
 
-Sorry for the confusion -- with these settings in my rc.local I _DO_
-get correct values, so there should be no need to recompile the kernel
-if ac and battery are modules. Just make sure they're unloaded before
-you load acpi-sbs.
+>  but not for swsusp. Imagine normal
+> process holding some lock you want (for writing image to disk). You
+> can run on FIFO scheduler, but then you block on this lock, and
+> userspace process gets to run, and gets confused.
+Ok, that makes sense. Could we split S3 from swsusp? That is S3 doesn't
+use freeze_process.
 
--- Johan
+Thanks,
+Shaohua
+
 
 
 -------------------------------------------------------
