@@ -1,14 +1,11 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: 2.4 patch updated
-Date: Wed, 21 Aug 2002 22:13:14 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.4 patch updated
+Date: Wed, 21 Aug 2002 14:15:18 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020821221314.M29958@parcelfarce.linux.theplanet.co.uk>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DDBF@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DDC3@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DDBF-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>; from andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Wed, Aug 21, 2002 at 01:00:56PM -0700
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +14,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Shane Wegner' <shane-Fc3cphJJY5I@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "'KOCHI, Takayoshi'" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 21, 2002 at 01:00:56PM -0700, Grover, Andrew wrote:
-> > From: Shane Wegner [mailto:shane-Fc3cphJJY5I@public.gmane.org] 
-> > Getting this working under 2.4.19(vanilla) is trivial and
-> > involves a minor merge in i386/setup.c.  For those who need
-> > it, patch is at:
-> > <http://www.cm.nu/~shane/acpi-20020821-2.4.19.diff.gz>
+> From: KOCHI, Takayoshi [mailto:t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org] 
+> I've found some files degraded(?)
 > 
-> Cool! Unless you have any objections I'll stick this up on sf.net as well.
+> 		2.5.31-0815	2.4.20-pre4-0821
+> ac.c		27		26
+> acpi_ksyms.c	16		15
+> battery.c	37		36
+> acpi_bus.c	80		77
+> button.c	30		29
+> dbdisasm.c	67		50  <= ***
+> fan.c		29		28
+> osl.c		83		80
+> power.c		39		38
+> processor.c	71		69
+> system.c	63		57
+> thermal.c	41		40
+> utils.c		10		8
+> 
+> most of these changes from 2.4 -> 2.5 are just branching
+> so it's okay, but dbdisasm.c seems wrong anyway.
 
-fwiw, i have 2.5.31-20020815 merged into the ia64 2.4.18-20020722 patch.
-nobody's shown any particular interest in it before, so i haven't bothered
-asking for it to be posted ... is there interest?
+dbdisasm.c is no longer needed, and so should be deleted from both 2.4 and
+2.5. The same with driver.c and os.c. Their existence shouldn't hurt
+anything so their removal can wait until the next substantive release.
 
--- 
-Revolutions do not require corporate support.
+Updates to the interpreter aren't branched, but all the files in
+drivers/acpi are completely separate between 2.4 and 2.5. Obviously I'd love
+to stop updating both, but that's just not possible yet.
+
+> Per branching 2.4-tree and 2.5-tree, how do you keep track
+> of changes common to both tree (not a serious question, I'm just
+> curious) ?
+> 
+> driver.c/os.c are not deleted by the patch.
+
+I apply fixes in both trees. No other way, AFAICS. Using BK makes this
+easier, but obviously things slip through, so I really do appreciate you
+mentioning things as you find them. Thanks.
+
+(BTW I put your numa patch in 2.5, did you want it in 2.4 as well?)
+
+Regards -- Andy
 
 
 -------------------------------------------------------
