@@ -1,15 +1,14 @@
-From: Herman Sheremetyev <mlists-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
-Subject: Re: Still problems with ACPI sleep state
-Date: Fri, 25 Jun 2004 10:12:43 -0400
+From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: problem with cpu eating too much power, prize given if solved
+Date: Fri, 25 Jun 2004 23:52:37 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1088172763.1918.1.camel@camel>
-References: <200406251547.21050.mailinglisten@merula.de>
-Reply-To: mlists-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org
+Message-ID: <opr95qdzjj4evsfm@smtp.pacific.net.th>
+References: <20040624153513.GB19545@rap.rap.dk> <opr930o2uv4evsfm@smtp.pacific.net.th> <20040625124637.GA14795@rap.rap.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200406251547.21050.mailinglisten-Ztphx+FISXizQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <20040625124637.GA14795-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,139 +17,101 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: =?iso-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld-6PR53cSIHaE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lars,
+On Fri, 25 Jun 2004 14:46:38 +0200, Keld J=F8rn Simonsen <keld-6PR53cSIHaE@public.gmane.org> =
+wrote:
 
-Try booting with acpi_sleep=s3_bios, I had the same problem on my Asus
-M6N and that made the LCD come back on after an S3 resume.
+> On Fri, Jun 25, 2004 at 01:40:04AM +0800, Michael Frank wrote:
+>> On Thu, 24 Jun 2004 17:35:13 +0200, Keld J=F8rn Simonsen <keld-yTTtVnc/hhA@public.gmane.org=
+k>
+>> wrote:
+>>
+>> >Dear ACPI developers,
+>> >I have a problem with my Acer Travelmate 233.
+>> >Many times I just want to read the screen, eg emails or documents,
+>> >and then still the cpu will be in idle mode, where
+>> >it uses 7.5 W out of the about 15 W that the whole machine uses.
+>> >I have found out from Intel data sheets that my
+>> >Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
+>> >stop grant/sleep states, (and 5.0 W i deep sleep state).
+>> >So I would like to have the CPU stopped completely (consuming 0 W)
+>> >while I still could read the screen. In that way I should
+>> >be able to have about double the lifetime on the battery,
+>> >going to about 7 hours from the 3.5 hours I have now.
+>> >I would like the machine to wake up again by any keystroke
+>> >on the keyboard or mouse input. I would like the input to be
+>> >reacted upon (not just used to wake up the system, and
+>> >then forgotten).
+>> >I do not have the skills to program this myself, so
+>> >instead I offer a prize of USD 1000 to the person(s) that
+>> >can give me a patch for kernel 2.6 and appropiate documentation
+>> >that can solve the above problem. The patch needs to be GPL,
+>> >and demonstrably run on my laptop. I need the patch before
+>> >2004-10-01, after what date the prize offer expires.
+>> >I would like that the patch was written in a general way to cover for
+>> >CPUs that burn considerable power in idle loop and other states, so t=
+hat
+>> >other users can benefit from it. Also I would prefer that the patch b=
+e
+>> >rolled into the normal ACPI kernel source tree, but the latter reques=
+t
+>> >is not a condition for the prize.
+>> >
+>>
+>> Nice idea but it wont be possible to program it as your hardware power=
+s
+>> the CPU which takes 5w while it is powered. There is no partitioning
+>> which allows you to remove power from the CPU while running the rest
+>> and I am not aware of any system or standards which provide this kind
+>> of partitioning...
+>
+> Well, I don't know so much about ACPI, but I thought that you in S2
+> could shut down devices individually, and then at the end for my
+> purpose shut down the CPU completely, like a suspend to memory.
+> But maybe this is not doable.
+>
 
--Herman
+Again it's a nice idea.
 
-On Fri, 2004-06-25 at 09:47, Lars Amsel wrote:
-> Hi,
-> 
-> I wrote some questions some week ago and since then I tried several things. I 
-> have a Fujitsu-Siemens Amilo L6820 with Fedora Core 2.
-> 
-> First I tried to repair my DSDT but I had no success with that.
-> 
-> Then I updated to kernel 2.6.7-1.441. Since that the ac_adapter reports its 
-> state correct und S3 seems to work better but not right. I start the machine 
-> into runlevel 3 (no X11) an log in as root. Then I do a 
-> 
-> [root-uXme+rPq5IdZ5tFPsFZChg@public.gmane.org lars]# echo 3 > /proc/acpi/sleep
-> 
-> and the notebook goes into sleep mode (the red 'sleep-LED' is blinking). After 
-> that I can push the power button and the notebook comes back but the screen 
-> stays blank. I can log in via ssh from the outside.
-> 
-> Any hints what I can do to get a working display after restart (relevant parts 
-> of /var/log/messages and dmesg appended)? 
-> 
-> cheers
-> 
-> Lars
-> 
-> /var/log/message:
-> Jun 25 15:32:52 desperados kernel: Stopping tasks: 
-> ===============================|
-> Jun 25 15:32:52 desperados kernel: eth0: remaining active for wake-on-lan
-> Jun 25 15:32:52 desperados kernel: zapping low mappings.
-> Jun 25 15:32:52 desperados kernel: ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 
-> 9 (level, low) -> IRQ 9
-> Jun 25 15:32:52 desperados kernel: ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 
-> 3 (level, low) -> IRQ 3
-> Jun 25 15:32:52 desperados kernel: ACPI: PCI interrupt 0000:01:0a.0[A] -> GSI 
-> 9 (level, low) -> IRQ 9
-> Jun 25 15:32:52 desperados kernel: ACPI: PCI interrupt 0000:01:0c.0[A] -> GSI 
-> 3 (level, low) -> IRQ 3
-> Jun 25 15:32:52 desperados kernel: eth0: Setting full-duplex based on 
-> negotiated link capability.
-> Jun 25 15:32:52 desperados kernel: Restarting tasks... done
-> 
-> dmesg | grep ACPI:
->  BIOS-e820: 000000000f7d0000 - 000000000f7df000 (ACPI data)
->  BIOS-e820: 000000000f7df000 - 000000000f800000 (ACPI NVS)
-> ACPI: RSDP (v000 ACPIAM                                    ) @ 0x000f5540
-> ACPI: RSDT (v001 A M I  OEMRSDT  0x10000309 MSFT 0x00000097) @ 0x0f7d0000
-> ACPI: FADT (v002 A M I  OEMFACP  0x10000309 MSFT 0x00000097) @ 0x0f7d0200
-> ACPI: MADT (v001 A M I  OEMAPIC  0x10000309 MSFT 0x00000097) @ 0x0f7d0390
-> ACPI: OEMB (v001 A M I  AMI_OEM  0x10000309 MSFT 0x00000097) @ 0x0f7df040
-> ACPI: DSDT (v001 UW____ 755II5__ 0x00000016 INTL 0x02002026) @ 0x00000000
-> ACPI: PM-Timer IO Port: 0x408
-> ACPI: Subsystem revision 20040326
-> ACPI: IRQ9 SCI: Level Trigger.
-> ACPI: Interpreter enabled
-> ACPI: Using PIC for interrupt routing
-> ACPI: PCI Root Bridge [PCI0] (00:00)
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-> ACPI: Power Resource [URP1] (off)
-> ACPI: Power Resource [URP2] (off)
-> ACPI: Power Resource [FDDP] (off)
-> ACPI: Power Resource [LPTP] (off)
-> ACPI: Embedded Controller [EC0] (gpe 28)
-> ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKB] (IRQs *3 4 5 6 7 9 10 11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, 
-> disabled.
-> ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, 
-> disabled.
-> ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, 
-> disabled.
-> ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
-> PCI: Using ACPI for IRQ routing
-> ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-> ACPI: PCI interrupt 0000:00:02.0[A] -> GSI 11 (level, low) -> IRQ 11
-> ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
-> ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
-> ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 5 (level, low) -> IRQ 5
-> ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 9
-> ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 9 (level, low) -> IRQ 9
-> ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 10
-> ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 10 (level, low) -> IRQ 10
-> ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 9 (level, low) -> IRQ 9
-> ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 3
-> ACPI: PCI interrupt 0000:00:1f.3[B] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:01:03.0[A] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:01:0a.0[A] -> GSI 9 (level, low) -> IRQ 9
-> ACPI: PCI interrupt 0000:01:0c.0[A] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: Processor [CPU1] (supports C1, 8 throttling states)
-> ACPI: Thermal Zone [THRM] (75 C)
-> ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 9 (level, low) -> IRQ 9
-> ACPI: (supports S0 S3 S4 S5)
-> ACPI: AC Adapter [AC0] (on-line)
-> ACPI: Battery Slot [BAT0] (battery present)
-> ACPI: Power Button (FF) [PWRF]
-> ACPI: Lid Switch [LID]
-> ACPI: Sleep Button (CM) [SLPB]
-> ACPI: PCI interrupt 0000:01:0a.0[A] -> GSI 9 (level, low) -> IRQ 9
-> ACPI: PCI interrupt 0000:01:0c.0[A] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:01:0c.0[A] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:01:03.0[A] -> GSI 3 (level, low) -> IRQ 3
-> ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
-> ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 5 (level, low) -> IRQ 5
-> ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 9 (level, low) -> IRQ 9
-> ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 3 (level, low) -> IRQ 3
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email sponsored by Black Hat Briefings & Training.
-> Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
-> digital self defense, top technical experts, no vendor pitches, 
-> unmatched networking opportunities. Visit www.blackhat.com
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+Again, It is a HW issue not ACPI issue because ACPI can only do
+what the HW supports.
+
+Also looked at datasheets and the rule of the game is that high
+performance CPU's draw 20% to 70%f of their maximum power
+statically. This is due to leakage of those 10s - soon 100s of
+millions of transistors.
+
+What you are asking is to put the CPU into S2 while the system
+does not notice.  You want CPU to respond to IO like keystrokes and
+mouse, the cursor should blink (I assume you don't need play videos),
+the kernels clock gets updated, all without using electricity when
+it's truly idle.
+
+The keystrokes and mouse could be handled by 8042 equivalent,
+starting the CPU, but what about the cursor driven by X and other
+interrupts and DMA by peripherials which are active?
+
+Your CPU Powersupply would have to go from 0V to normal conditions
+for every action required and CPU state would have to be restored the
+little job done and state saved and CPU powered down again.
+
+Todays  HW _can_not_ do this at all. Theoretical best case latency of
+core  power supplies will be several milliseconds from 0V, which is
+too slow to handle individual interrupts.
+
+Perhaps one day they fix the leakage problems (they do better all the
+time) or come up with a multi core CPU which has an slow core doing
+100s of MHz to keep things idling along and a facility to decouple the
+multi GHz core(s) for power down unless really needed.
+
+Then the OEM's (mainboard designers) have to support that kind of
+partitioned CPU power supply and ACPI  could do S2 for the high
+power CPU cores....
+
+	Best Regards
+	Michael
 
 
 
