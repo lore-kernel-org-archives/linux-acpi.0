@@ -1,14 +1,13 @@
-From: Ti Leggett <leggett-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org>
-Subject: Re: Various Lockups with IBM T30
-Date: 04 Oct 2002 12:20:21 -0500
+From: Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
+Subject: Re: S3 Resume working, but IDE disk hung
+Date: Fri, 4 Oct 2002 23:57:13 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1033752021.1579.6.camel@scraz.mcs.anl.gov>
-References: <1033750314.1578.4.camel@scraz.mcs.anl.gov>
+Message-ID: <Pine.LNX.4.10.10210042302000.10557-100000@master.linux-ide.org>
+References: <1033746424.32384.41.camel@irongate.swansea.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1033750314.1578.4.camel-tIO8fc+LZfeHIU8xwMp6mvIbXMQ5te18@public.gmane.org>
+In-Reply-To: <1033746424.32384.41.camel-MMxVpc8zpTQVh3rx8e9g/fyykp6/JSeS3vcXtXqGYxw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +16,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: "Faraoni, Michael" <Michael.Faraoni-YwRvm6FT6jBDPfheJLI6IQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I forgot to mention that passing "pci=noacpi" has no effect on the
-outcome.
 
-On Fri, 2002-10-04 at 11:51, Ti Leggett wrote:
-> I'm still trying to get my IBM T30 to even boot with ACPI enabled. I've
-> managed to output my console over serial so I can capture the output and
-> here's what happens.
+Prior to suspend one needs to :
+
+	block all new coming requests.
+	flush cache and wait for return.
+	disable DMA, and switch to PIO 0.
+	then S3 and S4 should/will be stable.
+
+Resume requires calling :
+
+	"do_reset()"
+	for (;;)
+		if ((check_power()) == active)
+			break;
+	"piix_config_drive_xfer_rate()" 
+	unblock request pathway.
+
+Cheers,
+
+Andre Hedrick
+LAD Storage Consulting Group
+
+
+On 4 Oct 2002, Alan Cox wrote:
+
+> On Fri, 2002-10-04 at 16:02, Faraoni, Michael wrote:
+> >  I have looked into the present IDE suspend/resume, but they don't appear to
+> > be called in S3 mode (my printk in ide-disk.c do_idedisk_resume() didn't
+> > happen).  I kludged the piix.c file, adding a suspend and resume routine to
+> > PCI device structure (which gets called).  In the resume I forced a call to
+> > piix_config_drive_xfer_rate(), which does get the disk back to being useable
+> > again, but I know this is in NO way the correct method :)
 > 
-> 2.4.20-pre8 (with 20021002 patch):
->   - hangs trying to initialize NET4
-> 2.4.20-pre8-ac3 (no acpi patch applied)
->   - Oopses at some point during init but spews out a bunch of ACPI
-> errors before
-> 2.5.40 (with 20021002 patch):
->   - Oopses right after ACPI Power Resource
+> When you come back you want to reconfigure the controller and drive,
+> then possibly need to wake the drive. The reconfiguration may well need
+> more than a retune - you might for example have lost the multimode
+> settings, the host protected area etc. I would argue that you pretty
+> much need to reinitialize the controller - you don't know if a drive
+> changed, the cables changed etc from S4 and S3 needs most of the same
+> support anyway.
 > 
-> I'm attaching the ouputs of each of these logs. I've also managed to
-> dump my DSDT so if that's needed (because I really don't know what to do
-> with it) I'll send it as well.
+> You are certainly on the right track and its a sane starting point.
 > 
-> -- 
-> Ti Leggett <leggett-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org>
--- 
-Ti Leggett <leggett-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org>
+> 
 
 
 
