@@ -1,13 +1,14 @@
-From: Tomi Kallio <tomi-y4dnIKzCb/d9YMlOZIriJw@public.gmane.org>
-Subject: Re: Radeon M7 and resuming from suspend-to-ram
-Date: Fri, 14 Jan 2005 22:06:17 +0200
-Message-ID: <41E82639.1020802@sllpilots.fi>
-References: <41E7D334.6060003@sllpilots.fi> <1105716379.5148.8.camel@localhost>
+From: David =?utf-8?B?R8OzbWV6?= <david-0d+f1cuTMnnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Sat, 15 Jan 2005 01:06:03 +0100
+Message-ID: <20050115000603.GA22263@fargo>
+References: <41E81C2C.8010809@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1105716379.5148.8.camel@localhost>
+Content-Disposition: inline
+In-Reply-To: <41E81C2C.8010809-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,23 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Probably already tried this but:
-> 
-> Here at work we use an ACPID script that simply runs "radeontool light
-> on" after a resume. Also, you might trying "chvt 1" or similar before
-> suspend and chvt'ing back to whatever TTY X is on upon resume.
+Hi Rich ;),
 
-I tried "radeontool light on", but it has no effect. When using external 
-display I'm able to power it off using radeontool. At the moment resume 
-from suspend-to-ram works from X (xorg and Gentoo's patches) using 
-external display and suspend/resume from X is enough for me. Only 
-problem is that I'm unable to get laptop's own display working after 
-resume, only external works.
+On Jan 14 at 02:23:24, Rich Townsend wrote:
+> Accordingly, I've written a first shot at an SBS ACPI driver. This
+> driver, which can be downloaded from
+>=20
+> http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20040114.tar.gz
 
-Tomi
+To Bruno and you: Thanks. Really really tkanks :). It works like
+a charm ;). For the record, i'm testing it on a Travelmate 4001LMi
+with kernel 2.6.10. Both interfaces, legacy and the new sbs one
+are working ok. Same for acpi userspace tools.
+
+Hope all the quaint things you do are like this ;)
+
+Thanks again.
+
+--=20
+David G=C3=B3mez                                      Jabber ID: davidge@=
+jabber.org
 
 
 -------------------------------------------------------
