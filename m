@@ -1,7 +1,7 @@
 From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi-ca reports \_SB as a device
-Date: Mon, 10 Jan 2005 10:12:38 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E3900E6@orsmsx403.amr.corp.intel.com>
+Subject: RE: Masquerading operating systems (with ACPI_OS_NAME) does cause grief.
+Date: Mon, 10 Jan 2005 10:41:03 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E3901D5@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="US-ASCII"
@@ -17,33 +17,84 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: acpi-HZy0K5TPuP5AfugRpC6u6w@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Barry Kitson <b.kitson-EkmVulN54Sk@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-For _SB_, this allows the _SB_._INI method to be run.
+Another thing to keep in mind is that on many, many machines, "Microsoft
+Windows NT" or similar is essentially the only tested code path.
 
-For _TZ, this allows notifies on the _TZ object.  Some ASL code does
-this.
 
 
 > -----Original Message-----
-> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
-> Sent: Saturday, January 08, 2005 1:05 AM
-> To: ACPI Developers
-> Cc: acpi-HZy0K5TPuP5AfugRpC6u6w@public.gmane.org
-> Subject: acpi-ca reports \_SB as a device
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Bruno Ducrot
+> Sent: Monday, January 10, 2005 7:03 AM
+> To: Barry Kitson
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] Masquerading operating systems (with ACPI_OS_NAME)
+> does cause grief.
 >=20
-> If you call AcpiGetType on \_SB, you get "device" and \_TZ gives
-> "thermal".  I don't think this is valid since these are system scopes,
-> not devices and thermal zones.
+> On Sun, Jan 09, 2005 at 11:40:52PM +1000, Barry Kitson wrote:
+> > The following messages ....
+> > http://sourceforge.net/mailarchive/message.php?msg_id=3D9558174
+> > http://sourceforge.net/mailarchive/message.php?msg_id=3D9559475
+> > suggest that there are no known problems resulting from pretending
+your
+> > favourite OS is something it's not.  Well, bad news.....
+> >
+> > Please note that (modulo VGA, which has it's own special set of
+> > problems) the only string (prefix) that causes suspend/resume of
+linux
+> > 2.6.10 to fail on a VIA EPIA CL10000 Mini-ITX motherboard (with
+either
+> > of the two available BIOS versions - 1.16 or 1.23) is the newish
+(but
+> > not entirely accurate) default of ACPI_OS_NAME=3D"Microsoft Windows
+NT".
+> > When Linux declares itself to be NT, resumes just don't happen.  The
+fan
+> > and power supply wake up, but that's about all.
+> >
+> > Are we really sure this value of ACPI_OS_NAME should be the default?
+> > Could I suggest a return to "truth" as a default, with prominent
+> > suggestions within the documentation of what lies to try when the
+truth
+> > fails?
 >=20
-> I found this while testing a patch that scans the whole namespace (\)
-> for devices.  It turns out some systems put PCI link devices (PNP0C0F)
-> in \, so we weren't probing them.
+> Was done by testing by Bob IIRC and showed that this give less errors
+> than having set it to "Linux".  "Linux" is not present for all DSDT
+Ive
+> seen so far (well, actually Ive seen a IBM laptop, don't remember the
+> model though).  It's then good to atleast set _OS to "something well
+> knows".
+>=20
+> It turns out that "Microsoft Windows NT" is for now "better", but this
+> may be not true for everybody.
+> Note also that ACPICA support the _OSI stuff, so its not Windows NT
+but
+> another Windows IIRC (I don't remember which one).
+>=20
+> You may therefore try to pass the kernel option "acpi_osi=3D"
+> to see if that's help (especially if a grep _OSI file.asl is positive)
+> before overriding acpi_os_name.
+>=20
 >=20
 > --
-> Nate
+> Bruno Ducrot
+>=20
+> --  Which is worse:  ignorance or apathy?
+> --  Don't know.  Don't care.
+>=20
+>=20
+> -------------------------------------------------------
+> The SF.Net email is sponsored by: Beat the post-holiday blues
+> Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+> It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
