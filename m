@@ -1,14 +1,13 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: \_PR\CPU\_INI not called during initialization
-Date: Tue, 7 Oct 2003 11:31:44 -0700
+From: "Weston Ohara" <omh471wubq-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: INVESTORS: TRHL - U.S. STOCK MARKET - Last Pick From $.45 to $1.18.......... rn
+Date: Tue, 07 Oct 2003 03:11:59 +0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DE9@orsmsx405.jf.intel.com>
+Message-ID: <vpu8wu668g9u256s0@n493.s8>
+Reply-To: "Weston Ohara" <omh471wubq-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="..1C7EC264F9B.6_5AA_6"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,82 +16,207 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, icewm-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, we will implement the behavior you describe.
 
------Original Message-----
-From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
-Sent: Tuesday, October 07, 2003 11:14 AM
-To: Moore, Robert
-Cc: Ducrot Bruno; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: [ACPI] RE: \_PR\CPU\_INI not called during initialization
+--..1C7EC264F9B.6_5AA_6
+Content-Type: text/html;
+Content-Transfer-Encoding: quoted-printable
 
-Thank you!  However, I hope you call _INI even if _STA is AE_NOT_FOUND.
-See the ASL below to see that there is no _STA method.  If there IS a
-_STA
-method and it returns "not present", it's fine not to call _INI.
+<p align=3D"center"><i><font size=3D"7">Stock Wizard International</font><=
+/i></p><p align=3D"center">
+Our last pick SUQU went from $0.45 to $1.18 -
+<a
+href=3D"http://table.finance.yahoo.com/d?a=3D7&b=3D28&c=3D2003&d=3D8&e=3D=
+18&f=3D2003&g=3Dd&s=3Dsuqu.ob">
+SEE HISTORICAL PRICES</a></p><p align=3D"center">Our NEW PICK is True Heal=
+th - <b>
+TRHL</b></p><p>True Health: <b>TRHL -
+<a href=3D"http://moneycentral.msn.com/scripts/webquote.dll?iPage=3Dqd&Sym=
+bol=3Dtrhl">
+GET QUOTE</a></b><br>
+Industry: Healthcare<br>
+12-month range: $0.55-3.90</p><p>At Stock Wizard International we search o=
+ut stocks with big up-side potential that 
+have gone unnoticed until now.<br>
+<br>
+Our focus this week is on True Health: <b>TRHL - with revenues are up by m=
+ore 
+than 412%</b><br>
+<br>
+We are now seeing indicators with <b>TRHL</b>, <i>the 20 - 50 Day MACD Osc=
+illator</i> is now 
+indicating a buy, <i>20 Day Bollinger Bands</i> have moved into a buy indi=
+cation.<br>
+<br>
+<u><b><font size=3D"4">The Story</font></b></u><br>
+<br>
+<b>The Problem</b><br>
+<br>
+The US and international healthcare industry are currently in a major cris=
+is. 
+There is a huge shortage of skilled healthcare specialists, doctors and nu=
+rses, 
+and since 9/11, many qualified professionals are finding it impossible to =
 
-For now, I unconditionally call _INI when attaching to a Processor.  It
-works and now my mhz and mw settings for performance control are
-properly
-reported.
+immigrate into countries desperately needing medical personnel. </p><p>
+<a href=3D"http://www.audit.wa.gov.au/reports/report2002_03.html">A Critic=
+al 
+Resource: Nursing Shortages and the Use of Agency Nurses - Report No. 3- A=
+ugust 
+2002</a><br>
+<br>
+<b>The Solution</b><br>
+<br>
+True Health Incorporated is a full service specialist, medical equipment a=
+nd 
+medical professional supplier to the healthcare industry. Its primary clie=
+nts 
+are Great Britain's National Health Service (NHS), BUPA International and =
+the 
+private Nursing Home Industry. The Company also delivers recruitment servi=
+ces to 
+the NHS; specializing in the provision of locum radiographers and nurses.<=
+br>
+<br>
+<u><b><font size=3D"4">Read Just Some of the Press</font></b></u><br>
+<br>
+<b>MD, nurse shortages reaching crisis levels</b><br>
+<br>
+WASHINGTON, (UPI) -- Shortages of surgeons, pharmacists and nurses in hosp=
+itals 
+across the United States are reaching crisis levels and may worsen over th=
+e next 
+several years, health care experts warned.<br>
+<br>
+The nursing shortage -- more than 126,000 positions currently remain unfil=
+led -- 
+has become so severe it is endangering the lives of patients and is a prim=
+ary 
+reason for overcrowding in emergency departments and cancellation of surge=
+ries, 
+according to a report by an Experts Roundtable panel convened by the Joint=
+ 
+Commission on the Accreditation of Healthcare Organizations.<br>
+<br>
+The Society for Thoracic Surgeons recently warned that a shortage of heart=
+ 
+surgeons looms within a few years and a survey of hospitals found pharmaci=
+sts, 
+X-ray technicians and therapists are leaving at such an alarming rate it a=
+lready 
+is impacting the quality of care patients receive.</p><p>
+<a href=3D"http://www.ama.com.au/web.nsf/doc/WEEN-5NV24W">Doctor Shortages=
+ - a 
+looming major social problem for Australia - AMA submission to the Senate =
+Select 
+Committee on Medicare</a><br>
+<br>
+<b>Johnson Co-Sponsors Legislation to Address Nurse Shortages</b><br>
+<br>
+January 24, 2003 Washington, DC- U.S. Senator Tim Johnson (D-SD) recently =
 
--Nate
+co-sponsored the Nurse Reinvestment Act to address areas with critical nur=
+se 
+shortages in an effort to provide more opportunities to recruit and retain=
+ 
+quality nurses. &quot;Our national health care system has many problems th=
+at need to 
+be addressed,&quot; Johnson said. &quot;At the top of that list is the sev=
+ere shortage of 
+nurses.</p><p>
+<a href=3D"http://johnson.senate.gov/~johnson/releases/200301/2003124B11.h=
+tml">
+Johnson Co-Sponsors Legislation to Address Nurse Shortages</a></p><p><b>Co=
+llege of Family Physicians of Canada</b><br>
+<br>
+Past decisions with respect to health care =93reform=94 have been made wit=
+hout 
+complete or accurate information, and this has led to critical problems in=
+ the 
+system such as doctor shortages and waiting lists. <br>
+<br>
+<b>Texas Public Policy Foundation<br>
+Check with Your Doctor First! September 03, 2003<br>
+Texans Can Cure State's Medical Crisis<br>
+</b>
+<br>
+Getting a second opinion is always a good idea, particularly when you have=
+ a 
+serious medical problem. Today, Texans are suffering from a serious lack o=
+f 
+medical care. The American Medical Association says the physician shortage=
+ has 
+reached crisis proportions in Texas and lives are in peril.</p><p>
+<a
+href=3D"http://www.texaspolicy.com/press_releases_single.php?report_id=3D=
+372">
+Texans Can Cure State's Medical Crisis - TexasPolicy.com</a><br>
+<br>
+<b><u><font size=3D"4">True Health's Subsidiary- Westmeria</font></u></b><=
+br>
+<br>
+True Health through its wholly owned subsidiary, Westmeria for 20 years ha=
+s 
+developed a reputation for getting medical personnel in where they are nee=
+ded 
+fast. Now with demand for these professionals escalating at an exponential=
+ rate, 
+the demand for Westmeria is growing fast. Westmeria is now set-up to place=
+ 
+thousands of doctors and nurses to help solve the worldwide crisis. This w=
+ill 
+equate to many millions in added revenues for True Health. Check out the l=
+atest 
+financial report.<br>
+<br>
+<u><b><font size=3D"4">Financials<br>
+</font></b></u>
+<br>
+According to the latest financials, <b>revenues are up by more than 412=
+%</b><br>
+<br>
+<u><b><i>Sep-2003 Quarterly Report</i></b></u><br>
+<br>
+Revenue for the three months ended July 31, 2003 increased by 412.8=
+%, when 
+compared to revenue for the three months ended July 31, 2002.<br>
+<br>
+The equipment rentals and sales segment's revenue increased by 69.8=
+%, in the 
+three months ended July 31, 2003, compared to the three months ended July =
+31, 
+2002. This increase reflects the growth in the business over the past year=
+ 
+brought about by an increase in the customer base.</p><p><u><b><font
+size=3D=
+"4">
+Additional Sources</font></b></u></p><p>
+<a href=3D"http://www.doctoroncall.com/NewsRelease/HealthCareCrisis.html">=
+National 
+Physician Hotline Responds to Health Care Crisis</a></p><p><font face=3D"T=
+imes">
+<a href=3D"http://www.caymannetnews.com/Archive/Archive%20Articles/August=
+%202002/Issue%20228/MD%20Nurs%20Shortages.html">
+MD, nurse shortages reaching crisis levels</a></font></p><p>
+<font face=3D"Times New Roman,Times">
+<a href=3D"http://www.dnews.com/health/hc5.htm">Recruitment a constant str=
+uggle; 
+Universities help, but finding and keeping needed medical professionals ne=
+ver 
+easy</a></font></p><p>
+<a href=3D"http://www.mindfully.org/Health/2003/Bush-Medical-Malpractice16=
+jan03.htm">
+Bush Proposes Reforms To Medical Malpractice Laws</a></p><p>&nbsp;</p><p><=
+br>jyehjgi nsm
+xp n m fseeccryem
+ufvqeoory
 
-On Tue, 7 Oct 2003, Moore, Robert wrote:
-> We are going to add this support for the next version of ACPI CA.
->
-> The MS interpreter executes both _STA and _INI under processor
-objects.
-> Bob
->
->
-> -----Original Message-----
-> From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]
-> Sent: Tuesday, October 07, 2003 12:53 AM
-> To: Moore, Robert
-> Cc: Nate Lawson; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] RE: \_PR\CPU\_INI not called during initialization
->
-> On Mon, Oct 06, 2003 at 03:58:32PM -0700, Moore, Robert wrote:
-> > Nope. A Processor object is just that.  A Processor.  Not a Device.
-> > Just because something can appear under _SB does not imply that it
-is
-> a
-> > Device object.
-> >
-> > However, once again, we need to see what MS does.
-> > Bob
-> >
->
-> Some IBM laptops shipped with a Pentium have that,
-> or equivalent:
->
->     Scope (\_PR)
->     {
->         Processor (CPU, 0x01, 0x00001010, 0x06)
->         {
->             Method (_INI, 0, NotSerialized)
->             {
->                 Store (\P0FQ, Index (DerefOf (Index (_PSS, 0x00)),
-0x00))
->                 Store (\P0PW, Index (DerefOf (Index (_PSS, 0x00)),
-0x01))
->                 Store (\P1FQ, Index (DerefOf (Index (_PSS, 0x01)),
-0x00))
->                 Store (\P1PW, Index (DerefOf (Index (_PSS, 0x01)),
-0x01))
->                 If (\PCEL)
->                 {
->                     Store (0xF6, Index (DerefOf (Index (_PSS, 0x01)),
-0x05))
->                     Store (0x00, Index (DerefOf (Index (_PSS, 0x01)),
-0x05))
->                 }
->             }
+jva l   mvwb qeua
+
+--..1C7EC264F9B.6_5AA_6--
+
 
 
 -------------------------------------------------------
