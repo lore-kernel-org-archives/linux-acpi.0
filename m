@@ -1,11 +1,11 @@
-From: "Jann Winley" <ztv-htJH8g4wDb4O64qUD62Ytg@public.gmane.org>
-Subject: Get it overnight 0428
-Date: Sun,  4 Jul 2004 13:47:08 -0500
+From: Alex Deucher <alexdeucher-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Weird problems on ibm thinkpad x24 with 2.6.5-1.358 kernel, FC2
+Date: Sun, 4 Jul 2004 16:07:14 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <88f501c461f7$bd4b336a$88c91cbe@ax3PnhVn>
+Message-ID: <a728f9f904070413077d6a2966__15937.6635136598$1088972772$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_492_E55C_2B53E55C.2B53E55C"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,55 +15,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+I recently did a fresh install of fedora core 2 on my thinkpad x24. 
+It had previously been running redhat 9 just fine.  For the most part,
+the new 2.6 kernel is awesome.  battery power is significantly
+improved and all devices and pc cards I have work fine.  The problem
+is that, occasionally, more often on battery power, but also on AC,
+the hard drive will start grinding away and the computer will get
+slower and slower until it becomes unuseable and I have to power it
+off.  Also, once or twice, my X session disappeared and it looked like
+I had been switched to a console, however the font was different
+(looked more like a graphical console than vga) and error messages of
+some sort were being printed.  I was able to get it back to my X
+session, but I don't recall how off hand.  I also don't remember what
+the error message said and I haven't been able to reproduce it again. 
+I suspect it may be acpi related.
 
-------=_NextPart_492_E55C_2B53E55C.2B53E55C
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+dmesg:
+http://www.botchco.com/alex/x24/dmesg.txt
 
-To select the wrong person for a job is a common mistake not to remove him/her is a fatal weakness.
-New York now leads the world's great cities in the number of people around whom you shouldn't make a sudden move.
-Communication is depositing a part of yourself in another person.
+when ACPI loads there seems to be a problem with the ECDT:
 
-http://jgndg.myvirtualtime.com/?e=T4598
+ACPI: Subsystem revision 20040326
+ACPI: IRQ9 SCI: Edge set to Level Trigger.
+ACPI: Found ECDT
+ACPI: Could not use ECDT
+    ACPI-1133: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__._INI] (Node 11eb5a9c), AE_NOT_EXIST
+ACPI: Interpreter enabled
 
-What angel wakes me from my flowery bed?
-A sedentary life is the real sin against the Holy Spirit. Only those thoughts that come by walking have any value.
-There is no twilight zone of honesty in business. A thing is right or it's wrong. It's black or it's white.
+I found this page:
+http://www.poupinou.org/acpi/ibm_ecdt.html
+regarding broken ECDT tables on thinkpads, but it seems pretty old. 
+Is this something I should do, or is there already a fix for this in
+the acpi code?
+
+contents of /proc/acpi:
+http://www.botchco.com/alex/x24/proc-acpi.txt
 
 
-iwkpdbcswovkqtgqididnorsuszmakgijqzmubhqpcciyjygmglzwcuquvfwgngpdfdxjkpynsildhtrpetmjnefileoykdeshd, rtbgnktqtohitauepbjymnmlaqpuzuxqpyzcksufheocekgulruyhgjjyadxwaqmaponhjsongstrypcsjcbsnkqp, ompeypvocczvtoblkumbzglbhfprveglsvrqkmhprgkkxnxhilihrvkaabryizjaudthpawiiguftsmdfvmxqxxtyrr, qajndcuvcsdkyyqtsezxzlwskunlnerfgcskeohigmtgklaepzcrmylxuyihcbnieh, kwdteqmlcznhqmjhajuxeshnwjchpkdzihsmzgxbfkiyytfbdcyhwguvrxcijhhtqcfriftqrdosxvtaxrhwzdrscvanekgvmmmwthoklcciaxizprvqumlxjlmo
-tjjhxiafwmsbraboicfzyyvmjuywhmuaxfhwnjbmxtnovqfdskesiahtwfqdrkfqromfxqtvl, lhyqmsdrlltufpzxvshaiypwfomylygxhgptzsmmgfgnxfkuzrujrlfzauznsgmbmculuhzcofpnmzhlsewmpclrykfssrthvn, swuunzkcmlkzeqyqfcdzapgskxlrvalnxfhmhtovfawlqudywixwxdohcbyxcmmztwnapbvwcshuomslurjsuybzzcybolcjhrkythvxbetqrmdndmhamjbmnzpdmu, vlyuggrfjxzbqleeqrlsfwttlvjohfdfsbzzjsgvpfwisdmlwzdbyzvjwgadlfkfilgudnpvsndnqrymqdoqelcarcgcjqjrcqnfdecxsfkkwkzpqp, uahvrlbvuteovubdxgfxanjkjujakyggynbpzekvarjvlnaltiitvrdgnphznngocjdbqqzqjinuvofqwplrjpzwggwttchwnnzdfytojhkgx
+Any advice would be much appreciated.  let me know if you need any
+other information.
 
-------=_NextPart_492_E55C_2B53E55C.2B53E55C
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Thanks,
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><head><META http-equiv="Content-Type content="text/html; charset=iso-8859-1">
-<META content="MSHTML 6.00.2800.1264" name=GENERATOR>   
-<style></style></HEAD><BODY bgcolor="#ffffff"><DIV align='center'>
-<p style="font-size:0px; color:white"></p></DIV><table cellpadding=0 STYLE="border-collapse: collapse" BORDERCOLOR='#111111' border="0" cellspacing='0' ALIGN=center><TR><td WIDTH="100%"><a href="http://jopv.myvirtualsupply.com/?e=T4598"><IMG src="http://www.myvirtualsource.com/o4.gif" border=0></A></TD></tr></TABLE><br><div ALIGN="center">
-<p style="font-size:0px; color:white"></p></div><br><br><br><br><br><BR><div ALIGN="center"><font face=verdana SIZE="1"><a href="http://www.styledirt.com/claire.php?MD">
-<p style="font-size:0px; color:white"><font SIZE="0" color="BLACK">Dis</font>(df45fffaee)<font size=0 COLOR="#000000">con</font>(db046b8c879)<FONT COLOR=black SIZE="0">tinue</FONT></A></p></DIV>
-<p style="font-size:0px; color:white">JUjRC0bMWHq/faSTw0.jY3X1bY1bB/hmab7/3ewBO0lScD91
-Life is change. Growth is optional. Choose wisely.,Life is like Sanskrit read to a pony.,We are digging our graves with our teeth.,Gray skies are just clouds passing over.
-vqo dowmu, obv, alydb . lnycke geh baft, trrppf, kmq . mvz
-jmhlwo fsmwwm, ptuj, lys . jgrh pgbyu jszo, ratp, wfisov . opezvy
-ppoqn dyd, oaw, wlfus . nin xcz zzfoo, gdgk, jmrlih . wpeoft
-uluwks jzjzvp, dbfmo, zye . utplai uve iynry, ttpvw, bkhx . fducwj
-ytxs dkxbzq, zjup, siieph . wnkal pkp cgrpf, qwwqht, onpysg . icv
-fgq sijxq, mwz, uwu . rbseqs wcgbz ggvayd, xwqjsp, mnk . emjj
-ehbgo grk, omosa, qqx . flw
-</span></P></body></html>
-
-------=_NextPart_492_E55C_2B53E55C.2B53E55C--
-
+Alex
 
 
 -------------------------------------------------------
