@@ -1,13 +1,17 @@
-From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>
 Subject: Re: Re: Re: ibm-acpi-0.1
-Date: Wed, 11 Aug 2004 12:44:26 +0300
+Date: Wed, 11 Aug 2004 14:16:06 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2004.08.11.09.44.26.508773@yahoo.com>
-References: <20040810080826.GD28939@aero.ensim.com> <pan.2004.08.10.10.18.05.651578@yahoo.com> <pan.2004.08.10.11.37.29.407984@yahoo.com> <20040810231129.GN28939@aero.ensim.com> <20040810233238.GB16896@hell.org.pl> <pan.2004.08.11.00.33.03.494809@yahoo.com> <20040811074717.GB965@hell.org.pl>
+Message-ID: <1092226566.3156.3.camel@localhost.localdomain>
+References: <20040810080826.GD28939@aero.ensim.com>
+	 <pan.2004.08.11.01.01.25.610270@yahoo.com>
+	 <1092188650.3156.0.camel@localhost.localdomain>
+	 <pan.2004.08.11.09.38.47.140647@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <pan.2004.08.11.09.38.47.140647-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,32 +23,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 11 Aug 2004 09:47:17 +0200, Karol Kozimor wrote:
+Am Mi, den 11.08.2004 schrieb Paul Ionescu um 11:38:
+> Even now, without proper ACPI support, you don't have to reboot your
+> thinkpad to do that.
+> If you are using an ACPI enabled kernel, then you can just 
+> "idectl 1 off"
+> pull out your cdrom
+> insert your battery
+> use the battery
+> eject the battery
+> insert the cdrom
+> "idectl 1 on" or "idectl 1 rescan"
+> use the cdrom
 
-> Thus wrote Paul Ionescu:
->> > Consider doing that from the notify handler, I'd bet that's what the
->> > Windows driver does.
->> But in this case I think it would be less flexible. Maybe somebody does
->> not want to enable bluetooth by default with Fn-F5, but only the wlan.
->> In windows you can specify what action to have for Fn-F5, like
->> enable/disable for bluetooth, wlan, or bluetooth+wlan.
->> If you enable/disable the bluetooth from notify handler, then
->> you could not just enable/disable the wlan with Fn-F5.
-> 
-> It's still easier to do that from the notify handler and provide an
-> interface to enable / disable the specific bits at user request. By moving
-> it completely to userspace you add another layer of redirection which most
-> users won't need (as they don't give a damn about writing and configuring
-> glue scripts) as opposed to having your driver do as expected for most
-> non-developers. As I said, it's easy to come up with an interface to change
-> the default behaviour if anybody should wish so.
-> Best regards,
+Cool, this works.
 
-Well, in this case I don't have any other comments/complains for doing it
-in the notify handler.
+> however the DMA on the cdrom will not work because of this bug:
+>  http://bugme.osdl.org/show_bug.cgi?id=2261
 
-Thanks,
-Paul
+Yes, same thing here, running 2.6.8-rc3 with acpi-patch.
 
 
 
