@@ -1,45 +1,454 @@
-From: "Nakajima, Jun" <jun.nakajima@intel.com>
-Subject: RE: [ACPI] [PATCH] 4 of 6 introduce acpi_global_irq_to_irq()
-Date: Tue, 9 Mar 2004 16:00:19 -0800
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <7F740D512C7C1046AB53446D37200173FEB472@scsmsx402.sc.intel.com>
+From: burkey-wh2Gl981Flk0n/F98K4Iww@public.gmane.org
+Subject: LG LM50-3 laptop no battery
+Date: Wed, 10 Mar 2004 07:55:50 +1100 (EST)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <39936.12.24.60.12.1078865750.squirrel@webmail.swiftdsl.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Class: urn:content-classes:message
-To: davidm@hpl.hp.com, Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>
+Content-Type: multipart/mixed;boundary="----=_20040310075550_36608"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I agree with David. And GSI is more consistent with the ACPI spec, and
-you don't need to explain what it is.
+------=_20040310075550_36608
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
-Jun
->-----Original Message-----
->From: David Mosberger [mailto:davidm@napali.hpl.hp.com]
->Sent: Tuesday, March 09, 2004 3:45 PM
->To: Bjorn Helgaas
->Cc: acpi-devel@lists.sourceforge.net; linux-ia64@vger.kernel.org; Andi
->Kleen; Nakajima, Jun; Brown, Len
->Subject: Re: [ACPI] [PATCH] 4 of 6 introduce acpi_global_irq_to_irq()
->
->>>>>> On Tue, 9 Mar 2004 16:26:31 -0700, Bjorn Helgaas
-><bjorn.helgaas@hp.com> said:
->
->  Bjorn> i386, x86_64, ia64, ACPI: Introduce acpi_global_irq_to_irq()
->  Bjorn> Rename acpi_irq_to_vector() to acpi_global_irq_to_irq().
->  Bjorn> This function takes an ACPI global IRQ (often called a
->  Bjorn> "global system interrupt", but "global_irq" seems to be
->  Bjorn> commonly used in Linux), and converts it to a Linux IRQ.
->
->  Bjorn> This removes IA64 and PCI_USE_VECTOR #ifdefs from ACPI.
->
->The ia64-specific changes have my blessing.
->
->However, I'd _much_ prefer "gsi" in lieu of "global_irq".  It's much
->easier to think of the former as a numbering-scheme separate from the
->Linux irq numbers.  Justs my 2 cents...
->
->	--david
+Hi all,
+
+This is my first post to this list, I actually tried to post this same
+message but it got held and does not seem to have ever gotten through?
+
+I have what must be a one of a kind on linux!  A new LG Centino
+Laptop,which run's Linux great.. mostly,  I get the following error from
+dmesg
+
+ACPI: Subsystem revision 20040211ACPI: IRQ9 SCI: Edge set to Level
+Trigger.    ACPI-1120: *** Error: Method execution failed
+[\_SB_.PCI0._INI](Node c15d5aa0), AE_NOT_EXISTACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing    ACPI-1120: *** Error: Method
+execution failed [\_SB_.CMB0._STA](Node c15d5ca0), AE_NOT_EXIST
+
+Not sure where to go from here, last time I tried to post the AML decode,
+but it was casing my message to be blocked as it was too big so this time
+it is in a bzip tar.
+
+Some advice would really be appreciated!  I am going to give 2.6.4-rc2
+with ACPI patch a go to see if it fixes things.  If it does then I will
+post success.  In the meantime, if someone knows the solution, then please
+let me know
+
+Regards,-- Daniel Burke
+------=_20040310075550_36608
+Content-Type: application/x-bzip; name="dsdt.dsl.tar.bz2"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="dsdt.dsl.tar.bz2"
+
+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
+
+OFCQ4BRRqg==
+
+------=_20040310075550_36608--
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
