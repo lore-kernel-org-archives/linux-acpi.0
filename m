@@ -1,13 +1,15 @@
-From: Piotr Neuman <sikkh-5tc4TXWwyLM@public.gmane.org>
-Subject: Disabling ACPI and latest 2.6.7 patch
-Date: Thu, 1 Jul 2004 20:40:38 +0200
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Still problems with ACPI sleep state
+Date: Thu, 1 Jul 2004 12:42:29 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200407012040.38978.sikkh@wp.pl>
+Message-ID: <20040701123732.C48321@root.org>
+References: <200406251547.21050.mailinglisten@merula.de> <1088172763.1918.1.camel@camel>
+ <20040625211440.P5510@root.org> <1088254830.4302.1.camel@tyrosine>
+ <20040626120209.Y12968@root.org> <20040629213316.GN698@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_mqF5AfE0vjLkzMC"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20040629213316.GN698-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,91 +18,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 29 Jun 2004, Pavel Machek wrote:
+> > > > Could someone familiar with Linux let me know what s3_bios does
+> > > > differently from a normal S3?
+> > >
+> > > It tries to reinitialise the video bios after resume. This sometimes
+> > > helps get some amount of video functionality back. The actual sleep and
+> > > resume process is identical other than that.
+> >
+> > I see.  I didn't know if it was something else.  This is just the lcall
+> > hack.  We do that too:
+> >
+> >         /* Re-initialize video BIOS if the reset_video tunable is set. */
+> >         cmp     _0,reset_video
+> >         je      wakeup_16_gdt
+> >         lcall   _0xc000,_3
+> >
+>
+> Who is "we"? Do you have any other usefull hacks?
+> (we have second one trying to change the video mode)
 
---Boundary-00=_mqF5AfE0vjLkzMC
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+We == FreeBSD.  I don't think your int 10h video hack helps so we don't
+use it.  Do you know of a system that it helps?
 
-I downloaded acpi update patch for 2.6.7 kernel 
-(acpi-20040326-2.6.7.diff.bz2). There is a problem when disabling acpi in 
-kernel configuration ("ACPI Support" menu option) during linux kernel image 
-linking phase mp_register_gsi() is reported as undefined.
+As far as getting suspend/resume to work, I'm very suspicious
+of the disable bus mastering call in AcpiEnterSleepState.  It's known to
+cause laptops (IBM T40) not to enter S5.  That's why it's currently only
+enabled for sleep states other than S5.  I suspect it may affect S4 and
+possible S3 also.
 
-Attached simple patch to fix it (probably contains mistakes).
+Could you give me a quick summary of how linux sets up its drivers for
+suspend/resume?  I've found a Dell where Linux S3 works but FreeBSD's does
+not.  Even with all the drivers removed, it "bounces" back to life instead
+of going to sleep in FreeBSD.  It doesn't crash though.  For
+suspend/resume, we save/restore the PCI BARs for the drivers and then let
+the drivers save their own private state.  Is there anything else you know
+of that would cause this "bounce"?  It happens even with no drivers
+installed except for ATA and all removable hw removed.
 
---Boundary-00=_mqF5AfE0vjLkzMC
-Content-Type: application/x-bzip2;
-  name="acpi-20040326-2.6.7.noacpi_fix.patch.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="acpi-20040326-2.6.7.noacpi_fix.patch.bz2"
-
-QlpoOTFBWSZTWarDN+gAASJfgEAwSX//+vvj30Cv7//iQAJV0zDTnBJIhHqn5Sek0DQ09TCAA0DQ
-0HlNMgJRTyCIm1PUH6p6QAGgAAAADQZQo9QNNqMTJoAAA0AAAACSgk9NJ6mmQIGg0DEBoNBo0yA0
-ai8T1Kb/SMyp0ZcIbuLYdI0pnsQgpJoWLNZubWGqD1UTXgW44g9axbIL70ZyRixa7uQ+mPZF7lxk
-NXbVzyudGQkaDQrrx41ZTcwhtvyYrzigYYCdgxHAoQBjCQPDGwWNAKnGYv4TiMH4+dm9eNErtLCZ
-oiuWSNvBfyZQw7sRmoJiKLTuFfvcidFbyxSVK6eYLURxvji00BhybjHVEgSyEZqu5Yo3WaOCsiVl
-Yzzq/S9KUFcjYZC0fhYZ0uUCpiURxXshU2bdcnwAzShYrwSk85YMOiGFoNyAOBqO4S06c7jSBi5i
-ANGjD1SfkAyhr9EJ4l8UakGfUhNcJRaKt1JjjcQmIzIXw5wFSCEwqgvLUEgYGueLguBPZmoAs5rq
-HxAY+LQ5OsC0WZwK1m/DOWkyleLdjMs/kSthqholKv091nUE/5zKlFBdUtITI2AaNZpKQdMMS+lV
-c2DXhYNoCukLEybQisP5fI+E9tFIwI1uE2Lx0w0aEykoq0OLYr6vhQy8jHJFYVPQhBMwBsiJDpUE
-oYA6WwwuAR5yBIKA1AoFZUt6wkhIKi6kEsQVCAh98QrcEIM4rYBFGPpxptgQgSR0NNz2gmAukmWt
-LxM4kUkF4iqo6Ey4jjMWOaTIVoWlqNW4T/xdyRThQkKrDN+g
-
---Boundary-00=_mqF5AfE0vjLkzMC
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="acpi-20040326-2.6.7.noacpi_fix.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="acpi-20040326-2.6.7.noacpi_fix.patch"
-
-Index: linux/arch/i386/kernel/mpparse.c
-===================================================================
---- linux.orig/arch/i386/kernel/mpparse.c	2004-07-01 20:18:14.605251000 +0200
-+++ linux/arch/i386/kernel/mpparse.c	2004-07-01 20:27:12.095251000 +0200
-@@ -844,7 +844,7 @@ void __init mp_register_lapic (
- 	MP_processor_info(&processor);
- }
- 
--#if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_ACPI_INTERPRETER)
-+#ifdef CONFIG_X86_IO_APIC
- 
- #define MP_ISA_BUS		0
- #define MP_MAX_IOAPIC_PIN	127
-@@ -874,6 +874,8 @@ static int mp_find_ioapic (
- 	return -1;
- }
- 	
-+#endif /*CONFIG_X86_IO_APIC*/
-+#if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_ACPI_INTERPRETER)
- 
- void __init mp_register_ioapic (
- 	u8			id, 
-@@ -1026,6 +1028,9 @@ void __init mp_config_acpi_legacy_irqs (
- 	}
- }
- 
-+#endif /*CONFIG_X86_IO_APIC && CONFIG_ACPI_INTERPRETER*/
-+#ifdef CONFIG_X86_IO_APIC
-+
- int (*platform_rename_gsi)(int ioapic, int gsi);
- 
- void mp_register_gsi (u32 gsi, int edge_level, int active_high_low)
-@@ -1077,5 +1082,5 @@ void mp_register_gsi (u32 gsi, int edge_
- 		    active_high_low == ACPI_ACTIVE_HIGH ? 0 : 1);
- }
- 
--#endif /*CONFIG_X86_IO_APIC && CONFIG_ACPI_INTERPRETER*/
-+#endif /*CONFIG_X86_IO_APIC*/
- #endif /*CONFIG_ACPI_BOOT*/
-
---Boundary-00=_mqF5AfE0vjLkzMC--
+-Nate
 
 
 -------------------------------------------------------
