@@ -1,12 +1,13 @@
-From: Paulo da Silva <pvmagacho78-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: OperationRegion outside scope
-Date: Tue, 16 Nov 2004 03:47:16 -0800 (PST)
-Message-ID: <20041116114716.30512.qmail@web41125.mail.yahoo.com>
-References: <20041115130829.23239.qmail@web41113.mail.yahoo.com>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: Re: [PATCH] Don't disable interrupts during EC access
+Date: Tue, 16 Nov 2004 12:16:16 +0000
+Message-ID: <20041116121616.GG1108@parcelfarce.linux.theplanet.co.uk>
+References: <3ACA40606221794F80A5670F0AF15F84041AC076@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041115130829.23239.qmail-azSxi+4N0UiA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC076@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,106 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Tue, Nov 16, 2004 at 02:15:47PM +0800, Yu, Luming wrote:
+> Andi,
+> 
+> This patch seems to break the atomic operation.
+> The original code enclosed by spin_lock_irqsave/spin_unlock_irqresotre is trying to make sure the first operation to EC_COMMAND
+> register , and the second operation to EC_DATA register belong to one atomic transaction.
 
-  I've tryed my AML file compiled with version
-20040427 of iasl and it seems to work fine. So I think
-the version 20040715 of iasl doesn't seem to handle
-operation regions that are outside any scope.
+Why would converting from a spinlock to a semaphore break this?
 
-Paulo
-
---- Paulo da Silva <pvmagacho78-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
-
-> 
-> Hello,
-> 
->   the version I was using was 20040715. I've tryed
-> with version 20040427 and the problem seems to have
-> disapperead. Looking at the compiled file it's
-> possible to see that the operation regions don't
-> have
-> zero size anymore. I will try later today to reboot
-> my
-> computer with the file compiled with version
-> 20040427
-> to see if everything goes ok. I will post the
-> results
-> later.
->   Thank you for your answer.
-> 
-> Regards,
-> Paulo
-> 
-> --- Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-> 
-> > On Fri, Nov 12, 2004 at 06:22:16PM +0100, Bruno
-> > Ducrot wrote:
-> > > 
-> > > I would say this is a bug in iasl or else a
-> *lot*
-> > of DSDT are buggy as
-> > > well though never got that kind of report
-> > before...
-> > > 
-> > > Which iasl version are you using?  Could you
-> post
-> > to me the DSDT.aml produced?
-> > 
-> > I can reproduce this trouble with current iasl,
-> but
-> > not with the
-> > 20040427.  I will send you (privately due to the
-> > size) the iasl I'm using.
-> > 
-> > -- 
-> > Bruno Ducrot
-> > 
-> > --  Which is worse:  ignorance or apathy?
-> > --  Don't know.  Don't care.
-> > 
-> 
-> 
-> 
-> 		
-> __________________________________ 
-> Do you Yahoo!? 
-> Check out the new Yahoo! Front Page. 
-> www.yahoo.com 
->  
-> 
-> 
-> 
->
--------------------------------------------------------
-> This SF.Net email is sponsored by: InterSystems
-> CACHE
-> FREE OODBMS DOWNLOAD - A multidimensional database
-> that combines
-> robust object and relational technologies, making it
-> a perfect match
-> for Java, C++,COM, XML, ODBC and JDBC.
-> www.intersystems.com/match8
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-
-
-
-		
-__________________________________ 
-Do you Yahoo!? 
-Meet the all-new My Yahoo! - Try it today! 
-http://my.yahoo.com 
- 
-
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
