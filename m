@@ -1,14 +1,14 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Re: DSDT loading patch
-Date: Mon, 6 Dec 2004 10:14:32 -0500
-Message-ID: <200412061014.33191.barr.156@osu.edu>
-References: <200412060907.53079.david.goodenough@btconnect.com> <200412060740.25524.barr.156@osu.edu> <200412061435.23333.david.goodenough@btconnect.com>
+From: Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
+Subject: Re: #define ACPI_MAX_TABLES 256
+Date: Mon, 6 Dec 2004 08:01:18 -0800
+Message-ID: <200412060801.19037.jbarnes@engr.sgi.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300229FE09@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200412061435.23333.david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300229FE09-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,38 +19,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 06 December 2004 9:35 am, David Goodenough wrote:
-[...]
-> Thanks for the reply.  I am glad that some feature to get this in is now
-> getting in to the standard kernel, but it does strike me that this
-> in-initrd method means that normally you would not have to rebuild your
-> kernel just because you have a buggy DSDT every time you put up a new
-> kernel. Normally these days I can work with the stock Debian kernels, and
-> so I do not need to rebuild the kernel every time.
+On Sunday, December 5, 2004 6:37 pm, Brown, Len wrote:
+> Okay to reduce ACPI_MAX_TABLES to 64 from 256 for the forseeable future?
 >
-> Do you know who decided this and why?
->
-> Regards
->
-> David
+> also, looks like acpi_sdt_entry[] can be __init since it is referenced
+> only by code that is __init.
 
-You'll only need to rebuild your kernel if your DSDT changes and is still 
-buggy: for example, if Samsung updates their BIOS and you upgrade, and 
-they've changed the DSDT but not fixed the bugs that the ACPI subsystem had 
-problems with.
+Both are fine by me.
 
-The initrd method is only adventageous if you are in the process of fixing 
-your DSDT and you'd like to test different DSDTs and don't want to recompile 
-your kernel each time. The in-kernel method is actually better for me; that 
-way I don't have to remeber to append the DSDT to the generated initrd.
-
-The initrd method is no longer used for technical reasons I don't remember 
-exactly.
-
-Andrew
+Thanks,
+Jesse
 
 
 -------------------------------------------------------
