@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch] 2.6.1-mm3 acpi frees free irq0
-Date: 26 Jan 2004 15:30:31 -0500
+Subject: Re: [patch] remove null-ifiers
+Date: 26 Jan 2004 15:58:36 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1075149023.2484.4.camel@dhcppc4>
-References: <16390.43574.867869.286685@gargle.gargle.HOWL>
+Message-ID: <1075150716.2484.32.camel@dhcppc4>
+References: <E1AgkrW-00080w-00@jaguar.mkp.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16390.43574.867869.286685-4mDQ13Tdud8Jw5R7aSpS0dP8p4LwMBBS@public.gmane.org>
+In-Reply-To: <E1AgkrW-00080w-00-uLT3q8aHQDsX9StFTm9pZA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,7 +18,7 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Accepted.
@@ -26,50 +26,188 @@ Accepted.
 thanks,
 -Len
 
-On Thu, 2004-01-15 at 09:56, Jes Sorensen wrote:
+
+On Wed, 2004-01-14 at 08:15, Jes Sorensen wrote:
 > Hi,
 > 
-> There is a bug in the ACPI code found in 2.6.1-mm3 where if it can't
-> find the interrupt source for the ACPI System Control Interrupt Handler,
-> it end up trying to free irq 0.
+> The included patch removes a number of NULL-ilizers from the ACPI code
+> resulting in variables being put in the data segment instead of the bss
+> segment.
 > 
-> Included patch fixes the problem.
+> Patch is relative to Andrew's 2.6.1-mm3 patch.
 > 
 > Cheers,
 > Jes
 > 
-> --- linux-2.6.1-mm3/drivers/acpi/osl.c~	Wed Jan 14 05:00:25 2004
-> +++ linux-2.6.1-mm3/drivers/acpi/osl.c	Thu Jan 15 06:43:28 2004
-> @@ -257,13 +257,13 @@
->  		return AE_OK;
->  	}
->  #endif
-> -	acpi_irq_irq = irq;
->  	acpi_irq_handler = handler;
->  	acpi_irq_context = context;
->  	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
->  		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
->  		return AE_NOT_ACQUIRED;
->  	}
-> +	acpi_irq_irq = irq;
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/ac.c linux-2.6.1-mm3/drivers/acpi/ac.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/ac.c	Wed Dec 17 18:58:47 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/ac.c	Wed Jan 14 04:55:10 2004
+> @@ -108,7 +108,7 @@
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
 >  
->  	return AE_OK;
->  }
-> @@ -271,12 +271,13 @@
->  acpi_status
->  acpi_os_remove_interrupt_handler(u32 irq, OSD_HANDLER handler)
+> -struct proc_dir_entry		*acpi_ac_dir = NULL;
+> +struct proc_dir_entry		*acpi_ac_dir;
+>  
+>  int acpi_ac_seq_show(struct seq_file *seq, void *offset)
 >  {
-> -	if (acpi_irq_handler) {
-> +	if (irq) {
->  #if defined(CONFIG_IA64) || defined(CONFIG_PCI_USE_VECTOR)
->  		irq = acpi_irq_to_vector(irq);
->  #endif
->  		free_irq(irq, acpi_irq);
->  		acpi_irq_handler = NULL;
-> +		acpi_irq_irq = 0;
->  	}
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c linux-2.6.1-mm3/drivers/acpi/asus_acpi.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c	Wed Dec 17 18:58:39 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/asus_acpi.c	Wed Jan 14 05:00:01 2004
+> @@ -73,8 +73,8 @@
+>  MODULE_LICENSE("GPL");
 >  
->  	return AE_OK;
+> 
+> -static uid_t asus_uid = 0;
+> -static gid_t asus_gid = 0;
+> +static uid_t asus_uid;
+> +static gid_t asus_gid;
+>  MODULE_PARM(asus_uid, "i");
+>  MODULE_PARM_DESC(uid, "UID for entries in /proc/acpi/asus.\n");
+>  MODULE_PARM(asus_gid, "i");
+> @@ -192,14 +192,14 @@
+>  };
+>  
+>  /* procdir we use */
+> -static struct proc_dir_entry *asus_proc_dir = NULL;
+> +static struct proc_dir_entry *asus_proc_dir;
+>  
+>  /*
+>   * This header is made available to allow proper configuration given model,
+>   * revision number , ... this info cannot go in struct asus_hotk because it is
+>   * available before the hotk
+>   */
+> -static struct acpi_table_header *asus_info = NULL;
+> +static struct acpi_table_header *asus_info;
+>  
+>  /*
+>   * The hotkey driver declaration
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/battery.c linux-2.6.1-mm3/drivers/acpi/battery.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/battery.c	Wed Dec 17 18:59:17 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/battery.c	Wed Jan 14 04:56:10 2004
+> @@ -340,7 +340,7 @@
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+>  
+> -struct proc_dir_entry		*acpi_battery_dir = NULL;
+> +struct proc_dir_entry		*acpi_battery_dir;
+>  
+>  static int
+>  acpi_battery_read_info (
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/button.c linux-2.6.1-mm3/drivers/acpi/button.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/button.c	Wed Dec 17 18:58:06 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/button.c	Wed Jan 14 04:56:39 2004
+> @@ -107,7 +107,7 @@
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+>  
+> -static struct proc_dir_entry	*acpi_button_dir = NULL;
+> +static struct proc_dir_entry	*acpi_button_dir;
+>  
+>  static int acpi_button_info_seq_show(struct seq_file *seq, void *offset)
+>  {
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/ec.c linux-2.6.1-mm3/drivers/acpi/ec.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/ec.c	Wed Dec 17 18:58:56 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/ec.c	Wed Jan 14 04:57:01 2004
+> @@ -475,7 +475,7 @@
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+>  
+> -struct proc_dir_entry		*acpi_ec_dir = NULL;
+> +struct proc_dir_entry		*acpi_ec_dir;
+>  
+> 
+>  static int
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/fan.c linux-2.6.1-mm3/drivers/acpi/fan.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/fan.c	Wed Dec 17 18:58:07 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/fan.c	Wed Jan 14 04:57:17 2004
+> @@ -71,7 +71,7 @@
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+>  
+> -struct proc_dir_entry		*acpi_fan_dir = NULL;
+> +struct proc_dir_entry		*acpi_fan_dir;
+>  
+> 
+>  static int
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/osl.c linux-2.6.1-mm3/drivers/acpi/osl.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/osl.c	Wed Jan 14 02:59:49 2004
+> +++ linux-2.6.1-mm3/drivers/acpi/osl.c	Wed Jan 14 05:00:25 2004
+> @@ -59,13 +59,13 @@
+>  #ifdef ENABLE_DEBUGGER
+>  #include <linux/kdb.h>
+>  /* stuff for debugger support */
+> -int acpi_in_debugger = 0;
+> +int acpi_in_debugger;
+>  extern char line_buf[80];
+>  #endif /*ENABLE_DEBUGGER*/
+>  
+> -static int acpi_irq_irq = 0;
+> -static OSD_HANDLER acpi_irq_handler = NULL;
+> -static void *acpi_irq_context = NULL;
+> +static int acpi_irq_irq;
+> +static OSD_HANDLER acpi_irq_handler;
+> +static void *acpi_irq_context;
+>  
+>  acpi_status
+>  acpi_os_initialize(void)
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/power.c linux-2.6.1-mm3/drivers/acpi/power.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/power.c	Wed Dec 17 18:58:56 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/power.c	Wed Jan 14 04:58:13 2004
+> @@ -387,7 +387,7 @@
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+>  
+> -struct proc_dir_entry		*acpi_power_dir = NULL;
+> +struct proc_dir_entry		*acpi_power_dir;
+>  
+>  static int acpi_power_seq_show(struct seq_file *seq, void *offset)
+>  {
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/processor.c linux-2.6.1-mm3/drivers/acpi/processor.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/processor.c	Wed Dec 17 18:59:05 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/processor.c	Wed Jan 14 04:58:27 2004
+> @@ -138,7 +138,7 @@
+>  
+>  static struct acpi_processor	*processors[NR_CPUS];
+>  static struct acpi_processor_errata errata;
+> -static void (*pm_idle_save)(void) = NULL;
+> +static void (*pm_idle_save)(void);
+>  
+> 
+>  /* --------------------------------------------------------------------------
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/thermal.c linux-2.6.1-mm3/drivers/acpi/thermal.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/thermal.c	Wed Jan 14 02:59:49 2004
+> +++ linux-2.6.1-mm3/drivers/acpi/thermal.c	Wed Jan 14 04:59:18 2004
+> @@ -74,7 +74,7 @@
+>  MODULE_DESCRIPTION(ACPI_THERMAL_DRIVER_NAME);
+>  MODULE_LICENSE("GPL");
+>  
+> -static int tzp = 0;
+> +static int tzp;
+>  MODULE_PARM(tzp, "i");
+>  MODULE_PARM_DESC(tzp, "Thermal zone polling frequency, in 1/10 seconds.\n");
+>  
+> @@ -766,7 +766,7 @@
+>                                FS Interface (/proc)
+>     -------------------------------------------------------------------------- */
+>  
+> -struct proc_dir_entry		*acpi_thermal_dir = NULL;
+> +struct proc_dir_entry		*acpi_thermal_dir;
+>  
+>  static int acpi_thermal_state_seq_show(struct seq_file *seq, void *offset)
+>  {
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/toshiba_acpi.c linux-2.6.1-mm3/drivers/acpi/toshiba_acpi.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/toshiba_acpi.c	Wed Dec 17 18:58:07 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/toshiba_acpi.c	Wed Jan 14 04:59:33 2004
+> @@ -215,7 +215,7 @@
+>  	return status;
+>  }
+>  
+> -static struct proc_dir_entry*	toshiba_proc_dir = NULL;
+> +static struct proc_dir_entry*	toshiba_proc_dir;
+>  static int			force_fan;
+>  static int			last_key_event;
+>  static int			key_event_valid;
 
 
 
