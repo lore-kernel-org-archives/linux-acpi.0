@@ -1,12 +1,13 @@
-From: "Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
-Subject: Semaphore error
-Date: Tue, 11 Feb 2003 16:19:05 -0800 (PST)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI Support
+Date: Tue, 11 Feb 2003 16:21:27 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <32777.192.168.10.204.1045009145.squirrel@benham.net>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A170@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,23 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am getting the following error that starts off a whole host of other
-errors.  My question is..
+> From: Darren Benham [mailto:dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org] 
+> Are there utilities (for Windows, Linux and Unix) that allow for the
+> detection of ACPI support?  Well, utilities or any other way 
+> besides "read
+> the documentation"... I have some systems I'd like to play around with
+> ACPI on if it's supported but I'd rather not blow away the 
+> current OSes
+> unless it'd be worthwhile.
 
-Feb 11 14:29:01 ltdbenham kernel:      osl-0743 [32] os_wait_semaphore    
-: Failed to acquire semaphore[c158bbe0|1|0], AE_TIME
+One easy way is to take a look at the Windows device manager. Under
+System devices, is there anything with "ACPI" in its name? If so, your
+PC is in ACPI mode.
 
-Should I be looking in the kernel code... the DSDT "code"... or is it
-something in the BIOS that's outta my control?  I've got my money on
-kernel but I've not done much kernel programming before...
+On Linux, it's so easy to compile a kernel with ACPI support and look at
+dmesg that I'd just recommend doing that.
 
--- 
-Darren
-
-
+Regards -- Andy
 
 
 -------------------------------------------------------
