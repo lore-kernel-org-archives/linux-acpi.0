@@ -1,99 +1,45 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: [ACPI] _PDC method in DSDT
-Date: Mon, 23 Jun 2003 23:37:26 +0200
-Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-Message-ID: <20030623213726.GA1317@brodo.de>
-References: <F760B14C9561B941B89469F59BA3A84725A303@orsmsx401.jf.intel.com> <20030623133834.GA2330@brodo.de> <20030623161136.GG19556@poupinou.org> <1056388336.15250.62.camel@ixodes.goop.org> <1056398545.10322.111.camel@aldebaran.caltech.edu>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] pcibios_scan_acpi()
+Date: Mon, 23 Jun 2003 14:39:05 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030623213905.GA10992@kroah.com>
+References: <20030623185901.GN2620@parcelfarce.linux.theplanet.co.uk> <16119.20872.104128.965777@napali.hpl.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1056398545.10322.111.camel-cfibRQahR+cF6I9xFAAkN5QCsf4PZ8us@public.gmane.org>
-Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
-List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
-To: David Moore <dcm-HInyCGIudOg@public.gmane.org>
-Cc: Jeremy Fitzhardinge <jeremy-TSDbQ3PG+2Y@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq list <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+In-Reply-To: <16119.20872.104128.965777-o/PNRNCSakrWxDs0y9d3MAC/G2K4zDHf@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org
+Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 23, 2003 at 01:02:25PM -0700, David Moore wrote:
-> Thanks for all the responses on this issue.  Forgive my ignorance in
-> many cases, I've been involved in this code much less time than most
-> people here.
-
-"Fresh", new ideas are always most welcome :-) 
-
-
-Firstly, please let me explain the goal of the cpufreq project: it is a
-cross-architecture, _generic framework_ which provides
-
-a) a standard userspace interface to select certain processor speeds
-	(sysfs based in 2.5)
-b) another interface to "governors" which decide what speed to set
-	(e.g. based on userspace input), and
-c) common core functions (so-called notifiers) which update essential
-	timing code in the kernel, such as the Time Stamp Counter (TSC) 
-	timer.
-
-So, to make life simple for the user (a), to offer him some cool features
-(b), and to assure the kernel won't break switching the core frequency
-(c) all "processor drivers" which change the processor core frequency should
-register themselves as cpufreq drivers.[*]
-
-
-Because of this, the ACPI P-States driver became a "cpufreq driver" in the
-_development_ series -- see arch/i386/kernel/cpu/cpufreq/acpi.c in latest 
-2.5. kernels.
-
-
-Also, you should try to think of ACPI as a "library" which provides useful
-helpers for other kernel services -- CPU enumeration, information on how 
-IRQs can be routed, information on how a specific device can be put to
-sleep. It shouldn't be the ACPI code which is in "control of things", as
-there are too many broken BIOSes around, and too many "legacy" systems
-can't even spell ACPI at all. Instead, it should but the specific 
-__device drivers__  which are in "control of things". Nonetheless, these 
-_may_ use ACPI to obtain information/control of the hardware.
-
-> What about this approach as a possible solution to everything that's
-> been discussed:
+On Mon, Jun 23, 2003 at 12:14:16PM -0700, David Mosberger wrote:
+> >>>>> On Mon, 23 Jun 2003 19:59:01 +0100, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> said:
 > 
-> Patch ACPI as follows: In the case where _PCT returns FFH as the
-> register type in processor.c, we would simply call a processor-specific
-> function in /arch/i386/ instead of using outb() for the state changes. 
+>   Matthew> This patch removes an ifdef from the ia64 acpi patch by
+>   Matthew> defining a new function which takes an acpi_device and a
+>   Matthew> segment/domain as well as the bus number.
+> 
+>   Matthew> I think pcibios_scan_acpi() is an atrocious name.  Can
+>   Matthew> someone come up with a better one?
+> 
+> How about acpi_scan_pci_bus_root()?
 
-IMO the ACPI P-States driver should only include the ACPI 2.0 P-States driver,
-and not try to support all other sorts of legacy support and become one
-"mega-driver". Instead, the other information stored in _PCT you talk about 
-should be available to other processor-specific cpufreq drivers which see 
-a need to obtain this information -- ACPI as a library, available to those 
-who want it.
+I agree, that sounds better.
 
-> For those who want to use cpufreq and ACPI simultaneously, they could
-> use the cpufreq-ACPI driver, which would now be capable of using the
-> appropriate processor-specific functions for state changes with little
-> ACPI overhead.
-
-Using some sort of method to switch the core frequency of the processor
-without informing the cpufreq core is dangerous. The cpufreq core makes 
-sure the timing code in other areas of the kernel is updated.
- 
-> The only big drawback of this approach is the duplication of code
-> between the existing cpufreq drivers and these new processor-specific
-> state changing drivers. 
-
-Indeed, and it is unnecessary. What's worth having, though, is a way to pass
-the information ACPI possesses to the cpufreq drivers whenever these think
-it's necessary.
-
-	Dominik
+greg k-h
 
 
-[*] I know the newly-added drivers/acpi/processor.c in 2.4.22-pre contains
-the ACPI P-States 2.0 driver which can't register itself to any cpufreq core
-as cpufreq is only part of 2.5. kernels. But this is a different issue.
+-------------------------------------------------------
+This SF.Net email is sponsored by: INetU
+Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
