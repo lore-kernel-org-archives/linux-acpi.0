@@ -1,111 +1,54 @@
-From: Paul Ionescu <i_p_a_u_l@yahoo.com>
-Subject: Re: [ACPI] Re: kernel 2.6.10 , uhci-hcd problem after ACPI S3 suspend.
-Date: Thu, 6 Jan 2005 10:07:40 -0800 (PST)
-Message-ID: <20050106180740.40359.qmail@web50203.mail.yahoo.com>
-References: <Pine.LNX.4.44L0.0501061044410.1024-100000@ida.rowland.org>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.10 acpi patch
+Date: 06 Jan 2005 15:02:46 -0500
+Message-ID: <1105041766.18175.1290.camel@d845pe>
+References: <41DD908A.1000907@sectorb.msk.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
-In-Reply-To: <Pine.LNX.4.44L0.0501061044410.1024-100000@ida.rowland.org>
-Sender: linux-usb-devel-admin@lists.sourceforge.net
-Errors-To: linux-usb-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: USB development list <linux-usb-devel@lists.sourceforge.net>, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41DD908A.1000907-Mv9iWk4wWl8RDxlzMovjVg@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Alexander Zubkov <green-Mv9iWk4wWl8RDxlzMovjVg@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Alan,
+On Thu, 2005-01-06 at 14:24, Alexander Zubkov wrote:
 
-Now after a suspend/resume cycle, I see the devices
-with lsusb, but they are not working (I tried a
-mouse), and I get in logs a lot of:
-Jan  6 20:04:14 r50p kernel:
-drivers/usb/input/hid-core.c: input irq status -84
-received
-Jan  6 20:04:14 r50p kernel:
-drivers/usb/input/hid-core.c: input irq status -84
-received
-Jan  6 20:04:14 r50p kernel: uhci_hcd 0000:00:1d.1:
-suspend_hc
-Jan  6 20:04:14 r50p kernel: uhci_hcd 0000:00:1d.1:
-wakeup_hc
-Jan  6 20:04:14 r50p kernel:
-drivers/usb/input/hid-core.c: input irq status -84
-received
-Jan  6 20:04:16 r50p last message repeated 87 times
-Jan  6 20:04:16 r50p kernel: uhci_hcd 0000:00:1d.1:
-suspend_hc
-Jan  6 20:04:16 r50p kernel: uhci_hcd 0000:00:1d.1:
-wakeup_hc
-Jan  6 20:04:17 r50p kernel:
-drivers/usb/input/hid-core.c: input irq status -84
-received
-Jan  6 20:04:19 r50p last message repeated 86 times
-Jan  6 20:04:19 r50p kernel: uhci_hcd 0000:00:1d.1:
-suspend_hc
-Jan  6 20:04:19 r50p kernel: uhci_hcd 0000:00:1d.1:
-wakeup_hc
-Jan  6 20:04:19 r50p kernel:
-drivers/usb/input/hid-core.c: input irq status -84
-received
-Jan  6 20:04:21 r50p last message repeated 87 times
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.10/
+>  there is some strange files for final release of the 2.6.10 kernel, 
+> which contains no patch - only some comments. Is it OK?
 
-Now, even a rmmod/insmod after resume does not help
-any more.
-Tested with both ehci and uhci loaded when suspending.
+right now the early 2.6.11 tree is still called 2.6.10
+in the source, so my 2.6.11 patch (which is empty)
+over-wrote the 2.6.10 patch. [actually it isn't totally
+empty, it reflects that i back-ported linus' video.c
+slab corruption cset to 2.6.10, but as that was already
+in 2.6.11 the comments appear w/o any code chage.
 
-Thanks,
-Paul
+for some reason linus refuses to update the Makefile
+when he opens a new release -- benh brought this up
+on lkml back at the end of 2.6.9.  Many resolutions
+were proposed, but no action was taken.
 
---- Alan Stern <stern@rowland.harvard.edu> wrote:
-> I think you've run across another indication that
-> the suspend/resume 
-> support in the USB drivers is not yet ready for
-> prime time.  Does the 
-> patch below help?  (Note: this is meant for use with
-> CONFIG_USB_SUSPEND 
-> not set.)
-> 
-> Alan Stern
-> 
-> 
-> 
-> --- 2.6.10-orig/drivers/usb/core/hcd.c	Mon Jan  3
-> 09:39:35 2005
-> +++ 2.6.10/drivers/usb/core/hcd.c	Thu Jan  6
-> 10:43:16 2005
-> @@ -534,7 +534,8 @@
->  
->  	/* complete the status urb, or retrigger the timer
-> */
->  	spin_lock (&hcd_data_lock);
-> -	if (urb->dev->state == USB_STATE_CONFIGURED) {
-> +	if (urb->dev->state == USB_STATE_CONFIGURED &&
-> +			hcd->state == USB_STATE_RUNNING) {
->  		length = hcd->driver->hub_status_data (
->  					hcd, urb->transfer_buffer);
->  		if (length > 0) {
-> 
-> 
+i'll go ahead and push the 2.6.10 pach from the 26-stable-release
+tree into the 2.6.10 directory.  Of course this is a no-win
+situation because until the release makefile is updated,
+there are two patchs that want to have the same name...
 
+-Len
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-_______________________________________________
-linux-usb-devel@lists.sourceforge.net
-To unsubscribe, use the last form field at:
-https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
