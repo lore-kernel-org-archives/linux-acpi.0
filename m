@@ -1,55 +1,66 @@
-From: Vladimir Lazarenko <vlad-Qw1rWqDNyQwB085IDyDbTA@public.gmane.org>
-Subject: Re: [ACPI] Where do I send APIC victims?
-Date: Wed, 3 Sep 2003 15:04:03 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200309031504.03596.vlad@lazarenko.net>
-References: <20030903080852.GA27649@k3.hellgate.ch> <1062589205.19059.6.camel@dhcp23.swansea.linux.org.uk> <20030903145356.35b9a192.skraw@ithnet.com>
+From: Greg Meyer <greg-AV60dr2H4Q3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Where do I send APIC victims?
+Date: Wed, 3 Sep 2003 09:19:51 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309030919.51807.greg@gkmweb.com>
+References: <20030903080852.GA27649@k3.hellgate.ch> <200309031123.58713.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20030903145356.35b9a192.skraw-DcQCyzbjH0jQT0dZR+AlfA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200309031123.58713.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Content-Disposition: inline
-To: Stephan von Krawczynski <skraw-DcQCyzbjH0jQT0dZR+AlfA@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org, rl-7uj+XXdSDtwfv37vnLkPlQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On my board, A7V8X, ACPI/APIC works just perfectly with 2.4.22 and KT400 
-chipset, alas on A7N8X Deluxe board with nForce2 chipsets it causes nasty 
-hangups.
-Machine just simply freezes, no oops, nothing whatsoever.
-
-Disabling APIC solved the problem.
-
---
-Regards,
-Vladimir
-
-On Wednesday 03 September 2003 14:53, Stephan von Krawczynski wrote:
-> On Wed, 03 Sep 2003 12:40:06 +0100
->
-> Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org> wrote:
-> > On Mer, 2003-09-03 at 11:48, Andrew de Quincey wrote:
-> > > 2.4.22 has the ACPI from 2.6 backported into it, (which includes my
-> > > patch for nforce2 boards) so it will start having the same issue with
-> > > the BIOS bug in KT333/KT400  boards.
+On Wednesday 03 September 2003 06:23 am, Andrew de Quincey wrote:
+> On Wednesday 03 Sep 2003 9:08 am, Roger Luethi wrote:
+> > As the maintainer of via-rhine, I get bug reports that almost in their
+> > entirety are "fixed" by turning off APIC and/or ACPI. This has been going
+> > on for several months now. Every now and then, something promising gets
+> > posted on LKML, but so far if anything I've seen an _increase_ in those 
+bug
+> > reports. Maybe a fix is floating around and this will be a non-issue RSN. 
+I
+> > simply can't tell, since I don't have any IO-APIC hardware to play with.
 > >
-> > It does - 2.4.22pre7 is great on my boxes, 2.4.22 final ACPI is
-> > basically unusable on anything I own thats not intel.
->
-> I can't back that. At least on all my Serverworks boxes there are no
-> problems with ACPI. I got reports from VIA-bases SMP boards that they are
-> doing well, too. (all for 2.4.22)
->
-> Regards,
-> Stephan
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> > Instead of just telling everybody to turn off APIC, I'd like to point bug
+> > reporters to the proper place and tell them what information they should
+> > provide so it can get fixed for real. According to MAINTAINERS, Ingo 
+Molnar
+> > does Intel APIC, but the problems are with VIA chip sets. So where do I
+> > send my users? Any takers?
+> 
+> Hi, I'm trying to develop patches for ACPI IRQ issues. 
+> 
+> Are these VIA KT333/KT400 chipsets? If so, there's a known bug in many 
+BIOSes 
+> with these chipsets. I'm waiting on some docs from VIA to fix this issue.
+> 
+I was just about to post that I have a Soyo KT-400 Dragon Ultra (black) with a 
+integrated VIA Rhine II that has this problem.  I would really love to help 
+solve this problem if I can.  I can provide any info you need as well as do 
+some testing.
 
+
+
+I have been using Mandrake, so I have been experiencing this because they have 
+acpi turned on by default since a year (9.0).
 -- 
-Best regards,
-Vladimir Lazarenko
+Greg
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
