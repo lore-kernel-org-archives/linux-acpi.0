@@ -1,12 +1,10 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: General Questions:
-Date: Fri, 04 Feb 2005 09:47:32 -0500
-Message-ID: <42038B04.8070908@bartol.udel.edu>
-References: <1107520354.4248.16.camel@localhost>
+From: David Sterratt <david.c.sterratt-5WhEfG1TI8k@public.gmane.org>
+Subject: Temperature reported wrongly?
+Date: 04 Feb 2005 15:46:34 +0000
+Message-ID: <1107531994.23192.2056.camel@canonmills.inf.ed.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1107520354.4248.16.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,62 +14,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jeremy Moles wrote:
-> Hello again ACPI gurus! Many thanks for the last tip; I was able to
-> decompile and "fix" the DSDT rather easily using the advice from your
-> responses.
-> 
-> I have a few questions about batteries:
-> 
-> I was looking around the battery driver code last night trying to find
-> out what the battery "alarm" actually does. Unfortuneately (and I only
-> spent a few minutes looking), I wasn't able to easily see what the
-> function of this feature was. I guess my first question is: does it do
-> anything at all? :)
+There appears to be a discrepancy between the temperature reported by
+ACPI and the temperature reported by the "health check" in my BIOS, just
+over a minute after rebooting. The value reported by
+/proc/acpi/thermal_zone/THRM/temperature is 73 degC as opposed to 51
+degC from the BIOS. I'm working on the assumption that the CPU core
+can't cool down by 22 degC in under a minute.
 
-The 'alarm' feature implemented in Linux is actually mapped to the _BTP 
-(battery trip point) of the ACPI specification. Section 10.2.2.4 of this 
-spec indicates that a notify must be issued when the battery remaining 
-capacity crosses this alarm level (either falling below or rising above).
+Is that assumption likely to be correct?  If so, I suppose it implies a
+bug in acpi, I've looked in the bugzilla and googled, but couldn't find
+anything similar. 
 
-When the battery receives this notification, it dispatches a battery 
-event, which shows up in /proc/acpi/events. What action is taken on this 
-event is up to whatever userspace application you are using. I myself 
-have configured acpid so that when a battery event is read, AND the 
-system is on battery power, AND the remaining capacity is below the 
-alarm level, the system automatically suspends (using swsusp2).
+I'm running a stock 2.6.8 kernel as supplied by Debian. My motherboard
+is an MSI MS-6390 with an Athlon XP1800+ CPU and a winbond W83697HF
+sensor chip. The temperature sensor is a diode. The BIOS is AWARD v
+6.00PG (v1.2) and APIC is disabled in the BIOS (to solve some other
+problems with 2.6.x kernels).  
 
-> 
-> Secondly, would it be beyond of the scope of ACPI for the battery driver
-> to generate ACPI events when the power gets low? Or is there already
-> something like this that exists that I'm missing? I tried
-> watching /proc/acpi/event last as my battery discharged and didn't see
-> any unusual activity.
+I've considered upgrading the BIOS. There was a problem in earlier
+versions of the BIOS about reporting incorrect temperature, but that
+seems to have been fixed in my minor version (v1.2)
+(http://members.driverguide.com/driver/detail.php?driverid=149547) There
+are no changes after v1.2 that might correct the temperature reporting
+(http://www.msicomputer.com/support/bios_result.asp; and then select AMD
+platform and MSI-6390 -- MSI site won't give sane URL). I'm reluctant to
+flash my BIOS, but if people think it might be worth a try I might take
+the risk.
 
-As per the stuff above, there is already stuff there. However, it only 
-works through the _BTP functionality. If this functionality is not 
-implemented in the DSDT -- or if the alarm level is set crazy low -- 
-then you lose the capability to get advanced warning of low-power 
-situations.
+I've tried using lm_senosrs, but that gives me the same temperature
+(unless I tweak it in sensors.conf).
 
-> 
-> Thirdly, does the kernel have access to the LED lights on a typical
-> laptop? That is, does it have the ability to ping the LED and make it
-> light up? Or, is that something controlled entirely by hardware? It
-> would be rather neat, I think, to use my "bluetooth" LED (since I don't
-> have bluetooth) in an arbitrary way.
 
-This really depends on the laptop in question. Do you by any chance have 
-an Acer? My Acer TM4502 has an unused bluetooth LED/button, and I think 
-there *might* be a way to control it through the BIOS (see recent posts 
-by Johan Vromans).
+All the best, and thanks for the ACPI work,
 
-cheers,
+David.
 
-Rich
 
 
 -------------------------------------------------------
