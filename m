@@ -1,13 +1,19 @@
-From: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
-Subject: Re: gericom notebook reboots instead of poweroff
-Date: Wed, 3 Nov 2004 08:18:33 +0100
-Message-ID: <20041103071833.GA12510@pooh>
-References: <20041026194029.GA10954@pooh> <20041102203243.GA996@openzaurus.ucw.cz>
+From: ole.rohne-vJEk5272eHo@public.gmane.org
+Subject: Re: Suspend-to-RAM on Sony Vaios
+Date: Wed, 03 Nov 2004 10:46:58 +0100
+Message-ID: <yzomzxzgt7x.fsf@cern.ch>
+References: <20041018020816.48673359@localhost.localdomain>
+	<20041018112632.GB4400@openzaurus.ucw.cz>
+	<20041021001331.69c6c965@localhost.localdomain>
+	<20041020225334.GC29863@elf.ucw.cz>
+	<20041101145410.GB12006@tate.loria.fr>
+	<20041101154127.GB1056@elf.ucw.cz>
+	<20041102220034.GA31435@tate.loria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041102203243.GA996-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <20041102220034.GA31435-xkTd+U360DcAs8EywTwl9A@public.gmane.org> (Emmanuel
+ =?iso-8859-1?q?Thom=C3's?= message of "Tue, 2 Nov 2004 23:00:34 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +23,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?q?Emmanuel_Thom=C3=A9?= <Emmanuel.Thome-MZpvjPyXg2s@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+>> Uff, this looks pretty ugly. But I guess it is i386 being ugly...
 
-* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [2004-11-02 21:32:43 +0100]:
+E.> The present version does the indirection once and for all, it's
+E.> more readable. I've documented a bit the segment descriptor stuff,
+E.> so that it's not so mystifying. I can do most of it in C, using
+E.> asm/processor.h and asm/desc.h if you prefer.
 
-> >  I have tried to look into existing bugreports, but could not find any
-> > similar to this on the Kernel Bugzilla nor in the ACPI Bugzilla. All I
-> 
-> Eh? Something very similar happens on acers and evos and probably
-> more.... See mail archives.
- No offence taken; I was looking into the Bugzilla, as well to the mail
-archives. Could not find anything relevant that time. But as I have
-reported this, other people showed up, and followed on my bugreport here
-on this mailing list and on the kernel bugzilla, as well you opened up SuSE
-bugzilla later on. I think you missed my _original_ mail.
- Anyway it is a bit bad that developers haven't show up. As noted, I
-could sharpen the location of this bug to 2.6.8.1 and the later added
-2.6.9-bk1; still could not find out how to get -bk1 into changeset pieces
-and apply those step by step while recompiling the kernel, reboot and
-see in which changeset this bug was introduced. Blame me, this is all
-what I can offer to help fixing this.
-I would greatly appreciate any help how to handle BitKeeper to get those
-changesets individualy.
+As it is a one-off, I'd vote for keeping it in assembly. And your
+documentation has made it a lot clearer what is going on.
 
-Kind regards,
-Laszlo
+E.> Ole, while digging up what happens with your real mode / pmode
+E.> switch, I discovered that it turns out you're _not_ initializing
+E.> the segment descriptor for the data segment. It does not matter
+E.> too much, since the wakeup code (once in real mode) hooks ds to
+E.> the same place as cs anyway, and sets up the stack accordingly,
+E.> but is there a reason for doing so ?  I've initialized the
+E.> descriptor, to make things more clear.
+
+I must have thought it was not necessary to touch the data segment, or
+I might just have missed it. What you have now seems complete and
+correct.
+
+E.> In fact, I hoped that this was a key explaining vgabios crashes:
+E.> the es segment point into nowhere (the wakeup code does not touch
+E.> it), but maybe the ROM code uses it (who knows). Unfortunately,
+E.> movw %ax, %es does not improve things.
+
+So it doesn't help on machines that haven't been able to use the
+real-mode POST? 
+
+I guess there could still be things about how the segments are set up
+that are carried over to real mode. IIRC, the pm segment limit
+determines the meaning of real mode 32-bit offsets. Someone might want
+to play with this...
+
+Ole
+
 
 
 
