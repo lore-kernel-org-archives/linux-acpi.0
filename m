@@ -1,48 +1,35 @@
-From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
-Subject: Re: Repost: BUG 2.6.11-rc1: ACPI keys events: only "arrive" after 8 of them.
-Date: Tue, 15 Feb 2005 17:09:51 +0100
-Message-ID: <20050215160951.GB20951@pern.dea.icai.upco.es>
-References: <20050214182112.GA11686@pern.dea.icai.upco.es> <20050214210528.GA11884@hell.org.pl>
-Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
+From: Lorenzo Colitti <lorenzo@colitti.com>
+Subject: Re: [ACPI] Re: Call for help: list of machines with working S3
+Date: Tue, 15 Feb 2005 17:07:55 +0100
+Message-ID: <42121E5B.2010503@colitti.com>
+References: <20050214211105.GA12808@elf.ucw.cz> <200502150605.11683.s0348365@sms.ed.ac.uk> <4211E729.1090305@colitti.com> <200502151317.15633.s0348365@sms.ed.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <20050214210528.GA11884-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <200502151317.15633.s0348365@sms.ed.ac.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: s0348365@sms.ed.ac.uk
+Cc: Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 14, 2005 at 10:05:28PM +0100, Karol Kozimor wrote:
-> Thus wrote Romano Giannetti:
-> >      I'm stymied. If anyone can help me with this, or simply tell me how to
-> >      have more data on this, I will try to obtain all the data I can. 
-> >      I'm using a vanilla 2.6.11-rc1, which config is available here: 
+Alistair John Strachan wrote:
+>>.config attached.
 > 
-> See http://bugme.osdl.org/show_bug.cgi?id=4124 -- sounds similar, but you
-> seem to experience some regularities that I think I ruled out in my case.
-> Best regards,
-> 
+> As recommended elsewhere in this thread, I'm not using any sort of framebuffer 
+> driver, but vesafb IS compiled in (but no vga= option is present). Does it 
+> need to be compiled out completely?
 
-I have added a comment to the bug. I am available for whatever test. The
-thing is really annoying... 
+I don't remember, maybe you can deduce it from the .config I sent?
 
-Romano
+> I have acpi_sleep=s3_bios on cmdline. I am not using swsusp2 (and I can't see 
+> how this is at all related to software suspend).
 
--- 
-Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
-Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
+It works with or without swsusp2.
+
+> Perhaps it is the machine BIOS. Which version do you have?
+
+I think it's vF.0F from July 2004.
 
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Cheers,
+Lorenzo
