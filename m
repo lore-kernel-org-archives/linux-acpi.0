@@ -1,18 +1,14 @@
-From: Herman Sheremetyev <herman-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Subject: Re: current ACPI status in 2.6.7 kernel
-Date: Wed, 11 Aug 2004 10:10:24 -0400
+Date: Wed, 11 Aug 2004 10:35:21 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092233424.1977.21.camel@camel>
-References: <411881B1.9000903@ti.com>
-	 <1092132146.2666.3.camel@laptop.cunninghams> <4118D40D.5030404@ti.com>
-	 <4118F918.7070909@optonline.net> <4119024B.5060602@optonline.net>
-	 <4119CF6A.8020807@ti.com>  <411A1CC5.5030401@optonline.net>
-Reply-To: herman-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org
+Message-ID: <411A2EA9.6000000@optonline.net>
+References: <411881B1.9000903@ti.com> <1092132146.2666.3.camel@laptop.cunninghams> <4118D40D.5030404@ti.com> <4118F918.7070909@optonline.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <411A1CC5.5030401-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+In-Reply-To: <4118F918.7070909-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -22,38 +18,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-08-11 at 09:19, Nathan Bryant wrote:
-<snip>
-> Oh, and there's that annoying little problem where acpid sees the button 
-> press that I have to use to resume, as a shutdown event...
-</snip>
+Nathan Bryant wrote:
+> Alexander Sirotkin wrote:
+> 
+>>>> I could not find this information in neither mailing list archive 
+>>>> nor the web site.
+>>>> What is the current status of ACPI ? I'm mainly interested in one 
+>>>> simple question -
+>>>> does suspend work ? If so, how stable it is.
+> 
+> 
+> Don't try it if you use any SCSI disks. IDE should be OK.
+> 
 
-I don't have this issue myself since hitting any button on my laptop
-wakes it up but I think it would be possible to get around this problem
-by putting something like this into your acpid script that handles the
-button press:
+I've just fixed S3 suspend for SCSI disks. See 
+http://marc.theaimsgroup.com/?l=linux-scsi&m=109218292625235&w=2
 
-if test ! -e /tmp/button_lock
-then
-	/sbin/shutdown
-fi
-
-Then in your suspend script add:
-
-touch /tmp/button_lock
-echo -n mem > /sys/power/state
-rm /tmp/button_lock 
-
-It would need to be tweaked a bit since the rm may get executed before
-the suspend completes and maybe acpid will get the button event some
-time after resume so there might need to be a sleep statement but in
-general I think it would solve the problem.
-
--Herman
-	
-
+Nathan
 
 
 -------------------------------------------------------
