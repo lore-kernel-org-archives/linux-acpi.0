@@ -1,13 +1,12 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Shutting down PCI devices on suspend
-Date: Mon, 13 Dec 2004 12:11:08 +0100
-Message-ID: <20041213111108.GP6272@elf.ucw.cz>
-References: <16A54BF5D6E14E4D916CE26C9AD30575C12271@pdsmsx402.ccr.corp.intel.com>
+From: "Cynthia Sargent" <cynthiasargent_80-1SNrmqWPDVosA/PxXw9srA@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Mon, 13 Dec 2004 09:39:42 -0200
+Message-ID: <3f8e01c4e108$e9216baa$9ee5f0ea@wineanorak.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575C12271-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Get the Finest Rolex Watch Replica!
 
-> >Basically each component in the stack should not know or care about
-> what
-> >the
-> >components above or below it are going to do.  Each should be
-> autonomous
-> >and
-> >only concerned with completing its own well defined goal along the
-> chain of
-> >the process.  This can apply to most problems, including power
-> management.
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
 
-> I like the layering device model very much. We really need a unified
-> model to link the physical devices with ACPI devices. I have some
-> attempts before (see
-> http://www.gossamer-threads.com/lists/linux/kernel/490570?#490570), but
-> it isn't clear. Pat suggested me using some helpers for this issue, but
-> it would be better if the device model can unified handle it.
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
 
-Driver model is complex enough beast as of now. Please do use helpers
-for now.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Visit us: http://www.bhex.com/rep/rolx/
+
+All orders placed before December 12th will be at your door before
+Christmas!
+
+No thanks: http://www.bhex.com/z.php
+
+
 
 
 -------------------------------------------------------
