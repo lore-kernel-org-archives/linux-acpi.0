@@ -1,51 +1,47 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Metolious hardware-sensors-using-ACPI specs
-Date: Mon, 16 Dec 2002 13:17:22 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021216121722.GC28015@atrey.karlin.mff.cuni.cz>
+From: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
+Subject: Re: [PATCH] Add CONFIG_ACPI_RELAXED_AML option
+Date: Mon, 16 Dec 2002 09:06:12 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <003601c2a503$e890bdc0$3746028e@bio.dfo.ca>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B9AB@orsmsx107.jf.intel.com>
+ <20021213171815.GS5382@whisky.intra.cprm.net> <3DFA2394.40806@casero.com>
+ <001701c2a2e1$399d32e0$0100000a@lennon>
+ <01ac01c2a2e8$67571d70$3746028e@bio.dfo.ca>
+ <001901c2a2f7$1f2eae50$0100000a@lennon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: ACPI Development - Sourceforge <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+From: "Craig Whitmore" <lennon-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org>
+> > >
+> > > Just 1 question. What do the manufacturer's say when you tell them they
+> have
+> > > a "broken" dsdt? Do they normally fix it? or give some excuse in a
+> reason
+> > > why they won't fix it?
+> >
+> > "No we don't.  It works with Windows".
+> >
+> 
+> Even if its breaks the "specs"?
 
-Is it goign to be implemented in linux-acpi?
+Hey, I didn't make it up.  That's Dell's response to broken DSDTs.
 
-I took a look at specs at intel, and it has rather funny legaleese:
 
- LICENSE. Intel grants you a copyright license to download the Draft
-Specification from the Site and make copies of the Draft Specification
-subject to these conditions:
 
-1. You may not copy, modify, reproduce, disclose, rent, sell,
-distribute, transmit or transfer all or any part of the Draft
-Specification except as provided in this Agreement, and you agree to
-use reasonable efforts to prevent such actions for any copy of the
-Draft Specification that you have received subject to this Agreement.
-
-2. You may not transfer, transmit, distribute, publish, or publicly
-display the Draft Specification in whole or in part without the
-express written permission of Intel.
-
-3. You may make copies of the Draft Specification for your own
-internal use for the purpose of review and providing comments or
-suggestions to Intel. This "Draft Specification License Agreement and
-Disclaimers" must be included with and all copies of this Draft
-Specification you make.
-
-Of course I'm going to modify the specification. Probably print it on
-the paper and burn it.
-
-Intel puts specs on the web and then asks me to use "reasonable
-efforts" to prevent further copying? WTF?!
-
-I should copy their stupid legaleese for any copy for my use?!
-
-Intel, kill your lawyers,
-								Pavel
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+-------------------------------------------------------
+This sf.net email is sponsored by:
+With Great Power, Comes Great Responsibility 
+Learn to use your power at OSDN's High Performance Computing Channel
+http://hpc.devchannel.org/
