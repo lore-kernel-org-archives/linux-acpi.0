@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: kacpid problems
-Date: Tue, 16 Nov 2004 11:29:41 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC075@pdsmsx403>
+From: ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org (Adam Belay)
+Subject: Re: ACPI_BUS dependency for CONFIG_PNP
+Date: Tue, 16 Nov 2004 00:41:07 -0500
+Message-ID: <20041116054107.GE29574@neo.rr.com>
+References: <20041115114654.GJ1662@wotan.suse.de> <1100536966.5518.947.camel@d845pe> <20041115173525.GD13402@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20041115173525.GD13402-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,48 +17,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The big slowdown you saw shouldn't be caused by that code change, which
-just means issuing poll at  5s frequency. I think it's self-effacing =
-enough. :-)
+On Mon, Nov 15, 2004 at 06:35:25PM +0100, Andi Kleen wrote:
+> On Mon, Nov 15, 2004 at 11:42:47AM -0500, Brown, Len wrote:
+> > On Mon, 2004-11-15 at 06:46, Andi Kleen wrote:
+> > > 2.6.10rc2 got this new dependency:
+> > > 
+> > > config PNP
+> > >         bool "Plug and Play support"
+> > >         depends on ISA || ACPI_BUS
+> > > 
+> > > from the ACPI update. This enables ISA-PNP on x86-64, where
+> > > it was always disabled previously and is completely useless. Can
+> > > someone
+> > > explain the rationale behind that change? IMHO you should never use
+> > > ISA-PNP without CONFIG_ISA.
+> > 
+> > Linux PNP handles up to 3 protocols:
+> > ISAPNP -- useful only if CONFIG_ISA, independent of PNPBIOS and PNPACPI
+> > PNPBIOS -- useful only if acpi_disabled
+> > PNPACPI -- useful if !acpi_disabled
+> 
+> Useful for what? As far as I know no device on x86-64 needs PNPBIOS
+> or PNPACPI
 
-Thanks
-Luming=20
+Most x86-64 hardware still utilizes ACPI for certain devices.
 
->-----Original Message-----
->From: Laszlo 'GCS' Boszormenyi [mailto:gcs-gKC9iF2I70U@public.gmane.org]=20
->Sent: 2004=C4=EA11=D4=C216=C8=D5 8:36
->To: Yu, Luming
->Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] kacpid problems
->
->* Yu, Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [2004-11-09 16:23:13 +0800]:
->
->> I suspect we need a sane check against sleep_time.
->> Please testing the following debug patch.
-> Tried. The bug still exists, but now kacpid does not stuck in a D
->state and I can power off the machine, it does not fail with
->acpi_power_off called as a last message.
->
->> Also, please sent the output of the activity in /proc/acpi/event .
-> I need to stop acpid, but doing a cat after it, I do not see any
->output. How am I supposed to get an output?
->
->>=20
->> +       sleep_time =3D 5000; /* 5 seconds */
->> +
->>         /*
-> It just slows down the polling on /proc/acpi/event , right? It helps,
->as see above, but if I run a CPU intense application, mozilla loading a
->big page, or trying to watch a movie, then I see a big slowdown.
->
->Hope this helps,
->Laszlo
->
->
+> 
+> > 
+> > drivers/pnp/isapnp/Kconfig appears to already have the dependency you're
+> > looking for to make sure that ISAPNP is not defined without CONFIG_ISA:
+> > 
+> > config ISAPNP
+> >         bool "ISA Plug and Play support"
+> >         depends on PNP && ISA
+> > 
+> 
+> Perhaps. But it doesn't work. 
+
+In which way doesn't it work?  It seems to pretty clearly require ISA support.
+Is there a bug?
+
+Thanks,
+Adam
 
 
 -------------------------------------------------------
