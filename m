@@ -1,14 +1,13 @@
-From: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Subject: Re: ACPI S3 resume only reboots
-Date: Fri, 15 Oct 2004 21:41:26 +0200
+From: "Allie R. Dewitt" <adewittnx-TPUXs3lpsvLO+OlqRvMLkCp2UmYkHbXO@public.gmane.org>
+Subject: Get vìagra for a great price.
+Date: Sat, 16 Oct 2004 02:01:24 +0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041015214126.19df9b3c.albeclemit@yahoo.it>
-References: <88056F38E9E48644A0F562A38C64FB60031D9885@scsmsx403.amr.corp.intel.com>
+Message-ID: <789301c4b2f1$aa52063e$d4c3e2c5@jawapos.co.id>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <88056F38E9E48644A0F562A38C64FB60031D9885-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,56 +16,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 15 Oct 2004 06:52:57 -0700
-"Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Hi,
 
-> >> > From the comment in those lines, push and pop are not 
-> >required for all
-> >> > platforms. Can you just comment out that push and pop and 
-> >see how far
-> >> > you can go.
-> >
-> >I know it's not the most the effective way to proceed, but at 
-> >least i tryed ;)
-> >I've been moving around the pushl $0 (that causes reboot) to 
-> >check if the code was still executing. That's what i found.
+We have a new offer for you. Buy cheap Vìagra through our online store.
+- Private online ordering 
+- No prescription required
+- World wide shipping
 
-> >	testl	$1, video_flags - wakeup_code
-> >		### If I put pushl $0 here, it causes reboot. 
-> >code is still alive.
-> > 	jz	1f
-> >		## pushl $0 here doesn't make reboot (hang on wakeup)
-> >	
-> >	lcall   $0xc000,$3
+Order your drugs offshore and save over 70%!
 
-> Jz is jump on zero. The instructions following jz here never gets
-> executed unless you pass "acpi_sleep=s3_bios". You have to follow the
-> code to where 1: is. 
+Click here: http://rx-zone.com/meds/
 
-I followed the code until the line that makes it hang:
-[...]
-wakeup_pmode_return:
-	movw	$__KERNEL_DS, %ax
-	movw	%ax, %ss			# THIS LINE MAKES IT HANG
-	movw	%ax, %ds
-	movw	%ax, %es
-	movw	%ax, %fs
-	movw	%ax, %gs
-	movw	$0x0e00 + 'u', 0xb8016
+Best regards,
+Donald Cunfingham
 
-	# reload the gdt, as we need the full 32 bit address
-	lgdt	saved_gdt
-	lidt	saved_idt
-	lldt	saved_ldt
-[...]
 
-...what's happening now?
-Thanks,
-Alberto
+
+No thanks: http://rx-zone.com/rm.html
 
 
 
