@@ -1,8 +1,8 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Linux/ACPI 2.6 release status
-Date: 12 Dec 2003 14:29:46 -0500
+Date: 12 Dec 2003 14:29:48 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1071209753.2535.690.camel@dhcppc4>
+Message-ID: <1071257386.2534.692.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
