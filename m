@@ -1,11 +1,14 @@
-From: Stephan Herhut <sah-jNDFPZUTrfRKC+uPiMyuuyYxWCU7E+c1@public.gmane.org>
-Subject: Kernel 2.6-test10 and /sys/power/state on Thinkpad R32
-Date: Wed, 26 Nov 2003 14:05:24 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Wed, 26 Nov 2003 14:24:19 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1069851924.3708.4.camel@hogfather.northernmaniacs.com>
+Message-ID: <20031126132419.GL7374@poupinou.org>
+References: <20031119180119.GB22307@tate.loria.fr> <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston> <20031120234708.GA431@elf.ucw.cz> <20031121155010.C19564@loria2.loria.fr> <1069637387.723.112.camel@gaston> <20031124173603.GA298@elf.ucw.cz> <1069725771.876.296.camel@gaston> <20031125120443.GA297@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-quDMxCxAWrCr8cYxD8HL"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031125120443.GA297-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,47 +17,63 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Nov 25, 2003 at 01:04:43PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > > In the meantime, if we can (not sure about it) call back into the BIOS
+> > > > when waking up (Andi seemed to imply we are in real mode when getting
+> > > > out of sleep), we may just use int10 to hard re-POST video cards at this
+> > > > point. We must also make sure we do that for the AGP bridge if
+> > > > possible.
+> > > 
+> > > Look at arch/i386/kernel/acpi/wakeup.S code. It attempts to do
+> > > real-mode reinitialization (if you pass right acpi_sleep= paramater),
+> > > but it only works for some people.
+> > > 
+> > > If it is possible to improve that real-mode code to work more people,
+> > > feel free to send patches.
+> > > 
+> > > [I now have another machine -- arima notebook -- where none of current
+> > > methods works. I'll need to look at it closely.]
+> > 
+> > Well, I did a quick look only, I'm a bit dumb with x86 assembly, but
+> > it looks you are only trying to call VESA for setting a mode, not
+> > doing a full POST of the card
+> 
+> Yes, that's what I'm optionaly doing, but I'm also (optionally) doing:
+> 
+>         testl   $1, video_flags - wakeup_code
+>         jz      1f
+>         lcall   $0xc000,$3
+>         movw    %cs, %ax
+>         movw    %ax, %ds                                        # Bios
+> might have played with that
+>         movw    %ax, %ss
+> 1:
+> 
+> ...that should be POST(?)
+> 								Pavel
 
---=-quDMxCxAWrCr8cYxD8HL
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+>From Ralph Brown interrupt list:
 
-Hello,
+--------V--/YfH7FhGJxf49RI1O+iZ8Pj1EjU76Jnw+PUSNTvomfDsgDyMMLuEDg@public.gmane.org
+CALL C000h:0003h - VIDEO BIOS INITIALIZATION
+InstallCheck:	C000h:0000h must contain the word AA55h and the 
+		  512*BYTE[C000h:0002h] bytes must sum to 00h (mod 256)
+Note:	is normally called only by the System ROM BIOS initialization code
 
-I gave kernel 2.6-test10 a try to test the long-awaited suspend to
-ram/disk. I am using fedora core 1 on a ThinkPad R32 with the newest
-BIOS available. Everythings works fine, except suspending my thinkpad.
+In fact, this is a general method to POST any card if you know the
+location of the ROM in the EISA space.
 
-echo {ram|disk} > /sys/power/state
+-- 
+Ducrot Bruno
 
-just yields a Preparing for suspend kernel message and afterwards
-nothing happens. I can even retry as often as I want to, always only
-producing this message.
-
-I use the current kernel rpm from people.radhat.com/arjanv.
-
-Anyone something to try or is this already known?
-
-Thanks
-Stephan
-
---=-quDMxCxAWrCr8cYxD8HL
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQA/xKUTcyUaCzpzST8RAhLHAKDQNSuOOSVjxYKf12JQiG0+Tuv3kQCgwWxV
-4MLS5RG9jahWRvcRlTkf+Pc=
-=OOW2
------END PGP SIGNATURE-----
-
---=-quDMxCxAWrCr8cYxD8HL--
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
