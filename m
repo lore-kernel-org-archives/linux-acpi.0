@@ -1,11 +1,12 @@
-From: Roderich Schupp <Roderich.Schupp-GrGkmOP51Gf7N15VZvx3lQ@public.gmane.org>
-Subject: Re: Tecra S1 ACPI
-Date: Thu, 17 Jun 2004 13:24:30 +0200
+From: "Melinda Orr" <melindaorrcv-p4wlaEbRwlnu3wEYkePUmQ@public.gmane.org>
+Subject: Powerful weightloss now available where you are.
+Date: Thu, 17 Jun 2004 14:59:48 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1087471470.2437.5.camel@click>
+Message-ID: <1a6401c45473$b4b3def1$6fc96224@merhi.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,20 +16,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, marekw77-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> This may be ambitious but I am trying to get ACPI working on a Tecra
-S1 Gentoo 
+Hello, I have a special offer for you...
+WANT TO LOSE WEIGHT?
+The most powerful weightloss is now available
+without prescription. All natural Adipren720
+100% Money Back Guarantée!
+- Lose up to 19% Total Body Weight.
+- Loss of 20-35% abdominal Fat.
+- Up to 300% more Weight Loss while dieting.
+- Increase metabolic rate by 76.9% without Exercise.
+- Reduction of 40-70% overall Fat under skin.
+- Suppresses appetite for sugar.
+- Burns calorized fat.
+- Boost your Confidence level and Self Esteem.
+Get the facts about all-natural Adipren720 <http://diet40.com/>
 
-Try the patch attached to
-http://bugzilla.kernel.org/show_bug.cgi?id=1690
-It sorta worked for my Tecra S1, i.e. the error message goes away
-and I get the battery status. Suspend-to-ram (S3) still
-doesn't work even with kernel 2.6.7, but that's probably not
-an ACPI problem.
 
-Cheers, Roderich
+
+---- system information ----
+assumption Exchanging works HTML values non-proprietary referred capabilities
+
+still interaction solely amended Most public-i18n-ws-deuZvCJynUQ@public.gmane.org contents amended
+
+sorting describe known Fallback list indicate Usage on 
+place months knowledge Services] header cite writing amended 
+market This works than several categories indicated C: 
+
 
 
 -------------------------------------------------------
