@@ -1,14 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: About dsdt of clevo 5600N
-Date: Sat, 17 May 2003 10:54:10 +0200
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: Re: ACPI SuSE 8.2
+Date: Sat, 17 May 2003 11:05:16 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030517085410.GA13867@hell.org.pl>
-References: <20030516021732.69eca85d.XaRz69@terra.es> <20030516035605.18dc60b8.XaRz69@terra.es> <Pine.LNX.4.53.0305160752340.5724@dynast.gaugusch.at> <1053074691.1189.6.camel@dutidad> <20030516230144.GB22394@hell.org.pl> <20030516231823.GB2355@dutidad.twi.tudelft.nl>
+Message-ID: <Pine.LNX.4.53.0305171104110.2192@tweety.gaugusch.at>
+References: <1053127958.3923.13.camel@zipur.doublet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030516231823.GB2355-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
+In-Reply-To: <1053127958.3923.13.camel-vc4QrBckZ/BTmvShAG/hGA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,27 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Charl P. Botha:
-> acpi_sleep=s3_bios is one way to repost and comes down to exactly what Ole
-> Rohne did with the int10 module of XFree86.  This does not work on all
-> implementations.  The Right Way is to have the necessary specifications for
-> the chip for correct wake-up from device D3 state, or whatever is relevant
-> for system S3.  These specs are NOT available for the Radeon M7.
+On May 16, Preston Lord <webmaster-xSlfl9GhdHA@public.gmane.org> wrote:
+> [...]
+> Your computer seems to have a partial ACPI installation
+> [...]
+> So I did a fresh install of SuSE 8.2  ... same error as above.
+You have to activate acpid:
+insserv acpid
+rcacpid start
+Then log off from KDE and log in again and everything should work.
+The acpid init script loads all modules (battery, ac, thermal, ...)
 
-Did you check the newer radeonfb driver versions? There is some power
-management code in there, but apparently only meant for Apple laptops.
-Maybe it would be possible to use that code? Disclaimer: I know virtually
-nothing about PCI power management, so there is a chance I don't have any
-clue on what I am talking about.
-Best regards,
-
+Markus
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
 
 
 -------------------------------------------------------
