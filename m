@@ -1,14 +1,12 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
 Subject: Re: Entering C3 Processor State without a Bus Arbiter
-Date: Fri, 16 Jan 2004 00:25:15 +0100
+Date: Thu, 15 Jan 2004 15:52:12 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040115232515.GA5386@dominikbrodowski.de>
+Message-ID: <20040115154555.V73140@root.org>
 References: <Law11-OE36TK4GXSNMh0000bd93@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <Law11-OE36TK4GXSNMh0000bd93-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,52 +20,31 @@ To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 15 Jan 2004, Dino Klein wrote:
+> I'm curios as to why the implementation does not enter C3 without the
+> presence of a Bus Arbiter; also, how come a comment in the source claims
+> that C3/WBINVD is too expensive?
+>
+> After removing the restrictions in the source files, and adding a WBINVD
+> instruction right before the read from P_LVL3 - the processor was put in
+> the C3 state. This is on my Via Apollo Pro133A based Abit VP6 board,
+> which does not have a Bus Arbiter. Just for the record, I did pull out
+> the second CPU, so I can do "safer" experimentation.
 
---0OAP2g/MAC+5xKAE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+WBINVD is too expensive when you're entering C3 hundreds of times per
+second.  Try playing back an mp3 while dd'ing a CDROM in PIO mode to your
+hard drive.  Goodbye data, hello backups!  The CPU can't snoop the bus in
+C3.
 
-On Thu, Jan 15, 2004 at 05:29:23PM -0500, Dino Klein wrote:
-> Hello,
->=20
-> I'm curios as to why the implementation does not enter C3 without the pre=
-sence of a Bus Arbiter; also, how come a comment in the
-> source claims that C3/WBINVD is too expensive?
+> I've seen a thread talking about how the processor was not put into C3
+> as often enough, when the USB drivers were loaded - in my case I would
+> say that it was put too often, this with the UHCI + EHCI + HID drivers
+> loaded, and two mice and one hub attached.
 
-[ /me shuffles in some old directories and finds a file called wbinvd_analy=
-sis ]
+Um, because without BM detection, you're entering C3 with BM active while
+USB is enabled.
 
-I'd investigated this a couple of months ago. It turned out to hang my
-(previous) notebook every once in a while; I think that was the reason I
-aborted the patch...
-
-The average cost of a wbinvd instruction was 98us, the minimum cost 22us.
-However, the  maximum cost was a horrible 780us. The average sleeping time
-of C3 was 519us, minimum 0us...
-
-This is discussed in detail in these threads:
-http://marc.theaimsgroup.com/?l=3Dacpi4linux&m=3D101630988127506&w=3D2
-http://marc.theaimsgroup.com/?l=3Dacpi4linux&m=3D101662029010850&w=3D2
-
-other threads (including my patches) can be found by searching for "wbinvd"
-in this archive.
-
-	Dominik
-
---0OAP2g/MAC+5xKAE
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAByFbZ8MDCHJbN8YRAhFxAKCGDJaZV+/dZUrLufOKLRGOWWfAYACeKaBW
-b+pr/oKODIfXtmjtTZ6HFks=
-=jyDK
------END PGP SIGNATURE-----
-
---0OAP2g/MAC+5xKAE--
+-Nate
 
 
 -------------------------------------------------------
