@@ -1,11 +1,14 @@
-From: David Weinehall <tao-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: ACPI-merges in 2.6.10-rc1-bk14 or 15 broke resume on Thinkpads
-Date: Sat, 13 Nov 2004 03:11:05 +0100
-Message-ID: <20041113021105.GN29980@khan.acc.umu.se>
+From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+Subject: Re: S3 broken on a Samsung P30
+Date: Sat, 13 Nov 2004 11:53:48 +0100
+Message-ID: <1100343228.3483.3.camel@mhcln03>
+References: <88056F38E9E48644A0F562A38C64FB6003569022@scsmsx403.amr.corp.intel.com>
+	 <20041112223209.GI1252@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20041112223209.GI1252-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,38 +18,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-My IBM Thinkpad T40 no longer resumes from suspend to ram (using ACPI).
-The problems started after 2.6.10-rc1-bk13 (which worked ok); -bk15 does
-not work, -bk14 did not compile, so I cannot be sure if that snapshot is
-broken too.  Everything up to, and including, -bk22 is broken.
+Hello,
 
-Error messages (with a bit of context; message written down manually
-though, so it might contain typos):
+Am Freitag, den 12.11.2004, 23:32 +0100 schrieb Pavel Machek:
+> Hi!
+> 
+> > >> Tried again with 2.6.10-rc1-bk22 (latest ACPI patches IIRC) and the
+> > >> patched wakeup.S
+> > >> Still no beep :(
+> > >
+> > >Too bad, I do not know how to debug this further. It is possible that
+> > >those patches are not yet merged into mainline, I'm not sure, it was
+> > >something like "correcting wakeup address".
+> > >
+> > 
+> > Are you referring to virtual v/s physical address patch from Shaohua?
+> > http://bugme.osdl.org/show_bug.cgi?id=3390
+> > I think it is already there in latest acpi-test.
+> 
+> Yes, but Matthias is using 2.6.10-rc1-bk22. Matthias, please try patch
+> in above url (id=3851).
+> 								Pavel
 
-PCI: Setting latency timer of device 0000:00:1f.5 to 64
-ACPI-0405: *** Error: Handler for [EmbeddedControl] returned AE_TIME
-ACPI-1138: *** Error: Method execution failed [\_GPE._L18] (Node
-dff5a7ac), AE_TIME
-ACPI-0552: *** Error: AE_TIME while evaluating method [_L18] for GPE[0]
+cat /home/mhentges/download/sources/sleep.patch |patch -p1 --dry-run
+patching file drivers/acpi/sleep/main.c
+Reversed (or previously applied) patch detected!  Assume -R? [n] 
++root@mhcln03:/usr/src/linux
+>cat /home/mhentges/download/sources/sleep.patch |patch -R -p1 --dry-run
+patching file drivers/acpi/sleep/main.c
 
+Looks like this patch is already applied in -rc1-bk22
 
-For information:
+BTW: I did an "echo 0xFFFFFFFF > debug_layer ; echo 0xFFFFFFFF >
+debug_level" and entered S3. It took quiet some time to suspend with
+this debug verbosity ;)
 
-0000:00:1f.5 Multimedia audio controller: Intel Corp. 82801DB/DBL/DBM
-(ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 01)
+Anyways, upon wakeup, there were no messages printed to the serial
+console :(
 
-Further information available on request.  Please CC (or lkml) on reply,
-I'm not subscribed to the ACPI-list.
-
-
-Regards: David Weinehall
+Thanks for all you help
 -- 
- /) David Weinehall <tao-Z3oqqNSG8ADLoDKTGw+V6w@public.gmane.org> /) Northern lights wander      (\
-//  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
-\)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
+Matthias Hentges 
+Cologne / Germany
+
+[www.hentges.net] -> PGP welcome, HTML tolerated
+ICQ: 97 26 97 4   -> No files, no URL's
+
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
 
 
 -------------------------------------------------------
