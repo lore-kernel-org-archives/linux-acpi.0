@@ -1,21 +1,12 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Re: [RFC] Reliable video POSTing on resume (was: Re:
-	[ACPI] Samsung P35, S3, black screen (radeon))
-Date: Mon, 07 Feb 2005 14:25:12 +0000
-Message-ID: <1107786312.8575.75.camel@tyrosine>
-References: <20050203225410.GB1110@elf.ucw.cz>
-	 <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
-	 <1107485504.5727.35.camel@desktop.cunninghams>
-	 <9e4733910502032318460f2c0c@mail.gmail.com>
-	 <20050204074454.GB1086@elf.ucw.cz>
-	 <9e473391050204093837bc50d3@mail.gmail.com>
-	 <20050205093550.GC1158@elf.ucw.cz>
-	 <1107695583.14847.167.camel@localhost.localdomain>
-	 <1107782696.8575.72.camel@tyrosine>  <20050207140937.GA8040@elf.ucw.cz>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Re: S3 suspend and serial console
+Date: Mon, 07 Feb 2005 15:28:23 +0100
+Message-ID: <42077B07.5090606@gmx.net>
+References: <42023083.8030508@gmx.net> <4204CA50.8090906@gmx.net> <20050205155845.GA20131@hell.org.pl> <20050205220619.GA30739@message-id.gmane0305.slipkontur.de> <4206CF63.2090600@gmx.net> <20050207141655.GB8040@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050207140937.GA8040-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20050207141655.GB8040-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -25,21 +16,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-02-07 at 15:09 +0100, Pavel Machek wrote:
+Hi!
 
-> Where do I find code to do VBE save state? I might get you some
-> testing...
+>>Erm... is it intentional that serial powermanagement code is never
+>>called on entering/leaving S3? When I added debugging statements
 
-http://www.srcf.ucam.org/~mjg59/vbetool/ - vbetool vbestate save will
-dump the state to stdout, vbetool vbestate restore will restore whatever
-is passed to it from stdin.
+Pavel Machek schrieb:
+> 
+> Probably noone was yet trying to use serial during suspend....
 
+You mean noone uses the serial console while testing suspend?
+What is the new way to debug suspend problems not requiring a
+serial console?
+
+
+Regards,
+Carl-Daniel
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
