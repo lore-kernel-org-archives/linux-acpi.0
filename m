@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] Sanitize ACPI Kconfig
-Date: Wed, 19 Jan 2005 23:14:05 +0100
-Message-ID: <20050119221405.GA17325@elf.ucw.cz>
-References: <20050107212259.GA13026@wotan.suse.de> <200501171158.51388.david.goodenough@btconnect.com> <20050119121516.GA22856@elf.ucw.cz> <200501192155.48623.david.goodenough@btconnect.com>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Wed, 19 Jan 2005 17:24:23 -0500
+Message-ID: <41EEDE17.9040204@bartol.udel.edu>
+References: <41E81C2C.8010809@bartol.udel.edu>	<41EDE2EA.7090404@bartol.udel.edu>	<200501191949.03558.Jeroen.Wijnhout@kdemail.net>	<200501192010.25975.o.jansen@orb-net.de> <m28y6pytgs.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200501192155.48623.david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
+In-Reply-To: <m28y6pytgs.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Johan Vromans wrote:
+> Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org> writes:
+> 
+> 
+>>you should not have ac_adapter or battery before "modprobing" have
+>>you diabled the ac_adapter and battery section in your kernel
+>>configuration? (as mentioned in the README)
+> 
+> 
+> This is (in) my rc.local:
+> 
+>     # Experimental: drivers for smartbattery reading.
+>     modprobe i2c-dev
+>     modprobe i2c-acpi-ec
+>     modprobe -r ac
+>     modprobe -r battery
+>     modprobe acpi-sbs
 
-> > We want to get maximum testing. If there's some dodgy machine, we want
-> > to have it fixed. [I do not believe I seen such dodgy machines in
-> > recent history.]
-> >         Pavel
-> I think you will find that many people are still using APM because they do not
-> trust ACPI on their machines.  This may be misplaced but forcing ACPI to be
-> built always may be misunderstood by those people.
+Note that i2c-dev isn't needed by i2c-acpi-ec or acpi-sbs. Also,
+you can get acpi-sbs to automatically load i2c-acpi-ec by adding the line
 
-I'm not talking about forcing people to do anything, we were talking
-about defconfig, only.
-								Pavel
+below acpi-sbs i2c-acpi-ec
 
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+...to /etc/modules.conf. With this line in place, your rc.local would 
+look like
+
+modprobe -r ac
+modprobe -r battery
+modprobe acpi-sbs
+
+cheers,
+
+Rich
 
 
 -------------------------------------------------------
