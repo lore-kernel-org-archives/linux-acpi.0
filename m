@@ -1,11 +1,12 @@
-From: "Olga Stephenson" <olgastephensonma-o1xtF6lLIjIQrrorzV6ljw@public.gmane.org>
-Subject: Application is pre approved
-Date: Fri, 12 Nov 2004 10:21:06 -0700
-Message-ID: <f52201c4c8db$a832661f$b865b116@affrc.go.jp>
+From: "Hiroshi Itoh" <hiroit-s3IJUFpODnp4Eiagz67IpQ@public.gmane.org>
+Subject: Re: Newbie question &machine don't power off with acpi
+Date: Sat, 13 Nov 2004 02:28:21 +0900
+Message-ID: <002901c4c8dd$02707ab0$7bbdbd09@TPHIROIT>
+References: <1100279182.3190.24.camel@outfox>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,24 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Sun <outfox-u2tTgNRCH2jM1kAEIRd3EQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Sir or Madam,
+Hi! David-san,
 
-Would you REFINANCE if you knew you'd SAVE TH0USANDS? 
+>I can't recall exactly what I have done, and don't like to go backward
+>to the original acpi code, any hint on how to debug acpi or what
+>information I should provide to the list for further help is highly
+>appreciated :)
 
-We'll get you lnterest as low as 1.92%. 
-Don't believe me? Fill out our small online questionaire and we'll show you how. 
+How did you change the sources to reduce the size?
+OK. If you can't recall it, how did you change any compile option to reduce
+the size?
+Alignment options may change ACPI method behavior unexpectedly.
 
-Get the house/home and/or car you always wanted, it only takes 10 seconds of your time:
-http://statesmoneyz.com/
+And if the size permits, you may add printk for debug at the final stage of
+ACPI power off after
+searching "acpi_enter_sleep_state(ACPI_STATE_S5)".
 
-Best Regards,
-Andrew Banks
-
-No thanks: http://statesmoneyz.com/r1/
-
+- Hiro
 
 
 
