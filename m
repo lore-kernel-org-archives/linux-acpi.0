@@ -1,7 +1,10 @@
-From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
-Subject: building iasl gives yytext_ptr undeclared (acpiaca-unix-20050309)
-Date: Thu, 17 Mar 2005 13:49:01 -0500
-Message-ID: <E1DC03J-0001Bj-Dg@approximate.corpus.cam.ac.uk>
+From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
+Subject: HP/Compaq NC6120 ACPI problems
+Date: Thu, 17 Mar 2005 20:00:52 +0100
+Message-ID: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -11,40 +14,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Support <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-In building compiler/iasl from ACPI CA (acpica-unix-20050309.tar.gz), I
-get the yytext_ptr undeclared error:
+Hi all,
 
-cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER -I../include    -c -o aslcompilerlex.o aslcompilerlex.c
-aslcompiler.l: In function `comment':
-aslcompiler.l:847: error: `yytext_ptr' undeclared (first use in this function)
+I recently bought a new HP/Compaq NC6120 laptop which doesn't play well
+with Linux. It took me a while to figure out that the problems are
+probably ACPI-related.
 
-Commenting out the '#undef yytext_ptr' in the generated aslcompilerlex.c
-allowed me to compile iasl (and it worked fine).  Here's the diff:
+The symptoms are as follows: computer starts fine, but within 20-30
+seconds it gradually slows down to the point where it can no longer be
+used - it takes 5 minutes to start the terminal. The fan doesn't work,
+so the machine overheats. Using 'top' shows that 55% of CPU power is
+consumed by kacpid.
 
---- aslcompilerlex.c	2005-03-16 15:14:43.000000000 -0500
-+++ aslcompilerlex.c	2005-03-17 13:43:01.000000000 -0500
-@@ -4028,7 +4028,7 @@
- #undef yy_set_bol
- #undef yy_new_buffer
- #undef yy_set_interactive
--#undef yytext_ptr
-+// #undef yytext_ptr
- #undef YY_DO_BEFORE_ACTION
- 
- #ifdef YY_DECL_IS_OURS
+If on the other hand I pass 'acpi=off' option to GRUB command line, the
+computer hangs. In a rare event that it doesn't hang (I still can't
+figure out what causes this behavior) it works in full speed without any
+problems! A totally unreliable and probably a misleading thought is that
+PCI interrupts are messed up without ACPI; this assumption is based
+on the fact that the system hangs prior to the statement:
 
-I'm using a i386 Debian testing system with:
+ACPI: PCI interrupt 0000:02:06.2[C] -> GSI 22 (level, low) -> IRQ 217
 
-flex 2.5.31
-bison (GNU Bison) 1.875d
+in dmesg (which occurs if ACPI is left on). When ACPI is turned off,
+the fan works normally and there is no overheating whatsoever.
 
--Sanjoy
+I hope I'm not too cryptic and that all of this makes at least some
+sense. I also tried recompiling the 2.6.11.4 kernel and fiddling with
+ACPI settings, but the result is kernel panic with VFS related problem
+(although I created ramdisk by hand and I'm sure everything else is ok).
 
-`A society of sheep must in time beget a government of wolves.'
-   - Bertrand de Jouvenal
+Used configuration: Debian testing (Sarge), kernel 2.6.8
+
+I'm posting the original DSDT table:
+
+	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.aml
+
+The disassembled DSDT table using iasl -d:
+
+	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.dsl
+
+The precompiled DSDT table using iasl -tc:
+
+	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.hex
+
+Although there are 0 errors and 2 warnings, I still tend to blame ACPI
+for my problems.
+
+Does anyone have any suggestions on how to proceed and what to do next?
+
+Thanks,
+
+Andrej
 
 
 -------------------------------------------------------
