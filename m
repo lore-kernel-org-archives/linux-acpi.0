@@ -1,9 +1,13 @@
-From: REJECT-DAEMON-XoJDOot2J3yELgA04lAiVw@public.gmane.org
-Subject: Rejected no-local
-Date: Fri, 14 May 2004 10:21:01 +0200 (MET DST)
+From: =?iso-8859-1?Q?=D8ystein_Gisn=E5s?= <oysteigi-zs2scLodJVNRyvKAgBWctw@public.gmane.org>
+Subject: /proc/acpi/ac_adapter/AC0/state not being updated
+Date: Fri, 14 May 2004 17:05:48 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200405140821.KAA29693@iis.fhg.de>
+Message-ID: <20040514150548.GD12765@jaguar.stud.ntnu.no>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,74 +19,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---------------------------------------------------
-.. "error_robust" unknown here in this Domain.. 
-.. letter returned to "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" .. 
---------------------------------------------------
-Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Received: from mailgw12.fraunhofer.de (mailgw12.fraunhofer.de [153.96.1.61])
-	by iis.fhg.de (8.8.5/) with ESMTP id KAA29685
-	for <error_robust-XoJDOot2J3yELgA04lAiVw@public.gmane.org>; Fri, 14 May 2004 10:21:01 +0200 (MET DST)
-X-Spam-Severity: 1 (Notice); classified by mailgw12.fraunhofer.de (Fraunhofer Gesellschaft e.V.)
-Received: from mailgw11.fraunhofer.de (mailgw11.fraunhofer.de [153.96.1.66])
-	by mailgw12.fraunhofer.de (8.12.11+/8.12.11) with ESMTP id i4E8KETF006506
-	for <error_robust-XoJDOot2J3yELgA04lAiVw@public.gmane.org>; Fri, 14 May 2004 10:20:14 +0200 (CEST)
-Received: from lists.sourceforge.net ([218.18.91.6])
-	by mailgw11.fraunhofer.de (8.12.11+/8.12.11) with ESMTP id i4E8KbEW015876
-	for <error_robust-XoJDOot2J3yELgA04lAiVw@public.gmane.org>; Fri, 14 May 2004 10:20:39 +0200 (CEST)
-Message-Id: <200405140820.i4E8KbEW015876-oVWeBzO/gLQPualYiKnuABbt6QYYyz1t@public.gmane.org>
-To: error_robust-XoJDOot2J3yELgA04lAiVw@public.gmane.org
-Subject: Test
-Date: Fri, 14 May 2004 16:25:49 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0007_78D565A2.325D6AB7"
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Spam-Checker-Version: SpamAssassin 2.63 (2004-01-11) on spamd2.fraunhofer.de
-X-Spam-Level: ***
-X-Spam-Status: No, hits=3.1 required=5.0 tests=MIME_MISSING_BOUNDARY,
-	MISSING_MIMEOLE,NO_REAL_NAME,PRIORITY_NO_NAME autolearn=no
-	version=2.63
-X-Spamd-Host: spamd2.fraunhofer.de
+I have this problem with the state of the ac_adapter not being
+updated. The state is set correctly on startup, but never change after
+that. So if I boot with power cord disconnected, it correctly says
+      state:                   off-line
+but it doesn't change when I plug it in. The battery's charging state
+is updated, however.
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0007_78D565A2.325D6AB7
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-------------------  Virus-Warnung/virus alert (mailgateway mailgw11)
-
-Found virus WORM_LOVGATE.X in file text.pif (in text.zip)
-The file text.zip is moved to /etc/iscan/virus/virCIEX2aO5r.
-
-Die Email enthielt einen Virus! Das Attachment mit dem Virus wurde in Quarantaene genommen. Bei Fragen wenden Sie sich bitte an Ihren IT-Manager oder gegebenenfalls NOC-Helpdesk (http://www.noc.fraunhofer.de oder email:NOC-Helpdesk-+7XSuX7kulk@public.gmane.org). If you have questions, please contact your local IT manager or NOC helpdesk (http://www.noc.fraunhofer.de or email:NOC-Helpdesk-+7XSuX7kulk@public.gmane.org).
-
----------------------------------------------------------
-
-------=_NextPart_000_0007_78D565A2.325D6AB7
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
-
-The message contains Unicode characters and has been sent as a binary attachment.
+Is this a problem related to the ACPI implementation, the DSDT or
+something else?
 
 
-------=_NextPart_000_0007_78D565A2.325D6AB7
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+I've had this problem for 3 months giving the same symptoms with Linux
+2.4.24 w/ACPI patches and 2.6.{3-6}. My laptop is a Fujitsu Siemens
+Amilo D 7830.
 
+dmesg gives this output if boot is made with power cord disconnected:
+      ACPI: AC Adapter [AC0] (off-line)
 
-------------------  Virus-Warnung/virus alert (mailgateway mailgw11)
+AC adapter status works well in Windows.
 
-text.zip is removed from here because it contains a virus.
-
----------------------------------------------------------
-------=_NextPart_000_0007_78D565A2.325D6AB7--
-
-
+--=20
+=D8ystein Gisn=E5s <oysteigi-zs2scLodJVNRyvKAgBWctw@public.gmane.org>
+NTNU, Department of Telematics
+Mob: (+47) 98861515 - MSN: oysteing-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
 
 
 -------------------------------------------------------
