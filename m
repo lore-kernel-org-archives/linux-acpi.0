@@ -1,8 +1,8 @@
 From: postmaster-lX1WLSqV685oZSuCWFJQuMGzyFzmqZ/k@public.gmane.org
 Subject: InterScan NT Alert
-Date: Wed, 28 Jan 2004 16:15:43 +0530
+Date: Wed, 28 Jan 2004 14:18:45 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401281054.i0SAsAoh009117@semsoftindia-samsung.com>
+Message-ID: <200401280857.i0S8vHoh029634@semsoftindia-samsung.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,13 +15,13 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Receiver, InterScan has detected virus(es) in the e-mail attachment.
+Sender, InterScan has detected virus(es) in your e-mail attachment.
 
-Date:  	Wed, 28 Jan 2004 16:15:43 +0530
+Date:  	Wed, 28 Jan 2004 14:18:45 +0530
 Method:	Mail
-From:  	<groudier-GANU6spQydw@public.gmane.org>
-To:    	<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-File:  	document.zip
+From:  	<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To:    	<mec-WqBc5aa1uDFeoWH0uzbU5w@public.gmane.org>
+File:  	doc.scr
 Action:	clean failed - deleted
 Virus: 	WORM_MIMAIL.R 
 
