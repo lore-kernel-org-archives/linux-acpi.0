@@ -1,14 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: HP xw6000 acpi problem
-Date: Tue, 17 Jun 2003 12:16:35 -0700
+From: Jonathan Paul Calledo <jonathanpaul_r-U3DzNBy29AGQWHG76I6BsA@public.gmane.org>
+Subject: FREE Great Opportunity!
+Date: Wed, 18 Jun 2003 09:15:01 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96F8B@orsmsx401.jf.intel.com>
+Message-ID: <EDWINtneqdGSyMp69YD00004784@edwin>
+Reply-To: jonathanpaul_13-dE5sc4UOasAN+BqQ9rBEUg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quotedGMprintable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,51 +16,95 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hrvoje Habjanic <hrvoje.habjanic-wUpq2f5uKgb0NTdHYsHBKg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hello!
 
-ACPI should be printing a version string in the kernel boot messages.
-What is it for rc1 and rc2 respectively?
+My name is Jonathan Paul Calledo. I am now focusing
+in one Business opportunity. I have tried several of
+these online opportunities full of hype promising
+us thousands of dollars every month.
 
-Thanks -- Regards -- Andy
+It is a sad fact that many people who are in need
+of additional income, are being victimized by
+these fly by night scam artists. Every time I
+tried one opportunity after the other, I ended up
+more broke than ever. Not to mention how
+embarrassing it was.
 
-> -----Original Message-----
-> From: Hrvoje Habjanic [mailto:hrvoje.habjanic-wUpq2f5uKgb0NTdHYsHBKg@public.gmane.org]=20
-> Sent: Tuesday, June 17, 2003 12:07 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: [ACPI] Re: HP xw6000 acpi problem
->=20
->=20
->=20
-> Hi again ...
->=20
-> OK, small update:
->=20
-> acpi - rc1 is WORKING
-> but rc2 IS NOT!
->=20
-> Maybe this helps ....
->=20
-> Any clues yet?
->=20
-> Hrvoje
->=20
-> p.s. Previous post=20
-> http://sourceforge.net/mailarchive/forum.php?thread_id=3D2599281
-&forum_id=3D6102
+As a result of trying all these opportunities, I
+finally found the company which is true to their
+words.  Not full of hype, but consistently send
+me the monthly check. They have given me the
+best compensation plan with their high %
+commission. I finally have SOMETHING my friends
+and family are BEGGING ME FOR rather than
+laughing behind my back. I joined for free and
+was amazed with what I've seen. I already had
+several people in my organization in less than a
+week.
+
+I didn't have to perform some juggling act to
+maintain some 60 to 40% balance in my legs. It
+is not one of those Binary compensation plan
+failures either. Everyone earns commissions here.
+
+They are providing a real service not the one
+that simply transfers wealth from the new signups
+to the people at the top. When you join, you will
+have a team of upline sponsors who will help you
+succeed every step of the way. Instead of being
+left alone, you will be guided step by step by
+real people, not those autoresponders.
+
+Do not believe in do nothing, no recruiting, and
+no selling schemes. They are scams. You might
+want to try it to prove my words. Beware of the
+ones that want you to invest $1200.00 before you
+start. How long would it take you to breakeven?
+Only you can make your own success together with
+the help of your sponsors.
+
+If you have 2 to 3 hours a day, you will be able
+to earn a full income in a few months. And there
+is absolutely no limit as to how much you can
+earn. It is designed to gain momentum after some
+time.
+
+But I prefer to avoid such statements as "You
+will get rich". I read it everywhere and will
+not allow myself to sound like them. I
+experienced it personally, YOU TOO, can be
+comfortable IF YOU CHOOSE!
+
+To explore more about this Business Opportunity,
+get your FREE ID now!
+
+Send email to jonathanpaul_12-dE5sc4UOasAN+BqQ9rBEUg@public.gmane.org
+and put "SEND MY ID, PLEASE" in the subject and
+your FIRST NAME, LAST NAME, and COUNTRY in the body.
+
+You are going to like what you will see here.
+YOU WILL NOT SPEND ANY CENT When YOU JOIN US!
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+Best Regards,
+
+Jonathan Paul Calledo
+jonathanpaul_12-dE5sc4UOasAN+BqQ9rBEUg@public.gmane.org
+
+
+
+Note: If you don't want to recieve emails from
+me again about this, send an email to jonathanpaul_50-U3DzNBy29AGQWHG76I6BsA@public.gmane.org
+and put "Enough, Please" in the subject.
+
+
+
+
+
+
 
 
 -------------------------------------------------------
