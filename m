@@ -1,14 +1,14 @@
-From: tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org (Tomasz Ciolek)
-Subject: Re: question about ACPI & Smart Batteries
-Date: Fri, 13 Aug 2004 08:36:33 +1000
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: sysdev suspend/resume order?
+Date: Sat, 14 Aug 2004 13:05:55 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040812223633.GA2750@dreamcraft.com.au>
-References: <F760B14C9561B941B89469F59BA3A8470726AFF5@orsmsx401.amr.corp.intel.com> <20040812222936.GD30862@miramar.cse.ucsc.edu>
+Message-ID: <B44D37711ED29844BEA67908EAF36F038F80A7@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040812222936.GD30862-v28VZnYc+MmC5P5rv/TENfZ8FUJU4vz8@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,55 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cintia B. Margi" <cintia-Emgmuai4XwL2fBVCVOL8/A@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Write to the maintainer of wmacpi-ng package. He has a good clue as to
-how ACPI generates the battery values...
+The problem is nearly all sysdev use device_initcall to register their
+sysfs structure (and the resume/suspend functions). This cause the
+sysdev' suspend/resume order is random.=20
 
-Tomasz Ciolek
+Thanks,
+Shaohua
 
-On Thu, Aug 12, 2004 at 03:29:36PM -0700, Cintia B. Margi wrote:
-> * Grover, Andrew (andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org) said:
-> > Unless you have a Fujitsu Uva, you do not have a smart battery, you have
-> > a control method battery.
-> 
-> I don't have a smart battery then.
->  
-> > For a CM battery, the OS can poll the battery state by calling _BST, or
-> > set a trip point (via _BTP) and the OS will get an interrupt when the
-> > battery crosses that trip.
-> 
-> I do not want to set a trip point, but I would like to monitor the battery discharge
-> process... I want to characterize the battery discharge behavior under different tasks,
-> so I intend to monitor the battery voltage and the discharge rate (which I can obtain
-> from /proc/acpi/battery/BAT0/state). What I would like to know is how often the state
-> file is updated and how accurate these values are. Any idea where I can get this info?
-> 
-> Thanks,
-> 
-> Cintia 
-> 
-> --
-> Cintia Margi
-> Graduate Student
-> SoE - UCSC
-> http://www.soe.ucsc.edu/~cintia
-> GPG Public Key: http://www.soe.ucsc.edu/~cintia/cintia.gpg
-> B4DE 9355 3840 FF72 50F2 ACAC E2EC AA9A 41E2 CD55
-
-
-
--- 
-Tomasz M. Ciolek	
-*******************************************************************************
- tmc at dreamcraft dot com dot au 
-*******************************************************************************
-   GPG Key ID:		0x41C4C2F0
-   GPG Key Fingerprint: 3883 B308 8256 2246 D3ED  A1FF 3A1D 0EAD 41C4 C2F0
-   Key available on www.pgp.net	
-*******************************************************************************
+>-----Original Message-----
+>From: Pallipadi, Venkatesh
+>Sent: Saturday, August 14, 2004 2:58 AM
+>To: Li, Shaohua; 'Patrick Mochel'
+>Cc: 'acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'; Brown, Len
+>Subject: RE: sysdev suspend/resume order?
+>
+>
+>
+>I think, there should be a relation between the order
+>in which actual device initialization happens during
+>the boot time and the order in which device initcalls
+>are called (at boot time).
+>
+>In this example, actual PIC initialization happens
+>before pci_link device initialization. So, device
+>initcall should have a similar ordering. That will
+>take care of this after S3 ordering in a natural manner.
+>
+>Thanks,
+>Venki
+>
+>>-----Original Message-----
+>>From: Li, Shaohua
+>>Sent: Friday, August 13, 2004 12:37 AM
+>>To: Patrick Mochel
+>>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Brown, Len; Pallipadi, Venkatesh
+>>Subject: sysdev suspend/resume order?
+>>
+>>Patrick,
+>>My sound card dies after S3 sometimes. Basically, if it dies
+>>depends on the order of sysdev's resume. If IRQ router resume
+>>before PIC (I use a tricky method to change order. It's
+>>changing the initcall level of the sysfs initialization for
+>>the device), the sound card die. Otherwise, it works. Is it
+>>possible that we add some levels for sysdev? I'd like some
+>>sysdevs resume before other sysdevs. Does this make sense?
+>>
+>>Thanks,
+>>Shaohua
+>>
 
 
 -------------------------------------------------------
