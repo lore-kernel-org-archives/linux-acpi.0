@@ -1,13 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: kacpid problems
-Date: Fri, 12 Nov 2004 00:51:36 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC05C@pdsmsx403>
+From: Valerio Felici <valerio-3NZjWNnCfY8@public.gmane.org>
+Subject: Re: Error in dsdt from asus a3527nuh
+Date: Thu, 11 Nov 2004 17:58:17 +0100
+Message-ID: <200411111758.17113.valerio@bgweb.it>
+References: <3ACA40606221794F80A5670F0AF15F84041AC059@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_po5kBgw8WPqY9Re"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC059@pdsmsx403>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,132 +18,364 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>, "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-SG1tLCBpbnRlcmVzdGluZywgeW91IGRpZCBuYXJyb3cgdGhlIGlzc3VlIA0KZG93biB0byBHUEUg
-c3Rvcm0uIEkgd2lsbCBjaGVjayB0aGUNCmNvZGUsIGFuZCBjb21lIHVwIHdpdGggYSBlbGVnYW50
-IHBhdGNoLiANClRoYW5rcyBmb3IgeW91ciBoYXJkIHdvcmsuICA6LSkNCg0KRGlkIHlvdSBzZW5k
-IHlvdXIgRFNEVCB0byBtZT8NCkkgd2FudCB0byBiZSBzdXJlIG5vdGhpbmcgZHJvcHBlZCBmb3IN
-CnNvbHZpbmcgdGhpcyBpc3N1ZSwNCg0KVGhhbmtzDQpMdW1pbmcgDQoNCj4tLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KPkZyb206IGRldl96ZXJvIFttYWlsdG86ZGV2X3hvckB5YWhvby5ub10g
-DQo+U2VudDogMjAwNOW5tDEx5pyIMTLml6UgMDozNw0KPlRvOiBZdSwgTHVtaW5nOyBXYW5nLCBa
-aGVueXUgWg0KPkNjOiBhY3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KPlN1YmplY3Q6
-IFJFOiBbQUNQSV0ga2FjcGlkIHByb2JsZW1zDQo+DQo+V2hlbiBJIGFwcGxpZWQgdGhlIHNlY29u
-IHBhdGNoIHRoZSBrYWNwaWQgbmV2ZXINCj5zdGFydGVkLCBpIHRoaW5rLCBiZWNhdXNlIGl0IG5l
-dmVyIHN0YXJ0ZWQgbGFnZ2luZy4uDQo+SXMgdGhpcyBUaGUgZml4IHRoZW4/PyBPciBpcyB0aGlz
-IGp1c3QgYW4gInVnbHkiIGhhY2s/DQo+DQo+IC0tLSAiWXUsIEx1bWluZyIgPGx1bWluZy55dUBp
-bnRlbC5jb20+IHdyb3RlOiANCj4+IERpZCB5b3UgdHJ5IHRoZSBwYXRjaGVzIEkgc2VudCB5b3Ug
-dG8gbmFycm93IGRvd24NCj4+IHRoZSBpc3N1ZT8NCj4+IA0KPj4gVGhhbmtzDQo+PiBMdW1pbmcg
-DQo+PiANCj4+ID4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj4gPkZyb206IGRldl96ZXJv
-IFttYWlsdG86ZGV2X3hvckB5YWhvby5ub10gDQo+PiA+U2VudDogMjAwNMOlwrnCtDExw6bFk8uG
-MTHDpuKAlMKlIDIzOjI2DQo+PiA+VG86IFdhbmcsIFpoZW55dSBaDQo+PiA+Q2M6IGFjcGktZGV2
-ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0OyBZdSwgTHVtaW5nDQo+PiA+U3ViamVjdDogUmU6IFtB
-Q1BJXSBrYWNwaWQgcHJvYmxlbXMNCj4+ID4NCj4+ID5XaGVuIEkgYXBwbGllZCB0aGlzIHBhdGNo
-Li4gSSBjb3VsZCBwbGF5IGV2ZW4NCj4+IGxvbmdlcg0KPj4gPnRoYW4gbGFzdCB0aW1lLCBiZWZv
-cmUga2FjcGlkIHN0YXJ0ZWQgcnVubmluZyBhdA0KPj4gOTklDQo+PiA+Y3B1IHVzYWdlLiBGaXJz
-dCBJIHBsYXllZCBsb25nZXIgdGhhbiB1c3VhbCwgdGhlbg0KPj4gPmthY3BpZCBzdGFydGVkIHJ1
-bm5pbmcgYnV0IG5vdCB3aXRoIDk5JSBjcHUgdXNhZ2UsDQo+PiA+dGhlbiBpdCBzdG9wcGVkLiBJ
-dCB3ZW50IGxpa2UgdGhpcyBhIGNvdXBsZSBvZg0KPj4gdGltZXMNCj4+ID50aGVuIGthY3BpZCBz
-dGFydGVkIHdpdGggOTklIGNwdSB1c2FnZSBhZ2Fpbi4NCj4+ID5Eb24ndCBrbm93IGlmIHRoZSBw
-YXRjaCB3b3JrZWQgY29ycmVjdGx5LCBidXQgSQ0KPj4gPnRob3VnaHQgdGhlIGthY3BpZCBzaG91
-bGQgZ28gUzUsIHNodXRkb3duLA0KPj4gc2hvdWxkbid0DQo+PiA+aXQ/DQo+PiA+DQo+PiA+IC0t
-LSAiV2FuZywgWmhlbnl1IiA8emhlbnl1Lnoud2FuZ0BpbnRlbC5jb20+DQo+PiB3cm90ZTogDQo+
-PiA+PiBjb3B5IHRoZXNlIGZyb20gYWNwaV90aGVybWFsX3JlbW92ZSwgZG9lcyB0aGlzDQo+PiA+
-PiB3b3JrYXJvdW5kIHlvdXIgaXNzdWU/DQo+PiA+PiANCj4+ID4+IC0tLQ0KPj4gPj4gYWNwaS0y
-LjYvZHJpdmVycy9hY3BpL3RoZXJtYWwuY35yZW1vdmVfcXVldWVfd29yaw0KPj4gPj4gMjAwNC0x
-MS0xMCAyMzozODo1MS4wMDAwMDAwMDAgKzA4MDANCj4+ID4+ICsrKyBhY3BpLTIuNi9kcml2ZXJz
-L2FjcGkvdGhlcm1hbC5jCTIwMDQtMTEtMTENCj4+ID4+IDA5OjE5OjU3LjM2NTYzNDU2OCArMDgw
-MA0KPj4gPj4gQEAgLTQ3Miw2ICs0NzIsMTMgQEAgYWNwaV90aGVybWFsX2NyaXRpY2FsICgNCj4+
-ID4+ICAJcHJpbnRrKEtFUk5fRU1FUkcgIkNyaXRpY2FsIHRlbXBlcmF0dXJlIHJlYWNoZWQNCj4+
-ID4+ICglbGQgQyksIHNodXR0aW5nIGRvd24uXG4iLA0KPj4gPj4gS0VMVklOX1RPX0NFTFNJVVMo
-dHotPnRlbXBlcmF0dXJlKSk7DQo+PiA+PiAgCWFjcGlfYnVzX2dlbmVyYXRlX2V2ZW50KGRldmlj
-ZSwNCj4+ID4+IEFDUElfVEhFUk1BTF9OT1RJRllfQ1JJVElDQUwsDQo+PiA+PiB0ei0+dHJpcHMu
-Y3JpdGljYWwuZmxhZ3MuZW5hYmxlZCk7DQo+PiA+PiAgDQo+PiA+PiArCXR6LT56b21iaWUgPSAx
-Ow0KPj4gPj4gKwkvKiB3YWl0IGZvciBydW5uaW5nIHRpbWVyIChvbiBvdGhlciBDUFVzKQ0KPj4g
-ZmluaXNoDQo+PiA+PiAqLw0KPj4gPj4gKwlkZWxfdGltZXJfc3luYygmKHR6LT50aW1lcikpOw0K
-Pj4gPj4gKwkvKiBzeW5jaHJvbml6ZSBkZWZlcnJlZCB0YXNrICovDQo+PiA+PiArCWFjcGlfb3Nf
-d2FpdF9ldmVudHNfY29tcGxldGUoTlVMTCk7DQo+PiA+PiArCS8qIGRlZmVycmVkIHRhc2sgbWF5
-IHJlaW5zZXJ0IHRpbWVyICovDQo+PiA+PiArCWRlbF90aW1lcl9zeW5jKCYodHotPnRpbWVyKSk7
-DQo+PiA+PiAgDQo+PiA+Pg0KPj4NCj4+YWNwaV90aGVybWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9U
-SEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0KPj4gPj4gIA0KPj4gPj4gIAlyZXR1cm5fVkFMVUUoMCk7
-DQo+PiA+PiANCj4+ID4+IA0KPj4gPj4gT24gMjAwNC4xMS4xMCAxODowOTo0NSArMDAwMCwgZGV2
-X3plcm8gd3JvdGU6DQo+PiA+PiA+IFRoaXMgcGF0Y2ggYWN0dWFsbHkgbWFkZSBzb21lIGRpZmZl
-cmVuY2UuIEkNCj4+IGNvdWxkDQo+PiA+PiBwbGF5DQo+PiA+PiA+IG11Y2ggbG9uZ2VyIG5vdy4g
-Rmlyc3QgaXQgc3RhcnRlZCBsYWdnaW5nLCB0aGVuDQo+PiBpdA0KPj4gPj4gPiBzdG9wcGVkLCB0
-aGVuIGl0IHN0YXJ0ZWQgbGFnZ2luZyBhZ2FpbiwgdGhlbiBpdA0KPj4gPj4gPiBzdG9wcGVkLiBJ
-dCB3ZW50IGxpa2UgdGhpcyBmb3IgYSB3aGlsZSwgYnV0DQo+PiBhZnRlcg0KPj4gPj4gSQ0KPj4g
-Pj4gPiBoYWQgcGxheWVkIHNvbSBtb3JlLCBpdCBzdGFydGVkIGxhZ2dpbmcgYWdhaW4NCj4+IGJ1
-dA0KPj4gPj4gbm93DQo+PiA+PiA+IGl0IGRpZG4ndCBzdG9wLg0KPj4gPj4gPiANCj4+ID4+ID4g
-IC0tLSAiV2FuZywgWmhlbnl1IiA8emhlbnl1Lnoud2FuZ0BpbnRlbC5jb20+DQo+PiA+PiB3cm90
-ZTogDQo+PiA+PiA+ID4gb29wcywNCj4+ID4+ID4gPiANCj4+ID4+ID4gPiAtLS0NCj4+ID4+ID4g
-Pg0KPj4gPj4gYWNwaS0yLjYvZHJpdmVycy9hY3BpL3RoZXJtYWwuY35yZW1vdmVfcXVldWVfd29y
-aw0KPj4gPj4gPiA+IDIwMDQtMTEtMTAgMjM6Mzg6NTEuNjkzMDIyNDY0ICswODAwDQo+PiA+PiA+
-ID4gKysrIGFjcGktMi42L2RyaXZlcnMvYWNwaS90aGVybWFsLmMNCj4+IDIwMDQtMTEtMTANCj4+
-ID4+ID4gPiAyMzo1Mjo0MC44MjA5NzU4NTYgKzA4MDANCj4+ID4+ID4gPiBAQCAtNDcyLDYgKzQ3
-Miw4IEBAIGFjcGlfdGhlcm1hbF9jcml0aWNhbCAoDQo+PiA+PiA+ID4gIAlwcmludGsoS0VSTl9F
-TUVSRyAiQ3JpdGljYWwgdGVtcGVyYXR1cmUNCj4+ID4+IHJlYWNoZWQNCj4+ID4+ID4gPiAoJWxk
-IEMpLCBzaHV0dGluZyBkb3duLlxuIiwNCj4+ID4+ID4gPiBLRUxWSU5fVE9fQ0VMU0lVUyh0ei0+
-dGVtcGVyYXR1cmUpKTsNCj4+ID4+ID4gPiAgCWFjcGlfYnVzX2dlbmVyYXRlX2V2ZW50KGRldmlj
-ZSwNCj4+ID4+ID4gPiBBQ1BJX1RIRVJNQUxfTk9USUZZX0NSSVRJQ0FMLA0KPj4gPj4gPiA+IHR6
-LT50cmlwcy5jcml0aWNhbC5mbGFncy5lbmFibGVkKTsNCj4+ID4+ID4gPiAgDQo+PiA+PiA+ID4g
-Kwl0ei0+em9tYmllID0gMTsNCj4+ID4+ID4gPiArCWFjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxl
-dGUoTlVMTCk7DQo+PiA+PiA+ID4gIA0KPj4gPj4gPiA+DQo+PiA+PiA+DQo+PiA+Pg0KPj4NCj4+
-YWNwaV90aGVybWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0K
-Pj4gPj4gPiA+ICANCj4+ID4+ID4gPiAgCXJldHVybl9WQUxVRSgwKTsNCj4+ID4+ID4gPiANCj4+
-ID4+ID4gPiBJZiB0aGlzIGhhcyBubyBoZWxwLCBtYXliZSBvdGhlcnMgZWF0IHVwDQo+PiA+PiBr
-YWNwaWQuLg0KPj4gPj4gPiA+IA0KPj4gPj4gPiA+IE9uIDIwMDQuMTEuMTAgMjM6NDQ6MzMgKzAw
-MDAsIFdhbmcsIFpoZW55dQ0KPj4gPj4gd3JvdGU6DQo+PiA+PiA+ID4gPiBQbHMgdHJ5IHRoaXMg
-cGF0Y2gsDQo+PiA+PiA+ID4gPiANCj4+ID4+ID4gPiA+IC0tLQ0KPj4gPj4gPiA+DQo+PiA+PiBh
-Y3BpLTIuNi9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jfnJlbW92ZV9xdWV1ZV93b3JrDQo+PiAgDQo+
-PiA+PiA+ID4gMjAwNC0xMS0xMCAyMzozODo1MS42OTMwMjI0NjQgKzA4MDANCj4+ID4+ID4gPiA+
-ICsrKyBhY3BpLTIuNi9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jICAgIA0KPj4gPj4gMjAwNC0xMS0x
-MA0KPj4gPj4gPiA+IDIzOjM5OjUwLjE5NTEyODc5MiArMDgwMA0KPj4gPj4gPiA+ID4gQEAgLTQ3
-Miw2ICs0NzIsNyBAQCBhY3BpX3RoZXJtYWxfY3JpdGljYWwgKA0KPj4gPj4gPiA+ID4gICAgICAg
-ICBwcmludGsoS0VSTl9FTUVSRyAiQ3JpdGljYWwNCj4+ID4+IHRlbXBlcmF0dXJlDQo+PiA+PiA+
-ID4gcmVhY2hlZCAoJWxkIEMpLCBzaHV0dGluZyBkb3duLlxuIiwNCj4+ID4+ID4gPiBLRUxWSU5f
-VE9fQ0VMU0lVUyh0ei0+dGVtcGVyYXR1cmUpKTsNCj4+ID4+ID4gPiA+ICAgICAgICAgYWNwaV9i
-dXNfZ2VuZXJhdGVfZXZlbnQoZGV2aWNlLA0KPj4gPj4gPiA+IEFDUElfVEhFUk1BTF9OT1RJRllf
-Q1JJVElDQUwsDQo+PiA+PiA+ID4gdHotPnRyaXBzLmNyaXRpY2FsLmZsYWdzLmVuYWJsZWQpOw0K
-Pj4gPj4gPiA+ID4gDQo+PiA+PiA+ID4gPiArICAgICAgIHR6LT56b21iaWUgPSAxOw0KPj4gPj4g
-PiA+ID4gICAgICAgIA0KPj4gPj4gPiA+DQo+PiA+PiA+DQo+PiA+Pg0KPj4NCj4+YWNwaV90aGVy
-bWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0KPj4gPj4gPiA+
-ID4gDQo+PiA+PiA+ID4gPiAgICAgICAgIHJldHVybl9WQUxVRSgwKTsNCj4+ID4+ID4gPiA+IA0K
-Pj4gPj4gPiA+ID4gSXMgdGhpcyB3b3JrPw0KPj4gPj4gPiA+ID4gDQo+PiA+PiA+ID4gPiAtemhl
-bg0KPj4gPj4gPiA+ID4gDQo+PiA+PiA+ID4gPiBPbiAyMDA0LjExLjEwIDE0OjMzOjM1ICswMDAw
-LCBkZXZfemVybw0KPj4gd3JvdGU6DQo+PiA+PiA+ID4gPiA+IGthY3BpZCBzdGlsbCBydW5ucyB3
-aXRoIDk5JWNwdSB1c2FnZSB3aGVuDQo+PiA+PiB0aGUNCj4+ID4+ID4gPiBjcHUgZ2V0cw0KPj4g
-Pj4gPiA+ID4gPiB0b28gaG90LiBJIHRyaWVkIHRoZSBnYW1lIHF1YWtlIDIuIFlvdQ0KPj4gY2Fu
-DQo+PiA+PiBwbGF5DQo+PiA+PiA+ID4gYXJvdW5kDQo+PiA+PiA+ID4gPiA+IDEwIC0xNSBtaW51
-dGVzIGJlZm9yZSB0aGUga2FjcGlkIHN0YXJ0cw0KPj4gPj4gcnVubmluZw0KPj4gPj4gPiA+IG9u
-IDk5JQ0KPj4gPj4gPiA+ID4gPiBjcHUgdXNhZ2UuIEkgYWxzbyB1c2VkIHF1YWtlIDIgdG9vIHRl
-c3QNCj4+IHRoZQ0KPj4gPj4gPiA+IGtlcm5lbA0KPj4gPj4gPiA+ID4gPiBiZWZvcmUgSSBhcHBs
-aWVkIHlvdXIgcGF0Y2guDQo+PiA+PiA+ID4gPiA+IA0KPj4gPj4gPiA+ID4gPiAgLS0tICJZdSwg
-THVtaW5nIiA8bHVtaW5nLnl1QGludGVsLmNvbT4NCj4+ID4+IHdyb3RlOiANCj4+ID4+ID4gPiA+
-ID4gPiBJdCBtZWFucyB0aGVyZSB3YXMgTk8gZXZlbnQgZ2VuZXJhdGVkDQo+PiBhdA0KPj4gPj4g
-dGhhdA0KPj4gPj4gPiA+IHRpbWUuDQo+PiA+PiA+ID4gPiA+ID4gRG8geW91IHRoaW5rIHRoZSBz
-eW1wdG9tIGlzIGdvbmUgd2l0aA0KPj4gbXkNCj4+ID4+IGRlYnVnDQo+PiA+PiA+ID4gPiA+ID4g
-cGF0Y2g/DQo+PiA+PiA+ID4gPiA+ID4gSWYgc28sIEkgdGhpbmsgeW91ciBib3ggbmVlZCBhIG1v
-cmUNCj4+IHNhbmUNCj4+ID4+ID4gPiBzY2hlZHVsZQ0KPj4gPj4gPiA+ID4gPiA+IGZvciBhY3Bp
-X3RoZXJtYWxfY2hlY2sgDQo+PiA+PiA+ID4gPiA+ID4gQW5kLCBJIGNhbiBjb21lIHVwIHdpdGgg
-YSBwYXRjaC4NCj4+ID4+ID4gPiA+ID4gPiANCj4+ID4+ID4gPiA+ID4gPiBUaGFua3MNCj4+ID4+
-ID4gPiA+ID4gPiBMdW1pbmcgDQo+PiA+PiA+ID4gPiA+ID4gDQo+PiA+PiA+ID4gPiA+ID4gPi0t
-LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PiA+PiA+ID4gPiA+ID4gPkZyb206IGRldl96ZXJv
-DQo+PiBbbWFpbHRvOmRldl94b3JAeWFob28ubm9dIA0KPj4gPj4gPiA+ID4gPiA+ID5TZW50OiAy
-MDA0w4PCpcOCwrnDgsK0MTHDg8Kmw4XigJzDi+KAoDEww4PCpsOi4oKs4oCdw4LCpSAxOjA2DQo+
-PiA+PiA+ID4gPiA+ID4gPlRvOiBZdSwgTHVtaW5nDQo+PiA+PiA+ID4gPiA+ID4gPkNjOiBhY3Bp
-LWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KPj4gPj4gPiA+ID4gPiA+ID5TdWJqZWN0OiBS
-RTogW0FDUEldIGthY3BpZCBwcm9ibGVtcw0KPj4gPj4gPiA+ID4gPiA+ID4NCj4+ID4+ID4gPiA+
-ID4gPiA+V2hlbiBJIHRyeSB0byBvdXRwdXQgdGhlIGV2ZW50IGZpbGUgSQ0KPj4gZG8NCj4+ID4+
-ID4gPiB0aGlzOg0KPj4gPj4gPiA+ID4gPiA+ID5bcm9vdEBiYWxkZXI6IC9wcm9jL2FjcGldIyBj
-YXQgZXZlbnQgPg0KPj4gPj4gPiA+ID4gPiA+IC9ob21lL2V2ZW50LmxvZw0KPj4gPj4gPiA+ID4g
-PiA+ID4NCj4+ID4+ID4gPiA+ID4gPiA+QnV0IHRoZW4gSXQganVzdCBzdGFuZHMgdGhlcmUgd2l0
-aG91dA0KPj4gPj4gZG9pbmcNCj4+ID4+ID4gPiA+ID4gPiBhbnl0aGluZy4NCj4+ID4+ID4gPiA+
-ID4gPiA+U28gaSB0cmllZCB0byBjaGVjayB3aGF0IHdhcyB3cm9uZyAocHMNCj4+ID4+IGF4KQ0K
-Pj4gPj4gPiA+IGNvbW1hbmQ6DQo+PiA+PiA+ID4gPiA+ID4gPjI5MjIgcHRzLzAgICAgUysgICAg
-IDA6MDAgY2F0IGV2ZW50DQo+PiA+PiA+ID4gPiA+ID4gPg0KPj4gDQo+PT09IG1lc3NhZ2UgdHJ1
-bmNhdGVkID09PSANCj4NCg==
+
+--Boundary-00=_po5kBgw8WPqY9Re
+Content-Type: text/plain;
+  charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Alle 16:07, gioved=A8=AC 11 novembre 2004, hai scritto:
+> kill acpid can solve the "Device or resource busy" issue.
+>
+Why? Perhaps it conflicts with asus_acpi module ?
+However that you say is true, now I can see events from cat /proc/acpi/event
+But I still don't understand why.
+
+> Please post dmesg to let me check if ACPI interpreter
+> is good enough to catch the possible DSDT fault.
+>
+You can see it in attachment
+
+> To verify if there are any other issues, you need
+> to verfy kernel works well on this laptop, such
+> as power off work,=20
+Yes
+
+> battery work,=20
+Yes
+
+> suspend/resume work, =20
+> thermal zone work, C-state, P-state work,...
+>
+Sorry, I'm not sure on how to test that, where I can read about that ?
+
+Many thanks.
+=2D-=20
+A presto
+=2DValerio-
+
+--Boundary-00=_po5kBgw8WPqY9Re
+Content-Type: text/plain;
+  charset="gb2312";
+  name="dmesg.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="dmesg.txt"
+
+41
+ 04 001 01  0    0    0   0   0    1    1    49
+ 05 001 01  0    0    0   0   0    1    1    51
+ 06 001 01  0    0    0   0   0    1    1    59
+ 07 001 01  0    0    0   0   0    1    1    61
+ 08 001 01  0    0    0   0   0    1    1    69
+ 09 001 01  0    1    0   0   0    1    1    71
+ 0a 001 01  0    0    0   0   0    1    1    79
+ 0b 001 01  0    0    0   0   0    1    1    81
+ 0c 001 01  0    0    0   0   0    1    1    89
+ 0d 001 01  0    0    0   0   0    1    1    91
+ 0e 001 01  0    0    0   0   0    1    1    99
+ 0f 001 01  0    0    0   0   0    1    1    A1
+ 10 001 01  1    1    0   1   0    1    1    A9
+ 11 001 01  1    1    0   1   0    1    1    B9
+ 12 001 01  1    1    0   1   0    1    1    B1
+ 13 001 01  1    1    0   1   0    1    1    C1
+ 14 000 00  1    0    0   0   0    0    0    00
+ 15 000 00  1    0    0   0   0    0    0    00
+ 16 000 00  1    0    0   0   0    0    0    00
+ 17 001 01  1    1    0   1   0    1    1    C9
+IRQ to pin mappings:
+IRQ0 -> 0:2
+IRQ1 -> 0:1
+IRQ3 -> 0:3
+IRQ4 -> 0:4
+IRQ5 -> 0:5
+IRQ6 -> 0:6
+IRQ7 -> 0:7
+IRQ8 -> 0:8
+IRQ9 -> 0:9
+IRQ10 -> 0:10
+IRQ11 -> 0:11
+IRQ12 -> 0:12
+IRQ13 -> 0:13
+IRQ14 -> 0:14
+IRQ15 -> 0:15
+IRQ16 -> 0:16
+IRQ17 -> 0:17
+IRQ18 -> 0:18
+IRQ19 -> 0:19
+IRQ23 -> 0:23
+.................................... done.
+PCI: Using ACPI for IRQ routing
+VFS: Disk quotas dquot_6.5.1
+Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+devfs: 2004-01-31 Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+devfs: boot_options: 0x0
+Initializing Cryptographic API
+isapnp: Scanning for PnP cards...
+isapnp: No Plug & Play device found
+Serial: 8250/16550 driver $Revision: 1.90 $ 48 ports, IRQ sharing enabled
+ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
+RAMDISK driver initialized: 16 RAM disks of 8192K size 1024 blocksize
+i8042.c: Detected active multiplexing controller, rev 1.1.
+serio: i8042 AUX0 port at 0x60,0x64 irq 12
+serio: i8042 AUX1 port at 0x60,0x64 irq 12
+serio: i8042 AUX2 port at 0x60,0x64 irq 12
+serio: i8042 AUX3 port at 0x60,0x64 irq 12
+serio: i8042 KBD port at 0x60,0x64 irq 1
+input: AT Translated Set 2 keyboard on isa0060/serio0
+NET: Registered protocol family 2
+IP: routing cache hash table of 8192 buckets, 64Kbytes
+TCP: Hash tables configured (established 262144 bind 65536)
+NET: Registered protocol family 8
+NET: Registered protocol family 20
+ACPI: (supports S0 S1 S3 S4 S5)
+RAMDISK: cramfs filesystem found at block 0
+RAMDISK: Loading 4588 blocks [1 disk] into ram disk... |/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-done.
+VFS: Mounted root (cramfs filesystem) readonly.
+Freeing unused kernel memory: 148k freed
+vesafb: framebuffer at 0xf0000000, mapped to 0xf002b000, size 3072k
+vesafb: mode is 1024x768x16, linelength=2048, pages=4
+vesafb: protected mode interface info at 00ff:44f0
+vesafb: scrolling: redraw
+vesafb: directcolor: size=0:5:6:5, shift=0:11:5:0
+fb0: VESA VGA frame buffer device
+Console: switching to colour frame buffer device 128x48
+NET: Registered protocol family 1
+Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+ICH4: IDE controller at PCI slot 0000:00:1f.1
+PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
+ICH4: chipset revision 3
+ICH4: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0xffa0-0xffa7, BIOS settings: hda:DMA, hdb:pio
+    ide1: BM-DMA at 0xffa8-0xffaf, BIOS settings: hdc:DMA, hdd:pio
+hda: IC25N060ATMR04-0, ATA DISK drive
+Using anticipatory io scheduler
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+hdc: TOSHIBA ODD-DVD SD-R6372, ATAPI CD/DVD-ROM drive
+ide1 at 0x170-0x177,0x376 on irq 15
+hda: max request size: 1024KiB
+hda: 117210240 sectors (60011 MB) w/7884KiB Cache, CHS=16383/255/63, UDMA(100)
+ /dev/ide/host0/bus0/target0/lun0: p1 p2 p3 p4 < p5 p6 p7 >
+VFS: Can't find ext3 filesystem on dev hda6.
+VFS: Can't find ext2 filesystem on dev hda6.
+ReiserFS: hda6: found reiserfs format "3.6" with standard journal
+ReiserFS: hda6: using ordered data mode
+ReiserFS: hda6: journal params: device hda6, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: hda6: checking transaction log (hda6)
+ReiserFS: hda6: Using r5 hash to sort names
+Adding 1461868k swap on /dev/hda5.  Priority:-1 extents:1
+hdc: ATAPI 24X DVD-ROM DVD-R CD-R/RW drive, 2048kB Cache, UDMA(33)
+Uniform CD-ROM driver Revision: 3.20
+ieee1394: Initialized config rom entry `ip1394'
+SCSI subsystem initialized
+sbp2: $Rev: 1219 $ Ben Collins <bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Asus Laptop ACPI Extras version 0.28
+unsupported, trying default values, supply the developers with your DSDT
+Capability LSM initialized
+device-mapper: 4.1.0-ioctl (2003-12-10) initialised: dm-K+EdE700+2x7YGS17jhuJQ@public.gmane.org
+ReiserFS: dm-5: found reiserfs format "3.6" with standard journal
+ReiserFS: dm-5: using ordered data mode
+ReiserFS: dm-5: journal params: device dm-5, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: dm-5: checking transaction log (dm-5)
+ReiserFS: dm-5: Using r5 hash to sort names
+ReiserFS: dm-4: found reiserfs format "3.6" with standard journal
+ReiserFS: dm-4: using ordered data mode
+ReiserFS: dm-4: journal params: device dm-4, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: dm-4: checking transaction log (dm-4)
+ReiserFS: dm-4: Using r5 hash to sort names
+ReiserFS: dm-0: found reiserfs format "3.6" with standard journal
+ReiserFS: dm-0: using ordered data mode
+ReiserFS: dm-0: journal params: device dm-0, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: dm-0: checking transaction log (dm-0)
+ReiserFS: dm-0: Using r5 hash to sort names
+ReiserFS: dm-1: found reiserfs format "3.6" with standard journal
+ReiserFS: dm-1: using ordered data mode
+ReiserFS: dm-1: journal params: device dm-1, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: dm-1: checking transaction log (dm-1)
+ReiserFS: dm-1: Using r5 hash to sort names
+ReiserFS: dm-2: found reiserfs format "3.6" with standard journal
+ReiserFS: dm-2: using ordered data mode
+ReiserFS: dm-2: journal params: device dm-2, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: dm-2: checking transaction log (dm-2)
+ReiserFS: dm-2: Using r5 hash to sort names
+ReiserFS: dm-3: found reiserfs format "3.6" with standard journal
+ReiserFS: dm-3: using ordered data mode
+ReiserFS: dm-3: journal params: device dm-3, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: dm-3: checking transaction log (dm-3)
+ReiserFS: dm-3: Using r5 hash to sort names
+Linux Kernel Card Services
+  options:  [pci] [cardbus] [pm]
+Yenta: CardBus bridge found at 0000:01:05.0 [1043:1894]
+Yenta: ISA IRQ mask 0x0000, PCI irq 17
+Socket status: 30000006
+Yenta: CardBus bridge found at 0000:01:05.1 [1043:1894]
+Yenta: ISA IRQ mask 0x0000, PCI irq 16
+Socket status: 30000006
+ohci1394: $Rev: 1223 $ Ben Collins <bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+ohci1394: fw-host0: OHCI-1394 1.0 (PCI): IRQ=[19]  MMIO=[fe8ff800-fe8fffff]  Max Packet=[2048]
+8139too Fast Ethernet driver 0.9.27
+eth0: RealTek RTL8139 at 0xc800, 00:11:2f:a3:9d:84, IRQ 18
+eth0:  Identified 8139 chip type 'RTL-8100B/8139D'
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+ehci_hcd 0000:00:1d.7: Intel Corp. 82801DB (ICH4) USB2 EHCI Controller
+PCI: Setting latency timer of device 0000:00:1d.7 to 64
+ehci_hcd 0000:00:1d.7: irq 23, pci mem f0a52c00
+ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 1
+PCI: cache line size of 32 is not supported by device 0000:00:1d.7
+ehci_hcd 0000:00:1d.7: USB 2.0 enabled, EHCI 1.00, driver 2004-May-10
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 6 ports detected
+ieee1394: Host added: ID:BUS[0-00:1023]  GUID[00e018000320b082]
+usb 1-4: new high speed USB device using address 2
+ip1394: $Rev: 1224 $ Ben Collins <bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+ip1394: eth1: IEEE-1394 IPv4 over 1394 Ethernet (fw-host0)
+Real Time Clock Driver v1.12
+Synaptics Touchpad, model: 1
+ Firmware: 4.6
+ 180 degree mounted touchpad
+ Sensor: 18
+ new absolute packet format
+ Touchpad has extended capability bits
+ -> four buttons
+ -> multifinger detection
+ -> palm detection
+input: SynPS/2 Synaptics TouchPad on isa0060/serio4
+ts: Compaq touchscreen protocol output
+mice: PS/2 mouse device common for all mice
+input: PC Speaker
+irda_init()
+NET: Registered protocol family 23
+parport: PnPBIOS parport detected.
+parport0: PC-style at 0x378 (0x778), irq 7, dma 3 [PCSPP,TRISTATE,COMPAT,ECP,DMA]
+Linux agpgart interface v0.100 (c) Dave Jones
+agpgart: Detected an Intel 855 Chipset.
+agpgart: Maximum main memory to use for agp memory: 682M
+agpgart: Detected 8060K stolen memory.
+agpgart: AGP aperture is 128M @ 0xf0000000
+USB Universal Host Controller Interface driver v2.2
+uhci_hcd 0000:00:1d.0: Intel Corp. 82801DB (ICH4) USB UHCI #1
+PCI: Setting latency timer of device 0000:00:1d.0 to 64
+uhci_hcd 0000:00:1d.0: irq 16, io base 0000d480
+uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 2
+hub 2-0:1.0: USB hub found
+hub 2-0:1.0: 2 ports detected
+uhci_hcd 0000:00:1d.1: Intel Corp. 82801DB (ICH4) USB UHCI #2
+PCI: Setting latency timer of device 0000:00:1d.1 to 64
+uhci_hcd 0000:00:1d.1: irq 19, io base 0000d800
+uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 3
+hub 3-0:1.0: USB hub found
+hub 3-0:1.0: 2 ports detected
+uhci_hcd 0000:00:1d.2: Intel Corp. 82801DB (ICH4) USB UHCI #3
+PCI: Setting latency timer of device 0000:00:1d.2 to 64
+uhci_hcd 0000:00:1d.2: irq 18, io base 0000d880
+uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 4
+hub 4-0:1.0: USB hub found
+hub 4-0:1.0: 2 ports detected
+usb 2-2: new low speed USB device using address 2
+usbcore: registered new driver hiddev
+input: USB HID v1.10 Mouse [Logitech Optical USB Mouse] on usb-0000:00:1d.0-2
+usbcore: registered new driver usbhid
+drivers/usb/input/hid-core.c: v2.0:USB HID core driver
+cpci_hotplug: CompactPCI Hot Plug Core version: 0.2
+pci_hotplug: PCI Hot Plug PCI Core version: 0.5
+shpchp: shpc_init : shpc_cap_offset == 0
+shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+pciehp: PCI Express Hot Plug Controller Driver version: 0.4
+PCI: Enabling device 0000:00:1f.5 (0005 -> 0007)
+PCI: Setting latency timer of device 0000:00:1f.5 to 64
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+intel8x0_measure_ac97_clock: measured 49654 usecs
+intel8x0: clocking to 48000
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_write 0: semaphore is not ready for register 0x2
+PCI: Setting latency timer of device 0000:00:1f.6 to 64
+MC'97 1 converters and GPIO not ready (0xff00)
+8139cp: 10/100 PCI Ethernet driver v1.2 (Mar 22, 2004)
+ieee80211_crypt: registered algorithm 'NULL'
+ipw2200: Intel(R) PRO/Wireless 2200/2915 Network Driver, 0.12
+ipw2200: Copyright(c) 2003-2004 Intel Corporation
+ipw2200: Detected Intel PRO/Wireless 2200BG Network Connection
+eth0: link down
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: AC Adapter [AC0] (on-line)
+ACPI: Processor [CPU1] (supports C1 C2 C3, 8 throttling states)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Lid Switch [LID]
+ACPI: Fan [FN00] (off)
+ACPI: Thermal Zone [THRM] (41 C)
+cs: IO port probe 0x0100-0x04ff: clean.
+cs: IO port probe 0x0800-0x08ff: clean.
+cs: IO port probe 0x0c00-0x0cff: excluding 0xc00-0xc07
+cs: IO port probe 0x0a00-0x0aff: clean.
+NET: Registered protocol family 10
+Disabled Privacy Extensions on device c02f4780(lo)
+IPv6 over IPv4 tunneling driver
+eth2: duplicate address detected!
+[drm] Initialized i830 1.3.2 20021108 on minor 0: Intel Corp. 82852/855GM Integrated Graphics Device
+[drm] Initialized i830 1.3.2 20021108 on minor 1: Intel Corp. 82852/855GM Integrated Graphics Device (#2)
+mtrr: base(0xf0020000) is not aligned on a size(0x300000) boundary
+eth0: no IPv6 routers present
+codec_semaphore: semaphore is not ready [0x1][0x700300]
+codec_read 0: semaphore is not ready for register 0x32
+
+--Boundary-00=_po5kBgw8WPqY9Re--
 
 
 -------------------------------------------------------
