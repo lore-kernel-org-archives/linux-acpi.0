@@ -1,11 +1,14 @@
-From: Peter.Zeipelt-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org
-Subject: Re: No network after S3
-Date: Sun, 15 Feb 2004 10:34:15 +0100 (CET)
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.6.2 ACPI problem
+Date: Sun, 15 Feb 2004 17:59:50 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076837269.402f3b95dbdfb@webmail.t-online.de>
-References: <1076768932.402e30a460d2e@webmail.t-online.de>  <1076823407.25351.73.camel@dhcppc4> <1076832762.25353.132.camel@dhcppc4>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6C1@PDSMSX403.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1076832762.25353.132.camel-D2Zvc0uNKG8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,122 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Lenar L?hmus <lenar-w3PkqIkA8A2zQB+pC5nmwQ@public.gmane.org>, Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len,
 
-thank `s for your advice.
-I tried pci=noacpi. No diference.
-If I understand you right, I should wait a little bit before dealing
-with this
-powersaving stuff.
-You mentioned the bugzilla entries.
-Can you tell me please where I can find them?
-So I can see, if the problems there are similar to mine.
+> Now despite this machine seems to work fine until kde's laptop daemon=20
+> does something I'm not aware of which results in
+> these lines in dmesg:
+>=20
+> Feb 10 17:52:35 debian kernel:     ACPI-0245: *** Error:=20
+> Cannot release=20
+> Mutex [_GL_], not acquired
 
-Peter
+Would you please have patch
+http://bugzilla.kernel.org/attachment.cgi?id=3D2090&action=3Dview
+a test!
 
-Len Brown schrieb:
-> dunno why i didn't realize that you were talking about
-> the NIC failing
-> after resuming from S3, guess I didn't read the subject
-> line;-)
-> 
-> Yes, we've got a number of bugzilla entries that show
-> that somehow
-> interrupts are toast after resume.  Perhaps this failure
-> is the same as
-> those?
-> 
-> -Len
-> 
-> On Sun, 2004-02-15 at 00:36, Len Brown wrote:
-> > Peter,
-> > Same NIC works with pci=noacpi or acpi=off?
-> > If yes, then this is an ACPI bug.  If no, then the
-> problem lies
-> > elsewhere.
-> > 
-> > I'd defer dealing with the suspend/resume issues until
-> more basic
-> > functionality is working properly.
-> > 
-> > thanks,
-> > -Len
-> > 
-> > 
-> > On Sat, 2004-02-14 at 09:39, Peter.Zeipelt-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org
-> wrote:
-> > > Hello list
-> > > 
-> > > I hope this is the right place for my question.
-> > > Using an ABIT KT7-RAID with SuSE 8.2prof and the
-> kernel 2.6.1 or 2.6.2
-> > > STR seems to work fine.
-> > > But trying to use network nothing really happens.
-> > > I tried out several NICs (3c905c, 100PRO/S and one
-> with a 8139b).
-> > > When i try to ping another  host in the local net,
-> all get is an
-> > > Destination Host unreachable.
-> > > The 8139b says "no buffer space available" .
-> > > A dmesg with the 3c905 says "IRQ blocked by another
-> device?"
-> > > But there isn't any other device on this IRQ.
-> > > Un- and reloading the module doesn't help.
-> > > Trying the STR on an ASUS A7N8X with driver for the
-> nforce NIC in the
-> > > kernel brings the same result.
-> > > Another strange thing to me is, that S3 and S4 are
-> working better on
-> > > the old ABIT  board with Via KT133
-> > > chipset then on my newer nforce boards.
-> > > The ASUS didn't fall in S4 mode, cause it seems that
-> the disks are
-> > > powered down before writing the RAM
-> > > on it.
-> > > An Enmic 8RDA+ doesn't boot after S3.
-> > > But for now my main problem is to bring the network
-> to work after the
-> > > S3.
-> > > Any hints?
-> > > 
-> > > Thanks
-> > > Peter
-> > > 
-> > > 
-> > >
-> -------------------------------------------------------
-> > > SF.Net is sponsored by: Speed Start Your Linux Apps
-> Now.
-> > > Build and deploy apps & Web services for Linux with
-> > > a free DVD software kit from IBM. Click Now!
-> > >
-> http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-> > > _______________________________________________
-> > > Acpi-devel mailing list
-> > > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > >
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > 
-> > 
-> > 
-> >
-> -------------------------------------------------------
-> > SF.Net is sponsored by: Speed Start Your Linux Apps
-> Now.
-> > Build and deploy apps & Web services for Linux with
-> > a free DVD software kit from IBM. Click Now!
-> > http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
->
+-Luming
 
 
 -------------------------------------------------------
