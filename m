@@ -1,78 +1,87 @@
-From: "¹Ú¿µ»ó" <groovy-GILFV2MaSN5eoWH0uzbU5w@public.gmane.org>
-Subject: [ACPI]Anybody succeed 'Wake On Lan' in S3?
-Date: Mon, 23 Jun 2003 21:02:13 +0900
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200306231202.h5NC2DG10278@54s.new21.net>
-Reply-To: groovy-GILFV2MaSN5eoWH0uzbU5w@public.gmane.org
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [ACPI] _PDC method in DSDT
+Date: Mon, 23 Jun 2003 14:27:32 +0200
+Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Message-ID: <20030623122732.GY19556@poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A84725A301@orsmsx401.jf.intel.com> <1056354807.10323.71.camel@aldebaran.caltech.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1056354807.10323.71.camel-cfibRQahR+cF6I9xFAAkN5QCsf4PZ8us@public.gmane.org>
+Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
+List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
+To: David Moore <dcm-HInyCGIudOg@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+On Mon, Jun 23, 2003 at 12:53:27AM -0700, David Moore wrote:
+> On Mon, 2003-06-23 at 00:11, Grover, Andrew wrote:
+> > > From: David Moore [mailto:dcm-HInyCGIudOg@public.gmane.org] 
+> > > Given this document, I think I have enough information now to patch
+> > > processor.c to support Enhanced Speedstep on Pentium M for 
+> > > those BIOSes
+> > > that have a correctly written _PDC method in the DSDT.  Would the
+> > > maintainers of the ACPI driver be willing to accept such a patch?
+> > 
+> > I don't think so, at least not right now.
+> > 
+> > However, since the recently added non-vendor-supported Pentium M cpufreq
+> > driver uses hardcoded tables and cpuid instead of relying on ACPI for
+> > this information anyways, adding _PDC support to processor.c would not
+> > affect its behavior. If that driver were changed to use ACPI for
+> > determining platform capabilities, like Windows and our released binary
+> > driver do, then yes, adding _PDC support would be important.
+> > 
+> 
+> My intention was not for processor.c and cpufreq to cooperate, but
+> rather for processor.c to be able to control Enhanced Speedstep solely
+> with P-states -- no cpufreq necessary.  Cpufreq is certainly useful for
+> those systems not running the ACPI driver, but in the long run, ACPI and
+> processor.c seem to be the right way to get maximum compatibility with
+> many platforms.
+> 
+> If my understanding is correct, once _PDC is called, the only change
+> necessary to drive Enhanced Speedstep with P-states is simply to
+> interpret the registers returned by _PCT and if they are of type
+> FixedHardware, to use wrmsr() instead of outb().  I'm slightly
+> oversimplifying, but such an approach works on my system.
+> 
+> I only have two concerns:
+> 1) If the processor is an AMD or a Transmeta, it looks like _PCT may
+> also return FixedHardware registers for their respective power
+> management systems.  Do we need to read cpuid to treat these cases
+> differently in processor.c, or will the blind wrmsr() do the trick?
 
-AwardBIOS, 2.5.69 kernel, VIA VT6103 PHY in my system.
+For AMD athlons, most of the time, the returned values for _PCT
+are FixedHardware address 0.  Therefore, this will not work (writing to
+msr 0 will be probably 'interessting', but I doubt that will
+change the freq/voltage for this cpu).
 
-Enter s3 state successfully and then never wake up=20
-by lan event such as "ping xxx.xxx.xxx.xxx from another system.
+More, actually, Athlons with PowerNow have to write to 2 MSRs, not
+only one.
 
-after that, following message comes out=20
-"eth0: Transmit timed out, status ffff, PHY status ffff, resetting..."
+You have to consider that all of this returned values after calling
+the _PCT() and _PSS() methods, *when FixedHardware is returned by
+_PCT*, have to be passed to an *external, per cpu, driver*.
+No way to make the acpi processor generic, or you have to consider
+all cases (PowerNow, LongRun, Enhanced SpeedStep, what ever) after
+retrieving the correct cpu model.
 
-here is my part of via-rhine.c code
--------------------------------------
-enum register_offsets {
-	StationAddr=3D0x00, RxConfig=3D0x06, TxConfig=3D0x07, ChipCmd=3D0x08,
-	IntrStatus=3D0x0C, IntrEnable=3D0x0E,
-	MulticastFilter0=3D0x10, MulticastFilter1=3D0x14,
-	RxRingPtr=3D0x18, TxRingPtr=3D0x1C, GFIFOTest=3D0x54,
-	MIIPhyAddr=3D0x6C, MIIStatus=3D0x6D, PCIBusConfig=3D0x6E,
-	MIICmd=3D0x70, MIIRegAddr=3D0x71, MIIData=3D0x72, MACRegEEcsr=3D0x74,
-	ConfigA=3D0x78, ConfigB=3D0x79, ConfigC=3D0x7A, ConfigD=3D0x7B,
-	RxMissed=3D0x7C, RxCRCErrs=3D0x7E, MiscCmd=3D0x81,
-	StickyHW=3D0x83, IntrStatus2=3D0x84, WOLcrClr=3D0xA4, WOLcgClr=3D0xA7,
-	PwrcsrClr=3D0xAC,
-};
-        .
-        .
-        .
-	/* D-Link provided reset code (with comment additions) */
-	if (via_rhine_chip_info[chip_id].drv_flags & HasWOL) {
-		unsigned char byOrgValue;
+And even in that situation, you are not assured that better
+tables may be retrieven by other means (only 5 states by ACPI in
+one of my laptops, a PB laptop, but 9 states by parsing a BIOS
+table for an AMD mobile Athlon 2200+, which seems to be used
+even by Windows OS, not ACPI).
 
-		/* clear sticky bit before reset & read ethernet address */
-		byOrgValue =3D readb(ioaddr + StickyHW);
-		byOrgValue =3D byOrgValue & 0xFC;
-		writeb(byOrgValue, ioaddr + StickyHW);
+-- 
+Ducrot Bruno
 
-		/* (bits written are cleared?) */
-		/* disable force PME-enable */
-		writeb(0x80, ioaddr + WOLcgClr);
-		/* disable power-event config bit */
-		writeb(0xFF, ioaddr + WOLcrClr);
-		/* clear power status (undocumented in vt6102 docs?) */
-		writeb(0xFF, ioaddr + PwrcsrClr);
-	}
-
-thanks.
-
-=C1=C1=C0=BA =C7=CF=B7=E7=B5=C7=BC=BC=BF=E4:)
-
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
