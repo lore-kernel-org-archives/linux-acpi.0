@@ -1,56 +1,28 @@
-From: Ludwig Meyerhoff <ludwig-KBAKnD37014@public.gmane.org>
-Subject: ACPI and VIA C3
-Date: Sun, 27 Jun 2004 23:17:16 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40DF395C.5010700@antar.de>
+From: Karol Kozimor <sziwan@hell.org.pl>
+Subject: Re: [ACPI] No APIC interrupts after ACPI suspend
+Date: Mon, 28 Jun 2004 00:06:38 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040627220638.GA1816@hell.org.pl>
+References: <1088160505.3702.4.camel@tyrosine> <40DDBA7A.6010404@travellingkiwi.com> <40DF0A98.9040604@travellingkiwi.com> <200406272052.43326@zodiac.zodiac.dnsalias.org> <40DF1D22.2010406@travellingkiwi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264500AbUF0WGf@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <40DF1D22.2010406@travellingkiwi.com>
+To: Hamie <hamish@travellingkiwi.com>
+Cc: Alexander Gran <alex@zodiac.dnsalias.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Hallo!
+Thus wrote Hamie:
+> Since it sounds like a different bug to 2643, (Similiar but the patch 
+> that fixes the ethernet doesn't appear to doa  lot for the sound). I've 
+> opened a new one... #2965.
 
-I have a VIA C3 (Ezra) processor. It is very nice for "normal"
-applications, as it takes only a few watt.
+... which might be similar to http://bugme.osdl.org/show_bug.cgi?id=2752,
+except that I don't have the IO-APIC running.
 
-I have a problem with the ACPI support of the kernel ...
-While 2.4.20 recognizes the processor to support C1 and C2 states, the
-2.4.26 does not, as the 2.6.6 does not also.
+Best regards,
 
-AFAIK the ACPI support has been rewritten for the 2.6 kernel and
-backported to 2.4 in 2.4.23 or something ...
-
-Now: does anyone know how I can achieve full ACPI support for my
-processor in a more recent kernel than 2.4.20? In special I would like
-to use frequency scaling/throttling, as most of the time my small
-computer does nothing.
-
-I already tried the epia1 patch on the 2.6.6 kernel and the acpi patch
-on 2.6.7 kernel, both without a satisfying result ...
-
-
-
-
-Saluti!
-
-Ludwig
-
-
-
-
-
--------------------------------------------------------
-This SF.Net email sponsored by Black Hat Briefings & Training.
-Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
-digital self defense, top technical experts, no vendor pitches, 
-unmatched networking opportunities. Visit www.blackhat.com
+-- 
+Karol 'sziwan' Kozimor
+sziwan@hell.org.pl
