@@ -1,14 +1,15 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: 2.6.0-test9 regression: panic on Fn+F7 hotkey
-Date: Mon, 3 Nov 2003 13:17:00 +0100
+From: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
+Subject: Re: Toshiba Satellite 1905S303 DSDT table
+Date: Mon, 03 Nov 2003 11:27:21 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031103121659.GA26000@hell.org.pl>
-References: <20031027170800.GC11206@hell.org.pl> <3FA621EC.5010000@pca.it> <20031103105802.GB909@wsc-gmbh.de> <3FA63BB8.60503@pca.it>
+Message-ID: <3FA657B9.5070204@techisa.srv.br>
+References: <3FA58FE8.4000409@techisa.srv.br> <20031103101315.GA2100@deprecation.cyrius.com>
+Reply-To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3FA63BB8.60503-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <20031103101315.GA2100-u+sgIaa8TU6A7rR/f+Zz5kHK5LHFu9C3@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +18,64 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Luca Capello:
-> IIRC, on ASUS laptops you can use Fn+F7 hotkey even if you don't install 
-> the 'acpi4asus' package: I just tried removing the 'asus_acpi' module 
-> and Fn+F7 works. With the 'asus_acpi' module you've notification of 
-> Fn+F7 hotkey pressing in /var/log/acpid, so you can configure an action 
-> when you press this hotkey.
+Martin Michlmayr wrote:
 
-Fn+F7 is completely AML-dependent, asus_acpi has nothing to do with it.
-Best regards,
+>* Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org> [2003-11-02 21:14]:
+>  
+>
+>>machine, and managed to clear all the errors, except for this one:
+>>    
+>>
+>
+>  
+>
+>>s303.asl   468:                 If(\_OSI) {
+>>Error    1028 -      Too few arguments ^  (\_OSI requires 1)
+>>s303.asl   469:                     "Windows 2001"
+>>Error    1037 -                                  ^ parse error, 
+>>    
+>>
+>
+>I managed to fix this error with the following change:
+>
+>--- dsdt.asl.orig	2003-10-25 18:43:53.000000000 +1000
+>+++ dsdt.asl	2003-10-25 18:47:02.000000000 +1000
+>@@ -144,8 +144,7 @@
+>         }
+>         If(LOr(LEqual(C006, 0x0), LEqual(C006, 0x3))) {
+>             If(CondRefOf(\_OSI, Local0)) {
+>-                If(\_OSI) {
+>-                    "Windows 2001"
+>+                If(\_OSI ("Windows 2001")) {
+>                     Store(0x4, C006)
+>                 }
+>             }
+>
+>This is basically in line with some other DSDTs I've seen on the net.
+>  
+>
+
+Yesterday I did the same thing :)
+
+Anyway, it did compile ok, I recompiled the kernel and added the fixed 
+DSDT table. It worked quite nice, I now also have the power button 
+generating the shutdown event.
+
+I still have the fn-F5 panic though. I compiled the kernel with kdb and 
+tried to redirect it to the serial console, but alas, this machine does 
+not have a serial port, and as far as I have researched, support for USB 
+serial adapters as console is available only on kernel 2.5+.
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+-- Erico Mendonca
+Techisa do Brasil
+
+
+
 
 
 -------------------------------------------------------
