@@ -1,11 +1,11 @@
 From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: [PATCH] 2.4.23-pre3 Don't change BIOS allocated IRQs
-Date: Wed, 17 Sep 2003 00:06:59 +0100
+Subject: [PATCH] 2.6.0-test4 Don't change BIOS allocated IRQs
+Date: Wed, 17 Sep 2003 00:11:03 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200309170006.59980.adq_dvb@lidskialf.net>
+Message-ID: <200309170011.03630.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
@@ -24,9 +24,10 @@ way to tell which systems are good and bad in advance, this patch simply
 ensures that ACPI does not change an IRQ if the BIOS has pre-allocated it.
 
 
---- linux-2.4.23-pre3.null_crs/drivers/acpi/pci_link.c	2003-09-05 23:57:39.000000000 +0100
-+++ linux-2.4.23-pre3.nochangeirq/drivers/acpi/pci_link.c	2003-09-16 23:59:49.212387016 +0100
-@@ -507,15 +507,15 @@
+
+--- linux-2.6.0-test4.es7000fix/drivers/acpi/pci_link.c	2003-09-06 00:35:16.000000000 +0100
++++ linux-2.6.0-test4.nochangeirq/drivers/acpi/pci_link.c	2003-09-17 00:00:40.740553544 +0100
+@@ -510,15 +510,15 @@
  		irq = link->irq.active;
  	} else {
  		irq = link->irq.possible[0];
