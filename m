@@ -1,38 +1,26 @@
-From: WAVA Postmaster <postmaster-4/B8Qvjdn6A@public.gmane.org>
-Subject: Re: Approved
-Date: Sun, 7 Sep 2003 10:14:58 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309071414.h87EEwJ08526@mailbag.wava.com>
-References: <200309071414.h87EErg08505@mailbag.wava.com>
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200309071414.h87EErg08505-jyH2L/idxK3j8HxC+N2foA@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Subject: Re: [ACPI] [PATCH] 2.6.0-test4 ACPI fixes series (4/4)
+Date: Sun, 7 Sep 2003 15:54:57 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <200309071554.57500.adq_dvb@lidskialf.net>
+References: <200309051958.02818.adq_dvb@lidskialf.net> <200309060157.47121.adq_dvb@lidskialf.net> <1062863230.2795.1.camel@dhcp23.swansea.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1062863230.2795.1.camel-Z+iYsftfazAXoXS6vNje7nviChZXdy279dF7HbQ/qKg@public.gmane.org>
+Content-Disposition: inline
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-WARNING:  our e-mail system has detected that your message to us
-contained a virus, as follows:
+On Saturday 06 September 2003 16:47, Alan Cox wrote:
+> On Sad, 2003-09-06 at 01:57, Andrew de Quincey wrote:
+> > This patch removes some erroneous code from mpparse which breaks IO-APIC
+> > programming
+>
+> These shouldnt be removed but checked against the arch being an E7000,
+> which does need this.
 
-/var/spool/uvscan/tmp/movie0045.pif
-        Found the W32/Sobig.f@MM virus !!!
-
-Accordingly, your message has *not* been delivered to it's recipient.
-Further information about this virus can be found at
-http://www.mcafee.com/.
-
-Thank you!
-
-The WAVA Postmaster
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+Should that code be added back into 2.4.23-pre3? 
