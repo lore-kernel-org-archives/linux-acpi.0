@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: List noise.
-Date: Wed, 28 Jan 2004 17:29:45 +0100
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: S1 could work
+Date: Wed, 28 Jan 2004 17:57:50 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040128162944.GA1200@elf.ucw.cz>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A62@hdsmsx402.hd.intel.com>
+Message-ID: <20040128165750.GD1200@elf.ucw.cz>
+References: <Pine.LNX.4.58.0401201816420.4869@localhost.localdomain> <20040122102912.GA355@elf.ucw.cz> <1075232709.2673.14.camel@aragorn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8A62-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+In-Reply-To: <1075232709.2673.14.camel-OzWA7vJbvfM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dirk Meul <dirk.meul-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> Sure, I'm open to moving the list off sourceforge if there is clearly a
-> better choice.  Two other problems we've seen on sf are
-> 1. latency is sometimes huge
-> 2. archives sometimes unavailable, and not indexed by google.
+> > Switching consoles doing S1 is not neccessary on working hardware. You
+> > might want to simply comment it out.
 > 
-> In the mean-time, here are the mailman spam filters I've got on SF, a
-> couple I've added in the last 30-minutes.  It doesn't look like it can
-> search for a _missing_ field -- only positive matches.  I'm sure open to
-> suggestions for further improvement.
+> Can you give me a pointer where switching is done? I could not find
+> it.
 
-What about linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org? kernel list has good filters
-against spam, anyway, and that should really not be a problem.
+kernel/power/console.c
 
-Oh and you forgot 
+> Trying to enter S1 when pdnsd is running aborts standby. But pdnsd is
+> killed by entering S1 or S3 (didn't know S4 because it didn't work for
+> me). Entering S3 with a running pdnsd works.
+> 
+> By entering S1 audio from my tv-card will not stopped.
 
-3. advertising
+And do you want it to stop?
 
-									Pavel
+If so add suspend/resume support for your tv-card.
+
+> Resuming from S3 will only work if i unload all sound modules. But i'm
+> not able to reload them successfully:
+> Starting ALSA (version 1.0.1):AC'97 0 does not respond - RESET
+> AC'97 0 access is not valid [0xffffffff], removing mixer.
+> EMU10K1_Audigy: probe of 0000:00:0d.0 failed with error -5
+>  emu10k1 bt87x.
+> Restoring ALSA mixer settings ... done.
+> 
+> Without sound module unloading there is:
+> Kernel panic: Fatal exception in interrupt
+
+...suspend/resume support is clearly needed for your sound card.
+
+								Pavel
 
 -- 
 When do you have a heart between your knees?
