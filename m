@@ -1,90 +1,73 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ACPI update (20030122)
-Date: Thu, 23 Jan 2003 14:44:55 -0800
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A131@orsmsx401.jf.intel.com>
+From: Stephan Krings <stephan-6/4LMolCrz7QLMG2gba6HQ@public.gmane.org>
+Subject: Re: ACPI on Compaq Evo N800c
+Date: Sat, 25 Jan 2003 00:13:12 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <15921.51336.165341.385967@hotzenplotz.priv>
+References: <3E30206B.8080201@iis.fhg.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3E30206B.8080201-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Christian Neubauer <neu-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
 Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+Hello,
 
-The latest ACPI patch is now available at http://sf.net/projects/acpi .
-Non-Linux packages will be available within 24 hours from
-http://developer.intel.com/technology/iapc/acpi/downloads.htm .
+> I have a Compaq N800c Laptop and need a way get the machine to standby,
+> when closing the lid.
 
-The patches are big primarily because we finally got with the program
-and moved our headers from drivers/acpi/include to include/acpi.
+I own the same machine and made some of the ACPI features work quite
+nicely. But this does not apply to any of the suspend modes. Not sure
+if this is even supposed to work, yet. At least for the stable kernel
+series. I'd like to see this feature, too, especially suspend to RAM.
 
-Regards -- Andy
+You could try the swsusp patch, but this is completely unrelated to
+ACPI. I tried that patch once and it seemed to work for me.
 
-22 January 2003.  Summary of changes for version 20030122.
+> APM:
+> cat /proc/apm tells me -1% for the battery status with the kernels
+> 2.4.19, 2.4.20, 2.5.59. ACPI was not compiled in. apm -s returns
+> immediatelly without putting the machine to sleep.
 
+Tried APM only for a short time and experienced the same problems.
 
-1) ACPI CA Core Subsystem:
+> ACPI:
+> The following holds for kernel versions 2.4.19, 2.4.20 (patched with
+> latest acpi patch) and 2.5.59
+> - /proc/acpi exists
+> - however there is not /proc/acpi/battery entry
+> - echo 1 > /proc/acpi/sleep does nothing
+> - cat /proc/acpi/sleep tells S0 S3 S4 S5
+> - drivers battery, button, processor etc are loaded when I lsmod
+> - dmesg tells me that acpi is turned on
 
-Added a check for constructs of the form:  Store (Local0,
-Local0) where Local0 is not initialized.  Apparently, some
-BIOS programmers believe that this is a NOOP.  Since this
-store doesn't do anything anyway, the new prototype behavior
-will ignore this error.  This is a case where we can relax the
-strict checking in the interpreter in the name of
-compatibility.
+By using a tweaked DSDT you can make almost all of these features work
+except the suspend mode.
 
+This includes the values for batteries and thermal zones, as well as
+all the buttons (power, sleep, lid). Unfortunatly none of them work
+out of the box.
 
-2) Linux
+Tell me which BIOS version you're using and I might email you my
+modified DSDT including some instructions on how to make the kernel
+recognize the new DSDT.
 
-The AcpiSrc Source Conversion Utility has been released with
-the Unix package for the first time.  This is the utility
-that is used to convert the ACPI CA base source code to the
-Linux version.
+Regards,
 
-(Both) Handle P_BLK lengths shorter than 6 more gracefully
-
-(Both) Move more headers to include/acpi, and delete an unused
-header.
-
-(Both) Move drivers/acpi/include directory to include/acpi
-
-(Both) Boot functions don't use cmdline, so don't pass it
-around
-
-(Both) Remove include of unused header (Adrian Bunk)
-
-(Both) acpiphp.h includes both linux/acpi.h and acpi_bus.h.
-Since the former now also includes the latter, acpiphp.h only needs the
-one, now.
-
-(2.5) Make it possible to select method of bios restoring
-after S3 resume. [=> no more ugly ifdefs] (Pavel Machek)
-
-(2.5) Make proc write interfaces work (Pavel Machek)
-
-(2.5) Properly init/clean up in cpufreq/acpi (Dominik
-Brodowski)
-
-(2.5) Break out ACPI Perf code into its own module, under
-cpufreq (Dominik Brodowski)
-
-(2.4) S4BIOS support (Ducrot Bruno)
-
-(2.4) Fix acpiphp_glue.c for latest ACPI struct changes
-(Sergio Visinoni)
+Stephan
 
 
-3) iASL Compiler:
-
-Added support to disassemble SSDT and PSDTs.
-
-Implemented support to obtain SSDTs from the Windows registry
-if available.
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
