@@ -1,14 +1,14 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: Re: Linux/ACPI 2.4 release status and cpufreq
-Date: Mon, 15 Dec 2003 09:01:00 +0100
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: Linux/ACPI 2.4 release status and cpufreq
+Date: Mon, 15 Dec 2003 16:15:51 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031215090100.1565b0f1.subscript@free.fr>
-References: <C386328088ED7F4E9F81AFBABDDF60DA0378C85A@wdmyexch02.my.asia.wdc.com>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA0378C8EB@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA0378C85A-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,38 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: wwp <subscript-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Ow Mun Heng,
 
 
-On Mon, 15 Dec 2003 09:26:48 +0800 "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org> wrot=
-e:
+> -----Original Message-----
+> From: wwp [mailto:subscript-GANU6spQydw@public.gmane.org]
+> Sent: Monday, December 15, 2003 4:01 PM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] Linux/ACPI 2.4 release status and cpufreq
 
-> > -----Original Message-----
-> > From: S=E9rgio Monteiro Basto [mailto:sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org]
-> > Sent: Saturday, December 13, 2003 1:06 AM
-> > To: Len Brown
-> > Cc: ACPI Developers
-> > Subject: Re: [ACPI] Linux/ACPI 2.4 release status and cpufreq
-> >
-> > have you any plan? to integrated cpufreq that cames in=20
-> > 2.22-ac4 kernels.
-> > or does anybody have any implantation of cpufreq for kernel 2.4.23?=20
 >=20
-> I've made a patch for the 2.4.23 kernel for cpufreq. It's a patch to the
-> vanilla 2.4.23 kernel from kernel.org. I'm using it right now on my lappy.
+> Is cpufreq something equivalent to Intel=B4s eist (speedstep)?
 >=20
-> if you want it, mail me off-line
 
-Is cpufreq something equivalent to Intel=B4s eist (speedstep)?
-
-
-Regards,
-
---=20
-wwp
+Yes.. It's a Open Source implementation of that.. I've not/never tried =
+the
+intel version speedstep..=20
 
 
 -------------------------------------------------------
