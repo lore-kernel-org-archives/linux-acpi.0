@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/5]add .match method for ACPI
-Date: 28 Oct 2004 02:31:07 -0400
+Subject: Re: [PATCH] ACPI based cpu hotplug
+Date: 28 Oct 2004 04:12:53 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098945067.5403.4.camel@d845pe>
-References: <1098327565.6132.224.camel@sli10-desk.sh.intel.com>
+Message-ID: <1098951173.5402.96.camel@d845pe>
+References: <20041027193118.B6002@unix-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1098327565.6132.224.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <20041027193118.B6002-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,88 +17,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu <castet.matthieu-GANU6spQydw@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+To: Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Applied,
+Anil.
+
+I applied all 6 patches to
+http://linux-acpi.bkbits.net/26-latest-mm
+(even though one was technically IA64
+ rather than ACPI specific)
+
+Please pull from this repo and test to verify
+that I did the merges properly and that bk
+did the subsequent merges properly too.
+All I can do is read and build-test this patch series.
+
+Also, when you have updates, please make
+them relative to this baseline.
 
 thanks,
 -Len
 
-On Wed, 2004-10-20 at 22:59, Li Shaohua wrote:
-> Hi,
-> The idea of the patch is from Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>'s
-> ACPI
-> video extension patch. Since the video extension patch hasn't been
-> merged and the ACPI PNP driver requires it, I attached it here.
+
+On Wed, 2004-10-27 at 22:31, Keshavamurthy Anil S wrote:
+> Hi Len,
+>         Couple of weeks back I had posted the ACPI based Physical CPU
+> hotplug patches onto the above mailing-list and I had resolved all the
+> issues that people on the mailing list had brough out. I was hoping to
+> see that patches on 2.6.10-rc1-mm1 and since I did not see them there,
+> just checking to see whats your idea on this. I guess other companies
+> are working on this acpi based hotplug technologies and are dependent
+> on my patches which enhances core acpi and introduces the first
+> version
+> of the container driver.
+> 
+> I had tested those patches in an emulation environment by overiding
+> DSDT.
+> I am attaching the links of those patches again for your refernece.
+> 
+> http://marc.theaimsgroup.com/?l=acpi4linux&m=109606894724606&w=2
+> http://marc.theaimsgroup.com/?l=acpi4linux&m=109606922621045&w=2
+> http://marc.theaimsgroup.com/?l=acpi4linux&m=109632034413133&w=2
+> http://marc.theaimsgroup.com/?l=linux-kernel&m=109606961524691&w=2
+> http://marc.theaimsgroup.com/?l=linux-kernel&m=109607023225373&w=2
+> http://marc.theaimsgroup.com/?l=linux-kernel&m=109607042100294&w=2
+> 
+> 
+> Please let me know if you would like to receive the patches rediffed
+> to the latest bits and I would be happy to resend it to you again.
 > 
 > Thanks,
-> Shaohua
 > 
-> --- 2.6/drivers/acpi/scan.c.stg4        2004-10-18 16:49:57.926042680
-> +0800
-> +++ 2.6/drivers/acpi/scan.c     2004-10-18 16:57:30.572230000 +0800
-> @@ -161,7 +161,7 @@ acpi_bus_get_power_flags (
->         return 0;
->  }
-> 
-> -static int
-> +int
->  acpi_match_ids (
->         struct acpi_device      *device,
->         char                    *ids)
-> @@ -314,6 +314,8 @@ acpi_bus_match (
->         struct acpi_device      *device,
->         struct acpi_driver      *driver)
->  {
-> +       if (driver && driver->ops.match)
-> +               return driver->ops.match(device, driver);
->         return acpi_match_ids(device, driver->ids);
->  }
-> 
-> @@ -495,9 +497,6 @@ acpi_bus_find_driver (
-> 
->         ACPI_FUNCTION_TRACE("acpi_bus_find_driver");
-> 
-> -       if (!device->flags.hardware_id &&
-> !device->flags.compatible_ids)
-> -               goto Done;
-> -
->         spin_lock(&acpi_device_lock);
->         list_for_each_safe(node,next,&acpi_bus_drivers) {
->                 struct acpi_driver * driver = container_of(node,struct
-> acpi_driver,node);
-> --- 2.6/include/acpi/acpi_bus.h.stg4    2004-10-18 16:50:31.522935176
-> +0800
-> +++ 2.6/include/acpi/acpi_bus.h 2004-10-18 16:55:11.474376088 +0800
-> @@ -104,6 +104,8 @@ typedef int (*acpi_op_suspend)      (struct a
->  typedef int (*acpi_op_resume)  (struct acpi_device *device, int
-> state);
->  typedef int (*acpi_op_scan)    (struct acpi_device *device);
->  typedef int (*acpi_op_bind)    (struct acpi_device *device);
-> +typedef int (*acpi_op_match)   (struct acpi_device *device,
-> +       struct acpi_driver *driver);
-> 
->  struct acpi_device_ops {
->         acpi_op_add             add;
-> @@ -115,6 +117,7 @@ struct acpi_device_ops {
->         acpi_op_resume          resume;
->         acpi_op_scan            scan;
->         acpi_op_bind            bind;
-> +       acpi_op_match           match;
->  };
-> 
->  struct acpi_driver {
-> @@ -322,6 +325,7 @@ int acpi_bus_receive_event (struct acpi_
->  int acpi_bus_register_driver (struct acpi_driver *driver);
->  int acpi_bus_unregister_driver (struct acpi_driver *driver);
-> 
-> +int acpi_match_ids (struct acpi_device *device, char   *ids);
->  int acpi_create_dir(struct acpi_device *);
->  void acpi_remove_dir(struct acpi_device *);
-> 
-> 
+> -Anil Keshavamurthy
+> Sr. Software Engineer
+> Linux OS Technology Team
+> Intel Corp.
+> (w) 503-712-4476
 > 
 > 
 
