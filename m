@@ -1,13 +1,16 @@
-From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
 Subject: Re: Re: first shoot for smartbattery
-Date: Mon, 10 Jan 2005 15:43:46 +0000
-Message-ID: <41E2A2B2.4010204@arrakis.dhis.org>
-References: <41D56002.5060008@mega.ist.utl.pt>	<41DAB539.2020605@arrakis.dhis.org>	<m2oefyzplr.fsf@phoenix.squirrel.nl>	<200501101524.58077.sanskryt@op.pl> <m28y71fi1s.fsf@phoenix.squirrel.nl>
+Date: Mon, 10 Jan 2005 14:51:36 +0100
+Message-ID: <200501101451.36702.sanskryt@op.pl>
+References: <41D56002.5060008@mega.ist.utl.pt> <41DAB539.2020605@arrakis.dhis.org> <m2oefyzplr.fsf@phoenix.squirrel.nl>
+Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m28y71fi1s.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+In-Reply-To: <m2oefyzplr.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,59 +20,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Dnia niedziela 09 stycznia 2005 14:41, Johan Vromans napisa=B3:
+> Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org> writes:
+> > I actually read some of the pdf you pointed me to and implemented a
+> > couple of functions on the smartbattery.c. It now gets much more
+> > information from the battery. If you find it relevant, I'll clean it
+> > up a bit and post a patch for you. I know it will soon be dumped,
+> > but it may show useful when debugging other driver informations.
+>
+> The attached program produces a nice battery status display using your
+> modified version of battstat. It may be temporary, but at least now I
+> have decent battery info at hand.
+>
+> -- Johan
+=46irst thank to all (especially to Bruno) for moving "smart battery proble=
+m=20
+ahead)
+The module and smartbattery program has compiled at kernels 2.6.10 (vanilia=
+=20
+and with the ac8, bk7, bk11 and bk12 patches)
+The effect was=20
+sanskryt@kender:/usr/local/download/acpi/smartbattery$ smartbattery 1
+status: charging
+current:       1957 mA
+time to full:  105 minutes
+remain:        3020 mAh
+charge state:  74%
+temperature:   35.8 C
+voltage:       16451 mV
+So it look great.
+Two problems:
+=46irst the /dev/i2c-1 node can be read only by root. I think that the batt=
+ery=20
+status has to be readably for ordinary user.
+Second: I can't execute battstat program.
+after installing Tk::ProgressBar from Cpan and linking smartbattery to=20
+smartbattery2 in /usr/local/bin there are two mistakes:
+"Global symbol "$smbus" requires explicit package name at ./battstat.pl lin=
+e=20
+70." I change $smbus for "1"
+and then
+"Use of uninitialized value in concatenation (.) or string at ./battstat.pl=
+=20
+line 96.
+Use of uninitialized value in numeric lt (<) at ./battstat.pl line 77.
+Use of uninitialized value in numeric gt (>) at ./battstat.pl line 87.
+Use of uninitialized value in numeric lt (<) at ./battstat.pl line 87."
 
-Johan Vromans wrote:
-| "Zdzis=B3aw A. Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org> writes:
-|
-|
-|>Dnia niedziela 09 stycznia 2005 14:41, Johan Vromans napisa=B3:
-|>Second: I can't execute battstat program.
-|
-|
-|>70 - "my $res =3D `smartbattery2 $smbus 2>&1`;"
-
-true. I had the same problem.
-
-thanks for the program and fix. I'll have a different version of smartbat=
-tery
-~ done soon now. It'll have a more friendly output and more information o=
-n
-demand. Also I'll be implementing an ascii charge bar like:
-~   [=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D|       ]
-0%             65%        100%
-
-or something simillar. If you want, I can write some code to output infor=
-mation
-in a desired way for your frontend.
-
-This is being developed for fun only (!!) and not for wide usage. It will=
- not in
-any way replace any of the current used battery interfaces that use
-/proc/acpi/battery, because that'd be just a waste of time. I hope bruno =
-will
-finish the driver soon so we could use all that software and not mine.
-
-regards,
-pedro venda.
-- --
-
-Pedro Jo=E3o Lopes Venda
-email: pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org
-http://arrakis.dhis.org
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFB4qKyeRy7HWZxjWERAuquAJ4sl6j7SJ+C7CY0KLAROFyHWYdYUQCgmFlz
-5tyN/IpsjuwYNkYsrnb/F4Q=3D
-=3DvNKR
------END PGP SIGNATURE-----
+which I don't know what to do with.
+The lines after I make some editing and commenting are
+70 - "my $res =3D `smartbattery2 $smbus 2>&1`;"
+77 - "$tp =3D $current < 0 ? 'empty' : 'full';
+87 - "if ( $current > 0 ) { # charging"
+96 - "$mw->title("Battery: $time ($status%)");"
+May be You can advise how to solve this before the battery can be read form=
+=20
+normal /proc/acpi/battery and /proc/acpi/ac-adapter ;-/
+=2D-=20
+z.a.kaleta (sanskryt), registered Linux User #279350
 
 
 -------------------------------------------------------
