@@ -1,11 +1,11 @@
-From: "Noe Fernandez" <noefernandezcv-oZic0ScuCLNJLMIYRABCiw@public.gmane.org>
-Subject: Powerful weightloss now available for you.
-Date: Sun, 06 Jun 2004 01:18:59 -0400
+From: Michael Grigoriev <mag-wxkiEGMmYARAfugRpC6u6w@public.gmane.org>
+Subject: Re: Standby (S1) does not work
+Date: Mon, 07 Jun 2004 00:34:32 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <a6dd01c44b85$43365478$5d10cc99@h-e-m-p.de>
+Message-ID: <pan.2004.06.07.00.34.31.1417@luminal.org>
+References: <pan.2004.06.06.15.05.09.196978@luminal.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,33 +16,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special_offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Boost your Confidence level and Self Esteem.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-Get the facts about all-natural Adipren720 <http://1adipren.com/>
+On Sun, 06 Jun 2004 15:05:10 +0000, Michael Grigoriev wrote:
+> In possibly related news, I noticed this abnormality:
+> 
+> # cat /sys/power/state
+> standby mem disk
+> 
+> # cat /proc/acpi/sleep
+> S0 S3 S4 S4bios S5
+> 
+> Notice that proc does not even list S1!
 
+Further research shows that S1 does in fact not exist. _S1 is not defined
+in the DSDT. I thought S1 is like the most basic ACPI mode and everybody
+would have it, no? Do you think that it is actually not supported by
+hardware, or is it just that the didn't bother adding it to the DSDT?
 
+Would it be a safe experiment to try throwing something like 
 
----- system information ----
-variety number following than using market categories attribute 
-differences Different images culturally Document suggesting always takes
+    Name (\_S1, Package (0x03)
+    {
+        0x02, 
+        0x02, 
+        0x00
+    })
 
-xml:lang When standards form distinction Provider's invoking text 
-who cultures for will processing: consistent its mailing 
-making controls resource rely fallback draft disparate non-Java 
+into the DSDT?
+
+Has anybody tried anything like this? :)
+
+Thanks in advance.
+
+-- 
+Have fun,                                As the moment elapsed
+Michael "mag" Grigoriev                We walked in slowmotion
+mag-wxkiEGMmYARAfugRpC6u6w@public.gmane.org                               Denying the tide
+http://www.luminal.org                 We'll find our devotion
 
 
 
