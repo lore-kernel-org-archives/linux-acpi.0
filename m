@@ -1,14 +1,14 @@
-From: Jean-Pierre Schwickerath <lists-Z7rXY4Hz9HLk1uMJSBkQmQ@public.gmane.org>
+From: Christian Zoz <zoz-l3A5Bk7waGM@public.gmane.org>
 Subject: Re: ACPI client
-Date: Fri, 31 Jan 2003 12:47:05 +0100
+Date: Fri, 31 Jan 2003 14:01:06 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030131124705.2dee14c2.lists@schwicky.net>
-References: <3E3A47C4.20807@wipro.com>
+Message-ID: <20030131130106.GN1427@suse.de>
+References: <3E3A47C4.20807@wipro.com> <20030131124705.2dee14c2.lists@schwicky.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3E3A47C4.20807-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030131124705.2dee14c2.lists-Z7rXY4Hz9HLk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,36 +20,39 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-siva <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org> wrote:
-
-> Hi,
+On Fri, Jan 31, Jean-Pierre Schwickerath wrote:
+> siva <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org> wrote:
 > 
-> Where can I get the ACPI client rpm / source tar file?
+> > Hi,
+> > 
+> > Where can I get the ACPI client rpm / source tar file?
+> > 
+> > In the sourceforge.net, I can find only the acpid daemon source. While
+> > 
+> > reading the HOWTO document, it has been mentioned that it will be part
+> > 
+> > of acpid source.
+> > Can any one please send me the link to download the acpi client?
 > 
-> In the sourceforge.net, I can find only the acpid daemon source. While
+> Client? 
+> acpid ist the "client". It listens on the event "socket" in the
+> /proc/acpi directory and acts uppon this. 
 > 
-> reading the HOWTO document, it has been mentioned that it will be part
+> If you look for the kernel patches to support ACPI, have a look at
 > 
-> of acpid source.
-> Can any one please send me the link to download the acpi client?
+> http://sourceforge.net/project/showfiles.php?group_id=36832
 
-Client? 
-acpid ist the "client". It listens on the event "socket" in the
-/proc/acpi directory and acts uppon this. 
-
-If you look for the kernel patches to support ACPI, have a look at
-
-http://sourceforge.net/project/showfiles.php?group_id=36832
-
-
-
-Jean-Pierre
+I guess he looks for
+http://freshmeat.net/projects/acpi/?topic_id=146%2C861
 
 -- 
-Powered by Linux From Scratch - http://schwicky.net/
-PGP Key ID: 0xEE6F49B4 - AIM/Jabber: Schwicky - ICQ: 4690141
 
-Nothing is impossible... Everything is relative!
+ciao, christian
+
+  --------------------------------------------------------------------
+    Verglichen mit jedem x-beliebigen Redmonder Betriebssystem-Clone
+    ist Linux geradezu eine leuchtende Perle der Datensicherheit.
+  ------ Frank Rennemann (http://www.linux-knowledge-portal.org) -----
 
 
 -------------------------------------------------------
