@@ -1,14 +1,9 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [patch] remove null-ifiers
-Date: Tue, 27 Jan 2004 21:07:30 +0100
+From: postmaster-lX1WLSqV685oZSuCWFJQuMGzyFzmqZ/k@public.gmane.org
+Subject: InterScan NT Alert
+Date: Wed, 28 Jan 2004 01:08:44 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040127200730.GA16086@hell.org.pl>
-References: <E1AgkrW-00080w-00@jaguar.mkp.net> <20040127150954.GA12740@hell.org.pl> <20040127120357.X37323@root.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Message-ID: <200401271947.i0RJl7Tm024549@semsoftindia-samsung.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040127120357.X37323-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +12,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Nate Lawson:
-> > We certainly *don't* want to do that, last time I checked C did not
-> > actually guarantee to zero out uninitialized variables -- unless it's
-> > different in the kernelspace. Are you sure pointers are initialized as
-> > NULLs?
-> Static variables have always been guaranteed to be initialized to 0, at
-> least since K&R.
+Sender, InterScan has detected virus(es) in your e-mail attachment.
 
-Right, that's what I was after -- I might have overreacted initially.
-The patch seems fine anyway.
-Best regards,
+Date:  	Wed, 28 Jan 2004 01:08:44 +0530
+Method:	Mail
+From:  	<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To:    	<jgarzik-7Aj/b8uzpy6AmYF/tR2SNQ@public.gmane.org>
+File:  	file.zip
+Action:	clean failed - deleted
+Virus: 	WORM_MIMAIL.R 
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+begin 666 InterScan_Disclaimer.txt
+M5&AE(&EN9F]R;6%T:6]N(&-O;G1A:6YE9"!I;B!T:&ES(&5L96-T<F]N:6,@
+M;65S<V%G92!A;F0-0q2iP0p74hk@public.gmane.org(&%T=&%C:&UE;G1S('1O('1H:7,@;65S<V%G92!A
+M<F4@#0II;G1E;F1E9"!F;W(@=&AE(&5X8VQU<VEV92!U<V4@;V8@=&AE(&%D
+M9')E<W-E92AS*2!A;F0@;6%Y(&-O;G1A:6X-2ZHtrH1AIUU@public.gmane.org]N9FED96YT:6%L(&]R('!R
+M:79I;&5G960@:6YF;W)M871I;VXN#0I)9B!Y;W4-4u3rHeVEGOc@public.gmane.org)E(&YO="!T:&4@:6YT
+M96YD960@<F5C:7!I96YT+"!P;&5A<V4@;F]T:69Y('1H92!S96YD97(@870@
+M4V%M<W5N9R!%;&5C=')O($UE8VAA;FEC<R!O<@T*861M:6Y <V5M<V]F=&EN
+M9&EA+7-A;7-U;F<N8V]M(&EM;65D:6%T96QY(&%N9"!D97-T<F]Y(&%L;"!C
+M;W!I97,@;V8@=&AI<R!M97-S86=E(&%N9"!A;GD-Yg1PUgpZdv8@public.gmane.org;65N=',N#0I!
+M;GD@=6YA=71H;W)I>F5D(')E=FEE=RP@=7-E+"!D:7-C;&]S=7)E+"!D:7-S
+M96UI;F%T:6]N+"!F;W)W87)D:6YG+"!P<FEN=&EN9R!O<B!C;W!Y:6YG(&]F
+M('1H:7,@96UA:6P@;W(@86YY#0IA8W1I;VX@=&%K96X@:6X@<F5L:6%N8V4@
+M;VX@=&AI<R!E+6UA:6P@:7,@<W1R:6-T;'D@<')O:&EB:71E9"!A;F0@;6%Y
+5(&)E('5N;&%W9G5L+-wPuJ0ROkVbw@public.gmane.org*#0H-"@T*
+end
+
+
 
 
 -------------------------------------------------------
