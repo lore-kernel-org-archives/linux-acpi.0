@@ -1,78 +1,53 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: i2c-acpi-ec.c
-Date: Fri, 31 Dec 2004 16:07:24 +0100
-Message-ID: <20041231150724.GK19199@poupinou.org>
-References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: kernel 2.6.10 , uhci-hcd problem after ACPI
+ S3 suspend.
+Date: Fri, 31 Dec 2004 11:32:44 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0412311131420.26830-100000@netrider.rowland.org>
+References: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <41D56002.5060008-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: Mathias Weyland <mweyland-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
+In-Reply-To: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Cc: linux-usb-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 31, 2004 at 02:19:46PM +0000, Pedro Venda wrote:
-> Mathias Weyland wrote:
-> >Hi
-> 
-> hello,
-> 
-> >My girlfriend bought a new notebook and asked me to install linux on it
-> >(she's fearing viruses ect.). It's an acer tm 2303lc and I installed a
-> >recent kernel on it. I was quite astonished when I got an empty
-> >/proc/acpi/battery, so I checked the dsdt but couldn't find any errors.
-> 
-> yes, from what I've found, smartbatteries are much more efficient than 
-> standard ones, so that's probably a good thing. I like to think so, since I 
-> have one.
-> 
-> >After some time of googling, I read something about smartbatteries. I
-> >checked my asl code, and yes, I do have one of those smartbattery-things in
-> >front of me. That's quite a problem since my girlfriend will probably kill
-> >me when I tell her that battery monitoring is not working.
-> 
-> be prepared :-)
-> 
-> >I've read in the acpi4linux list that you took Bruno's old code and that 
-> >you
-> >are working on a driver. So I wanted to ask whether you need any help 
-> >(don't expect too much, I'm writing simulations for computional science and
-> >I do only have some minor knowledge of kernel programming (with a 2.0
-> >codebase) and how far you got now.
-> 
-> I started to learn about kernel programming and i2c, smb, acpi etc, but I'm 
-> constantly interrupted because of academic work. So I've no time to 
-> efficiently develop such beast. Beast because of my no-experience in kernel 
-> programming and related subsystems.
-> 
-> About bruno's driver, I really don't remember well what I've done. I 
-> remember correctly addressing the smartbattery and getting some very basic 
-> information. nothing useful. I was happy for actually finding and talking 
-> to a smart battery though :-)
-> 
-> My standpoint right now is about the same as you. I'm offering help but 
-> won't author a driver because I'm unable to find enough free time.
+On Wed, 29 Dec 2004, Paul Ionescu wrote:
 
-I'm polishing i2c-acpi-ec right now.  Stay tunned.
+> --- Alan Stern <stern@rowland.harvard.edu> wrote:
+>  
+> > Nothing relevant has changed in the uhci_hcd driver,
+> > so far as I know.  
+> > I'd be inclined to guess that ACPI is the culprit. 
+> > Have you tried booting 
+> > with "acpi=off", in both 2.6.9 and 2.6.10?
+> 
+> Hello Alan,
+> 
+> If I boot with "acpi=off" then I cannot use ACPI S3 to
+> suspend and resume, and my problem appears after an
+> ACPI S3 suspend/resume cycle.
 
--- 
-Bruno Ducrot
+You could try something a little weaker, like "acpi=noirq".
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Alan Stern
+
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
