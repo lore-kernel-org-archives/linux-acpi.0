@@ -1,16 +1,13 @@
-From: Nigel Cunningham <ncunningham@cyclades.com>
-Subject: RE: [ACPI] Re: Cause of Suspend2 resume failures
-	on Toshiba laptops
-Date: Tue, 08 Mar 2005 17:55:46 +1100
-Message-ID: <1110264946.32064.115.camel@desktop.cunningham.myip.net.au>
-References: <16A54BF5D6E14E4D916CE26C9AD305750155EABF@pdsmsx402.ccr.corp.intel.com>
-	<1110259708.32064.87.camel@desktop.cunningham.myip.net.au>
-	<1110262343.8943.9.camel@sli10-desk.sh.intel.com>
-Reply-To: ncunningham@cyclades.com
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: [ACPI] Re: Cause of Suspend2 resume failures on
+	Toshiba laptops
+Date: Tue, 8 Mar 2005 14:58:01 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750155ECAA@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1110262343.8943.9.camel@sli10-desk.sh.intel.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
 List-Unsubscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
 	<mailto:suspend2-devel-request@lists.suspend2.net?subject=unsubscribe>
 List-Archive: <http://lists.suspend2.net/lurker/list/suspend2-devel.html>
@@ -20,39 +17,37 @@ List-Subscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
 	<mailto:suspend2-devel-request@lists.suspend2.net?subject=subscribe>
 Sender: suspend2-devel-bounces@lists.suspend2.net
 Errors-To: suspend2-devel-bounces@lists.suspend2.net
-To: Li Shaohua <shaohua.li@intel.com>
-Cc: Bernard Blackham <bernard@blackham.com.au>, ACPI List <acpi-devel@lists.sourceforge.net>, Suspend2 Development <suspend2-devel@lists.suspend2.net>
+To: Bernard Blackham <bernard@blackham.com.au>, Pavel Machek <pavel@suse.cz>
+Cc: acpi-devel@lists.sourceforge.net, suspend2-devel@lists.suspend2.net
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+>>
+>> Perhaps you should fix that, too? It is going to cause ugly
+>> perfrmance problems.
+>
+>Yep, been looking into it, and I think I've got it. The GPE in
+>question is fired periodically, about every 5 seconds. It fires when
+>suspending but kacpid is stopped, so the GPE is simply disabled and
+>never serviced. However, the state of it being disabled is recorded
+>in the atomic copy.
+>
+>Upon resume, after restoring the atomic copy, the code at the top of
+>acpi_ev_disable_gpe believes that the GPE is already disabled (as it
+>was when we suspended) even though it's not. Hardware state is out
+>of sync with what the kernel thinks and badness ensues. The culprit
+>difference between 2.6.8 and 2.6.9-rc1 is that 2.6.8 disabled the
+>GPE unconditionally, 2.6.9-rc1 checks against its last known state
+>which is incorrect upon resuming.
+>
+>Removing the check resolves this issue (patch attached). Is this an
+>adequate fix?
+Great analyzing! I guess Both S3, swsusp, and swsusp2 can't suffer from
+this bug. Sure this patch hasn't any side effect. But I wonder if it's
+the right fix. Maybe we should disable all GPEs which have been disabled
+on very early of resume (that is to restore ACPI hardware's state). This
+is very useful for suspend-to-disk. If you found a similar bug in S3, it
+possibly it's BIOS bug (OS didn't enable GPE on resume for S3, but for
+S4, we follow boot time code path, so we possibly enabled some).
 
-On Tue, 2005-03-08 at 17:12, Li Shaohua wrote:
-> ACPI also disables all non-wakeup GPEs in S5. I guess the problem is we
-> probably disable the GPEs too lately in swsusp2. swsusp writes image
-> after GPEs are disabled, but swsusp2 isn't (Sorry, I'm not familiar with
-> swsusp2, but it looks like this according to the steps you write down).
-
-Okay. Bernard is just changing this at the moment.
-
-> > Looking at the code, I can see that we could probably rework our support
-> > a little as we're calling the prepare method immediately before powering
-> > down rather than at the start of the process.
-> > 
-> > One question though: do you see any issues with calling prepare() and
-> > finish() with the PM_DISK_PLATFORM parameter (as if entering S4 sleep)
-> > when we're actually going to do an S5 powerdown? If this will allow the
-> > wake events to fire (as they would for S4), it could be good for
-> > machines where S4 isn't working properly..
-> This possibly can't work. We must give the BIOS a correct sleep state (4
-> or 5).
-
-Ok. Since S5 enabled the GPEs, we can do what we ought to anyway :>
-
-Nigel
--- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
-
-Maintainer of Suspend2 Kernel Patches http://softwaresuspend.berlios.de
+Thanks,
+Shaohua
