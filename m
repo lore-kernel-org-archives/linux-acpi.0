@@ -1,10 +1,10 @@
 From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] acpi_bus_register_driver conflict fix patches announce
-Date: Fri, 12 Nov 2004 14:22:14 +0800
-Message-ID: <9DE394C12A921946AEECE1F71944ECD58E4114@pdsmsx404>
+Subject: [PATCH 2/2] acpi_bus_register_driver conflict fix in acpi drivers
+Date: Fri, 12 Nov 2004 14:29:41 +0800
+Message-ID: <9DE394C12A921946AEECE1F71944ECD58E4126@pdsmsx404>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C4C87F.F3F2D735"
+	boundary="----_=_NextPart_001_01C4C880.FE7443BD"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -22,221 +22,237 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C4C87F.F3F2D735
+------_=_NextPart_001_01C4C880.FE7443BD
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-a00-acpi_bus_register_driver_fix.patch
+a01-acpi_devices_fix.patch
 
-This patch is for correct the return value flaw of
-acpi_bus_register_driver.
-It should return the number of devices claimed by the driver, or
-negative error code.
-I've also seperate out acpi_bus_driver_add/acpi_bus_driver_del, which
-will be=20
-used by acpi drivers on error condition handling.=20
+This patch is accord with acpi_bus_register_driver return value fix.
+acpi driver won't cause any side effect if no device found to that
+driver.=20
+After this patch, output on my dell looks like:
+ACPI: AC [not found]
+ACPI: Asus_acpi [not found]
+ACPI: Battery [not found]
+ACPI: Power Button (FF) [PWRF]
+ACPI: Fan [not found]
+ACPI: Processor [CPU0] (supports C1)
+ACPI: Thermal [not found]
+
+which tell "not found" devices that acpi can't handle on that box.
 
 Signed-off-by: Wang, Zhenyu <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 ---
 
-drivers/acpi/acpi_ksyms.c |    2 ++
- drivers/acpi/scan.c       |   42
-++++++++++++++++++++++++++++++------------
- include/acpi/acpi_bus.h   |    2 ++
- 3 files changed, 34 insertions(+), 12 deletions(-)
+ a/drivers/acpi/ac.c             |    5 ++++-
+ a/drivers/acpi/asus_acpi.c      |    4 +++-
+ a/drivers/acpi/battery.c        |    5 ++++-
+ a/drivers/acpi/button.c         |    5 ++++-
+ a/drivers/acpi/fan.c            |    5 ++++-
+ a/drivers/acpi/processor.c      |    5 ++++-
+ acpi-2.6/drivers/acpi/thermal.c |    7 +++++--
+ 7 files changed, 28 insertions(+), 8 deletions(-)
 
---- a/drivers/acpi/scan.c~driver_attach	2004-11-12 11:34:14.000000000
-+0800
-+++ a/drivers/acpi/scan.c	2004-11-12 12:39:34.000000000 +0800
-@@ -372,7 +372,7 @@ acpi_bus_driver_init (
- static int acpi_driver_attach(struct acpi_driver * drv)
- {
- 	struct list_head * node, * next;
--	int count =3D 0;
-+	int count =3D 0, result =3D 0;
+--- a/drivers/acpi/ac.c~fix	2004-11-12 10:02:28.000000000 +0800
++++ a/drivers/acpi/ac.c	2004-11-12 13:05:44.000000000 +0800
+@@ -328,8 +328,11 @@ acpi_ac_init (void)
+ 	acpi_ac_dir->owner =3D THIS_MODULE;
 =20
- 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
-=20
-@@ -384,18 +384,23 @@ static int acpi_driver_attach(struct acp
- 			continue;
- 		spin_unlock(&acpi_device_lock);
-=20
--		if (!acpi_bus_match(dev, drv)) {
--			if (!acpi_bus_driver_init(dev, drv)) {
-+		if (!(result =3D acpi_bus_match(dev, drv))) {
-+			if (!(result =3D acpi_bus_driver_init(dev, drv)))
-{
- 				atomic_inc(&drv->references);
- 				count++;
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found
-driver [%s] for device [%s]\n",
- 						  drv->name,
-dev->pnp.bus_id));
-+			} else {=20
-+				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Attach
-driver [%s] for device [%s] fail!\n", drv->name, dev->pnp.bus_id));
- 			}
- 		}
- 		spin_lock(&acpi_device_lock);
+ 	result =3D acpi_bus_register_driver(&acpi_ac_driver);
+-	if (result < 0) {
++	if (result < 1) {
++		if (result !=3D -ENOENT)
++			acpi_bus_driver_del(&acpi_ac_driver);
+ 		remove_proc_entry(ACPI_AC_CLASS, acpi_root_dir);
++		printk (KERN_INFO PREFIX "AC [not found]\n");
+ 		return_VALUE(-ENODEV);
  	}
- 	spin_unlock(&acpi_device_lock);
--	return_VALUE(count);
-+	if (result !=3D -ENOENT && !count)
-+		return_VALUE(result);
-+	else
-+		return_VALUE(count);
- }
 =20
- static int acpi_driver_detach(struct acpi_driver * drv)
-@@ -422,6 +427,24 @@ static int acpi_driver_detach(struct acp
- 	return_VALUE(0);
- }
-=20
-+void
-+acpi_bus_driver_add(
-+	struct acpi_driver *driver)
-+{
-+	spin_lock(&acpi_device_lock);
-+	list_add_tail(&driver->node, &acpi_bus_drivers);
-+	spin_unlock(&acpi_device_lock);
-+}
-+
-+void
-+acpi_bus_driver_del(
-+	struct acpi_driver *driver)
-+{
-+	spin_lock(&acpi_device_lock);
-+	list_del_init(&driver->node);
-+	spin_unlock(&acpi_device_lock);
-+}
-+
- /**
-  * acpi_bus_register_driver=20
-  * ------------------------=20
-@@ -444,9 +467,7 @@ acpi_bus_register_driver (
- 	if (!driver)
- 		return_VALUE(-EINVAL);
-=20
--	spin_lock(&acpi_device_lock);
--	list_add_tail(&driver->node, &acpi_bus_drivers);
--	spin_unlock(&acpi_device_lock);
-+	acpi_bus_driver_add(driver);
- 	count =3D acpi_driver_attach(driver);
-=20
- 	return_VALUE(count);
-@@ -470,11 +491,8 @@ acpi_bus_unregister_driver (
- 	if (driver) {
- 		acpi_driver_detach(driver);
-=20
--		if (!atomic_read(&driver->references)) {
--			spin_lock(&acpi_device_lock);
--			list_del_init(&driver->node);
--			spin_unlock(&acpi_device_lock);
--		}=20
-+		if (!atomic_read(&driver->references))=20
-+			acpi_bus_driver_del(driver);
- 	} else=20
- 		error =3D -EINVAL;
- 	return_VALUE(error);
---- a/drivers/acpi/acpi_ksyms.c~fix	2004-11-12 12:40:12.000000000
+--- a/drivers/acpi/battery.c~fix	2004-11-12 11:09:37.000000000
 +0800
-+++ a/drivers/acpi/acpi_ksyms.c	2004-11-12 12:40:50.000000000 +0800
-@@ -135,6 +135,8 @@ EXPORT_SYMBOL(acpi_bus_generate_event);
- EXPORT_SYMBOL(acpi_bus_receive_event);
- EXPORT_SYMBOL(acpi_bus_register_driver);
- EXPORT_SYMBOL(acpi_bus_unregister_driver);
-+EXPORT_SYMBOL(acpi_bus_driver_add);
-+EXPORT_SYMBOL(acpi_bus_driver_del);
++++ a/drivers/acpi/battery.c	2004-11-12 13:05:25.000000000 +0800
+@@ -827,8 +827,11 @@ acpi_battery_init (void)
+ 	acpi_battery_dir->owner =3D THIS_MODULE;
 =20
- #endif /*CONFIG_ACPI_BUS*/
+ 	result =3D acpi_bus_register_driver(&acpi_battery_driver);
+-	if (result < 0) {
++	if (result < 1) {
++		if (result !=3D -ENOENT)
++			acpi_bus_driver_del(&acpi_battery_driver);
+ 		remove_proc_entry(ACPI_BATTERY_CLASS, acpi_root_dir);
++		printk (KERN_INFO PREFIX "Battery [not found]\n");
+ 		return_VALUE(-ENODEV);
+ 	}
 =20
---- a/include/acpi/acpi_bus.h~fix	2004-11-12 12:38:53.000000000
+--- a/drivers/acpi/asus_acpi.c~fix	2004-11-12 11:37:38.000000000
 +0800
-+++ a/include/acpi/acpi_bus.h	2004-11-12 12:37:50.000000000 +0800
-@@ -319,6 +319,8 @@ int acpi_bus_get_power (acpi_handle hand
- int acpi_bus_set_power (acpi_handle handle, int state);
- int acpi_bus_generate_event (struct acpi_device *device, u8 type, int
-data);
- int acpi_bus_receive_event (struct acpi_bus_event *event);
-+void acpi_bus_driver_add (struct acpi_driver *driver);
-+void acpi_bus_driver_del (struct acpi_driver *driver);
- int acpi_bus_register_driver (struct acpi_driver *driver);
- int acpi_bus_unregister_driver (struct acpi_driver *driver);
++++ a/drivers/acpi/asus_acpi.c	2004-11-12 13:05:34.000000000 +0800
+@@ -1213,8 +1213,10 @@ static int __init asus_acpi_init(void)
+=20
+ 	result =3D acpi_bus_register_driver(&asus_hotk_driver);
+ 	if (result < 1) {
+-		acpi_bus_unregister_driver(&asus_hotk_driver);
++		if (result !=3D -ENOENT)
++			acpi_bus_driver_del(&asus_hotk_driver);
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
++		printk (KERN_INFO PREFIX "Asus_acpi [not found]\n");
+ 		return -ENODEV;
+ 	}
+=20
+--- a/drivers/acpi/button.c~fix	2004-11-08 13:45:07.000000000 +0800
++++ a/drivers/acpi/button.c	2004-11-12 12:42:30.000000000 +0800
+@@ -532,8 +532,11 @@ acpi_button_init (void)
+ 	acpi_button_dir->owner =3D THIS_MODULE;
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_button_driver);
+-	if (result < 0) {
++	if (result < 1) {
++		if (result !=3D -ENOENT)
++			acpi_bus_driver_del(&acpi_button_driver);
+ 		remove_proc_entry(ACPI_BUTTON_CLASS, acpi_root_dir);
++		printk (KERN_INFO PREFIX "Button [not found]\n");
+ 		return_VALUE(-ENODEV);
+ 	}
+=20
+--- a/drivers/acpi/fan.c~fix	2004-11-12 09:46:30.000000000 +0800
++++ a/drivers/acpi/fan.c	2004-11-12 12:43:04.000000000 +0800
+@@ -280,8 +280,11 @@ acpi_fan_init (void)
+ 	acpi_fan_dir->owner =3D THIS_MODULE;
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_fan_driver);
+-	if (result < 0) {
++	if (result < 1) {
++		if (result !=3D -ENOENT)
++			acpi_bus_driver_del(&acpi_fan_driver);
+ 		remove_proc_entry(ACPI_FAN_CLASS, acpi_root_dir);
++		printk (KERN_INFO PREFIX "Fan [not found]\n");
+ 		return_VALUE(-ENODEV);
+ 	}
+=20
+--- a/drivers/acpi/processor.c~fix	2004-11-12 11:40:00.000000000
++0800
++++ a/drivers/acpi/processor.c	2004-11-12 12:43:25.000000000 +0800
+@@ -2465,8 +2465,11 @@ acpi_processor_init (void)
+ 	acpi_processor_dir->owner =3D THIS_MODULE;
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_processor_driver);
+-	if (result < 0) {
++	if (result < 1) {
++		if (result !=3D -ENOENT)
++			acpi_bus_driver_del(&acpi_processor_driver);
+ 		remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
++		printk (KERN_INFO PREFIX "processor [not found]\n");
+ 		return_VALUE(-ENODEV);
+ 	}
+=20
+--- acpi-2.6/drivers/acpi/thermal.c	2004-11-12 13:41:51.539769280
++0800
++++ acpi-2.6/drivers/acpi/thermal.c.fix	2004-11-12 13:14:40.263760928
++0800
+@@ -1305,7 +1305,7 @@ acpi_thermal_add (
+=20
+ 	result =3D acpi_thermal_add_fs(device);
+ 	if (result)
+-		return_VALUE(result);
++		goto end;
+=20
+ 	init_timer(&tz->timer);
+=20
+@@ -1389,8 +1389,11 @@ acpi_thermal_init (void)
+ 	acpi_thermal_dir->owner =3D THIS_MODULE;
+=20
+ 	result =3D acpi_bus_register_driver(&acpi_thermal_driver);
+-	if (result < 0) {
++	if (result < 1) {
++		if (result !=3D -ENOENT)
++			acpi_bus_driver_del(&acpi_thermal_driver);
+ 		remove_proc_entry(ACPI_THERMAL_CLASS, acpi_root_dir);
++		printk (KERN_INFO PREFIX "Thermal [not found]\n");
+ 		return_VALUE(-ENODEV);
+ 	}
 =20
 
-------_=_NextPart_001_01C4C87F.F3F2D735
+------_=_NextPart_001_01C4C880.FE7443BD
 Content-Type: application/octet-stream;
-	name="a00-acpi_bus_register_fix.patch"
+	name="a01-acpi_device_fix.patch"
 Content-Transfer-Encoding: base64
-Content-Description: a00-acpi_bus_register_fix.patch
+Content-Description: a01-acpi_device_fix.patch
 Content-Disposition: attachment;
-	filename="a00-acpi_bus_register_fix.patch"
+	filename="a01-acpi_device_fix.patch"
 
-LS0tIGEvZHJpdmVycy9hY3BpL3NjYW4uY35kcml2ZXJfYXR0YWNoCTIwMDQtMTEtMTIgMTE6MzQ6
-MTQuMDAwMDAwMDAwICswODAwCisrKyBhL2RyaXZlcnMvYWNwaS9zY2FuLmMJMjAwNC0xMS0xMiAx
-MjozOTozNC4wMDAwMDAwMDAgKzA4MDAKQEAgLTM3Miw3ICszNzIsNyBAQCBhY3BpX2J1c19kcml2
-ZXJfaW5pdCAoCiBzdGF0aWMgaW50IGFjcGlfZHJpdmVyX2F0dGFjaChzdHJ1Y3QgYWNwaV9kcml2
-ZXIgKiBkcnYpCiB7CiAJc3RydWN0IGxpc3RfaGVhZCAqIG5vZGUsICogbmV4dDsKLQlpbnQgY291
-bnQgPSAwOworCWludCBjb3VudCA9IDAsIHJlc3VsdCA9IDA7CiAKIAlBQ1BJX0ZVTkNUSU9OX1RS
-QUNFKCJhY3BpX2RyaXZlcl9hdHRhY2giKTsKIApAQCAtMzg0LDE4ICszODQsMjMgQEAgc3RhdGlj
-IGludCBhY3BpX2RyaXZlcl9hdHRhY2goc3RydWN0IGFjcAogCQkJY29udGludWU7CiAJCXNwaW5f
-dW5sb2NrKCZhY3BpX2RldmljZV9sb2NrKTsKIAotCQlpZiAoIWFjcGlfYnVzX21hdGNoKGRldiwg
-ZHJ2KSkgewotCQkJaWYgKCFhY3BpX2J1c19kcml2ZXJfaW5pdChkZXYsIGRydikpIHsKKwkJaWYg
-KCEocmVzdWx0ID0gYWNwaV9idXNfbWF0Y2goZGV2LCBkcnYpKSkgeworCQkJaWYgKCEocmVzdWx0
-ID0gYWNwaV9idXNfZHJpdmVyX2luaXQoZGV2LCBkcnYpKSkgewogCQkJCWF0b21pY19pbmMoJmRy
-di0+cmVmZXJlbmNlcyk7CiAJCQkJY291bnQrKzsKIAkJCQlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJ
-X0RCX0lORk8sICJGb3VuZCBkcml2ZXIgWyVzXSBmb3IgZGV2aWNlIFslc11cbiIsCiAJCQkJCQkg
-IGRydi0+bmFtZSwgZGV2LT5wbnAuYnVzX2lkKSk7CisJCQl9IGVsc2UgeyAKKwkJCQlBQ1BJX0RF
-QlVHX1BSSU5UKChBQ1BJX0RCX0lORk8sICJBdHRhY2ggZHJpdmVyIFslc10gZm9yIGRldmljZSBb
-JXNdIGZhaWwhXG4iLCBkcnYtPm5hbWUsIGRldi0+cG5wLmJ1c19pZCkpOwogCQkJfQogCQl9CiAJ
-CXNwaW5fbG9jaygmYWNwaV9kZXZpY2VfbG9jayk7CiAJfQogCXNwaW5fdW5sb2NrKCZhY3BpX2Rl
-dmljZV9sb2NrKTsKLQlyZXR1cm5fVkFMVUUoY291bnQpOworCWlmIChyZXN1bHQgIT0gLUVOT0VO
-VCAmJiAhY291bnQpCisJCXJldHVybl9WQUxVRShyZXN1bHQpOworCWVsc2UKKwkJcmV0dXJuX1ZB
-TFVFKGNvdW50KTsKIH0KIAogc3RhdGljIGludCBhY3BpX2RyaXZlcl9kZXRhY2goc3RydWN0IGFj
-cGlfZHJpdmVyICogZHJ2KQpAQCAtNDIyLDYgKzQyNywyNCBAQCBzdGF0aWMgaW50IGFjcGlfZHJp
-dmVyX2RldGFjaChzdHJ1Y3QgYWNwCiAJcmV0dXJuX1ZBTFVFKDApOwogfQogCit2b2lkCithY3Bp
-X2J1c19kcml2ZXJfYWRkKAorCXN0cnVjdCBhY3BpX2RyaXZlciAqZHJpdmVyKQoreworCXNwaW5f
-bG9jaygmYWNwaV9kZXZpY2VfbG9jayk7CisJbGlzdF9hZGRfdGFpbCgmZHJpdmVyLT5ub2RlLCAm
-YWNwaV9idXNfZHJpdmVycyk7CisJc3Bpbl91bmxvY2soJmFjcGlfZGV2aWNlX2xvY2spOworfQor
-Cit2b2lkCithY3BpX2J1c19kcml2ZXJfZGVsKAorCXN0cnVjdCBhY3BpX2RyaXZlciAqZHJpdmVy
-KQoreworCXNwaW5fbG9jaygmYWNwaV9kZXZpY2VfbG9jayk7CisJbGlzdF9kZWxfaW5pdCgmZHJp
-dmVyLT5ub2RlKTsKKwlzcGluX3VubG9jaygmYWNwaV9kZXZpY2VfbG9jayk7Cit9CisKIC8qKgog
-ICogYWNwaV9idXNfcmVnaXN0ZXJfZHJpdmVyIAogICogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-IApAQCAtNDQ0LDkgKzQ2Nyw3IEBAIGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZlciAoCiAJaWYgKCFk
-cml2ZXIpCiAJCXJldHVybl9WQUxVRSgtRUlOVkFMKTsKIAotCXNwaW5fbG9jaygmYWNwaV9kZXZp
-Y2VfbG9jayk7Ci0JbGlzdF9hZGRfdGFpbCgmZHJpdmVyLT5ub2RlLCAmYWNwaV9idXNfZHJpdmVy
-cyk7Ci0Jc3Bpbl91bmxvY2soJmFjcGlfZGV2aWNlX2xvY2spOworCWFjcGlfYnVzX2RyaXZlcl9h
-ZGQoZHJpdmVyKTsKIAljb3VudCA9IGFjcGlfZHJpdmVyX2F0dGFjaChkcml2ZXIpOwogCiAJcmV0
-dXJuX1ZBTFVFKGNvdW50KTsKQEAgLTQ3MCwxMSArNDkxLDggQEAgYWNwaV9idXNfdW5yZWdpc3Rl
-cl9kcml2ZXIgKAogCWlmIChkcml2ZXIpIHsKIAkJYWNwaV9kcml2ZXJfZGV0YWNoKGRyaXZlcik7
-CiAKLQkJaWYgKCFhdG9taWNfcmVhZCgmZHJpdmVyLT5yZWZlcmVuY2VzKSkgewotCQkJc3Bpbl9s
-b2NrKCZhY3BpX2RldmljZV9sb2NrKTsKLQkJCWxpc3RfZGVsX2luaXQoJmRyaXZlci0+bm9kZSk7
-Ci0JCQlzcGluX3VubG9jaygmYWNwaV9kZXZpY2VfbG9jayk7Ci0JCX0gCisJCWlmICghYXRvbWlj
-X3JlYWQoJmRyaXZlci0+cmVmZXJlbmNlcykpIAorCQkJYWNwaV9idXNfZHJpdmVyX2RlbChkcml2
-ZXIpOwogCX0gZWxzZSAKIAkJZXJyb3IgPSAtRUlOVkFMOwogCXJldHVybl9WQUxVRShlcnJvcik7
-Ci0tLSBhL2RyaXZlcnMvYWNwaS9hY3BpX2tzeW1zLmN+Zml4CTIwMDQtMTEtMTIgMTI6NDA6MTIu
-MDAwMDAwMDAwICswODAwCisrKyBhL2RyaXZlcnMvYWNwaS9hY3BpX2tzeW1zLmMJMjAwNC0xMS0x
-MiAxMjo0MDo1MC4wMDAwMDAwMDAgKzA4MDAKQEAgLTEzNSw2ICsxMzUsOCBAQCBFWFBPUlRfU1lN
-Qk9MKGFjcGlfYnVzX2dlbmVyYXRlX2V2ZW50KTsKIEVYUE9SVF9TWU1CT0woYWNwaV9idXNfcmVj
-ZWl2ZV9ldmVudCk7CiBFWFBPUlRfU1lNQk9MKGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZlcik7CiBF
-WFBPUlRfU1lNQk9MKGFjcGlfYnVzX3VucmVnaXN0ZXJfZHJpdmVyKTsKK0VYUE9SVF9TWU1CT0wo
-YWNwaV9idXNfZHJpdmVyX2FkZCk7CitFWFBPUlRfU1lNQk9MKGFjcGlfYnVzX2RyaXZlcl9kZWwp
-OwogCiAjZW5kaWYgLypDT05GSUdfQUNQSV9CVVMqLwogCi0tLSBhL2luY2x1ZGUvYWNwaS9hY3Bp
-X2J1cy5ofmZpeAkyMDA0LTExLTEyIDEyOjM4OjUzLjAwMDAwMDAwMCArMDgwMAorKysgYS9pbmNs
-dWRlL2FjcGkvYWNwaV9idXMuaAkyMDA0LTExLTEyIDEyOjM3OjUwLjAwMDAwMDAwMCArMDgwMApA
-QCAtMzE5LDYgKzMxOSw4IEBAIGludCBhY3BpX2J1c19nZXRfcG93ZXIgKGFjcGlfaGFuZGxlIGhh
-bmQKIGludCBhY3BpX2J1c19zZXRfcG93ZXIgKGFjcGlfaGFuZGxlIGhhbmRsZSwgaW50IHN0YXRl
-KTsKIGludCBhY3BpX2J1c19nZW5lcmF0ZV9ldmVudCAoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZp
-Y2UsIHU4IHR5cGUsIGludCBkYXRhKTsKIGludCBhY3BpX2J1c19yZWNlaXZlX2V2ZW50IChzdHJ1
-Y3QgYWNwaV9idXNfZXZlbnQgKmV2ZW50KTsKK3ZvaWQgYWNwaV9idXNfZHJpdmVyX2FkZCAoc3Ry
-dWN0IGFjcGlfZHJpdmVyICpkcml2ZXIpOwordm9pZCBhY3BpX2J1c19kcml2ZXJfZGVsIChzdHJ1
-Y3QgYWNwaV9kcml2ZXIgKmRyaXZlcik7CiBpbnQgYWNwaV9idXNfcmVnaXN0ZXJfZHJpdmVyIChz
-dHJ1Y3QgYWNwaV9kcml2ZXIgKmRyaXZlcik7CiBpbnQgYWNwaV9idXNfdW5yZWdpc3Rlcl9kcml2
-ZXIgKHN0cnVjdCBhY3BpX2RyaXZlciAqZHJpdmVyKTsKIAo=
+LS0tIGEvZHJpdmVycy9hY3BpL2FjLmN+Zml4CTIwMDQtMTEtMTIgMTA6MDI6MjguMDAwMDAwMDAw
+ICswODAwCisrKyBhL2RyaXZlcnMvYWNwaS9hYy5jCTIwMDQtMTEtMTIgMTM6MDU6NDQuMDAwMDAw
+MDAwICswODAwCkBAIC0zMjgsOCArMzI4LDExIEBAIGFjcGlfYWNfaW5pdCAodm9pZCkKIAlhY3Bp
+X2FjX2Rpci0+b3duZXIgPSBUSElTX01PRFVMRTsKIAogCXJlc3VsdCA9IGFjcGlfYnVzX3JlZ2lz
+dGVyX2RyaXZlcigmYWNwaV9hY19kcml2ZXIpOwotCWlmIChyZXN1bHQgPCAwKSB7CisJaWYgKHJl
+c3VsdCA8IDEpIHsKKwkJaWYgKHJlc3VsdCAhPSAtRU5PRU5UKQorCQkJYWNwaV9idXNfZHJpdmVy
+X2RlbCgmYWNwaV9hY19kcml2ZXIpOwogCQlyZW1vdmVfcHJvY19lbnRyeShBQ1BJX0FDX0NMQVNT
+LCBhY3BpX3Jvb3RfZGlyKTsKKwkJcHJpbnRrIChLRVJOX0lORk8gUFJFRklYICJBQyBbbm90IGZv
+dW5kXVxuIik7CiAJCXJldHVybl9WQUxVRSgtRU5PREVWKTsKIAl9CiAKLS0tIGEvZHJpdmVycy9h
+Y3BpL2JhdHRlcnkuY35maXgJMjAwNC0xMS0xMiAxMTowOTozNy4wMDAwMDAwMDAgKzA4MDAKKysr
+IGEvZHJpdmVycy9hY3BpL2JhdHRlcnkuYwkyMDA0LTExLTEyIDEzOjA1OjI1LjAwMDAwMDAwMCAr
+MDgwMApAQCAtODI3LDggKzgyNywxMSBAQCBhY3BpX2JhdHRlcnlfaW5pdCAodm9pZCkKIAlhY3Bp
+X2JhdHRlcnlfZGlyLT5vd25lciA9IFRISVNfTU9EVUxFOwogCiAJcmVzdWx0ID0gYWNwaV9idXNf
+cmVnaXN0ZXJfZHJpdmVyKCZhY3BpX2JhdHRlcnlfZHJpdmVyKTsKLQlpZiAocmVzdWx0IDwgMCkg
+eworCWlmIChyZXN1bHQgPCAxKSB7CisJCWlmIChyZXN1bHQgIT0gLUVOT0VOVCkKKwkJCWFjcGlf
+YnVzX2RyaXZlcl9kZWwoJmFjcGlfYmF0dGVyeV9kcml2ZXIpOwogCQlyZW1vdmVfcHJvY19lbnRy
+eShBQ1BJX0JBVFRFUllfQ0xBU1MsIGFjcGlfcm9vdF9kaXIpOworCQlwcmludGsgKEtFUk5fSU5G
+TyBQUkVGSVggIkJhdHRlcnkgW25vdCBmb3VuZF1cbiIpOwogCQlyZXR1cm5fVkFMVUUoLUVOT0RF
+Vik7CiAJfQogCi0tLSBhL2RyaXZlcnMvYWNwaS9hc3VzX2FjcGkuY35maXgJMjAwNC0xMS0xMiAx
+MTozNzozOC4wMDAwMDAwMDAgKzA4MDAKKysrIGEvZHJpdmVycy9hY3BpL2FzdXNfYWNwaS5jCTIw
+MDQtMTEtMTIgMTM6MDU6MzQuMDAwMDAwMDAwICswODAwCkBAIC0xMjEzLDggKzEyMTMsMTAgQEAg
+c3RhdGljIGludCBfX2luaXQgYXN1c19hY3BpX2luaXQodm9pZCkKIAogCXJlc3VsdCA9IGFjcGlf
+YnVzX3JlZ2lzdGVyX2RyaXZlcigmYXN1c19ob3RrX2RyaXZlcik7CiAJaWYgKHJlc3VsdCA8IDEp
+IHsKLQkJYWNwaV9idXNfdW5yZWdpc3Rlcl9kcml2ZXIoJmFzdXNfaG90a19kcml2ZXIpOworCQlp
+ZiAocmVzdWx0ICE9IC1FTk9FTlQpCisJCQlhY3BpX2J1c19kcml2ZXJfZGVsKCZhc3VzX2hvdGtf
+ZHJpdmVyKTsKIAkJcmVtb3ZlX3Byb2NfZW50cnkoUFJPQ19BU1VTLCBhY3BpX3Jvb3RfZGlyKTsK
+KwkJcHJpbnRrIChLRVJOX0lORk8gUFJFRklYICJBc3VzX2FjcGkgW25vdCBmb3VuZF1cbiIpOwog
+CQlyZXR1cm4gLUVOT0RFVjsKIAl9CiAKLS0tIGEvZHJpdmVycy9hY3BpL2J1dHRvbi5jfmZpeAky
+MDA0LTExLTA4IDEzOjQ1OjA3LjAwMDAwMDAwMCArMDgwMAorKysgYS9kcml2ZXJzL2FjcGkvYnV0
+dG9uLmMJMjAwNC0xMS0xMiAxMjo0MjozMC4wMDAwMDAwMDAgKzA4MDAKQEAgLTUzMiw4ICs1MzIs
+MTEgQEAgYWNwaV9idXR0b25faW5pdCAodm9pZCkKIAlhY3BpX2J1dHRvbl9kaXItPm93bmVyID0g
+VEhJU19NT0RVTEU7CiAKIAlyZXN1bHQgPSBhY3BpX2J1c19yZWdpc3Rlcl9kcml2ZXIoJmFjcGlf
+YnV0dG9uX2RyaXZlcik7Ci0JaWYgKHJlc3VsdCA8IDApIHsKKwlpZiAocmVzdWx0IDwgMSkgewor
+CQlpZiAocmVzdWx0ICE9IC1FTk9FTlQpCisJCQlhY3BpX2J1c19kcml2ZXJfZGVsKCZhY3BpX2J1
+dHRvbl9kcml2ZXIpOwogCQlyZW1vdmVfcHJvY19lbnRyeShBQ1BJX0JVVFRPTl9DTEFTUywgYWNw
+aV9yb290X2Rpcik7CisJCXByaW50ayAoS0VSTl9JTkZPIFBSRUZJWCAiQnV0dG9uIFtub3QgZm91
+bmRdXG4iKTsKIAkJcmV0dXJuX1ZBTFVFKC1FTk9ERVYpOwogCX0KIAotLS0gYS9kcml2ZXJzL2Fj
+cGkvZmFuLmN+Zml4CTIwMDQtMTEtMTIgMDk6NDY6MzAuMDAwMDAwMDAwICswODAwCisrKyBhL2Ry
+aXZlcnMvYWNwaS9mYW4uYwkyMDA0LTExLTEyIDEyOjQzOjA0LjAwMDAwMDAwMCArMDgwMApAQCAt
+MjgwLDggKzI4MCwxMSBAQCBhY3BpX2Zhbl9pbml0ICh2b2lkKQogCWFjcGlfZmFuX2Rpci0+b3du
+ZXIgPSBUSElTX01PRFVMRTsKIAogCXJlc3VsdCA9IGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZlcigm
+YWNwaV9mYW5fZHJpdmVyKTsKLQlpZiAocmVzdWx0IDwgMCkgeworCWlmIChyZXN1bHQgPCAxKSB7
+CisJCWlmIChyZXN1bHQgIT0gLUVOT0VOVCkKKwkJCWFjcGlfYnVzX2RyaXZlcl9kZWwoJmFjcGlf
+ZmFuX2RyaXZlcik7CiAJCXJlbW92ZV9wcm9jX2VudHJ5KEFDUElfRkFOX0NMQVNTLCBhY3BpX3Jv
+b3RfZGlyKTsKKwkJcHJpbnRrIChLRVJOX0lORk8gUFJFRklYICJGYW4gW25vdCBmb3VuZF1cbiIp
+OwogCQlyZXR1cm5fVkFMVUUoLUVOT0RFVik7CiAJfQogCi0tLSBhL2RyaXZlcnMvYWNwaS9wcm9j
+ZXNzb3IuY35maXgJMjAwNC0xMS0xMiAxMTo0MDowMC4wMDAwMDAwMDAgKzA4MDAKKysrIGEvZHJp
+dmVycy9hY3BpL3Byb2Nlc3Nvci5jCTIwMDQtMTEtMTIgMTI6NDM6MjUuMDAwMDAwMDAwICswODAw
+CkBAIC0yNDY1LDggKzI0NjUsMTEgQEAgYWNwaV9wcm9jZXNzb3JfaW5pdCAodm9pZCkKIAlhY3Bp
+X3Byb2Nlc3Nvcl9kaXItPm93bmVyID0gVEhJU19NT0RVTEU7CiAKIAlyZXN1bHQgPSBhY3BpX2J1
+c19yZWdpc3Rlcl9kcml2ZXIoJmFjcGlfcHJvY2Vzc29yX2RyaXZlcik7Ci0JaWYgKHJlc3VsdCA8
+IDApIHsKKwlpZiAocmVzdWx0IDwgMSkgeworCQlpZiAocmVzdWx0ICE9IC1FTk9FTlQpCisJCQlh
+Y3BpX2J1c19kcml2ZXJfZGVsKCZhY3BpX3Byb2Nlc3Nvcl9kcml2ZXIpOwogCQlyZW1vdmVfcHJv
+Y19lbnRyeShBQ1BJX1BST0NFU1NPUl9DTEFTUywgYWNwaV9yb290X2Rpcik7CisJCXByaW50ayAo
+S0VSTl9JTkZPIFBSRUZJWCAicHJvY2Vzc29yIFtub3QgZm91bmRdXG4iKTsKIAkJcmV0dXJuX1ZB
+TFVFKC1FTk9ERVYpOwogCX0KIAotLS0gYWNwaS0yLjYvZHJpdmVycy9hY3BpL3RoZXJtYWwuYwky
+MDA0LTExLTEyIDEzOjQxOjUxLjUzOTc2OTI4MCArMDgwMAorKysgYWNwaS0yLjYvZHJpdmVycy9h
+Y3BpL3RoZXJtYWwuYy5maXgJMjAwNC0xMS0xMiAxMzoxNDo0MC4yNjM3NjA5MjggKzA4MDAKQEAg
+LTEzMDUsNyArMTMwNSw3IEBAIGFjcGlfdGhlcm1hbF9hZGQgKAogCiAJcmVzdWx0ID0gYWNwaV90
+aGVybWFsX2FkZF9mcyhkZXZpY2UpOwogCWlmIChyZXN1bHQpCi0JCXJldHVybl9WQUxVRShyZXN1
+bHQpOworCQlnb3RvIGVuZDsKIAogCWluaXRfdGltZXIoJnR6LT50aW1lcik7CiAKQEAgLTEzODks
+OCArMTM4OSwxMSBAQCBhY3BpX3RoZXJtYWxfaW5pdCAodm9pZCkKIAlhY3BpX3RoZXJtYWxfZGly
+LT5vd25lciA9IFRISVNfTU9EVUxFOwogCiAJcmVzdWx0ID0gYWNwaV9idXNfcmVnaXN0ZXJfZHJp
+dmVyKCZhY3BpX3RoZXJtYWxfZHJpdmVyKTsKLQlpZiAocmVzdWx0IDwgMCkgeworCWlmIChyZXN1
+bHQgPCAxKSB7CisJCWlmIChyZXN1bHQgIT0gLUVOT0VOVCkKKwkJCWFjcGlfYnVzX2RyaXZlcl9k
+ZWwoJmFjcGlfdGhlcm1hbF9kcml2ZXIpOwogCQlyZW1vdmVfcHJvY19lbnRyeShBQ1BJX1RIRVJN
+QUxfQ0xBU1MsIGFjcGlfcm9vdF9kaXIpOworCQlwcmludGsgKEtFUk5fSU5GTyBQUkVGSVggIlRo
+ZXJtYWwgW25vdCBmb3VuZF1cbiIpOwogCQlyZXR1cm5fVkFMVUUoLUVOT0RFVik7CiAJfQogCg==
 
-------_=_NextPart_001_01C4C87F.F3F2D735--
+------_=_NextPart_001_01C4C880.FE7443BD--
 
 
 -------------------------------------------------------
