@@ -1,13 +1,14 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: iasl
-Date: Mon, 12 May 2003 10:03:13 -0700
+From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ASL help with latest acpi and compaq presario 2800t
+Date: Mon, 12 May 2003 11:15:14 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3C66@orsmsx405.jf.intel.com>
+Message-ID: <20030512171515.56E29F7F42@voldemort.scrye.com>
+References: <3ACA40606221794F80A5670F0AF15F842722C5@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F842722C5-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,65 +17,89 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Just as well then.  I can maintain that the AML interpreter cannot
-simply "guess" at which is wrong -- the length of the operation region,
-or the access width of the field definition.
 
-Bob
+Sorry it took me so long to get back to you on this... 
+
+>>>>> "Luming" == Luming Yu <Yu> writes:
+
+Luming> I have made a patch for fixing compiling time error of
+Luming> http://www.scrye.com/~kevin/dsdt.dsl-20030409 Would you please
+Luming> apply it and see what's unusual and send boot log to me.
+
+Well, I applied the patch and when I try and compile to a .hex file
+with iasl I get: 
 
 
-> -----Original Message-----
-> From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]
-> Sent: Monday, May 12, 2003 3:17 AM
-> To: Moore, Robert
-> Cc: sjb; Ducrot Bruno; ACPI List
-> Subject: Re: [ACPI] iasl
-> 
-> On Fri, May 09, 2003 at 01:47:39PM -0700, Moore, Robert wrote:
-> >
-> > In this case, we know that PCI_Config space is always accessed by
-32-bit
-> > reads/writes, so change the Op region definition to length 4.
-> 
-> You know nothing about that the fact that PCI_Config space have
-> to be accessed as 32-bit reads/write.  It may be the
-> Field(PIUC, DWordAcc,...) to be bogus.  A better look of this field
-> is needed.
-> 
-> Imagine it look like
-> Field(PIUC, DWordAcc, ...)
-> {
-> 	FOO, 16
-> }
-> 
-> then a better fix is:
-> OperationRegion (PIUC, PCI_Config, 0x74, 0x02)
-> Field(PIUC, WordAcc, ...)
-> {
-> 	FOO, 16
-> }
-> 
-> Or FOO may be 8 bit long.
-> In that case, a possible fix is:
-> OperationRegion (PIUC, PCI_Config, 0x74, 0x01)
-> Field(PIUC, ByteAcc, ...)
-> {
-> 	FOO, 8
-> }
-> 
-> 
-> Unless sjb give us more info, we can not tell anything at this
-> stage.
-> 
-> --
-> Ducrot Bruno
-> 
-> --  Which is worse:  ignorance or apathy?
-> --  Don't know.  Don't care.
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20030228 [Feb 28 2003]
+Copyright (C) 2000 - 2003 Intel Corporation
+Supports ACPI Specification Revision 2.0b
+
+dsdt.dsl-20030409    44: External (C1AF)
+Error    1037 -                 ^ parse error, unexpected PARSEOP_EXTERNAL, expecting '}'
+
+dsdt.dsl-20030409    52:                 Register (SystemIO, 0x08, 0x00, 0x0000000000001014)
+Error    1037 -                                 ^ parse error, unexpected PARSEOP_REGISTER
+
+ASL Input:  dsdt.dsl-20030409 - 4956 lines, 162783 bytes, 8 keywords
+Compilation complete. 2 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
+
+It doesn't seem to like the "External" keyword?
+
+Any ideas?
+
+kevin
+--
+Luming> 42,51d41 < { < < External (C1AF) < External (C1BA) < External
+Luming> (C1BB) < External (C1B0) < External (C1B1) < External (C1B2) <
+Luming> External (C1B3) < 52a43
+>> {
+Luming> 177,178c168,169 < If(\_OSI("Windows 2001")) < { ---
+>> If(\_OSI) { "Windows 2001"
+Luming> 2297c2288 < Name(_HID, "SYN0100") ---
+>> Name(_HID, "*SYN0100")
+
+
+Luming> Thanks, Luming
+
+
+Luming> -----Original Message----- From: Kevin Fenzi
+Luming> [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org] Sent: 2003?4?10? 1:30 To: Yu,
+Luming> Luming Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org Subject: RE:
+Luming> [ACPI] ASL help with latest acpi and compaq presario 2800t
+
+
+Luming> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA1
+
+>>>>> "Luming" == Luming Yu <Yu> writes:
+
+Luming> Is dsdt.asl modified version. I compiled it, and my error
+Luming> message is slightly different with yours.  Would you please
+Luming> send the original dsdt.asl to me?
+
+Luming> You can get the dsdt.dat and dsdt.dsl from:
+
+Luming> http://www.scrye.com/~kevin/dsdt.dat-20030409
+Luming> http://www.scrye.com/~kevin/dsdt.dsl-20030409
+
+Luming> Those are from my laptop today using the iasl-20030228
+
+Luming> Let me know if you need any more info.
+
+Luming> Thanks, Luming
+
+Luming> kevin -----BEGIN PGP SIGNATURE----- Version: GnuPG v1.2.1
+Luming> (GNU/Linux) Comment: Processed by Mailcrypt 3.5.8
+Luming> <http://mailcrypt.sourceforge.net/>
+
+Luming> iD8DBQE+lFil3imCezTjY0ERAiNVAJ0RbLT1+K532UBaz31tLeIODB6tAwCdF/OF
+Luming> 37iSC0J5jiZDJiEmC8G3QT8= =5jP8 -----END PGP SIGNATURE-----
+
+
 
 
 -------------------------------------------------------
