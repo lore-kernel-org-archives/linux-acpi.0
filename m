@@ -1,52 +1,82 @@
-From: =?iso-8859-1?Q?=C9ric?= Brunet <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
-Subject: Re: standby resumes immediately in 2.6.0-test8
-Date: Fri, 24 Oct 2003 11:30:06 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031024093006.GA29586@lps.ens.fr>
-References: <200310231630.21392.aviram@beyondsecurity.com>
+From: mru-UNjuZkX4dYU@public.gmane.org (=?iso-8859-1?q?M=E5ns_Rullg=E5rd?=)
+Subject: Re: [PM][ACPI] No ACPI interrupts after resume from S1
+Date: Fri, 24 Oct 2003 17:14:25 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <yw1xbrs6652m.fsf@kth.se>
+References: <20031020141512.GA30157@hell.org.pl> <yw1x8yngj7xg.fsf@users.sourceforge.net>
+ <20031020184750.GA26154@hell.org.pl> <yw1xekx7afrz.fsf@kth.se>
+ <20031023082534.GD643@openzaurus.ucw.cz> <yw1xr813f1a3.fsf@kth.se>
+ <3F98FDDF.1040905@cyberone.com.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200310231630.21392.aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 23, 2003 at 04:30:21PM +0200, Aviram Jenik wrote:
-> Hi,
->=20
-> I am trying to get "standby" to work on my Sony vaio laptop. I did:
-> echo -n "standby" > /sys/power/state
->=20
-> But this only flashes the screen once (in X this is more noticeable) an=
-d=20
-> resumes immediately.
+Nick Piggin <piggin-/x7JMgtu12E0n/F98K4Iww@public.gmane.org> writes:
 
-You might try
+>>I've been trying the new suspend to disk implementation (pmdisk, I
+>>think) lately.  I get these lines in the kernel log when starting
+>>after a suspend:
+>>
+>>PM: Reading pmdisk image.
+>>PM: Resume from disk failed.
+>>ACPI: (supports S0 S1 S3 S4 S5)
+>>
+>>Last time I tried swsusp, I did pass the resume=3D option, but it did=
+n't
+>>work.
+>>
+>>Could it be that some disk cache is never flushed properly?
+>>Occasionally, some random filesystem is reported as not being cleanly
+>>unmounted when booting normally, which seems to point in the same
+>>direction.
+>>
+>
+> Try turning your disk cache off, or set it to write through caching
+> (even so I heard some IDE drives don't turn it off anyway!). See if
+> it helps.
 
-sleep 1; echo -n "standby" > /sys/power/state
+That took me one step further.  Now it loaded the image swap, but them
+immediately rebooted.  I didn't have time to see if there were any
+error messages.  I don't have a serial port, so I can't put a console
+there.  This was with lots of modules loaded, so maybe unloading some
+would help.  Are there any known broken drivers in this list:
 
-I have the feeling that the "release key" event othe return key wakes the
-computer up. With the sleep 1; the "release key" event occurs while the
-computer is not yet suspended.
+Module                  Size  Used by
+ide_cd                 36612  0=20
+cdrom                  32160  1 ide_cd
+evdev                   7808  1=20
+ipv6                  226496  12=20
+iptable_filter          2304  1=20
+ip_tables              15616  1 iptable_filter
+sis_agp                 4224  1=20
+agpgart                25896  1 sis_agp
+ohci_hcd               16128  0=20
+usbcore                94940  3 ohci_hcd
+snd_intel8x0           28164  0=20
+snd_ac97_codec         50948  1 snd_intel8x0
+snd_pcm                84004  1 snd_intel8x0
+snd_timer              20996  1 snd_pcm
+snd_page_alloc          9092  2 snd_intel8x0,snd_pcm
+snd_mpu401_uart         6144  1 snd_intel8x0
+snd_rawmidi            19616  1 snd_mpu401_uart
+snd                    43364  6 snd_intel8x0,snd_ac97_codec,snd_pcm,snd=
+_timer,snd_mpu401_uart,snd_rawmidi
+soundcore               7104  1 snd
+ohci1394               31112  0=20
+ieee1394               68396  1 ohci1394
+sis900                 16516  0=20
+crc32                   4096  1 sis900
+ds                     10884  4=20
+yenta_socket           14336  0=20
+pcmcia_core            60768  2 ds,yenta_socket
+rtc                    10552  0=20
 
-That might be considered a bug, by the way.
+In case it matters, sisfb is compiled into the kernel.
 
-=C9ric Brunet
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: The SF.net Donation Program.
-Do you like what SourceForge.net is doing for the Open
-Source Community?  Make a contribution, and help us add new
-features and functionality. Click here: http://sourceforge.net/donate/
+--=20
+M=E5ns Rullg=E5rd
+mru-UNjuZkX4dYU@public.gmane.org
