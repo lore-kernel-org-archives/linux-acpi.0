@@ -1,12 +1,12 @@
-From: "JP Mercury" <swirlee-HptHbbG/L9RWk0Htik3J/w@public.gmane.org>
-Subject: Re: Averatec laptop- acpi_power_off hang
-Date: Thu, 3 Feb 2005 10:17:58 -0700
-Message-ID: <20050203171758.M86895@stickist.com>
-References: <20050202214755.M81868@stickist.com> <Pine.LNX.4.60.0502031522440.4161@frog.athome>
+From: Damien Challet <challet-dK2jV70R1GDQzY9nttDBhA@public.gmane.org>
+Subject: forgotten rsparser.c patch
+Date: Thu, 3 Feb 2005 17:23:05 +0000
+Message-ID: <200502031723.06295.challet@maths.ox.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset=iso-8859-1
-In-Reply-To: <Pine.LNX.4.60.0502031522440.4161-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,20 +19,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 3 Feb 2005 15:23:14 +0100 (CET), liste wrote
-> Salut Jan,
-> On Wed, 2 Feb 2005, JP Mercury wrote:
-> > Now I'd like to tackle the stubborn problem of powering off. Linux shuts down
-> > but after acpi_power_off is called, it hangs. I tried the noapic, nolapic
-> > kernel options as suggested for some other laptops- no go. Now I'm wondering,
-> > could this be another DSDT problem?
-> did you also try it without RTC? There was something with the
-> realtimeclock that might prevent a power-off, if I remeber correctly.
+Dear All,
 
-Without RTC seems to make no difference.
+I have notice that patch <ref> is absent even from the last patch set, and I 
+really need it for solving my problems of unlisted resources.
 
-Thanks for your suggestion.
--Mercury
+Could it be included in the next batch ?
+
+Thanks
+
+Damien
 
 
 
