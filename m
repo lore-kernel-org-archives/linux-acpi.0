@@ -1,16 +1,11 @@
-From: Arnaud de Lorbeau <adelorbeau-GANU6spQydw@public.gmane.org>
-Subject: Re: 2.6.3-rc3 + D600 + battery status missing sometimes..
-Date: Mon, 16 Feb 2004 11:30:45 +0100
+From: Peter.Zeipelt-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org
+Subject: Re: No network after S3
+Date: Mon, 16 Feb 2004 12:02:29 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402161130.45137.adelorbeau@free.fr>
-References: <C386328088ED7F4E9F81AFBABDDF60DA045C66CA@wdmyexch02.my.asia.wdc.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Message-ID: <1076928345.40309f590d1ab@webmail.t-online.de>
+References: <BF1FE1855350A0479097B3A0D2A80EE0025A6344@hdsmsx402.hd.intel.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA045C66CA-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0025A6344-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,38 +14,97 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 16 February 2004 09:50, Ow Mun Heng wrote:
-> Just filled a bug or rather, added my own info on the bug id#2066
+Yes, it's right.
+The mentioned NIC's are working under normal condition.
+Of course, the first ping took almost a second.
+But that isn't such a great problem for me,  that I have to look for
+the reason now.
+But again.
+Before S3 the NIC is working.
+Unloading the module before and reloading it after  suspending 
+brings no success.
+Even if the module isn't loaded before S3 and loaded after the wakeup
+makes no difference.
+And the problem is only after S3.
+If I send the system to S4 and wake it up, the NIC is working.
+But for the things I want to do (i.e. Fax-Services and answering
+machine) the boottime
+after S4 is to long.
+And as mentioned in my first posting.
+It makes no difference, if the NIC-driver is a module or compiled into
+the kernel.
+And the problem isn't specific on the ABIT-board with via chipset.
+The same problem appears on an ASUS board with nforce2.
+Unfortunately if have no modern board with  Intel chipset.
+
+I hope, these informations are useful.
+Many thanks for your help
+
+Peter
+
+Brown, Len schrieb:
+> >I tried pci=noacpi. No diference.
+> >If I understand you right, I should wait a little bit
+> before dealing
+> >with this powersaving stuff.
+> 
+> If the NIC were now working before attempting
+> suspend/resume, then we'd
+> need to get that fixed first.  However, I think you're
+> saying that the
+> NIC _does_ work under normal conditions, and the failure
+> is only after
+> returning from S3. yes?
+> 
+> So this seems suspend/resume specific, and your use of
+> pci=noacpi
+> further suggests it has nothing to do with the initial
+> interrupt
+> assignments.
+> 
+> We've got a number of post-resume failures, and this
+> issue is rising on
+> the priority list -- so I expect we'll spend some time
+> looking at it
+> soon.
+> 
+> Here's a bugzilla query of component=ACPI with the word
+> "suspend".  I
+> apologize in advance if outlook wraps this url on you...
+> 
 >
-> Kernel 2.6.3-rc3
-> Distro : RH9
+http://bugzilla.kernel.org/buglist.cgi?short_desc_type=allwordssubstr&sh
 >
-> Battery status comes and goes suddenly. I've tried it with 2.6.2,
-> 2.6.2-rc2, 2.6.3-rc3.
+ort_desc=&component=ACPI&long_desc_type=allwordssubstr&long_desc=suspend
 >
-> ACPI-0279: *** Error: Looking up [BST0] in namespace, AE_ALREADY_EXISTS
-> ACPI-1120: *** Error: Method execution failed [\_SB_.BAT0._BST] (Node
-> dff9ca60), AE_ALREADY_EXISTS
-
-
-I have a very similar BUG on toshiba 2435 (Phoenix BIOS) with
-Kernel: 2.6.2
-Distro: MandrakeLinux Cooker (10.0 in development)
-
-ACPI-0279: *** Error: Looking up [PBST] in namespace, AE_ALREADY_EXISTS
-ACPI-1120: *** Error: Method execution failed [\_SB_.PCI0.LPC0.BAT1._BST] 
-(Node c15893a0), AE_ALREADY_EXISTS
-
-And like you, the acpi works a few minutes/secondes, and then it goes blank 
-and I have this messages each 20 seconds in /var/log/messages.
-
-Regards.
--- 
-Arnaud de Lorbeau
+&kernel_version_type=allwordssubstr&kernel_version=&bug_status=NEW&bug_s
+>
+tatus=ASSIGNED&bug_status=RESOLVED&emailassigned_to1=1&emailtype1=substr
+>
+ing&email1=&emailassigned_to2=1&emailreporter2=1&emailcc2=1&emailtype2=s
+>
+ubstring&email2=&bugidtype=include&bug_id=&changedin=&chfieldfrom=&chfie
+>
+ldto=Now&chfieldvalue=&cmdtype=doit&namedcmd=component%3DACPI&newqueryna
+>
+me=&order=Reuse+same+sort+as+last+time&field0-0-0=noop&type0-0-0=noop&va
+> lue0-0-0=
+> 
+> 
+> -------------------------------------------------------
+> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+> Build and deploy apps & Web services for Linux with
+> a free DVD software kit from IBM. Click Now!
+> http://ads.osdn.com/?ad_id56&alloc_id438&oplick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
