@@ -1,11 +1,14 @@
-From: Sara <weili1-q41pLDslbA3auI2f2gSDlQ@public.gmane.org>
-Subject: Help for running old linux kernel (2.2.x)
-Date: Mon, 8 Dec 2003 12:05:27 -0500 (EST)
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Button events lost after S3 on Thinkpad R32
+Date: Mon, 8 Dec 2003 18:21:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.SOL.4.58.0312081202550.20901@sparky.ic.sunysb.edu>
+Message-ID: <20031208172159.GA14664@hell.org.pl>
+References: <571ACEFD467F7749BC50E0A98C17CDD8E84E18@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84E18-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,24 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Thus wrote Li, Shaohua:
+> 
+> Hi,
+> I have tested S3 in many machines, and all tests show ACPI interrupt lost after S3. /proc/interrupts shows no ACPI interrupt increases; power button and any ACPI related button can't generate any events. I guess ACPI need be re-initialized after S3. Patch in bug 1409 can resolve S1 problem but not S3.
 
-I have a problem for running my Redhat kernel 2.2.5 on a modern Dell
-machine which only supports ACPI (no APM though). I saw a post which said
-ACPI 2.2.x kernel patch was available at one time. Could someone pls tell
-me where I could find it? Or if anyone keeps a copy, could you let me
-know? (I don't need the fancy functionalities added later. Basic work
-will do for me.)
+Just to let you know: my system is fine after S3, i.e. ACPI interrupts are
+not lost (it's an ASUS L3C laptop, FYI).
+Best regards,
 
-I know it is better to upgrade the kernel. Blush. :) However, I have my
-own stuff integrated with old kernel which is hard to move on now.
-
-thanks a lot
-
-Sara
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
