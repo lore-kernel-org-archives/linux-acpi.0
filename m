@@ -1,14 +1,12 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: system crashes after cat /proc/acpi/battery/BAT0/state
-Date: Tue, 3 Feb 2004 11:36:14 +0100
+From: "Lukas Schrangl" <schrangl-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Build PST for AthlonXP
+Date: Thu, 5 Feb 2004 08:17:53 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040203103613.GA9425@message-id.gmane0305.slipkontur.de>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB672@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <23215.1075965473@www61.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB672-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,30 +18,109 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 03, 2004 at 04:31:36PM +0800, Yu, Luming wrote:
-> > excuse me, but I forgot to tell, that I'm using the ACPI DSDT initrd 
-> > patch and a special DSDT-file for Compaq Evo N800v (while I have an
-> > Compaq Evo N800c)
+> On Wed, Feb 04, 2004 at 11:45:25AM +0100, Lukas Schrangl wrote:
+> > Hi!
+> > 
+> > I don't know wether this is the right mailinglist for my problem, but at
+> > least I think here are some people who can help me.
 > 
-> My question is whether your fixs to DSDT is correct or necessary? 
-> We need to sort out real ACPI interpreter bug !
+> Correct, the mailling list is the CPUFreq mailing list..
+> 
+> > Maybe someone remembers my problem: I have a AMD Athlon XP 2600+ mobile
+> CPU
+> > but neither ACPI- performance states nor cpufreq/powernow-k7 (no PST
+> matching
+> > this cpuid) do work.
+> 
+> Retrieving configuration from ACPI is a work in progress.  I do have
+> some experimental patch for, but not publically available yet
+> (it depends on others patches from Dominik, I'm not sure if that OK by
+> now).
+> 
+> > Recently I browsed a bit through the powernow-k7 source and have now an
+> idea
+> > how it works. It shouldn't be too difficult to set up my own PST for my
+> CPU,
+> > should it?
+> 
+> Well, not so, especially if you can retrieve the configuration for the
+> different
+> states.
+> The key is the control word, in the _PSS packages.
+> 
+> For example, suppose you have that:
+> 
+> Processor(..) {
+> 	...
+> 	Name (_PSS, Package () {	/* this may be a method, btw */
+> 		Package () {
+> 			0x0352,
+> 			0x61A8,
+> 			0x7D,
+> 			0x009C414B,	/* that the control. */
+> 			0x014B
+> 		},
+> 		Package () {
+> 			...,
+> 			...,
+> 		}
+> 	})
+> 
+> For the first one, this is 0x009C414B.
+> The layout seems to be:
+> bit 0-5: FID,
+> bit 6-10: VID,
+> bit 11-30: SGTC (or in other word 'latency' in 10 time micro second)
+> bit 31-32: reserved.
+> 
+> Note that this is *not* confirmed by AMD people.
+> 
+> > I know about FIDs and VIDs and what they are good for, but can anyone
+> > explain me the structure of a PST and the PSB (links to some documents,
+> ...)?
+> > The second thing: I could get the cpu- frequences that seem work (for my
+> > FIDs) from my SSDT, but how can I calculate the voltage (for the VIDs)
+> matching
+> > the frequency, if there are only the mW given in the SSDT?
+> > 
+> 
+> BTW, I send to CPUFreq ML yesterday a patch in order to get a sysctl
+> interface for overwritting a powernow k7 table.
+> 
+> http://www.poupinou.org/cpufreq/powernow-k7/
+> 
+> Cheers,
+> 
+> -- 
+> Bruno Ducrot
+> 
+> --  Which is worse:  ignorance or apathy?
+> --  Don't know.  Don't care.
+> 
+> 
+> -------------------------------------------------------
+> The SF.Net email is sponsored by EclipseCon 2004
+> Premiere Conference on Open Tools Development and Integration
+> See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+> http://www.eclipsecon.org/osdn
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
 
-i would blame it on the wrong DSDT. I had similar problems (random crashes on
-pressing some of the "Hotkeys" for example) on a ASUS L2400D with the DSDT
-provided on acpi.sourceforge.net. I noticed that i had an older BIOS, so i
-upgraded the BIOS to the latest version (the same as mentioned on the DSDT
-page), but still got random crashes although the patched DSDT had only minimal
-differences to the BIOS built-in dsdt. So now i use the built in, don't
-have power management anymore but the machine runs stable again.
+Sysctl? I just hard-coded a PST (thanks to your hint with the SSDT-
+controldwords) and patched powernow-k7.c to make the driver use that PST instead of
+BIOS PSTs. What shall I say? It simply works ;)
 
-I have posted a comment on the dsdt page to save others from going through
-the same trouble that i went throgh :-)
+-Lukas-
 
-DSDT bugs are often subtle: first, everything seems to work, but then you get
-random lockups or failures which you can't really explain. Bad.
+PS.: I found one of the FIDs in the SSDT to be false, so maybe it's not save
+to read the powernow- states from ACPI.
 
 -- 
-Stefan Seyfried
+GMX ProMail (250 MB Mailbox, 50 FreeSMS, Virenschutz, 2,99 EUR/Monat...)
+jetzt 3 Monate GRATIS + 3x DER SPIEGEL +++ http://www.gmx.net/derspiegel +++
 
 
 
