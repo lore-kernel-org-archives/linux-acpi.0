@@ -1,13 +1,14 @@
-From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Subject: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: Wed, 21 Jan 2004 10:56:59 -0800 (PST)
+From: Vince Herried <vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>
+Subject: bad dsdt?
+Date: Wed, 21 Jan 2004 13:45:58 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
-References: <m3isj5a73u.fsf@reason.gnu-hamburg>
+Message-ID: <200401211345.58192.vherried@insight.rr.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m3isj5a73u.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,34 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I'm runnin a vanilla 2.6.1 kernel on a Dell Latitude C810
+and have a bunch of issues.
+
+The Fn keys don't work (eg Fn <suspend>,   Fn <setup>,  Fn .....>
+yes I enabled the acpi fn key option.
 
 
-On Wed, 21 Jan 2004, Georg C. F. Greve wrote:
-> 
-> I'm now seeing the _exact same problem_ on an ASUS M2400N [*] with a
-> Linux 2.6.1 (unpatched) kernel. The kernel freezes after printing 
-> 
->  "ACPI: IRQ 9 was Edge Triggered, setting to Level Triggerd" 
+/proc/acpi  has no information about my battery, or temperature, or....
 
-Does it go away if you just make "acpi_pic_set_level_irq()" do nothing (ie 
-just remove the "outb()" call
+I'm thinking I should make multiple problem records with bugzilla (and where 
+is that?)
 
-	arch/i386/kernel/acpi/boot.c line 273
+and what kind of doc do I supply besides  dsdt and .config file?
 
-or just make the if-statement be always false).
+v
 
-It's entirely possible that the SCI is just horribly broken, and can't be 
-level-triggered.
-
-Btw, usually a good idea to at least cc the developer list for the 
-particular subsystem. In this case <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>. 
-Many people don't have the time to follow linux-kernel.
-
-		Linus
 
 
 -------------------------------------------------------
