@@ -1,14 +1,14 @@
-From: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Centrino question
-Date: Fri, 21 May 2004 14:27:59 -0700
+From: Cyril Wattebled <neurowork-GANU6spQydw@public.gmane.org>
+Subject: Re: Centrino question
+Date: Sat, 22 May 2004 00:56:58 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <7F740D512C7C1046AB53446D372001730177CF4E@scsmsx402.amr.corp.intel.com>
+Message-ID: <20040522005658.640e1d91.neurowork@free.fr>
+References: <3ACA40606221794F80A5670F0AF15F84046AA243@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84046AA243-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,33 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->From: Ow Mun Heng [mailto:Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org]
->Sent: Friday, May 21, 2004 12:05 PM
->To: Bruno Ducrot
->Cc: Nakajima, Jun; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] Centrino question
->
->Nope.. When I try to detemine the max of my batter life, I don't use
-the
->CDROM at all, I disable Wifi, 600Mhz, laptop_mode, no usb, no sound,
->(not using the speakers, but drivers still on) screen to dimmest(14.1
->SXGA screen 1400x1050) etc..
->
->2:30 hours.
->
->so... I've stopped hoping / looking for ways to get my battery life
->better. It just plainly _sucks_.
+On Fri, 21 May 2004 19:42:58
+"Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-So how long does it last when you run the processor at full speed,
-rather than 600Hhz?
+> How did you run windows ? 
+Well, the first thing to say is that, on Windows, when the laptop is unplugged,
+the processor slows down to 200 mhz instead of 600 mhz when plugged. That
+says a lot of heat and, I guess power. When I say up to 6h, I mean when the
+laptop is idle of course.
 
-Jun
+> How did you run Linux?
 
+Same here, I tried to let it idle and it hold 2h30 ..
 
+> As the first step to optimize battery life, you need to 
+> make sure S3 works,  then compare the battery 
+> life in S3.
+Yeah, I've been trying for some time now to make it work.
+It suspends very well but never ever woke up. Even worse, I can't even hard
+reboot. I have to remove the battery and plug it back to make it work.
+By the way, if anyone has an idea about what's wrong ... please share =]
+
+> Thanks,
+> Luming
+No no no, thank you ! =]
 
 
 -------------------------------------------------------
