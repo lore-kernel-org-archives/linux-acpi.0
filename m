@@ -1,12 +1,15 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: [PATCH] warning: implicit declaration of function
- mp_config_ioapic_for_sci
-Date: 08 Oct 2002 02:55:57 -0400
+From: Mark Pritchard <mark.pritchard-acpi-3o+aUUpM7Xj0CCvOHzKKcA@public.gmane.org>
+Subject: Re: No battery information - Compaq Evo N800v, 2.4.20pre8, acpi 20021002
+Date: Tue, 8 Oct 2002 11:59:59 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1034060159.1541.24.camel@darkstar.portugal>
+Message-ID: <200210081159.59921.mark.pritchard-acpi@modus.com.au>
+References: <200210081115.21667.mark.pritchard-acpi@modus.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-eRzbfuuCTfc5EIaSVimy"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200210081115.21667.mark.pritchard-acpi-3o+aUUpM7Xj0CCvOHzKKcA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,45 +18,121 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I forgot to mention, my dmesg with acpi debugging turned on is available =
+at=20
+http://www.modus.com.au/scratch/dmesg.acpi.debug.gz
 
---=-eRzbfuuCTfc5EIaSVimy
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Cheers
 
+Mark
 
-bus.c:1887: warning: implicit declaration of function
-`mp_config_ioapic_for_sci'
-
-A trivial patch
-
-
---=-eRzbfuuCTfc5EIaSVimy
-Content-Disposition: attachment; filename=acpi_explicit.diff
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; name=acpi_explicit.diff; charset=ISO-8859-1
-
---- linux-2.4.19acpi/include/asm-i386/mpspec.h.orig	Sun Oct  6 21:27:06 200=
-2
-+++ linux-2.4.19acpi/include/asm-i386/mpspec.h	Sun Oct  6 21:34:06 2002
-@@ -228,9 +228,11 @@
- extern void mp_register_ioapic (u8 id, u32 address, u32 irq_base);
- extern void mp_override_legacy_irq (u8 bus_irq, u8 polarity, u8 trigger, u=
-32 global_irq);
- extern void mp_config_acpi_legacy_irqs (void);
--extern void mp_config_ioapic_for_sci(int irq);
- extern void mp_parse_prt (void);
- #endif /*CONFIG_X86_IO_APIC*/
-+#ifdef CONFIG_X86
-+extern void mp_config_ioapic_for_sci(int irq);
-+#endif /*CONFIG_X86*/
-=20
- #endif /*CONFIG_ACPI_BOOT*/
-=20
-
---=-eRzbfuuCTfc5EIaSVimy--
+On Tue, 8 Oct 2002 11:15, Mark Pritchard wrote:
+> Hi,
+>
+> I'm having a problem with seeing battery status on my Compaq Evo N800v.=
+ The
+> proc filesystem has plenty of entries for everything other than the bat=
+tery
+> (I've included a list below).
+>
+> I'd really appreciate some advice, and I'm more than happy to provide m=
+ore
+> info/test things.
+>
+> Cheers
+>
+> Mark Pritchard
+>
+> -------------------
+>
+> Useful info:
+>
+> * RedHat 7.3
+>
+> * Kernel 2.4.20-pre8 with acpi-20021002-2.4.20-pre8.diff.gz
+>
+> * DSDT available at
+>
+> =09http://www.modus.com.au/scratch/dsdt.compaq_evo_n800v.gz
+>
+> * Contents of /proc/acpi:
+>
+> [pritchma@seth pritchma]$ find /proc/acpi |sort
+> /proc/acpi
+> /proc/acpi/ac_adapter
+> /proc/acpi/ac_adapter/C11A
+> /proc/acpi/ac_adapter/C11A/state
+> /proc/acpi/alarm
+> /proc/acpi/button
+> /proc/acpi/button/power
+> /proc/acpi/button/power/PWRF
+> /proc/acpi/button/power/PWRF/info
+> /proc/acpi/dsdt
+> /proc/acpi/event
+> /proc/acpi/fadt
+> /proc/acpi/info
+> /proc/acpi/power_resource
+> /proc/acpi/power_resource/C0CF
+> /proc/acpi/power_resource/C0CF/state
+> /proc/acpi/power_resource/C140
+> /proc/acpi/power_resource/C140/state
+> /proc/acpi/power_resource/C154
+> /proc/acpi/power_resource/C154/state
+> /proc/acpi/power_resource/C158
+> /proc/acpi/power_resource/C158/state
+> /proc/acpi/power_resource/C15B
+> /proc/acpi/power_resource/C15B/state
+> /proc/acpi/power_resource/C164
+> /proc/acpi/power_resource/C164/state
+> /proc/acpi/power_resource/C1D0
+> /proc/acpi/power_resource/C1D0/state
+> /proc/acpi/power_resource/C1D1
+> /proc/acpi/power_resource/C1D1/state
+> /proc/acpi/power_resource/C1D2
+> /proc/acpi/power_resource/C1D2/state
+> /proc/acpi/power_resource/C1D3
+> /proc/acpi/power_resource/C1D3/state
+> /proc/acpi/processor
+> /proc/acpi/processor/C000
+> /proc/acpi/processor/C000/info
+> /proc/acpi/processor/C000/limit
+> /proc/acpi/processor/C000/performance
+> /proc/acpi/processor/C000/power
+> /proc/acpi/processor/C000/throttling
+> /proc/acpi/sleep
+> /proc/acpi/thermal_zone
+> /proc/acpi/thermal_zone/TZ1
+> /proc/acpi/thermal_zone/TZ1/cooling_mode
+> /proc/acpi/thermal_zone/TZ1/polling_frequency
+> /proc/acpi/thermal_zone/TZ1/state
+> /proc/acpi/thermal_zone/TZ1/temperature
+> /proc/acpi/thermal_zone/TZ1/trip_points
+> /proc/acpi/thermal_zone/TZ2
+> /proc/acpi/thermal_zone/TZ2/cooling_mode
+> /proc/acpi/thermal_zone/TZ2/polling_frequency
+> /proc/acpi/thermal_zone/TZ2/state
+> /proc/acpi/thermal_zone/TZ2/temperature
+> /proc/acpi/thermal_zone/TZ2/trip_points
+> /proc/acpi/thermal_zone/TZ3
+> /proc/acpi/thermal_zone/TZ3/cooling_mode
+> /proc/acpi/thermal_zone/TZ3/polling_frequency
+> /proc/acpi/thermal_zone/TZ3/state
+> /proc/acpi/thermal_zone/TZ3/temperature
+> /proc/acpi/thermal_zone/TZ3/trip_points
+>
+>
+>
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 
