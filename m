@@ -1,15 +1,13 @@
-From: Arnaud Fevrier <fevrier-mGjiqC8JayDH3mj/uWlBYqb9WTlM5w7aUBSOeVevoDU@public.gmane.org>
-Subject: Re: Testing: NVidia closed driver fails.
-Date: Tue, 24 Sep 2002 16:22:46 +0200
+From: =?ks_c_5601-1987?B?uem/+LHU?= <genesis-CgRzUSymmFYW/PwSP34+TQ@public.gmane.org>
+Subject: [Q] ACPI
+Date: Tue, 24 Sep 2002 23:40:14 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <15760.30006.534759.107599@ohgma.iut-gtr.univ-mrs.fr>
-References: <200209221329.g8MDTL009929@pfn1.pefnos>
-Reply-To: fevrier-94MxA55sdNz4HDTGivPSywpplqO2vBoV@public.gmane.org
+Message-ID: <000a01c263d8$4b2755b0$94cef88f@oemcomputer>
+Reply-To: =?ks_c_5601-1987?B?uem/+LHU?= <genesis-CgRzUSymmFYW/PwSP34+TQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0007_01C26423.BAFE34D0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200209221329.g8MDTL009929-a1J+ToZc0kR3t0M9ZKkFCQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,34 +16,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
-Hi,
+------=_NextPart_000_0007_01C26423.BAFE34D0
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
- I have a fujitsu-Siemens CelsiusH which comes with a nvidia card. The
- nvidia driver (1.0-2960) shares it interupts with the allegro sound
- card.
+SSdtIGludGVyZXN0IGluIHlvdXIgQUNQSSBpbiBMaW51eCBQcm9qZWN0IF5eDQpTbyBJIHdhbnQg
+dG8ga25vdyBhYm91dCB0aGUgcHJvZ3Jlc3Mgb2YgcHJvamVjdC4uDQpXaGF0J3MgdGhlIFByb2Js
+ZW0gbm93PyBhbmQgV2hhdCBzaGFsbCB3ZSBkbyBmb3IgdGhpcyBwcm9qZWN0Pw0KDQpJJ2xsIHdh
+aXQgeW91ciByZXBseSBsZXR0ZXIuLi5wbHogYW5zd2VyIGZvciBteSBjdXJpb3NpdHkgXl4gdG54
+DQo=
 
-I compiled the kernel 20-pre7 acpi 2002 09 18, and it boots fine.=20
+------=_NextPart_000_0007_01C26423.BAFE34D0
+Content-Type: text/html;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
-I cannot run the make xconfig, and I had to set the SMP. It did not
-compile for a uniprocessor.
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PWtz
+X2NfNTYwMS0xOTg3IiBodHRwLWVxdWl2PUNvbnRlbnQtVHlwZT4NCjxNRVRBIGNvbnRlbnQ9Ik1T
+SFRNTCA1LjAwLjI5MjAuMCIgbmFtZT1HRU5FUkFUT1I+DQo8U1RZTEU+PC9TVFlMRT4NCjwvSEVB
+RD4NCjxCT0RZIGJnQ29sb3I9I2ZmZmZmZj4NCjxESVY+PEZPTlQgc2l6ZT0yPkknbSBpbnRlcmVz
+dCBpbiB5b3VyIEFDUEkgaW4gTGludXggUHJvamVjdCBeXjwvRk9OVD48L0RJVj4NCjxESVY+PEZP
+TlQgc2l6ZT0yPlNvIEkgd2FudCB0byBrbm93IGFib3V0IHRoZSBwcm9ncmVzcyBvZiBwcm9qZWN0
+Li48L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj5XaGF0J3MgdGhlIFByb2JsZW0gbm93
+PyBhbmQgV2hhdCBzaGFsbCB3ZSBkbyBmb3IgdGhpcyANCnByb2plY3Q/PC9GT05UPjwvRElWPg0K
+PERJVj4mbmJzcDs8L0RJVj4NCjxESVY+PEZPTlQgc2l6ZT0yPkknbGwgd2FpdCB5b3VyIHJlcGx5
+IGxldHRlci4uLnBseiBhbnN3ZXIgDQpmb3ImbmJzcDtteSZuYnNwO2N1cmlvc2l0eSBeXiB0bng8
+L0ZPTlQ+PC9ESVY+PC9CT0RZPjwvSFRNTD4NCg==
 
-A lot of acpi features work fine, but I cannot sleep or hibernate the
-laptop.
+------=_NextPart_000_0007_01C26423.BAFE34D0--
 
-Sincerly,
-
---=20
-
-			    Arnaud F=E9vrier
-			    fevrier-94MxA55sdNz4HDTGivPSy1aPQRlvutdw@public.gmane.org
-			    +33 () 491 177 926
-                 =20
-                =20
 
 
 -------------------------------------------------------
