@@ -1,16 +1,14 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: Re: Intel Centrino and Linux
-Date: 07 May 2003 13:02:51 +0100
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: ACPI 20030428 causing IP_TABLES problems?
+Date: Wed, 7 May 2003 14:06:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1052308970.3061.4.camel@dhcp22.swansea.linux.org.uk>
-References: <200305031848.04583.nbellm@gmx.de>
-	 <1051979022.24562.24.camel@dhcp22.swansea.linux.org.uk>
-	 <m21xzb9vig.fsf_-_@tnuctip.rychter.com>
+Message-ID: <20030507130657.GA29534@parcelfarce.linux.theplanet.co.uk>
+References: <1052269459.15665.162.camel@kahuna-ws.robhughes.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m21xzb9vig.fsf_-_-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1052269459.15665.162.camel-JAoIrDRmu4DMxpqo21FZOVYRV+dsdXaH@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,27 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+To: Rob Hughes <rob-d2NfoQ5nhImakBO8gow8eQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mer, 2003-05-07 at 06:27, Jan Rychter wrote:
-> I'm facing this kind of decision (buying a new laptop soon, possibly the
-> Toshiba DynaBook SS S7/290LNKW) -- so, does the above mean that Intel
-> Centrino is not Linux friendly?
+On Tue, May 06, 2003 at 08:04:19PM -0500, Rob Hughes wrote:
+> Attached is the output of ld against the ip_tables.o module. I've been
+> working on this for about a week, but haven't been able to make any
+> progress. Is it known that the acpi patches cause unresolved symbol
+> errors in ip_tables?
 
-Currently yes. On some of them the APM works well enough to suspend and
-do battery reporting but not to do CPU speed control stuff (at least not
-from battery life measurement).
+Looks like you didn't rebuild your modules and kernel against the same
+set of headers.  i recommend you make clean and then "make compressed
+modules".  Nothing really to do with acpi.
 
-> I've already ruled out all Compaq notebooks thanks to the multiple
-> problem reports seen on this list (hi HP/Compaq! 
-
-The newer Compaq ACPI seems to work well (eg the z9xx series laptops).
-They do need an ACPI kernel and have some other quirks which needed
-Linux fixing (and which showed up Linux bugs too)
-
-
+-- 
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
