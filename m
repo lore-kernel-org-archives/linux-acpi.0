@@ -1,8 +1,8 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Martin Michlmayr <tbm-R+vWnYXSFMfQT0dZR+AlfA@public.gmane.org>
 Subject: Re: Toshiba Satellite 1905S303 DSDT table
-Date: Mon, 3 Nov 2003 10:55:16 +0100
+Date: Mon, 3 Nov 2003 21:13:15 +1100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031103095516.GX21970@poupinou.org>
+Message-ID: <20031103101315.GA2100@deprecation.cyrius.com>
 References: <3FA58FE8.4000409@techisa.srv.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -21,44 +21,33 @@ To: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Nov 02, 2003 at 09:14:48PM -0200, Erico M Mendonca wrote:
-> I'm currently trying to debug the DSDT table of this aforementioned 
+* Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org> [2003-11-02 21:14]:
 > machine, and managed to clear all the errors, except for this one:
-> =================
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
-> Copyright (C) 2000 - 2003 Intel Corporation
-> Supports ACPI Specification Revision 2.0b
-> 
+
 > s303.asl   468:                 If(\_OSI) {
 > Error    1028 -      Too few arguments ^  (\_OSI requires 1)
-> 
 > s303.asl   469:                     "Windows 2001"
 > Error    1037 -                                  ^ parse error, 
-> unexpected PARSEOP_STRING_LITERAL
-> 
-> ASL Input:  s303.asl - 2871 lines, 112889 bytes, 2084 keywords
-> Compilation complete. 2 Errors, 0 Warnings, 0 Remarks, 538 Optimizations
-> ==============
-> 
-> I searched around the web and found only one message stating that 
-> acpidump didn't support the _OSI method yet (late 2002). Did this ever 
-> got solved?
-> 
 
-I remember that acpidmp is no more supported, in favor to iasl.
-acpidmp is now, under F-BSD, a wrapper for iasl, with some little
-goodies, like dumping more infos.  Therefore, I doubt this will
-be corrected.
+I managed to fix this error with the following change:
 
-If you want more info, you should search FreeBSD mailing list (I
-don't remember the correct one, should be -current IIRC).
+--- dsdt.asl.orig	2003-10-25 18:43:53.000000000 +1000
++++ dsdt.asl	2003-10-25 18:47:02.000000000 +1000
+@@ -144,8 +144,7 @@
+         }
+         If(LOr(LEqual(C006, 0x0), LEqual(C006, 0x3))) {
+             If(CondRefOf(\_OSI, Local0)) {
+-                If(\_OSI) {
+-                    "Windows 2001"
++                If(\_OSI ("Windows 2001")) {
+                     Store(0x4, C006)
+                 }
+             }
 
+This is basically in line with some other DSDTs I've seen on the net.
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Martin Michlmayr
+tbm-R+vWnYXSFMfQT0dZR+AlfA@public.gmane.org
 
 
 -------------------------------------------------------
