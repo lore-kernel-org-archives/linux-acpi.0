@@ -1,15 +1,13 @@
-From: Art Haas <ahaas-baQpNawxmjLR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH] Re: Error building
-	drivers/acpi/processor_idle.c in current BK
-Date: Wed, 29 Dec 2004 10:17:52 -0600
-Message-ID: <1104337071.6187.11.camel@localhost.localdomain>
-References: <1104335566.6187.8.camel@localhost.localdomain>
-	 <20041229160708.GA8982@dominikbrodowski.de>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Centrino speedstep
+Date: Wed, 29 Dec 2004 19:18:34 +0100
+Message-ID: <20041229181834.GA19199@poupinou.org>
+References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl> <20041228212653.GA8436@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041229160708.GA8982-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041228212653.GA8436-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,57 +17,109 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-12-29 at 10:07, Dominik Brodowski wrote:
-> On Wed, Dec 29, 2004 at 09:52:46AM -0600, Art Haas wrote:
-> > Hi.
+On Tue, Dec 28, 2004 at 10:26:53PM +0100, Dominik Brodowski wrote:
+> On Tue, Dec 28, 2004 at 09:32:00PM +0100, Johan Vromans wrote:
+> > Hi,
 > > 
-> > I tried building Linus's BK tree this morning using the development
-> > version of GCC. Unfortunately there was a snag when building some of the
-> > acpi files ...
+> > On my Acer Travelmate 4000WLMi, with various 2.6.9 and 2.6.10 kernels
+> > and patch sets, I keep getting the following message:
 > > 
-> > drivers/acpi/processor_idle.c:57: error: static declaration of
-> > ???pm_idle_save??? follows non-static declaration
-> > include/acpi/processor.h:180: error: previous declaration of
-> > ???pm_idle_save??? was here
+> >   speedstep-centrino: invalid ACPI data
+> >   speedstep-centrino: no table support for CPU model "Intel(R) Pentium(R) M processor 1.50GHz": 
 > > 
-> > The files compile without problem in GCC 3.3.
+> > (Some kernels report "Invalid control/status registers" instead of
+> > "invalid ACPI data").
+> > 
+> > My latest attempt was the stock 2.6.10 kernel, with ACPI patch set
+> > acpi-20041210-2.6.10-rc3.diff, and a fixed DSDT. Still no success.
+> > 
+> > Any help is appreciated.
 > 
-> Thanks for reporting this issue. Could you test the attached patch, please?
-> gcc-Version 3.4.3 20041125 (Gentoo Linux 3.4.3-r1, ssp-3.4.3-0, pie-8.7.7)
-> did and does not complain...
+> It looks like your notebook's BIOS does not report sufficient data to the
+> speedstep-centrino cpufreq driver. Does the acpi-cpufreq driver work
+> instead?
 > 
-> 
-> As pm_idle_save is static to processor_idle by now, having it defined
-> differently in processor.h breaks compilation with latest gcc, as noted
-> by Art Haas.
-> 
-> Signed-off-by: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-> ---
-> 
->  include/acpi/processor.h |    1 -
->  1 files changed, 1 deletion(-)
-> 
-> Index: 2.6.10/include/acpi/processor.h
-> ===================================================================
-> --- 2.6.10.orig/include/acpi/processor.h	2004-12-29 17:03:30.742089456 +0100
-> +++ 2.6.10/include/acpi/processor.h	2004-12-29 17:04:02.449441921 +0100
-> @@ -177,7 +177,6 @@
->  /* for communication between multiple parts of the processor kernel module */
->  extern struct acpi_processor	*processors[NR_CPUS];
->  extern struct acpi_processor_errata errata;
-> -extern void (*pm_idle_save)(void);
->  
->  /* in processor_perflib.c */
->  #ifdef CONFIG_CPU_FREQ
 
-Removing this line allows processor_idle.c to compile without problems.
+After looking the DSDT, this laptop do not support the _PDC switch, so
+the cpufreq-centrino driver will not work.  But it should work with the
+acpi io driver though.
 
-Art Haas
+Interresting portion:
 
+    OperationRegion (MNVS, SystemMemory, 0x1FEECE59, 0x60)
+    Field (MNVS, AnyAcc, Lock, Preserve)
+    {
+        ...
+        ...
+        CLNM,   8,
+        ...
+    }
+
+        Scope (_PR)
+    {
+        Processor (CPU0, 0x00, 0x00001010, 0x06)
+        {
+            Name (_PCT, Package (0x02)
+            {
+                ResourceTemplate ()
+                {
+                    Register (SystemIO, 0x08, 0x00, 0x00000000000000B2)
+                },
+
+                ResourceTemplate ()
+                {
+                    Register (SystemIO, 0x08, 0x00, 0x00000000000000B3)
+                }
+            })
+            Method (_PSS, 0, NotSerialized)
+            {
+                If (CLNM)
+                {
+                    Return (CPSS)
+                }
+
+                Return (PPSS)
+            }
+
+            Name (CPSS, Package (0x01)
+            {
+                Package (0x06)
+                {
+                    0x0640,
+                    0x5DC0,
+                    0x0A,
+                    0x0A,
+                    0x89,
+                    0x00
+                }
+            })
+            Name (PPSS, Package (0x05)
+            {
+                ... (follow 5 packages defining the 5 P-states)
+            }
+            })
+            Method (_PPC, 0, NotSerialized)
+            {
+                Return (0x00)
+            }
+        }
+
+
+This also mean there is no way to get the ondemand governor (or any DVS
+requiring low latency driver) to work with this one (unless hardcoding
+a table in the cpufreq-centrino).
+
+There is no _CST also, this means there is no C4 support :(
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
