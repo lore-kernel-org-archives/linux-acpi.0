@@ -1,14 +1,20 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: RE: ACPI -- Workaround for broken DSDT
-Date: Thu, 12 Feb 2004 11:19:57 +0100
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume
+ on Centrino notebook (contains agp, lapic, swsusp)]
+Date: Thu, 12 Feb 2004 12:06:02 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040212101957.GS13262@poupinou.org>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB6@hdsmsx402.hd.intel.com> <1075964148.5017.7.camel@tinny.home.foo> <20040209122256.K74314@root.org>
+Message-ID: <m37jys5zhh.fsf@reason.gnu-hamburg>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB68D@PDSMSX403.ccr.corp.intel.com>
+	<m3smhhakb3.fsf@reason.gnu-hamburg>
+	<20040211123601.GN13262@poupinou.org>
+	<m3smhhycwz.fsf@reason.gnu-hamburg>
+	<20040211175842.GO13262@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; boundary="==-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040209122256.K74314-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <20040211175842.GO13262-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> (Bruno Ducrot's message
+ of "Wed, 11 Feb 2004 18:58:42 +0100")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,52 +23,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-15?q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 09, 2004 at 12:29:45PM -0800, Nate Lawson wrote:
-> On Wed, 4 Feb 2004, Scott T. Smith wrote:
-> > On Wed, 2004-02-04 at 21:15, Brown, Len wrote:
-> > > Windows doesn't have to do anything.  By being first to ship ACPI, that
-> > > implementation provided the defacto ACPI compliance test to which all
-> > > BIOS' are tested -- even if that implementation is not ACPI spec
-> > > compliant.  No, only under dire circumstances will we emulate Windows
-> > > bugs in Linux.
-> >
-> > So basically we shouldn't use ACPI then, and instead use APM?
-> >
-> > If Linux ACPI could emulate the bugs that Windows has, then ACPI would
-> > work on Linux on most platforms right away.  That would make Linux more
-> > accessible to people.  Linux already has a bunch of hacks to support
-> > broken hardware which presumably Windows can work around; this seems to
-> > be just another one of those.
-> 
-> We're doing something slightly different with ACPI on FreeBSD.  We add
-> hacks^Wworkarounds for buggy DSDT whenever possible but they are under a
-> kernel option, #ifndef ACPICA_PEDANTIC.  The default is for this option to
-> give maximum compatibility with the stock DSDT, at the expense of spec
-> correctness.  However, by adding that option and compiling a kernel, OEMs
-> could test against ACPI-CA as a reference implementation while ordinary
-> users get maximum compatibility.
-> 
-> I think the ACPI-CA developers should take a similar tact.  Len, who is on
-> the Linux side, could suggest distribution maintainers use the option that
-> gives maximum Windows compatibility when shipping a distro.  Bob, who is
+--==-=-=
+Content-Type: multipart/mixed; boundary="=-=-="
 
-I strongly discourage that a Linux distribution maintainer will take a kind of
-ownership for qualifiyng that say system is compatible with their
-distro.  For my 'real' work, we have to work with some distribution that
-is somehow 'qualified' for say software, or say hardware driver, even
-though that do not make sense.  For example, if you want to install, and
-qualify, Oracle under Linux, you have *no choice* for the distribution
-to be used.
+--=-=-=
+
+ || On Wed, 11 Feb 2004 18:58:42 +0100
+ || Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote: 
+
+ bd> Perhaps wait for the little ACPI video driver I am currently
+ bd> polishing a little ?  I think it should be OK tomorrow, but I
+ bd> have not tested it throughfully though.
+
+Well, I'll be waiting with my compiler warmed up for that driver... :)
+
+Regards,
+Georg
 
 -- 
-Bruno Ducrot
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+--=-=-=--
+
+--==-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
+
+iD8DBQFAK14abvivwoZXSsoRArHmAJ9LlgKqeXJOaagq9ouqW7q1bzrgRgCfak1H
+33y6iNDrKh8VCyXWeDsESh4=
+=8a8l
+-----END PGP MESSAGE-----
+--==-=-=--
 
 
 -------------------------------------------------------
