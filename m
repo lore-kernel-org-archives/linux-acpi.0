@@ -1,14 +1,12 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: ACPI problem report for Thinkpad X31
-Date: Wed, 4 Feb 2004 22:38:55 +0100
+From: info-HF0vHiRXI/roK6nBLMlh1Q@public.gmane.org
+Subject: S1 stopped working with 2.6.2 on the Inspiron 8600
+Date: Thu, 5 Feb 2004 09:46:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040204213855.GB13743@message-id.gmane0305.slipkontur.de>
-References: <20040204182215.GA1536@woodstock>
+Message-ID: <20040205084614.GA1277@bzzz.elysianfields>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040204182215.GA1536-ee71uUBqhKxaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,19 +18,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 04, 2004 at 07:22:15PM +0100, Daniel Dorau wrote:
- 
-> At this stage, I didn't tried to go to S4.
+Hello!
 
-FIRST try S4. If this works, try S1 (if supported), if this works go on
-and fail on S3.
-This is my experience with a lot (~10 different) machines.
-Even if a machine recovered from S3, there was always something not
-working 100%, or it was dieing sooner or later.
- 
--- 
-Stefan Seyfried
+After my last woe was cured in record time with the help of this list, I try my
+next:
 
+When trying to enter S1 on my notebook (Dell Inspiron 8600/Centrino, kernel:
+Linux 2.6.2), the last message appearing is "PM: Entering state", and the
+notebook is _not_ switched off.
+
+The power LED is blinkig as it would if it were sleeping. but the display is
+still on, displaying the last messages from PM. Pressing the power button
+"resumes" (with the first message "Back to C"), and everyting is working again.
+
+The strange thing is that entering S1 (suspend to RAM) actually worked with
+2.6.0-test11.
+What made it unusable for me was the fact that after resume the ethernet card
+(broadcomm 4400 / b44) would not receive any interrupts, even if the module was
+unloaded before suspend and inserted again after resume.
+
+Any hints welcome.
+
+  Rudi
 
 
 -------------------------------------------------------
