@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Computer Resets on Resume From S3
-Date: Sat, 22 Nov 2003 18:23:52 +0100
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ACPI + Laptop Power Management
+Date: Sat, 22 Nov 2003 19:31:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031122172352.GA265@elf.ucw.cz>
-References: <200311201522.15255.jak97@doc.ic.ac.uk> <200311212333.10341.jak97@doc.ic.ac.uk> <20031122131957.GA1162@atrey.karlin.mff.cuni.cz> <200311221716.10690.jak97@doc.ic.ac.uk>
+Message-ID: <3FBFAB8A.4060001@pca.it>
+References: <C386328088ED7F4E9F81AFBABDDF60DA03386202@wdmyexch02.my.asia.wdc.com> <20031121101232.GL32464@poupinou.org> <3FBDEFB3.3060303@pca.it> <20031121130307.GM32464@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200311221716.10690.jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
+In-Reply-To: <20031121130307.GM32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,50 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> > I've seen something similar before -- it usually meant we left
-> > hardware in "weird" state and it crashed in BIOS.
-> >
-> > Can you add "noapic" first, then turn off all unneccesary drivers? No
-> > SMP, please.
-> > 								Pavel
-> 
-> Hi,
-> 
-> I boot with noapic and also init=/bin/bash so no modules loaded. Same 
-> behaviour. 
-> 
-> My kernel config is at: http://www.doc.ic.ac.uk/~jak97/dsdt/config.gz
-> And the dmesg is: http://www.doc.ic.ac.uk/~jak97/dsdt/dmesg
-> Other info at http://www.doc.ic.ac.uk/~jak97/dsdt
-> 
-> I am running with standard DSDT with relaxed AML checking, however I have also 
-> tried a fixed DSDT previously and that didn't seem to make any difference at 
-> all.
-> 
-> Are there any other useful places I might put an infinite loop?
+Hello,
 
-I do not have better ideas.
+on 11/21/03 14:03, Ducrot Bruno wrote:
+| No need to add a config.  But just echoing to the laptop sysctl is not
+| engough though.  You have to tweak other VM stuff for it to be fully
+| functional.
+The other VM stuffs are included in the 'laptop-mode' scritp, right? I
+mean, the script makes all the work for me when I start it or do I need
+something other?
 
-> What about something to check before the machine goes into S3?
-> 
-> I am compiling for Athlon architecture, do you think I should try
-> i386?
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-That should not make a difference.
+iD8DBQE/v6uJVAp7Xm10JmkRAkRTAJ4xxrZ8K3JZdau3TFAmVnBP5vVqXQCgha7K
++eX76aKEj1F4uUo4g/T3o+Q=
+=eGiy
+-----END PGP SIGNATURE-----
 
-> Could it be a gcc problem? gcc is version 3.3.2.
-
-I do not think gcc could cause this.
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
