@@ -1,45 +1,61 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: Userspace ACPI interpreter ( was RE: [ACPI] [RFC] dev_acpi: support for userspace access to acpi)
-Date: Sun, 31 Oct 2004 22:29:14 +0100
-Message-ID: <20041031212914.GH5578@elf.ucw.cz>
-References: <3ACA40606221794F80A5670F0AF15F84041AC000@pdsmsx403>
+From: Justin Georgeson <justin_georgeson-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Inspiron 2600 with Ubuntu warty
+Date: Sun, 31 Oct 2004 14:39:40 -0800 (PST)
+Message-ID: <20041031223940.38540.qmail@web20027.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261210AbUJaV3f@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC000@pdsmsx403>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>, Alex Williamson <alex.williamson@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+I'm running a fully updated install of Ubuntu Warty on a Dell Inspiron
+2600. The kernel version is 2.6.8.1. ACPI drivers are loading and seem
+to be receiving and handling events. The default configurations from
+Ubuntu have the lid event configured to turn off the display when it is
+closed and back on when the lid is opened, that works fine. I can enter
+S3 by running the command 'echo -n mem > /sys/power/state' and it
+appears to suspend successfully. I don't seem to have any way to resume
+though. If I hit the power button, the configured action is to power
+down, so the laptop resumes and shuts down. I'd like to configure the
+lid events to suspend on close and resume on open. I suppose if I could
+figure that out, I could configure the powerbtn even to resume if
+currently suspended, or shutdown if currently powered up and running.
 
-> >> On IA64 platform, ACPI interpreter seems to be mandatory for those
-> >> stuff, but IA32 is not.  So, the ram disk is the generic solution 
-> >> for loading user space interpreter for boot. 
-> >
-> >In two sentences: If you want to play with moving the interpreter
-> >to user-space, please do so, and do it on ia64, so you have to
-> >deal with the interesting problems.
-> >
-> >And this whole thing is a gigantic tangent that is only distracting
-> >attention from the real question at hand, namely, Alex's dev_acpi
-> >patch, which exists today and enables some very interesting new
-> >functionality.
-> >
-> 
->   Yes, I agree Alex's dev_acpi is interesting, which could result in 
-> the removal of some acpi specific drive such as battery.c, button.c,
-> fan.c, thermal.c ....   So, I raised the question of userspace ACPI 
-> interpreter.  Intuitively, userspace is the right place for interpreter.
+I was under the impression that the 2.6 kernels had a software suspend
+patch included by default. I think Ubuntu's binary kernel packages
+disable it though. I'd like to enable it and get it working. In
+Windows, I can hit Fn+Esc and it will hibernate, so being able to
+enable that in Linux too would be nice.
 
-I do not think you want to put thermal/fan into userspace. If you boot
-machine with init=/bin/bash, you should have working system. System
-without fan fail... fast.
+Last, I'm trying to clean up the DSDT. I got rid of all the errors but
+have one warning left
 
-Plus you want to do suspend/resume.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+dsdt.dsl  2757:                         Name (PBUF, Buffer (0x14)
+Warning  2079 -         Statement is unreachable 
+
+Since it's just a warning, it does compile, but it'd be nice to get a
+clean compile of the DSDT.
+
+
+	
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail - You care about security. So do we.
+http://promotions.yahoo.com/new_mail
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
