@@ -1,10 +1,10 @@
-From: Tod Morrison <tmorriso-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
-Subject: Thermal Shutdown
-Date: Wed, 18 Feb 2004 19:55:22 -0700 (MST)
+From: fredninja-/E1597aS9LRfJ/NunPodnw@public.gmane.org
+Subject: ESTA RECEBENDO MUITO SPAM.
+Date: Thu, 19 Feb 2004 07:31:42 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0402181948540.4376@localhost.localdomain>
+Message-ID: <E1AticP-0000B7-0T@externalmx.vasoftware.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;boundary= "----=_NextPart_000_00F9_5333A442.164C5DD0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,25 +14,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+Date: Thu, 19 Feb 04 04:11:47 Hora oficial do Brasil
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Trying to make the move to 2.6 on my Inspiron 8500, I've played with a 
-number of 2.6 kernels. Twice now I've had my system to a hard (BIOS 
-initiated) thermal shutdown. This only happens with 2.6 kernels 
-(2.6.1-mm?) and (2.6.3_rc3), which I've noticed tend to run much hotter. 
-With 2.4 I rarely see 80C and under heavy load 85C, but with the 2.6 
-kernels I'm usually running at 77C under little load, so I doubt this is 
-some kind of miscalculation. At this point I'm really just looking for 
-suggestions on how to proceed in this investigation: what could it be? 
-what can I test?
+------=_NextPart_000_00F9_5333A442.164C5DD0
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
 
-Tod Morrison <tmorriso-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
-   http://math.cudenver.edu/~tmorriso
-
-  "Everyone thinks of changing the world,
-  but no one thinks of changing himself."
-  - Leo Tolstoy
+QXByZW5kYSBhIHJhc3RyZWFyIGUgY29tbyBtYW5kYXIgZS1tYWlsIGFu9G5pbW9zLg0KDQox
+KSBUZW5obyB0b2RvcyBvcyBwcm9ncmFtYXMgZGUgcmFzdHJlYW1lbnRvIGRlIHNwYW0uDQoy
+KSB0ZW5obyB0b2RvcyBvcyBwcm9ncmFtYXMgcXVlIG9zIHNwYW1tZXIgdXNhbS4NCg0KUGVy
+Z3VudGUgLSBtZSBjb21vIG5vIGUtbWFpbDoNCg0KVGlyZSBzdWFzIGR1dmlkYXMuDQpmcmVk
+bmluamFAeWFob28uY29tLmJyICAgIA==
+------=_NextPart_000_00F9_5333A442.164C5DD0--
 
 
 -------------------------------------------------------
