@@ -1,12 +1,10 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [Patch] keep ide disk sleeping when resuming
-Date: Thu, 3 Feb 2005 00:38:19 +0100
-Message-ID: <20050202233819.GA779@elf.ucw.cz>
-References: <Pine.LNX.4.58.0502022006030.4130@gaston.free.fr>
+From: Simon Walters <simonwal-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Nothing in /proc/acpi/events
+Date: Thu, 03 Feb 2005 14:15:56 +0000
+Message-ID: <4202321C.3060103@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0502022006030.4130-iBKnCo7tEuSksujEA26zIQ@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,27 +14,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Peter =?iso-8859-1?Q?M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, axboe-l3A5Bk7waGM@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, B.Zolnierkiewicz-ZGDBLhmm9VR4rM3dGMyr8Q@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi, I'm running Slackware 10.0 (and have tried others) on a Dell 
+Inspiron 1150. I have got acpi support in my kernel, but when I press 
+the power button or close the lid, nothing shows up in the 
+/proc/acpi/events file. I close acpid and cat the file, then press the 
+button or close the lid, and nothing comes up. What's wrong? I have 
+tried it on the 2.4 and 2.6 kernels and neither work.
 
-> I need this patch (against linux-2.6.11-rc2), to keep ide disk sleeping,
-> when resuming from ACPI S1.
-> 
-> In fact, it's just removing a patch from 22 Jun 2004 by Jens Axboe. He has
-> told me, that "We can probably kill the patch completely".
-> So, this is what I'm doing now.
-
-Are you sure it does not affect S3/S4 in any way? You currently can't
-easily tell S1 from S3/S4... Please wait with this one. When
-pm_message_t is introduced (post 2.6.11), we can fix it properly.
-								Pavel
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Thanks in advance,
+Simon
 
 
 -------------------------------------------------------
