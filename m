@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Enhanced SpeedStep on Asus M2400Ne with Pentium-M Dothan
-Date: Mon, 6 Sep 2004 04:30:44 +0200
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: /proc/acpi/info gone?
+Date: Mon, 06 Sep 2004 11:17:58 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040906023044.GA22049@message-id.gmane0305.slipkontur.de>
-References: <loom.20040906T011917-422@post.gmane.org>
+Message-ID: <1094313867.13825.0.camel@neuromancer.home.net>
+References: <20040831140118.GB11192@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <loom.20040906T011917-422-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
+In-Reply-To: <20040831140118.GB11192-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,27 +17,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Sep 05, 2004 at 11:26:16PM +0000, Tom wrote:
- 
-> I have talked with a few people about this, and I'm still stuck.  Someone said
-> that (by looking at my DSDT) Asus renamed some methods in the DSDT (probably to
-> make their "proprietary" power management technology require special drivers) by
-> one letter (from "_***" to "A***"), but I have no further ideas on how to
-> proceed.  I wouldn't mind either making a custom DSDT (but I wouldn't know what
-> names to change) or editing some files in my copy of the kernel to make it call
-> the "A***" methods instead (same problem), but I'm really stuck.
-> 
-> Any help that anyone could offer would be greatly appreciated.
+On Tue, 2004-08-31 at 22:01, Norbert Preining wrote:
+> Dear ACPI developers!
+>=20
+> Is the file /proc/acpi/info gone with current bk snapshots? I am running
+> 2.6.9-rc1-mm2 kernel and there this file is missing. BUt without it
+> cpufreqd and the gnome2 battery stat applet does not run. They both
+> check for the ACPI version in this file.
 
-Maybe you have to turn the speedstep feature on in the BIOS? Just a guess,
-but i thik i read about some BIOSen which just renamed the corresponding
-methods when the feature was switched off.
--- 
-Stefan Seyfried
+Yeah..same here... it's on 2.6.9-rc1-mm1 though
 
+>=20
+> Best wishes
+>=20
+> Norbert
+>=20
+> -------------------------------------------------------------------------=
+------
+> Norbert Preining <preining AT logic DOT at>         Technische Universit=
+=C3=A4t Wien
+> gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
+5 B094
+> -------------------------------------------------------------------------=
+------
+> The suit into which the man's body had been stuffed looked
+> as if it's only purpose in life was to demonstrate how
+> difficult it was to get this sort of body into a suit.
+>                  --- Douglas Adams, The Hitchhikers Guide to the Galaxy
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by BEA Weblogic Workshop
+> FREE Java Enterprise J2EE developer tools!
+> Get your free copy of BEA WebLogic Workshop 8.1 today.
+> http://ads.osdn.com/?ad_id=3D5047&alloc_id=3D10808&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+--=20
+Ow Mun Heng
+Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel 2.6.8-rc1.mm1.Sept.4=20
+Neuromancer 00:03:56 up 38 min, 2 users, load average: 0.18, 0.22, 0.27=20
 
 
 -------------------------------------------------------
