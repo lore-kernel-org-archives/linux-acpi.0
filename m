@@ -1,10 +1,11 @@
-From: "Michael D. Harnois" <mharnois-K5XHh8l1Aeht1OO0OYaSVA@public.gmane.org>
-Subject: ECDT breaks Thinkpad X22
-Date: 10 Mar 2003 16:24:35 -0600
+From: jack_chen-oDxavuD6NygHrNJx0XZkJA@public.gmane.org
+Subject: About LCD Brightness Control
+Date: Tue, 11 Mar 2003 14:22:34 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1047335075.17696.23.camel@mharnois.mdharnois.net>
+Message-ID: <79FEBAF94044D5119711000255C8544404125C5E@cl-exchange2.cyberlink.com.tw>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="=-d0sRBt1wK+ELxaXWPWrj"
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C2E796.9A546CD0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,161 +18,96 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
---=-d0sRBt1wK+ELxaXWPWrj
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+------_=_NextPart_001_01C2E796.9A546CD0
+Content-Type: text/plain;
+	charset="BIG5"
 
-The 20030228 addition of ECDT breaks ACPI on my Thinkpad X22. (The
-result on 2.4.21-pre4 is the same.)
+Hi
+      I want to develop an application about LCD brightness control in the
+platform of Windows XP SP1.
+As mentioned in online MSDN which released in February 2003, some APIs, like
+IOCTL_VIDEO_QUERY_DISPLAY_BRIGHTNESS and IOCTL_VIDEO_SET_DISPLAY_BRIGHTNESS,
+can be useful for my development. But the outcome of my application is not 
+desired, which means that the APIs may not work correctly. I have no idea to
+solve this problem, so can anyone give me a hand ??
+Thanks a lot !! 
 
-Linux version 2.5.62bk2 (root@michaelh) (gcc version 3.2.3 20030210
-(Debian prerelease)) #7 Wed Feb 19 10:54:28 CST 2003
+Jack
 
-<snip>
+This correspondence is from Cyberlink Corp. and is intended only for use by the recipient named herein, and may contain privileged, proprietary and/or confidential information, and is intended only to be seen and used by named addressee(s). You are notified that any discussion, dissemination, distribution or copying of this correspondence and any attachments, is strictly prohibited, unless otherwise authorized or consented to in writing by the sender. If you have received this correspondence in error, please notify the sender immediately, and please permanently delete the original and any copies of it and any attachment and destroy any related printouts without reading or copying them.
 
-ACPI: RSDP (v002 IBM                        ) @ 0x000f73b0
-ACPI: XSDT (v001 IBM    TP-1D    00000.04736) @ 0x17f705d3
-ACPI: FADT (v001 IBM    TP-1D    00000.04736) @ 0x17f70617
-ACPI: SSDT (v001 IBM    TP-1D    00000.04736) @ 0x17f706cb
-ACPI: ECDT (v001 IBM    TP-1D    00000.04736) @ 0x17f79f87
-ACPI: BOOT (v001 IBM    TP-1D    00000.04736) @ 0x17f79fd8
-ACPI: DSDT (v001 IBM    TP-1D    00000.04736) @ 0x00000000
-ACPI: BIOS passes blacklist
-ACPI: MADT not present
-IBM machine detected. Enabling interrupts during APM calls.
-IBM machine detected. Disabling SMBus accesses.
-Building zonelist for node : 0
-Kernel command line: auto BOOT_IMAGE=Linux ro root=302
-Local APIC disabled by BIOS -- reenabling.
-Found and enabled local APIC!
-Initializing CPU#0
+------_=_NextPart_001_01C2E796.9A546CD0
+Content-Type: text/html;
+	charset="BIG5"
+Content-Transfer-Encoding: quoted-printable
 
-<snip>
-
-ACPI: Subsystem revision 20030122
- tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully
-acquired
-Parsing all Control
-Methods:....................................................
-................................................................................
-................................................................................
-................................................................................
-...........................................................
-Table [DSDT] - 1190 Objects with 58 Devices 351 Methods 18 Regions
-Parsing all Control Methods:
-Table [SSDT] - 0 Objects with 0 Devices 0 Methods 0 Regions
-ACPI Namespace successfully loaded at root c03603bc
-evxfevnt-0092 [04] acpi_enable           : Transition to ACPI mode
-successful
-ACPI: Found ECDT
-ACPI: Could not use ECDT
-evxfevnt-0137 [06] acpi_disable          : ACPI mode disabled
- utalloc-0986 [05] ut_dump_allocations   : No outstanding allocations.
-
---
-Michael D. Harnois
-
-2L, UST School of Law
-              Minneapolis, Minnesota
-"Any movement in history which
-attempts to perpetuate itself,
-becomes reactionary." -- Josip Broz
-Tito
-
---=-d0sRBt1wK+ELxaXWPWrj
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/1.1.8">
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; charset=3DBIG5">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version 5.5.2653.1=
+2">
+<TITLE>About LCD Brightness Control</TITLE>
 </HEAD>
 <BODY>
-<FONT SIZE="3"><TT>The 20030228 addition of ECDT breaks ACPI on my Thinkpad X22. (The result on 2.4.21-pre4 is the same.)<BR>
-<BR>
-Linux version 2.5.62bk2 (root@michaelh) (gcc version 3.2.3 20030210<BR>
-(Debian prerelease)) #7 Wed Feb 19 10:54:28 CST 2003<BR>
-<BR>
-&lt;snip&gt;<BR>
-<BR>
-ACPI: RSDP (v002 IBM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ) @ 0x000f73b0<BR>
-ACPI: XSDT (v001 IBM&nbsp;&nbsp;&nbsp; TP-1D&nbsp;&nbsp;&nbsp; 00000.04736) @ 0x17f705d3<BR>
-ACPI: FADT (v001 IBM&nbsp;&nbsp;&nbsp; TP-1D&nbsp;&nbsp;&nbsp; 00000.04736) @ 0x17f70617<BR>
-ACPI: SSDT (v001 IBM&nbsp;&nbsp;&nbsp; TP-1D&nbsp;&nbsp;&nbsp; 00000.04736) @ 0x17f706cb<BR>
-ACPI: ECDT (v001 IBM&nbsp;&nbsp;&nbsp; TP-1D&nbsp;&nbsp;&nbsp; 00000.04736) @ 0x17f79f87<BR>
-ACPI: BOOT (v001 IBM&nbsp;&nbsp;&nbsp; TP-1D&nbsp;&nbsp;&nbsp; 00000.04736) @ 0x17f79fd8<BR>
-ACPI: DSDT (v001 IBM&nbsp;&nbsp;&nbsp; TP-1D&nbsp;&nbsp;&nbsp; 00000.04736) @ 0x00000000<BR>
-ACPI: BIOS passes blacklist<BR>
-ACPI: MADT not present<BR>
-IBM machine detected. Enabling interrupts during APM calls.<BR>
-IBM machine detected. Disabling SMBus accesses.<BR>
-Building zonelist for node : 0<BR>
-Kernel command line: auto BOOT_IMAGE=Linux ro root=302<BR>
-Local APIC disabled by BIOS -- reenabling.<BR>
-Found and enabled local APIC!<BR>
-Initializing CPU#0<BR>
-<BR>
-&lt;snip&gt;<BR>
-<BR>
-ACPI: Subsystem revision 20030122<BR>
-&nbsp;tbxface-0117 [03] acpi_load_tables&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ACPI Tables successfully<BR>
-acquired<BR>
-Parsing all Control<BR>
-Methods:....................................................<BR>
-................................................................................<BR>
-................................................................................<BR>
-................................................................................<BR>
-...........................................................<BR>
-Table [DSDT] - 1190 Objects with 58 Devices 351 Methods 18 Regions<BR>
-Parsing all Control Methods:<BR>
-Table [SSDT] - 0 Objects with 0 Devices 0 Methods 0 Regions<BR>
-ACPI Namespace successfully loaded at root c03603bc<BR>
-evxfevnt-0092 [04] acpi_enable&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : Transition to ACPI mode<BR>
-successful<BR>
-ACPI: Found ECDT<BR>
-ACPI: Could not use ECDT<BR>
-evxfevnt-0137 [06] acpi_disable&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ACPI mode disabled<BR>
-&nbsp;utalloc-0986 [05] ut_dump_allocations&nbsp;&nbsp; : No outstanding allocations.</TT></FONT><BR>
-<BR>
-<TABLE CELLSPACING="0" CELLPADDING="0" WIDTH="100%">
-<TR>
-<TD>
---
-</TD>
-</TR>
-<TR>
-<TD>
-Michael D. Harnois
-</TD>
-<TD>
-<BR>
-</TD>
-</TR>
-<TR>
-<TD>
-2L, UST School of Law
-</TD>
-<TD ALIGN="right">
-Minneapolis, Minnesota
-</TD>
-</TR>
-<TR>
-<TD COLSPAN="2">
-&quot;Any movement in history which attempts to perpetuate itself, becomes reactionary.&quot; -- Josip Broz Tito
-</TD>
-</TR>
-<TR>
-</TR>
-</TABLE>
 
+<P><FONT SIZE=3D2 FACE=3D"Arial">Hi</FONT>
+<BR><FONT SIZE=3D2 FACE=3D"Arial">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; I want t=
+o develop an application about LCD brightness control in the platform of =
+Windows XP SP1.</FONT>
+<BR><FONT SIZE=3D2 FACE=3D"Arial">As mentioned in online MSDN which relea=
+sed in February 2003, some APIs, like IOCTL_VIDEO_QUERY_DISPLAY_BRIGHTNES=
+S and IOCTL_VIDEO_SET_DISPLAY_BRIGHTNESS</FONT><FONT SIZE=3D2 FACE=3D"Ari=
+al">,</FONT><FONT SIZE=3D2 FACE=3D"Arial"> can be useful for my developme=
+nt. But the outcome of my application is not </FONT></P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">desired, which means that the APIs may n=
+ot work correctly. I have no idea to solve this problem, so can anyone gi=
+ve me a hand ??</FONT></P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Thanks a lot !! </FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Jack</FONT>
+</P>
+
+
+<DIV><FONT face=3DArial size=3D1>   =20
+=20            =20
+=20       =20
+=20            =20
+=20       =20
+=20        =20
+=20           =20
+=20         =20
+=20            =20
+=20    </FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D1>This correspondence is from Cyberlink Co=
+rp. and is=20
+intended only for use by the recipient named herein, and may contain priv=
+ileged,=20
+proprietary and/or confidential information, and is intended only to be s=
+een and=20
+used by named addressee(s). You are notified that any discussion, dissemi=
+nation,=20
+distribution or copying of this correspondence and any attachments, is st=
+rictly=20
+prohibited, unless otherwise authorized or consented to in writing by the=
+=20
+sender. If you have received this correspondence in error, please notify =
+the=20
+sender immediately, and please permanently delete the original and any co=
+pies of=20
+it and any attachment and destroy any related printouts without reading o=
+r=20
+copying them.</FONT><BR></DIV>
 </BODY>
-</HTML>
+</HTML>=
 
---=-d0sRBt1wK+ELxaXWPWrj--
-
+------_=_NextPart_001_01C2E796.9A546CD0--
 
 
 -------------------------------------------------------
