@@ -1,16 +1,9 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: 29 Mar 2004 17:07:42 -0500
+From: virencheck-gGzmnHoxnU56lmGzAMPh1A@public.gmane.org
+Subject: Virenchecker Information
+Date: Tue, 30 Mar 2004 01:58:45 CEST
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080598062.983.3.camel@dhcppc4>
-References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com>
-	 <1080535754.16221.188.camel@dhcppc4>
-	 <20040329052238.GD1276@alpha.home.local>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Message-ID: <200403292359.i2TNx1N19894@mail01.repas.de>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040329052238.GD1276-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,23 +12,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
-Cc: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: jojo-6auRJuvNPyc@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-03-29 at 00:22, Willy Tarreau wrote:
+Dies ist eine automatisch generierte Meldung - auto-generated email .
 
-> > 4. re-implement locks for the 80386 case.
-> 
-> I like this one, but a simpler way : don't support SMP in this case, so that
-> we won't have to play with locks. This would lead to something like this :
+Die Mail mit folgenden Eigenschaften - original mail header :
 
-Linux uses this locking mechanism to coordinate shared access
-to hardware registers with embedded controllers,
-which is true also on uniprocessors too.
+	Subjekt        :  read it immediately
+	Absender / from: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+	Empfänger / to : <jojo-6auRJuvNPyc@public.gmane.org>
+        Path           :
+ Received: from unknown(211.38.110.52) by mail01 via smap (V2.1)
+	id xma019819; Tue, 30 Mar 04 01:58:31 +0200
 
-thanks,
--Len
+wurde nicht weitergeleitet, da sie vermutlich ein oder mehrere Attachment[s]
+mit potentiell gefährlich eingestufter Extension enthält!
+
+Our mail filter rejected this transaction, because of potentially dangerous
+attachments
+
+Für die Bewertung relevanter Abschnitt - reason causing rejection :
+
+<1>		name="word document.pif"
+<2>		filename="word document.pif"
 
 
 
