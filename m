@@ -1,14 +1,12 @@
-From: "Martin J. Bligh" <Martin.Bligh-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Discontig-devel] Cleanup of NUMA support in ACPI
-Date: Wed, 07 Aug 2002 11:11:25 -0700
+From: Sebastian Henschel <s.henschel-TGKKaGbebvyzQB+pC5nmwQ@public.gmane.org>
+Subject: acpi-patch + kernel 2.4.19
+Date: Wed, 7 Aug 2002 23:55:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3980000.1028743885@flay>
-References: <20020807033450.DALTC0A82650.6C9EC293@mvf.biglobe.ne.jp> <200208072001.50565.efocht@ess.nec.de>
+Message-ID: <20020807215528.GA646@enigma.daemon.sh>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200208072001.50565.efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,22 +16,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Erich Focht <efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org>, "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
-Cc: discontig-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> On Tuesday 06 August 2002 20:36, KOCHI, Takayoshi wrote:
->> tristated.  The division is because I'd like to distinguish
->> ACPI-dependent NUMA initialization stuff and
->> others (like SGI or phoney_srat/slit).
-> 
-> SGI definitely uses SLIT/SRAT, too.
+hi folx...
 
-The IBM x440 (ia32 NUMA) uses SRAT too, I believe.
-We will send out patches soon.
+did anyone of you try to install the current acpi-patch to the current
+linux kernel 2.4.19?
 
-M.
+i am very confused, since the structure of the files in linux/drivers/acpi
+seems to have changed enormously. on the other hand, acpi from the original
+kernel still seems to be quite old (output from dmesg):
 
+ACPI: Core Subsystem version [20011018]
+ACPI: Subsystem enabled
+
+well, and as you can see, acpi claims to be enabled. but there is no
+/proc/acpi to be found. even with the stock 2.4.18 a couple of months ago,=
+=20
+i had at least something in there.
+
+any insights?
+
+cheers,
+ sebastian
+
+p.s.: please cc: me or group-reply, i am not on the list, so far.
+--=20
+::: sebastian henschel
+::: code scrambler
+::: - OpenPGP compliant key available
 
 
 -------------------------------------------------------
