@@ -1,17 +1,13 @@
-From: Pavel Vondricka <Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org>
-Subject: Re: Freezing more and more (Gericom Supersonic M6T)
-Date: Fri, 7 Mar 2003 23:09:59 -0100
+From: "Holger W." <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Subject: problems with PRT and PCI routing table
+Date: Sat, 8 Mar 2003 01:51:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200303072309.59986.Pavel.Vondricka@ff.cuni.cz>
-References: <200303041529.11172.Pavel.Vondricka@ff.cuni.cz> <20030307111853.GD18420@atrey.karlin.mff.cuni.cz> <20030307150045.GQ12499@poup.poupinou.org>
-Reply-To: Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org
+Message-ID: <000501c2e50c$d43b2790$0200a8c0@brutzler>
+Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0006_01C2E515.35FF8F90"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030307150045.GQ12499-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,49 +16,130 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, it is a winmodem (ltmodem) and it has been OK all the time. I would 
-suspect the HostAP WiFi driver, which usually has problems - our WiFi router 
-locked up lately and there is surely no ACPI in the kernel. But the problem 
-often remains even though I do not use (insert) the card and the driver 
-module is not loaded.
+This is a multi-part message in MIME format.
 
-Pavel
+------=_NextPart_000_0006_01C2E515.35FF8F90
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-> On Fri, Mar 07, 2003 at 12:18:53PM +0100, Pavel Machek wrote:
-> > Hi!
-> >
-> > > > > Could you at least not tell me, if this is a hardware or a software
-> > > > > problem of ACPI, please? Should I ask for warranty repair of my
-> > > > > notebook (I still have one year, I believe) or just patiently wait
-> > > > > for another ACPI patch releases? Can I send you more debug info,
-> > > > > how?
-> > > >
-> > > > Try it without acpi, if it still locks randomly, blame hardware, else
-> > > > blame acpi.
-> > > > 									Pavel
-> > >
-> > > He said he *need* acpi for irq routing.  I guess his bios is legacy
-> > > free.
-> >
-> > He said he needs it for things like sound and modem. That should still
-> > enable him to run some stress test (make -j?) without it.
->
-> Correct.  But then we can not determine if the problem come from ACPI, or
-> from one of his devices (Hey, we don't know what is his modem.  If it is
-> a win one with a propritary driver..).
+Hi everybody,
 
--- 
-###########################################################################
-# mailto:Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org / ICQ:143159880 
-# http://web.ff.cuni.cz/~vondric
-#
-# Muzete mi psat cesky s libovolnym kodovanim (UTF-8, ISO-8859-2,
-# windows-1250, atd. ...)
-###########################################################################
+I've got some serious problems with ACPI and the IRQ mapping for my =
+devices. (look at my
+postings "mpparse.c APIC/ACPI support" and "APIC, USB mouse and =
+errors").
+It seems that not all devices get the IRQs they should regarding the PRT =
+table. I've verified it
+and it seems that the table is all right (attachment "PRT_table.txt"). =
+Especially the devices
+00:00:10, 00:00:11 and 00:00:12 which point to "\_SB_.PCI0.ALKx[0]" =
+(x=3DA..D) don't get the
+interrupts they should regarding the table.
+
+There's perhaps a problem in "acpi_pci_link_add" (pci_link.c), because =
+the function returns ...
+
+<4>ACPI: PCI Interrupt Link [ALKA] (IRQs 20, disabled)
+<4>ACPI: PCI Interrupt Link [ALKB] (IRQs 21, disabled)
+<4>ACPI: PCI Interrupt Link [ALKC] (IRQs 22, disabled)
+<4>ACPI: PCI Interrupt Link [ALKD] (IRQs 23, disabled)
+
+... or "acpi_pci_link_get_current" (pci_link.c) has got a problem ? ...
+
+<4>pci_link-0252 [18] acpi_pci_link_get_curr: No IRQ resource found
+<4>pci_link-0252 [20] acpi_pci_link_get_curr: No IRQ resource found
+<4>pci_link-0252 [22] acpi_pci_link_get_curr: No IRQ resource found
+<4>pci_link-0252 [24] acpi_pci_link_get_curr: No IRQ resource found
+
+I don't know which function I should "blame" - I only know that =
+everything works fine for LNKA-D
+but not for ALKA-D:
+
+<4>ACPI: PCI Interrupt Link [LNKA] (IRQs 1 3 4 5 6 7 10 *11 12 14 15)
+<4>ACPI: PCI Interrupt Link [LNKB] (IRQs 1 3 4 5 6 7 *10 11 12 14 15)
+<4>ACPI: PCI Interrupt Link [LNKC] (IRQs 1 3 4 5 6 7 10 11 *12 14 15)
+<4>ACPI: PCI Interrupt Link [LNKD] (IRQs 1 3 4 5 6 7 10 11 12 *14 15)
+
+So this causes a lot of linked errors. First of all I get a lot of =
+"<7>Pin 2-xx already
+programmed" (mp_parse_prt / mpparse.c) messages. Next, =
+"acpi_pci_irq_lookup" (pci_irq.c) fails
+because it can't find the PRT entries and "acpi_pci_link_get_irq", =
+"acpi_pci_irq_lookup" and
+"acpi_pci_irq_derive" also fail.
+And finally "eisa_set_level_irq" is not called in "acpi_pci_irq_enable" =
+which results in
+non-functional devices which require a "level" trigger mode.
+
+So could one of the hardware experts pleeeeease help me ???
+
+MANY MANY MANY THANKS in advance,
+
+HOLGER W.
+
+P.S.: if you need more information about my boot messages or sth. =
+similar - feel free to ask for
+it !!!
+
+------=_NextPart_000_0006_01C2E515.35FF8F90
+Content-Type: text/plain;
+	name="PRT_table.txt"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="PRT_table.txt"
+
+<7>ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]=0A=
+<4>PRT entry:   00:00:08[A] -> [16]=0A=
+<4>PRT entry:   00:00:08[B] -> [17]=0A=
+<4>PRT entry:   00:00:08[C] -> [18]=0A=
+<4>PRT entry:   00:00:08[D] -> [19]=0A=
+<4>PRT entry:   00:00:09[A] -> [17]=0A=
+<4>PRT entry:   00:00:09[B] -> [18]=0A=
+<4>PRT entry:   00:00:09[C] -> [19]=0A=
+<4>PRT entry:   00:00:09[D] -> [16]=0A=
+<4>PRT entry:   00:00:0A[A] -> [18]=0A=
+<4>PRT entry:   00:00:0A[B] -> [19]=0A=
+<4>PRT entry:   00:00:0A[C] -> [16]=0A=
+<4>PRT entry:   00:00:0A[D] -> [17]=0A=
+<4>PRT entry:   00:00:0B[A] -> [19]=0A=
+<4>PRT entry:   00:00:0B[B] -> [16]=0A=
+<4>PRT entry:   00:00:0B[C] -> [17]=0A=
+<4>PRT entry:   00:00:0B[D] -> [18]=0A=
+<4>PRT entry:   00:00:0C[A] -> [18]=0A=
+<4>PRT entry:   00:00:0C[B] -> [19]=0A=
+<4>PRT entry:   00:00:0C[C] -> [16]=0A=
+<4>PRT entry:   00:00:0C[D] -> [17]=0A=
+<4>PRT entry:   00:00:0D[A] -> [19]=0A=
+<4>PRT entry:   00:00:0D[B] -> [16]=0A=
+<4>PRT entry:   00:00:0D[C] -> [17]=0A=
+<4>PRT entry:   00:00:0D[D] -> [18]=0A=
+<4>PRT entry:   00:00:0E[A] -> [17]=0A=
+<4>PRT entry:   00:00:0E[B] -> [18]=0A=
+<4>PRT entry:   00:00:0E[C] -> [19]=0A=
+<4>PRT entry:   00:00:0E[D] -> [16]=0A=
+<4>PRT entry:   00:00:10[A] -> \_SB_.PCI0.ALKB[0]=0A=
+<4>PRT entry:   00:00:10[B] -> \_SB_.PCI0.ALKB[0]=0A=
+<4>PRT entry:   00:00:10[C] -> \_SB_.PCI0.ALKB[0]=0A=
+<4>PRT entry:   00:00:10[D] -> \_SB_.PCI0.ALKB[0]=0A=
+<4>PRT entry:   00:00:11[A] -> \_SB_.PCI0.ALKA[0]=0A=
+<4>PRT entry:   00:00:11[B] -> \_SB_.PCI0.ALKB[0]=0A=
+<4>PRT entry:   00:00:11[C] -> \_SB_.PCI0.ALKC[0]=0A=
+<4>PRT entry:   00:00:11[D] -> \_SB_.PCI0.ALKD[0]=0A=
+<4>PRT entry:   00:00:01[A] -> [16]=0A=
+<4>PRT entry:   00:00:01[B] -> [17]=0A=
+<4>PRT entry:   00:00:01[C] -> [18]=0A=
+<4>PRT entry:   00:00:01[D] -> [19]=0A=
+<4>PRT entry:   00:00:12[A] -> \_SB_.PCI0.ALKD[0]=0A=
+<4>PRT entry:   00:00:12[B] -> \_SB_.PCI0.ALKD[0]=0A=
+<4>PRT entry:   00:00:12[C] -> \_SB_.PCI0.ALKD[0]=0A=
+<4>PRT entry:   00:00:12[D] -> \_SB_.PCI0.ALKD[0]=0A=
+
+------=_NextPart_000_0006_01C2E515.35FF8F90--
+
 
 
 -------------------------------------------------------
