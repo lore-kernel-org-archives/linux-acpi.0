@@ -1,13 +1,12 @@
-From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
-Subject: Re: [patch 11/12] new sony_acpi driver
-Date: Thu, 3 Mar 2005 10:27:25 +0100
-Message-ID: <20050303092725.GA3346@crusoe.alcove-fr>
+From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
+Subject: Re: Re: [patch 11/12] new sony_acpi driver
+Date: Thu, 03 Mar 2005 10:34:04 +0100
+Message-ID: <1109842444.4866.16.camel@nouse.net>
 References: <F7DC2337C7631D4386A2DF6E8FB22B3002E2E026@hdsmsx401.amr.corp.intel.com>
-Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+	 <20050303092725.GA3346@crusoe.alcove-fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3002E2E026-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-e1VljC6/KftomvbjYoQh"
+In-Reply-To: <20050303092725.GA3346-KwDxFO93HejPHUqn3ntIkQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,51 +16,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 02, 2005 at 05:37:44PM -0500, Brown, Len wrote:
 
-> >But still, I don't see why there is no place for a sony acpi somewhere
-> >where there are already drivers for ibm, toshiba and asus laptops.
-> 
-> The goal is to DELETE ibm, toshiba, and asus drivers -- or at least the
-> duplicated functions in them.
+--=-e1VljC6/KftomvbjYoQh
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Did you look at the code in those drivers ? There is no way you can
-delete them because each of them is very specific in the functionalities
-it offers and the way to achieve it.
+Hi,
 
-Sure, for basic stuff like the brightness you can hope to have a 
-common code (like video.c today). It may even work on future laptops.
-But it won't work on older (todays) laptops (I'm not sure about the
-other brands, but it won't work on Sony Vaios). And even if when it
-works it won't do everything because vendors will always implement
-extensions.
+On Thu, 2005-03-03 at 10:27 +0100, Stelian Pop wrote:
+>Did you look at the code in those drivers ? There is no way you can
+>delete them because each of them is very specific in the functionalities
+>it offers and the way to achieve it.
+>
+>Sure, for basic stuff like the brightness you can hope to have a=20
+>common code (like video.c today). It may even work on future laptops.
+>But it won't work on older (todays) laptops (I'm not sure about the
+>other brands, but it won't work on Sony Vaios). And even if when it
+>works it won't do everything because vendors will always implement
+>extensions.
 
-And you can choose to either not have access to those extensions
-under Linux (which sucks) or have platform specific drivers.
+Since the function implementations vary but their purpose is the same it
+would be possible by creating generic wrapper functions (hotkey
+implementation, trigger common hardware functions like fan,
+bluetooth...).  I'm not sure which way would be the best to cover laptop
+specific functions which are not covered by the generic wrapper
+functions.
 
-> platform specific drivers make it harder, not easier, to support more
-> hardware -- there are a zillion vendors out there, implementing special
-> drivers for each of them is a strategy of last resort.
+[...]
+>
+>Stelian.
 
-There are hardly "a zillion vendors" in the laptop market. I'd say
-that IBM + HP + Sony + Toshiba + Dell form 90+ % of the market.
+See you,
 
-> >I attached to the bugzilla entry the DSDTs for two Vaio laptops, which
-> >should hopefuly prove that those laptops do not support the standard
-> >ACPI way to access the video. Did you look at them ?
-> 
-> thanks for filing the bug, it is in the queue.
+  -- Timo
 
-The point of the question was to point out that I've already provided
-proof that Vaios do not support standard ACPI video methods.
+..............................................................
+Timo H=F6nig <thoenig at nouse dot net>
+..................................................:: gpg ::...
+Fingerprint: 0998 0ACA A1D2 2612 4D96 DD8B E03F 084B B305 4066
 
-Stelian.
--- 
-Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+--=-e1VljC6/KftomvbjYoQh
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBCJtoL4D8IS7MFQGYRAg81AKCBwFNz7t4hPTO5BYcnVgp0tPDqkgCeM3J7
+W+5xrcGfhItx/r+5cJBnDs8=
+=mzFb
+-----END PGP SIGNATURE-----
+
+--=-e1VljC6/KftomvbjYoQh--
+
 
 
 -------------------------------------------------------
