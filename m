@@ -1,12 +1,14 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: possible IDE/fs corruption while playing w/ ACPI?
-Date: Sun, 16 Nov 2003 23:55:27 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Crash with fs corruption on 2.4.23-rc1 + CONFIG_ACPI_PROCESSOR
+Date: Mon, 17 Nov 2003 14:18:00 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031116235527.077b493f.subscript@free.fr>
+Message-ID: <20031117131800.GQ32464@poupinou.org>
+References: <20031113161857.GM26911@roosevelt.alcove-fr> <20031114124713.GK32464@poupinou.org> <20031114152403.GK29316@roosevelt.alcove-fr> <20031115065020.GO32464@poupinou.org> <20031115134811.GA2630@hottah.alcove-fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031115134811.GA2630-Snhs3Gxj9njPHUqn3ntIkQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,31 +17,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi acpi folks,
+On Sat, Nov 15, 2003 at 02:48:11PM +0100, Stelian Pop wrote:
+> On Sat, Nov 15, 2003 at 07:50:20AM +0100, Ducrot Bruno wrote:
+> 
+> > I think the trouble come from C3, just need to check some values.  If you
+> > can, it may be usefull that you disable C3, with something like that:
+> > 
+> > +		acpi_fadt.plvl3_lat = 1234;
+> 
+> And the patch works, your assumption was correct. 
+> 
+> Now, C3 seem to be reported as supported, 2.6 (correctly) doesn't
+> promote to it, but 2.4 does. I can't find an obvious reason by reading
+> the processor.c code (almost identical between 2.4/2.6...)
+
+No, 2.6 have some trouble, I guess, because C3 should be promoted.  I guess
+you are using a USB bridge driver, which need to be rewrotten somehow, because
+it does a lot of DMA transfers just to check if a device is plugged..
+That affect all USB driver, but not EHCI IIRC.
+
+> The only 'strange' thing I see in /proc/acpi/processor/CPU0/power
+> (different wrt the 2.6 data I posted earlier) is the 'bus mastering 
+> activity' field:
+> 	active state:            C2
+> 	default state:           C1
+> 	bus master activity:     00000000
+> 	states:
+> 	    C1:                  promotion[C2] demotion[--] latency[000] usage[00000340]
+> 	   *C2:                  promotion[--] demotion[C1] latency[003] usage[00034161]
+> 	    C3:                  <not supported>
+
+Well, by putting the line, the system think that C3 is no more supported,
+which then imply this output.  So that is 'normal'.
 
 
-I wonder if playing w/ ACPI can lead to IDE/ext3 corruption.
+Now, I have to look if the integrated northbridge is correctly configured, with
+your previous output.  Thanks.
 
-I'm using SuSE 8.1 on my Dell Inspiron 8200, default SuSE 2.4.19-4GB
-kernel (acpi 20020829). I've compiled 2.4.22 vanilla and 2.4.22 + latest
-ACPI code + latest ieee1394, and got IDE faults that lead to ext3 corruption
-when (re)booting to those 2.4.22 kernels, in different ACPI modes (w/ or
-w/o batteries, power supply).
-
-That's why I'm trying to figure out what element (kernel, acpi, ieee1394,
-SuSE stuff, Dell hardware/BIOS) is leading to such IDE errors and to fs
-data loss.
-
-Any thought about such problems or maybe how to investigate?
-
-
-Regards,
+Cheers,
 
 -- 
-wwp
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
