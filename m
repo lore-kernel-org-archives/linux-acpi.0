@@ -1,14 +1,23 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: Missing acpi-20050101-2.6.10 patch?
-Date: Fri, 7 Jan 2005 09:56:05 +0100
-Message-ID: <20050107085605.GA19136@fuchi>
-References: <1105040016.11930.11.camel@sponge.fungus>
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: Re: Centrino speedstep
+Date: Fri, 7 Jan 2005 10:20:14 +0000
+Message-ID: <16862.25182.567350.575532@aber.ac.uk>
+References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
+	<20041228212653.GA8436@dominikbrodowski.de>
+	<20041229181834.GA19199@poupinou.org>
+	<41D42E88.5080800@mega.ist.utl.pt>
+	<m2llbfk931.fsf@phoenix.squirrel.nl>
+	<41D43A9F.5050507@mega.ist.utl.pt>
+	<16852.15668.315630.700537@phoenix.squirrel.nl>
+	<41D4AA9F.7080200@mega.ist.utl.pt>
+	<20041231082524.GA8312@dominikbrodowski.de>
+	<16861.5376.560582.314813@aber.ac.uk>
+	<20050106161440.GD10011@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1105040016.11930.11.camel-7g89Hwo0MwsWlyYapE9R8Q@public.gmane.org>
+In-Reply-To: <20050106161440.GD10011-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,61 +27,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Dominik Brodowski writes:
+ > On Thu, Jan 06, 2005 at 10:37:52AM +0000, Fred Labrosse wrote:
+ > > Dominik Brodowski writes:
+ > >  > On Fri, Dec 31, 2004 at 01:25:51AM +0000, Pedro Venda wrote:
+ > >  > > also, how exactly can I use ACPI throttling? because with the speestep 
+ > >  > > driver, I can't go below 600MHz, but 12% of maximum frequency is 180MHz 
+ > >  > > which I can reach using ACPI throttling.
+ > >  > 
+ > >  > but throttling doesn't save you anything.
+ > >  > 
+ > > 
+ > > Well, it makes it run slightly cooler, so saves on fan power.  Or am I
+ > > mistaken?
+ > If there is indeed a correlation with the fan power, indeed. Usually this
+ > isn't the case, and then it doesn't matter at all.
+ > 
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+How can it not be the case that there is correlation between the two?  The
+processor produces heat (less if throttling down, right?) and the fan
+extracts heat from the inside of the machine.
 
-hello Henrik..
+Or there is something I'm utterly missing here (?).
 
-* Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org> [2005-01-07 09:45 +0100]:
->=20
-> A new release of the acpi patch dating 2005-01-01 was announced at
-> http://acpi.sf.net, but it is not present in the download directory at
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2=
-=2E6.10/
->=20
-> The latest patch available at the above mentioned ftp site is dated
-> 2004-12-10 and doesn't contain any patch - only a ChangeSet list.
->=20
-> Where can I find the lastest ACPI patch?
+Fred
 
-acpi-20050101-2.6.10 does not exist. the date given in that filename is
-not the date of the release of the patch but the date of the release of
-the ACPI-CA implemented by that patch. besides the latest ACPI-CA, a
-patch also includes Linux-specific code. please correct me, if i am
-wrong, Len. :)
-Len released yet another patch yesterday, go download:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6=
-=2E10/acpi-20041210-2.6.10.diff.bz2
-
-hth,
- Sebastian
---=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFB3k6lreHfL3pi+bQRAluTAJ9wx1yDmfC4NgfkI23vrkD5+4O88wCfaORb
-ynSQaxV5YkWQ/oV/YaG2aec=
-=HRys
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
 
 
 -------------------------------------------------------
