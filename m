@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Compaq 1700, 2.4.18, acpi-7,24 - SUCCESS (I think)
-Date: Fri, 16 Aug 2002 10:58:40 +0200
+Subject: Re: ACPI, klaptopdaemon patch - battery status in KDE3
+Date: Fri, 16 Aug 2002 11:59:20 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020816085840.GD10248@poup.poupinou.org>
-References: <15706.48376.457358.298696@chaos.crhc.uiuc.edu> <Pine.GSO.4.21.0208142004370.16304-100000@sediment.umd.edu>
+Message-ID: <20020816095920.GG10248@poup.poupinou.org>
+References: <20020815001634.36933.qmail@web14203.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.21.0208142004370.16304-100000-Bq+f90TzBY23n+kRt3O4EA@public.gmane.org>
+In-Reply-To: <20020815001634.36933.qmail-Km5/rSCkvXWA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
-Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "H. Brunsting" <h_brunsting-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 14, 2002 at 08:18:23PM -0400, Prabhakar Reddy Gudla Venkata Siva wrote:
-> Hi list,
+On Wed, Aug 14, 2002 at 05:16:34PM -0700, H. Brunsting wrote:
+> Hello,
 > 
-> Graham, nice to see that I am not all alone :) I too have the same status
-> with the acpi-20020726 patch on a similar model (mine is 1720US).
+> Just some information from a user experience:
 > 
-> However, my kernel just keeps repeating "schedule_task(): kevent has not
-> started" after the alleged two "PCI Interrupt Link enabled" statements. It
-> never freezes.
+> I installed acpi on my Sony Vaio Laptop, and my
+> /proc/acpi system was
+> working fine - I could read most things using the
+> 'cat' command. However,
+> the Power Control settings tab in KDE 3 still reported
+> acpi to be installed,
+> but missing modules for batteries and ac-adapters. I
+> patched klaptopdaemon
+> using Robert Parrott's patch
+> (http://www.fas.harvard.edu/~parrott/klaptopdaemon-portable.cpp.diff),
 
-The only case I see for such bug (the schedule_task(): kevent...) is to
-call osl::acpi_os_queue_for_execution(), but keventd is not started
-at this stage.  I think that one _STA function, or one _INI function
-did a 'Notify', so that osl::acpi_os_queue_for_execution() is called.
+[...]
+
+This is a bug to klaptopdaemon.  ACPI don't state that an
+AC adapter must be named 'AC'.  You can call it 'FOO' if
+you want.  This bug should be also addressed to the maintainer of
+klaptopdaemon, not here.
 
 -- 
 Ducrot Bruno
