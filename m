@@ -1,60 +1,47 @@
-From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Subject: Re: PROBLEM: LCD display dead after ACPI suspend to RAM (S3)
-Date: Thu, 22 Jan 2004 20:09:46 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3llnz4x6t.fsf@reason.gnu-hamburg>
-References: <m3hdyo2kce.fsf@reason.gnu-hamburg>
-	<20040122140155.GC5194@hell.org.pl>
-	<m3d69cj8hb.fsf@reason.gnu-hamburg>
-	<1074790450.1585.4.camel@darkstar.portugal>
-	<m3ad4fdi02.fsf@reason.gnu-hamburg>
-	<1074792345.1581.8.camel@darkstar.portugal>
-	<m3brov96ns.fsf@reason.gnu-hamburg>
-	<1074797130.1585.19.camel@darkstar.portugal>
+From: Linus Torvalds <torvalds@osdl.org>
+Subject: RE: [ACPI] Re: PROBLEM: ACPI freezes 2.6.1 on boot
+Date: Thu, 22 Jan 2004 11:05:37 -0800 (PST)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.58.0401221044440.2172@home.osdl.org>
+References: <88056F38E9E48644A0F562A38C64FB6082D0B8@scsmsx403.sc.intel.com>
+ <16400.6262.97863.651276@alkaid.it.uu.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1074797130.1585.19.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
- =?iso-8859-15?q?=28S=E9rgio?= Monteiro Basto's message of "22 Jan 2004 18:45:30 +0000")
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-15?q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+In-Reply-To: <16400.6262.97863.651276@alkaid.it.uu.se>
+To: Mikael Pettersson <mikpe@csd.uu.se>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Karol Kozimor <sziwan@hell.org.pl>, "Georg C. F. Greve" <greve@gnu.org>, "Nakajima, Jun" <jun.nakajima@intel.com>, Martin Loschwitz <madkiss@madkiss.org>, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
- || On 22 Jan 2004 18:45:30 +0000
- || S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org> wrote:=20
-
- smb> well compile the kernel without any ACPI modules, compile all
- smb> ACPI stuff in the kernel.img .  Say Y to all that you used has
- smb> modules (M) in kernel configuration (make xconfig).
-
-??????
-
-I'm not sure I understand what you are trying to tell me.
-
-As I wrote: I compiled all the ACPI stuff into the kernel, only for
-acpi4asus CVS that wasn't possible because I wasn't sure how to
-properly integrate that into the kernel tree.
-
-Regards,
-Georg
-
---=20
-Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
 
 
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
+On Thu, 22 Jan 2004, Mikael Pettersson wrote:
+> 
+> To handle both cases the code should do one of those "is intergrated"
+> tests we alreay have several of in apic.c. I can fix that, but not
+> until tomorrow.
+
+Even then I'd like to hear _why_ it would be a problem to bypass the
+divider on an external LAPIC. The original patch comes with a message
+explicitly saying that it was never even tested on such an external LAPIC, 
+and doing a google newsgroup search doesn't find any replies to that
+post.
+
+So it's entirely possible that the code was bogus to begin with, and just 
+never mattered..
+
+I actually have some really old Intel manuals, including one for the
+i82489DX (actually, it's just one part of a "Pentium Processors and
+Related Products" manual). And while I see the register definition (and 
+yes, it documents the CLKIN/TMBASE/DIVIDER usage), I don't see anything 
+that actually says that you shouldn't just use CLKIN.
+
+Do we have any real reason to care? We calculate the counter value
+dynamically anyway, so the only "bug" might be that on one of those old
+i82489DX machines we might report a frequency value that is off by a
+factor of 16. Which should just make the user really happy ("cool, my APIC
+is running at 256 MHz!").
+
+Hmm?
+
+			Linus
