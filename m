@@ -1,12 +1,12 @@
-From: "Oliver Schindler" <o.schindler-hi6Y0CQ0nG0@public.gmane.org>
-Subject: unable to locate RSDP
-Date: Mon, 1 Nov 2004 21:14:50 +0100
-Message-ID: <E1COiUc-00019j-Un@sc8-sf-mx1.sourceforge.net>
-Reply-To: o.schindler-hi6Y0CQ0nG0@public.gmane.org
+From: =?iso-8859-1?Q?=22Mu=F1oz_Palominos=2C_C=E9sar_Augusto=22?= <cmunoz-5Pqk3ILGH6LDOSKQz1NZ6A@public.gmane.org>
+Subject: my fan is out of control
+Date: Mon, 1 Nov 2004 16:45:26 -0600
+Message-ID: <50FB070ED07CEC41AF20807CD870D0193032C2@coyuca.corp.yoli.com.mx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C4C064.7AFA1C01"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,74 +19,201 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi there,
-I'm running an emmbedded board EMCore v611 from Arbor.
-It contains a VIA VT82c686B chipset and an Award Bios.
-I compiled a 2.6.8 Kernel with the stable-acpi-patch from 15-10-
-2004.
+This is a multi-part message in MIME format.
 
-But all i get on boot time is: "ACPI: unable to locate RSDP"
-The documentation of the board says, that APM and ACPI 
-(doze/standby/suspend) are supported.
+------_=_NextPart_001_01C4C064.7AFA1C01
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-I also tried to several kernel-paramters like acpi=chipset or 
-acpi=table without any success.
+With my computer, when it is turned on, there will be a loud whirring =
+noise during the BIOS loading and when Windows starts loading. But when =
+I get to the login screen for Windows, the whirring stops.=20
+=20
+While running linux (Debian, Red Hat, Suse, Knoppix, etc), however, the =
+whirring never stops and continues until I shut off the computer.
 
-I also changed the "acpi_find_rsdp()" function in the tables.c to
-"acpi_tb_find_rsdp(...)" , but the results stays the same.
+The whirring noise I later found was the fan. Does anybody know how to =
+remedy this problem?=20
+Please help me!=20
+=20
+My computer is Sony Vaio DESKTOP (PCV-RX74), Pentium 4 processor 1.8 =
+ghz., 128 mb ram.
+=20
+=20
 
-I contacted the manufacture of the board for a bios update,
-but they didn't answered me at all.
+------_=_NextPart_001_01C4C064.7AFA1C01
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-So maybe anyone of you knows help ? Maybe i can modify the
-acpi_find_rsdp() - function to scan other areas ?  
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
 
-So thanks in advance and c.u.
-
-Oliver
-
-Some of the bootup messages:
-----------------------------------
-Oct 30 01:06:37  kernel: Linux version 2.6.8 (root@linux) (gcc 
-version 2.95.3 20010315 (SuSE)) #16 Sat Oct 30 01:04:33 CEST 
-2004
-Oct 30 01:06:37 kernel: BIOS-provided physical RAM map:
-Oct 30 01:06:37 kernel:  BIOS-e820: 0000000000000000 - 
-00000000000a0000 (usable)
-Oct 30 01:06:37 kernel:  BIOS-e820: 00000000000f0000 - 
-0000000000100000 (reserved)
-Oct 30 01:06:37 kernel:  BIOS-e820: 0000000000100000 - 
-0000000007c00000 (usable)
-Oct 30 01:06:37 kernel:  BIOS-e820: 0000000007c00000 - 
-0000000008000000 (reserved)
-Oct 30 01:06:37  kernel:  BIOS-e820: 00000000ffff0000 - 
-0000000100000000 (reserved)
-Oct 30 01:06:37 kernel: 124MB LOWMEM available.
-Oct 30 01:06:37 kernel: On node 0 totalpages: 31744
-Oct 30 01:06:37 kernel:   DMA zone: 4096 pages, LIFO batch:1
-Oct 30 01:06:37 kernel:   Normal zone: 27648 pages, LIFO batch:6
-Oct 30 01:06:37 kernel:   HighMem zone: 0 pages, LIFO batch:1
-Oct 30 01:06:37 kernel: DMI not present.
-Oct 30 01:06:37 kernel: ACPI: Unable to locate RSDP
-Oct 30 01:06:37 kernel: Built 1 zonelists
-Oct 30 01:06:37 kernel: Kernel command line: load_ramdisk=1 
-initrd=rootfs.gz root=/dev/ram0 boot=/dev/hdc1 acpi=tables 
-apm=off BOOT_IMAGE=kernel 
-Oct 30 01:06:37 kernel: Initializing CPU#0
-
-...
-
-Oct 30 01:06:37 kernel: ACPI: Subsystem revision 20041015
-Oct 30 01:06:37 kernel: ACPI: Interpreter disabled.
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Diso-8859-1">
 
 
-------------------------------------------------------------------------
-Every program has at least one bug and can be shortened by at least one
-instruction -- from which, by induction, one can deduce that every
-program can be reduced to one instruction which doesn't work.
+<meta name=3DProgId content=3DWord.Document>
+<meta name=3DGenerator content=3D"Microsoft Word 10">
+<meta name=3DOriginator content=3D"Microsoft Word 10">
+<link rel=3DFile-List href=3D"cid:filelist.xml-N/GyEEeForHtDuv7mPfkVzRmByFHzeGd@public.gmane.org">
+<!--[if gte mso 9]><xml>
+ <o:OfficeDocumentSettings>
+  <o:DoNotRelyOnCSS/>
+ </o:OfficeDocumentSettings>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:SpellingState>Clean</w:SpellingState>
+  <w:GrammarState>Clean</w:GrammarState>
+  <w:DocumentKind>DocumentEmail</w:DocumentKind>
+  <w:HyphenationZone>21</w:HyphenationZone>
+  <w:EnvelopeVis/>
+  <w:Compatibility>
+   <w:BreakWrappedTables/>
+   <w:SnapToGridInCell/>
+   <w:WrapTextWithPunct/>
+   <w:UseAsianBreakRules/>
+  </w:Compatibility>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0cm;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+span.EstiloCorreo17
+	{mso-style-type:personal-compose;
+	mso-style-noshow:yes;
+	mso-ansi-font-size:10.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-ascii-font-family:Arial;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:Arial;
+	color:windowtext;}
+span.SpellE
+	{mso-style-name:"";
+	mso-spl-e:yes;}
+span.GramE
+	{mso-style-name:"";
+	mso-gram-e:yes;}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:70.85pt 3.0cm 70.85pt 3.0cm;
+	mso-header-margin:35.4pt;
+	mso-footer-margin:35.4pt;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */=20
+ table.MsoNormalTable
+	{mso-style-name:"Tabla normal";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0cm 5.4pt 0cm 5.4pt;
+	mso-para-margin:0cm;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";}
+</style>
+<![endif]-->
+</head>
 
-By unknown
-------------------------------------------------------------------------
+<body lang=3DES link=3Dblue vlink=3Dpurple =
+style=3D'tab-interval:35.4pt'>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+lang=3DEN-US
+style=3D'font-size:12.0pt;mso-ansi-language:EN-US'>With my computer, =
+when it is
+turned on, there will be a loud whirring noise during the BIOS loading =
+and when
+Windows starts loading. <span class=3DGramE>But when I get to the login =
+screen
+for Windows, the whirring stops.</span> <o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+lang=3DEN-US
+style=3D'font-size:12.0pt;mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></spa=
+n></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+lang=3DEN-US
+style=3D'font-size:12.0pt;mso-ansi-language:EN-US'>While running <span
+class=3DSpellE>linux</span> (<span class=3DSpellE>Debian</span>, Red =
+Hat, <span
+class=3DSpellE>Suse</span>, <span class=3DSpellE>Knoppix</span>, etc), =
+however, the
+whirring never stops and continues until I shut off the computer.<br>
+<br>
+The whirring noise I later found was the fan. Does anybody know how to =
+remedy
+this problem? <o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+lang=3DEN-US
+style=3D'font-size:12.0pt;mso-ansi-language:EN-US'>Please help me! =
+<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+lang=3DEN-US
+style=3D'font-size:12.0pt;mso-ansi-language:EN-US'>&nbsp;<o:p></o:p></spa=
+n></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+10.0pt;font-family:Arial;mso-ansi-language:EN-US'>My computer is Sony =
+<span
+class=3DSpellE>Vaio</span> DESKTOP (PCV-RX74), Pentium 4 processor 1.8 =
+<span
+class=3DSpellE><span class=3DGramE>ghz</span></span><span =
+class=3DGramE>.,</span> 128
+<span class=3DSpellE>mb</span> ram.<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+lang=3DEN-US
+style=3D'font-size:12.0pt;mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></spa=
+n></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+10.0pt;font-family:Arial;mso-ansi-language:EN-US'><o:p>&nbsp;</o:p></span=
+></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------_=_NextPart_001_01C4C064.7AFA1C01--
 
 
 -------------------------------------------------------
