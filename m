@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Linux 2.6-pre1 Does not boot on ASUS L3800C: lock up in acpi while  "Executing all Devices _STA and_INIT methods"
-Date: Mon, 14 Jul 2003 11:56:17 -0700
+Subject: RE: _PRT question
+Date: Mon, 14 Jul 2003 11:57:54 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E9702C@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E9702D@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,18 +17,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: eric.valette-GANU6spQydw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Eric Valette [mailto:eric.valette-GANU6spQydw@public.gmane.org]=20
-> I happily run 2.4.21-pre5 with ACPI enabled and everything works just=20
-> fine. I tried today 2.6-pre1 with exactly the same hardware=20
-> configuration as the 2.4 one and the laptop does not boot. It hangs=20
-> while dispaying : "Executing all Devices _STA and_INIT methods"=20
-> allthough it has already printed several '.'
+> From: Andrew de Quincey [mailto:adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org]=20
+> Why is it then I see the following in my dmesg:
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+> ...
+> ACPI: PCI Interrupt Link [LSMB] (IRQs 3 4 5 6 7 10 11 12 14=20
+> 15, disabled)
+> ...
+> ACPI: PCI Interrupt Link [APCS] (IRQs 23, disabled)
+>=20
+>=20
+> In fact, I see all the link devices from both the PICM and=20
+> the APIC packages.=20
+> How is this possible? _PIC is only called once from=20
+> bus.c/apic_bus_init_irq().=20
+>=20
+> As far as I can see, the only way you could get the behaviour=20
+> I see would be=20
+> to call _PIC(0), then _PRT, then _PIC(1), then _PRT. But this=20
+> doesn't seem to=20
+> occur.
+>=20
+> There are no other references to the LSMB link device in my BIOS.
+>=20
+> Can someone tell me what is happening here?
 
-That's weird. They should have the same version of the ACPI code...
+I think we are printing status lines for found link devices even if they
+are not being used.
+
+Kinda confusing, yeah.
 
 -- Andy
 
