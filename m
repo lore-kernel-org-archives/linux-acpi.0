@@ -1,14 +1,16 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] dev_acpi: device driver for userspace access to ACPI
-Date: Wed, 4 Aug 2004 21:36:37 -0700
+From: ole.rohne-vJEk5272eHo@public.gmane.org
+Subject: Re: Radeon PM Support
+Date: 05 Aug 2004 09:33:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040805043636.GA28244@kroah.com>
-References: <1091552426.4981.103.camel@tdi>
+Message-ID: <yzo7jse5999.fsf@localhost.localdomain>
+References: <1091139240.26511.9.camel@6-allhosts>
+	<1091631174.2297.90.camel@dhcppc4>
+	<52654.199.172.169.15.1091641493.squirrel@webmail.localnet.com>
+	<200408042100.24705.stefandoesinger@gmx.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1091552426.4981.103.camel@tdi>
+In-Reply-To: <200408042100.24705.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,23 +19,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org, nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org, barr.156-ZbGKxL/pcrQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 03, 2004 at 11:00:26AM -0600, Alex Williamson wrote:
-> 
->   Populating the sysfs tree didn't seem to generate as much interest as
-> I'd hoped and I don't think it kept with the spirit of sysfs very well.
+Stefan> I think this patch only works for radeon cards, 
 
-I'm sorry if I didn't speak up at the time, but I still think that your
-sysfs patches were the right way to go.  Why do you think they don't
-keep with the spirit of sysfs?  Do you have a pointer to your last
-patch that exported the acpi table info through sysfs?
+I'd rather say it is perhaps only reported to be needed for Radeon
+cards, VGA POST'ing as such is of course not chipset specific.
 
-thanks,
+I'd maintain that ACPI makes no promise that the graphics chipset is
+reinitialized on S3 resume. So if an adapter "just works", it is
+either because the device hasn't been completely powered down (Dn, n<3?) 
+or because the system BIOS graciously takes care of the POSTing
 
-greg k-h
+Stefan> and not in all circumstances.
+
+Which is disappointing:-(
+
+Stefan> I am allready trying to debug this with Ole, but it seems that
+Stefan> he's on holyday.
+
+No, I'm just attending my daytime job;-) Sorry if I dropped out on one
+of your mails.
+
+Stefan> Any ideas?
+
+Yes, two:
+
+1. Try supplying the bus number with the devfn argument:
+   acpi_vgapost (pdev->bus->number << 8 | pdev->devfn);
+
+2. Check that the VGA BIOS is really there before calling it. IIRC, the
+   signature at 0xc000:0 should be 0xaa55
+
+Stefan> There is some resume code in drivers/video/aty/radeon_pm.c
+Stefan> written by ATI, but it's only compiled on PowerMac and is only
+Stefan> tested for <=R200 and S2.
+                              ^^-- Do you mean D2?
+
+I've played with earlier versions of this code in radeonfb. In my
+understanding D2 is low power still retaining some state, so the
+PowerMac code is not a complete cold boot.
+
+Stefan> Perhaps we should ask ATI for help.
+
+I guess it could be tried; someone pessimistically predicted the
+answer as "use the BIOS".
+
+Ole
 
 
 -------------------------------------------------------
