@@ -1,13 +1,12 @@
-From: Herbert Poetzl <herbert-dBHVzrDq9nF4Lj/PQRBjDg@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Sat, 21 Sep 2002 04:04:30 +0200
+From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
+Subject: Still Errors with current acpi-patch on Vaio GR114MK
+Date: Sat, 21 Sep 2002 11:08:59 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020921020430.GC6132@www.13thfloor.at>
-Reply-To: herbert-dBHVzrDq9nF4Lj/PQRBjDg@public.gmane.org
+Message-ID: <20020921110859.77421229.hanno@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="5mCyUwZo2JvN/JJP"
+Content-Type: multipart/mixed;
+ boundary="Multipart_Sat__21_Sep_2002_11:08:59_+0200_08e30ec8"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,1029 +18,250 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Multipart_Sat__21_Sep_2002_11:08:59_+0200_08e30ec8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+I still get several errors on booting with by Sony Vaio PCG-GG114MK
+Complete dmesg-output is attached.
+If you need further information, contact me.
 
-Problems with HP Server and 4Port Tulip NIC ...
+Still these errors:
 
-linux-2.4.20-pre7 kernel is working fine,
-with acpi-20020918-2.4.20-pre7.diff NIC stops working ...
+evxfevnt-0074 [04] Acpi_enable           : Transition to ACPI mode successful
+Executing all Device _STA and_INI methods:................evrgnini-0243: *** Error: Could not install Pci_config handler for PCI0, AE_ALREADY_EXISTS
+.evrgnini-0243: *** Error: Could not install Pci_config handler for PCI0, AE_ALREADY_EXISTS
+...............................evrgnini-0243: *** Error: Could not install Pci_config handler for PCI0, AE_ALREADY_EXISTS
+....evrgnini-0243: *** Error: Could not install Pci_config handler for PCI0, AE_ALREADY_EXISTS
 
-only difference in lspci -vvv are the interrupts ...
+pci_bind-0194 [05] acpi_pci_bind         : Device 00:00:02.00 not present in PCI namespace
 
-best,
-Herbert
+pci_link-0219 [17] acpi_pci_link_get_curr: Blank IRQ resource
 
--------
+ pci_irq-0293 [12] acpi_pci_irq_derive   : Unable to derive IRQ for device 00:1f.1
+PCI: No IRQ known for interrupt pin A of device 00:1f.1 - using IRQ 255
 
-00:00.0 Host bridge: ServerWorks CNB20LE Host Bridge (rev 05)
-00:00.1 Host bridge: ServerWorks CNB20LE Host Bridge (rev 05)
-00:02.0 Ethernet controller: Intel Corp. 82557 [Ethernet Pro 100] (rev
-08)
-00:05.0 PCI bridge: Digital Equipment Corporation DECchip 21152 (rev 03)
-00:07.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 65)
-00:0f.0 ISA bridge: ServerWorks OSB4 South Bridge (rev 4f)
-00:0f.1 IDE interface: ServerWorks OSB4 IDE Controller
-00:0f.2 USB Controller: ServerWorks OSB4/CSB5 OHCI USB Controller (rev
-04)
-01:04.0 Ethernet controller: Digital Equipment Corporation DECchip
-21142/43 (rev 41)
-01:05.0 Ethernet controller: Digital Equipment Corporation DECchip
-21142/43 (rev 41)
-01:06.0 Ethernet controller: Digital Equipment Corporation DECchip
-21142/43 (rev 41)
-01:07.0 Ethernet controller: Digital Equipment Corporation DECchip
-21142/43 (rev 41)
-05:05.0 SCSI storage controller: LSI Logic / Symbios Logic (formerly
-NCR) 53c896 (rev 07)
-05:05.1 SCSI storage controller: LSI Logic / Symbios Logic (formerly
-NCR) 53c896 (rev 07)
+--Multipart_Sat__21_Sep_2002_11:08:59_+0200_08e30ec8
+Content-Type: application/octet-stream;
+ name="dmesg-output"
+Content-Disposition: attachment;
+ filename="dmesg-output"
+Content-Transfer-Encoding: base64
 
+TGludXggdmVyc2lvbiAyLjQuMjAtcHJlNyAocm9vdEBndXlicnVzaCkgKGdjYyB2ZXJzaW9uIDMu
+MikgIzIgRG9uIFNlcCAxOSAxNzoyMDo1NiBDRVNUIDIwMDIKQklPUy1wcm92aWRlZCBwaHlzaWNh
+bCBSQU0gbWFwOgogQklPUy1lODIwOiAwMDAwMDAwMDAwMDAwMDAwIC0gMDAwMDAwMDAwMDA5ZTgw
+MCAodXNhYmxlKQogQklPUy1lODIwOiAwMDAwMDAwMDAwMDllODAwIC0gMDAwMDAwMDAwMDBhMDAw
+MCAocmVzZXJ2ZWQpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAwZDgwMDAgLSAwMDAwMDAwMDAwMGUw
+MDAwIChyZXNlcnZlZCkKIEJJT1MtZTgyMDogMDAwMDAwMDAwMDBlNDAwMCAtIDAwMDAwMDAwMDAx
+MDAwMDAgKHJlc2VydmVkKQogQklPUy1lODIwOiAwMDAwMDAwMDAwMTAwMDAwIC0gMDAwMDAwMDAw
+N2VmMDAwMCAodXNhYmxlKQogQklPUy1lODIwOiAwMDAwMDAwMDA3ZWYwMDAwIC0gMDAwMDAwMDAw
+N2VmZjAwMCAoQUNQSSBkYXRhKQogQklPUy1lODIwOiAwMDAwMDAwMDA3ZWZmMDAwIC0gMDAwMDAw
+MDAwN2YwMDAwMCAoQUNQSSBOVlMpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMDdmMDAwMDAgLSAwMDAw
+MDAwMDA3ZjgwMDAwICh1c2FibGUpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMDdmODAwMDAgLSAwMDAw
+MDAwMDA4MDAwMDAwIChyZXNlcnZlZCkKIEJJT1MtZTgyMDogMDAwMDAwMDBmZjgwMDAwMCAtIDAw
+MDAwMDAwZmZjMDAwMDAgKHJlc2VydmVkKQogQklPUy1lODIwOiAwMDAwMDAwMGZmZmZmYzAwIC0g
+MDAwMDAwMDEwMDAwMDAwMCAocmVzZXJ2ZWQpCjEyN01CIExPV01FTSBhdmFpbGFibGUuCkFDUEk6
+IGhhdmUgd2FrZXVwIGFkZHJlc3MgMHhjMDAwMTAwMApPbiBub2RlIDAgdG90YWxwYWdlczogMzI2
+NDAKem9uZSgwKTogNDA5NiBwYWdlcy4Kem9uZSgxKTogMjg1NDQgcGFnZXMuCnpvbmUoMik6IDAg
+cGFnZXMuCkFDUEk6IFJTRFAgKHYwMDAgUFRMVEQgICAgICAgICAgICAgICAgICAgICAgKSBAIDB4
+MDAwZjZjOTAKQUNQSTogUlNEVCAodjAwMSBTT05ZICAgQzAgICAgICAgMDgxOTQuMDA1NDkpIEAg
+MHgwN2VmYTY5ZApBQ1BJOiBGQURUICh2MDAxICAgU09OWSAgICAgICBDMCAwODE5NC4wMDU0OSkg
+QCAweDA3ZWZlZjY0CkFDUEk6IEJPT1QgKHYwMDEgICBTT05ZICAgICAgIEMwIDA4MTk0LjAwNTQ5
+KSBAIDB4MDdlZmVmZDgKQUNQSTogRFNEVCAodjAwMSAgIFNPTlkgICAgICAgQzAgMDgxOTQuMDA1
+NDkpIEAgMHgwMDAwMDAwMApBQ1BJOiBCSU9TIHBhc3NlcyBibGFja2xpc3QKQUNQSTogTUFEVCBu
+b3QgcHJlc2VudApTb255IFZhaW8gbGFwdG9wIGRldGVjdGVkLgpLZXJuZWwgY29tbWFuZCBsaW5l
+OiByb290PS9kZXYvaGRhNgpMb2NhbCBBUElDIGRpc2FibGVkIGJ5IEJJT1MgLS0gcmVlbmFibGlu
+Zy4KRm91bmQgYW5kIGVuYWJsZWQgbG9jYWwgQVBJQyEKSW5pdGlhbGl6aW5nIENQVSMwCkRldGVj
+dGVkIDkyNy45ODIgTUh6IHByb2Nlc3Nvci4KQ29uc29sZTogY29sb3VyIFZHQSsgODB4MjUKQ2Fs
+aWJyYXRpbmcgZGVsYXkgbG9vcC4uLiAxODQ4LjExIEJvZ29NSVBTCk1lbW9yeTogMTI1NzMyay8x
+MzA1NjBrIGF2YWlsYWJsZSAoMTk0Mmsga2VybmVsIGNvZGUsIDQzNzJrIHJlc2VydmVkLCA2NTVr
+IGRhdGEsIDEyNGsgaW5pdCwgMGsgaGlnaG1lbSkKRGVudHJ5IGNhY2hlIGhhc2ggdGFibGUgZW50
+cmllczogMTYzODQgKG9yZGVyOiA1LCAxMzEwNzIgYnl0ZXMpCklub2RlIGNhY2hlIGhhc2ggdGFi
+bGUgZW50cmllczogODE5MiAob3JkZXI6IDQsIDY1NTM2IGJ5dGVzKQpNb3VudC1jYWNoZSBoYXNo
+IHRhYmxlIGVudHJpZXM6IDIwNDggKG9yZGVyOiAyLCAxNjM4NCBieXRlcykKQnVmZmVyLWNhY2hl
+IGhhc2ggdGFibGUgZW50cmllczogNDA5NiAob3JkZXI6IDIsIDE2Mzg0IGJ5dGVzKQpQYWdlLWNh
+Y2hlIGhhc2ggdGFibGUgZW50cmllczogMzI3NjggKG9yZGVyOiA1LCAxMzEwNzIgYnl0ZXMpCkNQ
+VTogQmVmb3JlIHZlbmRvciBpbml0LCBjYXBzOiAwMzgzZmJmZiAwMDAwMDAwMCAwMDAwMDAwMCwg
+dmVuZG9yID0gMApDUFU6IEwxIEkgY2FjaGU6IDE2SywgTDEgRCBjYWNoZTogMTZLCkNQVTogQWZ0
+ZXIgdmVuZG9yIGluaXQsIGNhcHM6IDAzODNmYmZmIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAw
+CkludGVsIG1hY2hpbmUgY2hlY2sgYXJjaGl0ZWN0dXJlIHN1cHBvcnRlZC4KSW50ZWwgbWFjaGlu
+ZSBjaGVjayByZXBvcnRpbmcgZW5hYmxlZCBvbiBDUFUjMC4KQ1BVOiAgICAgQWZ0ZXIgZ2VuZXJp
+YywgY2FwczogMDM4M2ZiZmYgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAKQ1BVOiAgICAgICAg
+ICAgICBDb21tb24gY2FwczogMDM4M2ZiZmYgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAKQ1BV
+OiBJbnRlbChSKSBQZW50aXVtKFIpIElJSSBNb2JpbGUgQ1BVICAgICAgIDkzM01IeiBzdGVwcGlu
+ZyAwMQpFbmFibGluZyBmYXN0IEZQVSBzYXZlIGFuZCByZXN0b3JlLi4uIGRvbmUuCkVuYWJsaW5n
+IHVubWFza2VkIFNJTUQgRlBVIGV4Y2VwdGlvbiBzdXBwb3J0Li4uIGRvbmUuCkNoZWNraW5nICdo
+bHQnIGluc3RydWN0aW9uLi4uIE9LLgpQT1NJWCBjb25mb3JtYW5jZSB0ZXN0aW5nIGJ5IFVOSUZJ
+WAplbmFibGVkIEV4dElOVCBvbiBDUFUjMApFU1IgdmFsdWUgYmVmb3JlIGVuYWJsaW5nIHZlY3Rv
+cjogMDAwMDAwMDAKRVNSIHZhbHVlIGFmdGVyIGVuYWJsaW5nIHZlY3RvcjogMDAwMDAwMDAKVXNp
+bmcgbG9jYWwgQVBJQyB0aW1lciBpbnRlcnJ1cHRzLgpjYWxpYnJhdGluZyBBUElDIHRpbWVyIC4u
+LgouLi4uLiBDUFUgY2xvY2sgc3BlZWQgaXMgOTI3Ljk1MzYgTUh6LgouLi4uLiBob3N0IGJ1cyBj
+bG9jayBzcGVlZCBpcyAxMzIuNTY0NiBNSHouCmNwdTogMCwgY2xvY2tzOiAxMzI1NjQ2LCBzbGlj
+ZTogNjYyODIzCkNQVTA8VDA6MTMyNTYzMixUMTo2NjI4MDAsRDo5LFM6NjYyODIzLEM6MTMyNTY0
+Nj4KbXRycjogdjEuNDAgKDIwMDEwMzI3KSBSaWNoYXJkIEdvb2NoIChyZ29vY2hAYXRuZi5jc2ly
+by5hdSkKbXRycjogZGV0ZWN0ZWQgbXRyciB0eXBlOiBJbnRlbApBQ1BJOiBTdWJzeXN0ZW0gcmV2
+aXNpb24gMjAwMjA5MTgKUENJOiBQQ0kgQklPUyByZXZpc2lvbiAyLjEwIGVudHJ5IGF0IDB4ZmQ5
+YWEsIGxhc3QgYnVzPTIKUENJOiBVc2luZyBjb25maWd1cmF0aW9uIHR5cGUgMQogdGJ4ZmFjZS0w
+MDk5IFswM10gQWNwaV9sb2FkX3RhYmxlcyAgICAgIDogQUNQSSBUYWJsZXMgc3VjY2Vzc2Z1bGx5
+IGxvYWRlZApQYXJzaW5nIE1ldGhvZHM6Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLgpUYWJsZSBbRFNE
+VF0gLSA1NjggT2JqZWN0cyB3aXRoIDU1IERldmljZXMgMTkzIE1ldGhvZHMgMjEgUmVnaW9ucwpB
+Q1BJIE5hbWVzcGFjZSBzdWNjZXNzZnVsbHkgbG9hZGVkIGF0IHJvb3QgYzAzYmIwYmMKZXZ4ZmV2
+bnQtMDA3NCBbMDRdIEFjcGlfZW5hYmxlICAgICAgICAgICA6IFRyYW5zaXRpb24gdG8gQUNQSSBt
+b2RlIHN1Y2Nlc3NmdWwKRXhlY3V0aW5nIGFsbCBEZXZpY2UgX1NUQSBhbmRfSU5JIG1ldGhvZHM6
+Li4uLi4uLi4uLi4uLi4uLmV2cmduaW5pLTAyNDM6ICoqKiBFcnJvcjogQ291bGQgbm90IGluc3Rh
+bGwgUGNpX2NvbmZpZyBoYW5kbGVyIGZvciBQQ0kwLCBBRV9BTFJFQURZX0VYSVNUUwouZXZyZ25p
+bmktMDI0MzogKioqIEVycm9yOiBDb3VsZCBub3QgaW5zdGFsbCBQY2lfY29uZmlnIGhhbmRsZXIg
+Zm9yIFBDSTAsIEFFX0FMUkVBRFlfRVhJU1RTCi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li5ldnJnbmluaS0wMjQzOiAqKiogRXJyb3I6IENvdWxkIG5vdCBpbnN0YWxsIFBjaV9jb25maWcg
+aGFuZGxlciBmb3IgUENJMCwgQUVfQUxSRUFEWV9FWElTVFMKLi4uLmV2cmduaW5pLTAyNDM6ICoq
+KiBFcnJvcjogQ291bGQgbm90IGluc3RhbGwgUGNpX2NvbmZpZyBoYW5kbGVyIGZvciBQQ0kwLCBB
+RV9BTFJFQURZX0VYSVNUUwouLi4KNTUgRGV2aWNlcyBmb3VuZCBjb250YWluaW5nOiA1NSBfU1RB
+LCA0IF9JTkkgbWV0aG9kcwpDb21wbGV0aW5nIFJlZ2lvbi9GaWVsZC9CdWZmZXIvUGFja2FnZSBp
+bml0aWFsaXphdGlvbjouLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4KSW5pdGlhbGl6ZWQgMTQvMjEgUmVnaW9ucyAwLzAgRmll
+bGRzIDI1LzI1IEJ1ZmZlcnMgMjcvMjcgUGFja2FnZXMgKDU2OCBub2RlcykKQUNQSTogSW50ZXJw
+cmV0ZXIgZW5hYmxlZApBQ1BJOiBVc2luZyBQSUMgZm9yIGludGVycnVwdCByb3V0aW5nCkFDUEk6
+IFN5c3RlbSBbQUNQSV0gKHN1cHBvcnRzIFMwIFMzIFM0IFM1KQpBQ1BJOiBQQ0kgUm9vdCBCcmlk
+Z2UgW1BDSTBdICgwMDowMCkKUENJOiBQcm9iaW5nIFBDSSBoYXJkd2FyZSAoYnVzIDAwKQpUcmFu
+c3BhcmVudCBicmlkZ2UgLSBJbnRlbCBDb3JwLiA4MjgwMUJBTS9DQU0gUENJIEJyaWRnZQpBQ1BJ
+OiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgVGFibGUgW1xfU0JfLlBDSTAuX1BSVF0KQUNQSTogUENJ
+IEludGVycnVwdCBSb3V0aW5nIFRhYmxlIFtcX1NCXy5QQ0kwLkFHUF8uX1BSVF0KcGNpX2JpbmQt
+MDE5NCBbMDVdIGFjcGlfcGNpX2JpbmQgICAgICAgICA6IERldmljZSAwMDowMDowMi4wMCBub3Qg
+cHJlc2VudCBpbiBQQ0kgbmFtZXNwYWNlCkFDUEk6IFBDSSBJbnRlcnJ1cHQgUm91dGluZyBUYWJs
+ZSBbXF9TQl8uUENJMC5IVUJfLl9QUlRdCkFDUEk6IEVtYmVkZGVkIENvbnRyb2xsZXIgW0VDMF0g
+KGdwZSAyOCkKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktBXSAoSVJRcyAqOSkKQUNQSTog
+UENJIEludGVycnVwdCBMaW5rIFtMTktCXSAoSVJRcyA5LCBkaXNhYmxlZCkKQUNQSTogUENJIElu
+dGVycnVwdCBMaW5rIFtMTktDXSAoSVJRcyA5LCBkaXNhYmxlZCkKQUNQSTogUENJIEludGVycnVw
+dCBMaW5rIFtMTktEXSAoSVJRcyAqOSkKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktFXSAo
+SVJRcyAqOSkKcGNpX2xpbmstMDIxOSBbMTddIGFjcGlfcGNpX2xpbmtfZ2V0X2N1cnI6IEJsYW5r
+IElSUSByZXNvdXJjZQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0ZdIChJUlFzIDksIGRp
+c2FibGVkKQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0ddIChJUlFzIDksIGRpc2FibGVk
+KQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0hdIChJUlFzIDksIGRpc2FibGVkKQpQQ0k6
+IFByb2JpbmcgUENJIGhhcmR3YXJlCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQl0gZW5h
+YmxlZCBhdCBJUlEgOQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0NdIGVuYWJsZWQgYXQg
+SVJRIDkKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktGXSBlbmFibGVkIGF0IElSUSA5CkFD
+UEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LR10gZW5hYmxlZCBhdCBJUlEgOQpBQ1BJOiBQQ0kg
+SW50ZXJydXB0IExpbmsgW0xOS0hdIGVuYWJsZWQgYXQgSVJRIDkKIHBjaV9pcnEtMDI5MyBbMTJd
+IGFjcGlfcGNpX2lycV9kZXJpdmUgICA6IFVuYWJsZSB0byBkZXJpdmUgSVJRIGZvciBkZXZpY2Ug
+MDA6MWYuMQpQQ0k6IE5vIElSUSBrbm93biBmb3IgaW50ZXJydXB0IHBpbiBBIG9mIGRldmljZSAw
+MDoxZi4xIC0gdXNpbmcgSVJRIDI1NQpQQ0k6IFVzaW5nIEFDUEkgZm9yIElSUSByb3V0aW5nClBD
+STogaWYgeW91IGV4cGVyaWVuY2UgcHJvYmxlbXMsIHRyeSB1c2luZyBvcHRpb24gJ3BjaT1ub2Fj
+cGknIG9yIGV2ZW4gJ2FjcGk9b2ZmJwpMaW51eCBORVQ0LjAgZm9yIExpbnV4IDIuNApCYXNlZCB1
+cG9uIFN3YW5zZWEgVW5pdmVyc2l0eSBDb21wdXRlciBTb2NpZXR5IE5FVDMuMDM5CkluaXRpYWxp
+emluZyBSVCBuZXRsaW5rIHNvY2tldApTdGFydGluZyBrc3dhcGQKSm91cm5hbGxlZCBCbG9jayBE
+ZXZpY2UgZHJpdmVyIGxvYWRlZApkZXZmczogdjEuMTJjICgyMDAyMDgxOCkgUmljaGFyZCBHb29j
+aCAocmdvb2NoQGF0bmYuY3Npcm8uYXUpCmRldmZzOiBib290X29wdGlvbnM6IDB4MQpJbnN0YWxs
+aW5nIGtuZnNkIChjb3B5cmlnaHQgKEMpIDE5OTYgb2tpckBtb25hZC5zd2IuZGUpLgpBQ1BJOiBB
+QyBBZGFwdGVyIFtBQ0FEXSAob24tbGluZSkKQUNQSTogQmF0dGVyeSBTbG90IFtCQVQxXSAoYmF0
+dGVyeSBwcmVzZW50KQpBQ1BJOiBCYXR0ZXJ5IFNsb3QgW0JBVDJdIChiYXR0ZXJ5IGFic2VudCkK
+QUNQSTogTGlkIFN3aXRjaCBbTElEXQpBQ1BJOiBQb3dlciBCdXR0b24gKENNKSBbUFdSQl0KQUNQ
+STogUHJvY2Vzc29yIFtDUFUwXSAoc3VwcG9ydHMgQzEgQzIsIDIgcGVyZm9ybWFuY2Ugc3RhdGVz
+KQpBQ1BJOiBUaGVybWFsIFpvbmUgW0FURjBdICgyNiBDKQpwYXJwb3J0MDogUEMtc3R5bGUgYXQg
+MHgzNzggKDB4Nzc4KSBbUENTUFAoLC4uLildCnBhcnBvcnQwOiBpcnEgNyBkZXRlY3RlZApyYWRl
+b25mYjogcmVmX2Nsaz0yNzAwLCByZWZfZGl2PTYwLCB4Y2xrPTE2NjAwIGZyb20gQklPUwpyYWRl
+b25mYjogcGFuZWwgSUQgc3RyaW5nOiAxMDI0eDc2OCAgICAgICAgICAgICAgICAKcmFkZW9uZmI6
+IGRldGVjdGVkIERGUCBwYW5lbCBzaXplIGZyb20gQklPUzogMTAyNHg3NjgKQ29uc29sZTogc3dp
+dGNoaW5nIHRvIGNvbG91ciBmcmFtZSBidWZmZXIgZGV2aWNlIDEyOHg0OApyYWRlb25mYjogQVRJ
+IFJhZGVvbiBNNiBMWSAgRERSIFNHUkFNIDggTUIKcmFkZW9uZmI6IERWSSBwb3J0IExDRCBtb25p
+dG9yIGNvbm5lY3RlZApyYWRlb25mYjogQ1JUIHBvcnQgbm8gbW9uaXRvciBjb25uZWN0ZWQKcHR5
+OiAyNTYgVW5peDk4IHB0eXMgY29uZmlndXJlZApTZXJpYWwgZHJpdmVyIHZlcnNpb24gNS4wNWMg
+KDIwMDEtMDctMDgpIHdpdGggTUFOWV9QT1JUUyBTSEFSRV9JUlEgU0VSSUFMX1BDSSBlbmFibGVk
+CnR0eVMwMCBhdCAweDAzZjggKGlycSA9IDQpIGlzIGEgMTY1NTBBClBDSTogRW5hYmxpbmcgZGV2
+aWNlIDAwOjFmLjYgKDAwMDAgLT4gMDAwMSkKc29ueXBpOiBTb255IFByb2dyYW1tYWJsZSBJL08g
+Q29udHJvbGxlciBEcml2ZXIgdjEuMTMuCnNvbnlwaTogZGV0ZWN0ZWQgdHlwZTIgbW9kZWwsIHZl
+cmJvc2UgPSBvZmYsIGZua2V5aW5pdCA9IG9mZiwgY2FtZXJhID0gb2ZmLCBjb21wYXQgPSBvZmYs
+IG5vam9nZGlhbCA9IG9mZgpzb255cGk6IGVuYWJsZWQgYXQgaXJxPTExLCBwb3J0MT0weDEwODAs
+IHBvcnQyPTB4MTA4NApzb255cGk6IGRldmljZSBhbGxvY2F0ZWQgbWlub3IgaXMgNjMKVW5pZm9y
+bSBNdWx0aS1QbGF0Zm9ybSBFLUlERSBkcml2ZXIgUmV2aXNpb246IDYuMzEKaWRlOiBBc3N1bWlu
+ZyAzM01IeiBzeXN0ZW0gYnVzIHNwZWVkIGZvciBQSU8gbW9kZXM7IG92ZXJyaWRlIHdpdGggaWRl
+YnVzPXh4CklDSDNNOiBJREUgY29udHJvbGxlciBvbiBQQ0kgYnVzIDAwIGRldiBmOQpQQ0k6IEVu
+YWJsaW5nIGRldmljZSAwMDoxZi4xICgwMDA1IC0+IDAwMDcpCiBwY2lfaXJxLTAyOTMgWzExXSBh
+Y3BpX3BjaV9pcnFfZGVyaXZlICAgOiBVbmFibGUgdG8gZGVyaXZlIElSUSBmb3IgZGV2aWNlIDAw
+OjFmLjEKUENJOiBObyBJUlEga25vd24gZm9yIGludGVycnVwdCBwaW4gQSBvZiBkZXZpY2UgMDA6
+MWYuMSAtIHVzaW5nIElSUSAyNTUKSUNIM006IGNoaXBzZXQgcmV2aXNpb24gMQpJQ0gzTTogbm90
+IDEwMCUgbmF0aXZlIG1vZGU6IHdpbGwgcHJvYmUgaXJxcyBsYXRlcgogICAgaWRlMDogQk0tRE1B
+IGF0IDB4MTg2MC0weDE4NjcsIEJJT1Mgc2V0dGluZ3M6IGhkYTpETUEsIGhkYjpwaW8KICAgIGlk
+ZTE6IEJNLURNQSBhdCAweDE4NjgtMHgxODZmLCBCSU9TIHNldHRpbmdzOiBoZGM6RE1BLCBoZGQ6
+cGlvCmhkYTogSElUQUNISV9ESzIzQ0EtMjAsIEFUQSBESVNLIGRyaXZlCmhkYzogVUpEQTcxMCwg
+QVRBUEkgQ0QvRFZELVJPTSBkcml2ZQppZGUwIGF0IDB4MWYwLTB4MWY3LDB4M2Y2IG9uIGlycSAx
+NAppZGUxIGF0IDB4MTcwLTB4MTc3LDB4Mzc2IG9uIGlycSAxNQpibGs6IHF1ZXVlIGMwM2QzYWU0
+LCBJL08gbGltaXQgNDA5NU1iIChtYXNrIDB4ZmZmZmZmZmYpCmhkYTogMzkwNzAwODAgc2VjdG9y
+cyAoMjAwMDQgTUIpIHcvMjA0OEtpQiBDYWNoZSwgQ0hTPTI0MzIvMjU1LzYzLCBVRE1BKDEwMCkK
+UGFydGl0aW9uIGNoZWNrOgogL2Rldi9pZGUvaG9zdDAvYnVzMC90YXJnZXQwL2x1bjA6IHAxIHAy
+IDwgcDUgcDYgPgpSQU1ESVNLIGRyaXZlciBpbml0aWFsaXplZDogMTYgUkFNIGRpc2tzIG9mIDQw
+OTZLIHNpemUgMTAyNCBibG9ja3NpemUKbG9vcDogbG9hZGVkIChtYXggOCBkZXZpY2VzKQplZXBy
+bzEwMC5jOnYxLjA5ai10IDkvMjkvOTkgRG9uYWxkIEJlY2tlciBodHRwOi8vd3d3LnNjeWxkLmNv
+bS9uZXR3b3JrL2VlcHJvMTAwLmh0bWwKZWVwcm8xMDAuYzogJFJldmlzaW9uOiAxLjM2ICQgMjAw
+MC8xMS8xNyBNb2RpZmllZCBieSBBbmRyZXkgVi4gU2F2b2Noa2luIDxzYXdAc2F3LnN3LmNvbS5z
+Zz4gYW5kIG90aGVycwpldGgwOiBJbnRlbCBDb3JwLiA4MjgwMUNBTSAoSUNIMykgUFJPLzEwMCBW
+RSAoTE9NKSBFdGhlcm5ldCBDb250cm9sbGVyLCAwODowMDo0NjoyNjo2NzpDOSwgSVJRIDkuCiAg
+Qm9hcmQgYXNzZW1ibHkgMDAwMDAwLTAwMCwgUGh5c2ljYWwgY29ubmVjdG9ycyBwcmVzZW50OiBS
+SjQ1CiAgUHJpbWFyeSBpbnRlcmZhY2UgY2hpcCBpODI1NTUgUEhZICMxLgogIEdlbmVyYWwgc2Vs
+Zi10ZXN0OiBwYXNzZWQuCiAgU2VyaWFsIHN1Yi1zeXN0ZW0gc2VsZi10ZXN0OiBwYXNzZWQuCiAg
+SW50ZXJuYWwgcmVnaXN0ZXJzIHNlbGYtdGVzdDogcGFzc2VkLgogIFJPTSBjaGVja3N1bSBzZWxm
+LXRlc3Q6IHBhc3NlZCAoMHgwNGY0NTE4YikuCkxpbnV4IGFncGdhcnQgaW50ZXJmYWNlIHYwLjk5
+IChjKSBKZWZmIEhhcnRtYW5uCmFncGdhcnQ6IE1heGltdW0gbWFpbiBtZW1vcnkgdG8gdXNlIGZv
+ciBhZ3AgbWVtb3J5OiA5NE0KYWdwZ2FydDogRGV0ZWN0ZWQgSW50ZWwgaTgzME0gY2hpcHNldAph
+Z3BnYXJ0OiBBR1AgYXBlcnR1cmUgaXMgMjU2TSBAIDB4ZTAwMDAwMDAKW2RybV0gQUdQIDAuOTkg
+b24gVW5rbm93biBAIDB4ZTAwMDAwMDAgMjU2TUIKW2RybV0gSW5pdGlhbGl6ZWQgcmFkZW9uIDEu
+MS4xIDIwMDEwNDA1IG9uIG1pbm9yIDAKU0NTSSBzdWJzeXN0ZW0gZHJpdmVyIFJldmlzaW9uOiAx
+LjAwCnNjc2kwIDogU0NTSSBob3N0IGFkYXB0ZXIgZW11bGF0aW9uIGZvciBJREUgQVRBUEkgZGV2
+aWNlcwogIFZlbmRvcjogTUFUU0hJVEEgIE1vZGVsOiBVSkRBNzEwICAgICAgICAgICBSZXY6IDEu
+MjAKICBUeXBlOiAgIENELVJPTSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQU5TSSBTQ1NJ
+IHJldmlzaW9uOiAwMgpBdHRhY2hlZCBzY3NpIENELVJPTSBzcjAgYXQgc2NzaTAsIGNoYW5uZWwg
+MCwgaWQgMCwgbHVuIDAKc3IwOiBzY3NpMy1tbWMgZHJpdmU6IDI0eC8yNHggd3JpdGVyIGNkL3J3
+IHhhL2Zvcm0yIGNkZGEgdHJheQpVbmlmb3JtIENELVJPTSBkcml2ZXIgUmV2aXNpb246IDMuMTIK
+SW50ZWwgODEwICsgQUM5NyBBdWRpbywgdmVyc2lvbiAwLjIxLCAxNzoxMjo1MSBTZXAgMTkgMjAw
+MgpQQ0k6IEVuYWJsaW5nIGRldmljZSAwMDoxZi41ICgwMDAwIC0+IDAwMDEpClBDSTogU2V0dGlu
+ZyBsYXRlbmN5IHRpbWVyIG9mIGRldmljZSAwMDoxZi41IHRvIDY0Cmk4MTA6IEludGVsIElDSDMg
+Zm91bmQgYXQgSU8gMHgxOGMwIGFuZCAweDFjMDAsIElSUSA5Cmk4MTBfYXVkaW86IEF1ZGlvIENv
+bnRyb2xsZXIgc3VwcG9ydHMgNiBjaGFubmVscy4KYWM5N19jb2RlYzogQUM5NyBBdWRpbyBjb2Rl
+YywgaWQ6IDB4NDE0NDoweDUzNDggKEFuYWxvZyBEZXZpY2VzIEFEMTg4MUEpCmk4MTBfYXVkaW86
+IEFDJzk3IGNvZGVjIDAgVW5hYmxlIHRvIG1hcCBzdXJyb3VuZCBEQUMncyAob3IgREFDJ3Mgbm90
+IHByZXNlbnQpLCB0b3RhbCBjaGFubmVscyA9IDIKYWM5N19jb2RlYzogQUM5NyBNb2RlbSBjb2Rl
+YywgaWQ6IDB4NDM1ODoweDU0MjEgKFVua25vd24pCmk4MTBfYXVkaW86IHRpbWVkIG91dCB3YWl0
+aW5nIGZvciBjb2RlYyAxIGFuYWxvZyByZWFkeS4KTGludXggS2VybmVsIENhcmQgU2VydmljZXMg
+My4xLjIyCiAgb3B0aW9uczogIFtwY2ldIFtjYXJkYnVzXSBbcG1dCnVzYi5jOiByZWdpc3RlcmVk
+IG5ldyBkcml2ZXIgaHViClllbnRhIElSUSBsaXN0IDA0YjgsIFBDSSBpcnE5ClNvY2tldCBzdGF0
+dXM6IDMwMDAwMDA2ClllbnRhIElSUSBsaXN0IDA0YjgsIFBDSSBpcnE5ClNvY2tldCBzdGF0dXM6
+IDMwMDAwMDA2CnVoY2kuYzogVVNCIFVuaXZlcnNhbCBIb3N0IENvbnRyb2xsZXIgSW50ZXJmYWNl
+IGRyaXZlciB2MS4xClBDSTogU2V0dGluZyBsYXRlbmN5IHRpbWVyIG9mIGRldmljZSAwMDoxZC4w
+IHRvIDY0CnVoY2kuYzogVVNCIFVIQ0kgYXQgSS9PIDB4MTgwMCwgSVJRIDkKdXNiLmM6IG5ldyBV
+U0IgYnVzIHJlZ2lzdGVyZWQsIGFzc2lnbmVkIGJ1cyBudW1iZXIgMQpodWIuYzogVVNCIGh1YiBm
+b3VuZApodWIuYzogMiBwb3J0cyBkZXRlY3RlZApQQ0k6IFNldHRpbmcgbGF0ZW5jeSB0aW1lciBv
+ZiBkZXZpY2UgMDA6MWQuMSB0byA2NAp1aGNpLmM6IFVTQiBVSENJIGF0IEkvTyAweDE4MjAsIElS
+USA5CnVzYi5jOiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDIK
+aHViLmM6IFVTQiBodWIgZm91bmQKaHViLmM6IDIgcG9ydHMgZGV0ZWN0ZWQKUENJOiBTZXR0aW5n
+IGxhdGVuY3kgdGltZXIgb2YgZGV2aWNlIDAwOjFkLjIgdG8gNjQKdWhjaS5jOiBVU0IgVUhDSSBh
+dCBJL08gMHgxODQwLCBJUlEgOQp1c2IuYzogbmV3IFVTQiBidXMgcmVnaXN0ZXJlZCwgYXNzaWdu
+ZWQgYnVzIG51bWJlciAzCmh1Yi5jOiBVU0IgaHViIGZvdW5kCmh1Yi5jOiAyIHBvcnRzIGRldGVj
+dGVkCkluaXRpYWxpemluZyBVU0IgTWFzcyBTdG9yYWdlIGRyaXZlci4uLgp1c2IuYzogcmVnaXN0
+ZXJlZCBuZXcgZHJpdmVyIHVzYi1zdG9yYWdlClVTQiBNYXNzIFN0b3JhZ2Ugc3VwcG9ydCByZWdp
+c3RlcmVkLgptaWNlOiBQUy8yIG1vdXNlIGRldmljZSBjb21tb24gZm9yIGFsbCBtaWNlCk5FVDQ6
+IExpbnV4IFRDUC9JUCAxLjAgZm9yIE5FVDQuMApJUCBQcm90b2NvbHM6IElDTVAsIFVEUCwgVENQ
+LCBJR01QCklQOiByb3V0aW5nIGNhY2hlIGhhc2ggdGFibGUgb2YgNTEyIGJ1Y2tldHMsIDRLYnl0
+ZXMKVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVkIChlc3RhYmxpc2hlZCA4MTkyIGJpbmQgMTYz
+ODQpCk5FVDQ6IFVuaXggZG9tYWluIHNvY2tldHMgMS4wL1NNUCBmb3IgTGludXggTkVUNC4wLgpr
+am91cm5hbGQgc3RhcnRpbmcuICBDb21taXQgaW50ZXJ2YWwgNSBzZWNvbmRzCkVYVDMtZnM6IG1v
+dW50ZWQgZmlsZXN5c3RlbSB3aXRoIG9yZGVyZWQgZGF0YSBtb2RlLgpWRlM6IE1vdW50ZWQgcm9v
+dCAoZXh0MyBmaWxlc3lzdGVtKSByZWFkb25seS4KTW91bnRlZCBkZXZmcyBvbiAvZGV2CkZyZWVp
+bmcgdW51c2VkIGtlcm5lbCBtZW1vcnk6IDEyNGsgZnJlZWQKaHViLmM6IG5ldyBVU0IgZGV2aWNl
+IDAwOjFkLjItMSwgYXNzaWduZWQgYWRkcmVzcyAyCnNjc2kxIDogU0NTSSBlbXVsYXRpb24gZm9y
+IFVTQiBNYXNzIFN0b3JhZ2UgZGV2aWNlcwogIFZlbmRvcjogU29ueSAgICAgIE1vZGVsOiBNU0Mt
+VTAyICAgICAgICAgICBSZXY6IDEuMDAKICBUeXBlOiAgIERpcmVjdC1BY2Nlc3MgICAgICAgICAg
+ICAgICAgICAgICAgQU5TSSBTQ1NJIHJldmlzaW9uOiAwMgpXQVJOSU5HOiBVU0IgTWFzcyBTdG9y
+YWdlIGRhdGEgaW50ZWdyaXR5IG5vdCBhc3N1cmVkClVTQiBNYXNzIFN0b3JhZ2UgZGV2aWNlIGZv
+dW5kIGF0IDIKQWRkaW5nIFN3YXA6IDI1NzAwMGsgc3dhcC1zcGFjZSAocHJpb3JpdHkgLTEpCkVY
+VDMgRlMgMi40LTAuOS4xNywgMTAgSmFuIDIwMDIgb24gaWRlMCgzLDYpLCBpbnRlcm5hbCBqb3Vy
+bmFsCg==
 
-
-
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="dmesg-linux-2.4.20-pre7-acpi20020918.out"
-
-ermine) stepping 06
-per-CPU timeslice cutoff: 731.61 usecs.
-enabled ExtINT on CPU#0
-ESR value before enabling vector: 00000000
-ESR value after enabling vector: 00000000
-Error: only one processor found.
-ENABLING IO-APIC IRQs
-init IO_APIC IRQs
- IO-APIC (apicid-pin) 1-0, 1-2, 2-0, 2-1, 2-2, 2-3, 2-4, 2-5, 2-6, 2-7, 2-8, 2-9, 2-10, 2-11, 2-12, 2-13, 2-14, 2-15 not connected.
-..TIMER: vector=0x31 pin1=-1 pin2=0
-...trying to set up timer (IRQ0) through the 8259A ... 
-..... (found pin 0) ...works.
-number of MP IRQ sources: 15.
-number of IO-APIC #1 registers: 16.
-number of IO-APIC #2 registers: 16.
-testing the IO APIC.......................
-
-IO APIC #1......
-.... register #00: 01000000
-.......    : physical APIC id: 01
-.... register #01: 000F0011
-.......     : max redirection entries: 000F
-.......     : PRQ implemented: 0
-.......     : IO APIC version: 0011
-.... register #02: 00000000
-.......     : arbitration: 00
-.... IRQ redirection table:
- NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
- 00 001 01  0    0    0   0   0    1    1    31
- 01 001 01  0    0    0   0   0    1    1    39
- 02 000 00  1    0    0   0   0    0    0    00
- 03 001 01  0    0    0   0   0    1    1    41
- 04 001 01  0    0    0   0   0    1    1    49
- 05 001 01  0    0    0   0   0    1    1    51
- 06 001 01  0    0    0   0   0    1    1    59
- 07 001 01  0    0    0   0   0    1    1    61
- 08 001 01  0    0    0   0   0    1    1    69
- 09 001 01  0    0    0   0   0    1    1    71
- 0a 001 01  0    0    0   0   0    1    1    79
- 0b 001 01  0    0    0   0   0    1    1    81
- 0c 001 01  0    0    0   0   0    1    1    89
- 0d 001 01  0    0    0   0   0    1    1    91
- 0e 001 01  0    0    0   0   0    1    1    99
- 0f 001 01  0    0    0   0   0    1    1    A1
-
-IO APIC #2......
-.... register #00: 02000000
-.......    : physical APIC id: 02
-.... register #01: 000F0011
-.......     : max redirection entries: 000F
-.......     : PRQ implemented: 0
-.......     : IO APIC version: 0011
-.... register #02: 0E000000
-.......     : arbitration: 0E
-.... IRQ redirection table:
- NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
- 00 000 00  1    0    0   0   0    0    0    00
- 01 000 00  1    0    0   0   0    0    0    00
- 02 000 00  1    0    0   0   0    0    0    00
- 03 000 00  1    0    0   0   0    0    0    00
- 04 000 00  1    0    0   0   0    0    0    00
- 05 000 00  1    0    0   0   0    0    0    00
- 06 000 00  1    0    0   0   0    0    0    00
- 07 000 00  1    0    0   0   0    0    0    00
- 08 000 00  1    0    0   0   0    0    0    00
- 09 000 00  1    0    0   0   0    0    0    00
- 0a 000 00  1    0    0   0   0    0    0    00
- 0b 000 00  1    0    0   0   0    0    0    00
- 0c 000 00  1    0    0   0   0    0    0    00
- 0d 000 00  1    0    0   0   0    0    0    00
- 0e 000 00  1    0    0   0   0    0    0    00
- 0f 000 00  1    0    0   0   0    0    0    00
-IRQ to pin mappings:
-IRQ0 -> 0:0
-IRQ1 -> 0:1
-IRQ3 -> 0:3
-IRQ4 -> 0:4
-IRQ5 -> 0:5
-IRQ6 -> 0:6
-IRQ7 -> 0:7
-IRQ8 -> 0:8
-IRQ9 -> 0:9
-IRQ10 -> 0:10
-IRQ11 -> 0:11
-IRQ12 -> 0:12
-IRQ13 -> 0:13
-IRQ14 -> 0:14
-IRQ15 -> 0:15
-.................................... done.
-Using local APIC timer interrupts.
-calibrating APIC timer ...
-..... CPU clock speed is 733.3607 MHz.
-..... host bus clock speed is 133.3380 MHz.
-cpu: 0, clocks: 1333380, slice: 666690
-CPU0<T0:1333376,T1:666672,D:14,S:666690,C:1333380>
-Waiting on wait_init_idle (map = 0x0)
-All processors have done init_idle
-ACPI: Subsystem revision 20020918
-PCI: PCI BIOS revision 2.10 entry at 0xfd9e1, last bus=7
-PCI: Using configuration type 1
-IOAPIC[0]: Set PCI routing entry (1-9 -> 0x71 -> IRQ 9)
-ACPI breakpoint: Executed AML Breakpoint opcode
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S1 S5)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKU] (IRQs 5, enabled at IRQ 11)
-ACPI: PCI Interrupt Link [LNK0] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNK1] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNK2] (IRQs 3 4 5 7 *10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNK3] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNK4] (IRQs 9 *11)
-ACPI: PCI Interrupt Link [LNK5] (IRQs 9 11, disabled)
-ACPI: PCI Interrupt Link [LNK6] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNK7] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNK8] (IRQs 3 4 5 7 10 11 12 14 15, enabled at IRQ 9)
-ACPI: PCI Interrupt Link [LNK9] (IRQs 3 4 5 7 10 11 12 14 15, enabled at IRQ 9)
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 10 11 12 14 15, enabled at IRQ 9)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 7 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 7 10 11 12 14 15, disabled)
-ACPI: PCI Root Bridge [PCI1] (00:05)
-PCI: Probing PCI hardware (bus 05)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI1._PRT]
-PCI: Probing PCI hardware
-ACPI: PCI Interrupt Link [LNK0] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNK1] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LNK3] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNK5] enabled at IRQ 9
-ACPI: PCI Interrupt Link [LNK6] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LNK7] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 10
-IOAPIC[1]: Set PCI routing entry (2-10 -> 0xa9 -> IRQ 26)
-00:00:07[A] -> 2-10 -> IRQ 26
-IOAPIC[1]: Set PCI routing entry (2-4 -> 0xb1 -> IRQ 20)
-00:00:02[A] -> 2-4 -> IRQ 20
-IOAPIC[1]: Set PCI routing entry (2-0 -> 0xb9 -> IRQ 16)
-00:00:03[A] -> 2-0 -> IRQ 16
-Pin 2-10 already programmed
-IOAPIC[1]: Set PCI routing entry (2-11 -> 0xc1 -> IRQ 27)
-00:00:03[C] -> 2-11 -> IRQ 27
-IOAPIC[1]: Set PCI routing entry (2-12 -> 0xc9 -> IRQ 28)
-00:00:03[D] -> 2-12 -> IRQ 28
-IOAPIC[1]: Set PCI routing entry (2-1 -> 0xd1 -> IRQ 17)
-00:00:04[A] -> 2-1 -> IRQ 17
-Pin 2-12 already programmed
-Pin 2-10 already programmed
-Pin 2-11 already programmed
-IOAPIC[1]: Set PCI routing entry (2-2 -> 0xd9 -> IRQ 18)
-00:00:05[A] -> 2-2 -> IRQ 18
-Pin 2-11 already programmed
-Pin 2-12 already programmed
-Pin 2-10 already programmed
-IOAPIC[1]: Set PCI routing entry (2-3 -> 0xe1 -> IRQ 19)
-00:00:06[A] -> 2-3 -> IRQ 19
-IOAPIC[1]: Set PCI routing entry (2-13 -> 0xe9 -> IRQ 29)
-00:00:06[B] -> 2-13 -> IRQ 29
-IOAPIC[1]: Set PCI routing entry (2-14 -> 0x32 -> IRQ 30)
-00:00:06[C] -> 2-14 -> IRQ 30
-IOAPIC[1]: Set PCI routing entry (2-15 -> 0x3a -> IRQ 31)
-00:00:06[D] -> 2-15 -> IRQ 31
-IOAPIC[1]: Set PCI routing entry (2-8 -> 0x42 -> IRQ 24)
-00:05:05[A] -> 2-8 -> IRQ 24
-IOAPIC[1]: Set PCI routing entry (2-9 -> 0x4a -> IRQ 25)
-00:05:05[B] -> 2-9 -> IRQ 25
-IOAPIC[1]: Set PCI routing entry (2-7 -> 0x52 -> IRQ 23)
-00:05:04[A] -> 2-7 -> IRQ 23
-Pin 2-13 already programmed
-Pin 2-14 already programmed
-Pin 2-15 already programmed
-IOAPIC[1]: Set PCI routing entry (2-6 -> 0x5a -> IRQ 22)
-00:05:03[A] -> 2-6 -> IRQ 22
-Pin 2-14 already programmed
-Pin 2-15 already programmed
-Pin 2-13 already programmed
-IOAPIC[1]: Set PCI routing entry (2-5 -> 0x62 -> IRQ 21)
-00:05:02[A] -> 2-5 -> IRQ 21
-Pin 2-15 already programmed
-Pin 2-13 already programmed
-Pin 2-14 already programmed
-PCI: Using ACPI for IRQ routing
-PCI: if you experience problems, try using option 'pci=noacpi' or even 'acpi=off'
-Linux NET4.0 for Linux 2.4
-Based upon Swansea University Computer Society NET3.039
-Initializing RT netlink socket
-Starting kswapd
-VFS: Diskquotas version dquot_6.4.0 initialized
-Journalled Block Device driver loaded
-devfs: v1.12c (20020818) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
-devfs: boot_options: 0x1
-ACPI: Power Button (FF) [PWRF]
-ACPI: Processor [CPU0] (supports C1)
-ACPI: Processor [CPU1] (supports C1)
-vesafb: framebuffer at 0xfc000000, mapped to 0xd0807000, size 4096k
-vesafb: mode is 1024x768x16, linelength=2048, pages=1
-vesafb: protected mode interface info at c000:4dc8
-vesafb: scrolling: redraw
-vesafb: directcolor: size=0:5:5:5, shift=0:10:5:0
-Console: switching to colour frame buffer device 128x48
-fb0: VESA VGA frame buffer device
-pty: 1024 Unix98 ptys configured
-Serial driver version 5.05c (2001-07-08) with MANY_PORTS SHARE_IRQ SERIAL_PCI enabled
-ttyS00 at 0x03f8 (irq = 4) is a 16550A
-ttyS01 at 0x02f8 (irq = 3) is a 16550A
-Real Time Clock Driver v1.10e
-Non-volatile memory driver v1.2
-Uniform Multi-Platform E-IDE driver Revision: 6.31
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
-ServerWorks OSB4: IDE controller on PCI bus 00 dev 79
-ServerWorks OSB4: chipset revision 0
-ServerWorks OSB4: not 100% native mode: will probe irqs later
-    ide0: BM-DMA at 0x1840-0x1847, BIOS settings: hda:pio, hdb:pio
-    ide1: BM-DMA at 0x1848-0x184f, BIOS settings: hdc:pio, hdd:pio
-hda: C/H/S=59881/223/0 from BIOS ignored
-hda: IC35L120AVVA07-0, ATA DISK drive
-hdc: CD-540E, ATAPI CD/DVD-ROM drive
-ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-ide1 at 0x170-0x177,0x376 on irq 15
-blk: queue c0374304, I/O limit 4095Mb (mask 0xffffffff)
-hda: 241254720 sectors (123522 MB) w/1863KiB Cache, CHS=239340/16/63, UDMA(33)
-hdc: ATAPI 40X CD-ROM drive, 128kB Cache, UDMA(33)
-Uniform CD-ROM driver Revision: 3.12
-Partition check:
- /dev/ide/host0/bus0/target0/lun0: p1 p2
-Floppy drive(s): fd0 is 1.44M
-FDC 0 is a National Semiconductor PC87306
-SCSI subsystem driver Revision: 1.00
-sym0: <896> rev 0x7 on pci bus 5 device 5 function 0 irq 24
-sym0: Symbios NVRAM, ID 7, Fast-40, LVD, parity checking
-sym0: open drain IRQ line driver, using on-chip SRAM
-sym0: using LOAD/STORE-based firmware.
-sym0: handling phase mismatch from SCRIPTS.
-sym0: SCSI BUS has been reset.
-sym1: <896> rev 0x7 on pci bus 5 device 5 function 1 irq 25
-sym1: Symbios NVRAM, ID 7, Fast-40, LVD, parity checking
-sym1: open drain IRQ line driver, using on-chip SRAM
-sym1: using LOAD/STORE-based firmware.
-sym1: handling phase mismatch from SCRIPTS.
-sym1: SCSI BUS has been reset.
-scsi0 : sym-2.1.17a
-scsi1 : sym-2.1.17a
-blk: queue cfee4618, I/O limit 4095Mb (mask 0xffffffff)
-  Vendor: HP 18.2G  Model: MAN3184MP         Rev: HP04
-  Type:   Direct-Access                      ANSI SCSI revision: 02
-blk: queue cfecee18, I/O limit 4095Mb (mask 0xffffffff)
-sym0:3:0: tagged command queuing enabled, command queue depth 16.
-Attached scsi disk sda at scsi0, channel 0, id 3, lun 0
-sym0:3: FAST-40 WIDE SCSI 80.0 MB/s ST (25.0 ns, offset 31)
-SCSI device sda: 35566480 512-byte hdwr sectors (18210 MB)
- /dev/scsi/host0/bus0/target3/lun0: p1 p2 p3 p4 < p5 p6 p7 >
-Linux Kernel Card Services 3.1.22
-  options:  [pci] [cardbus] [pm]
-md: linear personality registered as nr 1
-md: raid1 personality registered as nr 3
-md: raid5 personality registered as nr 4
-raid5: measuring checksumming speed
-   8regs     :  1352.800 MB/sec
-   32regs    :   659.600 MB/sec
-   pIII_sse  :  1501.200 MB/sec
-   pII_mmx   :  1649.200 MB/sec
-   p5_mmx    :  1719.600 MB/sec
-raid5: using function: pIII_sse (1501.200 MB/sec)
-md: md driver 0.90.0 MAX_MD_DEVS=256, MD_SB_DISKS=27
-md: Autodetecting RAID arrays.
-md: autorun ...
-md: ... autorun DONE.
-LVM version 1.0.5+(22/07/2002)
-NET4: Linux TCP/IP 1.0 for NET4.0
-IP Protocols: ICMP, UDP, TCP, IGMP
-IP: routing cache hash table of 2048 buckets, 16Kbytes
-TCP: Hash tables configured (established 16384 bind 16384)
-NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
-ds: no socket drivers loaded!
-kjournald starting.  Commit interval 5 seconds
-EXT3-fs: mounted filesystem with ordered data mode.
-VFS: Mounted root (ext3 filesystem) readonly.
-Mounted devfs on /dev
-Freeing unused kernel memory: 132k freed
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on sd(8,3), internal journal
-loop: loaded (max 8 devices)
-Adding Swap: 1048784k swap-space (priority 10)
-Adding Swap: 511992k swap-space (priority 10)
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,0), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,1), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,2), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,3), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,4), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,5), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on ide0(3,2), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-eepro100.c:v1.09j-t 9/29/99 Donald Becker http://www.scyld.com/network/eepro100.html
-eepro100.c: $Revision: 1.36 $ 2000/11/17 Modified by Andrey V. Savochkin <saw-5bpFXmC1L3aJ4eUNlOKu3Q@public.gmane.org> and others
-eth0: OEM i82557/i82558 10/100 Ethernet, 00:E0:18:C6:13:60, IRQ 20.
-  Receiver lock-up bug exists -- enabling work-around.
-  Board assembly 506470-151, Physical connectors present: RJ45
-  Primary interface chip i82555 PHY #1.
-  General self-test: passed.
-  Serial sub-system self-test: passed.
-  Internal registers self-test: passed.
-  ROM checksum self-test: passed (0x04f4518b).
-  Receiver lock-up workaround activated.
-Linux Tulip driver version 0.9.15-pre12 (Aug 9, 2002)
-tulip0:  EEPROM default media type Autosense.
-tulip0:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip0:  MII transceiver #1 config 3100 status 7849 advertising 01e1.
-eth1: Digital DS21143 Tulip rev 65 at 0xd0d06000, 00:80:C8:B9:9E:C5, IRQ 27.
-tulip1:  EEPROM default media type Autosense.
-tulip1:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip1:  MII transceiver #1 config 3100 status 7849 advertising 01e1.
-eth2: Digital DS21143 Tulip rev 65 at 0xd0d08400, 00:80:C8:B9:9E:C6, IRQ 27.
-tulip2:  EEPROM default media type Autosense.
-tulip2:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip2:  MII transceiver #1 config 3100 status 7849 advertising 01e1.
-eth3: Digital DS21143 Tulip rev 65 at 0xd0d0a800, 00:80:C8:B9:9E:C7, IRQ 27.
-tulip3:  EEPROM default media type Autosense.
-tulip3:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip3:  MII transceiver #1 config 3100 status 7869 advertising 01e1.
-eth4: Digital DS21143 Tulip rev 65 at 0xd0d0cc00, 00:80:C8:B9:9E:C8, IRQ 27.
-usb.c: registered new driver usbdevfs
-usb.c: registered new driver hub
-usb-uhci.c: $Revision: 1.275 $ time 03:27:45 Sep 21 2002
-usb-uhci.c: High bandwidth mode enabled
-usb-uhci.c: v1.275:USB Universal Host Controller Interface driver
-usb.c: deregistering driver usbdevfs
-usb.c: deregistering driver hub
-parport0: PC-style at 0x378 (0x778) [PCSPP,TRISTATE,EPP]
-parport0: irq 7 detected
-eth4: Setting full-duplex based on MII#1 link partner capability of 41e1.
-
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="lspci-linux-2.4.20-pre7-acpi20020918.out"
-
-00:00.0 Host bridge: ServerWorks CNB20LE Host Bridge (rev 05)
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort+ >SERR- <PERR-
-	Latency: 48, cache line size 08
-
-00:00.1 Host bridge: ServerWorks CNB20LE Host Bridge (rev 05)
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 32, cache line size 08
-
-00:02.0 Ethernet controller: Intel Corp. 82557 [Ethernet Pro 100] (rev 08)
-	Subsystem: Hewlett-Packard Company: Unknown device 10ca
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (2000ns min, 14000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 20
-	Region 0: Memory at fd100000 (32-bit, non-prefetchable) [size=4K]
-	Region 1: I/O ports at 1800 [size=64]
-	Region 2: Memory at fd000000 (32-bit, non-prefetchable) [size=1M]
-	Expansion ROM at <unassigned> [disabled] [size=1M]
-	Capabilities: [dc] Power Management version 2
-		Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=2 PME-
-
-00:05.0 PCI bridge: Digital Equipment Corporation DECchip 21152 (rev 03) (prog-if 00 [Normal decode])
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64, cache line size 08
-	Bus: primary=00, secondary=01, subordinate=01, sec-latency=36
-	I/O behind bridge: 00002000-00002fff
-	Memory behind bridge: fd200000-fd2fffff
-	Prefetchable memory behind bridge: 00000000fff00000-0000000000000000
-	BridgeCtl: Parity- SERR- NoISA+ VGA- MAbort- >Reset- FastB2B-
-	Capabilities: [dc] Power Management version 1
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=220mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-		Bridge: PM- B3+
-
-00:07.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 65) (prog-if 00 [VGA])
-	Subsystem: Hewlett-Packard Company: Unknown device 10e1
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping+ SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 66 (2000ns min), cache line size 08
-	Region 0: Memory at fc000000 (32-bit, non-prefetchable) [size=16M]
-	Region 1: I/O ports at 1400 [size=256]
-	Region 2: Memory at fd101000 (32-bit, non-prefetchable) [size=4K]
-	Expansion ROM at <unassigned> [disabled] [size=128K]
-	Capabilities: [5c] Power Management version 1
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-00:0f.0 ISA bridge: ServerWorks OSB4 South Bridge (rev 4f)
-	Subsystem: ServerWorks OSB4 South Bridge
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-
-00:0f.1 IDE interface: ServerWorks OSB4 IDE Controller (prog-if 8a [Master SecP PriP])
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64
-	Region 4: I/O ports at 1840 [size=16]
-
-00:0f.2 USB Controller: ServerWorks OSB4/CSB5 OHCI USB Controller (rev 04) (prog-if 10 [OHCI])
-	Subsystem: ServerWorks OSB4/CSB5 OHCI USB Controller
-	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Interrupt: pin A routed to IRQ 11
-	Region 0: Memory at fd102000 (32-bit, non-prefetchable) [size=4K]
-
-01:04.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 27
-	Region 0: I/O ports at 2000 [size=128]
-	Region 1: Memory at fd200000 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-01:05.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 27
-	Region 0: I/O ports at 2080 [size=128]
-	Region 1: Memory at fd200400 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-01:06.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 27
-	Region 0: I/O ports at 2400 [size=128]
-	Region 1: Memory at fd200800 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-01:07.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 27
-	Region 0: I/O ports at 2480 [size=128]
-	Region 1: Memory at fd200c00 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-05:05.0 SCSI storage controller: LSI Logic / Symbios Logic (formerly NCR) 53c896 (rev 07)
-	Subsystem: Hewlett-Packard Company: Unknown device 60e0
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 72 (4250ns min, 16000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 24
-	Region 0: I/O ports at 3000 [size=256]
-	Region 1: Memory at fd302000 (64-bit, non-prefetchable) [size=1K]
-	Region 3: Memory at fd300000 (64-bit, non-prefetchable) [size=8K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-05:05.1 SCSI storage controller: LSI Logic / Symbios Logic (formerly NCR) 53c896 (rev 07)
-	Subsystem: Hewlett-Packard Company: Unknown device 60e0
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 72 (4250ns min, 16000ns max), cache line size 08
-	Interrupt: pin B routed to IRQ 25
-	Region 0: I/O ports at 3400 [size=256]
-	Region 1: Memory at fd302400 (64-bit, non-prefetchable) [size=1K]
-	Region 3: Memory at fd304000 (64-bit, non-prefetchable) [size=8K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="dmesg-linux-2.4.20-pre7.out"
-
-Linux version 2.4.20-pre7 (root@golem2) (gcc version 2.96 20000731 (Mandrake Linux 8.2 2.96-0.76mdk)) #2 SMP Sat Sep 21 01:59:59 CEST 2002
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
- BIOS-e820: 000000000009f000 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000eac00 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000000fff0000 (usable)
- BIOS-e820: 000000000fff0000 - 000000000ffffc00 (ACPI data)
- BIOS-e820: 000000000ffffc00 - 0000000010000000 (ACPI NVS)
- BIOS-e820: 00000000fec00000 - 00000000fec10000 (reserved)
- BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
- BIOS-e820: 00000000fff80000 - 0000000100000000 (reserved)
-255MB LOWMEM available.
-found SMP MP-table at 000f6f60
-hm, page 000f6000 reserved twice.
-hm, page 000f7000 reserved twice.
-hm, page 0009f000 reserved twice.
-hm, page 000a0000 reserved twice.
-On node 0 totalpages: 65520
-zone(0): 4096 pages.
-zone(1): 61424 pages.
-zone(2): 0 pages.
-Intel MultiProcessor Specification v1.4
-    Virtual Wire compatibility mode.
-OEM ID: HP       Product ID: E 800        APIC at: 0xFEE00000
-Processor #0 Pentium(tm) Pro APIC version 17
-I/O APIC #1 Version 17 at 0xFEC00000.
-I/O APIC #2 Version 17 at 0xFEC01000.
-Processors: 1
-Kernel command line: BOOT_IMAGE=linux-pre7 ro root=803 devfs=mount panic=60 console=ttyS0,115200n8
-Initializing CPU#0
-Detected 733.385 MHz processor.
-Console: colour dummy device 80x25
-Calibrating delay loop... 1464.72 BogoMIPS
-Memory: 256224k/262080k available (1479k kernel code, 5468k reserved, 509k data, 128k init, 0k highmem)
-Dentry cache hash table entries: 32768 (order: 6, 262144 bytes)
-Inode cache hash table entries: 16384 (order: 5, 131072 bytes)
-Mount-cache hash table entries: 4096 (order: 3, 32768 bytes)
-Buffer-cache hash table entries: 16384 (order: 4, 65536 bytes)
-Page-cache hash table entries: 65536 (order: 6, 262144 bytes)
-CPU: Before vendor init, caps: 0387fbff 00000000 00000000, vendor = 0
-CPU: L1 I cache: 16K, L1 D cache: 16K
-CPU: L2 cache: 256K
-CPU: After vendor init, caps: 0387fbff 00000000 00000000 00000000
-CPU serial number disabled.
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU:     After generic, caps: 0383fbff 00000000 00000000 00000000
-CPU:             Common caps: 0383fbff 00000000 00000000 00000000
-Enabling fast FPU save and restore... done.
-Enabling unmasked SIMD FPU exception support... done.
-Checking 'hlt' instruction... OK.
-POSIX conformance testing by UNIFIX
-mtrr: v1.40 (20010327) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
-mtrr: detected mtrr type: Intel
-CPU: Before vendor init, caps: 0383fbff 00000000 00000000, vendor = 0
-CPU: L1 I cache: 16K, L1 D cache: 16K
-CPU: L2 cache: 256K
-CPU: After vendor init, caps: 0383fbff 00000000 00000000 00000000
-Intel machine check reporting enabled on CPU#0.
-CPU:     After generic, caps: 0383fbff 00000000 00000000 00000000
-CPU:             Common caps: 0383fbff 00000000 00000000 00000000
-CPU0: Intel Pentium III (Coppermine) stepping 06
-per-CPU timeslice cutoff: 731.61 usecs.
-enabled ExtINT on CPU#0
-ESR value before enabling vector: 00000000
-ESR value after enabling vector: 00000000
-Error: only one processor found.
-ENABLING IO-APIC IRQs
-Setting 1 in the phys_id_present_map
-...changing IO-APIC physical APIC ID to 1 ... ok.
-Setting 2 in the phys_id_present_map
-...changing IO-APIC physical APIC ID to 2 ... ok.
-init IO_APIC IRQs
- IO-APIC (apicid-pin) 1-0, 1-5, 1-9, 1-10, 1-11, 2-0, 2-1, 2-3, 2-5, 2-6, 2-7, 2-11, 2-13, 2-14, 2-15 not connected.
-..TIMER: vector=0x31 pin1=-1 pin2=0
-...trying to set up timer (IRQ0) through the 8259A ... 
-..... (found pin 0) ...works.
-number of MP IRQ sources: 19.
-number of IO-APIC #1 registers: 16.
-number of IO-APIC #2 registers: 16.
-testing the IO APIC.......................
-
-IO APIC #1......
-.... register #00: 01000000
-.......    : physical APIC id: 01
-.... register #01: 000F0011
-.......     : max redirection entries: 000F
-.......     : PRQ implemented: 0
-.......     : IO APIC version: 0011
-.... register #02: 00000000
-.......     : arbitration: 00
-.... IRQ redirection table:
- NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
- 00 001 01  0    0    0   0   0    1    1    31
- 01 001 01  0    0    0   0   0    1    1    39
- 02 000 00  1    0    0   0   0    0    0    00
- 03 001 01  0    0    0   0   0    1    1    41
- 04 001 01  0    0    0   0   0    1    1    49
- 05 000 00  1    0    0   0   0    0    0    00
- 06 001 01  0    0    0   0   0    1    1    51
- 07 001 01  0    0    0   0   0    1    1    59
- 08 001 01  0    0    0   0   0    1    1    61
- 09 000 00  1    0    0   0   0    0    0    00
- 0a 000 00  1    0    0   0   0    0    0    00
- 0b 000 00  1    0    0   0   0    0    0    00
- 0c 001 01  0    0    0   0   0    1    1    69
- 0d 001 01  0    0    0   0   0    1    1    71
- 0e 001 01  0    0    0   0   0    1    1    79
- 0f 001 01  0    0    0   0   0    1    1    81
-
-IO APIC #2......
-.... register #00: 02000000
-.......    : physical APIC id: 02
-.... register #01: 000F0011
-.......     : max redirection entries: 000F
-.......     : PRQ implemented: 0
-.......     : IO APIC version: 0011
-.... register #02: 0D000000
-.......     : arbitration: 0D
-.... IRQ redirection table:
- NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
- 00 000 00  1    0    0   0   0    0    0    00
- 01 000 00  1    0    0   0   0    0    0    00
- 02 001 01  1    1    0   1   0    1    1    89
- 03 000 00  1    0    0   0   0    0    0    00
- 04 001 01  1    1    0   1   0    1    1    91
- 05 000 00  1    0    0   0   0    0    0    00
- 06 000 00  1    0    0   0   0    0    0    00
- 07 000 00  1    0    0   0   0    0    0    00
- 08 001 01  1    1    0   1   0    1    1    99
- 09 001 01  1    1    0   1   0    1    1    A1
- 0a 001 01  1    1    0   1   0    1    1    A9
- 0b 000 00  1    0    0   0   0    0    0    00
- 0c 001 01  1    1    0   1   0    1    1    B1
- 0d 000 00  1    0    0   0   0    0    0    00
- 0e 000 00  1    0    0   0   0    0    0    00
- 0f 000 00  1    0    0   0   0    0    0    00
-IRQ to pin mappings:
-IRQ0 -> 0:0
-IRQ1 -> 0:1
-IRQ2 -> 0:2
-IRQ3 -> 0:3
-IRQ4 -> 0:4
-IRQ6 -> 0:6
-IRQ7 -> 0:7
-IRQ8 -> 0:8
-IRQ12 -> 0:12
-IRQ13 -> 0:13
-IRQ14 -> 0:14
-IRQ15 -> 0:15
-IRQ18 -> 1:2
-IRQ20 -> 1:4
-IRQ24 -> 1:8
-IRQ25 -> 1:9
-IRQ26 -> 1:10
-IRQ28 -> 1:12
-.................................... done.
-Using local APIC timer interrupts.
-calibrating APIC timer ...
-..... CPU clock speed is 733.4347 MHz.
-..... host bus clock speed is 133.3516 MHz.
-cpu: 0, clocks: 1333516, slice: 666758
-CPU0<T0:1333504,T1:666736,D:10,S:666758,C:1333516>
-Waiting on wait_init_idle (map = 0x0)
-All processors have done init_idle
-PCI: PCI BIOS revision 2.10 entry at 0xfd9e1, last bus=7
-PCI: Using configuration type 1
-PCI: Probing PCI hardware
-PCI: Discovered primary peer bus 05 [IRQ]
-PCI->APIC IRQ transform: (B0,I2,P0) -> 20
-PCI->APIC IRQ transform: (B0,I15,P0) -> 33
-PCI->APIC IRQ transform: (B1,I4,P0) -> 18
-PCI->APIC IRQ transform: (B1,I6,P0) -> 28
-PCI->APIC IRQ transform: (B1,I7,P0) -> 26
-PCI->APIC IRQ transform: (B5,I5,P0) -> 24
-PCI->APIC IRQ transform: (B5,I5,P1) -> 25
-Linux NET4.0 for Linux 2.4
-Based upon Swansea University Computer Society NET3.039
-Initializing RT netlink socket
-Starting kswapd
-VFS: Diskquotas version dquot_6.4.0 initialized
-Journalled Block Device driver loaded
-devfs: v1.12c (20020818) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
-devfs: boot_options: 0x1
-ACPI: Core Subsystem version [20011018]
-ACPI breakpoint: Executed AML Breakpoint opcode
-ACPI: Subsystem enabled
-ACPI: System firmware supports S0 S1 S5
-Processor[0]: C0 C1
-Processor[1]: C0 C1
-ACPI: Power Button (FF) found
-vesafb: framebuffer at 0xfc000000, mapped to 0xd0807000, size 4096k
-vesafb: mode is 1024x768x16, linelength=2048, pages=1
-vesafb: protected mode interface info at c000:4dc8
-vesafb: scrolling: redraw
-vesafb: directcolor: size=0:5:5:5, shift=0:10:5:0
-Console: switching to colour frame buffer device 128x48
-fb0: VESA VGA frame buffer device
-pty: 1024 Unix98 ptys configured
-Serial driver version 5.05c (2001-07-08) with MANY_PORTS SHARE_IRQ SERIAL_PCI enabled
-ttyS00 at 0x03f8 (irq = 4) is a 16550A
-ttyS01 at 0x02f8 (irq = 3) is a 16550A
-Real Time Clock Driver v1.10e
-Non-volatile memory driver v1.2
-Uniform Multi-Platform E-IDE driver Revision: 6.31
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
-ServerWorks OSB4: IDE controller on PCI bus 00 dev 79
-ServerWorks OSB4: chipset revision 0
-ServerWorks OSB4: not 100% native mode: will probe irqs later
-    ide0: BM-DMA at 0x1840-0x1847, BIOS settings: hda:pio, hdb:pio
-    ide1: BM-DMA at 0x1848-0x184f, BIOS settings: hdc:pio, hdd:pio
-hda: C/H/S=59881/223/0 from BIOS ignored
-hda: IC35L120AVVA07-0, ATA DISK drive
-hdc: CD-540E, ATAPI CD/DVD-ROM drive
-ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-ide1 at 0x170-0x177,0x376 on irq 15
-blk: queue c036afc4, I/O limit 4095Mb (mask 0xffffffff)
-hda: 241254720 sectors (123522 MB) w/1863KiB Cache, CHS=239340/16/63, UDMA(33)
-hdc: ATAPI 40X CD-ROM drive, 128kB Cache, UDMA(33)
-Uniform CD-ROM driver Revision: 3.12
-Partition check:
- /dev/ide/host0/bus0/target0/lun0: p1 p2
-Floppy drive(s): fd0 is 1.44M
-FDC 0 is a National Semiconductor PC87306
-SCSI subsystem driver Revision: 1.00
-sym0: <896> rev 0x7 on pci bus 5 device 5 function 0 irq 24
-sym0: Symbios NVRAM, ID 7, Fast-40, LVD, parity checking
-sym0: open drain IRQ line driver, using on-chip SRAM
-sym0: using LOAD/STORE-based firmware.
-sym0: handling phase mismatch from SCRIPTS.
-sym0: SCSI BUS has been reset.
-sym1: <896> rev 0x7 on pci bus 5 device 5 function 1 irq 25
-sym1: Symbios NVRAM, ID 7, Fast-40, LVD, parity checking
-sym1: open drain IRQ line driver, using on-chip SRAM
-sym1: using LOAD/STORE-based firmware.
-sym1: handling phase mismatch from SCRIPTS.
-sym1: SCSI BUS has been reset.
-scsi0 : sym-2.1.17a
-scsi1 : sym-2.1.17a
-blk: queue cfee9c18, I/O limit 4095Mb (mask 0xffffffff)
-  Vendor: HP 18.2G  Model: MAN3184MP         Rev: HP04
-  Type:   Direct-Access                      ANSI SCSI revision: 02
-blk: queue cfee9418, I/O limit 4095Mb (mask 0xffffffff)
-sym0:3:0: tagged command queuing enabled, command queue depth 16.
-Attached scsi disk sda at scsi0, channel 0, id 3, lun 0
-sym0:3: FAST-40 WIDE SCSI 80.0 MB/s ST (25.0 ns, offset 31)
-SCSI device sda: 35566480 512-byte hdwr sectors (18210 MB)
- /dev/scsi/host0/bus0/target3/lun0: p1 p2 p3 p4 < p5 p6 p7 >
-Linux Kernel Card Services 3.1.22
-  options:  [pci] [cardbus] [pm]
-md: linear personality registered as nr 1
-md: raid1 personality registered as nr 3
-md: raid5 personality registered as nr 4
-raid5: measuring checksumming speed
-   8regs     :  1352.800 MB/sec
-   32regs    :   660.000 MB/sec
-   pIII_sse  :  1503.600 MB/sec
-   pII_mmx   :  1649.200 MB/sec
-   p5_mmx    :  1720.000 MB/sec
-raid5: using function: pIII_sse (1503.600 MB/sec)
-md: md driver 0.90.0 MAX_MD_DEVS=256, MD_SB_DISKS=27
-md: Autodetecting RAID arrays.
-md: autorun ...
-md: ... autorun DONE.
-LVM version 1.0.5+(22/07/2002)
-NET4: Linux TCP/IP 1.0 for NET4.0
-IP Protocols: ICMP, UDP, TCP, IGMP
-IP: routing cache hash table of 2048 buckets, 16Kbytes
-TCP: Hash tables configured (established 16384 bind 16384)
-NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
-ds: no socket drivers loaded!
-kjournald starting.  Commit interval 5 seconds
-EXT3-fs: mounted filesystem with ordered data mode.
-VFS: Mounted root (ext3 filesystem) readonly.
-Mounted devfs on /dev
-Freeing unused kernel memory: 128k freed
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on sd(8,3), internal journal
-loop: loaded (max 8 devices)
-Adding Swap: 1048784k swap-space (priority 10)
-Adding Swap: 511992k swap-space (priority 10)
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,0), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,1), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,2), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,3), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,4), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on lvm(58,5), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS 2.4-0.9.17, 10 Jan 2002 on ide0(3,2), internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-eepro100.c:v1.09j-t 9/29/99 Donald Becker http://www.scyld.com/network/eepro100.html
-eepro100.c: $Revision: 1.36 $ 2000/11/17 Modified by Andrey V. Savochkin <saw-5bpFXmC1L3aJ4eUNlOKu3Q@public.gmane.org> and others
-eth0: OEM i82557/i82558 10/100 Ethernet, 00:E0:18:C6:13:60, IRQ 20.
-  Receiver lock-up bug exists -- enabling work-around.
-  Board assembly 506470-151, Physical connectors present: RJ45
-  Primary interface chip i82555 PHY #1.
-  General self-test: passed.
-  Serial sub-system self-test: passed.
-  Internal registers self-test: passed.
-  ROM checksum self-test: passed (0x04f4518b).
-  Receiver lock-up workaround activated.
-Linux Tulip driver version 0.9.15-pre12 (Aug 9, 2002)
-tulip0:  EEPROM default media type Autosense.
-tulip0:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip0:  MII transceiver #1 config 3100 status 7849 advertising 01e1.
-eth1: Digital DS21143 Tulip rev 65 at 0xd0d06000, 00:80:C8:B9:9E:C5, IRQ 18.
-tulip1:  EEPROM default media type Autosense.
-tulip1:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip1:  MII transceiver #1 config 3100 status 7849 advertising 01e1.
-eth2: Digital DS21143 Tulip rev 65 at 0xd0d08400, 00:80:C8:B9:9E:C6, IRQ 5.
-tulip2:  EEPROM default media type Autosense.
-tulip2:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip2:  MII transceiver #1 config 3100 status 7849 advertising 01e1.
-eth3: Digital DS21143 Tulip rev 65 at 0xd0d0a800, 00:80:C8:B9:9E:C7, IRQ 28.
-tulip3:  EEPROM default media type Autosense.
-tulip3:  Index #0 - Media MII (#11) described by a 21142 MII PHY (3) block.
-tulip3:  MII transceiver #1 config 3100 status 7869 advertising 01e1.
-eth4: Digital DS21143 Tulip rev 65 at 0xd0d0cc00, 00:80:C8:B9:9E:C8, IRQ 26.
-usb.c: registered new driver usbdevfs
-usb.c: registered new driver hub
-usb-uhci.c: $Revision: 1.275 $ time 01:46:55 Sep 21 2002
-usb-uhci.c: High bandwidth mode enabled
-usb-uhci.c: v1.275:USB Universal Host Controller Interface driver
-usb.c: deregistering driver usbdevfs
-usb.c: deregistering driver hub
-parport0: PC-style at 0x378 (0x778) [PCSPP,TRISTATE,EPP]
-parport0: irq 7 detected
-eth4: Setting full-duplex based on MII#1 link partner capability of 41e1.
-
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="lspci-linux-2.4.20-pre7.out"
-
-00:00.0 Host bridge: ServerWorks CNB20LE Host Bridge (rev 05)
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort+ >SERR- <PERR-
-	Latency: 48, cache line size 08
-
-00:00.1 Host bridge: ServerWorks CNB20LE Host Bridge (rev 05)
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 32, cache line size 08
-
-00:02.0 Ethernet controller: Intel Corp. 82557 [Ethernet Pro 100] (rev 08)
-	Subsystem: Hewlett-Packard Company: Unknown device 10ca
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (2000ns min, 14000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 20
-	Region 0: Memory at fd100000 (32-bit, non-prefetchable) [size=4K]
-	Region 1: I/O ports at 1800 [size=64]
-	Region 2: Memory at fd000000 (32-bit, non-prefetchable) [size=1M]
-	Expansion ROM at <unassigned> [disabled] [size=1M]
-	Capabilities: [dc] Power Management version 2
-		Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=2 PME-
-
-00:05.0 PCI bridge: Digital Equipment Corporation DECchip 21152 (rev 03) (prog-if 00 [Normal decode])
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64, cache line size 08
-	Bus: primary=00, secondary=01, subordinate=01, sec-latency=36
-	I/O behind bridge: 00002000-00002fff
-	Memory behind bridge: fd200000-fd2fffff
-	Prefetchable memory behind bridge: 00000000fff00000-0000000000000000
-	BridgeCtl: Parity- SERR- NoISA+ VGA- MAbort- >Reset- FastB2B-
-	Capabilities: [dc] Power Management version 1
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=220mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-		Bridge: PM- B3+
-
-00:07.0 VGA compatible controller: ATI Technologies Inc Rage XL (rev 65) (prog-if 00 [VGA])
-	Subsystem: Hewlett-Packard Company: Unknown device 10e1
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping+ SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 66 (2000ns min), cache line size 08
-	Region 0: Memory at fc000000 (32-bit, non-prefetchable) [size=16M]
-	Region 1: I/O ports at 1400 [size=256]
-	Region 2: Memory at fd101000 (32-bit, non-prefetchable) [size=4K]
-	Expansion ROM at <unassigned> [disabled] [size=128K]
-	Capabilities: [5c] Power Management version 1
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-00:0f.0 ISA bridge: ServerWorks OSB4 South Bridge (rev 4f)
-	Subsystem: ServerWorks OSB4 South Bridge
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-
-00:0f.1 IDE interface: ServerWorks OSB4 IDE Controller (prog-if 8a [Master SecP PriP])
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64
-	Region 4: I/O ports at 1840 [size=16]
-
-00:0f.2 USB Controller: ServerWorks OSB4/CSB5 OHCI USB Controller (rev 04) (prog-if 10 [OHCI])
-	Subsystem: ServerWorks OSB4/CSB5 OHCI USB Controller
-	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Interrupt: pin A routed to IRQ 33
-	Region 0: Memory at fd102000 (32-bit, non-prefetchable) [size=4K]
-
-01:04.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 18
-	Region 0: I/O ports at 2000 [size=128]
-	Region 1: Memory at fd200000 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-01:05.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 5
-	Region 0: I/O ports at 2080 [size=128]
-	Region 1: Memory at fd200400 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-01:06.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 28
-	Region 0: I/O ports at 2400 [size=128]
-	Region 1: Memory at fd200800 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-01:07.0 Ethernet controller: Digital Equipment Corporation DECchip 21142/43 (rev 41)
-	Subsystem: D-Link System Inc: Unknown device 1112
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (5000ns min, 10000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 26
-	Region 0: I/O ports at 2480 [size=128]
-	Region 1: Memory at fd200c00 (32-bit, non-prefetchable) [size=1K]
-	Expansion ROM at <unassigned> [disabled] [size=256K]
-
-05:05.0 SCSI storage controller: LSI Logic / Symbios Logic (formerly NCR) 53c896 (rev 07)
-	Subsystem: Hewlett-Packard Company: Unknown device 60e0
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 72 (4250ns min, 16000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 24
-	Region 0: I/O ports at 3000 [size=256]
-	Region 1: Memory at fd302000 (64-bit, non-prefetchable) [size=1K]
-	Region 3: Memory at fd300000 (64-bit, non-prefetchable) [size=8K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-05:05.1 SCSI storage controller: LSI Logic / Symbios Logic (formerly NCR) 53c896 (rev 07)
-	Subsystem: Hewlett-Packard Company: Unknown device 60e0
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr+ Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 72 (4250ns min, 16000ns max), cache line size 08
-	Interrupt: pin B routed to IRQ 25
-	Region 0: I/O ports at 3400 [size=256]
-	Region 1: Memory at fd302400 (64-bit, non-prefetchable) [size=1K]
-	Region 3: Memory at fd304000 (64-bit, non-prefetchable) [size=8K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-
---5mCyUwZo2JvN/JJP--
+--Multipart_Sat__21_Sep_2002_11:08:59_+0200_08e30ec8--
 
 
 -------------------------------------------------------
