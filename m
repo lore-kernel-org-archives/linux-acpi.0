@@ -1,17 +1,14 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: Re: Kernel Oops when loading battery module
-Date: 08 Dec 2002 12:07:46 -0500
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Re: acpi integration in kernel 2.4.20
+Date: 08 Dec 2002 18:48:10 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1039367266.1416.3.camel@sirius.strandboge.cxm>
-References: <20021207003056.GC8072@homerelay.wiesner-net.de>
-	 <1039229157.2913.5.camel@sirius.strandboge.cxm>
-	 <20021207142228.GA20455@homerelay.wiesner-net.de>
-	 <1039273263.2913.23.camel@sirius.strandboge.cxm>
-	 <20021208132229.GB21604@homerelay.wiesner-net.de>
+Message-ID: <1039373211.4011.7.camel@darkstar.portugal>
+References: <1039317144.4690.22.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-j6X56/tiedGNNLHsy66Y"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021208132229.GB21604-aCYJ90g6FbN3mO1V46hDx7oZL2q1Rlic@public.gmane.org>
+In-Reply-To: <1039317144.4690.22.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,70 +17,105 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Wiesner <list-acpi-9/ybXWNEfnWFBUTzTaTVRY/15xujVBPPG9Ur7JDdleE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Sun, 2002-12-08 at 03:12, S=E9rgio Monteiro Basto wrote:
+>=20
+> Hi=20
+> I search in lkml (it stands for Linux Kernel Mailing List) about apic (
+> not acpi)  problem with compaq pressario and I discover this my notebook
+> have mode then 8 workarounds for PCI and irq stuff.
+more then 8, not mode
+> So in file drivers/pci you can find then in quirks.c for via south
+> bridge workaround and in=20
+> arch/i386/kernel/pci-pc.c function pci_fixup_via_northbridge_bug for
+> north bridge workaround. This one is a little danger remove him because
+> some strange thing happens in monitor.
+>=20
+> Now the interesting is that we have in quirks.c=20
+> /*
+>  * VIA VT82C686 ACPI: Three IO region pointed to by (long)words at
+>  *  0x48 (256 bytes of ACPI registers)
+>  *  0x70 (128 bytes of hardware monitoring register)
+>  *  0x90 (16 bytes of SMB registers)
+>  */
+> static void __init quirk_vt82c686_acpi(struct pci_dev *dev)
+>=20
+> and=20
+>=20
+> #ifdef CONFIG_X86_IO_APIC
+> /*
+>  * VIA 686A/B: If an IO-APIC is active, we need to route all on-chip
+>  * devices to the external APIC.
+>  *
+>  * TODO: When we have device-specific interrupt routers,
+>  * this code will go away from quirks.
+>  */
+> static void __init quirk_via_ioapic(struct pci_dev *dev)
+> ...
+>=20
+> and=20
+>=20
+> /*
+>  * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
+>  * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
+>  * when written, it makes an internal connection to the PIC.
+>  * For these devices, this register is defined to be 4 bits wide.
+>  * Normally this is fine.  However for IO-APIC motherboards, or
+>  * non-x86 architectures (yes Via exists on PPC among other places),
+>  * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
+>  * interrupts delivered properly.
+>  *
+>  * TODO: When we have device-specific interrupt routers,
+>  * quirk_via_irqpic will go away from quirks.
+>  */
+>=20
+> /*
+>  * FIXME: it is questionable that quirk_via_acpi
+>  * is needed.  It shows up as an ISA bridge, and does not
+>  * support the PCI_INTERRUPT_LINE register at all.  Therefore
+>  * it seems like setting the pci_dev's 'irq' to the
+>  * value of the ACPI SCI interrupt is only done for convenience.
+>  *  -jgarzik
+>  */
+> static void __init quirk_via_acpi(struct pci_dev *d)
+> {
+>     /*
+>      * VIA ACPI device: SCI IRQ line in PCI config byte 0x42
+>      */
+> ...
+> static void __init quirk_via_irqpic(struct pci_dev *dev)
+> {
+> ...
+>=20
+>=20
+can I remove this workarounds since try workaround the same thing !?=20
 
---=-j6X56/tiedGNNLHsy66Y
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> and what do=20
+> the functions from new acpi in file arch/i386/kernel/pci-pc.c
+>        pcibios_irq_init();
+>        pcibios_fixup_peer_bridges();
+>        pcibios_fixup_irqs();
+>  more fixups irqs.
+like I write in previous email I comment this 3 functions, because they
+don't seem change anything, and sometimes with xine works better.
+=20
+>=20
+> S=E9rgioMB
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
 
-On Sun, 2002-12-08 at 08:22, Markus Wiesner wrote:
-> James D Strandboge schrieb:
-> > Could you send me your script (off list)?  My script sounds like it does
-> > the same thing, but I would get this strange hang.
-> 
-> Sure. But it's really very simple. In fact only a set of shortcuts for
-> "cat /proc/acpi/[...]" :-)
-> 
-> An idea would be to redirect output to /dev/console and then execute the
-> script with a single key combination and view its output in xconsole.
-> 
-> > Could you also send me your dsdt so I can compare it to mine?
-> 
-> You mean /proc/acpi/dsdt? Ok, attached that, too.
-> 
-
-Well, I recompiled with 20020829 and 2.4.20-pre5-- still have the same
-problem.  Can you run the attached script with your working
-configuration and let me know if your laptop locks up?  Feel free to go
-in single user mode-- I don't need X or anything running to get the
-lockup.
-
-Jamie
-
--- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
-
-
---=-j6X56/tiedGNNLHsy66Y
-Content-Disposition: attachment; filename=acpi_test.sh
-Content-Type: text/x-sh; name=acpi_test.sh; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-#!/bin/sh
-
-let i=0
-
-while [ /bin/true ]
-do
-	let i=i+1
-
-	REMAIN=`grep remain /proc/acpi/battery/BAT1/state | awk '{ print $3 }'`
-	if [ $REMAIN -lt 0 ]
-	then
-		echo "problem"
-		exit 1
-	fi
-	echo "$i: $REMAIN remaining"
-done
-exit 0;
-
-
---=-j6X56/tiedGNNLHsy66Y--
 
 
 
