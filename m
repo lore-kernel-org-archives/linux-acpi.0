@@ -1,45 +1,74 @@
-From: Joshua Schmidlkofer <menion-8BColdH5dlvzIImvGDD8mw@public.gmane.org>
-Subject: Re: ACPI + SiS IRQ Routing?
-Date: 10 Oct 2003 16:10:34 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1065827434.26428.35.camel@bubbles.imr-net.com>
-References: <1065658665.26205.8.camel@menion.home>
-	 <1065823816.14982.3.camel@dhcp23.swansea.linux.org.uk>
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: [ACPI-sppt] ACPI bug databases
+Date: 11 Oct 2003 01:10:18 +0100
+Sender: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1065831018.1500.3.camel@darkstar.portugal>
+References: <1065156964.5326.177.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1065823816.14982.3.camel-Z+iYsftfazAXoXS6vNje7nviChZXdy279dF7HbQ/qKg@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1065156964.5326.177.camel-D2Zvc0uNKG8@public.gmane.org>
+Errors-To: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
+	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
+	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-support>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2003-10-10 at 15:10, Alan Cox wrote:
-> On Iau, 2003-10-09 at 01:17, Joshua Schmidlkofer wrote:
-> > What is the status of the SiS IRQ router?  I have two motherboards, one
-> > with a 645, and one with a 648.  I have confirmed that all the way up to
-> > [and including] 2.6.0-test6 I am having problems.  I am going to test
-> > with mm4, but on another system I experienced a wierd Oops with mm4.  
-> 
-> Unless Linus and Andrew have forward ported the 2.4 PIRQ rewrite then
-> the SiS hardware won't work right with 2.6 in non ACPI mode at least.
-> 
-> Alan
-> 
+Who we reply bugzilla emails in bug me?
 
-Does anyone have some hope about dealing with this going forward?  The
-648 at least behaves better than the 645. I don't know how much of a
-corner-case I represent, but advice would be cool.
+BTW: RedHat doesn't let me view the bugs...
 
-js
+thanks
 
+On Fri, 2003-10-03 at 05:56, Len Brown wrote:
+> A reminder...
+>=20
+> All Linux Kernel (both 2.4 and 2.6) bugs related to ACPI should go here:
+> http://bugzilla.kernel.org/
+> Category: Power Management
+> Component: ACPI
+>=20
+> If the bug is specific to a distro, please put it there:
+> http://bugzilla.redhat.com
+> http://bugzilla.suse.de/
+> or whereever.
+>=20
+> As the distros don't use the component=3DACPI scheme, please be encourage=
+d
+> to add "linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" to the CC: list.  That will help us find
+> it -- not because I can keep up on e-mail, but because it makes for a
+> simple bugzilla query;-)
+>=20
+> thanks,
+> -Len
+>=20
+> ps. I discovered the ACPI Tracker on sourceforge.net had somehow
+> re-enabled itself, so I disabled it again.  If that is a hardship for
+> anybody, please let me know.
+>=20
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> ACPI-support mailing list
+> ACPI-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-support
+--=20
+S=E9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+
+Who gives me one shell, give me everything.
 
 
 
