@@ -1,11 +1,13 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: unused exports in acpi
-Date: Mon, 1 Nov 2004 14:12:47 +0100
-Message-ID: <20041101131247.GA8938@lst.de>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACER 632 notebook reboots instead of poweroff
+Date: Mon, 1 Nov 2004 13:50:34 +0100
+Message-ID: <20041101125034.GA32347@atrey.karlin.mff.cuni.cz>
+References: <20041026194029.GA10954@pooh> <20041027141833.GC8443@zimen.sk> <20041031231945.GA6909@elf.ucw.cz> <16774.358.944292.65501@aber.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <16774.358.944292.65501-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,47 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Cc: mizu <michal-VaXaUECoPuY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-There's some acpi exports that seems to be unused, could someone who's
-able to read the drivers/acpi/ mess doublecheck the list below?
+Hi!
 
-acpi_acquire_global_lock
-acpi_bus_receive_event
-acpi_clear_event
-acpi_dbg_layer
-acpi_dbg_level
-acpi_disable_event
-acpi_enable_event
-acpi_enter_sleep_state
-acpi_enter_sleep_state_s4bios
-acpi_get_next_object
-acpi_get_possible_resources
-acpi_get_sleep_type_data
-acpi_get_system_info
-acpi_get_timer
-acpi_get_timer_duration
-acpi_get_type
-acpi_install_address_space_handler
-acpi_install_gpe_block
-acpi_os_create_semaphore
-acpi_os_delete_semaphore
-acpi_os_printf
-acpi_os_read_pci_configuration
-acpi_os_signal
-acpi_os_signal_semaphore
-acpi_os_sleep
-acpi_os_stall
-acpi_os_wait_semaphore
-acpi_pci_irq_enable
-acpi_release_global_lock
-acpi_remove_address_space_handler
-acpi_remove_gpe_block
-acpi_set_current_resources
-acpi_strict
-acpi_ut_debug_print_raw
+>  > >   the same problem is with my ACER 632 too.
+>  > > 
+>  > >   I've tried disable wakeup devices /proc/acpi/wakeup, but with no
+>  > > success.
+>  > 
+>  > What happens with acpi=off?
+>  > 
+>  > I have evo n620c here which has similar symptoms, and has another
+>  > funny set of symptoms with acpi=off...
+>  > 
+> 
+> I have exactly the same problem with my ACER TM 636.  Will try with
+> acpi=off asap and report.
+> 
+> Do you also have funny thermal and battery readings when running on
+> batteries?
+
+Thermal seems to more or less work until I do swsusp; battery reading
+seems to be okay. evo is really different beast from acer...
+
+								Pavel
+-- 
+Boycott Kodak -- for their patent abuse against Java.
 
 
 -------------------------------------------------------
