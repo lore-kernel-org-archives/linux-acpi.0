@@ -1,17 +1,13 @@
-From: Jean-Michel POURE <jm-Cj9pHHHz4J4AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ASUS M3N and sleep states
-Date: Sat, 27 Dec 2003 14:52:07 +0100
+From: "Eric Durham" <v603oilk-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Bachelor's Diploma, Master's, or PhD - No Classes Necessary...deka
+Date: Sat, 27 Dec 2003 16:25:46 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200312271452.07333.jm@poure.com>
-References: <3FED7289.1070201@pca.it>
-Reply-To: jm-Cj9pHHHz4J4AvxtiuMwx3w@public.gmane.org
+Message-ID: <99$$vu88tb7v4b39$1wva9v-0n@sg6.1gr8>
+Reply-To: "Eric Durham" <v603oilk-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="6BD8E_4485F2CE"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FED7289.1070201-wlebWZzHoyE@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,23 +16,109 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: openberg-announces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Le Samedi 27 D=E9cembre 2003 12:52, Luca Capello a =E9crit :
-> I made some more tests about the sleep states on an ASUS M3N (Centrino
-> based). Even if I never got a complete resume, here the results:
 
-I can confirm the very same problems on my ASUS 3800LC laptop, same=20
-configuration.
+--6BD8E_4485F2CE
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-By the way, can you turn off the computer using "shutdown now -h"? On my=20
-laptop, init 0 hangs on without turning off the computer. I have to press t=
-he=20
-power button during 4 seconds or so.
+Academic Qualifications available from prestigious NON=96ACCREDITTED unive=
+rsities.
 
-Cheers,
-Jean-Michel Pour=E9
+Do you have the knowledge and the experience but lack the qualifications?
+
+Are you getting turned down time and time again for the job of your dreams=
+ because you just don't have the right letters after your name?
+
+Get the prestige that you deserve today!
+
+Move ahead in your career today!
+
+Bachelors, Masters and PhD's available in your field!
+
+No examinations! No classes! No textbooks!
+
+
+Call to register and receive your qualifications within days!
+
+24 hours a day 7 days a week!
+
+
+
+
+203-286-2187 - USA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sxi myl xnfn ojvblfqhibbzk  eohqlwugd
+s tlmgagfyloy co ey ng j 
+dqxv
+
+--6BD8E_4485F2CE--
 
 
 
