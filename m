@@ -1,13 +1,11 @@
 From: NoZizzing OrDripping <nozizzingordripping-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI trouble (AC module, etc.) with Toshiba 1115-S103
-Date: Thu, 12 Dec 2002 16:43:16 -0800 (PST)
+Subject: [PATCH] Add CONFIG_ACPI_RELAXED_AML option
+Date: Thu, 12 Dec 2002 20:48:09 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021213004316.39542.qmail@web14503.mail.yahoo.com>
-References: <20021210092357.GA29390@poup.poupinou.org>
+Message-ID: <20021213044809.14874.qmail@web14503.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="0-1719699026-1039754889=:14785"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021210092357.GA29390-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,97 +14,94 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+--0-1719699026-1039754889=:14785
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---- Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-> On Mon, Dec 09, 2002 at 10:59:22PM -0800, NoZizzing
-> OrDripping wrote:
-> > 
-> > Status report for Toshiba Satellite 1115-S103
-> laptop....
-> > 
-> > Just tried 2.4.20 + acpi-20021205-2.4.20.diff with
-> a Toshiba Satellite
-> > 1115-s103 laptop (new model, BIOS is "first
-> production release", dated
-> > 11/01/2002, street price is between $650 and
-> $1000, depending on
-> > rebates).  Built it all-modular and with debug
-> messages.
-> > 	$ root modprobe ac; dmesg
-> > 
-> > 	exfldio-0122 [31] Ex_setup_region       : Field
-> [ACPW] Base+Offset+Width 38+0+4 is beyond end of
-> region [GPIO] (length 3B)
+The patch adds a new configuration option,
+CONFIG_ACPI_RELAXED_AML.  When turned on,
+the ACPI code will become forgiving of minor
+errors in the AML code.
 
-> Known issue with most of the Toshiba Satellite
-> series with a Phoenix
-> BIOS.  I guess that Toshiba (or in fact Compal)
-> still don't
-> know how to debug correctly their ASLs.
-> 
-> You need a patched DSDT for this model.
+For this first cut, the patch and option will ignore
+region size errors.  An off-by-one error is often
+found in the AML shipped with Toshiba laptops,
+even new models. This minor error prevents the
+AC module from operating without this patch.
 
-I don't believe that Toshiba/Microsoft will ever
-change their ways.  This is a brand new model.
-However, it looks to me like I could easily make
-a kernel patch to add a CONFIG_ACPI_RELAXED
-configuration option that will allow these ASL
-mistakes, such as off-by-one on region size, to
-be accepted.  That would allow people to use many
-broken DSDT's without having to go thru all of the
-trouble of the current method of DSDT overriding.
+I urge the adoption of this patch (or something
+similar) into the ACPI code.  This will make it
+much easier to install and proliferate Linux on
+a large category of laptops.
 
-> BTW, I think that my tosh3k kernel module at
-> ftp://ftp.poupinou.org/tosh_3000/
-> will work for you.  I am in process of rewrite it a
-> little, then I think that I can probably add your
-> model if you agree.
-
-Yes, it works with the simple addition of this model
-to the list...
-{ "TOSHIBA", "Satellite 1115", "" },
-
-
-> the output from dmesg
-> > 
->
-/lib/modules/2.4.20/kernel/drivers/acpi/toshiba_acpi.o:
-> insmod
->
-/lib/modules/2.4.20/kernel/drivers/acpi/toshiba_acpi.o
-> failed
-> > 
->
-/lib/modules/2.4.20/kernel/drivers/acpi/toshiba_acpi.o:
-> insmod toshiba_acpi failed
-> 
-> The toshiba acpi support would probably not work for
-> you, because your BIOS is
-> a Phoenix one, not a Toshiba one.
-> 
-> > 
-> > Dunno if this was supposed to work or not.  The
-> laptop has an extremely
-> > limited BIOS, you cannot change very much at all
-> with it.
-> 
-> This is a 'legacy-free' bios...
-> 
-> -- 
-> Ducrot Bruno
-> 
-> --  Which is worse:  ignorance or apathy?
-> --  Don't know.  Don't care.
-
+Rick Richardson
+rickr-EySxSuIQeMUAvxtiuMwx3w@public.gmane.org
+[Sorry, have to use my Yahoo account to post to this list)
 
 __________________________________________________
 Do you Yahoo!?
 Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
 http://mailplus.yahoo.com
+--0-1719699026-1039754889=:14785
+Content-Type: application/octet-stream; name="relaxed-aml.diff"
+Content-Transfer-Encoding: base64
+Content-Description: relaxed-aml.diff
+Content-Disposition: attachment; filename="relaxed-aml.diff"
+
+ZGlmZiAtdSAtciBsaW51eC0yLjQuMjArYWNwaS0yMDAyMTIwNS9Eb2N1bWVu
+dGF0aW9uL0NvbmZpZ3VyZS5oZWxwIGxpbnV4LTIuNC4yMCthY3BpLTIwMDIx
+MjA1K3JpY2svRG9jdW1lbnRhdGlvbi9Db25maWd1cmUuaGVscAotLS0gbGlu
+dXgtMi40LjIwK2FjcGktMjAwMjEyMDUvRG9jdW1lbnRhdGlvbi9Db25maWd1
+cmUuaGVscAkyMDAyLTEyLTEyIDE0OjI1OjE1LjAwMDAwMDAwMCAtMDYwMAor
+KysgbGludXgtMi40LjIwK2FjcGktMjAwMjEyMDUrcmljay9Eb2N1bWVudGF0
+aW9uL0NvbmZpZ3VyZS5oZWxwCTIwMDItMTItMTIgMTM6NDI6NDAuMDAwMDAw
+MDAwIC0wNjAwCkBAIC0xODQwNiw2ICsxODQwNiwxNCBAQAogICBvZiB2ZXJi
+b3NpdHkuIFNheWluZyBZIGVuYWJsZXMgdGhlc2Ugc3RhdGVtZW50cy4gVGhp
+cyB3aWxsIGluY3JlYXNlCiAgIHlvdXIga2VybmVsIHNpemUgYnkgYXJvdW5k
+IDUwSy4KIAorQUNQSSBSZWxheGVkIEFNTCBDaGVja2luZworQ09ORklHX0FD
+UElfUkVMQVhFRF9BTUwKKyAgSWYgeW91IHNheSBgWScgaGVyZSwgdGhlIEFD
+UEkgaW50ZXJwcmV0ZXIgd2lsbCByZWxheCBpdHMgY2hlY2tpbmcKKyAgZm9y
+IHZhbGlkIEFNTCBhbmQgd2lsbCBpZ25vcmUgc29tZSBBTUwgbWlzdGFrZXMs
+IHN1Y2ggYXMgb2ZmLWJ5LW9uZQorICBlcnJvcnMgaW4gcmVnaW9uIHNpemVz
+LiAgU29tZSBsYXB0cHMgbWF5IHJlcXVpcmUgdGhpcyBvcHRpb24uICBJbgor
+ICBwYXJ0aWN1bGFyLCBtYW55IFRvc2hpYmEgbGFwdG9wcyByZXF1aXJlIHRo
+aXMgZm9yIGNvcnJlY3Qgb3BlcmF0aW9uCisgIG9mIHRoZSBBQyBtb2R1bGUu
+CisKIEFDUEkgQnVzIE1hbmFnZXIKIENPTkZJR19BQ1BJX0JVU01HUgogICBU
+aGUgQUNQSSBCdXMgTWFuYWdlciBlbnVtZXJhdGVzIGRldmljZXMgaW4gdGhl
+IEFDUEkgbmFtZXNwYWNlLCBhbmQKZGlmZiAtdSAtciBsaW51eC0yLjQuMjAr
+YWNwaS0yMDAyMTIwNS9kcml2ZXJzL2FjcGkvQ29uZmlnLmluIGxpbnV4LTIu
+NC4yMCthY3BpLTIwMDIxMjA1K3JpY2svZHJpdmVycy9hY3BpL0NvbmZpZy5p
+bgotLS0gbGludXgtMi40LjIwK2FjcGktMjAwMjEyMDUvZHJpdmVycy9hY3Bp
+L0NvbmZpZy5pbgkyMDAyLTEyLTA3IDA4OjExOjI5LjAwMDAwMDAwMCAtMDYw
+MAorKysgbGludXgtMi40LjIwK2FjcGktMjAwMjEyMDUrcmljay9kcml2ZXJz
+L2FjcGkvQ29uZmlnLmluCTIwMDItMTItMTIgMTM6MzE6MjMuMDAwMDAwMDAw
+IC0wNjAwCkBAIC0zNiw2ICszNiw3IEBACiAgICAgICBmaQogICAgICAgdHJp
+c3RhdGUgICAgICcgIFRvc2hpYmEgTGFwdG9wIEV4dHJhcycJQ09ORklHX0FD
+UElfVE9TSElCQQogICAgICAgYm9vbCAgICAgICAgICcgIERlYnVnIFN0YXRl
+bWVudHMnCUNPTkZJR19BQ1BJX0RFQlVHCisgICAgICBib29sICAgICAgICAg
+JyAgUmVsYXhlZCBBTUwgQ2hlY2tpbmcnCUNPTkZJR19BQ1BJX1JFTEFYRURf
+QU1MCiAgICAgZmkKICAgZmkKIApkaWZmIC11IC1yIGxpbnV4LTIuNC4yMCth
+Y3BpLTIwMDIxMjA1L2RyaXZlcnMvYWNwaS9leGVjdXRlci9leGZsZGlvLmMg
+bGludXgtMi40LjIwK2FjcGktMjAwMjEyMDUrcmljay9kcml2ZXJzL2FjcGkv
+ZXhlY3V0ZXIvZXhmbGRpby5jCi0tLSBsaW51eC0yLjQuMjArYWNwaS0yMDAy
+MTIwNS9kcml2ZXJzL2FjcGkvZXhlY3V0ZXIvZXhmbGRpby5jCTIwMDItMTIt
+MDcgMDg6MTE6MzAuMDAwMDAwMDAwIC0wNjAwCisrKyBsaW51eC0yLjQuMjAr
+YWNwaS0yMDAyMTIwNStyaWNrL2RyaXZlcnMvYWNwaS9leGVjdXRlci9leGZs
+ZGlvLmMJMjAwMi0xMi0xMiAxNDowNDo0OS4wMDAwMDAwMDAgLTA2MDAKQEAg
+LTEyMSw3ICsxMjEsMTEgQEAKIAkJCWZpZWxkX2RhdHVtX2J5dGVfb2Zmc2V0
+LCBvYmpfZGVzYy0+Y29tbW9uX2ZpZWxkLmFjY2Vzc19ieXRlX3dpZHRoLAog
+CQkJcmduX2Rlc2MtPnJlZ2lvbi5ub2RlLT5uYW1lLmFzY2lpLCByZ25fZGVz
+Yy0+cmVnaW9uLmxlbmd0aCkpOwogCi0JCXJldHVybl9BQ1BJX1NUQVRVUyAo
+QUVfQU1MX1JFR0lPTl9MSU1JVCk7CisJCSNpZmRlZiBDT05GSUdfQUNQSV9S
+RUxBWEVEX0FNTAorCQkJcmV0dXJuX0FDUElfU1RBVFVTIChBRV9PSyk7CisJ
+CSNlbHNlCisJCQlyZXR1cm5fQUNQSV9TVEFUVVMgKEFFX0FNTF9SRUdJT05f
+TElNSVQpOworCQkjZW5kaWYKIAl9CiAKIAlyZXR1cm5fQUNQSV9TVEFUVVMg
+KEFFX09LKTsK
+
+--0-1719699026-1039754889=:14785--
 
 
 -------------------------------------------------------
