@@ -1,14 +1,12 @@
-From: Andreas Dieling <snow-1pFVYSAoaJAREI5ypv3d1g@public.gmane.org>
-Subject: Re: Resources on fixing DSDT?
-Date: Mon, 13 Sep 2004 14:39:18 +0200
+From: "Gaetano Sferra" <gaesferr-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Simply a question
+Date: Mon, 13 Sep 2004 14:47:46 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <414594F6.7020507@quantentunnel.de>
-References: <loom.20040913T141300-570@post.gmane.org>
+Message-ID: <I3ZCVM$29288463650BED0B5BA0CE522E48D1CB@libero.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <loom.20040913T141300-570-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,23 +15,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Tuttle <gmane.thinkinginbinary-w1QkCcy0X+Ct7aBEGUsviw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thomas Tuttle wrote:
+Hello,
+I'm a newsbie to the ACPI system and I've a simple question: 
+Wh=
+at can happen to my CPU if I turn off the acpi support in the kernel?
+=0D
+=
+The reason of this "strange" or "stipid" question is the help message in =
+the
+kernel help regards the thermal control: "If you use a laptop you sh=
+ould say Y
+here, otherwise your CPU can be damaged". If it is true then =
+it implies that the
+ACPI software command the on/off of the cooling fan =
+or something similar but
+isn't it an unsafe behavior? Shouldn't be the B=
+IOS or some hardware to control
+this stuffs?
 
->I have an Asus M2400Ne with a screwed-up DSDT (some of the methods are renamed 
->to proprietary names--A*** instead of _***--for Asus' proprietary power 
->management stuff) and I have had no luck getting SpeedStep to work on it.  
->(Everything else works!)  What I need to do is find the methods in the DSDT 
->that are mis-named, re-name them, and patch my kernel to use the custom DSDT.
->  
->
-Isn't the M24N Centrino based? So i think you don't need bios support to 
-get your throttling working... intel enhanced speedstep should be enough...
+Thank you for explainati=
+ons.
+Gaetano Sferra
 
-Andreas
 
 
 -------------------------------------------------------
