@@ -1,15 +1,14 @@
-From: "David Cougle" <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: how to get Fn key working on compaq 2100/2110
-Date: Tue, 24 Jun 2003 13:08:48 -0500
+From: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+Subject: Re: [PATCH] HP xw6000 - loading order of SSDT tables!!!
+Date: Tue, 24 Jun 2003 20:30:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <001701c33a7b$a89ff6f0$3201a8c0@pamlab.com>
-References: <20030623092026.GS19556@poupinou.org>
+Message-ID: <200306242030.07442.hrvoje.habjanic@zg.htnet.hr>
+References: <200306241935.19049.hrvoje.habjanic@htnet.hr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_viJ++0xfqJB/sAB"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030623092026.GS19556-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <200306241935.19049.hrvoje.habjanic-ZeoyiJGIzEM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,42 +17,109 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Ducrot Bruno' <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Is this to say that with 2.5/2.6 my Compaq 2100/2110 will bypass kernel
-and suspend to ram? How do I see if it supports that?  I am running
-acpid.
 
------Original Message-----
-From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] 
-Sent: Monday, June 23, 2003 3:20 AM
-To: David Cougle
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] how to get Fn key working on compaq 2100/2110
+--Boundary-00=_viJ++0xfqJB/sAB
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Sun, Jun 22, 2003 at 10:51:54AM -0500, David Cougle wrote:
-> nevermind, it works, but fn plus suspend key does nothing.
-> does this mean my compaq 2100/2110 does not have suspend to ram?
 
-S3 (aka suspend to ram) is not supported in Linux 2.4, but even
-though it was the case, you have to install a little daemon called
-acpid.
+Upss ... i forgot to attach patch itself ... so here it is ...
 
-In all case, you can test if at least this key work by
-cat /proc/acpi/events
-then press fn-suspend and see if an event is recorded.
-Then, via acpid, you can actually do what you want, by
-writting a little shell script in order to handle this key.
+Hrvoje
 
-Cheers,
+On Tuesday 24 June 2003 19:35, you wrote:
+> IS IMPORTANT!!!!!
+>
+> I've modified acpi-20030424-2.4.21-rc1 and noticed that it is loading SSDT
+> tables in "normal" order - tables_id are INCREMENTING ...
+>
+> BUT every acpi driver after that is loading SSDT tables in DECREMENTING
+> (table_id) order ... so i've made a small patch to mimic
+> acpi-20030424-2.4.21-rc1 order of loading.
+>
+> And that was it!!!
+>
+> Andy, please verify this and i hope this will not broke some other things
+> ...
+>
+> And for  dmesg's see:
+> 1. modified acpi-20030424-2.4.21-rc1
+> - http://free-zg.htnet.hr/HrvojeHabjanic/acpi/HP_xw6000-rc2-OK.2.dmesg
+> 2. modified  acpi-20030619
+> - http://free-zg.htnet.hr/HrvojeHabjanic/acpi/HP_xw6000-20030619-OK.dmesg
+>
+> And at the end, thanx to everyone who helped to find and fix this ... hmm
+> ... bug or feature?
+>
+>
+> Hrvoje
 
--- 
-Ducrot Bruno
+--Boundary-00=_viJ++0xfqJB/sAB
+Content-Type: text/x-diff;
+  charset="iso-8859-2";
+  name="HP_xw6000-patch.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="HP_xw6000-patch.diff"
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+--- linux-2.4.21/drivers/acpi/tables/tbinstal.c	2003-06-24 12:33:04.000000000 +0200
++++ linux-2.4.21.ok/drivers/acpi/tables/tbinstal.c	2003-06-24 15:19:33.000000000 +0200
+@@ -271,23 +271,40 @@
+ 		if (list_head->next) {
+ 			return_ACPI_STATUS (AE_ALREADY_EXISTS);
+ 		}
++
++		table_desc->next = list_head->next;
++		list_head->next = table_desc;
++
++		if (table_desc->next) {
++			table_desc->next->prev = table_desc;
++		}
++		list_head->count++;
+ 	}
++	else
++	{
+ 
+ 	/*
+ 	 * Link the new table in to the list of tables of this type.
+-	 * Just insert at the start of the list, order unimportant.
++	 * Just insert at the end of the list, order IS IMPORTANT.
+ 	 *
+-	 * table_desc->Prev is already NULL from calloc()
++	 * table_desc->prev & next is already NULL from calloc()
+ 	 */
+-	table_desc->next = list_head->next;
+-	list_head->next = table_desc;
++		list_head->count++;
+ 
+-	if (table_desc->next) {
+-		table_desc->next->prev = table_desc;
++		if(!list_head->next)
++			list_head->next = table_desc;
++		else
++		{
++			table_desc->next = list_head->next;
++			while(table_desc->next->next)
++				table_desc->next=table_desc->next->next;
++
++			table_desc->next->next=table_desc;
++			table_desc->prev=table_desc->next;
++			table_desc->next=NULL;
++		}
+ 	}
+ 
+-	list_head->count++;
+-
+ 	/* Finish initialization of the table descriptor */
+ 
+ 	table_desc->type                = (u8) table_type;
+
+--Boundary-00=_viJ++0xfqJB/sAB--
+
 
 
 -------------------------------------------------------
