@@ -1,14 +1,15 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: "TSC cannot be used as a timesource" when on battery
-Date: 11 Mar 2004 02:14:41 -0500
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: _OSI (Re: Re: cvs commit: src/sys/contrib/dev/acpica
+ acfreebsd.h)
+Date: Wed, 10 Mar 2004 23:18:37 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078989281.2549.99.camel@dhcppc4>
-References: <C386328088ED7F4E9F81AFBABDDF60DA04A92548@wdmyexch02.my.asia.wdc.com>
+Message-ID: <20040310231702.M62784@root.org>
+References: <20040303220117.R21587@root.org>  <20040309110721.B88330@mail.ncircle.com>
+  <20040310182253.P61709@root.org> <1078988912.2549.94.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA04A92548-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
+In-Reply-To: <1078988912.2549.94.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,82 +18,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Brian Buchanan <brian-QcaC+sH85HNBDgjK7y7TUQ@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Does /proc/acpi/processor/CPU0/power show any usage in C3?
+On Wed, 11 Mar 2004, Len Brown wrote:
+> On Wed, 2004-03-10 at 21:26, Nate Lawson wrote:
+> > Bob, any word on _OSI implementation?
+>
+> Bob sent me an initial implementation for review today;-)
+>
+> I'm uncomfortable, however, at claiming to be compatible with Windows,
+> since I don't really have a definition of exactly what that means...
+>
+> -Len
 
-I believe there is a bugfix in the pipeline regarding local APIC timer
-slowing down in C3.  The fix is to disable C3 -- the workaround is to
-use another timer.
+Doesn't matter to me.  I plan on claiming to be everything from Win 2k
+onward and sort out the rest on the mailing list.  :)
 
-cheers,
--Len
+We already fixed some problems by claiming to be Win 2k for _OS.
 
-
-On Thu, 2004-03-11 at 00:21, Ow Mun Heng wrote:
-> > -----Original Message-----
-> > From: Ow Mun Heng 
-> > Sent: Monday, March 01, 2004 10:39 AM
-> > To: Acpi-List (E-mail)
-> > Subject: [ACPI] "TSC cannot be used as a timesource" when on battery
-> > 
-> > 
-> > Hi All,
-> > 
-> > D600 + RH9 + kernel 2.6.3+acpi20040211
-> > 
-> > Was seeing these error messages when booting from battery. 
-> > I've searched through google and the only thing It came up with 
-> > was a reference that asks to use ACPI PM as the timesource.
-> > 
-> > I'm currently using RTC (real time clock)
-> > 
-> > I'm still trying to figure out what is the difference between ACPI 
-> > PM timesource/RTC.
-> > 
-> > I've not investigated further to determine if my clock is indeed 
-> > running slower. 
-> > 
-> > ====start kernel message=======
-> > TSC cannot be used as a timesource.
-> >  <4> Possible reasons for this are
-> > You're running with speedstep
-> > You don't have DMA enabled for your hard drive (See hdparm)
-> > Incorrect TSC synchronization on an SMP system (dee dmesg)
-> > Falling back to sane timesource now.
-> > =======end kernel messages==========
-> > 
-> > HDparm shows all my hd and cdrom are on dma
-> > This is uniprocessor laptop
-> > 
-> > Yes.. running on speedstep.
-> > When on AC power, I don't see this error.
-> 
-> Sent this to the list a while back.. I've not
-> seen any responses. So, asking again, just in case it
-> was missed (busy schedules etc)
-> 
-> I don't really think it's an issue.. but still would like 
-> to know what is triggering it.
-> 
-> Thanks,
-> Ow
-> 
->  
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: IBM Linux Tutorials
-> Free Linux tutorial presented by Daniel Robbins, President and CEO of
-> GenToo technologies. Learn everything from fundamentals to system
-> administration.http://ads.osdn.com/?ad_id70&alloc_id638&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
+-Nate
 
 
 -------------------------------------------------------
