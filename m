@@ -1,13 +1,14 @@
-From: Herman Sheremetyev <herman-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
-Subject: Re: ACPI on HP ze4430us
-Date: Wed, 29 Dec 2004 00:06:34 -0500
-Message-ID: <41D23B5A.9000409@swebpage.com>
-References: <004201c4ed26$551d24d0$0200a8c0@Home.local>
+From: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>
+Subject: Re: ACPI - DOS - 2.6.10
+Date: Wed, 29 Dec 2004 10:28:36 +0100
+Message-ID: <20041229092836.GA15367@mail.muni.cz>
+References: <3ACA40606221794F80A5670F0AF15F8406A73C1E@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <004201c4ed26$551d24d0$0200a8c0-+2hNPL9WhaWs1BDpvl8NfQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8406A73C1E@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Konstantin Svist <konstantin-6crfdjOYMUleoWH0uzbU5w@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sounds like that knoppix kernel has APM and ACPI support compiled in and 
-APM gets choses on your laptop even though it's not supported so you 
-have to tell the kernel to use ACPI explicitly.
+On Wed, Dec 29, 2004 at 10:56:51AM +0800, Yu, Luming wrote:
+> The DSDT shows that:
+> In _DOS:
+>                      If (LNot (LLess (OSYS, 0x07D0)))
+>                     {
+>                         Store (0x00, DSEN)
+>                     }
+> And in _Q0E,  if DSEN is 1 then, BIOS will automatically handle  dispaly switch,
+> otherwise, it just generate Notify event to OSPM, and rely on driver to handle it.
+> However, there don't have _DSS in DSDT , which is requred for acpi video driver to handle display switch.
+> 
+> Could you try kernel option "acpi_osi=" 
 
--Herman
+Nothing changed.
 
-Konstantin Svist wrote:
-> *RESEND*
-> 
-> Hi everyone,
-> 
-> I just tried Knoppix 3.7 on my laptop - it doesn't boot. After some playing
-> around, I figured out that the problem is ACPI - it only boots if I specify
-> any of the three "hacks": "acpi=off", "acpi=ht", and "acpi=force". The last
-> one even powers down my laptop on shutdown.
-> What is going on here?
-> 
-> Thanks,
-> Konstantin
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> SF email is sponsored by - The IT Product Guide
-> Read honest & candid reviews on hundreds of IT Products from real users.
-> Discover which products truly live up to the hype. Start reading now. 
-> http://productguide.itmanagersjournal.com/
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+Btw, there is a touchpad switch (to turn it off/on) that does not work any more
+either.
+
+-- 
+Luká¹ Hejtmánek
 
 
 -------------------------------------------------------
