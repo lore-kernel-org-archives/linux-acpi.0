@@ -1,8 +1,8 @@
 From: "Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
-Subject: Greetings
-Date: Thu, 6 Feb 2003 20:34:09 -0800 (PST)
+Subject: Thermal module errors
+Date: Thu, 6 Feb 2003 23:29:05 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <32814.192.168.10.204.1044592449.squirrel@benham.net>
+Message-ID: <32774.192.168.10.204.1044602945.squirrel@benham.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
@@ -18,23 +18,43 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Greetings,
+I don't know if anyone's seen this but I haven't seen anything mentioned
+(easily) in the list archives.  Here's the output from a kernel log when
+trying to load the thermal module.  I've seen this with kernels 2.4.18,
+2.4.20 , and 2.4.21pre4 (with the latest patch, which applied cleanly,
+BTW).
+Feb  6 23:04:37 ltdbenham kernel: dswstate-0251 [29]
+ds_result_pop_from_bot: No result objects! State=c15d8828Feb  6 23:04:37 ltdbenham kernel:  dsutils-0494 [29] ds_create_operand    
+: Missing or null operand, AE_AML_NO_RETURN_VALUEFeb  6 23:04:37 ltdbenham kernel:  dsutils-0587 [28] ds_create_operands   
+: While creating Arg 1 - AE_AML_NO_RETURN_VALUEFeb  6 23:04:37 ltdbenham kernel:  psparse-1102: *** Error: Method
+execution failed [\_TZ_.C1F1] (Node c15ede08), AE_AML_NO_RETURN_VALUEFeb  6 23:04:37 ltdbenham kernel:  psparse-1102: *** Error: Method
+execution failed [\_TZ_.TZ1_._TMP] (Node c15ebce8), AE_AML_NO_RETURN_VALUE
+Here's the .config ACPI section...
 
-<--- welcomes himself to the list...  I don't know if anything I can do
-would be of help but...
-My setup:
+#
+# ACPI Support
+#
+CONFIG_ACPI=y
+# CONFIG_ACPI_HT_ONLY is not set
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_INTERPRETER=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_ACPI_AC=m
+CONFIG_ACPI_BATTERY=m
+CONFIG_ACPI_BUTTON=m
+CONFIG_ACPI_FAN=m
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_THERMAL=m
+CONFIG_ACPI_TOSHIBA=m
+CONFIG_ACPI_DEBUG=y
 
-Compaq EVO n600c
-2.4.18 kernel with acpi-20020918 or 2.4.20 with acpi-20021212 (I'll move
-to 2.4.21preX when the next patch comes out)
-I know that ACPI is not fully functional.  I'm affected by the "fan not
-working" issue and there are error messages coming up when I try to load
-the thermal modules.
-I'm willing to compile a few hundred times and perform tests for anyone
-who wants to know.  I'm a long time C/C++ programmer and Linux user but
-I've not really done much work on the Linux kernel and I know next to
-nothing about how ACPI works so I don't feel confident striking out on my
-own to "make it work" on my laptop apart from the project.
+compiled with gcc 2.95.4
+and glibc 2.2.5
 
 -- 
 Darren
