@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI update
-Date: Wed, 18 Sep 2002 23:09:35 -0700
+Subject: ACPI Linux patches updated (20020918)
+Date: Wed, 18 Sep 2002 23:18:37 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE7E@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE7F@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,89 +14,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+Hi all,
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
-<http://linux-acpi.bkbits.net/linux-acpi> 
+The ACPI patches have been updated, and are now available at
+http://sf.net/projects/acpi . Due to sf.net problems, I was not able to post
+the changelog there. However, it is listed below. It's pretty long. Pat's
+been very busy. ;-)
 
-A significant ACPI driver reorg by Pat, as well as a number of fixes by me.
+Non-Linux packages will be updated by tomorrow night.
 
-Thanks -- Andy
+All changes by mochel are only in 2.5 patch. All other changes are in both.
 
-This will update the following files:
+Regards -- Andy
 
- arch/i386/kernel/acpi.c            |   77 -
- arch/i386/kernel/io_apic.c         |    2 
- arch/i386/kernel/mpparse.c         |   26 
- arch/i386/kernel/suspend.c         |    1 
- arch/i386/pci/acpi.c               |    2 
- drivers/acpi/Config.help           |   17 
- drivers/acpi/Config.in             |    5 
- drivers/acpi/Makefile              |   13 
- drivers/acpi/ac.c                  |   14 
- drivers/acpi/acpi_bus.h            |   44 
- drivers/acpi/acpi_drivers.h        |  210 ----
- drivers/acpi/acpi_ksyms.c          |    2 
- drivers/acpi/battery.c             |   15 
- drivers/acpi/blacklist.c           |  145 ++
- drivers/acpi/bus.c                 | 1529 ------------------------------
- drivers/acpi/button.c              |   30 
- drivers/acpi/debug.c               |  130 ++
- drivers/acpi/dispatcher/dsfield.c  |    8 
- drivers/acpi/dispatcher/dsobject.c |    7 
- drivers/acpi/dispatcher/dswload.c  |   68 +
- drivers/acpi/driverfs.c            |   46 
- drivers/acpi/ec.c                  |   57 -
- drivers/acpi/event.c               |  140 ++
- drivers/acpi/executer/exconvrt.c   |   30 
- drivers/acpi/executer/exmisc.c     |    3 
- drivers/acpi/executer/exoparg1.c   |  132 --
- drivers/acpi/executer/exresnte.c   |    3 
- drivers/acpi/executer/exresolv.c   |  169 +++
- drivers/acpi/executer/exresop.c    |    9 
- drivers/acpi/executer/exstore.c    |   10 
- drivers/acpi/executer/exstoren.c   |   11 
- drivers/acpi/fan.c                 |   11 
- drivers/acpi/include/acconfig.h    |    4 
- drivers/acpi/include/acdebug.h     |    6 
- drivers/acpi/include/acexcep.h     |   14 
- drivers/acpi/include/acinterp.h    |    9 
- drivers/acpi/include/acpiosxf.h    |   20 
- drivers/acpi/include/actypes.h     |    2 
- drivers/acpi/include/acutils.h     |   16 
- drivers/acpi/namespace/nsdump.c    |   14 
- drivers/acpi/namespace/nsdumpdv.c  |    3 
- drivers/acpi/namespace/nsload.c    |    3 
- drivers/acpi/numa.c                |    2 
- drivers/acpi/parser/psxface.c      |    3 
- drivers/acpi/pci_bind.c            |    3 
- drivers/acpi/pci_irq.c             |    2 
- drivers/acpi/pci_link.c            |   18 
- drivers/acpi/pci_root.c            |   23 
- drivers/acpi/power.c               |   35 
- drivers/acpi/processor.c           |   14 
- drivers/acpi/resources/rsdump.c    |   35 
- drivers/acpi/scan.c                | 1866
-+++++++++++++++++++++++++++----------
- drivers/acpi/sleep.c               |  718 ++++++++++++++
- drivers/acpi/system.c              | 1213 +-----------------------
- drivers/acpi/tables.c              |   67 +
- drivers/acpi/tables/tbget.c        |   14 
- drivers/acpi/thermal.c             |   21 
- drivers/acpi/utilities/utcopy.c    |    3 
- drivers/acpi/utilities/utdebug.c   |    6 
- drivers/acpi/utilities/utglobal.c  |    3 
- drivers/acpi/utilities/utinit.c    |    4 
- drivers/acpi/utilities/utmisc.c    |    4 
- include/asm-i386/mpspec.h          |    1 
- include/linux/acpi.h               |   15 
- 64 files changed, 3461 insertions(+), 3666 deletions(-)
-
-through these ChangeSets:
+Changes:
 
 <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/09/18 1.549)
    Use ACPI fix map region instead of IOAPIC region, since it is undefined
@@ -314,8 +248,6 @@ ACPI
    tables, and then halfway through init, check the blacklist -- too late.
    Now, it's early enough to completely fall-back to non-ACPI.
    3) Some FACP -> FADT cleanups, too.
-
-
 
 
 -----------------------------
