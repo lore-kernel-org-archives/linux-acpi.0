@@ -1,11 +1,10 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Compilation error acpi-20020725-2.4.18
-Date: Fri, 26 Jul 2002 10:22:50 -0700
+From: Phil Short <justswitch-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
+Subject: What should visible in /proc/acpi?
+Date: Fri, 26 Jul 2002 13:38:53 -0500 (CDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <59885C5E3098D511AD690002A5072D3C07990D8A@orsmsx111.jf.intel.com>
+Message-ID: <20020726131505.D82573-100000@Grayswandir.cygnet_hq>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,43 +14,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "'Charl P. Botha'" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>, =?iso-8859-1?Q?Birge?= =?iso-8859-1?Q?r_Peer_K=FCpper?= <kuepper-juygj+9FDkuELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
-> > dswload.c: In function `acpi_ds_load2_end_op':
-> > dswload.c:451: structure has no member named `name'
-> > make[4]: *** [dswload.o] Error 1
-> > make[4]: Leaving directory `/usr/src/linux/drivers/acpi/dispatcher'
-> > make[3]: *** [first_rule] Error 2
-> > make[3]: Leaving directory `/usr/src/linux/drivers/acpi/dispatcher'
-> > make[2]: *** [_subdir_dispatcher] Error 2
-> > make[2]: Leaving directory `/usr/src/linux/drivers/acpi'
-> > make[1]: *** [_subdir_acpi] Error 2
-> > make[1]: Leaving directory `/usr/src/linux/drivers'
-> > make: *** [_dir_drivers] Error 2
-> 
-> There's a problem with a define.  I fixed it on my box but 
-> I'm now getting
-> an oops on bootup; this oops might be due to some other 
-> problem with ACPI on
-> my system.  You could TRY to add #define ACPI_DISASSEMBLER to 
-> the top of
-> drivers/acpi/include/platform/acenv.h and rebuild, but I 
-> would not recommend
-> it, at least not until some of the experienced ACPI kids have 
-> looked at it.
+What files/directories should be visible in /proc/acpi?
 
-It's in a debug message, so turning off acpi debug should get things at
-least compiling again.
+The system is a stock Toshiba 1005-S157, which has a 1.06Ghz Celeron, with
+BIOS changed to Rev 2.1.
 
-I'm sure it's an easy fix, so I'll get on it, and post again when it's
-fixed. Turning on ACPI_DISASSEMBLER is *not* the correct solution.
+Using 2.4.18+acpi-20020709+nocorruption.2.patch+swsusp9 (and hand-patching
+CONFIG_ACPI_SLEEP in the appropriate location) the following entries
+appear in the /proc/acpi directory:
 
-/me dons a brown paper bag
+alarm battery button debug_layer debug_level dsdt embedded_conroller
+event fadt info processor sleep
 
-Regards -- Andy
+In particular there is nothing related to the ac_adaptor, fan or thermal
+functions.  Also, the sleep functions do not appear to work, and events
+(power button and lid switch) appear to work intermittently.  The only
+function that appears to work cleanly is the battery state reporting
+function (and of course the various info functions).  There do not appear
+to be any IRQ routing problems (at least all of the laptop hardware
+appears to work).  There is one apparent acpi-related error message in the
+dmesg output:
+
+ exfldio-0110 [280] Ex_setup_region   : Field [ACPW] Base+Offset+Width
+38+0+4 is beyond end of region [GPIO] (length 3B)
+ acpi-ac-0082 [266] acpi_ac_get_state : Error reading AC Adapter State
+
+Similar results are obtained with 2.4.18+20020725 (after commenting out
+each debug that were causing compile errors).
+
+How closely does this relate to what it should be on a working system? Do
+I need to provide more info?
+
+--
+
+Phil
+
+
 
 
 -------------------------------------------------------
