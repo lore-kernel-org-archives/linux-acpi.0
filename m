@@ -1,14 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: Shutting down PCI devices on suspend
-Date: Sun, 12 Dec 2004 17:01:03 +0000
-Message-ID: <1102870863.5984.36.camel@tyrosine>
-References: <1102779460.5984.17.camel@tyrosine>
-	 <20041212164422.GD6286@elf.ucw.cz>
+Date: Sun, 12 Dec 2004 18:15:21 +0100
+Message-ID: <20041212171521.GC6272@elf.ucw.cz>
+References: <1102779460.5984.17.camel@tyrosine> <20041212164422.GD6286@elf.ucw.cz> <1102870863.5984.36.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041212164422.GD6286-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1102870863.5984.36.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,21 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2004-12-12 at 17:44 +0100, Pavel Machek wrote:
+Hi!
 
-> Please do it in the drivers. Anything else is likely to break
-> currently working setups.
+> > Please do it in the drivers. Anything else is likely to break
+> > currently working setups.
+> 
+> This requires a driver for every PCI device on the system. Is this the
+> best solution?
 
-This requires a driver for every PCI device on the system. Is this the
-best solution?
+Each PCI device is either:
 
+* supported -- it has a driver, we are okay
+
+* unsupported -- it should not be even turned on, right?
+
+* legacy, like VGA or IDE -- okay, we need drivers for those. You need
+to reinit them on resume, anyway, so....
+
+...yes, I think this is the best solution.
+								Pavel
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
