@@ -1,14 +1,13 @@
-From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
 Subject: Re: reading battery status and CPU time
-Date: Thu, 10 Apr 2003 17:24:27 +0200
+Date: Thu, 10 Apr 2003 23:20:30 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B900970C7DD9474C972986EB3EC7C58F0D4098@andromeda.agcad.local>
+Message-ID: <Pine.LNX.4.53.0304102315390.1659@tweety.gaugusch.at>
+References: <B900970C7DD9474C972986EB3EC7C58F0D4098@andromeda.agcad.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <B900970C7DD9474C972986EB3EC7C58F0D4098-PWLG29+z7hEKeIAE67mlpo2P0GrZ+RbP@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,36 +16,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Markus!
+I found something out about battery info being read twice:
+(this is battery.c, acpi_battery_get_info())
 
-> Ok, but how should I do this while AML code is being executed?
+---snip---
+/* Extract Package Data */
 
-There exists the possibility to write debug messages to the console =
-directly
-from AML code. Patch the code which handles this to also write out the =
-time stamp.
+   status = acpi_extract_package(package, &format, &data);  <-----
+   if (status != AE_BUFFER_OVERFLOW) {
+      ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error extracting _BIF\n"));
+      result = -ENODEV;
+      goto end;
+   }
 
-> Or do you mean in the function that prints the debug output (just came =
-to
-> my mind ...).
+   data.pointer = kmalloc(data.length, GFP_KERNEL);
+   if (!data.pointer) {
+      result = -ENOMEM;
+      goto end;
+   }
+   memset(data.pointer, 0, data.length);
 
-Yes, exactly - see above.
+   status = acpi_extract_package(package, &format, &data);  <-----
+   if (ACPI_FAILURE(status)) {
+      ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error extracting _BIF\n"));
+      kfree(data.pointer);
+      result = -ENODEV;
+      goto end;
+   }
+---snip---
 
-> Nevertheless, I don't know how to achive that (I know C/C++ but I =
-haven't
-> done much inside the kernel and don't know the function names, etc.)
-> Could you give me a hint? Thanks.
 
-Access to the time stamp counter is available via =
-include/asm-i386/timex.h.
-Look into it.
+Why is acpi_extract_package called twice with different error handling?
+The ASL code is definitely called twice (I've put debug statements in
+there).
+Same with battery state (_BST).
 
-Ciau, Herbert.
-
-PS: BTW, find and grep is your friend.
+Markus
 
 
 -------------------------------------------------------
