@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Compaq Evo 410
-Date: Thu, 30 Sep 2004 22:43:24 +0200
+From: "Herbert Calderon" <hcalderonpx-1CzC6o+r8ZlTIXuwt5Zssw@public.gmane.org>
+Subject: Get vìagra for a great price.
+Date: Sat, 02 Oct 2004 07:46:31 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040930204323.GB1100@openzaurus.ucw.cz>
-References: <415BE824.80808@alink.co.za>
+Message-ID: <642901c4a86d$b8c40d4c$b2c5b5be@pension-reinhard.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <415BE824.80808-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,21 +16,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: George Barnett <george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi,
 
-> I've read Hugo's page at Larve.net, but that seems to be over a year 
-> old.  I'm going to try an updated bios, but I'm wondering if anybody 
-> has a working dsdt for this box?
+We have a new offer for you. Buy cheap Vìagra through our online store.
+- Private online ordering 
+- No prescription required
+- World wide shipping
 
-I have evo560 (?), and it had fan problems, too.
-After bios update and with new acpi, it works better.
-Still acpid sometimes spins making machine hardly usable.
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Order your drugs offshore and save over 70%!
+
+Click here: http://888-luvu.com/meds/
+
+Best regards,
+Donald Cunfingham
+
+
+
+No thanks: http://888-luvu.com/rm.html
 
 
 
