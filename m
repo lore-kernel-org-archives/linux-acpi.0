@@ -1,8 +1,8 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Cleanup event.c and warn about bug
-Date: Mon, 4 Oct 2004 14:59:21 +0200
+Subject: Report errors in fan.c
+Date: Mon, 4 Oct 2004 18:10:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041004125921.GA2704@elf.ucw.cz>
+Message-ID: <20041004161038.GA4210@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,55 +15,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+To: Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-event.c contains some completely unneccessary gotos, and is not
-reentrant as it needs to be. Fix gotos, warn about reentrancy.
-Please apply,
-							Pavel
+Currently, fan.c ignores errors from acpi_bus_get_power. On compaq evo
+notebook that leads to very confusing empty output. Please apply,
 
-Index: linux/drivers/acpi/event.c
-===================================================================
---- linux.orig/drivers/acpi/event.c	2004-10-01 12:24:26.000000000 +0200
-+++ linux/drivers/acpi/event.c	2004-06-22 12:37:56.000000000 +0200
-@@ -24,19 +24,14 @@
- static int
- acpi_system_open_event(struct inode *inode, struct file *file)
- {
-+	int retval = 0;
- 	spin_lock_irq (&acpi_system_event_lock);
+								Pavel
+
+--- tmp/linux/drivers/acpi/fan.c	2004-06-22 12:36:01.000000000 +0200
++++ linux/drivers/acpi/fan.c	2004-10-02 18:38:53.000000000 +0200
+@@ -94,10 +94,10 @@
+ 		goto end;
+ 
+ 	if (acpi_bus_get_power(fan->handle, &state))
+-		goto end;
 -
--	if(event_is_open)
--		goto out_busy;
--
--	event_is_open = 1;
--
--	spin_unlock_irq (&acpi_system_event_lock);
--	return 0;
--
--out_busy:
-+	if (event_is_open)
-+		retval = -EBUSY;
+-	p += sprintf(p, "status:                  %s\n",
+-		!state?"on":"off");
++		p += sprintf(p, "status:                  ERROR\n");
 +	else
-+		event_is_open = 1;
- 	spin_unlock_irq (&acpi_system_event_lock);
--	return -EBUSY;
-+	return retval;
- }
++		p += sprintf(p, "status:                  %s\n",
++			     !state?"on":"off");
  
- static ssize_t
-@@ -48,7 +43,7 @@
- {
- 	int			result = 0;
- 	struct acpi_bus_event	event;
--	static char		str[ACPI_MAX_STRING];
-+	static char		str[ACPI_MAX_STRING];		/* That's joke, right?! What if two threads read from it at the same time? */
- 	static int		chars_remaining = 0;
- 	static char		*ptr;
- 
+ end:
+ 	len = (p - page);
 
 -- 
 People were complaining that M$ turns users into beta-testers...
