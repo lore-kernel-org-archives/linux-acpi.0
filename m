@@ -1,15 +1,11 @@
-From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Subject: Re: Some questions about ACPI and laptops
-Date: Fri, 26 Jul 2002 01:18:23 +0300
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI mode change...
+Date: Thu, 25 Jul 2002 17:03:21 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200207252221.g6PMLok24412@pfn1.pefnos>
-References: <Pine.GSO.4.21.0207251105100.27979-100000@crak.roomfullaspies.com>
+Message-ID: <59885C5E3098D511AD690002A5072D3C07990D87@orsmsx111.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-7"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.GSO.4.21.0207251105100.27979-100000-LxWW08Vivvfua1+Tvyfzj5USO3DlRtUf@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,50 +14,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Mathias Kolehmainen <mathiask-bdq14YP6qtRg9hUCZPvPmw@public.gmane.org>, Hanno =?iso-8859-7?q?B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'KOCHI, Takayoshi'" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Cc: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, alex_williamson-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> You may be able to slow down your machine if you have support for chani=
-ng
-> the either the performance or the throttling.
+> From: KOCHI, Takayoshi [mailto:t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org] 
+> Okay, I'll change the viewpoint.  Forget about my last argument:)
+> 
+> From the name of acpi_enable() and acpi_disable() API,
+> one will assume they correspond to ACPI_ENABLE
+> and ACPI_DISABLE of FADT.  But actual behavior is not.
+> It's misleading.
 
-> On Thu, 25 Jul 2002, Hanno B=F6ck wrote:
-> > - Most time I use my laptop simply to work, i don't need the full
-> > power of my system. Is it possible to slowdown my pc to make the
-> > battery last longer?
->
+[snip]
 
-We have had some conversation in this list about that a few months ago. I=
-t=20
-seems the processor will 'fall' by itself in the 'C' states (see=20
-/proc/acpi/processor/CPU0/power ) when the load is low.  That way, it wil=
-l=20
-run slower.
-The question is: will a throttling (=3D not allow the processor to run at=
- max/A=20
-speed) result in a lower consumption?
-The answer is : the 'C' states theoretically have the ideal consumption. =
-Some=20
-manufacturers may have gotten it wrong. We should add a daemon which will=
-=20
-throttle. Then plot a graph of the power and performance and see if any=20
-method is better than the other.
-I have seen such a daemon, but I don't think its results are reliable, si=
-nce=20
-it polls the /proc/load?? . I think we could have results only if the=20
-'throttling daemon' resides in the very heart of the kernel (in academic:=
-=20
-never trust an experiment done in a coarse way).=20
+OK I agree.
 
-That's the current state of power efficiency (IMHO). The ACPI team may no=
-t=20
-have better results soon, but rest asure that there is already some power=
-=20
-conservation (remember that Linux itself makes very good use of the=20
-processing power).
+Send me a patch that does what you described and I'll apply it.
 
-P. Christeas
+(What, you thought *I* was going to do it? ;-)
+
+Regards -- Andy
 
 
 -------------------------------------------------------
