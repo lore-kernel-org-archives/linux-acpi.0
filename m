@@ -1,11 +1,11 @@
 From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: Can't Play avi/mov files after S4 Resume
-Date: Fri, 12 Mar 2004 10:25:25 +0800
+Subject: latest ACPI CA Patch (20040311) - Where??
+Date: Fri, 12 Mar 2004 11:32:29 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA04A925FF@wdmyexch02.my.asia.wdc.com>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA04A92629@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="US-ASCII"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,86 +17,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi All,
+
+Received this  based on bug #2066
+
+http://bugme.osdl.org/show_bug.cgi?id=3D2066
+
+I would like to try it out. I can't seem to find it on the =
+DL/sourceforge
+site. All I could find was 20040220 based on 2.6.4 kernel.
+
+BTW, I'm using 2.6.3 and 20040211 patch and the few patches from Luming=20
+for this bug.
+
+------- Additional Comments From Robert.Moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org  2004-03-11 =
+14:55
+-------
+
+Should be fixed in CA version 20040311:
 
 
-> -----Original Message-----
-> From: Nils Faerber [mailto:nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org]
-> Sent: Thursday, March 11, 2004 7:08 PM
-> To: Ow Mun Heng
-> Cc: Acpi-List (E-mail)
-> Subject: Re: [ACPI] Can't Play avi/mov files after S4 Resume
->=20
->=20
-> Am Do, den 11.03.2004 schrieb Ow Mun Heng um 06:19:
-> > > > -----Original Message-----
-> > > > From: Ow Mun Heng=20
-> > > > Hi All,
-> > > >=20
-> > > > RH9 + D600 + 2.6.3 kernel (acpi-20040211 patch + laptop mode)
-> > > > suspend is compiled into the kernel
-> > > > tg3/sound/usb as modules
-> > >   S4 Suspend and resume works Great
-> > >
-> > > > I've tried S1 and S3..no Dice. The suspend works ok.. but=20
-> > > > on powering on.. hard disk spins up.. no Console/X11.
-> > > > (I guess this is a known issue)
-> > > >=20
-> > However, I just found out that Video will not work(after
-> > resuming from S4 suspend). Eg: Playing any
-> > AVI/MOV etc files. Sound will be Ok but no picture. Xine/Mplayer is=20
-> > the same.=20
-> > It'll work fine once I perform proper reboot.
-> > Any Ideas?
->=20
-> Is this using X11/XFree86?
-> If yes then check (after resume) with xvinfo if your XVideo extensions
-> are still online, I suspect not. Another clue would be to try the x11
-> mplayer driver instead of the probable deafult xv driver.
->=20
-> If this helps then the video driver of your card is a little=20
-> broken and
-> does not reinitialise the XV...
+Fixed a problem where errors occurring during the parse phase of control =
 
+method execution did not abort cleanly.  For example, objects created =
+and=20
+installed in the namespace were not deleted.  This caused all subsequent =
 
-Yes.. X11/XFree86
+invocations of the method to return the AE_ALREADY_EXISTS exception.
 
-Diff -Nau /tmp/xvinfo-boot /tmp/xvinfo-resume
---- /tmp/xvinfo-boot	2004-03-12 09:19:23.119722264 +0800
-+++ /tmp/xvinfo-resume	2004-03-12 09:15:31.000000000 +0800
-@@ -27,19 +27,19 @@
-               client gettable attribute (current value is 1)
-       "XV_BRIGHTNESS" (range -1000 to 1000)
-               client settable attribute
--              client gettable attribute (current value is 0)
-+              client gettable attribute (current value is -2)
-       "XV_CONTRAST" (range -1000 to 1000)
-               client settable attribute
--              client gettable attribute (current value is 0)
-+              client gettable attribute (current value is -12)
-       "XV_SATURATION" (range -1000 to 1000)
-               client settable attribute
--              client gettable attribute (current value is 0)
-+              client gettable attribute (current value is -2)
-       "XV_COLOR" (range -1000 to 1000)
-               client settable attribute
--              client gettable attribute (current value is 0)
-+              client gettable attribute (current value is -2)
-       "XV_HUE" (range -1000 to 1000)
-               client settable attribute
--              client gettable attribute (current value is 0)
-+              client gettable attribute (current value is -2)
-       "XV_RED_INTENSITY" (range -1000 to 1000)
-               client settable attribute
-               client gettable attribute (current value is 0)
+Implemented a mechanism to force a control method to "Serialized" =
+execution
+if=20
+the method attempts to create namespace objects. (The root of the=20
+AE_ALREADY_EXISTS problem.)
 
-So.. Seems to me that everything's OK I guess. Unless the "-2"
-are at fault.
+=3D----------------------------------
 
-I've tried all drivers I guess. I'm using "Auto" in Xine.
+Cheers,                                                 .^.
+Mun Heng, Ow                                            /V\
+H/M Engineering                                       /(   )\
+Western Digital M'sia                                  ^^-^^
+DID : 03-7870 5168                          The Linux Advocate
+
+       =20
 
 
 -------------------------------------------------------
