@@ -1,12 +1,14 @@
-From: Markus Bertheau <twanger-5tt9IVl551DqmP00bGT3jg@public.gmane.org>
-Subject: kernel 2.6.5-1.332 crash on asus s1300n centrino notebook
-Date: Thu, 22 Apr 2004 21:12:05 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 suspend/resume driver questions
+Date: Tue, 20 Apr 2004 16:01:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1082661124.4524.6.camel@yarrow.bertheau.de>
+Message-ID: <20040420140127.GB1413@openzaurus.ucw.cz>
+References: <32839.66.245.64.93.1082425332.squirrel@webmail.cc.gatech.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <32839.66.245.64.93.1082425332.squirrel-2RFepEojUI2yzif+TlFmFpQCsf4PZ8us@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,23 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ilya Bagrak <reason-ss4n/k5RZhaUArH+D2fLrA@public.gmane.org>
+Cc: brewt-acpi.sf.net-CDLCgzMZgTDYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-I run Fedora Core test 2 with the redhat kernel 2.6.5-1.332 and booting
-without acpi=off will crash the kernel:
+> There is more good news.  I adapted your patch to orinoco_pci driver which
+> manages my built in Prism2 wireless adapter.  The unpatched driver failed
+> to reinit the card upon resume.  Even though that didn't not lock up my
+> computer like sound did, the card was not functional.  I was absolutely
+> stunned when this 3-liner-of-a-patch returned full functionality to the
+> card upon resume.  You don't even have to unload the driver before going
 
-http://ska-fan.homelinux.org/~twanger/panic.jpg
-
-I need acpi because otherwise every other pci device gets assigned irq 5
-and sound doesn't work.
-
-Thanks
-
+Be sure to submit the patch to prism2 maintainer... More
+people probably need that one.
 -- 
-Markus Bertheau <twanger-5tt9IVl551DqmP00bGT3jg@public.gmane.org>
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
 
 
