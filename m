@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] fix for 2.4.21-pre2 and acpi-20021212
-Date: Tue, 7 Jan 2003 18:42:20 +0100
+Subject: Re: More than one battery
+Date: Tue, 7 Jan 2003 18:43:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030107174219.GA893@zaurus>
-References: <F760B14C9561B941B89469F59BA3A847137F23@orsmsx401.jf.intel.com> <4.3.2.7.2.20030103222354.00ae1aa0@pop.t-online.de> <20030106175205.GC374@poup.poupinou.org>
+Message-ID: <20030107174331.GB893@zaurus>
+References: <Pine.SOL.4.44.0212291831310.28913-100000@graphics.cat.nyu.edu> <3E187CE7.10204@uni-muenster.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030106175205.GC374-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+In-Reply-To: <3E187CE7.10204-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,17 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Margit Schubert-While <margitsw-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org
+Cc: danielk-L9gzEf+okJWVc3sceRu5cw@public.gmane.org, heatload-general-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> QUESTION TO THE GURUS:
+> Are there more things (excpt the battery) that could me multiple?
 
-> >         Looking on the Intel site, however shows a Windows
-> >         tool for getting this info. Hmmm.
-> >         A quick squint at the DSDT shows some suspicious
-> >         "if windows" tests. Hmmm.
-> >         Is the ACPI table only releasing this info for Windows ?
-> >         I really would like to know how my P4 is cooking :-)
-> 
-> I guess an EC SMB driver that (still) need to be written for Linux.
-> That should be for the lm-sensors team, I think.
+Yes.
 
-I guess relying on lm-sensors team is bad idea.
-They have enough work, already; and basic lm-sensors
-support is in 2.5.54, so you should be able to
-develop against Linus' tree.
-
-				Pavel
-
+Thermal zones and CPUs, IIRC.
+			Pavel
 -- 
 				Pavel
 Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
