@@ -1,13 +1,12 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: Centrino speedstep
-Date: Tue, 28 Dec 2004 22:26:53 +0100
-Message-ID: <20041228212653.GA8436@dominikbrodowski.de>
-References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
+From: "Konstantin Svist" <konstantin-6crfdjOYMUleoWH0uzbU5w@public.gmane.org>
+Subject: ACPI on HP ze4430us
+Date: Tue, 28 Dec 2004 13:43:55 -0800
+Message-ID: <004201c4ed26$551d24d0$0200a8c0@Home.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m2zmzyw4e7.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +16,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 28, 2004 at 09:32:00PM +0100, Johan Vromans wrote:
-> Hi,
-> 
-> On my Acer Travelmate 4000WLMi, with various 2.6.9 and 2.6.10 kernels
-> and patch sets, I keep getting the following message:
-> 
->   speedstep-centrino: invalid ACPI data
->   speedstep-centrino: no table support for CPU model "Intel(R) Pentium(R) M processor 1.50GHz": 
-> 
-> (Some kernels report "Invalid control/status registers" instead of
-> "invalid ACPI data").
-> 
-> My latest attempt was the stock 2.6.10 kernel, with ACPI patch set
-> acpi-20041210-2.6.10-rc3.diff, and a fixed DSDT. Still no success.
-> 
-> Any help is appreciated.
+*RESEND*
 
-It looks like your notebook's BIOS does not report sufficient data to the
-speedstep-centrino cpufreq driver. Does the acpi-cpufreq driver work
-instead?
+Hi everyone,
 
-	Dominik
+I just tried Knoppix 3.7 on my laptop - it doesn't boot. After some playing
+around, I figured out that the problem is ACPI - it only boots if I specify
+any of the three "hacks": "acpi=off", "acpi=ht", and "acpi=force". The last
+one even powers down my laptop on shutdown.
+What is going on here?
+
+Thanks,
+Konstantin
+
+
 
 
 -------------------------------------------------------
