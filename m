@@ -1,12 +1,15 @@
-From: Yazar <yazar256-Qt13gs6zZMY@public.gmane.org>
-Subject: ACPI and CardBus
-Date: Sat, 10 Jan 2004 01:16:11 +0100
+From: Mark A Russell <m.a.russell-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: Re: ACPI CPU Usage problems ( events process taking near 100%
+ )
+Date: Sat, 10 Jan 2004 10:20:40 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FFF444B.4060305@yahoo.fr>
+Message-ID: <40003468.8020409@comcast.net>
+References: <3ACA40606221794F80A5670F0AF15F8401720C7A@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C7A-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,64 +18,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+The temperature is reporting in around 70C.  This makes perfect sense 
+because the events/0 process is taking 100% of the cpu causing it to 
+heat up.  Solve the events/0 process problem and te fan problem should 
+be solved.
 
-Here is my problem :
-- with acpi enabled, the system hangs after loading the module 
-yenta_socket (my keyboard is locked)
-- when acpi is disabled, linux boot normaly (but I think it freeze 
-approximately 5-10 min later...)
-- when pcmcia is disabled, it functions perfectly with (or without) acpi.
+The only oddball thing I have noticed in the logs is this set of messages:
 
-I use linux 2.6.1 (from kernel.org).  I have patched the DSDT table, but 
-it changes nothing for this problem (but it resolves an other problem ;-) ).
-It was the same thing with the 2.4.xx kernels...
+[Fri Jan 9 20:53:17 2004] received event "battery BAT1 00000080 00000001"
+[Fri Jan 9 20:53:17 2004] executing action "/etc/acpi/default.sh battery 
+BAT1 00000080 00000001"
+[Fri Jan 9 20:53:17 2004] BEGIN HANDLER MESSAGES
+[Fri Jan 9 20:53:17 2004] END HANDLER MESSAGES
+[Fri Jan 9 20:53:17 2004] action exited with status 0
+[Fri Jan 9 20:53:17 2004] completed event "battery BAT1 00000080 00000001"
 
---------------------
+This set of message repeats every 20-20 seconds so I'm guessing this is 
+an indicator of the problem.  I have tried pulling the battery out and 
+just running on ac and these messages still show up.  Let me know if 
+there is anything else that would help debug the problem.
 
-lspci -v returns that (for cardbus) :
+Mark
 
-00:0c.0 CardBus bridge: ENE Technology Inc CB1410 Cardbus Controller
-        Subsystem: FIRST INTERNATIONAL Computer Inc: Unknown device 2750
-        Flags: bus master, medium devsel, latency 64, IRQ 10
-        Memory at e3fff000 (32-bit, non-prefetchable) [size=4K]
-        Bus: primary=00, secondary=02, subordinate=05, sec-latency=176
-        I/O window 0: 00000000-00000003
-        I/O window 1: 00000000-00000003
-        16-bit legacy interface ports at 0001
+Yu, Luming wrote:
 
----------------
-
-When I boot with pcmcia, yenta appears in irq 10
-cat /proc/interrupts :
-
-           CPU0
-  0:    1201548          XT-PIC  timer
-  1:       2591          XT-PIC  i8042
-  2:          0          XT-PIC  cascade
-  8:          4          XT-PIC  rtc
-  9:          1          XT-PIC  acpi
- 10:      57977          XT-PIC  uhci_hcd, uhci_hcd, eth0
- 11:      71814          XT-PIC  ehci_hcd, uhci_hcd, VIA8233, nvidia
- 12:         41          XT-PIC  i8042
- 14:       7637          XT-PIC  ide0
- 15:         26          XT-PIC  ide1
-NMI:          0
-ERR:          0
-
-------------------------
-
-What can y do ??
-Thank you.
-
-
-PS : sorry for my english.....
-
-
-
+>Fan going crazy means your laptop is in Active-cooling mode.
+>What's the temperature in your laptop's thermal zone?
+>
+>
+>-------------------------------------------------------
+>This SF.net email is sponsored by: IBM Linux Tutorials.
+>Become an expert in LINUX or just sharpen your skills.  Sign up for IBM's
+>Free Linux Tutorials.  Learn everything from the bash shell to sys admin.
+>Click now! http://ads.osdn.com/?ad_id78&alloc_id371&op=click
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>  
+>
 
 
 
