@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: missing cmpxchg on i386.
-Date: Tue, 30 Mar 2004 14:37:35 +0200
+From: Nico <nsabbi-IWqWACnzNjyonA0d6jMUrA@public.gmane.org>
+Subject: Poweroff works intermittently
+Date: Tue, 30 Mar 2004 14:58:56 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040330123735.GD461@elf.ucw.cz>
-References: <20040324162347.GA10134@conectiva.com.br>
+Message-ID: <40696F10.7020009@tiscali.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040324162347.GA10134-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,21 +15,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Flavio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On St 24-03-04 13:23:47, Flavio Bruno Leitner wrote:
-> 
-> Compiling for i386 I got a lot of 
-> include/asm/acpi.h: In function `__acpi_acquire_global_lock`:
-> include/asm/acpi.h:74: warning: implict declaration of function 'cmpxchg' 
 
-Try compiling for pentium+...
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Hi,
+I'm having a strange problem with vanilla kernels 2.6.[124] on my Abit 
+IC7 motherboard:
+halt doesn't always shut down the system, instead it hangs after having 
+written "entering sleep state s5"
+on the console.
+Acpi is enabled and recognized at boot.
+There isn't a repeatable pattern for the poweroff failure: sometimes it 
+works after a cold boot, sometimes
+after windows resets the pc,  sometimes it doesn't work for days;
+I also added the most recent patches to the kernel, but without 
+improvements.
+
+For the record: windows  always shuts down the pc properly, and I never 
+installed any additional driver.
+
+What can I do?
+Thanks,
+       Nico
+
+
+
 
 
 -------------------------------------------------------
