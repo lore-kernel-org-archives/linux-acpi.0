@@ -1,14 +1,14 @@
-From: Toni Erdmann <toni.erdmann-S0/GAf8tV78@public.gmane.org>
-Subject: Re: mobo A7V600-F and problems with sound
-Date: Tue, 24 Feb 2004 16:38:23 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: acpi events
+Date: Tue, 24 Feb 2004 16:43:08 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <403B6FEF.1000609@web.de>
-References: <4038FDDB.8090807@web.de> <1077518290.12669.49.camel@dhcppc4>
+Message-ID: <20040224154307.GA7098@hell.org.pl>
+References: <1077631684.403b5ac4e6272@imp5-q.free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1077518290.12669.49.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1077631684.403b5ac4e6272-i+kWGVKuYDKksujEA26zIQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: sweafty-GANU6spQydw@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote
+Thus wrote sweafty-GANU6spQydw@public.gmane.org:
+> Through boot messages (dmesg), all these are detected. Can somebody help me
+> figuring out what the problem is ?
 
->go ahead and file the bug and make the tar-ball an attachment.
->
->would be good if you can try a 2.6.3 kernel, I don't really know what is
->in suse's 2.4.21-166-athlon kernel.
->
->thanks,
->-Len
->
-Hello,
+Hmm, it might be you're using APIC. Try booting with nolapic noapic.
+Best regards,
 
-I tried to post a bug at bugzilla.kernel.org for 'sound' and 2.6.3 but 
-got an internal
-error : "THE MAINTAINER HAS NOT YET BEEN SET" and
-"A legal Archtecture was not set".
-
-Anyway, there's no hint in 'dmesg' for problems with ACPI, but sound does
-not work with 2.6.3 either.
-
-"ALSA sound/pci/via82xx.c:585: codec_read: codec 0 is not valid [0xfe0000]"
-
-Same message (with 'codec_valid') appeard with 2.4.21-...
-
-Thnaks,
-Toni
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
