@@ -1,15 +1,12 @@
-From: Emilio Mejia Fernandez de Velasco <emejia-EkmVulN54Sk@public.gmane.org>
-Subject: Re: RV: differences between acpidump and disassembling
-Date: Tue, 20 Apr 2004 00:24:17 +0200
+From: reason-ss4n/k5RZhaUArH+D2fLrA@public.gmane.org (Ilya Bagrak)
+Subject: Re: S3 suspend/resume driver questions
+Date: Mon, 19 Apr 2004 21:42:12 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200404200024.18432.emejia@ieee.org>
-References: <000701c425f8$6157aef0$0301a8c0@portatil> <200404191309.45870.emejia@ieee.org> <1082409395.11663.63.camel@darkstar>
-Reply-To: emejia-EkmVulN54Sk@public.gmane.org
+Message-ID: <32839.66.245.64.93.1082425332.squirrel@webmail.cc.gatech.edu>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_RGFhAC0mav9XRoh"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1082409395.11663.63.camel-4/PLUo9XfK8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,135 +15,106 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: brewt-acpi.sf.net-CDLCgzMZgTDYtjvyW6yDsg@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Adrian,
 
---Boundary-00=_RGFhAC0mav9XRoh
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Your patch worked beautifully on my Fujitsu E7010 laptop.  Prior to the
+patch, the system would lock up hard if I tried to load snd_intel8x0 afte=
+r
+waking up from S3.  If I didn't not unload the sound modules before going
+to sleep, the system would not wake up at all (lock up would happen on
+resume).  In any case, the sound "just works" (tm) now.
 
-Hello,
-here I send you the binary file using pmtools.
-By the way, the computer is a Microstar (also known as Medion) model MD 9648
-I have found pages about similar models explaining the configuration, and they 
-say that it's necessary to use acpi, but they have been luckier than me.
-Here are some links:
-http://www.david-guembel.de/linux-md9630.html
-http://www.linuxstuff.de/md-9631-en.htm
+There is more good news.  I adapted your patch to orinoco_pci driver whic=
+h
+manages my built in Prism2 wireless adapter.  The unpatched driver failed
+to reinit the card upon resume.  Even though that didn't not lock up my
+computer like sound did, the card was not functional.  I was absolutely
+stunned when this 3-liner-of-a-patch returned full functionality to the
+card upon resume.  You don't even have to unload the driver before going
+to sleep.  I have a little signal strength applet running in the toolbar,
+and you can watch the signal strength gradually increase after wakeup and
+the card is back to normal in a couple of seconds.
 
-> let me know what computer we are talking about ?
-> and send me the binary in a gz (acpidmp DSDT )
+The wireless NIC was the last stumbling block in getting S3 to work.  I
+now officially declare Fujitsu E7010 Linux ACPI-friendly.  All major
+devices (have not tested Firewire or IrDA) recover and work properly afte=
+r
+S3. Thank you all.
+
+Ilya
+
+> Hi,
 >
-> regards,
+>> mine isn't a technical reply, but you can post in the 'alsa-devel'
+>> mailing-list, as it seems that Takashi Iwai is working on PM-lacking
+>> drivers. Here some links:
+>>    http://sourceforge.net/mailarchive/forum.php?thread_id=3D4201761&fo=
+rum_id=3D1752
+>
+> Doing a grep through the alsa code, it doesn't look like any driver
+> save/restores pci state.
+>
+>>    http://sourceforge.net/mailarchive/forum.php?thread_id=3D4107033&fo=
+rum_id=3D1752
+>>
+>> BTW-1, could you post your 'intel8x0' patch? I could give it a try
+>> ASAP...
+>
+> That's essentially what I did.  It is a little different though:
+>
+> --- /usr/src/linux-2.6.5-mm6/sound/pci/intel8x0.c       2004-04-05
+> 18:46:17.000000000 -0700 +++ intel8x0.c  2004-04-18 04:03:34.000000000
+> -0700
+> @@ -445,6 +445,7 @@ struct _snd_intel8x0 {
+>
+>  #ifdef CONFIG_PM
+>         int in_suspend;
+> +       u32 pci_state[16];
+>  #endif
+>  };
+>
+> @@ -2223,11 +2224,13 @@ static int snd_intel8x0_suspend(struct p
+>  {
+>         intel8x0_t *chip =3D snd_magic_cast(intel8x0_t,
+> pci_get_drvdata(dev), return -ENXIO); intel8x0_suspend(chip);
+> +       pci_save_state(dev, chip->pci_state);
+>         return 0;
+>  }
+>  static int snd_intel8x0_resume(struct pci_dev *dev)
+>  {
+>         intel8x0_t *chip =3D snd_magic_cast(intel8x0_t,
+> pci_get_drvdata(dev), return -ENXIO);
+> +       pci_restore_state(dev, chip->pci_state);
+>         intel8x0_resume(chip);
+>         return 0;
+>  }
+>
+>> BTW-2, in the few tests I made on my ASUS M6842NWH ('intel8x0' based),
+>> I have to remove the sound modules even to have a successfull S1.
+>
+> Actually, I haven't tried out S1 yet, but I don't have to remove the
+> sound modules for S3 to work.  And even if I do, my system will lock up
+> when trying to load the alsa drivers due to the device's configuration
+> state.
+>
+> Adrian
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=CCk
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
---Boundary-00=_RGFhAC0mav9XRoh
-Content-Type: application/x-gzip;
-  name="DSDT.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="DSDT.gz"
 
-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
-
---Boundary-00=_RGFhAC0mav9XRoh--
 
 
 
