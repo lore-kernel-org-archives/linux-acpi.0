@@ -1,11 +1,10 @@
-From: Ulrich Dobramysl <uli-do-RbZlAiThDcE@public.gmane.org>
-Subject: Gericom Supersonic ACPI hang (smi_cmd)
-Date: Fri, 11 Oct 2002 17:52:39 +0200
+From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
+Subject: ACPI-Patch against 2.4.20-pre10-ac1
+Date: Fri, 11 Oct 2002 18:34:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DA6F3C7.3040108@gmx.at>
-Reply-To: Ulrich Dobramysl <uli-do-RbZlAiThDcE@public.gmane.org>
+Message-ID: <20021011183427.20a55d1c.hanno@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,27 +18,14 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello there again!
+I tried to apply the acpi-patch against 2.4.20-pre10-ac1.
 
-I posted some days ago, that I have problems getting ACPI up and running 
-  on my Gericom Laptop. The Kernel just hangs without any error message.
-Arndt Schoenewald suggested some Kernel Configurations to me (thanks 
-again!) , but none of them did work. It seems like I have a very rare 
-Version of this laptop model, with a (very) broken BIOS.
-So I tried to debug that myself. I'm not a very good C Programmer and 
-have no clue about the ACPI specifications, so I cannot solve this 
-problem myself.
-I was able to trace down the hang where acpi_enable gets called and 
-itself calls acpi_hw_set_mode. This goes into the function 
-acpi_os_write_port(acpi_gbl_FADT->smi_cmd, (acpi_integer) 
-acpi_gbl_FADT->acpi_enable, 8), where outb gets called with port 
-acpi_gbl_FADT->smi_cmd and value acpi_gbl_FADT->acpi_enable.
-I think there is something wrong with the address smi_cmd. I could not 
-find the part in the code where it gets set.
-Tell me if I can provide more information about this problem or something.
+It is not perfect, there are some problems with cpufreq i couldn't fix. If you disable cpufreq, it should compile and run.
 
-Ulrich Dobramysl
+If anyone fixes the cpufreq-issue, please inform me.
 
+Patch is available at
+http://www.gentoo.org/~hanno/acpi-20021002-2.4.20-pre10-ac1.diff.bz2
 
 
 -------------------------------------------------------
