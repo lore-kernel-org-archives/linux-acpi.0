@@ -1,16 +1,14 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: Dell D600: teaching radeonfb how to wake up...
-Date: Fri, 21 Nov 2003 11:24:32 +1100
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Problem with acpi and HP Compaq nx7000 laptop
+Date: Fri, 21 Nov 2003 09:00:19 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1069374272.723.44.camel@gaston>
-References: <20031119180119.GB22307@tate.loria.fr>
-	 <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston>
-	 <20031120234708.GA431@elf.ucw.cz>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BDC@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031120234708.GA431-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,35 +17,61 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Tobias Matzat <tobiasmatzat-KuiJ5kEpwI6ELgA04lAiVw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2003-11-21 at 10:47, Pavel Machek wrote:
-> Hi!
-> 
-> > > If I were you, I'd create fix_ati.o module which would
-> > > "do the stuff", then insert it over network. That should
-> > > make debugging easier...
-> > 
-> > Nah, we really have to re-POST the chip. I don't know how
-> > we are supposed to do that though. Either we'll have to have
-> > the full POST code for a bunch of ATI chips around, which doesn't
-> > seem reasonable and I don't think windows drivers do that, or
-> 
-> Well, if he wants to do the work for his concrete ATI chip, its fine
-> with me, and I'd like to see the results.
-> 
-> Having fix_ati.o module is certainly easier than playing with driver
-> model for testing...
-
-My point is that he can probably NOT do the work, POSTing such a
-chip is hell. I'm trying to figure out how we are supposed to do,
-that is how ATI does with their own windows drivers ...
-
-Ben.
+Please try latest patch at =
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1444   - Luming
 
 
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Tobias =
+Matzat
+Sent: 2003?11?21? 6:05
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] Problem with acpi and HP Compaq nx7000 laptop
+
+
+
+
+Hi!
+
+I get the following error messages from my kernel (2.4.22):
+
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: System [ACPI] (supports S0 S3 S4bios S4 S5)
+dsopcode-0515 [20] ds_init_buffer_field  : Field size 1392 exceeds =
+Buffer size 1296 (bits)
+ psparse-1121: *** Error: Method execution failed [\_SB_.C046.C052] =
+(Node dffc09e8), AE_AML_BUFFER_LIMIT
+ psparse-1121: *** Error: Method execution failed [\_SB_.C046.C056] =
+(Node dffc0ae8), AE_AML_BUFFER_LIMIT
+ psparse-1121: *** Error: Method execution failed [\_SB_.C046._CRS] =
+(Node dffc0be8), AE_AML_BUFFER_LIMIT
+  uteval-0098: *** Error: Method execution failed [\_SB_.C046._CRS] =
+(Node dffc0be8), AE_AML_BUFFER_LIMIT
+ACPI: PCI Root Bridge [C046] (00:00)
+
+What do they mean and how can i fix them? Is it something dsdt-related?
+I took a look at the acpi4linux page but i found nothing related to=20
+my laptop.
+
+Please help me, i am completetly new to acpi.
+
+Greets, Tobias
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
