@@ -1,11 +1,11 @@
 From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Subject: save_flags Macro and 2.5.28
-Date: Thu, 25 Jul 2002 15:02:42 +0300
+Subject: [ACPI]: save_flags Macro and 2.5.28
+Date: Fri, 26 Jul 2002 16:54:02 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200207251207.g6PC6Dk14826@pfn1.pefnos>
+Message-ID: <200207261357.g6QDvVZ05963@pfn1.pefnos>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="------------Boundary-00=_I40TGMNVGKITLBDEWTQ0"
+  boundary="------------Boundary-00=_2YZUE13RIXAI0QCEBSGG"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,25 +19,26 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---------------Boundary-00=_I40TGMNVGKITLBDEWTQ0
+--------------Boundary-00=_2YZUE13RIXAI0QCEBSGG
 Content-Type: text/plain;
   charset="iso-8859-7"
 Content-Transfer-Encoding: 8bit
 
 I just got the 2.5.28 patch and tried to compile it.
-Note that 2.5.27 must have some serious bug and is seriously unstable, don't 
+Note that 2.5.27 must have some serious bug and is seriously unstable, don't
 use it!
-As from 2.5.28 the save_flags()/restore_flags() macros are being deprecated. 
-I had to do the attached quick hack to compile the kernel.  There is a text 
+As from 2.5.28 the save_flags()/restore_flags() macros are being deprecated.
+I had to do the attached quick hack to compile the kernel.  There is a text
 file in the 2.5.28 to read: 'Documentation/cli-sti-removal.txt'.
 
-For the record, S1 seems to work, S3 still doesn't  (didn't work before 
+For the record, S1 seems to work, S3 still doesn't  (didn't work before
 either) with that patch.
 
 Can you comment on that hack? It *must* be wrong, how should it be?
 
 
---------------Boundary-00=_I40TGMNVGKITLBDEWTQ0
+This message is being sent for the second time. Sorry if it reaches you twice.
+--------------Boundary-00=_2YZUE13RIXAI0QCEBSGG
 Content-Type: text/x-diff;
   charset="iso-8859-7";
   name="acpi-system.c.diff"
@@ -53,7 +54,7 @@ c3BlbmRfbG93bGV2ZWwoMCk7CiAJCWJyZWFrOwogCX0KLQlyZXN0b3JlX2ZsYWdzKGZsYWdzKTsK
 KwkvKnJlc3RvcmVfZmxhZ3MoZmxhZ3MpOyovCisJbG9jYWxfaXJxX3Jlc3RvcmUoZmxhZ3MpOwoK
 IAlyZXR1cm4gc3RhdHVzOwogfQo=
 
---------------Boundary-00=_I40TGMNVGKITLBDEWTQ0--
+--------------Boundary-00=_2YZUE13RIXAI0QCEBSGG--
 
 
 -------------------------------------------------------
