@@ -1,13 +1,13 @@
 From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
-Subject: Re: Re: Re: Smart Battery System driver
-Date: Fri, 21 Jan 2005 13:16:12 +0000
-Message-ID: <41F1009C.30201@arrakis.dhis.org>
-References: <1105747983.7368.3.camel@tyrosine> <47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <41EF1F6A.5000807@bartol.udel.edu> <41EFCA59.6040100@arrakis.dhis.org> <41EFD672.2040308@bartol.udel.edu> <20050120211044.GA27543@message-id.gmane0305.slipkontur.de>
+Subject: Re: Re: Smart Battery System driver
+Date: Fri, 21 Jan 2005 13:20:00 +0000
+Message-ID: <41F10180.60008@arrakis.dhis.org>
+References: <41E81C2C.8010809@bartol.udel.edu>	<1105747983.7368.3.camel@tyrosine>	<47e0449d05011419037877f931@mail.gmail.com>	<m2fz13x8mw.fsf@phoenix.squirrel.nl>	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>	<m2wtu74yzq.fsf@phoenix.squirrel.nl>	<41F01923.1000503@bartol.udel.edu> <m2sm4v4wk7.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050120211044.GA27543-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <m2sm4v4wk7.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,63 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Stefan Seyfried wrote:
-| On Thu, Jan 20, 2005 at 11:04:02AM -0500, Rich Townsend wrote:
+Johan Vromans wrote:
+| Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
 |
 |
-|>The best solution would be to perform a run-time check. I'll see if I
-|>can add code to dynamically detect if the ac_adapter and battery
-|>directories are empy on module insertion, and only add the legacy
-|>interfaces if they are.
+|>I do this because everything in /lib/modules/XXX/kernel/* gets
+|>clobbered when you do a make modules_install from the kernel source
+|>tree;
 |
 |
-| not "empty" but "do not exist". We will probably find machines that hav=
-e
-| working CM Battery but can also be used with SBS.
-| Or maybe it is possible from kernelspace to check if a module is loaded
-| to lock each other out =3D> if battery or ac is loaded, sbs will refuse
-| to load and the other way round.
+| I see.
+|
+|
+|>I have recently realized that the whole SBS functionality can be
+|>implemented in terms of control methods in the DSDT, without the
+|>need for any kernel drivers.
+|
+|
+| Nice. This would require a kernel recompile/reboot  for each DSDT
+| modification...
 
-I think the only way to do this is to integrate the sbs code into the bat=
-tery
-and ac_adapter drivers. that way at load time, the kernel code can check =
-which
-type of driver to use or both if possible/useful. that could be hard, I'm=
- aware
-of that.
+not nice, I guess. 99.9% of the interested (me included) wouldn't be able=
+ to
+patch their DSDT and with generated ASL (is it ASL or AML or... ACPI lang=
+uage)
+code for their specific case.
 
-|
-|
-|>PS Last night, I got a proof-of-concept for event notifications working=
-.
-|>I still haven't got battery alarms working, but we should now be able t=
-o
-|>do event-driven AC and battery present/charging/discharging statuses.
-|
-|
-| It would be pretty cool to throw an event on every change of battery ch=
-arge
-| level (some HP notebooks do this even with CM battery), so there is no =
-need
-| to poll for battery charge level.
-
-wasn't there a not-so-recent-but-almost discussion about this issue in th=
-e
-acpi-devel mailing list? I think people argued that acpi would NOT genera=
-te
-events! that could mean that the acpi layer wouldn't generate events at a=
-ll or
-that it wouldn't generate events on behalf of hardware unable to generate=
- events.
-
-care to comment?
+but academically interesting :-)
 
 regards,
 pedro venda.
@@ -86,9 +63,9 @@ http://arrakis.dhis.org
 Version: GnuPG v1.2.6 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFB8QCceRy7HWZxjWERArT0AJ9Kxk1il9RjoV1/Ow4+Dl63L0yR4wCgz4+B
-cf9OpRuKZaKnKHzZe02Csd8=3D
-=3DKSIG
+iD8DBQFB8QGAeRy7HWZxjWERAiBTAKChHU1ZOOuJLe1QmG/seChXZO2v1wCgulDn
+MSYoH67MOpPTB27v0ad467c=3D
+=3DdJMG
 -----END PGP SIGNATURE-----
 
 
