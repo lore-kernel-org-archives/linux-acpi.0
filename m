@@ -1,12 +1,11 @@
-From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: S3 freezes on wake on NC6000 laptop
-Date: Tue, 08 Feb 2005 13:30:08 +0100
-Message-ID: <4208B0D0.4010500@colitti.com>
-References: <4207A416.8030400@colitti.com> <20050207223644.GA1394@elf.ucw.cz> <4208057C.6090707@colitti.com> <20050208090411.GB9391@hell.org.pl>
+From: Prarit Bhargava <prarit-sJ/iWh9BUns@public.gmane.org>
+Subject: [PATCH]: [RFC] Error in ACPI error handling results in WARN_ON in
+ IDE-sJ/iWh9BUns@public.gmane.org
+Date: Tue, 08 Feb 2005 07:53:37 -0500
+Message-ID: <4208B651.6040401@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050208090411.GB9391-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Type: multipart/mixed;
+ boundary="------------010609000500080304020707"
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,21 +15,76 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Karol Kozimor wrote:
->>- radeonfb on its own freezes the machine on wakeup
-> 
-> Is it modular? Try building into the kernel if so.
+This is a multi-part message in MIME format.
+--------------010609000500080304020707
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Actually, it was builtin.
-I think I tried it as a module too and it crashed in the same way...
+I found a bug in the error handling in ACPI.
+
+The issue here is the error handling within the ACPI layer.  gsi = 0 is a
+valid return value from acpi_pci_irq_lookup, while gsi = (-1) is the value
+returned when a PRT cannot be found.
+
+This effects error handling within IRQ requests for IDE CD-ROM/DVD-ROM 
+drives
+
+Please apply this patch.
+
+Thanks,
+
+Prarit.
+
+Signed-off-by: Prarit Bhargava <prarit-sJ/iWh9BUns@public.gmane.org>
+
+===== drivers/acpi/pci_irq.c 1.35 vs edited =====
+--- 1.35/drivers/acpi/pci_irq.c 2005-01-04 21:48:17 -05:00
++++ edited/drivers/acpi/pci_irq.c       2005-01-14 08:14:34 -05:00
+@@ -487,10 +487,10 @@
+         * If no PRT entry was found, we'll try to derive an IRQ from the
+         * device's parent bridge.
+         */
+-       if (!gsi)
++       if (gsi == -1)
+                gsi = acpi_pci_irq_derive(dev, pin,
+                                          &edge_level, &active_high_low);
+-       if (!gsi)
++       if (gsi == -1)
+                return_VOID;
+
+        /*
 
 
-Cheers,
-Lorenzo
+--------------010609000500080304020707
+Content-Type: text/plain;
+ name="1-acpi-ide.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="1-acpi-ide.patch"
+
+Signed-off-by: Prarit Bhargava <prarit-sJ/iWh9BUns@public.gmane.org>
+
+===== drivers/acpi/pci_irq.c 1.35 vs edited =====
+--- 1.35/drivers/acpi/pci_irq.c	2005-01-04 21:48:17 -05:00
++++ edited/drivers/acpi/pci_irq.c	2005-01-14 08:14:34 -05:00
+@@ -487,10 +487,10 @@
+ 	 * If no PRT entry was found, we'll try to derive an IRQ from the
+ 	 * device's parent bridge.
+ 	 */
+-	if (!gsi)
++	if (gsi == -1)
+  		gsi = acpi_pci_irq_derive(dev, pin,
+ 					  &edge_level, &active_high_low);
+-	if (!gsi)
++	if (gsi == -1)
+ 		return_VOID;
+ 
+ 	/*
+
+--------------010609000500080304020707--
 
 
 -------------------------------------------------------
