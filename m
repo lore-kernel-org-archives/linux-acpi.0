@@ -1,13 +1,14 @@
-From: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
-Subject: Re: acpi on new gateway laptops
-Date: Mon, 8 Dec 2003 17:19:15 -0600 (CST)
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Button events lost after S3 on Thinkpad R32
+Date: Tue, 9 Dec 2003 09:05:56 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0312081716110.5824-100000@data.upl.cs.wisc.edu>
-References: <20031117104936.N60907@root.org>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C0A@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031117104936.N60907-Y6VGUYTwhu0@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,37 +17,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+>Just to let you know: my system is fine after S3, i.e. ACPI interrupts =
+are
+>not lost (it's an ASUS L3C laptop, FYI).
 
-
-On Mon, 17 Nov 2003, Nate Lawson wrote:
-> Get the data from the DSDT.  Dump it with acpidmp, search for PNP0C09,
-> then write down the resources.  Mine is below:
->
->                 Device (EC)
->                 {
->                     Name (_HID, EisaId ("PNP0C09"))
->                     Name (_UID, 0x00)
->                     Name (_GPE, 0x1C)
->                     ...
->                     Name (_CRS, ResourceTemplate ()
->                     {
->                         IO (Decode16, 0x0062, 0x0062, 0x01, 0x01)
->                         IO (Decode16, 0x0066, 0x0066, 0x01, 0x01)
->                     })
->                 }
-
-
-As mentioned before, I'm trying to get the embedded controller working on
-a Gateway 400VTX. I've dumped the DSDT but see no "Device (EC)" section,
-nor does "PNP0C09"  appear in the DSDT. Does this mean this laptop has no
-embedded controller?
-
--casey
-
-
+What version of kernel you are using?  Did you apply any other patches? =
+--Luming
 
 
 -------------------------------------------------------
