@@ -1,14 +1,15 @@
-From: Takayoshi Kochi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
-Subject: Re: 2.6.8-rc2 acpi numa warnings
-Date: Thu, 29 Jul 2004 10:44:37 +0900 (JST)
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: writing your own DSDT
+Date: Wed, 28 Jul 2004 21:36:58 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040729.104437.78704661.t-kochi@bq.jp.nec.com>
-References: <26489.1090140921@ocs3.ocs.com.au>
+Message-ID: <20040728193658.GA2369@fuchi>
+References: <20040727085236.GA27831@rap.rap.dk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <26489.1090140921-1LO6/iIh+iQ0n/F98K4Iww@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040727085236.GA27831-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,84 +18,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kaos-sJ/iWh9BUns@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len,
 
-Please apply the attached patch to prevent warning messages
-in drivers/acpi/numa.c.  Reported by Keith Owens.
-This applies to 2.6.8-rc2 or 2.6.8-rc2-mm1.
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Keith Owens <kaos-sJ/iWh9BUns@public.gmane.org>
-Subject: 2.6.8-rc2 acpi numa warnings
-Date: Sun, 18 Jul 2004 18:55:21 +1000
+hej keld...
 
-> Building 2.6.8-rc2 for ia64 NUMA gets these warnings.
-> 
-> drivers/acpi/numa.c: In function `acpi_table_print_srat_entry':
-> drivers/acpi/numa.c:55: warning: unused variable `p'
-> drivers/acpi/numa.c:65: warning: unused variable `p'
-> drivers/acpi/numa.c: In function `acpi_numa_init':
-> drivers/acpi/numa.c:179: warning: passing arg 2 of `acpi_table_parse_srat' from incompatible pointer type
-> drivers/acpi/numa.c:182: warning: passing arg 2 of `acpi_table_parse_srat' from incompatible pointer type
-> 
+* Keld J=F8rn Simonsen <keld-6PR53cSIHaE@public.gmane.org> [2004-07-28 09:22 +0200]:
+>=20
+> Does one get something out of adding code to the DSDT for ones machine,
+> or would the machine simply ignore it?
 
-Signed-off-by: Takayoshi Kochi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
+it depends on how and what kind of code you add. see the url below for
+more pointers.
 
---- linux-2.6.7.orig/drivers/acpi/numa.c	2004-07-28 21:55:43.694641000 +0900
-+++ linux-2.6.7/drivers/acpi/numa.c	2004-07-28 22:07:45.154962520 +0900
-@@ -51,6 +51,7 @@
- 	switch (header->type) {
- 
- 	case ACPI_SRAT_PROCESSOR_AFFINITY:
-+#ifdef ACPI_DEBUG_OUTPUT
- 	{
- 		struct acpi_table_processor_affinity *p =
- 			(struct acpi_table_processor_affinity*) header;
-@@ -58,9 +59,11 @@
- 		       p->apic_id, p->lsapic_eid, p->proximity_domain,
- 		       p->flags.enabled?"enabled":"disabled"));
- 	}
-+#endif /* ACPI_DEBUG_OUTPUT */
- 		break;
- 
- 	case ACPI_SRAT_MEMORY_AFFINITY:
-+#ifdef ACPI_DEBUG_OUTPUT
- 	{
- 		struct acpi_table_memory_affinity *p =
- 			(struct acpi_table_memory_affinity*) header;
-@@ -70,6 +73,7 @@
- 		       p->flags.enabled ? "enabled" : "disabled",
- 		       p->flags.hot_pluggable ? " hot-pluggable" : ""));
- 	}
-+#endif /* ACPI_DEBUG_OUTPUT */
- 		break;
- 
- 	default:
-@@ -103,7 +107,9 @@
- 
- 
- static int __init
--acpi_parse_processor_affinity (acpi_table_entry_header *header)
-+acpi_parse_processor_affinity (
-+	acpi_table_entry_header *header,
-+	const unsigned long end)
- {
- 	struct acpi_table_processor_affinity *processor_affinity;
- 
-@@ -121,7 +127,9 @@
- 
- 
- static int __init
--acpi_parse_memory_affinity (acpi_table_entry_header *header)
-+acpi_parse_memory_affinity (
-+	acpi_table_entry_header *header,
-+	const unsigned long end)
- {
- 	struct acpi_table_memory_affinity *memory_affinity;
- 
+> I was thinking of adding some
+> methods for my sound system, and my modem. Could adding unauthorized
+> code damage the hardware?
+
+dunno, expect the worst.
+
+> Are there a better place to get advice for writing DSDT etc?
+> (email list/news group or a url for tutorial/manual)
+
+http://acpi.sf.net/dsdt/index.php
+please tell me if you find more interesting sites not linked there. :)
+
+cheers,
+ sebastian
+--=20
+::: .O.
+::: ..O
+::: OOO
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBCABareHfL3pi+bQRAvp2AJ9qV14mUX6lKrNMxzrmijvnS8yqCQCfYDBc
+cSdgBF2Tf0+1RpSCy4XZMTU=
+=aQkW
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
 
 
 -------------------------------------------------------
