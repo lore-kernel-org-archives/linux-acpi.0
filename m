@@ -1,14 +1,11 @@
-From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Subject: Sleeping pills for the 2.5.39 Insomnia ..
-Date: Mon, 30 Sep 2002 19:32:16 +0300
+From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Subject: Debugging with 2.4 patch
+Date: Mon, 30 Sep 2002 19:34:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200209301932.16677.p_christ@hol.gr>
-References: <200209301541.47910.p_christ@hol.gr> <200209301612.28344.p_christ@hol.gr> <1033400645.7338.17.camel@bacchus.gpphy.uni-duesseldorf.de>
+Message-ID: <1033407278.377.1.camel@bacchus.gpphy.uni-duesseldorf.de>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="------------Boundary-00=_S9F936OAAJEG5W7JAF46"
+Content-Type: MULTIPART/MIXED; BOUNDARY="Boundary_(ID_RiF61KjuJkTbu82v8UdLqw)"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1033400645.7338.17.camel-s1IKGncK6J2OERECOqmV57dB6IYNvbhm87tLKu7D3g4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,103 +14,106 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---------------Boundary-00=_S9F936OAAJEG5W7JAF46
-Content-Type: text/plain;
-  charset="iso-8859-7"
-Content-Transfer-Encoding: 8bit
+--Boundary_(ID_RiF61KjuJkTbu82v8UdLqw)
+Content-type: text/plain
+Content-transfer-encoding: 7BIT
 
-> Since software_suspend() gets called from there and IIRC thats not part
-> of the acpi subsytem I wonder why S4 would not work in case state is
-> correctly set there...
->
-> Anyway, thats only a quick shot assumption so do not flame in case
-> I am plain wrong ;)
->
+Hi,
 
-I already solved the bug. Don't try any more..
+when trying to debug the thermal-related oops on my athlon system (see
+CALL FOR TESTING thread) I noticed the following
 
-To A.Grover: please apply the patch (or just the '!' yourself).
-I'd like the two extra messages to be always logged. It's your call to keep 
-them.
+* Some functions in acpi/utilities/utdebug.c do not get compiled it even
+if CONFIG_ACPI_DEBUG is set [1], because ACPI_DEBUG_OUTPUT does not get
+set in acpi/utilities/Makefile. 
 
-Can you give me a one-line explanation for those messages I get with S4? Is 
-the S1 warning of any importance?
+* I assume that in acpi/acpi_ksyms.c the above mentioned function
+symbols then should be exported if ACPI_DEBUG_OUTPUT is set not if
+ACPI_DEBUG is set. Though I did not double-check. 
 
---------------Boundary-00=_S9F936OAAJEG5W7JAF46
-Content-Type: text/x-diff;
-  charset="iso-8859-7";
-  name="sleep.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="sleep.diff"
+* In case that ACPI_DEBUG_OUTPUT is to replace ACPI_DEBUG that should
+happen for the proc interface stuff in acpi/system.c too.
 
-diff -bBaur ./drivers/acpi/sleep.c /usr/src/linux/drivers/acpi/sleep.c
---- ./drivers/acpi/sleep.c	2002-09-28 14:05:32.000000000 +0300
-+++ /usr/src/linux/drivers/acpi/sleep.c	2002-09-30 19:11:58.000000000 +0300
-@@ -329,8 +329,9 @@
- 	state_string[count] = '\0';
+Patch is attached.
 
- 	state = simple_strtoul(state_string, NULL, 0);
-+	printk(KERN_INFO PREFIX "sleep: S%d written\n", state);
+Regards
+-Knut
 
--	if (sleep_states[state])
-+	if (!sleep_states[state])
- 		return_VALUE(-ENODEV);
+[1] which causes /sbin/modprobe thermal to fail, because of missing
+symbols.
 
- #ifdef CONFIG_SOFTWARE_SUSPEND
-@@ -341,6 +342,8 @@
- #endif
- 	status = acpi_suspend(state);
+-- 
+Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
+Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
+fon: +49-211-81-11314                           fax: +49-211-81-13105
 
-+	printk(KERN_INFO PREFIX "sleep: S%d resumed w. status 0x%x\n", state, status);
+
+
+
+
+
+
+
+--Boundary_(ID_RiF61KjuJkTbu82v8UdLqw)
+Content-type: text/x-patch; charset=ISO-8859-1; name=debug_all.patch
+Content-disposition: attachment; filename=debug_all.patch
+Content-transfer-encoding: 7BIT
+
+diff -ur linux-2.4.20-pre7-acpi.virgin/drivers/acpi/acpi_ksyms.c linux-2.4.20-pre7-acpi/drivers/acpi/acpi_ksyms.c
+--- linux-2.4.20-pre7-acpi.virgin/drivers/acpi/acpi_ksyms.c	Mon Sep 30 19:15:02 2002
++++ linux-2.4.20-pre7-acpi/drivers/acpi/acpi_ksyms.c	Mon Sep 30 19:17:54 2002
+@@ -43,7 +43,7 @@
+ 
+ /* ACPI Core Subsystem */
+ 
+-#ifdef ACPI_DEBUG
++#ifdef ACPI_DEBUG_OUTPUT
+ EXPORT_SYMBOL(acpi_dbg_layer);
+ EXPORT_SYMBOL(acpi_dbg_level);
+ EXPORT_SYMBOL(acpi_ut_debug_print_raw);
+@@ -52,7 +52,7 @@
+ EXPORT_SYMBOL(acpi_ut_value_exit);
+ EXPORT_SYMBOL(acpi_ut_exit);
+ EXPORT_SYMBOL(acpi_ut_trace);
+-#endif /*ACPI_DEBUG*/
++#endif /* ACPI_DEBUG_OUTPUT */
+ 
+ EXPORT_SYMBOL(acpi_get_handle);
+ EXPORT_SYMBOL(acpi_get_parent);
+diff -ur linux-2.4.20-pre7-acpi.virgin/drivers/acpi/system.c linux-2.4.20-pre7-acpi/drivers/acpi/system.c
+--- linux-2.4.20-pre7-acpi.virgin/drivers/acpi/system.c	Mon Sep 30 19:15:03 2002
++++ linux-2.4.20-pre7-acpi/drivers/acpi/system.c	Mon Sep 30 19:17:14 2002
+@@ -892,8 +892,7 @@
+ 
+ #endif /*CONFIG_ACPI_SLEEP*/
+ 
+-#ifdef ACPI_DEBUG
+-
++#ifdef ACPI_DEBUG_OUTPUT
+ 	/* 'debug_layer' [R/W] */
+ 	entry = create_proc_entry(ACPI_SYSTEM_FILE_DEBUG_LAYER,
+ 		S_IFREG|S_IRUGO|S_IWUSR, acpi_device_dir(device));
+diff -ur linux-2.4.20-pre7-acpi.virgin/drivers/acpi/utilities/Makefile linux-2.4.20-pre7-acpi/drivers/acpi/utilities/Makefile
+--- linux-2.4.20-pre7-acpi.virgin/drivers/acpi/utilities/Makefile	Mon Sep 30 19:15:03 2002
++++ linux-2.4.20-pre7-acpi/drivers/acpi/utilities/Makefile	Mon Sep 30 18:48:03 2002
+@@ -6,6 +6,10 @@
+ 
+ obj-$(CONFIG_ACPI_INTERPRETER) := $(patsubst %.c,%.o,$(wildcard *.c))
+ 
++ifdef CONFIG_ACPI_DEBUG
++  ACPI_CFLAGS	+= -DACPI_DEBUG_OUTPUT
++endif
 +
- 	if (ACPI_FAILURE(status))
- 		return_VALUE(-ENODEV);
+ EXTRA_CFLAGS += $(ACPI_CFLAGS)
+ 
+ include $(TOPDIR)/Rules.make
 
-@@ -665,7 +668,7 @@
- 	if (acpi_disabled)
- 		return_VALUE(0);
-
--	printk(KERN_INFO PREFIX "(supports");
-+	printk(KERN_INFO PREFIX "Sleep supports");
- 	for (i=0; i<ACPI_S_STATE_COUNT; i++) {
- 		u8 type_a, type_b;
- 		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
-@@ -674,7 +677,7 @@
- 			printk(" S%d", i);
- 		}
- 	}
--	printk(")\n");
-+	printk("\n");
-
-
- 	/* 'sleep' [R/W]*/
-
-
---------------Boundary-00=_S9F936OAAJEG5W7JAF46
-Content-Type: application/x-bzip2;
-  name="messages.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="messages.bz2"
-
-QlpoOTFBWSZTWVSq/A8AAZxfgEAQYO//8q+iWoA/79/kQAKKuGxtrbQkoCGgp6anoZQyGmjRoA0N
-A0EiSYSMmkNTT1MAhoB6AI9TMhgAAAAAAAAAAEUiIaaTyTT0IyNBoAANAGmeuBtLbdvtwbvOOcmf
-DQ2bJ9QjPRnZVwh5uVJBvRahJ47ahLRMF4jRMnCqDSJMNsYmTiXn1TojQhKTjTLThrjZUwkGO99G
-TdFPLmll1IWlFTnvOJ7oBX1a+xtoabG022NjefjDT1HZS/NcxaUbmiXrM14k+kx7a0XAlvDCJqSZ
-7lBKhFuki2PlYizJlINM84VQB3zRbpSrvap8fdbSDBhkgQiVaMdArk393kIhJ6JAaWAnBHMEk1se
-rI6NxAsTeRbAcmHNIuYIhIIx7Jvz5hID0i8QTVi9QcIf6akJOAjsz/CxMQ+9gYTC5C5peSbh+2Ef
-RH26ENKaxRS3k0XjGZ2oDBDNkopUJFJEH69loHXYV9c91lTMX6pBmIi/hHahZyUpJCtSxCDDjQlR
-WN+5IVsW0ZBB7FE2wcss18LfsZkggtQuGW3NnRdgV1heTEi2syEvyJOpccslYcb1lO5plqVaQpBS
-DJ0hOMhhdhMqZBQRWg1cuIye/VcKjVxCpikKEF1shYhGBIeOv3ISvurQlmdrI1oSrBi1SWhHX+MI
-GYTQZQnVgzn9JaUXFrL6jPSRlmFULARxlCJMwL5tg1UGpSQUNcyCaYhhyRuqROCYMTnBImgZpy2x
-4tQyJOWKkQykKTAJtIRKBtsrVKaWxoSwxOLfd7i7kinChIKlV+B4
-
---------------Boundary-00=_S9F936OAAJEG5W7JAF46--
-
+--Boundary_(ID_RiF61KjuJkTbu82v8UdLqw)--
 
 
 -------------------------------------------------------
