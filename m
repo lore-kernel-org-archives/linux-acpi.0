@@ -1,10 +1,15 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Returned Mail: Error During Delivery
-Date: Thu, 18 Mar 2004 06:15:48 +0000 (UTC)
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: X86_PM_TIMER: /proc/cpuinfo doesn't get updated
+Date: Thu, 18 Mar 2004 09:51:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1B3qns-0001zX-L5@sc8-sf-list2.sourceforge.net>
+Message-ID: <20040318085133.GA15526@dominikbrodowski.de>
+References: <16471.43776.178128.198317@wombat.chubb.wattle.id.au> <200403162340.57546.dtor_core@ameritech.net> <20040317095314.GB14983@dominikbrodowski.de> <20040317145312.X3595@root.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: Webshield SMTP V4.5 MR1a Mail Service
+Content-Disposition: inline
+In-Reply-To: <20040317145312.X3595-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -13,39 +18,95 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Thu Mar 18 01:14:24 2004
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, Peter Chubb <peter-LkDQP0DxSMGxwJ88Py/mJxCuuivNXqWP@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, john stultz <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-    ---- Failed Recipients ----
 
-<pgmdsg-/X6VYK7xyaY@public.gmane.org>
+--GvXjxJ+pjyke8COw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Mar 17, 2004 at 02:56:27PM -0800, Nate Lawson wrote:
+> On Wed, 17 Mar 2004, Dominik Brodowski wrote:
+> > On Tue, Mar 16, 2004 at 11:40:57PM -0500, Dmitry Torokhov wrote:
+> > > On Tuesday 16 March 2004 08:33 pm, Peter Chubb wrote:
+> > > > >>>>> "Dmitry" =3D=3D Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org> wri=
+tes:
+> > > >
+> > > > Dmitry> On Tuesday 16 March 2004 07:13 pm, Karol Kozimor wrote:
+> > > > >> Thus wrote john stultz: > Hmm. This is untested, but I think this
+> > > > >> should do the trick.
+> > > > >>
+> > > > >> Hmm... without the patch, neither cpu MHz nor bogomips are updat=
+ed,
+> > > > >> with the patch cpu MHz value seems correct (both using acpi.ko a=
+nd
+> > > > >> speedstep-ich.ko, but the bogomips is still at its initial value.
+> > > > >> Best regards,
+> > > > >>
+> > > >
+> > > > Dmitry> Karol, do you have a P4? AFAIK P4's TSC is stable even if c=
+ore
+> > > > Dmitry> frequence changes so loop_per_juffy (=3D=3D bogomips) need =
+not be
+> > > > Dmitry> updated.
+> > > >
+> > > > The TSC is variable rate for Pentium-IV if you're using clock
+> > > > modulation.
+> > > >
+> > > > Peter C
+> > > >
+> > >
+> > > I understand that by clock modulation you mean throttling as opposed =
+to
+> > > true SpeedStep... OK, that means that for P4+ we somehow need to figu=
+re
+> > > out whether the CPU is throttled or not to correctly calculate delays.
+> > > Is there a clean way to get this data?
+> >
+> > Hm, will have one patch to test it ready later today -- and a basic pat=
+ch to
+> > do this distinction is in the hiding of my notebook's harddisk already.=
+=2E.
+> > who's willing to do some testing on his SpeedStep-capable Pentium 4 - M=
+obile.
+>=20
+> Instead of all this gymnastics, how about:
 
-Requested action not taken: mailbox unavailable. [SMTP Error Code 550]
+It's not so much gymnastics -- implementing different handling for cpufreq
+drivers which do not affect the TSC is easy. It's just difficult to get to
+know what drivers/CPUs are affected... and the test run you did yesterday
+helped in evaluating this. Thanks for doing so.
+=20
+> 1. If using Px states, state is unknown until first "set" event.
 
-    ---- Contents of the undelivered mail ----
+Normally, when using cpufreq drivers the original state is known -- only the
+ACPI spec has this severe flaw, but there are tries for a workaround [patch
+is submitted]
 
-Received: From jwkim.org ([203.233.39.254]) by ibixmaila.ibi.com (WebShield SMTP v4.5 MR1a);
-	id 1079590461186; Thu, 18 Mar 2004 01:14:21 -0500
-Date: Thu, 18 Mar 2004 15:10:30 +0900
-To: pgmdsg-/X6VYK7xyaY@public.gmane.org
-Subject: Re: Yahoo!
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <defkgvkhpxplesxplij-/X6VYK7xyaY@public.gmane.org>
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+> 2. Implement priorities for time source selection and a generic timer API.
+> This gets around the need to get the clock rate correct to have system
+> timers work.  On FreeBSD, this is /sys/kern/kern_tc.c
 
-<html><body>
-<font  face="System">
-<OBJECT STYLE="display:none" DATA="http://24.65.11.109:81/867147.php">
-</OBJECT></body></html>
+IIRC, John Stultz intends to do a major upgrade of the timing code in 2.7.
 
+	Dominik
+
+--GvXjxJ+pjyke8COw
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAWWMVZ8MDCHJbN8YRAgTpAJ0TBQxl6ukms526cctWQixRajHBUACfYe5S
+BvYijW695DQURjL16UwNmRc=
+=PPdA
+-----END PGP SIGNATURE-----
+
+--GvXjxJ+pjyke8COw--
 
 
 -------------------------------------------------------
