@@ -1,9 +1,20 @@
-From: ezra peisach <epeisach-AW32GngNFaTp5eoAjl1PXg@public.gmane.org>
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
 Subject: Re: PROBLEM: LCD display dead after ACPI suspend to RAM (S3)
-Date: Thu, 22 Jan 2004 13:11:29 -0500 (EST)
+Date: Thu, 22 Jan 2004 19:31:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401221811.NAA274801@med-xtal.bu.edu>
+Message-ID: <m3brov96ns.fsf@reason.gnu-hamburg>
+References: <m3hdyo2kce.fsf@reason.gnu-hamburg>
+	<20040122140155.GC5194@hell.org.pl>
+	<m3d69cj8hb.fsf@reason.gnu-hamburg>
+	<1074790450.1585.4.camel@darkstar.portugal>
+	<m3ad4fdi02.fsf@reason.gnu-hamburg>
+	<1074792345.1581.8.camel@darkstar.portugal>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1074792345.1581.8.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+ =?iso-8859-15?q?=28S=E9rgio?= Monteiro Basto's message of "22 Jan 2004 17:25:45 +0000")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -12,46 +23,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Ford <david+challenge-response-qokYbnrgTHEgsBAKwltoeQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?iso-8859-15?q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+ || On 22 Jan 2004 17:25:45 +0000
+ || S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org> wrote:=20
 
->Try hitting the hardware function key that swaps the CRT/LCD and/or the 
->function key that changes the font.
+ smb> well ! good point.=20
 
->Works on my laptop.  Really annoying two-fold issue.  First, the screen 
->is blank, second, I have to blindly run setfont to change the garbage 
->font to a readable font.
-
->I'm not running an fb, just an nvidia card in text mode on a Dell 
->Inspiron 8200.
-I have been probing this issue on an Inspiron 8200 - but with a radeon
-card.
-
-The essential problem in S3 is four fold:
-a) When entering S3 - power is turned off to the video card. When 
-power is restored, the vga interface is confused as to register settings, etc.
-b) vgacon does have any power management handling capabilities.
-c) radeonfb does not handle power management either - except for the case
-   of powerbooks. 
-d) On power restore, I have observed that the backlight of the display 
-is turned off. If I use radeontools to turn back on the display, I can then
-see what is there.
-
-I am working on a set of patches to store the state of the VGA card
-(drivers/video/vgacon.c) before power shutdown and after restore. (I have the
-basics - but it needs to be cleaned up). 
-
-What is then missing is the interface to poke at the radeon and I
-suspect nvidia card to turn on the backlight. When X is running
-switching away from VC 7 and back resets the flag - a better solution
-is eventually needed. Perhaps radeonfb will be the way to go - but it needs
-to have power handling code implemented on all platforms.
-
-Ezra
+:)
 
 
+ smb> So and version with the kernel, do you compile in the kernel ?
+
+I'm, not sure what you are asking.
+
+The kernel version is 2.6.1.
+
+I've reproduced the problem with plain vanilla, ACPI version 20031002
+and also after applying the latest ACPI 20031203 patch, which has
+acpi4asus version 0.26.
+
+Regards,
+Georg
+
+--=20
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
 
 -------------------------------------------------------
