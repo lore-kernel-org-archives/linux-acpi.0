@@ -1,15 +1,13 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: S3, SuSE Linux 9.1, Dell Dimension 8300
-Date: Wed, 29 Dec 2004 21:09:54 +0100
-Message-ID: <200412292109.55022.stefandoesinger@gmx.at>
-References: <1104275510.41d1e83630f26@webmail.telering.at>
+From: Herman Sheremetyev <herman-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
+Subject: Re: ACPI on HP ze4430us
+Date: Wed, 29 Dec 2004 15:52:54 -0500
+Message-ID: <41D31926.5070708@swebpage.com>
+References: <00ad01c4ede0$23b57bd0$0200a8c0@Home.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1104275510.41d1e83630f26-2RFepEojUI04Gyxg+fu0s+Tv7YV0F9Eg@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <00ad01c4ede0$23b57bd0$0200a8c0-+2hNPL9WhaWs1BDpvl8NfQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,32 +17,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Stefan Lintner <stefan.lintner-OBssYPn7tLPk7+2FdBfRIA@public.gmane.org>
+To: Konstantin Svist <konstantin-6crfdjOYMUleoWH0uzbU5w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Those kernel options aren't hacks as far as I know, they're perfectly 
+legitimate.  You can recompile the kernel and remove APM support to 
+avoid using them though.
 
-> I am using SuSE Linux 9.1 and would like to use S3 on my home Dell
-> Dimension 8300 desktop PC. S3 works fine in WinXP.
->
-> Unfortunately the SuSE handbook says that S3 is currently not
-> supported on Intel Pentium 4 HT systems. There are also problems if
-> AGP modules are loaded - I have such a module loaded: \"intel_mch_agp\"
->
-> System:
-> Dell Dimension 8300, A07 Bios
-> Intel 875P chipset, Intel Pentium 4 HT 2,6GHz
-> 1024MB RAM
-> NVidia GeforceFX 5200
-> Maxtor 6Y080LO HDD
->
-> If I press the power button the PC shuts down.
->
-> Is it possible to use S3 on this machine?
->
-Did you try echo 3  > /proc/acpi/sleep
+-Herman
 
-Stefan D=F6singer
+Konstantin Svist wrote:
+> I see.
+> So is there a more solution more permanent than the hack? Does that have to
+> do with DSDT?
+> 
+> 
+> Konstantin
+> 
+> 
+> 
+>>Sounds like that knoppix kernel has APM and ACPI support compiled in and
+>>APM gets choses on your laptop even though it's not supported so you
+>>have to tell the kernel to use ACPI explicitly.
+>>
+>>-Herman
+>>
+>>
+>>>I just tried Knoppix 3.7 on my laptop - it doesn't boot. After some
+>>>playing around, I figured out that the problem is ACPI - it only
+>>>boots if I specify any of the three "hacks": "acpi=off",
+>>>"acpi=ht", and "acpi=force". The last one even powers down my
+>>>laptop on shutdown.
+>>>What is going on here?
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> SF email is sponsored by - The IT Product Guide
+> Read honest & candid reviews on hundreds of IT Products from real users.
+> Discover which products truly live up to the hype. Start reading now. 
+> http://productguide.itmanagersjournal.com/
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
