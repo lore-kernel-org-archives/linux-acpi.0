@@ -1,14 +1,13 @@
-From: Pere =?ISO-8859-15?Q?Casta=F1er?= <XaRz-NOlniwl8E+FeoWH0uzbU5w@public.gmane.org>
-Subject: Re: Laptops that work
-Date: Sat, 6 Dec 2003 20:43:12 +0100
+From: "Eva Hendrix" <wwc471f-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: hyartbeat inclmde pdq achjy
+Date: Sat, 02 Aug 2003 02:44:11 GMT
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031206204312.2f4730c4.XaRz@menta.net>
-References: <3FCF7EB2.4030708@net-bizz.com>
+Message-ID: <78-9goneoxb--$h3$gr63ds9r@63lojn>
+Reply-To: "Eva Hendrix" <wwc471f-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="BCCC.836._24E_A5F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FCF7EB2.4030708-np7M/f4w+dNWk0Htik3J/w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,40 +16,89 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acornicq-bugs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 04 Dec 2003 11:36:34 -0700
-Adam Olsen <adamolsen-np7M/f4w+dNWk0Htik3J/w@public.gmane.org> wrote:
 
-> I was wondering if someone could perhaps give me some recommendations=20
-> for laptops that work well with ACPI on Linux - specifically the suspend=
-=20
-> stuff.=20
->=20
+--BCCC.836._24E_A5F
+Content-Type: text/html;
+Content-Transfer-Encoding: quoted-printable
 
-In DELL 8500 suspend/resume works well with linux2.6-test9 (but with test 1=
-1 don't, I think that's a problem of actual test11 bug).
-The nvidia binary drivers don't work with suspend at this moment but with n=
-v driver works well.
+<html>
+<body>
+<div align=3D"center">
+  <center>
+  <table id=3D"AutoNumber1" style=3D"BORDER-COLLAPSE: collapse" borderColo=
+r=3D"#111111" height=3D"410" cellSpacing=3D"0" cellPadding=3D"0" width=3D"=
+661" bgColor=3D"#55aaff" border=3D"0">
+    <tr>
+      <td width=3D"661" height=3D"87" align=3D"middle">
+      <p align=3D"center"><b>
+      <a style=3D"TEXT-DECORATION: none" href=3D"http://www.getcheappills.=
+com/gh/vprx/">
+      <font color=3D"#aa0000" size=3D"7">V-P_R-X</font><sup><font color=3D=
+"#000000" size=3D"4">=FFFFFF99</font></sup></a></b></p>
+      <p style=3D"MARGIN-BOTTOM: -10px" align=3D"center"><b>
+      <a style=3D"TEXT-DECORATION: none" href=3D"http://www.getcheappills.=
+com/gh/vprx/">
+      <font face=3D"Tahoma" color=3D"#000000">D.on't Be A.shamed Of Your M=
+anhood E.ver 
+      A.gain.&nbsp; </font></a></b></p>
+      <p align=3D"center"><b>
+      <a style=3D"TEXT-DECORATION: none" href=3D"http://www.getcheappills.=
+com/gh/vprx/">
+      <font face=3D"Tahoma" color=3D"#000000">For A_100%_Natural and A.non=
+ymous 
+      M.anhood E.nlargement P.roduct</font><font face=3D"Tahoma" color=3D"=
+#000000" size=3D"2">.</font></a></b></p>
+      </td>
+    </tr>
+    <tr>
+      <td width=3D"661" height=3D"131" align=3D"middle">
+      <p align=3D"center"><b><font face=3D"Tahoma" color=3D"#ffffff"
+size=3D=
+"5">L.ist of 
+      B.enefits:</font><font face=3D"Tahoma" color=3D"#ffffff" size=3D"2">=
+<br>
+      <br>
+      </font><font face=3D"Tahoma" color=3D"#ffffff">- S.atisfy Your Love.=
+r B.etter<br>
+      - Feel More C.onfident About Y.ourself<br>
+      -_100%_Natural Fast M.anhood G.rowth<br>
+      - Never Question Your Ability or Size again<br>
+      - Make Your S_e.x Life Better</font></b></p>
+      <p align=3D"center">&nbsp;</p></td>
+    </tr>
+    <tr>
+      <td width=3D"661" height=3D"187" align=3D"middle">
+      <p align=3D"center"><font face=3D"Tahoma" color=3D"#ffffff" size=3D"=
+5"><b>A few 
+      more B.enefits...&nbsp;</b></font> </p>
+      <p align=3D"center"><font face=3D"Tahoma" color=3D"#ffffff"><b>* Gai=
+n Up To 3 
+      Full I.nches In L.ength<br>
+      * Expand Your M.anhood Up To_20%_Thicker<br>
+      * 1.00%_Safe To Take, With NO S.ide E.ffects<br>
+      * Fast Priority F.ed-Ex S.hipping W.orldwide<br>
+      * D.octor A.pproved And R.ecommended<br>
+      * N.o Pum.ps - No S.urgery - No E.xercises<br>
+      *_100%_Money_Back_G.uarante.e<br>
+&nbsp;</b></font></p></td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p align=3D"center"><b><font face=3D"Tahoma" size=3D"2">
+<a href=3D"http://www.getcheappills.com/gh/vprx/">Men Don't Be 
+A.fraid, F.ollow This L.ink Now for 100%_A.nonymous_O.rder O.ptions </a></=
+font></b><br><br><br><br>
+</p>
+</body>
+</html>petto tnvi
+yj k za hkamkd
 
-Hope it helps.
-regards,
+--BCCC.836._24E_A5F--
 
---=20
-"Soy una piedra, no muevo ni un m=FAsculo,lentamente me pongo nieve=20
-en la boca para que no vea mi aliento , me tomo mi tiempo,=20
-dejo que se acerque, s=F3lo tengo una bala, apunto a sus ojos, muy=20
-suavemente mi dedo presiona el gatillo,mi pulso no tiembla, no=20
-tengo miedo: ahora ya soy mayor"
-					     Enemy at gates
-------
-Pere Casta=F1er Sard=E0=A0 - http://xarz.no-ip.org
-GnuPG Public key available - http://xarz.no-ip.org/keys.html
-Computer Science Student on UOC - http://www.uoc.edu
-Linux Registered User #232073=20
-Debian/GNU User - http://www.debian.org
----------------------
 
 
 -------------------------------------------------------
