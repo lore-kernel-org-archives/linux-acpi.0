@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Gateway 200x - trouble supplying ECDT table
-Date: Thu, 25 Dec 2003 12:08:41 +0800
+Subject: RE: Toshiba 1905S303: update
+Date: Thu, 25 Dec 2003 13:33:59 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C59@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C5A@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,44 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->I am sorry that you will receive this twice.
->I did not send my original reply back to the mailinglist.
+>I just created bug #1735 on bugzilla to deal with this.=20
+>Please take a look at it:
 >
+>http://bugme.osdl.org/show_bug.cgi?id=3D1735
 
-Never mind!
+>I also posted the relevant dmesg and system log files=20
+>from working and non-working situations,
+> plus my current DSDT and the original DSDT.
 
->  I applied this patch to my 2.4.23 kernel=20
->(started back from the fresh sources and applied the latest ACPI patch
-first)
+Thanks a lot for that. To testing latest ACPI, you can try
+bk clone ACPI testing tree located on http://linux-acpi.bkbits.net/ .
+Or you can try acpi patch filed at
+http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/.
 
-After a few investigation on your problem, that patch doesn't apply.
->From your DSDT,=20
-ECDT seems to be  unnecessary to your box.
-
->Unfortunately, I'm still getting the same sorts of >>messages on boot.=20
->The _REG method of the Embedded Control fails as follows:
-
-Obviously, this issue is relative to acpi_ec_space_handler.
-=20
->ACPI: Embedded Controller [H_EC] (gpe 28)
->evregion-0348: *** Error: Handler for [EmbeddedControl] returned
-AE_BAD_PARAMETER
-> dswexec-0435 [30] ds_exec_end_op        : [Store]: Could not resolve
-operands, AE_BAD_PARAMETER
-> psparse-1120: *** Error: Method execution failed
-[\_SB_.PCI0.LPCB.H_EC._REG] (Node df5e7ae8), AE_BAD_PARAMETER
-
-I just filed a patch for you testing, just try it.
-http://bugzilla.kernel.org/show_bug.cgi?id=3D1744
-
-Maybe we need to support other access bit width.  I found AccessType:
-DWordAcc in your EC region definition.
-
-Thanks,
-Luming
 
 
 
