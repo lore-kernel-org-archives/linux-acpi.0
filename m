@@ -1,60 +1,52 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: 2.6.0-test7 build failure: !CONFIG_PCI
-Date: 10 Oct 2003 23:43:05 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1065843784.4112.49.camel@dhcppc4>
-References: <BF1FE1855350A0479097B3A0D2A80EE001126CB1@hdsmsx402.hd.intel.com>
+Subject: Re: [ACPI-sppt] ACPI bug databases
+Date: 11 Oct 2003 00:48:26 -0400
+Sender: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1065847705.4118.60.camel@dhcppc4>
+References: <1065156964.5326.177.camel@dhcppc4>
+	 <1065831018.1500.3.camel@darkstar.portugal>
+	 <1065832414.1498.25.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE001126CB1-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Linux-Kernel (E-mail)" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1065832414.1498.25.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+Errors-To: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
+	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
+	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-support>
+To: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Cc: acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Does anybody build X86 without CONFIG_PCI?
+you may need to create an account at redhat to see their bugs.
+also, sometimes some of their bugs are read-protected unless
+you're the submitter.
 
-Build fails if CONFIG_BLK_DEV_CMD640 is set:
+Do a query on CC: list containing acpi-bugzilla-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+and see if you can see any of the 42 bug reports with our alias on the
+cc.
 
-drivers/built-in.o(.init.text+0x59df): In function `ide_setup':
-: undefined reference to `cmd640_vlb'
-drivers/built-in.o(.init.text+0x5aef): In function `probe_for_hwifs':
-: undefined reference to `ide_probe_for_cmd640x'
-make: *** [.tmp_vmlinux1] Error 1
+http://fedora.redhat.com/
+has an alias and and IRC channel that may help.
 
-The problem is that these variables are defined in
-drivers/ide/pci/cmd640.c, which is protected by CONFIG_PCI; but they're
-used when CONFIG_BLK_DEV_CMD640, which doesn't require CONFIG_PCI.
-
----
-More interesting (to me) is that it also fails if CONFIG_ACPI is set:
-
-drivers/built-in.o(.init.text+0x825): In function `acpi_bus_init':
-: undefined reference to `eisa_set_level_irq'
-
-drivers/acpi/bus.c:
-
-#ifdef CONFIG_X86
-        /* Ensure the SCI is set to level-triggered, active-low */
-        if (acpi_ioapic)
-                mp_config_ioapic_for_sci(acpi_fadt.sci_int);
-        else
-                eisa_set_level_irq(acpi_fadt.sci_int);
-#endif
-
-Should we not be calling eisa_set_level_irq()?
-
-thanks,
+cheers,
 -Len
+
+On Fri, 2003-10-10 at 20:33, S=E9rgio Monteiro Basto wrote:
+> Who no
+> How=20
+>=20
+> On Sat, 2003-10-11 at 01:10, S=E9rgio Monteiro Basto wrote:
+> > Who we reply bugzilla emails in bug me?
+> >=20
+> > BTW: RedHat doesn't let me view the bugs...
+> >=20
+> > thanks
 
 
 
