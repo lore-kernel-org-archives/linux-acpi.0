@@ -1,13 +1,14 @@
-From: "KILL Shield Gateway" <ksg-ZZxF8YHwpVW4NI7wrQJXf/8+0UxHXcjY@public.gmane.org>
-Subject: ¹ÚÈº½ð³½ KILL Shield Gateway ²¡¶¾¾¯±¨
-Date: Sun, 17 Oct 2004 20:56:02 +0800 (CST)
+From: Sudhakar Chandra <thaths-Xioq7UEg2g9MLo7UitmB5A@public.gmane.org>
+Subject: Re: Re: Problem waking Thinkpad G40 from S3 suspend to RAM
+Date: Sun, 17 Oct 2004 07:57:39 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041017125602.A9C5A103035@smtp.bjgaj.gov.cn>
+Message-ID: <41728863.6000304@openscroll.org>
+References: <4171DB3C.2070104@openscroll.org> <pan.2004.10.17.10.35.26.516538@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <pan.2004.10.17.10.35.26.516538-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,15 +20,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Paul Ionescu wrote:
+> I hope you tried with "acpi_sleep=s3_bios" not "acpi_mode=s3_bios" as you
+> wrote.
 
-t6LQxbXY1rc6ICAgYWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQNCsrV0MW12Na3OiAg
-IDExMEBiamdhai5nb3YuY247IA0K1vfM4jogICAgICAgTWFpbCBEZWxpdmVyeSAoZmFpbHVyZSAx
-MTBAYmpnYWouZ292LmNuKQ0KTWVzc2FnZS1JRDogMjAwNDEwMTcxMjU1NTkuQTk3RjcxMDMwMUFA
-c210cC5iamdhai5nb3YuY24NCsmow+jKsbzkOiAgIDIwMDQtMTAtMTcgMjA6NTY6MDENCg0K08q8
-/ri9vP46ICAgbWVzc2FnZS5zY3IgICAgICAgICAgICAgICAgICAgICAgtPjT0CAxILj2sqG2viBX
-aW4zMi9OZXRza3kuUC5Xb3JtICAgICAgICAgICAgIA0KDQrX3LmyIDEguL28/iwgxuTW0NPQIDEg
-uPa4vbz+ubLQr7T4IDEguPayoba+o7swILj2sqG2vrG7x+Wz/aO7MCC49rT4tr64vbz+sbvJvrP9
-oaMNCg0KudrIur3ws73Tyrz+uf3Cy834udi2qsb6wcvV4rfi08q8/qGjDQo=
+Sorry.  I did try it with acpi_sleep=s3_bios. I made a mistake typing it 
+in the email.  Does not work.
+
+Thaths
+-- 
+Grandpa: "I'm an old man, no one listens to me."
+Lisa:    "I'm a young girl, no one listens to me."
+Homer:   "I'm a white male aged 18 to 49, everyone listens to me, no
+          matter how dumb my suggestions are."
+Slacker Without Borders                        http://openscroll.org/
+Key fingerprint = 8A 84 2E 67 10 9A 64 03  24 38 B6 AB 1B 6E 8C E4
 
 
 -------------------------------------------------------
