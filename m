@@ -1,12 +1,14 @@
-From: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>
-Subject: Re: patched sms-cm acpi/ec.c to 2.6.11.5
-Date: Wed, 23 Mar 2005 19:15:18 +0100
-Message-ID: <4241B236.40601@tiscali.be>
-References: <423EF2EB.5030505@arrakis.dhis.org> <4241A77B.1070807@bartol.udel.edu> <200503231739.56592.pjvenda@arrakis.dhis.org>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
+Date: 23 Mar 2005 13:40:35 -0500
+Message-ID: <1111603235.17317.883.camel@d845pe>
+References: <41062.15.99.19.46.1111525073.squirrel@mail.atl.hp.com>
+	 <1111539249.18927.17.camel@sli10-desk.sh.intel.com>
+	 <1110.65.74.231.82.1111550240.squirrel@mail.cce.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <200503231739.56592.pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1110.65.74.231.82.1111550240.squirrel-TOYrGrLsdJ1xnVILBQAtiA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,58 +18,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>, Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro Venda a =E9crit :
+Bjorn,
 
->On Wednesday 23 March 2005 17:29, Rich Townsend wrote:
-> =20
->
->>Hi Pedro --
->>
->>Sorry I didn't respond sooner; I've been very busy with my job. I'll
->>check through this when I get a chance, and roll it into my sbs-cm stuf=
-f
->>if it looks OK.
->>   =20
->>
->
->hello rich,
->
->take your time. we're all doing what we can.
->
->it does NOT seem ok. after some more tests with the patch, I found out t=
-hat=20
->francois was right about most of the problems:
->* timeout on boot, just after the boot loader. this is very confusing to=
- me...
->* when I plug in the battery, it takes ages to show information about it=
-...=20
->more than 1 minute.
->* about the usb problems, apparently I wasn't affected.
->
->could you please tip us about what could be causing these delays? especi=
-ally=20
->the boot delay... it really puzzles my mind.
->
->regards,
->pedro venda.
-> =20
->
-Concerning USB problems, I think it happens because I tried the patch=20
-with the 2.6.11 kernel. I have retried with the 2.6.11.5 and there are=20
-no more USB problems. But all the other problems remains. Concerning the=20
-timeout on boot, could it be caused by the acpi-dsdt-initrd patch made=20
-by Markus Gaugausch. Maybe we should try other ways to incorporate the=20
-DSDT to the kernel.
-Fran=E7ois Valenduc
+I like how pci_fixup_device() invokes the quirk
+when we want at pci_enable_device() time w/o cluttering
+the code with VIA specific hooks.
+
+I think you've also identified an improvement by
+checking acpi_irq_model -- as the PCI config space
+IRQ register is defined only in PIC-mode -- so one
+must assume that the quirky via HW can't depend on
+us writing reserved bits for IRQs > 15.
+
+But checking skip_ioapic_setup in the non-ACPI case
+isn't quite right.  This is set for "noapic".  But
+it is not set in the PIC-mode case where the kernel
+supports IOAPIC but the hardware does not -- in that
+case the quirk would erroneously exit.
+
+Also, the original quirk_via_irqpic()
+had a udelay(15) before the write -- I have no idea
+if that was significant or not -- maybe soembody else
+on the list does -- as none of us have VIA documentation...
+
+thanks,
+-Len
+
+ps. we need to fix this on 2.4 also.
+
+
 
 
 -------------------------------------------------------
 This SF.net email is sponsored by Microsoft Mobile & Embedded DevCon 2005
 Attend MEDC 2005 May 9-12 in Vegas. Learn more about the latest Windows
-Embedded(r) & Windows Mobile(tm) platforms, applications & content.  Regi=
-ster
-by 3/29 & save $300 http://ads.osdn.com/?ad_id=3D6883&alloc_id=3D15149&op=
-=3Dclick
+Embedded(r) & Windows Mobile(tm) platforms, applications & content.  Register
+by 3/29 & save $300 http://ads.osdn.com/?ad_id=6883&alloc_id=15149&op=click
