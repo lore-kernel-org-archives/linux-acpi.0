@@ -1,12 +1,12 @@
-From: David Moore <dcm-HInyCGIudOg@public.gmane.org>
+From: Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: RE: [ACPI] _PDC method in DSDT
-Date: 23 Jun 2003 00:53:27 -0700
+Date: 23 Jun 2003 09:59:11 +0200
 Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-Message-ID: <1056354807.10323.71.camel@aldebaran.caltech.edu>
+Message-ID: <1056355150.1699.4.camel@laptop.fenrus.com>
 References: <F760B14C9561B941B89469F59BA3A84725A301@orsmsx401.jf.intel.com>
+Reply-To: arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-t3Vw/yBdGAmYjQE0u6IG"
 Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A301-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
@@ -18,49 +18,35 @@ List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
 	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
 List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
 To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Cc: David Moore <dcm-HInyCGIudOg@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2003-06-23 at 00:11, Grover, Andrew wrote:
-> > From: David Moore [mailto:dcm-HInyCGIudOg@public.gmane.org] 
-> > Given this document, I think I have enough information now to patch
-> > processor.c to support Enhanced Speedstep on Pentium M for 
-> > those BIOSes
-> > that have a correctly written _PDC method in the DSDT.  Would the
-> > maintainers of the ACPI driver be willing to accept such a patch?
-> 
-> I don't think so, at least not right now.
-> 
+
+--=-t3Vw/yBdGAmYjQE0u6IG
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2003-06-23 at 09:11, Grover, Andrew wrote:
+
 > However, since the recently added non-vendor-supported Pentium M cpufreq
 > driver uses hardcoded tables and cpuid instead of relying on ACPI for
 > this information anyways, adding _PDC support to processor.c would not
 > affect its behavior. If that driver were changed to use ACPI for
 > determining platform capabilities, like Windows and our released binary
 > driver do, then yes, adding _PDC support would be important.
-> 
 
-My intention was not for processor.c and cpufreq to cooperate, but
-rather for processor.c to be able to control Enhanced Speedstep solely
-with P-states -- no cpufreq necessary.  Cpufreq is certainly useful for
-those systems not running the ACPI driver, but in the long run, ACPI and
-processor.c seem to be the right way to get maximum compatibility with
-many platforms.
+Intel is more than welcome to release the linux driver under the GPL :)
 
-If my understanding is correct, once _PDC is called, the only change
-necessary to drive Enhanced Speedstep with P-states is simply to
-interpret the registers returned by _PCT and if they are of type
-FixedHardware, to use wrmsr() instead of outb().  I'm slightly
-oversimplifying, but such an approach works on my system.
+--=-t3Vw/yBdGAmYjQE0u6IG
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-I only have two concerns:
-1) If the processor is an AMD or a Transmeta, it looks like _PCT may
-also return FixedHardware registers for their respective power
-management systems.  Do we need to read cpuid to treat these cases
-differently in processor.c, or will the blind wrmsr() do the trick?
-2) If this capability is open-source, do you personally have a conflict
-of interest between protecting the binary-only module vs. accepting the
-patch?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-Thanks for your input,
+iD8DBQA+9rNOxULwo51rQBIRAgAmAJ9lrfozcJujl2Vf385qBaAy6Fi+vQCfZ17h
+3JW6y8JhL+1PY8oPAFlYwvA=
+=uU7I
+-----END PGP SIGNATURE-----
 
-David
+--=-t3Vw/yBdGAmYjQE0u6IG--
