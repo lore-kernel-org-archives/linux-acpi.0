@@ -1,63 +1,133 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: kacpid problems
-Date: Mon, 8 Nov 2004 11:23:53 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC02D@pdsmsx403>
+From: Li Shaohua <shaohua.li@intel.com>
+Subject: [PATCH/RFC 1/4]device core changes
+Date: Mon, 08 Nov 2004 12:11:11 +0800
+Message-ID: <1099887071.1750.243.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
-Cc: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary="=-kDnXXP/hKOE0jrMqzvOt"
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261724AbUKHERO@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>
+Cc: Len Brown <len.brown@intel.com>, Greg <greg@kroah.com>, Patrick Mochel <mochel@digitalimplant.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I'd like to see your box's DSDT to have a idea of what's going on in =
-your box.
 
-Thanks
-Luming=20
+--=-kDnXXP/hKOE0jrMqzvOt
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
->-----Original Message-----
->From: Laszlo 'GCS' Boszormenyi [mailto:gcs-gKC9iF2I70U@public.gmane.org]=20
->Sent: 2004=C4=EA11=D4=C28=C8=D5 11:18
->To: Yu, Luming
->Cc: dev_zero; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] kacpid problems
->
->* Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org> [2004-11-08 03:48:59 +0100]:
->
->> > Could you verify if killing kacpid can make the thing better?
->>  This just happened to me again. I did /etc/init.d/acpid stop, and it
->> did, but issuing halt left me with the acpi_power_off called message.
->> I think some memory corruption may happen in kernel space,=20
->or it is just
->> ACPI failing for some reason.
-> OK, just happened again, so update: I did /etc/init.d/acpid stop; but
->as I saw CPU usage went to half kernel space, half user space. But(!)
->now I can confirm that kacpid with pid 5 stuck in a D state,=20
->tried to do
->something, but the box was so crawling that I chose to pull=20
->out the cord
->instead.
->
->HTH,
->Laszlo
->
->
+Hi,
+This is the device core change required. Add .platform_bind method for
+bus_type, so platform can do addition things when add a new device. A
+case is ACPI, we want to utilize some ACPI methods for physical devices.
+1. Why doesn't use 'platform_notify'?
+Current device core has a 'platform_notify' mechanism, but it's not
+sufficient for this. Only sepcific bus type know how to parse dev.bus_id
+and know how to encode specific device's address into ACPI _ADR syntax.
+2. Why adds new 'handle' in 'struct device'?
+'Platform_data' is the best candidate, but a search shows some drivers
+have used it. We can remove 'handle' after the drivers changes their
+behavior.
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+Thanks,
+Shaohua
+---
+
+ 2.6-root/drivers/base/bus.c     |    2 ++
+ 2.6-root/include/linux/device.h |    2 ++
+ 2 files changed, 4 insertions(+)
+
+diff -puN drivers/base/bus.c~devcore-platformbind drivers/base/bus.c
+--- 2.6/drivers/base/bus.c~devcore-platformbind	2004-11-08
+10:57:57.996568552 +0800
++++ 2.6-root/drivers/base/bus.c	2004-11-08 11:02:42.045386568 +0800
+@@ -463,6 +463,8 @@ int bus_add_device(struct device * dev)
+ 		list_add_tail(&dev->bus_list, &dev->bus->devices.list);
+ 		device_attach(dev);
+ 		up_write(&dev->bus->subsys.rwsem);
++		if (bus->platform_bind)
++			bus->platform_bind(dev);
+ 		device_add_attrs(bus, dev);
+ 		sysfs_create_link(&bus->devices.kobj, &dev->kobj, dev->bus_id);
+ 	}
+diff -puN include/linux/device.h~devcore-platformbind
+include/linux/device.h
+--- 2.6/include/linux/device.h~devcore-platformbind	2004-11-08
+10:57:57.998568248 +0800
++++ 2.6-root/include/linux/device.h	2004-11-08 10:57:58.001567792 +0800
+@@ -63,6 +63,7 @@ struct bus_type {
+ 				    int num_envp, char *buffer, int buffer_size);
+ 	int		(*suspend)(struct device * dev, u32 state);
+ 	int		(*resume)(struct device * dev);
++	int		(*platform_bind)(struct device *dev);
+ };
+ 
+ extern int bus_register(struct bus_type * bus);
+@@ -290,6 +291,7 @@ struct device {
+ 					     override */
+ 
+ 	void	(*release)(struct device * dev);
++	void			*handle;
+ };
+ 
+ static inline struct device *
+_
+
+
+--=-kDnXXP/hKOE0jrMqzvOt
+Content-Disposition: attachment; filename=p00001_devcore-platformbind.patch
+Content-Type: text/x-patch; name=p00001_devcore-platformbind.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+
+Add .platform_bind method for bus_type, so platform can do addition things
+when add a new device. A case is ACPI, we want to utilize some ACPI methods
+for physical devices.
+1. Why doesn't use 'platform_notify'?
+Current device core has a 'platform_notify' mechanism, but it's not
+sufficient for this. Only sepcific bus type know how to parse dev.bus_id and
+know how to encode specific device's address into ACPI _ADR syntax.
+2. Why adds new 'handle' in 'struct device'?
+'Platform_data' is the best candidate, but a search shows some drivers have
+used it. We can remove 'handle' after the drivers changes their behavior.
+
+---
+
+ 2.6-root/drivers/base/bus.c     |    2 ++
+ 2.6-root/include/linux/device.h |    2 ++
+ 2 files changed, 4 insertions(+)
+
+diff -puN drivers/base/bus.c~devcore-platformbind drivers/base/bus.c
+--- 2.6/drivers/base/bus.c~devcore-platformbind	2004-11-08 10:57:57.996568552 +0800
++++ 2.6-root/drivers/base/bus.c	2004-11-08 11:02:42.045386568 +0800
+@@ -463,6 +463,8 @@ int bus_add_device(struct device * dev)
+ 		list_add_tail(&dev->bus_list, &dev->bus->devices.list);
+ 		device_attach(dev);
+ 		up_write(&dev->bus->subsys.rwsem);
++		if (bus->platform_bind)
++			bus->platform_bind(dev);
+ 		device_add_attrs(bus, dev);
+ 		sysfs_create_link(&bus->devices.kobj, &dev->kobj, dev->bus_id);
+ 	}
+diff -puN include/linux/device.h~devcore-platformbind include/linux/device.h
+--- 2.6/include/linux/device.h~devcore-platformbind	2004-11-08 10:57:57.998568248 +0800
++++ 2.6-root/include/linux/device.h	2004-11-08 10:57:58.001567792 +0800
+@@ -63,6 +63,7 @@ struct bus_type {
+ 				    int num_envp, char *buffer, int buffer_size);
+ 	int		(*suspend)(struct device * dev, u32 state);
+ 	int		(*resume)(struct device * dev);
++	int		(*platform_bind)(struct device *dev);
+ };
+ 
+ extern int bus_register(struct bus_type * bus);
+@@ -290,6 +291,7 @@ struct device {
+ 					     override */
+ 
+ 	void	(*release)(struct device * dev);
++	void			*handle;
+ };
+ 
+ static inline struct device *
+_
+
+--=-kDnXXP/hKOE0jrMqzvOt--
