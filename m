@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: can't switch CPU frequency while running on batterypower
-Date: Wed, 7 Jan 2004 16:55:20 +0100
+From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
+Subject: Re: 2.4.24 patch apply failed on vanilla kernel
+Date: Wed, 7 Jan 2004 18:07:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040107155520.GP14031@poupinou.org>
-References: <20040106103944.Q26693@root.org> <32785.192.168.36.2.1073420997.squirrel@defiant.homedns.org> <20040106133725.E27491@root.org>
+Message-ID: <20040107160711.GB12275@luna.mooo.com>
+References: <20040107134658.5afa9142.acpi@thermoman.de> <20040107152540.574f5882@tethys>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040106133725.E27491-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <20040107152540.574f5882-qdKmdXVU2OY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,39 +17,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Defiant <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 06, 2004 at 01:39:44PM -0800, Nate Lawson wrote:
-> On Tue, 6 Jan 2004, Defiant wrote:
-> > Nate Lawson wrote:
-> > > This is most likely a problem with re-evaluation of _PSS after it has been
-> > > changed.  I don't remember if Linux uses the notify on the processor
-> > > object to re-evaluate _PSS.  If Linux does this correctly, it may be that
-> > > the underlying firmware has a bug and you should use a more specific
-> > > cpufreq driver (i.e. SpeedStep or whatever).  Some systems have a problem
-> > > where they don't properly export firmware information to the ACPI
-> > > performance states interface.
-> >
-> > uhm, I don't know why, but it is working now, using
-> > CONFIG_X86_P4_CLOCKMOD instead of CONFIG_X86_SPEEDSTEP_ICH, even it is a
-> > Pentium 4m, not Pentium 4.
+On Wed, Jan 07, 2004 at 03:25:40PM +0100, wwp wrote:
+> Hi Marcel Meckel,
 > 
-> Sure.  In general, it's better to use a hw-specific cpufreq driver instead
-> of the generic ACPI one, even if the latter seems to work.  Many chipsets
-> don't export the hw-specific information to ACPI correctly and thus ACPI
-> performance states cpufreq should be a last resort.  If they still don't
-> work, you should try multiple hw-specific drivers, as you did.
+> 
+> On Wed, 7 Jan 2004 13:46:58 +0100 Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org> wrote:
+> 
+> > trying to patch 2.4.24 patch into a vanilla kernel results in 1
+> > reject:
+> > 
+> > patching file arch/i386/kernel/acpi.c
+> > patching file arch/i386/kernel/mpparse.c
+> > patching file arch/i386/kernel/smpboot.c
+> > Hunk #1 FAILED at 1106.
+> > 1 out of 1 hunk FAILED -- saving rejects to file
+> > arch/i386/kernel/smpboot.c.rej patching file arch/x86_64/kernel/acpi.c
+> > patching file drivers/acpi/Config.in
+> > patching file drivers/acpi/bus.c
+> > 
+> > Please CC me on replies.
+> 
+> Same here, you're not alone in the dark:
+> Hunk #1 FAILED at 1106.
+> 1 out of 1 hunk FAILED -- saving rejects to file arch/i386/kernel/smpboot.c.rej
+> 
 > 
 
-What is strange though is that speedstep-ich is a non-acpi driver.
+I don't know what is the right solution, but its trying to replace
+- 	for (bit = 0; bit < BITS_PER_LONG; bit++) {
+with
++ 	for (bit = 0; bit < MAX_APICS; bit++) {
+While the line actually reads:
+	for (cpu = 0; cpu < NR_CPUS; cpu++) {
 
--- 
-Ducrot Bruno
+I left it as is and for now its working.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+> Regards,
+> 
+> -- 
+> wwp
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by: IBM Linux Tutorials.
+> Become an expert in LINUX or just sharpen your skills.  Sign up for IBM's
+> Free Linux Tutorials.  Learn everything from the bash shell to sys admin.
+> Click now! http://ads.osdn.com/?ad_id=1278&alloc_id=3371&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
 
 
 -------------------------------------------------------
