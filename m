@@ -1,12 +1,13 @@
-From: Heiko =?ISO-8859-1?Q?Ettelbr=FCck?= <hbruckynews-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Phoenix tool to disassemble the dsdt
-Date: 01 Sep 2002 13:21:41 +0200
+From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: ACPI source release updated (20020829)
+Date: 31 Aug 2002 19:00:20 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1030879302.1157.9.camel@speedy-gonzales>
+Message-ID: <m3vg5r9d5n.fsf@lapper.ihatent.com>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DDFE@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DDFE-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,25 +16,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Alberto Ornaghi' <alor-G/4Acn03FKk@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
 
-on Intel's ACPI website (in the FAQ section) there is a tool mentioned
-which is able to disassemble the dsdt: ad.exe from Phoenix (a DOS tool).
+> > From: Alberto Ornaghi [mailto:alor-G/4Acn03FKk@public.gmane.org] 
+> > >The 0829 patch includes a fix to ensure the SCI is properly 
+> > configured. Does
+> > >that help these systems?
+> > 
+> > is it possible to have a patch against 2.4.18 ?
+> > or I have to download 2.4.20-pre5 ?
+> 
+> Just get pre5. Maybe someone (not me) will backport to 2.4.19, but 2.4.18?
+> Doubtful.
+> 
 
-Yesterday I tried to get that tool using the appropriate link to
-Phoenix' website, but the link seems to be broken. Does anyone of you
-have some information about how to get the tool by now?
+Any chance of seeing diffs against -ac? :)
 
-According to my understanding of the ACPI FAQ entry at Intel's site, the
-tool seems to be freely available. Did I get that right? Or has Phoenix
-altered the license after that FAQ entry had been published?
+mvh,
+A
 
-Thanks!
-Heiko
-
+-- 
+Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
+CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
+"You have zero privacy anyway. Get over it."  --Scott McNealy
 
 
 -------------------------------------------------------
