@@ -1,14 +1,15 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI + Laptop Power Management
-Date: Fri, 28 Nov 2003 16:47:14 +0100
+From: Damien Sandras <dsandras-AvcYnRpcIedBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: If your ACPI-enabled machine does clean shutdown
+	randomly...
+Date: Fri, 28 Nov 2003 17:02:51 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031128154714.GP7374@poupinou.org>
-References: <C386328088ED7F4E9F81AFBABDDF60DA0338640F@wdmyexch02.my.asia.wdc.com>
+Message-ID: <1070035371.1055.13.camel@golgoth01>
+References: <20031128145249.GA563@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA0338640F-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
+In-Reply-To: <20031128145249.GA563-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,92 +18,59 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 28, 2003 at 11:21:19AM +0800, Ow Mun Heng wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: Micha Feigin [mailto:michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org]
-> > Sent: Friday, November 21, 2003 7:13 PM
-> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > Subject: Re: [ACPI] ACPI + Laptop Power Management
-> > 
-> > 
-> > On Fri, Nov 21, 2003 at 11:12:32AM +0100, Ducrot Bruno wrote:
-                                              ^^^^^^^^^^^^
+Le ven 28/11/2003 =E0 15:52, Pavel Machek a =E9crit :
+> ...then you probably need this one. (One notebook I have here
+> certainly needs it).
+>=20
+> It seems that acpi likes to report completely bogus value from time to
+> time...
+>=20
 
-I *never* wrote the following (but there are good stuff
-inside).
+The problem with that patch is that it is filling the logs, but it is
+certainly better than shutting the machine down without warning. I had
+that problem and it took me a few minutes to figure out that it was
+ACPI.
 
-> > like said here, laptopmode is what you want since it holds back dirty
-> > buffer flushes which is what you are experiencing. It will fire up the
-> > disk on reads though. I attached a script that you can use to enter
-> > laptopmode (was actually distributed with laptopmode as far as I could
-> > tell when googling for the original patch). I call it in responce to
-> > ac events from acpid to get it running when the power is disconnected.
-> > Will have to make sure that you get those event though since I had to
-> > twik my dsdt for that.
-> > You can also look at cpufreq of acpi cpu throttling to 
-> > throttle down you
-> > cpu when on battery to conserve power (assuming you cpu 
-> > supports that).
-> 
-> I took a look at laptop mode. However, as the author said "it adds a
-> non-significant" amount of battery time.
-
-Where have you read that?
-Have you looked at linux/Documentation/laptop-mode.txt?
+However, I didn't have that problem with kernel 2.6.0 test 9, it
+appeared with 2.6.0 test 10 and test 11. I have mailed the list to see
+if there was no patch I could reverse to determine where the problem
+was, but I got no reaction, so I guess I will have to live with it ;)
 
 
-> The thing here is, even though it's flushing the buffers when there are
-> others to flush, it makes not difference if the drive is still spinning and
-> not in standby-mode! I can't figure out what is making the HD _not_ spin
-> down.
+> 								Pavel
+>=20
+> --- clean/drivers/acpi/thermal.c	2003-07-27 22:31:09.000000000 +0200
+> +++ linux/drivers/acpi/thermal.c	2003-11-25 22:27:11.000000000 +0100
+> @@ -456,6 +459,10 @@
+>  	if (!tz || !tz->trips.critical.flags.valid)
+>  		return_VALUE(-EINVAL);
+> =20
+> +	if (KELVIN_TO_CELSIUS(tz->temperature) >=3D 200) {
+> +		printk(KERN_ALERT "Are you running CPU or nuclear power plant? ACPI =
+claims CPU temp is %d C. Ignoring.\n", KELVIN_TO_CELSIUS(tz->temperature)=
+);
+> +		return_VALUE(0);
+> +	}
+>  	if (tz->temperature >=3D tz->trips.critical.temperature) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Critical trip point\n"));
+>  		tz->trips.critical.flags.enabled =3D 1;
+> @@ -467,6 +474,7 @@
+>  	if (result)
+>  		return_VALUE(result);
+> =20
+> +	printk(KERN_EMERG "Critical temperature reached (%d C), shutting down=
+.\n", tz->temperature);
+>  	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->tri=
+ps.critical.flags.enabled);
+> =20
+>  	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
+--=20
+Damien Sandras <dsandras-AvcYnRpcIedBDgjK7y7TUQ@public.gmane.org>
 
-man hdparm, hdparm -S something.
-
-> BTW, Laptop_mode is merged into the 2.4.23-rc5 kernel (based on the
-> changelogs)
-
-As already said.
-
-> With regard to ACPId events, can you tell me how yo get it to work? I'm
-> having problems getting it running. It gets lodaded up during init, and it's
-> running as root, but after logging in (GDM desktop), the events won't fire
-> until I kill the acpid process and re-run it again. (once I logged in)
-> I can't figure out how to get it to work. I read in one page where the
-> auther said to put xhost +local somewhere at the end of /etc/X11/xinitrc.
-> That didn't work either.
-
-I don't know.  All my scripts for power managements via acpid certainly
-do not use X.  I am wondering what is inside yours, but if they come
-as default with a distribution, it is probably better to use another
-distribution.
-
-I doubt also the author of laptop-mode have done that.  Again, read
-the documentation which come with laptop-mode.
-
-> > I patched reiserfs to change the journal commit time 
-> > according to the entry in
-> > bdflush so that I can get the regular 30 sec journal flush 
-> > time when on
-> > ac and 10 minutes when of battery.
-> > I could try making such a patch for ext3 if you want.
-> 
-> You mean that has to be patched at the Kernel Code Level?? Ah.. Dang!
-> 
-
-If you read the laptop-mode documentation, you will know that reiserfs
-have to be modified, but not ext3.  BTW, I don't use reiserfs.
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
