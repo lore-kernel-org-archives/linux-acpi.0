@@ -1,14 +1,14 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Re: Kernel 2.5 configuration, was: compaq evo 800v dsdt
-Date: Fri, 14 Feb 2003 10:36:02 +0000
+From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Subject: RE: redhat comment about intel not taking patches?
+Date: Fri, 14 Feb 2003 08:21:33 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030214103602.GC8318@clara.net>
-References: <F760B14C9561B941B89469F59BA3A847138050@orsmsx401.jf.intel.com> <1045159298.2048.22.camel@calvin.hjblocal.nl> <20030214073129.GX25625@poup.poupinou.org>
+Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD10440E3E4@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030214073129.GX25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,60 +17,125 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Hilbert Barelds <list-XfCjptVMDKWuyJwMYI9mNQ@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>, Brad Parker <brad-2nKKSigPee+ibv+y4V69FXNtEUiqdi9I@public.gmane.org>, Troy Schultz <tschultz-zzOxFVvAfJPQT0dZR+AlfA@public.gmane.org>, Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>, Dave Jones <davej-l3A5Bk7waGM@public.gmane.org>, John K Luebs <jkluebs-/p0RJYZkKrsK3IM9cGFl5Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+I would like to thank every one of you that responded to my posting
+about ACPI.  This has been very productive.  I'm putting all your
+comments together and will be discussing this issue with our worldwide
+Linux director.  My hope is that her team can influence the laptop and
+desktop groups to improve their ACPI implementations, at a minimum, by
+testing their ASL code (DSDT's, etc.) using the Intel compiler.
 
-Ducrot Bruno [ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] wrote:
-> The P4-M is supported by the speedstep "legacy" driver in cpufreq.
+If you are using an EVO or PRESARIO laptop that has an ACPI problem,
+please send me a private email to let me know which model number you are
+using.  I will use that info to create a prioritized list for the BIOS
+developers if they decide to fix the ASL code and release BIOS updates.
+Thank you in advance for that info.
 
-I think this is a big problem at the moment in the kernel 2.5 power
-management configuration.  There are too many ways of doing the same
-thing, and things which look as though they are new in 2.5 (cpufreq) say
-that they are 2.4 and 'legacy'.  And SWSUSP, should it be on or off if you
-want to try S3/4 BIOS?
+Thanks again,
+John
+--------------------------------
+John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
+Principal Member Technical Staff
+   Industry Standard Servers
+    Hewlett-Packard Company
+    http://www.hp.com/linux
+       jcagle-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 
-What are the options which should be turned on to have the best
-supported configuration for all ACPI features including S3/S4 sleep.
-
-Which kernel and patches should I apply to have the best starting point
-for helping debug?
-
-Also, I've seen conflicting reports about whether you should use
-/proc/acpi/sleep or the swsusp interface in order to trigger sleep
-states.
-
-I've compiled up a 2.5.60 kernel but I'm not sure I have the correct set
-of options enabled.
-
-Also, the kernel PCMCIA (yenta) drivers don't work for me on a Sony Vaio
-GRX516MD.  I've been using pcmcia-cs drivers under 2.4 but I believe I
-have to use the kernel drivers for 2.5 and they fail to allocate an IRQ
-because of lack of resources for my wireless card when it is plugged.
-
-How can I tell whether the failure to allocate an IRQ is a PCMCIA issue
-or an ACPI issue?  Under 2.4 everything seems to want to use IRQ 9 but
-it only seems to be a problem for USB which complains that it's seeing
-IRQs for non USB events and doesn't actually function properly.
-
-I've put as much information as I can think of on my home page at
-http://dude.noc.clara.net/~faye/ if any other information is necessary,
-I'll happily provide it.
-
-Kernel 2.4 is working pretty well at the moment, but I really want to
-help to get suspend functional.
-
-
-Faye
-
--- 
-Faye Pearson,
-Covert Development
-ClaraNET Ltd.       Tel 020 7903 3000
-
-Everything can be filed under "miscellaneous".
+> -----Original Message-----
+> From: Cagle, John (ISS-Houston)=20
+> Sent: Wednesday, February 12, 2003 10:11 PM
+> To: Darren Benham
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: RE: [ACPI] redhat comment about intel not taking patches?
+>=20
+>=20
+> Can you be more specific in your comments regarding Compaq=20
+> hardware?  We test our ProLiant servers with Linux and ACPI,=20
+> and our BIOS is designed for many different operating=20
+> systems, including Linux, Unix and NetWare. On the other=20
+> hand, it is unreasonable to expect that our laptop and=20
+> desktop divisions test with Linux ACPI for two big reasons:=20
+> first, the Linux OS has a very small share of those markets,=20
+> and second, Red Hat's releases don't even have ACPI support.
+>=20
+> Thanks,
+> John
+>=20
+> > -----Original Message-----
+> > From: Darren Benham [mailto:dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org]
+> > Sent: Wednesday, February 12, 2003 8:55 PM
+> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: RE: [ACPI] redhat comment about intel not taking patches?
+> >=20
+> >=20
+> > Is ACPI going to be able to go mainstream in any of the major
+> > releases w/o making some effort to work in non-standard BIOS=20
+> > (read, the BIOSes written directly for Windows)?  Is it ever=20
+> > likely that pressure would work against those Bios=20
+> > manufacturers that dont' follow spec?  I mean, Compaq is on=20
+> > the list of partners for ACPI and their DSDT's are crap, with=20
+> > asterisks in names and functions returning values that=20
+> > shouldn't, etc. Grover, Andrew said:
+> > >> From: Kevin Fenzi [mailto:kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
+> > >> RedHat is playing with enabling ACPI in their next
+> > release. (At least
+> > >> in the beta for the next release: phoebe).
+> > >>
+> > >> Noticed this changelog comment in the phoebe kernel:
+> > >>
+> > >> * Thu Nov 07 2002 Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > >> - - remove ACPI again because Intel is unwilling to take patches
+> > >>
+> > >> What patches are they talking about?
+> > >>
+> > >> Is there any way we could fix up the communication
+> > breakdown between
+> > >> RedHat/Intel?
+> > >>
+> > >> It would be great if ACPI would work out of the box on my
+> > laptop with
+> > >> a RedHat kernel. At a minimum I guess it would require acpi to be
+> > >> able to detect the compaq *PNP stuff and remove the * so=20
+> the table=20
+> > >> works.
+> > >
+> > > I have been in contact with a number of distributions concerning
+> > > inclusion of ACPI support. I think the new licensing and=20
+> > some recent
+> > > source improvements helped a lot to make people feel better about
+> > > ACPI, but there still are a number of critical bugs that=20
+> > are affecting
+> > > a significant percentage of systems. These need to be fixed. These
+> > > have to do with *any* ACPI-related oopses, failure to boot=20
+> > using ACPI,
+> > > and failure to shutdown cleanly.
+> > >
+> > > ACPI is not going to be in the next RH release but we are really
+> > > pushing to get it in subsequent releases, but we need to=20
+> fix those=20
+> > > critical bugs.
+> > >
+> > > Regards -- Andy
+> > >
+> > >
+> >=20
+> >=20
+> > --
+> > Darren
+>=20
+>=20
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
 
 
 -------------------------------------------------------
