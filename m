@@ -1,11 +1,11 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI Linux source releases updated (20030218)
-Date: Wed, 19 Feb 2003 09:59:00 -0800
+Subject: PBLK length
+Date: Wed, 19 Feb 2003 17:45:58 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A191@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A196@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,52 +16,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-New patches against 2.4 and 2.5 are available at
-http://sf.net/projects/acpi .
+A while ago, we relaxed the requirements on parsing the Processor
+object. Specifically, we allowed PBLK length to be less than 6, even
+though the ACPI specification says it should be 6 or 0 (not 1-5).
 
-This is a Linux-only release. The core interpreter version has not been
-incremented, but there are many Linux-specific updates that we wanted to
-make available. Linus has already pulled the changes so you can also
-just wait for 2.5.63.
+This allowed some systems to use the C2 CPU power state. Unfortunately,
+it also meant that machines were using C2 when they shouldn't -- a more
+serious problem.
 
-ACPI: Toshiba ACPI device update (John Belmonte)
+So I'm going to back out the change. Do not be alarmed when the code
+starts complaining about PBLK length again.
 
-ACPI: Change license from GPL to dual GPL and BSD-style
-
-ACPI: misc cleanups
-
-ACPI: Misc interpreter improvements
-
-ACPI: Fix printk output (Jochen Hein)
-
-ACPI: Decrease size of override's static array, add a define for the
-length,
- and print a msg if used
-
-ACPI: Add ability to override predefined object values (Ducrot Bruno)
-
-ACPI: Support translation attribute (Bjorn Helgaas)
-
-ACPI: Eliminate use of acpi_gpl_gpe_number_info (Matthew Wilcox)
-
-ACPI: Change NUMA maintainer email
-
-ACPI: *really* fix ISO SCI override support (thanks again to John
-Stultz)
-
-ACPI: Factor common code out of an if/else
-
-ACPI: Properly handle an ISO reassigning the ACPI interrupt. Big thanks
-to
- John Stultz.
-
-ACPI: Use extended IRQ resource type when setting IRQs on link devices
-to more
- than IRQ 15 (Juan Quintela)
-
+Regards -- Andy
 
 -----------------------------
 Andrew Grover
