@@ -1,14 +1,12 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: Re: dsdt and more
-Date: 27 Oct 2002 01:41:58 +0100
+From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
+Subject: Computer with SIS-Chipset doesn't work - worked before
+Date: Sun, 27 Oct 2002 10:15:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1035679321.11520.4.camel@darkstar.portugal>
-References: <1035676644.1476.18.camel@darkstar.portugal>
+Message-ID: <20021027101523.5b3cd6ce.hanno@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1035676644.1476.18.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,16 +18,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> with this new verion this mesg disappears ;), know I don't have
-> /proc/processor. 
-> 
-not know, I mean now I don't have /proc/processor.
- 
-the message 
-" acpi_processor-0897 [21] acpi_processor_get_per: Unsupported address
-space [127] (control_register) " 
-disappears with acpi 200201022.
+I have a computer with a SIS-Chipset that worked with previous versions of the ACPI-Patch, but doesn't work with the latest one.
+(It is the second system i found recently that doesn't work and worked with older versions).
 
+dmesg and lspci output are at
+www.int21.de/dmesg.txt
+www.int21.de/lspci.txt
+
+The important part is probably:
+ACPI: Subsystem revision 20021022
+PCI: PCI BIOS revision 2.10 entry at 0xfdb01, last bus=1
+PCI: Using configuration type 1
+tbxfroot-0305 [04] Acpi_find_root_pointer: RSDP structure not found
+ACPI: System description tables not found
+ tbxface-0066: *** Error: Acpi_load_tables: Could not get RSDP, AE_NOT_FOUND
+ tbxface-0116: *** Error: Acpi_load_tables: Could not load tables: AE_NOT_FOUND
+ACPI: Unable to load the System Description Tables
+PCI: Probing PCI hardware
+PCI: ACPI tables contain no PCI IRQ routing entries
+PCI: Probing PCI hardware (bus 00)
+PCI: Using IRQ router SIS [1039/0008] at 00:01.0
 
 
 -------------------------------------------------------
