@@ -1,15 +1,15 @@
 From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: Re: Possible quick fix for ACPI routing problem on Nforce2
-Date: Sun, 13 Jul 2003 20:35:17 +0100
+Subject: Re: Re: ACPI ignoring IRQ flags in PRT
+Date: Sun, 13 Jul 2003 20:36:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307132035.17596.adq_dvb@lidskialf.net>
-References: <200307122352.45704.adq_dvb@lidskialf.net> <200307130218.44398.adq_dvb@lidskialf.net> <20030713053913.GB1284@middle.of.nowhere>
+Message-ID: <200307132036.05761.adq_dvb@lidskialf.net>
+References: <200307131452.39000.adq_dvb@lidskialf.net> <200307131745.42153.adq_dvb@lidskialf.net> <bes74d$ucr$1@main.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030713053913.GB1284-4cpIIuwL6H0O5nXqB3HebLNAH6kLmebB@public.gmane.org>
+In-Reply-To: <bes74d$ucr$1@main.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,23 +19,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rob North <tzwvgwv2001-O/bDAPVd7B0N+BqQ9rBEUg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> No joy on VIA KT400 chipset (bugzilla #678): ide0 get's IRQ 17, during
-> boot multiple oopses occur, starting with 'IRQ 17: nobody cared' right
-> after probing hda. Eventually it crashes hard, after probing hde.
 
-I think this is related to the same problem. I've looked at your DSDT dump. It 
-doesn't have the same style of IRQ definitions that mine has... It defines 
-most of your IRQs as being connected to specific global system interrupt 
-numbers (p165, ACPI v2.0b) (Mine has all interrupts directed at link 
-devices).
+> Andrew, I think you're on to something big here.
+> I've been having similiar problems with my A7N8x Deluxe motherboard, and
+> I've been looking into the kernel code in the 2.4.X series of kernels,
+> and you've definately found something that look amiss.
+>
+> I think what was throwing Matthew is that the interupt trigger types are
+> specified in  _PRS objects
+> The _PRT object is a mapping from PCI device to a particular "PCI
+> Interrupt Link device" and in the defintion of the link device, the IRQs
+> are defined in _PRS objects.
 
-However, IRQ 17 will be set up as a PCI-standard IRQ... So its _probably_ that 
-the first IDE device is expecting a different signalling standard to that 
-which it is getting... If you were able to get to a command prompt you'd 
-probably see /proc/interrupts showing millions of spurious IRQs like I did.
+Yeah, I suspected I wasn't using the right terminology.
+
+Where are the parameters for "global system interrupts" defined? It looks like 
+we have to support this configuration method as well. The MADT table sounded 
+likely, but that is only for overriding ISA IRQs. Where are >15 IRQs defined?
 
 
 
