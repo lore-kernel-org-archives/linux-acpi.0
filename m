@@ -1,10 +1,12 @@
-From: David Sterratt <david.c.sterratt-5WhEfG1TI8k@public.gmane.org>
-Subject: Temperature reported wrongly?
-Date: 04 Feb 2005 15:46:34 +0000
-Message-ID: <1107531994.23192.2056.camel@canonmills.inf.ed.ac.uk>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Fri, 4 Feb 2005 17:15:29 +0100
+Message-ID: <20050204161529.GB1290@elf.ucw.cz>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4202DF7B.2000506@gmx.net> <20050204074802.GD1086@elf.ucw.cz> <200502041126.14386.oliver@neukum.org> <42035D5A.2030703@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <42035D5A.2030703-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,44 +16,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There appears to be a discrepancy between the temperature reported by
-ACPI and the temperature reported by the "health check" in my BIOS, just
-over a minute after rebooting. The value reported by
-/proc/acpi/thermal_zone/THRM/temperature is 73 degC as opposed to 51
-degC from the BIOS. I'm working on the assumption that the CPU core
-can't cool down by 22 degC in under a minute.
+Hi!
 
-Is that assumption likely to be correct?  If so, I suppose it implies a
-bug in acpi, I've looked in the bugzilla and googled, but couldn't find
-anything similar. 
+> >>What about simply blocking all video accesses before disk (etc) is
+> >>resumed, so that "normal" (not locked in memory) application can be
+> >>used?
+> > 
+> > Very bad for debugging. Genuine serial ports are becoming rarer.
+> 
+> As a bonus, even genuine serial ports may be in undefined state after
+> resume. I'm unfortunate enough to have a brand new notebook with
+> serial port, but the serial console code will print garbage after
+> resume until I do a
+> echo foo >/dev/ttyS0
 
-I'm running a stock 2.6.8 kernel as supplied by Debian. My motherboard
-is an MSI MS-6390 with an Athlon XP1800+ CPU and a winbond W83697HF
-sensor chip. The temperature sensor is a diode. The BIOS is AWARD v
-6.00PG (v1.2) and APIC is disabled in the BIOS (to solve some other
-problems with 2.6.x kernels).  
-
-I've considered upgrading the BIOS. There was a problem in earlier
-versions of the BIOS about reporting incorrect temperature, but that
-seems to have been fixed in my minor version (v1.2)
-(http://members.driverguide.com/driver/detail.php?driverid=149547) There
-are no changes after v1.2 that might correct the temperature reporting
-(http://www.msicomputer.com/support/bios_result.asp; and then select AMD
-platform and MSI-6390 -- MSI site won't give sane URL). I'm reluctant to
-flash my BIOS, but if people think it might be worth a try I might take
-the risk.
-
-I've tried using lm_senosrs, but that gives me the same temperature
-(unless I tweak it in sensors.conf).
-
-
-All the best, and thanks for the ACPI work,
-
-David.
-
+It seems that open helps here. Can you confirm with >/dev/ttyS0
+(i.e. without echo foo?). If it helps, all you need to do is simulate
+open/close from _resume() routine....
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
