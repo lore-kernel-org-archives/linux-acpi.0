@@ -1,14 +1,12 @@
-From: Lyle Seaman <lws-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
-Subject: Re: Runlevel for Sleep?
-Date: Tue, 03 Sep 2002 20:57:42 -0400
+From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
+Subject: display interface?
+Date: Wed, 4 Sep 2002 13:57:12 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020904005747.708071480A@o-o.yi.org>
-References: <andrew.grover@intel.com>
+Message-ID: <200209041157.g84BvCX20736@mailgate5.cinetic.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Message from "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-   of "Tue, 03 Sep 2002 16:47:44 PDT." <EDC461A30AC4D511ADE10002A5072CAD0236DE0D-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +15,15 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpilist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
-> I think we'll know better once we have working device power management if a
-> new runlevel is needed or not.
+this may be a dump question: is there a acpi interface to the laptop display?
+Is it possible to make the display darker/lighter depending on the state of battery?
 
-I'll second this.  It seems that everybody is spending time fiddling with 
-workarounds instead of fixing the drivers.
-
-Personally, I'm trying to get the e1000 driver to resume correctly. 
-After resume, an ifconfig down, ifconfig up cycle works fine, so it can't be 
-*that* hard.  But my naive approach (run the down and up methods) doesn't do 
-the trick, nor does merely running the close and open methods.
-
-The analysis is complicated by the fact that the e1000 driver must be compiled 
-as a module, and debugging modules with kgdb is a bit sketchy, and setting a 
-breakpoint within the resume function always makes it segfault ... :(
-
-
+     Joerg
 
 
 
