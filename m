@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: first shoot for smartbattery
-Date: Wed, 5 Jan 2005 19:14:41 +0100
-Message-ID: <20050105181441.GA1157@openzaurus.ucw.cz>
-References: <20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org> <41D97AF3.7000409@arrakis.dhis.org> <41D98251.9020002@arrakis.dhis.org> <20050103180219.GX19199@poupinou.org> <41D9A1F5.1060508@arrakis.dhis.org> <20050104100844.GA19199@poupinou.org> <41DAA92C.4080605@tiscali.be> <47e0449d05010406454e59b16a@mail.gmail.com>
+From: "Wilkinson, Alex" <alex.wilkinson-7BNmJD1m9TP299njBJCvBrpzq4S04n8Q@public.gmane.org>
+Subject: ACPI; S5 state; powerbutton->clean shutdown
+Date: Fri, 7 Jan 2005 11:26:52 +1030
+Message-ID: <20050107005652.GA17647@squash.dsto.defence.gov.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <47e0449d05010406454e59b16a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +15,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hia
+Hi all,
 
-> I'm trying this out on an Acer Travelmate 4001LCi. With the version of
-> today, I get nice results for the battery, though I experienced the
-> same you did. But as fas as I could see this behaviour only takes
-> place, if I run smartbattery repeatedly with a very short delay. If I
-> only run it from time to time, it seems to be decreasing normally.
+Can some please recommend to me the correct method in Linux to confirm
+whether or not pressing the power-button on an ATX box triggers an ACPI
+state S5 (for both 2.6 and 2.4 kernels).
 
-I'd say increases are ok. Imagine period of high cpu load
-(machine takes 50W and thinks "if it goes like that, I can only
-last 15 minutes"),
-then cpu goes idle (25W, "okay, I can survive 30 minutes with load
-like this").
+In the FreeBSD world I would do something like:
 
-At this point, available time *should* go up.
+   #sysctl hw.acpi.power_button_state
+   hw.acpi.power_button_state: S5
+   
+   #grep acpi_button /var/run/dmesg.boot
+   acpi_button0: <Power Button> on acpi0
 
+Distributions are Redhat 9.0, Fedora Core 3, and SuSE Enterprise 9.2.
 
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Cheers
 
+ -aW
 
 
 -------------------------------------------------------
