@@ -1,11 +1,16 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Missing AML_REF_OF_OP case in exoparg1.c
-Date: Wed, 28 Aug 2002 15:24:29 -0700
+From: valvo <valvoline-FEXhGYRT/JJAfugRpC6u6w@public.gmane.org>
+Subject: Re: patch: acpi-20020821 fix?
+Date: Thu, 29 Aug 2002 16:44:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B72A@orsmsx107.jf.intel.com>
+Message-ID: <20020829144434.GB246@lilyth.vrlteam>
+References: <15723.8797.507913.189282@marple.lmc.cs.sunysb.edu>
+Reply-To: valvoline-FEXhGYRT/JJAfugRpC6u6w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <15723.8797.507913.189282-KT8MnZFsUJrzAs+eN625g9BFLwJMpSEX@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,73 +19,61 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "'KOCHI, Takayoshi'" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-I'll add this for the next release, hopefully tomorrow.
+--uQr8t48UFsdbeI+V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Good catch,
-Thanks,
-Bob
+On Tue, Aug 27, 2002 at 02:55:25AM -0400, Giridhar Pemmasani wrote:
 
+> It seems that the following patch against drivers/acpi/system.c
+> is needed to get 'echo -n 5 > /proc/acpi/sleep' to work as
+> expected.=20
+>=20
+> --- system.c.orig   Tue Aug 27 02:42:17 2002
+> +++ system.c    Tue Aug 27 02:43:42 2002
+> @@ -110,7 +110,7 @@
+>     acpi_status status;
+> =20
+>     /* only support S1 and S5 on kernel 2.4 */
+> -   if (state !=3D ACPI_STATE_S1 || state !=3D ACPI_STATE_S5)
+> +   if (state !=3D ACPI_STATE_S1 && state !=3D ACPI_STATE_S5)
+>         return AE_ERROR;
+> =20
+>     acpi_enter_sleep_state_prep(state);
+>=20
 
------Original Message-----
-From: KOCHI, Takayoshi [mailto:t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org] 
-Sent: Wednesday, August 28, 2002 2:07 PM
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Missing AML_REF_OF_OP case in exoparg1.c
+i don't understand the purpouses of this patch...can you be more explicit, =
+plz ?
 
-Hi,
+--=20
+[ valvoline :: VRL Team :: s0ftpj :: freaknet Medialab :: GPG key available=
+  ]
+[ key fingerprint :: - :: B7E2 48BC 705F AE8F 9ABE  E422 076A 2561 1D67 B4D=
+D ]
+[ GPG key available on keyserver :: pgp.mit.edu :: with keyID :: 1D67B4DD :=
+: ]
 
-The aml generated from this source will generate error message
-as follows (using 20020815 core, subtype 71 = AML_REF_OF_OP):
+--uQr8t48UFsdbeI+V
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-exoparg1-0604: *** Error: Acpi_ex_opcode_1A_0T_1R/Type_op: Unknown Reference
-subtype 71
- psparse-1155: *** Error: Method execution failed, AE_AML_INTERNAL
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
 
-DefinitionBlock ("test.aml", "DSDT", 1, "XXX   ", "AAAAA   ", 0)
-{
-	Scope (\_SB)
-	{
-		Method (XXXX)
-		{
-			Store ("String", Local0)
-			Store (ObjectType (RefOf(Local0)), Local1)
+iD8DBQE9bjNRB2olYR1ntN0RAvZpAJ93KkZSQclPExN38m5Qdvi4oiFtEQCg4ZNJ
+BlhlizwoDAaHzFULyTUBl54=
+=ie5T
+-----END PGP SIGNATURE-----
 
-			Store (0x1234, Local0)
-			Store (ObjectType (RefOf(Local0)), Local2)
-		}
-	}
-}
-
-In acpi_ex_opcode_1A_0T_1R()'s ObjectType (AML_TYPE_OP) case,
-it misses the AML_REF_OF_OP case in its switch statement.
-
-The spec says that "Notice that if this operation is performed on an
-object reference such as one produced by the Alias, Index, or RefOf
-statements, the object type of the base object is returned" (16.2.3.4.2.37).
-
-Bob, could you fix this?
-
-Thanks,
--- 
-KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
-
+--uQr8t48UFsdbeI+V--
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by: Jabber - The world's fastest growing 
-real-time communications platform! Don't just IM. Build it in! 
-http://www.jabber.com/osdn/xim
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
--------------------------------------------------------
-This sf.net email is sponsored by: Jabber - The world's fastest growing 
-real-time communications platform! Don't just IM. Build it in! 
-http://www.jabber.com/osdn/xim
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
