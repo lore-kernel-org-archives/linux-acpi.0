@@ -1,13 +1,16 @@
-From: Pierre Ossman <drzeus-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Subject: Re: suspend-to-ram hangs on HP NX7010
-Date: Tue, 15 Jun 2004 00:58:56 +0200
+From: Malte Gell <malte.gell-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: proper enabling of AMD K7 power saving
+Date: Tue, 15 Jun 2004 04:27:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40CE2DB0.9050208@drzeus.cx>
-References: <40C6FD44.7090606@drzeus.cx>
+Message-ID: <200406150427.24013.malte.gell@gmx.de>
+References: <200406142311.54120.malte.gell@gmx.de> <20040615003730.051ec41e.acpi@trafficmanager.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_athena.drzeus.cx-26496-1087253942-0001-2"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40C6FD44.7090606-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+In-Reply-To: <20040615003730.051ec41e.acpi-14TN6mYQPXr1AXQ8ov2VOh2eb7JE58TQ@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,46 +22,39 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+On Tuesday 15 June 2004 00:37, Florian H=FChn wrote:
+> On Mon, 14 Jun 2004 23:11:53 +0200
+>
+> Malte Gell <malte.gell-Mmb7MZpHnFY@public.gmane.org> wrote:
 
---=_athena.drzeus.cx-26496-1087253942-0001-2
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+> Have a look at http://vcool.occludo.net/VC_Linux.html or try the
+> kernelpatch on the page you mentioned. It runs great for several
+> years now on my desktop pc. On
+> http://vcool.occludo.net/VC_Theory.html there is a short explanation
+> how it works and what it is.
+It seems VCool just does the same what the "hack" from the Athlon=20
+Powersaving Howto does. Maybe a list would be fine that shows all=20
+mainboards which do not allow C2 or more and need such a tweak, so=20
+users can see what they need to get a cooler CPU. And hopefully it puts=20
+some pressure on the mobo makers :-)
 
-Some updates.
-I've been fiddling around with this during the weekend but haven't made 
-much progress. Removing all modules, in case they were causing problems, 
-didn't help.
-I have, however, pinpointed where in the kernel it hangs. It stops while 
-writing the SLP_EN bit. I guess that's where it should actually go into 
-sleep mode. The bit is set in two registers but the hang is when it 
-writes the first one. Changing the order of them still causes the first 
-one to hang (B in that case). I also tried combining SLP_TYPx and SLP_EN 
-but again, hang during the first write.
-I'm out of ideas now so I *really* need some tips on what to try next. 
-There is nothing more to debug around the crash-point so the problem 
-must be somewhere during the preparation.
+> > Why the f*** do mainboard makers not offer a BIOS switch to enable
+> > this?
+>
+> Some ppl say it's because some early athlos had problems with
+> powersaving. In fact i have never seen or heared about such a system.
+The K7 with a 1/2 multiplier are said to have this problem. But this=20
+problem seem to be solved long ago, my Duron is a 750 Mhz and I have=20
+absolutely no stability problems since I started using C2 some days=20
+ago.
 
-Rgds
-Pierre
+> Sorry for my bad english.
+> PS: eh... gmx.DE? Warum zum Teufel schreib ich das auf englisch?!
+> Damn.
+Because wir sind in a international Mailingliste hier ;-)
 
---=_athena.drzeus.cx-26496-1087253942-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Malte
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFAzi2z7b8eESbyJLgRAuukAKDRuLiJUY6Z31j2WZ1VYRcjXysxCQCgsTcK
-BuEsXR3Xrq+frvWLT8eXdc8=
-=Z3dX
------END PGP SIGNATURE-----
-
---=_athena.drzeus.cx-26496-1087253942-0001-2--
 
 
 -------------------------------------------------------
