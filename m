@@ -1,17 +1,13 @@
-From: "Matthew Tippett" <matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] Add CONFIG_ACPI_RELAXED_AML option
-Date: Fri, 13 Dec 2002 13:14:44 -0500
+From: David Douard <douard-nJJpUPIbDOA@public.gmane.org>
+Subject: fan behaviour
+Date: Fri, 13 Dec 2002 19:12:51 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DFA2394.40806@casero.com>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B9AB@orsmsx107.jf.intel.com> <20021213171815.GS5382@whisky.intra.cprm.net>
+Message-ID: <200212131912.53851.douard@magic.fr>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	format=flowed;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021213171815.GS5382-V9yvzcrGID8XxY44YfPCZCanxOoIfzq+@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,55 +16,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: chbm-tNiY1ywYjSU@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Carlos Morgado wrote:
-> 
-> On 2002.12.13 16:22:43 +0000 "Moore, Robert" wrote:
-> 
->>
->> What is really being proposed here is for Linux ACPI to be
-bug-for-bug
->> compatible with Microsoft.  This is impossible to do
-deterministically
->> because the MS interpreter is closed source.  The only standard that 
->> we have
->> that we can code to is the ACPI specification, and this has to be the
->> last
->> word on the matter.
->>
-> 
-> not to mention windows tends to ignore builtin dsdts afaik and use the
-ones
-> distributed in windows drivers.
+Hi,
+there have been quite a long time since I've played wit ACPI on my Compaq=
+ Evo=20
+N150...
+Remember that I nedd a pached DSDT to get many things to work (bat, proce=
+ssor=20
+C states etc.).
 
-Continuing with this thread, would it make sense to be ACPI compliant 
-but allow 'custom' dsdts to be passed to the acpi subsystem to allow 
-users to work around less than perfect implementations from
-manufacturers.
+I used to have pb with fans : they where not autmatically turned on/off=20
+according to CPU temperature. Thus I made a little daemon to hold that.
+But then I tried a nex ACPI version (one month or two ago), and I realize=
+d=20
+that fan where handled fine. But this was with the original DSDT.
+I recompiled the kernel with my DSDT. And then fans where not handled.
 
-Although I am not as clued into the inner workings of ACPI, it may be 
-extensible to allow developers to highlight to manufacturers where there
-dstd is broken and how to have it fixed.
+So I compiled the lates acpi patch on a 2.4.20. And I realized that I can=
+ make=20
+automatic fan handling if I play with the=20
+/proc/acpi/thermal_zone/THRM/cooling_mode.
+The things I have to do so are quite esoteric : set passive cooling mode,=
+ make=20
+cpu hot (reach the trip point); then set active cooling mode. (well I gue=
+ss=20
+the manipulation is that, I'm not very sure).
+Then, the fans are nicely handled.
 
-Regards,
+This sound very strange to me, and my question is this : does anyone have=
+ any=20
+idea on if that may come from ACPI CA (the AML interpreter maybe), or fro=
+m=20
+the DSDT code which (I know) is bugged.
 
-Matthew
+Note too another strange thing (I made it twice) :
+I set (in single user mode) the cooling mode to passive and then lauch a=20
+little cpuburner program. Throttling started to increase while temperatur=
+e=20
+reach the passive trip point (this is the first time I see throttling=20
+working. It used to hang the machine if I try to change its value).=20
+But when I killed  the cpuburner process, it hanged the machine !
 
-
------
-
-The information contained in this message is proprietary of Casero Inc.,
-protected from disclosure, and may be privileged. The information is
-intended to be conveyed only to the designated recipient(s) of the
-message. If the reader of this message is not the intended recipient,
-you are hereby notified that any dissemination, use, distribution or
-copying of this communication is strictly prohibited and may be
-unlawful. If you have received this communication in error, please
-notify us immediately by replying to the message and deleting it from
-your computer. Thank you.
+Thanks for any tip !
+=09David Douard
 
 
 
