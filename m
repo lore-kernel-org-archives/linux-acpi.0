@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: /dev/console unavailable after S3
-Date: Tue, 27 Apr 2004 21:22:22 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: Can set all but active[2] temperature via trip_points
+Date: Wed, 28 Apr 2004 15:50:50 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040427192222.GU2595@openzaurus.ucw.cz>
-References: <1082900724.8078.7.camel@nala>
+Message-ID: <20040428135050.GC6116@openzaurus.ucw.cz>
+References: <20040425055737.GA7358@home.larve.net> <20040426112550.GB23616@fuchi> <20040426214213.GA10794@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1082900724.8078.7.camel-7YzDMyNdTwE@public.gmane.org>
+In-Reply-To: <20040426214213.GA10794-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> After I resume from S3 on my laptop, I see this message:
+> > i had a little discussion with pavel machek about that a couple of weeks
+> > ago. as written in 12.3.1, the acpi spec defines 10 active states.
+> > the current implementation in linux is implemented for only 2 active
+> > states, because pavel had not seen more than that before. he also told
+> > me that it should not be too hard to expand this to more active states.
+> > so you could either nag him to do that or do it yourself and send the
+> > patch to this list. :)
 > 
-> Can't open /dev/console. Error value was -14.
-> 
-> in the kernel logs and I can't see anything when I switch to a console
-> from X, or when I shutdown/reboot. Anyone have an idea why this is
-> happening?
-> 
-> Other than this, my box is behaving quite nicely with respect to suspend
-> to RAM. Thanks to anyone who can help.
+> ok, i hacked some quick solution which WorksForMe[tm]. Note: i do not
+> know C, so this could be terribly wrong. Anyway, this is the result:
 
-Which kernel?
+It looks good, please push it.
+				Pavel
 
-What about S1?
-
-What laptop is it?
-
-Can you try without X?
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
