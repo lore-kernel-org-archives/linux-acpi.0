@@ -1,60 +1,133 @@
-From: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
-Subject: [PATCH] fix ACPI poweroff in 2.4.25-rc2
-Date: Sun, 15 Feb 2004 11:40:16 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040215104016.GA22576@alpha.home.local>
+From: Dominik Brodowski <linux@dominikbrodowski.de>
+Subject: [PATCH] disable SMM access to SpeedStep using ACPI-FADT pstate_cnt
+Date: Sun, 15 Feb 2004 11:57:12 +0100
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <20040215105712.GB6105@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: len.brown@intel.com, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len,
+Disable SMM access to SpeedStep
 
-based on your suggestions, I've read several bug reports about poweroff
-problems. I discovered that some people had to pass "nolapic" to make it
-operational. I tried the same on my VAIO and it worked. I also found that
-other people had to call the old acpi_suspend(ACPI_STATE_S5) code instead
-of the new one in acpi_power_off().
+Often, the BIOS changes the CPU frequency if a notebook is (dis)connected
+from its AC adapter. This interferes with a) an user setting the CPU frequency
+and b) kernel timing code which needs to know loops_per_jiffy, cpu_khz etc.
 
-So I compared acpi_suspend() with the new code, and noticed that acpi_suspend()
-calls acpi_system_save_state() before doing acpi_enter_sleep_state_prep(). This
-function is responsible for sending PM events to all system devices, it seems.
-Thus, I inserted this call in acpi_poweroff() and it now works (on the VAIO
-at least). Does it make sense ? I have yet to test it on other systems, but
-if people with poweroff problems could try this patch on top of 2.4.25-rc2,
-it would be interesting. Perhaps it could get its way into mainline before
-2.4.25 ? Please note that with this one, it's no longer necessary to use
-"nolapic" on the command line (for my notebook at least).
+So, ACPI 2.0 offers a method to disable such BIOS changes -- writing
+a value contained in the FADT (pstate_cnt) to the smi_cmd port. This patch
+utilizes this method by doing this write in processor.c.
 
-Regards,
-Willy
+However, most current notebooks only offer 1.0 ACPI tables, where the
+pstate_cnt entry is marked as "reserved". Whenever there is a _PCT entry
+in the DSDT, though [and this is only a 2.0 object!], we assume the
+"reserved" entry to be the pstate_cnt entry [if it isn't zero].
 
---- linux-2.4.25-rc2/drivers/acpi/system.c	Wed Nov 19 15:31:22 2003
-+++ linux-2.4.25-rc2-acpi/drivers/acpi/system.c	Sun Feb 15 11:38:17 2004
-@@ -95,6 +95,7 @@
+ drivers/acpi/processor.c       |   61 +++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables/tbconvrt.c |    5 ++-
+ 2 files changed, 64 insertions(+), 2 deletions(-)
+
+diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
+--- linux-original/drivers/acpi/processor.c	2004-02-13 17:09:59.000000000 +0100
++++ linux/drivers/acpi/processor.c	2004-02-15 11:02:40.103481944 +0100
+@@ -2374,6 +2374,65 @@
+ }
+ 
+ 
++#ifdef CONFIG_CPU_FREQ
++/*
++ * acpi_processor_disable_smm - disable BIOS meddling with SpeedStep settings
++ *
++ * By writing pstate_cnt to smi_cmd the BIOS no longer interferes with
++ * the P-States setting of the processor.
++ */
++static void acpi_processor_disable_smm(void) {
++	acpi_status		status;
++	int			i;
++
++	ACPI_FUNCTION_TRACE("acpi_processor_disable_smm");
++
++	/* Can't write pstate_cnt to smi_cmd if either value is zero 
++	 */
++	if ((!acpi_fadt.smi_cmd) ||
++	    (!acpi_fadt.pstate_cnt)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			"No SMI port or pstate_cnt\n"));
++		return_VOID;
++	}
++
++	/* Don't write pstate_cnt to smi_cmd if there is no support for
++	 * P-States anyway. This is also a safety precaution for ACPI-1.0
++	 * systems.
++	 */
++	for (i=0;i<NR_CPUS;i++) {
++		struct acpi_processor	*pr = processors[i];
++		acpi_handle		handle = NULL;
++
++		if (!pr || !pr->handle)
++			continue;
++
++		status = acpi_get_handle(pr->handle, "_PCT", &handle);
++		if (ACPI_FAILURE(status)) {
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
++				"No _PCT available, so ignore pstate_cnt"));
++			return_VOID;
++		}
++		break;
++	}
++
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Writing pstate_cnt [0x%x] to smi_cmd [0x%x]\n", acpi_fadt.pstate_cnt, acpi_fadt.smi_cmd));
++
++	status = acpi_os_write_port (acpi_fadt.smi_cmd,
++					(u32) acpi_fadt.pstate_cnt, 8);
++	if (ACPI_FAILURE (status))
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				"Failed to write pstate_cnt [0x%x] to "
++				"smi_cmd [0x%x]\n", acpi_fadt.pstate_cnt, acpi_fadt.smi_cmd));
++
++	return_VOID;
++}
++
++#else
++static void acpi_processor_disable_smm(void) { return; }
++#endif
++
++
+ static int __init
+ acpi_processor_init (void)
  {
- 	if (unlikely(in_interrupt())) 
- 		BUG();
-+	acpi_system_save_state(ACPI_STATE_S5);
- 	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
- 	ACPI_DISABLE_IRQS();
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
-
-
-
--------------------------------------------------------
-SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-Build and deploy apps & Web services for Linux with
-a free DVD software kit from IBM. Click Now!
-http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+@@ -2398,6 +2457,8 @@
+ 
+ 	acpi_processor_ppc_init();
+ 
++	acpi_processor_disable_smm();
++
+ 	return_VALUE(0);
+ }
+ 
+diff -ruN linux-original/drivers/acpi/tables/tbconvrt.c linux/drivers/acpi/tables/tbconvrt.c
+--- linux-original/drivers/acpi/tables/tbconvrt.c	2004-02-13 17:09:59.000000000 +0100
++++ linux/drivers/acpi/tables/tbconvrt.c	2004-02-15 08:12:16.000000000 +0100
+@@ -240,9 +240,10 @@
+ 	/*
+ 	 * Processor Performance State Control. This is the value OSPM writes to
+ 	 * the SMI_CMD register to assume processor performance state control
+-	 * responsibility. There isn't any equivalence in 1.0, leave it zeroed.
++	 * responsibility. There isn't any equivalence in 1.0, but as many 1.x
++	 * ACPI tables contain _PCT and _PSS we also keep this value.
+ 	 */
+-	local_fadt->pstate_cnt = 0;
++	/* local_fadt->pstate_cnt = 0 (reserved2) */
+ 
+ 	/*
+ 	 * Support for the _CST object and C States change notification.
