@@ -1,15 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: truc pour les francophones sur la liste...
-Date: Thu, 6 Feb 2003 17:31:38 +0100
+From: Lyle Seaman <lws-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
+Subject: Re: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Thu, 06 Feb 2003 11:53:35 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030206163138.GT1205@poup.poupinou.org>
-References: <200302062245.44847.harisri@bigpond.com> <20030206133039.A10882@piffio.homelinux.org> <3E426861.900@gkec.tu-darmstadt.de>
+Message-ID: <20030206165340.D7D361480A@o-o.yi.org>
+References: <pavel@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3E426861.900-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
+In-Reply-To: Message from Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+   of "Thu, 06 Feb 2003 16:37:57 +0100." <20030206153757.GB19350-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,33 +17,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Behnel <behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 06, 2003 at 02:51:29PM +0100, Stefan Behnel wrote:
-> 	
-> 
-> Sergio Visinoni schrieb:
-> >>$ cat /proc/acpi/battery/BAT0/info
-> >[snip]
-> >>>>>file("/proc/acpi/battery/BATO/info").read()
-> >>IOError: [Errno 2] No such file or directory: 
-> >>'/proc/acpi/battery/BATO/info'
-> 
-> >well BATO != BAT0... you're using a capital o (letter) instead of a 0 
-> >(number)
-> 
-> Évidemment, c'est pas BATO! ;)
-> 
 
-Pas certain.  "ACPI et OpenFirmware sont dans un BATO..."
+> 
+> No, no. It has to be exactly the same kernel, otherwise you get a nice
+> crash (if you are lucky) and ugly data corruption (when you are not);
+> there's check to prevent that and panic, however.
 
--- 
-Ducrot Bruno
+but why does this happen?  is the kernel text not being replaced?
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
 
 
 -------------------------------------------------------
