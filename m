@@ -1,144 +1,758 @@
-From: Stephen L Johnson <sjohnson-WpdXj7kV/NVg9hUCZPvPmw@public.gmane.org>
-Subject: Re: Interrupt Routing
-Date: 10 Jan 2003 16:46:30 -0600
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1042238790.1630.0.camel@rodan.monsters.org>
-References: <1042232352.2868.31.camel@rodan.monsters.org>
-	 <20030110213137.GA10841@brodo.de>
+From: Andrew Walrond <andrew-2/QedQ4M3FBAfugRpC6u6w@public.gmane.org>
+Subject: Re: ACPI patches updated (20030109)
+Date: Fri, 10 Jan 2003 23:51:50 +0000
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <3E1F5C96.5030901@walrond.org>
+References: <F760B14C9561B941B89469F59BA3A84725A119@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-vURxco+S1L01n3CPfEpa"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030110213137.GA10841-JhLEnvuH02M@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Cc: ACPI Dev Mailing List <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
+Content-Type: multipart/mixed;
+ boundary="------------060604030803020205010200"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
---=-vURxco+S1L01n3CPfEpa
-Content-Type: text/plain
+This is a multi-part message in MIME format.
+--------------060604030803020205010200
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On Fri, 2003-01-10 at 15:31, Dominik Brodowski wrote:
-> Hi Stephen,
+Hi,
+
+Linux 2.5 bk which includes these patches still does not discover two 
+pci buses on an asus pr-dls dual P4 Xeon machine; scsi and e1000 missing.
+
+Linux 2.4 bk works fine
+
+I attach dmesg output from both 2.4-bk and 2.5-bk with Acpi debug 
+messages enabled incase it helps. I have tried to fathom this myself, 
+but no luck so far. PCI and ACPI is a lot to take in.... Any help 
+apprieciated
+
+Grover, Andrew wrote:
+> Hi all,
 > 
-> Could you please send me a dmesg? CONFIG_ACPI_DEBUG should be enabled :-)
+> ACPI patches based upon the 20030109 label have been released.
+> http://sourceforge.net/projects/acpi . The non-Linux releases will be
+> available at
+> http://developer.intel.com/technology/iapc/acpi/downloads.htm , by
+> tomorrow.
 > 
-> 	Dominik
+> Regards -- Andy
 > 
 
-Here it is.
--- 
-Stephen L Johnson <sjohnson-WpdXj7kV/NVg9hUCZPvPmw@public.gmane.org>
+--------------060604030803020205010200
+Content-Type: text/plain;
+ name="dmesg-2.4"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmesg-2.4"
 
---=-vURxco+S1L01n3CPfEpa
-Content-Disposition: attachment; filename=dmesg.out.gz
-Content-Type: application/x-gzip; name=dmesg.out.gz
-Content-Transfer-Encoding: base64
+Linux version 2.4.21-pre3 (root-M7ZLnNZEYR1DcWalurthmA@public.gmane.org) (gcc version 3.2) #6 SMP Fri Jan 10 23:42:43 GMT 2003
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
+ BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000007fffa000 (usable)
+ BIOS-e820: 000000007fffa000 - 000000007ffff000 (ACPI data)
+ BIOS-e820: 000000007ffff000 - 0000000080000000 (ACPI NVS)
+ BIOS-e820: 00000000fec00000 - 00000000fec01000 (reserved)
+ BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+ BIOS-e820: 00000000ffff0000 - 0000000100000000 (reserved)
+1151MB HIGHMEM available.
+896MB LOWMEM available.
+found SMP MP-table at 000f0490
+hm, page 000f0000 reserved twice.
+hm, page 000f1000 reserved twice.
+hm, page 000f0000 reserved twice.
+hm, page 000f1000 reserved twice.
+On node 0 totalpages: 524282
+zone(0): 4096 pages.
+zone(1): 225280 pages.
+zone(2): 294906 pages.
+ACPI: Searched entire block, no RSDP was found.
+ACPI: RSDP located at physical address c00f4ff0
+RSD PTR  v0 [ASUS  ]
+__va_range(0x7fffa000, 0x68): idx=8 mapped at ffff6000
+ACPI table found: RSDT v1 [ASUS   PR-DLS   16944.11825]
+__va_range(0x7fffa145, 0x24): idx=8 mapped at ffff6000
+__va_range(0x7fffa145, 0x74): idx=8 mapped at ffff6000
+ACPI table found: FACP v1 [ASUS   PR-DLS   16944.11825]
+__va_range(0x7fffa034, 0x24): idx=8 mapped at ffff6000
+__va_range(0x7fffa034, 0x28): idx=8 mapped at ffff6000
+ACPI table found: BOOT v1 [ASUS   PR-DLS   16944.11825]
+__va_range(0x7fffa05c, 0x24): idx=8 mapped at ffff6000
+__va_range(0x7fffa05c, 0x4d): idx=8 mapped at ffff6000
+ACPI table found: SPCR v1 [ASUS   PR-DLS   16944.11825]
+__va_range(0x7fffa0a9, 0x24): idx=8 mapped at ffff6000
+__va_range(0x7fffa0a9, 0x9c): idx=8 mapped at ffff6000
+ACPI table found: APIC v1 [ASUS   PR-DLS   16944.11825]
+__va_range(0x7fffa0a9, 0x9c): idx=8 mapped at ffff6000
+IOAPIC (id[0x2] address[0xfec00000] global_irq_base[0x0])
+IOAPIC (id[0x3] address[0xfec01000] global_irq_base[0x10])
+IOAPIC (id[0x4] address[0xfec02000] global_irq_base[0x20])
+INT_SRC_OVR (bus[0] irq[0x0] global_irq[0x2] polarity[0x0] trigger[0x1])
+INT_SRC_OVR (bus[0] irq[0x9] global_irq[0x9] polarity[0x3] trigger[0x3])
+LAPIC_NMI (acpi_id[0x0000] polarity[0x1] trigger[0x1] lint[0x1])
+LAPIC (acpi_id[0x0000] id[0x0] enabled[1])
+CPU 0 (0x0000) enabledProcessor #0 Pentium 4(tm) XEON(tm) APIC version 16
 
-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
+LAPIC_NMI (acpi_id[0x0001] polarity[0x1] trigger[0x1] lint[0x1])
+LAPIC (acpi_id[0x0001] id[0x1] enabled[1])
+CPU 1 (0x0100) enabledProcessor #1 Pentium 4(tm) XEON(tm) APIC version 16
 
---=-vURxco+S1L01n3CPfEpa--
+LAPIC_NMI (acpi_id[0x0002] polarity[0x1] trigger[0x1] lint[0x1])
+LAPIC (acpi_id[0x0002] id[0x6] enabled[1])
+CPU 2 (0x0600) enabledProcessor #6 Pentium 4(tm) XEON(tm) APIC version 16
 
+LAPIC_NMI (acpi_id[0x0003] polarity[0x1] trigger[0x1] lint[0x1])
+LAPIC (acpi_id[0x0003] id[0x7] enabled[1])
+CPU 3 (0x0700) enabledProcessor #7 Pentium 4(tm) XEON(tm) APIC version 16
 
+4 CPUs total
+Local APIC address fee00000
+Enabling the CPU's according to the ACPI table
+Intel MultiProcessor Specification v1.4
+    Virtual Wire compatibility mode.
+OEM ID: ASUS     Product ID: PROD00000000 APIC at: 0xFEE00000
+I/O APIC #8 Version 17 at 0xFEC00000.
+I/O APIC #9 Version 17 at 0xFEC01000.
+I/O APIC #10 Version 17 at 0xFEC02000.
+Enabling APIC mode: Flat.	Using 3 I/O APICs
+Processors: 4
+Kernel command line: ro root=/dev/nfs ip=dhcp console=tty0 console=ttyS0,115200n8 init=/boot.sh 
+Initializing CPU#0
+Detected 2591.727 MHz processor.
+Calibrating delay loop... 5164.23 BogoMIPS
+Memory: 2069488k/2097128k available (1447k kernel code, 27256k reserved, 367k data, 276k init, 1179624k highmem)
+Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
+Inode cache hash table entries: 131072 (order: 8, 1048576 bytes)
+Mount-cache hash table entries: 32768 (order: 6, 262144 bytes)
+Buffer-cache hash table entries: 131072 (order: 7, 524288 bytes)
+Page-cache hash table entries: 524288 (order: 9, 2097152 bytes)
+CPU: Trace cache: 12K uops, L1 D cache: 8K
+CPU: L2 cache: 512K
+CPU: Physical Processor ID: 0
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU:     After generic, caps: bfebfbff 00000000 00000000 00000000
+CPU:             Common caps: bfebfbff 00000000 00000000 00000000
+Enabling fast FPU save and restore... done.
+Enabling unmasked SIMD FPU exception support... done.
+Checking 'hlt' instruction... OK.
+POSIX conformance testing by UNIFIX
+mtrr: v1.40 (20010327) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+mtrr: detected mtrr type: Intel
+CPU: Trace cache: 12K uops, L1 D cache: 8K
+CPU: L2 cache: 512K
+CPU: Physical Processor ID: 0
+Intel machine check reporting enabled on CPU#0.
+CPU:     After generic, caps: bfebfbff 00000000 00000000 00000000
+CPU:             Common caps: bfebfbff 00000000 00000000 00000000
+CPU0: Intel(R) Xeon(TM) CPU 2.60GHz stepping 07
+per-CPU timeslice cutoff: 1462.69 usecs.
+enabled ExtINT on CPU#0
+ESR value before enabling vector: 00000000
+ESR value after enabling vector: 00000000
+Booting processor 1/1 eip 2000
+Initializing CPU#1
+masked ExtINT on CPU#1
+ESR value before enabling vector: 00000000
+ESR value after enabling vector: 00000000
+Calibrating delay loop... 5177.34 BogoMIPS
+CPU: Trace cache: 12K uops, L1 D cache: 8K
+CPU: L2 cache: 512K
+CPU: Physical Processor ID: 0
+Intel machine check reporting enabled on CPU#1.
+CPU:     After generic, caps: bfebfbff 00000000 00000000 00000000
+CPU:             Common caps: bfebfbff 00000000 00000000 00000000
+CPU1: Intel(R) Xeon(TM) CPU 2.60GHz stepping 07
+Booting processor 2/6 eip 2000
+Initializing CPU#2
+masked ExtINT on CPU#2
+ESR value before enabling vector: 00000000
+ESR value after enabling vector: 00000000
+Calibrating delay loop... 5177.34 BogoMIPS
+CPU: Trace cache: 12K uops, L1 D cache: 8K
+CPU: L2 cache: 512K
+CPU: Physical Processor ID: 3
+Intel machine check reporting enabled on CPU#2.
+CPU:     After generic, caps: bfebfbff 00000000 00000000 00000000
+CPU:             Common caps: bfebfbff 00000000 00000000 00000000
+CPU2: Intel(R) Xeon(TM) CPU 2.60GHz stepping 07
+Booting processor 3/7 eip 2000
+Initializing CPU#3
+masked ExtINT on CPU#3
+ESR value before enabling vector: 00000000
+ESR value after enabling vector: 00000000
+Calibrating delay loop... 5177.34 BogoMIPS
+CPU: Trace cache: 12K uops, L1 D cache: 8K
+CPU: L2 cache: 512K
+CPU: Physical Processor ID: 3
+Intel machine check reporting enabled on CPU#3.
+CPU:     After generic, caps: bfebfbff 00000000 00000000 00000000
+CPU:             Common caps: bfebfbff 00000000 00000000 00000000
+CPU3: Intel(R) Xeon(TM) CPU 2.60GHz stepping 07
+Total of 4 processors activated (20696.26 BogoMIPS).
+cpu_sibling_map[0] = 1
+cpu_sibling_map[1] = 0
+cpu_sibling_map[2] = 3
+cpu_sibling_map[3] = 2
+ENABLING IO-APIC IRQs
+Setting 8 in the phys_id_present_map
+...changing IO-APIC physical APIC ID to 8 ... ok.
+Setting 9 in the phys_id_present_map
+...changing IO-APIC physical APIC ID to 9 ... ok.
+Setting 10 in the phys_id_present_map
+...changing IO-APIC physical APIC ID to 10 ... ok.
+init IO_APIC IRQs
+ IO-APIC (apicid-pin) 8-0, 8-3, 8-10, 8-12, 8-14, 8-15, 9-0, 9-1, 9-4, 9-5, 9-8, 9-9, 9-10, 9-11, 9-12, 9-13, 9-14, 9-15, 10-0, 10-1, 10-2, 10-3, 10-4, 10-5, 10-6, 10-7, 10-8, 10-9, 10-10, 10-11, 10-12, 10-13, 10-15 not connected.
+..TIMER: vector=0x31 pin1=2 pin2=0
+..MP-BIOS bug: 8254 timer not connected to IO-APIC
+...trying to set up timer (IRQ0) through the 8259A ... 
+..... (found pin 0) ...works.
+number of MP IRQ sources: 16.
+number of IO-APIC #8 registers: 16.
+number of IO-APIC #9 registers: 16.
+number of IO-APIC #10 registers: 16.
+testing the IO APIC.......................
 
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+IO APIC #8......
+.... register #00: 08000000
+.......    : physical APIC id: 08
+.... register #01: 000F0011
+.......     : max redirection entries: 000F
+.......     : PRQ implemented: 0
+.......     : IO APIC version: 0011
+.... register #02: 08000000
+.......     : arbitration: 08
+.... IRQ redirection table:
+ NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
+ 00 001 01  0    0    0   0   0    1    1    31
+ 01 001 01  0    0    0   0   0    1    1    39
+ 02 000 00  1    0    0   0   0    0    0    00
+ 03 000 00  1    0    0   0   0    0    0    00
+ 04 001 01  0    0    0   0   0    1    1    41
+ 05 001 01  0    0    0   0   0    1    1    49
+ 06 001 01  0    0    0   0   0    1    1    51
+ 07 001 01  0    0    0   0   0    1    1    59
+ 08 001 01  0    0    0   0   0    1    1    61
+ 09 001 01  0    0    0   0   0    1    1    69
+ 0a 000 00  1    0    0   0   0    0    0    00
+ 0b 001 01  1    1    0   1   0    1    1    71
+ 0c 000 00  1    0    0   0   0    0    0    00
+ 0d 001 01  0    0    0   0   0    1    1    79
+ 0e 000 00  1    0    0   0   0    0    0    00
+ 0f 000 00  1    0    0   0   0    0    0    00
+
+IO APIC #9......
+.... register #00: 09000000
+.......    : physical APIC id: 09
+.... register #01: 000F0011
+.......     : max redirection entries: 000F
+.......     : PRQ implemented: 0
+.......     : IO APIC version: 0011
+.... register #02: 09000000
+.......     : arbitration: 09
+.... IRQ redirection table:
+ NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
+ 00 000 00  1    0    0   0   0    0    0    00
+ 01 000 00  1    0    0   0   0    0    0    00
+ 02 001 01  1    1    0   1   0    1    1    81
+ 03 001 01  1    1    0   1   0    1    1    89
+ 04 000 00  1    0    0   0   0    0    0    00
+ 05 000 00  1    0    0   0   0    0    0    00
+ 06 001 01  1    1    0   1   0    1    1    91
+ 07 001 01  1    1    0   1   0    1    1    99
+ 08 000 00  1    0    0   0   0    0    0    00
+ 09 000 00  1    0    0   0   0    0    0    00
+ 0a 000 00  1    0    0   0   0    0    0    00
+ 0b 000 00  1    0    0   0   0    0    0    00
+ 0c 000 00  1    0    0   0   0    0    0    00
+ 0d 000 00  1    0    0   0   0    0    0    00
+ 0e 000 00  1    0    0   0   0    0    0    00
+ 0f 000 00  1    0    0   0   0    0    0    00
+
+IO APIC #10......
+.... register #00: 0A000000
+.......    : physical APIC id: 0A
+.... register #01: 000F0011
+.......     : max redirection entries: 000F
+.......     : PRQ implemented: 0
+.......     : IO APIC version: 0011
+.... register #02: 0A000000
+.......     : arbitration: 0A
+.... IRQ redirection table:
+ NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
+ 00 000 00  1    0    0   0   0    0    0    00
+ 01 000 00  1    0    0   0   0    0    0    00
+ 02 000 00  1    0    0   0   0    0    0    00
+ 03 000 00  1    0    0   0   0    0    0    00
+ 04 000 00  1    0    0   0   0    0    0    00
+ 05 000 00  1    0    0   0   0    0    0    00
+ 06 000 00  1    0    0   0   0    0    0    00
+ 07 000 00  1    0    0   0   0    0    0    00
+ 08 000 00  1    0    0   0   0    0    0    00
+ 09 000 00  1    0    0   0   0    0    0    00
+ 0a 000 00  1    0    0   0   0    0    0    00
+ 0b 000 00  1    0    0   0   0    0    0    00
+ 0c 000 00  1    0    0   0   0    0    0    00
+ 0d 000 00  1    0    0   0   0    0    0    00
+ 0e 001 01  1    1    0   1   0    1    1    A1
+ 0f 000 00  1    0    0   0   0    0    0    00
+IRQ to pin mappings:
+IRQ0 -> 0:0
+IRQ1 -> 0:1
+IRQ4 -> 0:4
+IRQ5 -> 0:5
+IRQ6 -> 0:6
+IRQ7 -> 0:7
+IRQ8 -> 0:8
+IRQ9 -> 0:9
+IRQ11 -> 0:11
+IRQ13 -> 0:13
+IRQ18 -> 1:2
+IRQ19 -> 1:3
+IRQ22 -> 1:6
+IRQ23 -> 1:7
+IRQ46 -> 2:14
+.................................... done.
+Using local APIC timer interrupts.
+calibrating APIC timer ...
+..... CPU clock speed is 2591.6430 MHz.
+..... host bus clock speed is 99.6785 MHz.
+cpu: 0, clocks: 996785, slice: 199357
+CPU0<T0:996784,T1:797424,D:3,S:199357,C:996785>
+cpu: 1, clocks: 996785, slice: 199357
+cpu: 2, clocks: 996785, slice: 199357
+cpu: 3, clocks: 996785, slice: 199357
+CPU1<T0:996784,T1:598064,D:6,S:199357,C:996785>
+CPU2<T0:996784,T1:398704,D:9,S:199357,C:996785>
+CPU3<T0:996784,T1:199344,D:12,S:199357,C:996785>
+checking TSC synchronization across CPUs: passed.
+Waiting on wait_init_idle (map = 0xe)
+All processors have done init_idle
+PCI: PCI BIOS revision 2.10 entry at 0xf1510, last bus=22
+PCI: Using configuration type 1
+PCI: Probing PCI hardware
+PCI: Discovered primary peer bus 04 [IRQ]
+PCI: Discovered primary peer bus 0e [IRQ]
+PCI: Discovered primary peer bus 12 [IRQ]
+PCI: Discovered primary peer bus 13 [IRQ]
+PCI: Using IRQ router ServerWorks [1166/0201] at 00:0f.0
+PCI->APIC IRQ transform: (B0,I2,P0) -> 18
+PCI->APIC IRQ transform: (B0,I3,P0) -> 46
+PCI->APIC IRQ transform: (B14,I4,P0) -> 22
+PCI->APIC IRQ transform: (B14,I4,P1) -> 23
+PCI->APIC IRQ transform: (B18,I2,P0) -> 19
+Linux NET4.0 for Linux 2.4
+Based upon Swansea University Computer Society NET3.039
+Initializing RT netlink socket
+Starting kswapd
+allocated 32 pages and 32 bhs reserved for the highmem bounces
+devfs: v1.12c (20020818) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+devfs: boot_options: 0x0
+Installing knfsd (copyright (C) 1996 okir-pn4DOG8n3UYbFoVRYvo4fw@public.gmane.org).
+ tbxface-0099 [01] Acpi_load_tables      : ACPI Tables successfully loaded
+Parsing Methods:..........................................................................................................................................................................................................
+202 Control Methods found and parsed (643 nodes total)
+ACPI Namespace successfully loaded at root c034d2a0
+ACPI: Core Subsystem version [20011018]
+evxfevnt-0081 [-11] Acpi_enable           : Transition to ACPI mode successful
+Executing device _INI methods:..............................................................
+62 Devices found: 62 _STA, 4 _INI
+Completing Region and Field initialization:........
+8/12 Regions, 0/0 Fields initialized (643 nodes total)
+ACPI: Subsystem enabled
+ACPI: System firmware supports S0 S1 S4 S5
+Processor[0]: C0 C1
+Processor[1]: C0 C1
+Processor[2]: C0 C1
+Processor[3]: C0 C1
+ACPI: Power Button (FF) found
+ACPI: Multiple power buttons detected, ignoring fixed-feature
+ACPI: Power Button (CM) found
+Detected PS/2 Mouse Port.
+pty: 256 Unix98 ptys configured
+Serial driver version 5.05c (2001-07-08) with MANY_PORTS SHARE_IRQ SERIAL_PCI enabled
+ttyS00 at 0x03f8 (irq = 4) is a 16550A
+Real Time Clock Driver v1.10e
+keyboard: Timeout - AT keyboard not present?(ed)
+keyboard: Timeout - AT keyboard not present?(f4)
+loop: loaded (max 8 devices)
+Intel(R) PRO/1000 Network Driver - version 4.4.19-k1
+Copyright (c) 1999-2002 Intel Corporation.
+eth0: Intel(R) PRO/1000 Network Connection
+Intel(R) PRO/100 Network Driver - version 2.1.29-k1
+Copyright (c) 2002 Intel Corporation
+
+e100: selftest OK.
+e100: eth1: Intel(R) PRO/100 S Server Adapter
+  Hardware receive checksums enabled
+
+NET4: Linux TCP/IP 1.0 for NET4.0
+IP Protocols: ICMP, UDP, TCP, IGMP
+IP: routing cache hash table of 16384 buckets, 128Kbytes
+TCP: Hash tables configured (established 262144 bind 65536)
+Sending DHCP requests ., OK
+IP-Config: Got DHCP answer from 10.0.0.1, my address is 10.0.0.101
+IP-Config: Complete:
+      device=eth1, addr=10.0.0.101, mask=255.255.0.0, gw=10.0.0.1,
+     host=hal1.office, domain=office, nis-domain=(none),
+     bootserver=10.0.0.1, rootserver=10.0.0.1, rootpath=/eboot/slash/hal.office
+NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
+Looking up port of RPC 100003/2 on 10.0.0.1
+Looking up port of RPC 100005/1 on 10.0.0.1
+VFS: Mounted root (nfs filesystem).
+Freeing unused kernel memory: 276k freed
+Warning: unable to open an initial console.
+e100: eth1 NIC Link is Up 100 Mbps Full duplex
+svc: unknown version (3)
+
+--------------060604030803020205010200
+Content-Type: text/plain;
+ name="dmesg-2.5.56"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmesg-2.5.56"
+
+the IO APIC.......................
+
+IO APIC #2......
+.... register #00: 02000000
+.......    : physical APIC id: 02
+.......    : Delivery Type: 0
+.......    : LTS          : 0
+.... register #01: 000F0011
+.......     : max redirection entries: 000F
+.......     : PRQ implemented: 0
+.......     : IO APIC version: 0011
+.... register #02: 02000000
+.......     : arbitration: 02
+.... IRQ redirection table:
+ NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
+ 00 001 01  0    0    0   0   0    1    1    31
+ 01 001 01  0    0    0   0   0    1    1    39
+ 02 000 00  1    0    0   0   0    0    0    00
+ 03 001 01  0    0    0   0   0    1    1    41
+ 04 001 01  0    0    0   0   0    1    1    49
+ 05 001 01  0    0    0   0   0    1    1    51
+ 06 001 01  0    0    0   0   0    1    1    59
+ 07 001 01  0    0    0   0   0    1    1    61
+ 08 001 01  0    0    0   0   0    1    1    69
+ 09 001 01  1    1    0   1   0    1    1    71
+ 0a 001 01  0    0    0   0   0    1    1    79
+ 0b 001 01  0    0    0   0   0    1    1    81
+ 0c 001 01  0    0    0   0   0    1    1    89
+ 0d 001 01  0    0    0   0   0    1    1    91
+ 0e 001 01  0    0    0   0   0    1    1    99
+ 0f 001 01  0    0    0   0   0    1    1    A1
+
+IO APIC #3......
+.... register #00: 03000000
+.......    : physical APIC id: 03
+.......    : Delivery Type: 0
+.......    : LTS          : 0
+.... register #01: 000F0011
+.......     : max redirection entries: 000F
+.......     : PRQ implemented: 0
+.......     : IO APIC version: 0011
+.... register #02: 03000000
+.......     : arbitration: 03
+.... IRQ redirection table:
+ NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
+ 00 000 00  1    0    0   0   0    0    0    00
+ 01 000 00  1    0    0   0   0    0    0    00
+ 02 000 00  1    0    0   0   0    0    0    00
+ 03 000 00  1    0    0   0   0    0    0    00
+ 04 000 00  1    0    0   0   0    0    0    00
+ 05 000 00  1    0    0   0   0    0    0    00
+ 06 000 00  1    0    0   0   0    0    0    00
+ 07 000 00  1    0    0   0   0    0    0    00
+ 08 000 00  1    0    0   0   0    0    0    00
+ 09 000 00  1    0    0   0   0    0    0    00
+ 0a 000 00  1    0    0   0   0    0    0    00
+ 0b 000 00  1    0    0   0   0    0    0    00
+ 0c 000 00  1    0    0   0   0    0    0    00
+ 0d 000 00  1    0    0   0   0    0    0    00
+ 0e 000 00  1    0    0   0   0    0    0    00
+ 0f 000 00  1    0    0   0   0    0    0    00
+
+IO APIC #4......
+.... register #00: 04000000
+.......    : physical APIC id: 04
+.......    : Delivery Type: 0
+.......    : LTS          : 0
+.... register #01: 000F0011
+.......     : max redirection entries: 000F
+.......     : PRQ implemented: 0
+.......     : IO APIC version: 0011
+.... register #02: 04000000
+.......     : arbitration: 04
+.... IRQ redirection table:
+ NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
+ 00 000 00  1    0    0   0   0    0    0    00
+ 01 000 00  1    0    0   0   0    0    0    00
+ 02 000 00  1    0    0   0   0    0    0    00
+ 03 000 00  1    0    0   0   0    0    0    00
+ 04 000 00  1    0    0   0   0    0    0    00
+ 05 000 00  1    0    0   0   0    0    0    00
+ 06 000 00  1    0    0   0   0    0    0    00
+ 07 000 00  1    0    0   0   0    0    0    00
+ 08 000 00  1    0    0   0   0    0    0    00
+ 09 000 00  1    0    0   0   0    0    0    00
+ 0a 000 00  1    0    0   0   0    0    0    00
+ 0b 000 00  1    0    0   0   0    0    0    00
+ 0c 000 00  1    0    0   0   0    0    0    00
+ 0d 000 00  1    0    0   0   0    0    0    00
+ 0e 000 00  1    0    0   0   0    0    0    00
+ 0f 000 00  1    0    0   0   0    0    0    00
+IRQ to pin mappings:
+IRQ0 -> 0:0
+IRQ1 -> 0:1
+IRQ3 -> 0:3
+IRQ4 -> 0:4
+IRQ5 -> 0:5
+IRQ6 -> 0:6
+IRQ7 -> 0:7
+IRQ8 -> 0:8
+IRQ9 -> 0:9
+IRQ10 -> 0:10
+IRQ11 -> 0:11
+IRQ12 -> 0:12
+IRQ13 -> 0:13
+IRQ14 -> 0:14
+IRQ15 -> 0:15
+.................................... done.
+Using local APIC timer interrupts.
+calibrating APIC timer ...
+..... CPU clock speed is 2591.0353 MHz.
+..... host bus clock speed is 99.0667 MHz.
+checking TSC synchronization across 2 CPUs: passed.
+Starting migration thread for cpu 0
+Bringing up 1
+CPU 1 IS NOW UP!
+Starting migration thread for cpu 1
+CPUS done 4
+Linux NET4.0 for Linux 2.4
+Based upon Swansea University Computer Society NET3.039
+Initializing RT netlink socket
+mtrr: v2.0 (20020519)
+device class 'cpu': registering
+device class cpu: adding driver system:cpu
+PCI: PCI BIOS revision 2.10 entry at 0xf1510, last bus=22
+PCI: Using configuration type 1
+device class cpu: adding device CPU 0
+interfaces: adding device CPU 0
+device class cpu: adding device CPU 1
+interfaces: adding device CPU 1
+BIO: pool of 256 setup, 14Kb (56 bytes/bio)
+biovec pool[0]:   1 bvecs: 256 entries (12 bytes)
+biovec pool[1]:   4 bvecs: 256 entries (48 bytes)
+biovec pool[2]:  16 bvecs: 256 entries (192 bytes)
+biovec pool[3]:  64 bvecs: 256 entries (768 bytes)
+biovec pool[4]: 128 bvecs: 256 entries (1536 bytes)
+biovec pool[5]: 256 bvecs: 256 entries (3072 bytes)
+ACPI: Subsystem revision 20030109
+ tbxface-0098 [03] acpi_load_tables      : ACPI Tables successfully acquired
+Parsing all Control Methods:..........................................................................................................................................................................................................
+Table [DSDT] - 643 Objects with 62 Devices 202 Methods 12 Regions
+ACPI Namespace successfully loaded at root c039c5fc
+evxfevnt-0073 [04] acpi_enable           : Transition to ACPI mode successful
+   evgpe-0262: *** Info: GPE Block0 defined as GPE0 to GPE31
+   evgpe-0262: *** Info: GPE Block1 defined as GPE32 to GPE63
+Executing all Device _STA and_INI methods:..............................................................
+62 Devices found containing: 62 _STA, 4 _INI methods
+Completing Region/Field/Buffer/Package initialization:.......................................................................
+Initialized 8/12 Regions 0/0 Fields 49/49 Buffers 14/14 Packages (643 nodes)
+ACPI: Interpreter enabled
+ACPI: Using IOAPIC for interrupt routing
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 11 *12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 11 12 14 *15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+pci_link-0249 [07] acpi_pci_link_get_curr: Invalid use of IRQ 0
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+pci_link-0249 [07] acpi_pci_link_get_curr: Invalid use of IRQ 0
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKI] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKJ] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKK] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKL] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKM] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKN] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKO] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKP] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKQ] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKR] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKS] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKT] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKU] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKV] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKW] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKX] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKY] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKZ] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNK0] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNK1] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNK2] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNK3] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
+ACPI: PCI Interrupt Link [LNK4] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
+pci_link-0249 [07] acpi_pci_link_get_curr: Invalid use of IRQ 0
+ACPI: PCI Interrupt Link [LNK5] (IRQs 5 10 11 12 14 15, disabled)
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+pci_bind-0191 [04] acpi_pci_bind         : Device 00:00:0f.02 not present in PCI namespace
+ACPI: PCI Root Bridge [PCI1] (00:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI1._PRT]
+ACPI: PCI Root Bridge [PCI2] (00:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI2._PRT]
+ACPI: PCI Root Bridge [PCI3] (00:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI3._PRT]
+ACPI: PCI Root Bridge [PCI4] (00:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI4._PRT]
+block request queues:
+ 128 requests per read queue
+ 128 requests per write queue
+ 8 requests per batch
+ enter congestion at 31
+ exit congestion at 33
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 9
+pci_link-0343 [03] acpi_pci_link_set     : Attempt to enable at IRQ 11 resulted in IRQ 9
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 0
+ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 5
+ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 9
+pci_link-0343 [03] acpi_pci_link_set     : Attempt to enable at IRQ 11 resulted in IRQ 9
+ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 0
+ACPI: PCI Interrupt Link [LNKI] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKJ] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKK] enabled at IRQ 5
+ACPI: PCI Interrupt Link [LNKL] enabled at IRQ 9
+ACPI: PCI Interrupt Link [LNKM] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKN] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKO] enabled at IRQ 5
+ACPI: PCI Interrupt Link [LNKP] enabled at IRQ 9
+ACPI: PCI Interrupt Link [LNKQ] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKR] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKS] enabled at IRQ 5
+ACPI: PCI Interrupt Link [LNKT] enabled at IRQ 9
+ACPI: PCI Interrupt Link [LNKU] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKV] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKW] enabled at IRQ 5
+ACPI: PCI Interrupt Link [LNKX] enabled at IRQ 9
+ACPI: PCI Interrupt Link [LNKY] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKZ] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNK0] enabled at IRQ 5
+ACPI: PCI Interrupt Link [LNK1] enabled at IRQ 9
+ACPI: PCI Interrupt Link [LNK2] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNK3] enabled at IRQ 10
+pci_link-0343 [03] acpi_pci_link_set     : Attempt to enable at IRQ 5 resulted in IRQ 10
+ACPI: PCI Interrupt Link [LNK5] enabled at IRQ 0
+IOAPIC[2]: Set PCI routing entry (4-14 -> 0xa9 -> IRQ 46)
+00:00:03[A] -> 4-14 -> IRQ 46
+IOAPIC[1]: Set PCI routing entry (3-2 -> 0xb1 -> IRQ 18)
+00:00:02[A] -> 3-2 -> IRQ 18
+IOAPIC[1]: Set PCI routing entry (3-10 -> 0xb9 -> IRQ 26)
+00:00:04[A] -> 3-10 -> IRQ 26
+IOAPIC[2]: Set PCI routing entry (4-11 -> 0xc1 -> IRQ 43)
+00:00:04[B] -> 4-11 -> IRQ 43
+IOAPIC[2]: Set PCI routing entry (4-12 -> 0xc9 -> IRQ 44)
+00:00:04[C] -> 4-12 -> IRQ 44
+IOAPIC[2]: Set PCI routing entry (4-13 -> 0xd1 -> IRQ 45)
+00:00:04[D] -> 4-13 -> IRQ 45
+IOAPIC[1]: Set PCI routing entry (3-8 -> 0xd9 -> IRQ 24)
+00:00:04[A] -> 3-8 -> IRQ 24
+IOAPIC[2]: Set PCI routing entry (4-5 -> 0xe1 -> IRQ 37)
+00:00:04[B] -> 4-5 -> IRQ 37
+IOAPIC[2]: Set PCI routing entry (4-6 -> 0xe9 -> IRQ 38)
+00:00:04[C] -> 4-6 -> IRQ 38
+IOAPIC[2]: Set PCI routing entry (4-7 -> 0x32 -> IRQ 39)
+00:00:04[D] -> 4-7 -> IRQ 39
+IOAPIC[1]: Set PCI routing entry (3-5 -> 0x3a -> IRQ 21)
+00:00:03[A] -> 3-5 -> IRQ 21
+IOAPIC[2]: Set PCI routing entry (4-2 -> 0x42 -> IRQ 34)
+00:00:03[B] -> 4-2 -> IRQ 34
+IOAPIC[2]: Set PCI routing entry (4-3 -> 0x4a -> IRQ 35)
+00:00:03[C] -> 4-3 -> IRQ 35
+IOAPIC[2]: Set PCI routing entry (4-4 -> 0x52 -> IRQ 36)
+00:00:03[D] -> 4-4 -> IRQ 36
+IOAPIC[1]: Set PCI routing entry (3-4 -> 0x5a -> IRQ 20)
+00:00:02[A] -> 3-4 -> IRQ 20
+IOAPIC[1]: Set PCI routing entry (3-15 -> 0x62 -> IRQ 31)
+00:00:02[B] -> 3-15 -> IRQ 31
+IOAPIC[2]: Set PCI routing entry (4-0 -> 0x6a -> IRQ 32)
+00:00:02[C] -> 4-0 -> IRQ 32
+IOAPIC[2]: Set PCI routing entry (4-1 -> 0x72 -> IRQ 33)
+00:00:02[D] -> 4-1 -> IRQ 33
+IOAPIC[1]: Set PCI routing entry (3-6 -> 0x7a -> IRQ 22)
+00:00:04[A] -> 3-6 -> IRQ 22
+IOAPIC[1]: Set PCI routing entry (3-7 -> 0x82 -> IRQ 23)
+00:00:04[B] -> 3-7 -> IRQ 23
+IOAPIC[1]: Set PCI routing entry (3-9 -> 0x8a -> IRQ 25)
+00:00:02[A] -> 3-9 -> IRQ 25
+IOAPIC[2]: Set PCI routing entry (4-8 -> 0x92 -> IRQ 40)
+00:00:02[B] -> 4-8 -> IRQ 40
+Pin 3-6 already programmed
+Pin 3-7 already programmed
+IOAPIC[1]: Set PCI routing entry (3-3 -> 0x9a -> IRQ 19)
+00:00:02[A] -> 3-3 -> IRQ 19
+IOAPIC[1]: Set PCI routing entry (3-1 -> 0xa2 -> IRQ 17)
+00:00:02[A] -> 3-1 -> IRQ 17
+IOAPIC[1]: Set PCI routing entry (3-12 -> 0xaa -> IRQ 28)
+00:00:02[B] -> 3-12 -> IRQ 28
+IOAPIC[1]: Set PCI routing entry (3-13 -> 0xb2 -> IRQ 29)
+00:00:02[C] -> 3-13 -> IRQ 29
+IOAPIC[1]: Set PCI routing entry (3-14 -> 0xba -> IRQ 30)
+00:00:02[D] -> 3-14 -> IRQ 30
+PCI: Using ACPI for IRQ routing
+PCI: if you experience problems, try using option 'pci=noacpi' or even 'acpi=off'
+SBF: Simple Boot Flag extension found and enabled.
+SBF: Setting boot flags 0x80
+Enabling SEP on CPU 0
+Enabling SEP on CPU 1
+highmem bounce pool size: 64 pages
+aio_setup: sizeof(struct page) = 40
+devfs: v1.22 (20021013) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+devfs: boot_options: 0x0
+Installing knfsd (copyright (C) 1996 okir-pn4DOG8n3UYbFoVRYvo4fw@public.gmane.org).
+ACPI: Power Button (FF) [PWRF]
+ACPI: Processor [CPU0] (supports C1)
+ACPI: Processor [CPU1] (supports C1)
+ACPI: Processor [CPU2] (supports C1)
+ACPI: Processor [CPU3] (supports C1)
+Serial: 8250/16550 driver $Revision: 1.90 $ IRQ sharing disabled
+tts/0 at I/O 0x3f8 (irq = 4) is a 16550A
+device class 'tty': registering
+pty: 256 Unix98 ptys configured
+Real Time Clock Driver v1.11
+Intel(R) PRO/100 Network Driver - version 2.1.29-k1
+Copyright (c) 2002 Intel Corporation
+
+e100: selftest OK.
+Freeing alive device c27ef800, eth%d
+e100: eth0: Intel(R) PRO/100 S Server Adapter
+  Hardware receive checksums enabled
+
+Intel(R) PRO/1000 Network Driver - version 4.4.19-k1
+Copyright (c) 1999-2002 Intel Corporation.
+device class 'input': registering
+NET4: Linux TCP/IP 1.0 for NET4.0
+IP: routing cache hash table of 16384 buckets, 128Kbytes
+TCP: Hash tables configured (established 524288 bind 65536)
+Sending DHCP requests ., OK
+IP-Config: Got DHCP answer from 10.0.0.1, my address is 10.0.0.101
+IP-Config: Complete:
+      device=eth0, addr=10.0.0.101, mask=255.255.0.0, gw=10.0.0.1,
+     host=hal1.office, domain=office, nis-domain=(none),
+     bootserver=10.0.0.1, rootserver=10.0.0.1, rootpath=/eboot/slash/hal.office
+NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
+Looking up port of RPC 100003/2 on 10.0.0.1
+Looking up port of RPC 100005/1 on 10.0.0.1
+VFS: Mounted root (nfs filesystem).
+Freeing unused kernel memory: 312k freed
+e100: eth0 NIC Link is Up 100 Mbps Full duplex
+
+--------------060604030803020205010200--
