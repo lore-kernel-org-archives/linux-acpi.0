@@ -1,11 +1,13 @@
-From: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: acpi.info down
-Date: Sun, 27 Mar 2005 12:06:08 -0600
-Message-ID: <62c1cd27050327100660586449@mail.gmail.com>
-Reply-To: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: acpi.info down
+Date: Sun, 27 Mar 2005 20:11:48 +0200
+Message-ID: <e79639220503271011596e5fad@mail.gmail.com>
+References: <62c1cd27050327100660586449@mail.gmail.com>
+Reply-To: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <62c1cd27050327100660586449-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,20 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm trying to get specs so I can try and figure out what's wrong with
-my DSDT, but acpi.info seems to be down. I reported it to Intel and
-they it'll be back in a few days. Does anyone have a local copy they
-could send me?
+On Sun, 27 Mar 2005 12:06:08 -0600, Justin Georgeson
+<justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> I'm trying to get specs so I can try and figure out what's wrong with
+> my DSDT, but acpi.info seems to be down. I reported it to Intel and
+> they it'll be back in a few days. Does anyone have a local copy they
+> could send me?
 
+http://www.google.com/search?q=cache%3Aacpi.info
 
--- 
-; Justin Georgeson
-; "Free the mallocs, delete the news"
-; http://www.openoffice.org
-; http://www.boycott-riaa.com
+regards,
+Stefan
 
 
 -------------------------------------------------------
