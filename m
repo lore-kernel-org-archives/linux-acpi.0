@@ -1,13 +1,8 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: Smart batteries and Acer: list of affected models needed
-Date: Wed, 24 Nov 2004 20:19:08 +0000
-Message-ID: <41A4ECBC.2030306@mega.ist.utl.pt>
-References: <20041123194307.GB14444@hell.org.pl> <41A4BB42.20103@paranoici.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
+From: Admin-OwHO7IOnIawN+BqQ9rBEUg@public.gmane.org
+Subject: failure notice
+Date: 25 Nov 2004 20:13:24 -0000
+Message-ID: <E1CXG6E-0008Bb-5V@sc8-sf-mx2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41A4BB42.20103-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,53 +12,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ultrakorne wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->=20
-> Karol Kozimor wrote:
-> | Hi,
-> | It's likely that I'll get my employer's backing for writing the smart
-> | battery driver.
->=20
-> in my dsdt disassembled i get 3 warning... and it contain those lines
-> "Name(_HID,"ACPI0001")", "Name(_HID,"ACPI0002")"
-> meaning i have a smart battery
-> my model as i say is a travelmate 4501 lci
->=20
-> can someone tell me where and what documents are a good read (kernel
-> module, acpi, smart battery...), if someone already have collect some
-> material this should be fine. my hope is helping the development...
+Hi. This is the qmail-send program at mantramail.com.
+I'm afraid I wasn't able to deliver your message to the following addresses.
+This is a permanent error; I've given up. Sorry it didn't work out.
 
-hi,
 
-from what I've collected so far, (probably) the best place to start=20
-learning is the acpi specification. it's a good information source if=20
-you already know something about kernel programming.
 
-http://www.acpi.info/spec20c.htm
+<peoplesplus-28fYhPa1jUDp4P8CbLYnNQ@public.gmane.org>:
+The users mailfolder is over the allowed quota (size).
 
-the next best source of information is probably in the sbs-if forum=20
-(smart battery system implementers forum).
+--- Below this line is a copy of the message.
 
-http://www.sbs-forum.org/specs/sbsm100b.pdf
+Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Received: (qmail 12234 invoked from network); 25 Nov 2004 20:13:19 -0000
+Received: from unknown (HELO selfcare) ([202.56.230.4]) (envelope-sender <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>)
+          by pop.mantraonline.com (qmail-ldap-1.03) with SMTP
+          for <peoplesplus-28fYhPa1jUDp4P8CbLYnNQ@public.gmane.org>; 25 Nov 2004 20:13:19 -0000
+Received: from mantraonline.com (unknown [203.122.26.137])
+	by selfcare (Postfix) with SMTP id BA99D4590D
+	for <peoplesplus-28fYhPa1jUDp4P8CbLYnNQ@public.gmane.org>; Thu, 25 Nov 2004 15:20:27 -0500 (GMT)
+Fr
 
-you'll have do dig in and find out what's useful and what's not.
-
-good luck. for you, for me and for the other smart battery driver=20
-developers.
-
-regards,
-pedro venda.
-
---
-Pedro Jo=C3=A3o Lopes Venda
-email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
-http://arrakis.dhis.org
+--- End of message stripped.
 
 
 -------------------------------------------------------
