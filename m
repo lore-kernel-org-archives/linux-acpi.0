@@ -1,49 +1,36 @@
-From: Krzysztof Oledzki <olel-2hlNpRK6mjE3b3fIMdp3XWZHpeb/A1Y/@public.gmane.org>
-Subject: Method execution failed in 2.6.11-rc1
-Date: Fri, 14 Jan 2005 12:07:37 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501141203140.31131@bizon.gios.gov.pl>
+From: Tomi Kallio <tomi@sllpilots.fi>
+Subject: Radeon M7 and resuming from suspend-to-ram
+Date: Fri, 14 Jan 2005 16:12:04 +0200
+Message-ID: <41E7D334.6060003@sllpilots.fi>
+Reply-To: gentoo-user@lists.gentoo.org
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-319023594-1105700857=:31131"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <gentoo-user-return-99261-lnx-gentoo-user=m.gmane.org@lists.gentoo.org>
+List-Post: <mailto:gentoo-user@gentoo.org>
+List-Help: <mailto:gentoo-user-help@gentoo.org>
+List-Unsubscribe: <mailto:gentoo-user-unsubscribe@gentoo.org>
+List-Subscribe: <mailto:gentoo-user-subscribe@gentoo.org>
+To: gentoo-user@lists.gentoo.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello.
 
----187430788-319023594-1105700857=:31131
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+I'm running gentoo on Compaq Evo N800V laptop with radeon M7. At the 
+moment I'm using gentoo-dev-sources version 2.6.10-r4. For the first 
+time suspend-to-ram almoust works but I'm having trouble resuming 
+radeon/screen. After resuming, display on laptop stays black with just 
+"weak" backlight but if I plug in external monitor, then external 
+monitor is working normally but laptop's display stays black. So the 
+resume from X "works". If I switch to console then external monitor 
+complaints about invalid mode while laptop's display stays black. With 
+radeontool I can normally power down/up external output, but display on 
+laptop stays blank no matter what I do. I have also tried boot-radeon in 
+console that should reset video bios, but it doesn't work either.
 
-Hello,
+Any ideas?
 
-After upgrading linux kernel to 2.6.11-rc1 I get ACPI errors:
+Tomi
 
-ACPI: Subsystem revision 20041210
-     ACPI-1138: *** Error: Method execution failed [\STRC] (Node dfdd97e0),=
- AE_AML_BUFFER_LIMIT
-     ACPI-1138: *** Error: Method execution failed [\_SB_.PCI0._INI] (Node =
-dfddb540), AE_AML_BUFFER_LIMIT
-
-There is no such message with 2.6.10 (ACPI subsystem revision 20041105).
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-319023594-1105700857=:31131--
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by: Beat the post-holiday blues
-Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+--
+gentoo-user@gentoo.org mailing list
