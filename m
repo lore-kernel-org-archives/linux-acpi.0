@@ -1,70 +1,87 @@
 From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: take2: [Patch 0/3] Updated patches for PCI IRQ deallocation support
-Date: Mon, 04 Oct 2004 19:17:24 +0900
+Subject: take2: [Patch 1/3] Updated patches for PCI IRQ deallocation support
+Date: Mon, 04 Oct 2004 19:17:35 +0900
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <41612334.3070407@jp.fujitsu.com>
+Message-ID: <4161233F.8010607@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-To: Andrew Morton <akpm@osdl.org>, Greg KH <greg@kroah.com>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Greg,
 
-Here is an updated set of patches for PCI IRQ resource deallocation
-based on feedbacks. Change logs are described in each patch. This set
-of patches has the following three patches:
+This is a patch for PCI code that has no dependencies.
+Please note that this patch has been already included in 2.6.9-rc3-mm1.
 
-    - [Patch 1/3]: This is for PCI code that has no dependencies. This
-      patch is already included in 2.6.9-rc3-mm1 tree.
-
-    - [Patch 2/3]: This is for ACPI code that has no dependencies.
-
-    - [Patch 3/3]: This is for ia64 code. This depends on [patch 2/3].
+Please apply.
 
 Thanks,
 Kenji Kaneshige
 
 ----
-Architecture dependent IRQ resources such as interrupt vector for PCI
-devices are allocated at pci_enable_device() time on i386, x86-64 and
-ia64 platform. Today, however, these IRQ resources are never
-deallocated even if they are no longer used. The following set of
-patches adds supports to deallocate IRQ resources at
-pci_disable_device() time.
+Name:		add_pcibios_disable_device_hook.patch
+Kernel Version:	2.6.9-rc3
+Depends:	none
+Note:		This patch is already included in 2.6.9-rc3-mm1.
+Change Log:
 
-The motivation of the set of patches is as follows:
+    - Ported to 2.6.9-rc3
 
-    - IRQ resources such as interrupt vectors should be freed if they
-      are no longer used because the amount of these resources are
-      limited. By deallocating IRQ resources, we can recycle them.
+    - Chaged to use __attrubute__ ((weak)) instead of modifying all
+      arch specific code.
 
-    - I think some hardwares will support hot-pluggable I/O units with
-      I/O xAPICs in the near future. So I/O xAPIC hot-plug support by
-      OS will be needed soon. IRQ resouces deallocation will be one of
-      the most important stuff for I/O xAPIC hot-plug.
+Description:
 
-To realize IRQ resource deallocation, the following set of patches
-defines new interfaces:
+This patch adds a hook 'pcibios_disable_device()' into
+pci_disable_device() to call architecture specific PCI resource
+deallocation code. It's a opposite part of pcibios_enable_device().
+We need this hook to deallocate architecture specific PCI resource
+such as IRQ resource, etc.. This patch is just for adding the hook, so
+'pcibios_disable_device()' is defined as a null function on all
+architecture so far.
 
-    - void pcibios_disable_device (struct pci_dev *dev)
+I tested this patch on i386, x86_64 and ia64. But it has not been
+tested on other architectures because I don't have these machines.
 
-      This is a opposite portion of pcibios_enable_device(). It's a
-      hook to call architecture specific code for deallocating PCI
-      resources.
-      
-    - void acpi_unregister_gsi (unsigned int gsi)
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-      This is a opposite portion of acpi_register_gsi(). This has a
-      responsibility for deallocating IRQ resources associated with
-      the specified linux IRQ number. 
+---
 
-For details of these interfaces, please see the description in each
-patch.
+ linux-2.6.9-rc3-kanesige/drivers/pci/pci.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+)
 
-For now, the following set of patches has ia64 implementation only.
-i386 and x86_64 implementations are TBD.
+diff -puN drivers/pci/pci.c~add_pcibios_disable_device_hook drivers/pci/pci.c
+--- linux-2.6.9-rc3/drivers/pci/pci.c~add_pcibios_disable_device_hook	2004-10-04 17:01:59.329143129 +0900
++++ linux-2.6.9-rc3-kanesige/drivers/pci/pci.c	2004-10-04 17:01:59.332072838 +0900
+@@ -387,6 +387,16 @@ pci_enable_device(struct pci_dev *dev)
+ }
+ 
+ /**
++ * pcibios_disable_device - disable arch specific PCI resources for device dev
++ * @dev: the PCI device to disable
++ *
++ * Disables architecture specific PCI resources for the device. This
++ * is the default implementation. Architecture implementations can
++ * override this.
++ */
++void __attribute__ ((weak)) pcibios_disable_device (struct pci_dev *dev) {}
++
++/**
+  * pci_disable_device - Disable PCI device after use
+  * @dev: PCI device to be disabled
+  *
+@@ -406,6 +416,8 @@ pci_disable_device(struct pci_dev *dev)
+ 		pci_command &= ~PCI_COMMAND_MASTER;
+ 		pci_write_config_word(dev, PCI_COMMAND, pci_command);
+ 	}
++
++	pcibios_disable_device(dev);
+ }
+ 
+ /**
 
+_
 
