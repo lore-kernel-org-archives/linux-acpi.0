@@ -1,10 +1,11 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Undeliverable message returned to sender
-Date: Wed, 28 Apr 2004 06:51:44 +0000 (UCT)
+From: Simon Derr <simon.derr-6ktuUTfB/bM@public.gmane.org>
+Subject: [PATCH] fix(Fix _STA checking in acpi_bus_add)
+Date: Wed, 28 Apr 2004 16:18:46 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040428065144.D86BF1A243B@mail15-red-R.bigfish.com>
+Message-ID: <Pine.LNX.4.58.0404281525160.30907@daphne.frec.bull.fr>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: Virus Scanner <>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,38 +15,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This message was created automatically by mail delivery software.
 
-A message you sent was virus infected.
-The message could not be cleaned.
+Hi,
 
-Virus Scan Report:
-------------------
-document.zip infected by: WORM_LOVGATE.W
+On our 4-way and 2-way IA-64 systems, the PCI bus with id 0xff does not
+appear anymore on recent Linux 2.6 kernels. This is a problem because we
+use it to find out the revision of the chipset of the system.
 
-Delivery failed for the following recipient(s):
- 	opensource-qOT5WV6Eoulg9hUCZPvPmw@public.gmane.org
+It used to work fine "before", i.e. running lspci showed the 0xff bus.
 
-For more information about this virus, visit http://www.antivirus.com/vinfo/virusencyclo/
+It hunted this change and found the culprit to be this patch (that was
+introduced between 2.6.1 and 2.6.2):
 
------ Original Message Header -----
-Received: by mail15-red (MessageSwitch) id 1083135104785924_10397; Wed, 28 Apr 2004 06:51:44 +0000 (UCT)
-Received: from lists.sourceforge.net (unknown [218.12.23.50])
-	by mail15-red.bigfish.com (Postfix) with ESMTP id 91A0E1A2442
-	for <opensource-qOT5WV6Eoulg9hUCZPvPmw@public.gmane.org>; Wed, 28 Apr 2004 06:51:04 +0000 (UCT)
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: opensource-qOT5WV6Eoulg9hUCZPvPmw@public.gmane.org
-Subject: 
-Date: Wed, 28 Apr 2004 14:52:24 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_0AFFDBAA.76F158E7"
-X-Priority: 3
-X-MSMail-Priority: Normal
-Message-Id: <20040428065104.91A0E1A2442-/cpCelKFvVkw/IBmUZyD+/YhGscHeamf@public.gmane.org>
+https://sourceforge.net/mailarchive/message.php?msg_id=6923348
 
+This patch seems to have received no feedback at all, and is a source of
+trouble for us.
+
+I propose a patch that reverts to the 2.6.1 situation, with a somewhat
+more good-looking code.
+
+	Simon.
+
+--- linux-2.6.5-vanilla/drivers/acpi/scan.c	Sun Apr  4 05:36:57 2004
++++ linux-2.6.5/drivers/acpi/scan.c	Wed Apr 28 15:17:57 2004
+@@ -706,7 +706,7 @@
+ 	switch (type) {
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		result = acpi_bus_get_status(device);
+-		if (ACPI_FAILURE(result) || !device->status.present) {
++		if (ACPI_FAILURE(result)) {
+ 			result = -ENOENT;
+ 			goto end;
+ 		}
 
 
 -------------------------------------------------------
