@@ -1,43 +1,61 @@
-From: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
-Subject: DPMS state transition times
-Date: Tue, 13 May 2003 17:43:59 -0400 (EDT)
-Sender: linux-pm-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.GSO.4.53.0305131738580.14796@compserv2>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.4.21-rc1+acpi_24042003: Failure on Compaq 1722EA
+Date: Wed, 14 May 2003 09:57:37 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F84272300@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: linux-pm-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:linux-pm-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-pm-devel>,
-	<mailto:linux-pm-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-pm-devel>,
-	<mailto:linux-pm-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-pm-devel>
-To: linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dimitris Stasinopoulos <dimitris-1R3Ry79yXbc@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
-
-I apologize if this isn't too relevant to this list.
-
-I am trying to measure the time it takes to transition between DPMS ON
-state to various low power (standby, suspend and off) states, and back by
-instrumenting X server.
-
-The X server, basically writes into hardware registers which ultimately
-turn off the screen and also turn off vertical and/or horizontal sync.
-
-Is it possible to measure purely by software (say by polling a register)
-the time it takes for this transition to complete i.e. the time it
-takes to turn the display off after writing to the DPMS mode register.
-
-I'm working with Intel i810 graphics hardware.
-
-Any help would be greatly appreciated.
-
-Thanks !
---Manish
+SXQncyBvayBmb3IgZmlsaW5nIGFueSBBQ1BJIGlzc3VlcyBvbiBidWd6aWxsYS5rZXJuZWwub3Jn
+LCBpbmNsdWRpbmcgYm90aCAyLjQgYW5kIDIuNS4NClRoYW5rcywNCkx1bWluZw0KDQotLS0tLU9y
+aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogRGltaXRyaXMgU3Rhc2lub3BvdWxvcyBbbWFpbHRv
+OmRpbWl0cmlzQGxpbmVhLmdyXQ0KU2VudDogMjAwM+W5tDXmnIgxM+aXpSAxODowMg0KVG86IFl1
+LCBMdW1pbmcNClN1YmplY3Q6IFJlOiBbQUNQSV0gMi40LjIxLXJjMSthY3BpXzI0MDQyMDAzOiBG
+YWlsdXJlIG9uIENvbXBhcSAxNzIyRUENCg0KDQpIZWxsbywgYnVnemlsbGEua2VybmVsLm9yZyBp
+cyBmb3Iga2VybmVsIDIuNS54IG9ubHksIHNvIHRoZXJlJ3Mgbm8gcG9pbnQgDQppbiBkb2luZyB0
+aGF0IHNpbmNlIEknbSBydW5uaW5nIDIuNC54DQoNClJlZ2FyZHMsDQpEaW1pdHJpcw0KDQotLSAN
+ClBlcmhhcHMgaXQgSVMgYSBnb29kIGRheSB0byBkaWUhIEkgc2F5IHdlIHNoaXAgdGhlIHNvZnR3
+YXJlIQ0KDQpPbiBUdWVzZGF5IDEzIE1heSAyMDAzIDExOjI1LCB5b3Ugd3JvdGU6DQo+IFdvdWxk
+IHlvdSBwbGVhc2UgZmlsZSB0aGlzIGlzc3VlIG9uIGJ1Z3ppbGxhLmtlcm5lbC5vcmcuDQo+DQo+
+IFRoYW5rcywNCj4gTHVtaW5nDQo+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
+b206IERpbWl0cmlzIFN0YXNpbm9wb3Vsb3MgW21haWx0bzpkaW1pdHJpc0BsaW5lYS5ncl0NCj4g
+U2VudDogMjAwM+W5tDTmnIgzMOaXpSAxNjowMw0KPiBUbzogYWNwaS1kZXZlbEBsaXN0cy5zb3Vy
+Y2Vmb3JnZS5uZXQNCj4gU3ViamVjdDogW0FDUEldIDIuNC4yMS1yYzErYWNwaV8yNDA0MjAwMzog
+RmFpbHVyZSBvbiBDb21wYXEgMTcyMkVBDQo+DQo+DQo+IEhlbGxvLCBJIGhhdmUgYSBDb21wYXEg
+MTcyMkVBLCB3aGljaCB3b3JrcyB3aXRoIHRoZSBfc3RvY2tfIERTRFRzIHF1aXRlDQo+IHdlbGwg
+KGJhdHRlcnksIHRoZXJtYWwgem9uZSwgQUMsIGZhbiwgbGlkKSwgaW4gY29uanVjdGlvbiB3aXRo
+IGtlcm5lbA0KPiAyLjQuMTgrYWNwaTA0MTAyMDAyLiBJIGRvIGhvd2V2ZXIgd2FudCB0byB1cGdy
+YWRlIHRvIDIuNC4yMS1yYzEsIGJ1dA0KPiBwYXRjaGluZyB1cCB3aXRoIGFjcGkyNDA0MjAwMyBh
+bmQgdHJ5aW5nIHRvIGJvb3QgZ2V0IG5vd2hlcmUuIEFmdGVyDQo+IHByaW50aW5nIHRoZXNlIG1l
+c3NhZ2VzOg0KPg0KPiBBQ1BJOiBFbWJlZGRlZCBjb250cm9sZXIgW0g4XSAoZ3BlIDI5KQ0KPiBz
+Y2hlZHVsZV90YXNrKCk6IGtldmVudGQgaGFzIG5vdCBzdGFydGVkDQo+IHNjaGVkdWxlX3Rhc2so
+KToga2V2ZW50ZCBoYXMgbm90IHN0YXJ0ZWQNCj4gUENJOiBwcm9iaW5nIFBDSSBoYXJkd2FyZQ0K
+PiBBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0NdIGVuYWJsZWQgYXQgSVJRIDExDQo+IEFD
+UEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRl0gZW5hYmxlZCBhdCBJUlEgMTANCj4NCj4gaXQg
+aGFuZ3MgaW5kZWZpbmF0ZWx5LCB3aXRob3V0IGFueSBmdXJ0aGVyIG1lc3NhZ2VzLiBUaGUgUENJ
+IGJyaWRnZSBpcw0KPiBhbiBJbnRlbCA4MjgwMUJBTS9DQU0uIFNvOg0KPg0KPiAxKSBBbnkgaWRl
+YXMgb24gdGhlIHByb2JsZW0/IEFsbCBJIHdhbnQgaXMgYmF0dGVyeSBzdGF0cywgdGhlIHRoZXJt
+YWwNCj4gem9uZSwgQUMsIGZhbiBhbmQgdGhlIGxpZCBidXR0b24uIFNsZWVwIHN0YXRlcyBkbyBu
+b3QgY29uY2VybiBtZS4NCj4gMikgSXMgdGhlcmUgYW55IHdheSBJIGNhbiBwb3J0IHRoZSAyLjQu
+MTgrYWNwaSBwYXRjaCBjb2RlIHRoYXQgd29ya3MNCj4gZm9yIG1lIHRvIDIuNC4yMS1yYzE/IE9y
+IGFyZSB0aGVyZSBtYWpvciBjaGFuZ2VzIGluIHRoZSByZXN0IG9mIHRoZQ0KPiBrZXJuZWwgdGhh
+dCBlZmZlY3RpdmVseSBwcm9oaWJpdCB0aGlzPyAgVGhhbmtzIGluIGFkdmFuY2UNCj4NCj4gRGlt
+aXRyaXMNCg==
 
 
 -------------------------------------------------------
