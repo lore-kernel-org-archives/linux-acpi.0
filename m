@@ -1,10 +1,8 @@
-From: Bita Gorji-Ara <bita_gorjiara-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: questions
-Date: Mon, 29 Jul 2002 20:31:07 -0700 (PDT)
+From: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
+Subject: DSDT hacking issues ...
+Date: Tue, 30 Jul 2002 02:04:47 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730033107.80348.qmail@web9806.mail.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <200207300604.CAA04071@buzzword-bingo.mit.edu>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,28 +16,26 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-Hi everybody,
 
-I'm investigating the capabilities of ACPI and see if
-it is appropriate for us or not. Our system is a
-real-time complex embedded system, running Linux on
-Power PC. We are seeking for a suitable power
-management policy . the OS and hardware should be
-revised based on that policy. 
+Hi,
 
-I want to consider all alternatives to ACPI and make
-the final decision and I prefer to find something
-commercial. does anybody have any good set of links to
-ACPI alternative approaches?
+So I'm trying to patch my DSDT (for my Compaq Presario 2800).  
+Unfortunately, when I do an "acpidmp  /proc/acpi/dsdt" I end up with 
+some gibberish that looks like the output from hexdump, rather than 
+code.   I am using the latest pmtools (rev. 200-10730) distro from the 
+Intel ACPI site.
 
-thanks,
+Do I need to use a different pmtools distro?  Or a table reader from a 
+different package?
 
-Bita.
+BTW, the device ids in /proc/acpi are weird -- my CPU is called "C000", 
+and my ac adapter "C11A" -- is this also due to a buggy native DSDT,
+or laziness by the OEM?
 
-__________________________________________________
-Do You Yahoo!?
-Yahoo! Health - Feel better, live better
-http://health.yahoo.com
+
+Thanks,
+
+Sourav
 
 
 -------------------------------------------------------
