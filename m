@@ -1,7 +1,7 @@
-From: "Noe W. Weber" <nweberei-Ww2w86tCGXWVZhT2dXthUg@public.gmane.org>
-Subject: Application is pre approved
-Date: Tue, 23 Nov 2004 11:45:21 +0000
-Message-ID: <bbf801c4d151$d2e150af$0f4a47a2@scc.es>
+From: "Kevin Medina" <kmedina_cm-LqWlOQlmgCFW7IvYoCtsgA@public.gmane.org>
+Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
+Date: Tue, 23 Nov 2004 19:21:37 +0500
+Message-ID: <24cf01c4d167$fe9eb368$34c09b7f@rb.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,21 +19,29 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Sir or Madam,
+Heya,
 
-Would you REFINANCE if you knew you'd SAVE TH0USANDS? 
+Do you want a rolex watch?
 
-We'll get you lnterest as low as 1.92%. 
-Don't believe me? Fill out our small online questionaire and we'll show you how. 
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-Get the house/home and/or car you always wanted, it only takes 10 seconds of your time:
-http://www.your-financial.com/
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
-Best Regards,
-Andrew Banks
+Visit us: http://www.icors.com/rep/rolex/
 
-No thanks: http://www.your-financial.com/r1/
+Best regards,
+Hilton Jones
 
+
+No thanks: http://www.icors.com/z.php
 
 
 
