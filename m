@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH][2.4] acpi S5 poweroff fix
-Date: Fri, 2 May 2003 10:44:50 +0200
+Subject: Re: fan control
+Date: Fri, 2 May 2003 10:56:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030502084450.GG2954@poup.poupinou.org>
-References: <20030429181518.96485.qmail@web41601.mail.yahoo.com> <Pine.LNX.4.53.0304301628010.4213@dynast.gaugusch.at> <20030430193855.GA21497@hell.org.pl>
+Message-ID: <20030502085643.GH2954@poup.poupinou.org>
+References: <B900970C7DD9474C972986EB3EC7C58F12EC9A@andromeda.agcad.local> <20030502103102.A2867@fermat.unipv.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030430193855.GA21497-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20030502103102.A2867-xzhXYMPkGmXoPXhRcRtihA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,32 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+Cc: Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>, raul.aranda-fE4FmR91nWqXOwHavGvsmg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 30, 2003 at 09:38:56PM +0200, Karol Kozimor wrote:
-> Thus wrote Markus Gaugusch:
-> > I think that the prevention of S5 is nonsense.
-> > echo 5 > /dev/hda will screw up your system much more than echo 5 > sleep.
-> > Root must know what he's doing. I think that the patch should be applied.
+On Fri, May 02, 2003 at 10:31:02AM +0200, Daniele Boffi wrote:
+> > > > > I understand this procedure might be very dangerous. How am I sure that, after
+> > > > > playing with the fans, the control of them goes back to the thermal zones?
+> > > > 
+> > > >   After stop it, try to compile a kernel, it must level up the
+> > > > temperature and spin up the fan.
+> > > > 
+> > 
+> > Yes it will, if not please report it to the list.
 > 
-> Some time ago (at least with acpi-20021212) this feature worked perfectly.
-> It was then judged as dangerous and explicitly disabled in further releases.
-> What you are trying to do, is to reverse this change, so basically, you'll
-> probably not have much luck succeeding. Check the archives of the list (I 
-> believe the topic was discussed around January).
-> Best regards,
+> Herbert and Raul,
+> 
+> Thanks for your help.
+> 
+> Indeed, it seem that after rebooting my machine forgets about the fact that I
+> was playing with the fan status. What I don't understand in Raul's message is
+> why I should compile a new kernel.
 
-This was my fault(c)(TM) with s4bios.  A fix is the first
-patch send by the original poster of this thread (or
-one I have send to Andy some times ago which does the
-same fix anyway).
-But I have more concern with the second patch.
-It break the CONFIG_ACPI_SLEEP option.
-
-At this time, this option is always 'yes', but this may change
-in the future, and we want to be able to enter S5 even if this
-option is off (as in 2.5).
+This is not for installing a new kernel purpose.  This is for
+testing the behaviour you asked for when the system do some
+work (compiling a kernel is just find for this kind of test).
 
 -- 
 Ducrot Bruno
