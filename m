@@ -1,12 +1,16 @@
-From: Andres <golvellius-sh/6fXdz2Rs@public.gmane.org>
-Subject: Compaq evo n200 support
-Date: Thu, 16 Sep 2004 00:52:19 +0200
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: acpi patch for 2.6.7
+Date: Thu, 16 Sep 2004 08:50:24 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4148C7A3.8030500@ono.com>
+Message-ID: <1095268733.11668.35.camel@neuromancer.home.net>
+References: <200409061331.28311@geromy>  <20040907135637.GC3647@fuchi>
+	 <1094606130.9577.41.camel@neuromancer.home.net>
+	 <1095229747.13132.139.camel@laptop.cunninghams>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1095229747.13132.139.camel-AdgCB+f5QAxwBzq2CxEN2SkBHpOjBR89@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,31 +19,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ...
+On Wed, 2004-09-15 at 14:29, Nigel Cunningham wrote:
+> Hi.
+> 
+> On Wed, 2004-09-08 at 11:15, Ow Mun Heng wrote:
+> > rm1-mm2, suspend code/something causes a need for a keyboard press to
+> > start writing to swap. -rc1-mm3 does not compile at "make
+> 
+> Which version of suspend? 
+Whatever is already included in the kernel. No patching was done
 
-I am new in the notebook linux world , i have got a problem with my 
-second hand compaq evo 200n notebook .... It has got a pentium 3 Mobile 
-700 mhz ... and problems are :
+> You might try adding kdb in then breaking at
+> the pause and getting a backtrace for the process that's suspending.
+Hmm.. If only I knew what you were referring to. Walk me through please.
 
-1) Button suspend did not work ( i have tried kernel 2.4.21 + acpi 
-pathes , also 2.4.8.1 + patches it did not work ...My distro is SUSE 9.0.
-2) Speed of the processor is not controller ...
+> 
+> Regards,
+> 
+> Nigel
 
-Well , that is all ...
-
-Please i need help , because i use a lot linux to make my project ( 
-UNC20 Board , and study with it ) SO i  want to make linux mobile ...
-
-Thanks
-
-
+-- 
+Ow Mun Heng
+Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel
+2.6.7-2.jul1-interactive 
+Neuromancer 01:18:10 up 16:02, 7 users, load average: 1.93, 1.71, 1.29 
 
 
 -------------------------------------------------------
-This SF.Net email is sponsored by: thawte's Crypto Challenge Vl
-Crack the code and win a Sony DCRHC40 MiniDV Digital Handycam
-Camcorder. More prizes in the weekly Lunch Hour Challenge.
-Sign up NOW http://ad.doubleclick.net/clk;10740251;10262165;m
+This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
+Project Admins to receive an Apple iPod Mini FREE for your judgement on
+who ports your project to Linux PPC the best. Sponsored by IBM.
+Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
