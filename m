@@ -1,12 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI Link device suspend/resume
-Date: Tue, 2 Nov 2004 14:13:04 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575745DDE@pdsmsx402.ccr.corp.intel.com>
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: ACPI Link device suspend/resume
+Date: Tue, 02 Nov 2004 14:29:09 +0800
+Message-ID: <1099376948.20391.69.camel@neuromancer.home.net>
+References: <16A54BF5D6E14E4D916CE26C9AD30575745DDE@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C4C0A3.043AEDF4"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575745DDE-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,82 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>, Luc Saillard <luc.saillard-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Luc Saillard <luc.saillard-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Tue, 2004-11-02 at 14:13, Li, Shaohua wrote:
+> Hi Mun Heng and Luc,
+> You reported the Link device suspend/resume before, could you please try
+> the attached debug patch? Please enable 'CONFIG_DEBUG_SPINLOCK_SLEEP'.
 
-------_=_NextPart_001_01C4C0A3.043AEDF4
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Hi Shaohua,
 
-Hi Mun Heng and Luc,
-You reported the Link device suspend/resume before, could you please try
-the attached debug patch? Please enable 'CONFIG_DEBUG_SPINLOCK_SLEEP'.
+	I forget about that problem. Is it the oops during suspend?
 
-Thanks,
-Shaohua
+	I'm running gentoo right now, and no more fedora. I don't think I will
+be able to try out your patch as I've yet to make _everything_ work as
+it did on Fedora.
 
-------_=_NextPart_001_01C4C0A3.043AEDF4
-Content-Type: application/octet-stream;
-	name="non-sleep.patch"
-Content-Transfer-Encoding: base64
-Content-Description: non-sleep.patch
-Content-Disposition: attachment;
-	filename="non-sleep.patch"
+	
 
-CgotLS0KCiAyLjYtcm9vdC9kcml2ZXJzL2FjcGkvb3NsLmMgfCAgIDQwICsrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZXMgY2hhbmdlZCwgNDAgaW5zZXJ0aW9u
-cygrKQoKZGlmZiAtcHVOIGRyaXZlcnMvYWNwaS9vc2wuY35ub24tc2xlZXAgZHJpdmVycy9hY3Bp
-L29zbC5jCi0tLSAyLjYvZHJpdmVycy9hY3BpL29zbC5jfm5vbi1zbGVlcAkyMDA0LTExLTAyIDEz
-OjQzOjAwLjI5OTM4MjE2OCArMDgwMAorKysgMi42LXJvb3QvZHJpdmVycy9hY3BpL29zbC5jCTIw
-MDQtMTEtMDIgMTM6NTc6MzYuNjc1MTUyODAwICswODAwCkBAIC0xMzksNiArMTM5LDggQEAgYWNw
-aV9vc192cHJpbnRmKGNvbnN0IGNoYXIgKmZtdCwgdmFfbGlzdAogdm9pZCAqCiBhY3BpX29zX2Fs
-bG9jYXRlKGFjcGlfc2l6ZSBzaXplKQogeworCWlmIChpbl9hdG9taWMoKSkKKwkJcmV0dXJuIGtt
-YWxsb2Moc2l6ZSwgR0ZQX0FUT01JQyk7CiAJcmV0dXJuIGttYWxsb2Moc2l6ZSwgR0ZQX0tFUk5F
-TCk7CiB9CiAKQEAgLTE3Niw2ICsxNzgsMTIgQEAgYWNwaV9vc19nZXRfcm9vdF9wb2ludGVyKHUz
-MiBmbGFncywgc3RydQogYWNwaV9zdGF0dXMKIGFjcGlfb3NfbWFwX21lbW9yeShhY3BpX3BoeXNp
-Y2FsX2FkZHJlc3MgcGh5cywgYWNwaV9zaXplIHNpemUsIHZvaWQgX19pb21lbSAqKnZpcnQpCiB7
-CisJaWYgKGluX2F0b21pYygpKSB7CisJCXByaW50aygiT29wcywgcG9zc2libHkgd2lsbCBzbGVl
-cCBpbiBhdG9taWMgaW4gJXMsIgorCQkJInBsZWFzZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LWFj
-cGlAaW50ZWwuY29tXG4iLAorCQkJX19GVU5DVElPTl9fKTsKKwkJcmV0dXJuIEFFX05PX01FTU9S
-WTsKKwl9CiAJaWYgKGVmaV9lbmFibGVkKSB7CiAJCWlmIChFRklfTUVNT1JZX1dCICYgZWZpX21l
-bV9hdHRyaWJ1dGVzKHBoeXMpKSB7CiAJCQkqdmlydCA9ICh2b2lkIF9faW9tZW0gKikgcGh5c190
-b192aXJ0KHBoeXMpOwpAQCAtMjAyLDYgKzIxMCwxMiBAQCBhY3BpX29zX21hcF9tZW1vcnkoYWNw
-aV9waHlzaWNhbF9hZGRyZXNzCiB2b2lkCiBhY3BpX29zX3VubWFwX21lbW9yeSh2b2lkIF9faW9t
-ZW0gKnZpcnQsIGFjcGlfc2l6ZSBzaXplKQogeworCWlmIChpbl9hdG9taWMoKSkgeworCQlwcmlu
-dGsoIk9vcHMsIHBvc3NpYmx5IHdpbGwgc2xlZXAgaW4gYXRvbWljIGluICVzLCIKKwkJCSJwbGVh
-c2Ugc2VuZCBhbiBlbWFpbCB0byBsaW51eC1hY3BpQGludGVsLmNvbVxuIiwKKwkJCV9fRlVOQ1RJ
-T05fXyk7CisJCXJldHVybjsKKwl9CiAJaW91bm1hcCh2aXJ0KTsKIH0KIApAQCAtMzA4LDYgKzMy
-MiwxMiBAQCBhY3BpX29zX3JlbW92ZV9pbnRlcnJ1cHRfaGFuZGxlcih1MzIgaXJxCiB2b2lkCiBh
-Y3BpX29zX3NsZWVwKHUzMiBzZWMsIHUzMiBtcykKIHsKKwlpZiAoaW5fYXRvbWljKCkpIHsKKwkJ
-cHJpbnRrKCJPb3BzLCBwb3NzaWJseSB3aWxsIHNsZWVwIGluIGF0b21pYyBpbiAlcywiCisJCQki
-cGxlYXNlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtYWNwaUBpbnRlbC5jb21cbiIsCisJCQlfX0ZV
-TkNUSU9OX18pOworCQlyZXR1cm47CisJfQogCWN1cnJlbnQtPnN0YXRlID0gVEFTS19JTlRFUlJV
-UFRJQkxFOwogCXNjaGVkdWxlX3RpbWVvdXQoSFogKiBzZWMgKyAobXMgKiBIWikgLyAxMDAwKTsK
-IH0KQEAgLTM5NSw2ICs0MTUsMTIgQEAgYWNwaV9vc19yZWFkX21lbW9yeSgKIAkJCXZpcnRfYWRk
-ciA9ICh2b2lkIF9faW9tZW0gKikgcGh5c190b192aXJ0KHBoeXNfYWRkcik7CiAJCX0gZWxzZSB7
-CiAJCQlpb21lbSA9IDE7CisJCQlpZiAoaW5fYXRvbWljKCkpIHsKKwkJCXByaW50aygiT29wcywg
-cG9zc2libHkgd2lsbCBzbGVlcCBpbiBhdG9taWMgaW4gJXMsIgorCQkJCSJwbGVhc2Ugc2VuZCBh
-biBlbWFpbCB0byBsaW51eC1hY3BpQGludGVsLmNvbVxuIiwKKwkJCQlfX0ZVTkNUSU9OX18pOwor
-CQkJCXJldHVybiBBRV9OT19NRU1PUlk7CisJCQl9CiAJCQl2aXJ0X2FkZHIgPSBpb3JlbWFwKHBo
-eXNfYWRkciwgd2lkdGgpOwogCQl9CiAJfSBlbHNlCkBAIC00MzksNiArNDY1LDEzIEBAIGFjcGlf
-b3Nfd3JpdGVfbWVtb3J5KAogCQkJdmlydF9hZGRyID0gKHZvaWQgX19pb21lbSAqKSBwaHlzX3Rv
-X3ZpcnQocGh5c19hZGRyKTsKIAkJfSBlbHNlIHsKIAkJCWlvbWVtID0gMTsKKwkJCWlmIChpbl9h
-dG9taWMoKSkgeworCQkJCXByaW50aygiT29wcywgcG9zc2libHkgd2lsbCBzbGVlcCBpbiBhdG9t
-aWMgaW4gJXMsIgorCQkJCSJwbGVhc2Ugc2VuZCBhbiBlbWFpbCB0byBsaW51eC1hY3BpQGludGVs
-LmNvbVxuIiwKKwkJCQlfX0ZVTkNUSU9OX18pOworCQkJCXJldHVybiBBRV9OT19NRU1PUlk7CisJ
-CQl9CisKIAkJCXZpcnRfYWRkciA9IGlvcmVtYXAocGh5c19hZGRyLCB3aWR0aCk7CiAJCX0KIAl9
-IGVsc2UKQEAgLTY5NCw2ICs3MjcsMTMgQEAgdm9pZAogYWNwaV9vc193YWl0X2V2ZW50c19jb21w
-bGV0ZSgKIAl2b2lkICpjb250ZXh0KQogeworCWlmIChpbl9hdG9taWMoKSkgeworCQlwcmludGso
-Ik9vcHMsIHBvc3NpYmx5IHdpbGwgc2xlZXAgaW4gYXRvbWljIGluICVzLCIKKwkJCSJwbGVhc2Ug
-c2VuZCBhbiBlbWFpbCB0byBsaW51eC1hY3BpQGludGVsLmNvbVxuIiwKKwkJCV9fRlVOQ1RJT05f
-Xyk7CisJCXJldHVybjsKKwl9CisKIAlmbHVzaF93b3JrcXVldWUoa2FjcGlkX3dxKTsKIH0KIApf
-Cg==
-
-------_=_NextPart_001_01C4C0A3.043AEDF4--
 
 
 -------------------------------------------------------
