@@ -1,8 +1,8 @@
 From: virus_alert-nAQ0MEVqk6FwF0rfAJ8K1A@public.gmane.org
 Subject: Virus Alert
-Date: Thu, 09 Sep 2004 11:16:19 +0900
+Date: Thu, 09 Sep 2004 11:16:17 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409090216.i892GJ217505@home.pa-co-ltd.co.jp>
+Message-ID: <200409090216.i892GHF17486@home.pa-co-ltd.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -18,7 +18,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Have detected a virus (WORM_NETSKY.Q) in mail traffic. Action: deleted.
+Have detected a virus (HTML_Netsky.P) in mail traffic. Action: deleted.
 
 
 -------------------------------------------------------
