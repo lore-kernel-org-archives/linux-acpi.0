@@ -1,69 +1,23 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: Userspace ACPI interpreter ( was RE: [ACPI] [RFC] dev_acpi: support for userspace access to acpi)
-Date: Thu, 28 Oct 2004 12:04:31 +0800
+From: Len Brown <len.brown@intel.com>
+Subject: Re: Userspace ACPI interpreter ( was RE: [ACPI] [RFC] dev_acpi: support
+ for userspace access to acpi)
+Date: Thu, 28 Oct 2004 01:37:52 -0400
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041ABFFA@pdsmsx403>
+Message-ID: <418085B0.30208@intel.com>
+References: <3ACA40606221794F80A5670F0AF15F84041ABFFA@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262745AbUJ1EFE@vger.kernel.org>
-Content-class: urn:content-classes:message
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
-Cc: Alex Williamson <alex.williamson@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262783AbUJ1FiJ@vger.kernel.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041ABFFA@pdsmsx403>
+To: "Yu, Luming" <luming.yu@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Moore, Robert" <robert.moore@intel.com>, Alex Williamson <alex.williamson@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
->On Wednesday 27 October 2004 11:17 am, Yu, Luming wrote:
->>   If don't use acpi_early_init , acpi is initialized in 
->do_basic_setup() in kernel thread --init.
->> It is very close to launch first user space 
->process(/sbin/init ..). So, if we can invent 
->> acpi_later_init, it is possible to move interpreter out of kernel.
->
->It's true that some early init stuff is based on the static tables
->and doesn't require the interpreter.  But there is a lot of stuff
->that DOES require the interpreter, like finding PCI root bridges,
->PRTs, PCI interrupt link devices, etc.  It's not clear to me that
->it's feasible to deal with all these from userspace.
+One way to experiment with a user-mode ACPI interpreter would be to 
+continue to use the kernel-mode interpreter for boot up , and cut over 
+to the user-mode interpreter at /sbin/init.  The kernel-mode interpreter 
+could be sent the way of free_initmem() which is called just before 
+/sbin/init is invoked.
 
-On IA64 platform, ACPI interpreter seems to be mandatory for those
-stuff, but IA32 is not.  So, the ram disk is the generic solution 
-for loading user space interpreter for boot. 
-
->
->>   The difficulty for inventing userspace interpreter is to 
->eliminate the ACPI-interpreter dependency 
->> of drivers for booting. But this dependency is not 
->mandatory. Once kernel booted to be able
->> to launch /sbin/init, it is also able to launch 
->/sbin/user_space_interpreter, then kernel can enjoy
->> acpi from then on, despite the acpi interpreter is a user 
->space daemon, we just need to invent
->> or user a communication method between kernel and user space daemon.
->
->Before the interpreter, you don't have ANY devices (legacy ones are
->described via the namespace of course, and PCI devices depend on root
->bridges that are also in the namespace).  So you end up at least
->requiring a ramdisk, plus a bunch of encoding to communicate resource
->information from the interpreter to the drivers.
->
->Maybe not impossible, but it certainly requires a lot of work.  Moving
->the interpreter to userspace has been proposed many times, but I've
->never seen any indication that anybody is actually working on it.
->
-
-Yes, it needs a lot of work.  If we want to continue, we should find out
-what's the benefit of doing so. The biggest benefit could be that kernel
-will be less complex, thus kernel will be more stable.  At least, some
-ACPI operation (like information query) is not needed to be handled in
-kernel in synchronous manner, which is kernel invoking ACPI interpreter
-like calling a C function. On laptop, I DO get many bug reports that
-kernel 
-crashes, or hang for a while ,or input event lost..., just due to AML
-call executed
-by ACPI interpreter running in the kernel.  I expect all this symptom
-will
-be gone, if interpreter is running in user space.
-
-Thanks,
-Luming
+-Len
