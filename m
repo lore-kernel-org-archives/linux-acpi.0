@@ -1,14 +1,15 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: VGA patch by Bruno Ducrot -- no success yet
-Date: Fri, 13 Feb 2004 00:22:30 +0100
+From: Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
+Subject: Re: ASL fixing questions
+Date: Thu, 12 Feb 2004 18:35:42 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040212232230.GC13262@poupinou.org>
-References: <m3u11wnflb.fsf@reason.gnu-hamburg> <20040212223706.GA13262@poupinou.org> <m3r7wzx5kb.fsf@reason.gnu-hamburg>
+Message-ID: <402C0DCE.1090205@zopatista.com>
+References: <402AF9FF.3020706@zopatista.com> <20040212093732.GP13262@poupinou.org> <402B7917.2090505@zopatista.com> <20040212211615.GV13262@poupinou.org> <402BF14A.8040406@zopatista.com> <20040212221108.GZ13262@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig8B9D7591F7F0762A092F5D25"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m3r7wzx5kb.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <20040212221108.GZ13262-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,63 +18,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 13, 2004 at 12:04:52AM +0100, Georg C. F. Greve wrote:
->  || On Thu, 12 Feb 2004 23:37:06 +0100
->  || Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote: 
-> 
->  >> cat ./LCDD/brightness
->  >> <not supported>
-> 
->  bd> For an LCD device, that not very fun unfortunately :(
-> 
-> I'm not sure how these relate to each other, but we're talking ASUS
-> M2N here, which uses the acpi4asus code, in which
-> 
->  /proc/acpi/asus/
->  |-- brn
->  |-- disp
->  |-- info
->  |-- lcd
->  `-- mled
-> 
-> exist. And therefore
-> 
->  /proc/acpi/asus/brn
-> 
-> normally regulates background display brightness for the LCD, while
-> lcd toggles the backlight on/off. Unfortunately both have no effect on
-> the dead screen after S3.
-> 
-> Don't know whether/how this interacts with your code.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig8B9D7591F7F0762A092F5D25
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Well, then I really need to make one marked 'medium' of the TODO list
-which read:
-- implement an interface so that external modules can be made, like the
-  asus, toshiba specifics.
+> Wait, the processor is an opteron?  If yes, my remark I send was only
+> for powernow-k7, it does not apply to powernow-k8.
 
-At least for the asus case.
+It's a mobile AMD Athlon 64. Shucks then. As I am not running 2.6 series 
+until ATI fixes the AGP problems I encountered with their driver, it is 
+not something I'll worry about right now.
 
->  >> cat ./ROM
->  >> <TODO>
-> 
->  bd> Well, that need to be done as said, even though in fact that is
->  bd> really uncommon though.
-> 
-> I know -- just wanted to give you the complete picture. .)
+Martijn
 
-At least it don't oops :)
+--------------enig8B9D7591F7F0762A092F5D25
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Thanks,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
--- 
-Bruno Ducrot
+iD8DBQFALA3S3xaj2GOvgP0RAhlJAKDIdG1/EeLFFZk3r6vzmTfAl471CgCfTuE4
+m4WHouXUAIkTC8VsU440Zg4=
+=jXsy
+-----END PGP SIGNATURE-----
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+--------------enig8B9D7591F7F0762A092F5D25--
 
 
 -------------------------------------------------------
