@@ -1,14 +1,14 @@
-From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: Re: CONFIG_DEBUG_SLAB=y prevents kernel panic
-Date: Sat, 06 Dec 2003 03:05:51 -0600
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: Tell user when ACPI is killing machine
+Date: Sat, 6 Dec 2003 12:14:00 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FD19BEF.2060807@comcast.net>
-References: <3FD0F0DE.4050708@comcast.net> <1070673944.30487.17.camel@dhcp23.swansea.linux.org.uk>
+Message-ID: <20031206111400.GA403@elf.ucw.cz>
+References: <3ACA40606221794F80A5670F0AF15F8401720BFD@pdsmsx403.ccr.corp.intel.com> <20031204095454.GC6911@atrey.karlin.mff.cuni.cz> <1070532076.1645.42.camel@golgoth01> <20031204105621.GE11044@atrey.karlin.mff.cuni.cz> <yw1x8ylsltb3.fsf@kth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1070673944.30487.17.camel-Z+iYsftfazAXoXS6vNje7nviChZXdy279dF7HbQ/qKg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <yw1x8ylsltb3.fsf-UNjuZkX4dYU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,36 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: M?ns Rullg?rd <mru-UNjuZkX4dYU@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alan Cox wrote:
-> On Gwe, 2003-12-05 at 20:55, Ian Pilcher wrote:
-> 
->>The question is, where do I go from here?  The help for
->>CONFIG_DEBUG_SLAB makes it seem unlikely that this is the root cause,
->>but I don't have any idea how I can debug this further.
-> 
-> 
-> If that is really what makes the difference then 99 times out of 100 you
-> are looking for code that kmallocs memory and then relies on its content
-> without clearing it.
-> 
-> 
+Hi!
 
-Setting CONFIG_DEBUG_SLAB is definitely the deciding factor.  (I editted
-the i686-smp config file and rebuilt the SRPM; voila!, it boots with
-ACPI turned on.)
+> >> I have a similar problem since test10 and test11 (2.4.23 is ok, test9 is
+> >> ok too). ACPI reports bogus temperatures and powers the machine
+> >> down.
+> >
+> >> If you have a patch that could fix that problem, I'm ready to try it and
+> >> report success or failure ;)
+> >
+> > I have ugly workaround ("if temperature reported is > 200Celsius,
+> > ignore it").
+> 
+> I'm just curious, are these (and other ACPI related) problems caused
+> by bugs in Linux, or by hardware/firmware bugs?
 
-Any suggestions on how I can find the offending code?
-
+Its hard to tell one from another without extensive debugging...
+								Pavel
 -- 
-========================================================================
-Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-========================================================================
-
-
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
