@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Several problems with sleep states
-Date: Fri, 27 Feb 2004 13:19:31 +0100
+Date: Fri, 27 Feb 2004 14:16:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040227121931.GB8316@hell.org.pl>
-References: <403F0BA9.6060905@lip6.fr> <20040227103312.GM2869@poupinou.org>
+Message-ID: <20040227131653.GN2869@poupinou.org>
+References: <403F0BA9.6060905@lip6.fr> <20040227103312.GM2869@poupinou.org> <20040227121931.GB8316@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040227103312.GM2869-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20040227121931.GB8316-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,21 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Bruno Ducrot:
-> You should try with swsusp instead and with /proc/acpi/sleep by now.
-> pmdisk apparently does support only S4BIOS (and you don't have s4bios,
-> looking the dmesg), not S4.
+On Fri, Feb 27, 2004 at 01:19:31PM +0100, Karol Kozimor wrote:
+> Thus wrote Bruno Ducrot:
+> > You should try with swsusp instead and with /proc/acpi/sleep by now.
+> > pmdisk apparently does support only S4BIOS (and you don't have s4bios,
+> > looking the dmesg), not S4.
+> 
+> It does support plain S4, at least it sorta-works for me.
+> Best regards,
 
-It does support plain S4, at least it sorta-works for me.
-Best regards,
+Ok, then I guess those comments in drivers/acpi/main.c
+
+
+        /* do we have a wakeup address for S2 and S3? */
+        /* Here, we support only S4BIOS, those we set the wakeup address
+        /* S4OS is only supported for now via swsusp.. */
+
+are no more appropriate?
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
