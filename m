@@ -1,10 +1,14 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Returned Mail: Error During Delivery
-Date: Tue, 27 Jul 2004 19:15:23 +0000 (UTC)
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACPI: S3 and PAE do not like each other for now, S3 disabled.
+Date: Mon, 26 Jul 2004 23:00:12 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1BpXMt-0005Ze-7T@sc8-sf-mx2.sourceforge.net>
+Message-ID: <20040726210011.GB21889@openzaurus.ucw.cz>
+References: <200407252330.05542.arekm@pld-linux.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: Webshield SMTP V4.5 MR1a Mail Service
+Content-Disposition: inline
+In-Reply-To: <200407252330.05542.arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -13,101 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Tue Jul 27 15:11:44 2004
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-    ---- Failed Recipients ----
+Hi!
 
-<pgmdsg-/X6VYK7xyaY@public.gmane.org>
+> Is this ,,ACPI: S3 and PAE do not like each other for now, S3 disabled.''
+> generic S3 and PAE issue or just Linux issue only?
 
+Linux only. Hmm with recent enough kernel we needed to fix this for
+different reason, so it might just work.
 
-Requested action not taken: mailbox unavailable. [SMTP Error Code 550]
-
-    ---- Contents of the undelivered mail ----
-
-Received: From lif.com ([200.164.225.89]) by ibixmaila.ibi.com (WebShield SMTP v4.5 MR1a);
-	id 1090955502695; Tue, 27 Jul 2004 15:11:42 -0400
-Date: Tue, 27 Jul 2004 16:12:23 -0300
-To: "Pgmdsg" <pgmdsg-/X6VYK7xyaY@public.gmane.org>
-From: "Acpi-devel" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re:
-Message-ID: <fxconqqlfwbqofhlzny-/X6VYK7xyaY@public.gmane.org>
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="--------mkfhkjbivtgkpydxsfxu"
-
-----------mkfhkjbivtgkpydxsfxu
-Content-Type: text/html; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-<html><body>
->fotogalary and Music<br><br>
-
-
-<br> :)<img src="cid:hxuzstlnio.bmp"><br>
-<br>
-</body></html>
-
-----------mkfhkjbivtgkpydxsfxu
-Content-Type: image/bmp; name="hxuzstlnio.bmp"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="hxuzstlnio.bmp"
-Content-ID: <hxuzstlnio.bmp>
-
-Qk0eCQAAAAAAADYAAAAoAAAAOwAAABMAAAABABAAAAAAAOgIAAAAAAAAAAAAAAAAAAAAAAAA
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9//38fQl8IXwgfQv9//38fY18IXwhfCJ9S
-/3//fx9jH0JfCF8In1L/f/9//3//f/9/XwhfCP9//38fYx9CXwhfCJ9S/3//f/9//3//f/9/
-/3//f/9//3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9/n1JfCJ9Sn1JfCJ9S
-/38fQl8IH2OfUl8IH2P/fx9CXwgfY59SXwifUv9//3//f/9/XwhfCP9//38fQl8IH2OfUl8I
-n1L/f/9//3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9/
-H0JfCP9//39fCB9C/3//f/9//3//f18IH0L/f/9//3//f/9/XwhfCP9//3//f/9/XwhfCP9/
-/3//f/9//3//f18IXwj/f/9//3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9//3//f/9/
-/3//f/9//3//f/9/XwhfCP9//39fCF8I/3//f/9//3//f18IXwj/f/9//3//f/9/XwhfCP9/
-/3//f/9/XwhfCP9//3//f/9//3//f18IXwj/f/9//3//f/9//3//f/9//3//f/9//3//fwAA
-/3//f/9//3//f/9//3//f/9//3//f/9/XwhfCP9//39fCF8I/3//fx9CXwgfQl8IXwj/f/9/
-/3//f59SXwgfQv9//3//f/9/XwhfCP9//3//f/9//3+fUl8IH0L/f/9//3//f/9//3//f/9/
-/3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9/XwhfCP9//39fCF8I/38fQl8I
-H2MfY18IXwj/f/9//39fCF8IXwj/f/9//3//f/9/XwhfCP9//3//f/9/XwhfCF8I/3//f/9/
-/3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9/XwhfCP9/
-/39fCF8I/39fCF8I/3//f18IXwj/f/9//3//f59SXwgfQv9//38fQv9/XwhfCP9//3//f/9/
-/3+fUl8IH0L/f/9//3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9//3//f/9//3//f/9/
-/3//f/9/H0JfCP9//39fCB9C/39fCF8I/3//f18IH0L/f/9//3//f/9/XwhfCP9//39fCB9C
-XwhfCP9//3//f/9//3//f18IXwj/f/9//3//f/9//3//f/9//3//f/9//3//fwAA/3//f/9/
-/3//f/9//3//f/9//3//f/9/n1JfCJ9Sn1JfCJ9S/38fQl8IH2OfUl8In1L/fx9CXwgfYx9j
-XwgfQv9//38fYx9CXwhfCP9//38fQl8IH2MfY18IH0L/f/9//3//f/9//3//f/9//3//f/9/
-/3//fwAA/3//f/9//3//f/9//3//f/9//3//f/9//38fQl8IXwgfQv9//3//fx9CXwhfCJ9S
-/3//fx9jH0JfCF8IH0L/f/9//3//f/9/H0JfCP9//38fYx9CXwhfCB9C/3//f/9//3//f/9/
-/3//f/9//3//f/9//3//fwAA/////////3//f/9//3//f/9//3//f/9//3//f/9/////f/9/
-/3//f/9///////9//3//f/9//3//f/9//3////9//3//f/9//3///////3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//fwAA/3//f///////////////////////f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9///////////////////////9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3///wAA/3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3////////////9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//fwAA
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9//3//f/9/
-/3//f/9//3//fwAA
-
-----------mkfhkjbivtgkpydxsfxu
-Content-Type: application/octet-stream; name="Doll.zip"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="Doll.zip"
-
-
-
-----------mkfhkjbivtgkpydxsfxu--
+Remove check, test it, if it works submit a patch.
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
 
 
