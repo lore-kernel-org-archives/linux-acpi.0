@@ -1,79 +1,80 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [ACPI] [PATCH 1/2] 2.6: use scaling_available_freqs in
-	acpi-cpufreq-ioport driver
-Date: Mon, 1 Mar 2004 19:03:25 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040301180325.GA562@elf.ucw.cz>
-References: <20040220083149.GA10215@dominikbrodowski.de>
-	<20040224125628.GA438@elf.ucw.cz>
-	<20040224210040.GA8166@dreamcraft.com.au>
-	<20040224221642.GB9145@elf.ucw.cz>
-	<20040226172823.GJ2869@poupinou.org>
-	<20040226215006.GB397@elf.ucw.cz>
-	<20040301175430.GY2869@poupinou.org>
+From: Stefan Behlert <behlert-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: ACPI C4 support
+Date: Mon, 1 Mar 2004 19:09:58 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040301180958.GI2624@suse.de>
+References: <20040228161011.GA10448@elf.ucw.cz> <20040301152810.GT2869@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040301175430.GY2869@poupinou.org>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: Bruno Ducrot <ducrot@poupinou.org>
-Cc: Tomasz Ciolek <tmc@dreamcraft.com.au>, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+In-Reply-To: <20040301152810.GT2869-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> On Thu, Feb 26, 2004 at 10:50:06PM +0100, Pavel Machek wrote:
-> > On ??t 26-02-04 18:28:23, Bruno Ducrot wrote:
-> > > On Tue, Feb 24, 2004 at 11:16:42PM +0100, Pavel Machek wrote:
-> > 
-> > > > >  have a loook at the "userpace frequency governer" under 2.6.x 
-> > > > 
-> > > > That's not the same. frequency governor can select frequency *from the
-> > > > set provided by BIOS*. I want to override frequency/voltage table from
-> > > > bios.
-> > > 
-> > > It need to be done IMO in a driver, definitely not in cpufreq core, and
-> > > worst that may need to be adapted to the acpi perflib certainly (when
-> > > all pending patches for will go to mainstream I guess).
-> > 
-> > Well, it still looks pretty generic to me. Having same code in k7
-> > and k8 drivers does not sound right.
+Moin,
+
+On Mar 01, 04 16:28:10 +0100, Bruno Ducrot wrote:
+> On Sat, Feb 28, 2004 at 05:10:11PM +0100, Pavel Machek wrote:
+> > Hi!
+> > Thomas told me:
+> > >what about C4 - Cn states in the kernel implementation?
+> > >A short look into the /proc/acpi/processor/.../power file let me think
+> > >that only C0-C3 is supported by the kernel, even specification talks
+> > >about Cn states?
+> > As a first step, it would be nice if kernel at least used C0..C3 if
+> > the machine supports them... This should do the trick. Does it look
+> > okay?
 > 
-> That can be shared by the two drivers if that is needed, but I don't
-> think that part going to the cpufreq frequency tables.
-> But I espected that powernow k7 and k8 are different beasts enough?
-> There is no rvo, irt etc. for example in powernow-k7.
+> No.  pblk_length is 0 or 6.  Not 5 nor 7 ;)
 
-They are different, but like every other driver, they have table of
-(voltage, frequency) pairs, and that table is exactly the thing user
-is trying to override. [And that's probably same with all other
-drivers..] 
+Sorry, I don't understand: We've a Laptop with a DSDT with
+  Processor (\_PR.CPU0, 0x01, 0x00001010, 0x07)
+in it.
+Comment from the responsible BIOS-team:
+"Our processor block object is 7 bytes in length because we also support
+ C4 (P_LVL4) which is at <P_BLK>+6.  Therefore, the size/length must be
+ reported as 7 and not 6."
 
-As long as people don't want to change rvo, irt, etc, we should be
-fine.
-
-First step in that direction would be to have voltage in milivolts in
-those frequency tables, so that core can print them etc... like this:
-
---- clean/include/linux/cpufreq.h	2004-01-09 20:24:26.000000000 +0100
-+++ linux/include/linux/cpufreq.h	2004-03-01 19:02:48.000000000 +0100
-@@ -316,6 +316,7 @@
- 	unsigned int	index;     /* any */
- 	unsigned int	frequency; /* kHz - doesn't need to be in ascending
- 				    * order */
-+	unsigned int	voltage;   /* mV */
- };
- 
- int cpufreq_frequency_table_cpuinfo(struct cpufreq_policy *policy,
+Is the '7' the BIOS-developer mentioned the same '7' as mentioned by you?
 
 
-								Pavel
+> 
+> Look at http://bugzilla.kernel.org/show_bug.cgi?id=1958
+
+> 
+> Note that I don't have time to work on it by now.  When the acpi video
+> extension will be OK, I will rework on that one unless someone else do
+> the work.
+
+Thanks.
+
+> 
+> -- 
+> Bruno Ducrot
+
+        caio,
+          Stefan
+
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Stefan Behlert, SUSE LINUX AG,
+Mobile Devices
+ 
+Maxfeldstr. 5, D-90409 Nuernberg, Germany
+Phone +49-(0)911-74053-173
+
+
+-------------------------------------------------------
+SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+Build and deploy apps & Web services for Linux with
+a free DVD software kit from IBM. Click Now!
+http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
