@@ -1,13 +1,15 @@
-From: =?iso-8859-1?Q?=C9ric?= Brunet <ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
-Subject: S1 on 2.4.20 kernel and dvdroms
-Date: Thu, 31 Oct 2002 15:57:21 +0100
+From: "Don Langworthy" <dbl-t4aQvBRgbK03GDxJruMu3g@public.gmane.org>
+Subject: RE: 2002-10-22 processor&thermal module broken?
+Date: Thu, 31 Oct 2002 07:02:29 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021031145721.GB27096@lps.ens.fr>
+Message-ID: <000001c280ee$9c442a80$02ffff0a@DigitalCog>
+References: <1035676074.1478.7.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1035676074.1478.7.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,33 +21,48 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all,
+I have the same symptoms here on a Sony Viao.
 
-I am using the acpi patches 20021002 on a 2.4.20-pre10 kernel.
+Andy:  I'm willing to help out debugging if needed.
 
-I got S1 working, but, after a restore I noticed that my dvdrom wouldn't
-work anymore: if I try to acces the drive, the activity led goes solid, I
-hear the dvdrom spining, and the computer freezes. Of course, the dvdrom
-works perfectly before I put the computer to S1.
 
-After some investigation with hdparm, it appears that before S1, the
-dvdrom is in udma2 state, and after S1 it is in mdma2 state. And, surely
-enough, if I do
+Don Langworthy
+dbl-t4aQvBRgbK03GDxJruMu3g@public.gmane.org
 
-	hdparm -X66 /dev/hdc
-
-before using my dvdrom, it works perfectly.
-
-My question is: shouldn't the acpi subsystem take care of restoring the
-dvdrom state for me ?
-
-By the way, is swsup in 2.4.45 supposed to work, or should I wait for
-2.5.46 ?
-
-Regards,
-
-	=C9ric Brunet
-
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of S=E9rgio Monteiro Basto
+> Sent: Saturday, October 26, 2002 4:48 PM
+> To: Markus Gaugusch
+> Cc: acpi-devel
+> Subject: Re: [ACPI] 2002-10-22 processor&thermal module broken?
+>=20
+> > I just tried 2.4.20-pre11 with latest acpi patch (+ swsusp) and
+there is
+> > no processor/thermal entry in my /proc anymore. Any hints?
+>=20
+>=20
+> With 20021002 /proc/processor exits
+> with 20021022 /proc/processor disappears
+>=20
+> so I have the same problem on a compaq pressario 706EA.
+>=20
+> thanks
+>=20
+> S=E9rgio Basto
+>=20
+>=20
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.net email is sponsored by: ApacheCon, November 18-21 in
+> Las Vegas (supported by COMDEX), the only Apache event to be
+> fully supported by the ASF. http://www.apachecon.com
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 
