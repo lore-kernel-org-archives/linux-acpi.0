@@ -1,14 +1,11 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: acpi on r40e
-Date: Tue, 10 Feb 2004 08:12:32 -0800 (PST)
+From: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org
+Subject: [PATCH] ACPI/Processor: C1/C3 states promotion and demotion
+Date: Mon,  9 Feb 2004 15:07:19 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040210081120.W80646@root.org>
-References: <Pine.LNX.4.44.0402072145280.2886-100000@aero.iisc.ernet.in>
- <1076387688.4110.576.camel@dhcppc4>
+Message-ID: <1076335639.40279417dabd5@mailetu.utc.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="-MOQ10763356399e8609a79e93f8b7fbef69671405ef26"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1076387688.4110.576.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +14,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Praveen C <praveen-8a50ANe9Mx0/NI2e8YfAcJ/QNRX+jHPU@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 9 Feb 2004, Len Brown wrote:
-> On Sat, 2004-02-07 at 11:20, Praveen C wrote:
-> > Another problem with acpi which I forgot to mention is that it makes
-> > the special buttons for volume and brightness control ineffective. If I
-> > boot the same kernel with acpi=off those buttons work fine.
->
-> Interesting.
-> If you boot, say with "acpi=off", your volume and brightness buttons
-> work, but if you boot with ACPI enabled they have no effect?
->
-> you DSDT has an IBM defined device:
->
->                     Device (HKEY)
->                     {
->                         Name (_HID, EisaId ("IBM0068"))
->
-> which sure sounds like it might be a hot-key device;-)
-> However, not immediately clear to me how ACPI w/o vendor-specific
-> extensions would talk to it.  Even more unclear is how and why these
-> buttons work when ACPI is disabled, and how ACPI interferes with their
-> proper operation when it is enabled.
+This message is in MIME format.
 
-In the APM case, SMM handles the buttons.  In the ACPI case, the SMI is
-tristated and the SCI is used.  However, Linux has no IBM hotkey driver
-and hence his volume buttons don't work.
+---MOQ10763356399e8609a79e93f8b7fbef69671405ef26
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
--Nate
+Hello,
+
+Some processors seems to support only C1 and C3 states, for instance... m=
+ine ;-)
+(Pentium III Coppermine). The problem is that, in this case, no promotion=
+ or
+demotion are linking those two states, therefore the preocessor never goe=
+s to C3!
+
+The attached patch (against kernel 2.6.1) should do the trick, that's mai=
+nly a
+copy-paste of the C2/C3 code. It works fine on my computer (and the tempe=
+rature
+really goes down :-) ).
+
+Hopefully you'll like it,
+Eric Piel
+
+---MOQ10763356399e8609a79e93f8b7fbef69671405ef26
+Content-Type: text/x-patch; name="acpi-processor-c1-c3-promotion.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="acpi-processor-c1-c3-promotion.patch"
+
+LS0tIGRyaXZlcnMvYWNwaS9wcm9jZXNzb3IuYy5vcmlnCTIwMDQtMDItMDUgMTk6Mzg6MDYuMDAw
+MDAwMDAwICswMTAwCisrKyBkcml2ZXJzL2FjcGkvcHJvY2Vzc29yLmMJMjAwNC0wMi0wOCAyMjo0
+NjozOC43MjgyNTk5ODQgKzAxMDAKQEAgLTU4Niw2ICs1ODYsMjYgQEAKIAkJcHItPnBvd2VyLnN0
+YXRlc1tBQ1BJX1NUQVRFX0MzXS5kZW1vdGlvbi50aHJlc2hvbGQuYm0gPSAweDBGOwogCQlwci0+
+cG93ZXIuc3RhdGVzW0FDUElfU1RBVEVfQzNdLmRlbW90aW9uLnN0YXRlID0gQUNQSV9TVEFURV9D
+MjsKIAl9CisJLyoKKwkgKiBDMS9DMworCSAqIC0tLS0tCisJICogU2V0IHByb21vdGlvbiBhbmQg
+ZGVtb3Rpb24gYmV0d2VlbiBDMSBhbmQgQzMgaW4gY2FzZSB0aGVyZSBpc24ndAorCSAqIGFueSBD
+MiBzdGF0ZSBhdmFpbGFibGUKKwkgKi8KKwlpZiAoKCFwci0+cG93ZXIuc3RhdGVzW0FDUElfU1RB
+VEVfQzJdLnZhbGlkKSAmJgorCQkocHItPnBvd2VyLnN0YXRlc1tBQ1BJX1NUQVRFX0MzXS52YWxp
+ZCkpIHsKKwkJcHItPnBvd2VyLnN0YXRlc1tBQ1BJX1NUQVRFX0MxXS5wcm9tb3Rpb24udGhyZXNo
+b2xkLmNvdW50ID0gNDA7CisJCXByLT5wb3dlci5zdGF0ZXNbQUNQSV9TVEFURV9DMV0ucHJvbW90
+aW9uLnRocmVzaG9sZC50aWNrcyA9CisJCQlwci0+cG93ZXIuc3RhdGVzW0FDUElfU1RBVEVfQzNd
+LmxhdGVuY3lfdGlja3M7CisJCXByLT5wb3dlci5zdGF0ZXNbQUNQSV9TVEFURV9DMV0ucHJvbW90
+aW9uLnRocmVzaG9sZC5ibSA9IDB4MEY7CisJCXByLT5wb3dlci5zdGF0ZXNbQUNQSV9TVEFURV9D
+MV0ucHJvbW90aW9uLnN0YXRlID0gQUNQSV9TVEFURV9DMzsKKworCQlwci0+cG93ZXIuc3RhdGVz
+W0FDUElfU1RBVEVfQzNdLmRlbW90aW9uLnRocmVzaG9sZC5jb3VudCA9IDE7CisJCXByLT5wb3dl
+ci5zdGF0ZXNbQUNQSV9TVEFURV9DM10uZGVtb3Rpb24udGhyZXNob2xkLnRpY2tzID0KKwkJCXBy
+LT5wb3dlci5zdGF0ZXNbQUNQSV9TVEFURV9DM10ubGF0ZW5jeV90aWNrczsKKwkJcHItPnBvd2Vy
+LnN0YXRlc1tBQ1BJX1NUQVRFX0MzXS5kZW1vdGlvbi50aHJlc2hvbGQuYm0gPSAweDBGOworCQlw
+ci0+cG93ZXIuc3RhdGVzW0FDUElfU1RBVEVfQzNdLmRlbW90aW9uLnN0YXRlID0gQUNQSV9TVEFU
+RV9DMTsKKwl9CiAKIAlyZXR1cm5fVkFMVUUoMCk7CiB9Cg==
+
+---MOQ10763356399e8609a79e93f8b7fbef69671405ef26--
+
 
 
 -------------------------------------------------------
