@@ -1,10 +1,10 @@
-From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
-Subject: Compaq Evo 510SFF and ACPI
-Date: 03 Jul 2003 19:33:56 +0200
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Various questions about EC and the spec
+Date: Thu, 3 Jul 2003 15:51:03 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87el17seez.fsf@lapper.ihatent.com>
+Message-ID: <20030702163127.T90754@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,35 +17,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a few Compaq Evo's that show the same symptom:
+1. The 2.0B spec has a typo, I believe.  Section 13.3.3 says "remain
+dedicated to the OSPM for ~1 microsecond"  when I believe it should be
+"~1 millisecond".  (See "Total Burst Time" which is correct I believe).
 
-ACPI: Searched entire block, no RSDP was found.
-ACPI: RSDP located at physical address c00eaa10
-RSD PTR  v0 [COMPAQ]
-__va_range(0xf7f7b40, 0x68): idx=10 mapped at ffff5000
-ACPI table found: RSDT v1 [COMPAQ CPQ0050  8194.4656]
-ACPI: Too big length in RSDT: 120
+2. The last sentence of 13.2.1 conflicts with 13.3.3.  13.2.1 says that
+burst mode prevents the overhead of SCIs.  However, 13.3.3 says that while
+in burst mode, the EC continues to generate SCIs as normal.  Which is it?
 
-The PCI inventory looks like this:
-00:00.0 Host bridge: Intel Corp. 82845G/GL [Brookdale-G] Chipset Host Bridge (rev 01)
-00:02.0 VGA compatible controller: Intel Corp. 82845G/GL [Brookdale-G] Chipset Integrated Graphics Device (rev 01)
-00:1d.0 USB Controller: Intel Corp. 82801DB USB (Hub #1) (rev 01)
-00:1d.1 USB Controller: Intel Corp. 82801DB USB (Hub #2) (rev 01)
-00:1d.7 USB Controller: Intel Corp. 82801DB USB EHCI Controller (rev 01)
-00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB PCI Bridge (rev 81)
-00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 01)
-00:1f.1 IDE interface: Intel Corp. 82801DB ICH4 IDE (rev 01)
-00:1f.5 Multimedia audio controller: Intel Corp. 82801DB AC'97 Audio (rev 01)
-05:08.0 Ethernet controller: Intel Corp. 82801BD PRO/100 VM (LOM) Ethernet Controller (rev 81)
+3. The description of disabling burst mode (13.3.3) says the same
+thing twice.  The last two sentences both say the EC clears the burst
+enable bit.  I think the last sentence should be removed.
 
-Any pointers to why it behaves like this?
+4. I was looking at different implementations of EcSpaceHandler().  Ours
+in FreeBSD can handle any width divisible by 8 (8,16,32).  Linux handles
+widths == 8.  Since the EC space is 256 8 bit bytes, is multi-byte access
+required?  Thoughts on if it will ever be?
 
-mvh,
-A
--- 
-Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
-"You have zero privacy anyway. Get over it."  --Scott McNealy
+Thanks,
+-Nate
 
 
 -------------------------------------------------------
