@@ -1,14 +1,20 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Wake on RTC alarm?
-Date: 22 May 2004 23:05:15 -0400
+Subject: Re: Centrino question
+Date: 22 May 2004 23:20:09 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1085281515.12352.718.camel@dhcppc4>
-References: <40AE00BA.3040603@linuxmail.org>
+Message-ID: <1085282408.12353.730.camel@dhcppc4>
+References: <3ACA40606221794F80A5670F0AF15F8404622C57@PDSMSX403.ccr.corp.intel.com>
+	 <20040520015748.776d5b84.neurowork@free.fr>
+	 <1085111429.12352.563.camel@dhcppc4>
+	 <20040521125637.33f69fc6.neurowork@free.fr>
+	 <20040521115207.GA12775@hell.org.pl>
+	 <1085161136.9856.5.camel@Neuromancer.home.net>
+	 <20040521184830.GG31690@mh57.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40AE00BA.3040603-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+In-Reply-To: <20040521184830.GG31690-lb+GC1uVkU0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,24 +23,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Martin Hermanowski <martin-lb+GC1uVkU0@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-05-21 at 09:14, Nigel Cunningham wrote:
-> Hi all.
+On Fri, 2004-05-21 at 14:48, Martin Hermanowski wrote:
+> On Fri, May 21, 2004 at 10:38:57AM -0700, Ow Mun Heng wrote:
+> > On Fri, 2004-05-21 at 04:52, Karol Kozimor wrote:
+> > > Thus wrote Cyril Wattebled:
+> > > > However, I don't understand, I was told that the centrino processor and chipset
+> > > > supports C3 and even C4.
+> > 
+> > C3 is Supported
+> > 
+> > 
+> > active state:            C2
+> > default state:           C1
+> > bus master activity:     ffffffff
+> > states:
+> >     C1:  promotion[C2] demotion[--] latency[000] usage[01028830]
+> >    *C2: promotion[C3] demotion[C1] latency[050] usage[04785987]
+> >     C3:  promotion[--] demotion[C2] latency[050] usage[00001327]
+> > 
+> > This is a Dell D600 1.4g. c3 values are low because I have the USB mouse
+> > on right now. (note the fffffff??)
 > 
-> Kernel 2.4.26.
-> 
-> I've fiddled a little today with getting my laptop to wake when the RTC 
-> alarm goes off. I can set the alarm, and can see that an interrupt 
-> occurs at the appointed time (cat /proc/interrupts). If however I 
-> suspend to disk, it doesn't power on. Is there further glue I need to 
-> make the alarm actually trigger a wake? I've looked at documentation 
-> that talks about enabling wake GPEs, and guess that is what I need. Am I 
-> right?
+> The same here (ibm t41p, 1.7GHz). Using USB forces c2. But c1 seems to be used
+> very seldom (usage count of 10).
 
-Yes, you're right, and the wake-GPE fix is in the pipeline.
+Known issue with C1 and C2...
+When C2 has very low latency, say 1, then after we're in C1
+10 times and promote to C2, we never demote to C1 again, ever.
+
+The processor driver is tracking how successful we are at
+being idle, but is not tracking how non-idle the system is,
+so our current demotion policy is somewhat simplistic.
+
+-Len
 
 
 
