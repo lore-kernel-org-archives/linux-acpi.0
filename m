@@ -1,15 +1,15 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: Possible mistake in DSDT pages on acpi.sf.net
-Date: Tue, 10 Feb 2004 11:32:31 +0100
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume
+ on Centrino notebook (contains agp, lapic, swsusp)]
+Date: Tue, 10 Feb 2004 11:32:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040210103231.GA19342@fuchi>
-References: <LAW11-OE22OdHFSux6V0002b246@hotmail.com> <20040126132320.GB30527@fuchi>
+Message-ID: <m3oes76x8l.fsf@brain.gnuhh.org>
+References: <1076374686.3429.1.camel@darkstar>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040126132320.GB30527-5sK/Rx+du8M@public.gmane.org>
+In-Reply-To: <1076374686.3429.1.camel-4/PLUo9XfK8@public.gmane.org> =?iso-8859-1?q?=28S=E9rgio?= Monteiro Basto's message of "Tue, 10 Feb 2004 00:58:06 +0000")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,72 +18,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+ || On Tue, 10 Feb 2004 00:58:06 +0000
+ || S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org> wrote:=20
 
---2oS5YaxWCcQjTEyO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ >> If your laptop is one APIC victim, I think until this problem
+ >> isn't resolved, suspend/resume also doesn't work, is my guess.
 
-hello again...
+My laptop definitely experiences the ACPI+APIC troubles, but I'm not
+sure whether that is what you refer to as "victim." :)
 
-FYI:
-since nobody has answered to the issue below, i took a look into the
-specs (2.0c) and decided that dino is right.
-so the DSDT pages and the database have been changed to reflect this.
-hm, nobody has used these fields anyway. >:)
+However: suspend/resume _almost_ work under 2.6.x -- the problem is
+the AGP code, it seems.=20
 
-cheers,
- sebastian
+If I disable AGP, DRM/DRI and the intel framebuffer (which depends on
+intel AGP! vesa fb is activated and works, though), compile at least
+yenta_socket as a module, I can do suspend to disk (swsusp2) on kernel
+2.6.2 and resume even while X11 is running.
 
-* Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org> [2004-01-26 15:54 +0100]:
->=20
-> * Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org> [2004-01-26 14:12 +0100]:
-> > I think there might be a mistake on the acpi.sf.net site, where the DSD=
-Ts are displayed.
-> > There are two entries that say "S2 Latency", and "S3 Latency"; however,=
- I think that it is supposed to be C2 and C3 latencies.
-> > Please correct me if I'm wrong.
->=20
-> dino and i already had a little discussion about this where he wrote:=20
->=20
-> -----------
->=20
-> In the ACPI 1.0b specs, section "5.2.5 Fixed ACPI Description Table", on
-> page 115 you will find P_LVL2_LAT & P_LVL3_LAT. I read most of the ACPI
-> 1.0b specs, and a bit of 2.0, and didn't see anytying about the Sx latenc=
-y.
-> The Duty Width parameter also comes from that table, so that's why I'm=20
-> inclined to think that the other params came from there as well.
->=20
-> -----------
->=20
->=20
-> before changing this, i wanted to read the opinions of people who _really_
-> know what this is about. :)
+The moment I enable AGP (no DRM/DRI, no intel fb), things break.
+
+As for S1/S3, it seems that S1 is almost/more or less working, but I
+can only wake up the machine with the power button and that creates an
+event to shut down the machine. :-/ Oh yeah: and the keyboard is
+broken after resume from S1.
+
+On S3, the machine comes back up -- apparently with working keyboard,
+although I can't be 100% sure -- and the screen is dead. After typing
+"ifup eth0" on the console I can log into it over the network,
+though. :)
+
+On the swsusp2 list, someone made a survey and found out that noone
+has AGP working on 2.6.x for their Centrino notebooks. So the problem
+really seems to be with the graphics/AGP/ACPI support of the Intel
+855GM/PM chipsets.
+
+Is there any way people can help to make sure someone finds the time
+to look into this?
+
+Regards,
+Georg
 
 --=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---2oS5YaxWCcQjTEyO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAKLM/reHfL3pi+bQRAlq9AJ9W9AVqL70Rs1PuGllwuuDGRg46cQCfZsbt
-t9BHllyAhqglARultcbELPY=
-=2ocr
------END PGP SIGNATURE-----
-
---2oS5YaxWCcQjTEyO--
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
 
 -------------------------------------------------------
