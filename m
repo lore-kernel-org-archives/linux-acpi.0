@@ -1,16 +1,19 @@
-From: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
-Subject: Re: Computer Resets on Resume From S3
-Date: Fri, 21 Nov 2003 23:33:10 +0000
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] resend Andrew de Quincey patch, that resolve
+	hangs problems
+Date: 21 Nov 2003 22:06:18 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200311212333.10341.jak97@doc.ic.ac.uk>
-References: <200311201522.15255.jak97@doc.ic.ac.uk> <20031121211607.GA882@elf.ucw.cz>
+Message-ID: <1069470377.2880.27.camel@dhcppc4>
+References: <571ACEFD467F7749BC50E0A98C17CDD8E84DC4@pdsmsx403.ccr.corp.intel.com>
+	 <1068179499.3555.26.camel@darkstar.portugal>
+	 <1068506148.1703.52.camel@darkstar.portugal>
+	 <1068531948.2682.1076.camel@dhcppc4>
+	 <1068599493.2115.34.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031121211607.GA882-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1068599493.2115.34.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,50 +22,61 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 21 November 2003 9:16 pm, Pavel Machek wrote:
->
-> Inserting infinite loops can be used for debugging. Or debug leds on
-> pci card...
-> 								Pavel
+On Tue, 2003-11-11 at 20:11, S=E9rgio Monteiro Basto wrote:
+> Windows run with APIC mode (at least is what windows says) and in linux
+> we must disable APIC in kernel.
 
-Right, I inserted an infinite loop in drivers/acpi/sleep/main.c, just after  
-printk(KERN_DEBUG "Back to C!\n"); in acpi_pm_enter()
+Does Windows have ACPI enabled?  (Device Manager will show ACPI devices,
+power button and sleep button will work gracefully).  Does winmsd show
+that windows is running in IOAPIC mode?  see this bug report for example
+screen shots of what you're looking for:
 
-        /* Johnny's infinite loop */
-        for (;;) ;
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1164
 
-However, the computer must have rebooted before then. Next thing I tried was 
-an infinite loop in arch/i386/kernel/acpi/wakeup.S as the first thing for the 
-wakeup_start routine.
+> > If Windows can run a box in IO-APIC mode, then Linux should be able t=
+o
+> > do the same.
+> >=20
+> > I hesitate to integrate Andrew's automatic pic-fallback workaround in=
+to
+> > the baseline kernel because I'm concerned that it will function
+> > perfectly.  If we drop into PIC mode automatically, we may not realiz=
+e
+> > that we have a significant Linux-specific problem that we might be ab=
+le
+> > to solve.
+>=20
+> But we have many reports, for VIA or athlon boards, that resolves the
+> problems and we have many problem that wasnt yet resolved.
+> In my case, the laptop has 2 years and it is history, so I am not worry
+> about what is the real problem.
+> Conclusion if you put debug information when drop into pic mode, for me
+> it better.=20
 
-ENTRY(wakeup_start)
-wakeup_code:
-        wakeup_code_start = .
-        .code16
+The system in the bug report above has a totally screwed up _PRT, and a
+broken SCI OVER_RIDE entry in the MADT, yet XP still runs with ACPI
+enabled and working, with IOAPIC enabled, and the devices with the
+screwed up _PRT entries are working!
 
-1:
-        jmp      1b
+PIC-fallback will not get us there.  When we detect a bad _PRT, I think
+we need to drop all the way down to pci=3Dnoacpi -- automatically.
 
-This too, doesn't catch it. This makes me think that perhaps there is 
-something going wrong with the ACPI wake-up address initialisation?
+This would cover the older machines with IOAPIC that is configured
+properly with MPS -- and still allow them to run ACPI.  The newer
+machines with IOAPIC and no MPS will need ACPI to get into APIC mode,
+and if XP can do it, then Linux should be able to figure out how to do
+it too.
 
-My dmesg (with acpi debugging enabled) is at http://www.doc.ic.ac.uk/~jak97/
-dsdt/dmesg.
+So tell me, does booting with "pci=3Dnoacpi" allow your system to boot
+with correct interrupts in IOAPIC mode, and with ACPI enabled?
 
-One warning of possible significance is:
-ACPI: No IRQ known for interrupt pin A of device 0000:00:11.1 - using IRQ 255
-The 11.1 device is my IDE controller. Could this be an issue? I do not have 
-any problems with disks ordinarily.
+thanks,
+-Len
 
-Please let me know if anything stands out.
-
-Thanks
-
-John
 
 
 
