@@ -1,16 +1,14 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: S5 Powerdown problem on TX150 servers
-Date: Tue, 16 Sep 2003 09:16:15 +0100
+From: Frank Mehnert <fm3-IG//nw+yl+iQIjdd1DhZXWfrygkm6VTR@public.gmane.org>
+Subject: Re: VMware and ACPI
+Date: Tue, 16 Sep 2003 11:00:52 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309160916.15822.adq_dvb@lidskialf.net>
-References: <200309160912.15060.adq_dvb@lidskialf.net>
+Message-ID: <200309161100.52454.fm3@os.inf.tu-dresden.de>
+References: <m2k789sotw.fsf@tnuctip.rychter.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_EFtZ/srDIDM9mOp"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200309160912.15060.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <m2k789sotw.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,18 +17,106 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 16 September 2003 09:12, Andrew de Quincey wrote:
-> Hi, I have an issue with TX150 servers. Basically, they don't power down in
-> ACPI. I press the power button, and I can see the system shutting down,
-> but, although it clears the screen and kinda makes a clunking noise as if
-> the HDDs are being stopped, the fans stay running, and the power light
-> stays on.
 
-Whoops, this is kernel 2.4.23-pre3 BTW.
+--Boundary-00=_EFtZ/srDIDM9mOp
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+On Monday 15 September 2003 23:51, Jan Rychter wrote:
+> Hmm... just wondering: what happened to the VMware/ACPI interaction
+> issues that some people were reporting here?
+>
+> There were some discussions and it seemed that ACPI idling the processor
+> while VMware really wanted to use it was the cuplrit. Any resulting
+> changes?
+>
+> I'm running 2.4.22-pre10 now and my WindowsXP inside VMware runs
+> horribly slow. It gets considerably better if I leave an USB device
+> plugged in (which causes ACPI to use C2 only and never go into C3), but
+> it still isn't full speed.
+
+Yes, there is still a problem. I use the appending patch since ages. Before
+starting VMware, I do
+
+  echo -n "0" > /proc/acpi/processor/CPU/power
+
+and after VMware has terminated I do
+
+  echo -n "1" > /proc/acpi/processor/CPU/power
+
+This prevents ACPI from going into C2 while VMware is active. This solves
+at least my problems (slow, bad response) with Windows NT on VMware. I'm
+using Linux-2.4.22.
+
+Frank
+-- 
+## Dept. of Computer Science, Dresden University of Technology, Germany ##
+## http://os.inf.tu-dresden.de/~fm3                                     ##
+
+--Boundary-00=_EFtZ/srDIDM9mOp
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="acpi_no_idle.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="acpi_no_idle.diff"
+
+--- linux-2.4.22.orig/drivers/acpi/processor.c	Mon Aug 25 13:44:41 2003
++++ linux-2.4.22/drivers/acpi/processor.c	Tue Sep  9 22:31:39 2003
+@@ -1677,6 +1677,37 @@
+ 
+ 
+ static int
++acpi_processor_write_power (
++        struct file		*file,
++        const char		*buffer,
++        unsigned long		count,
++        void			*data)
++{
++	struct acpi_processor	*pr = (struct acpi_processor *) data;
++	char			state_string[2] = {'\0'};
++
++	if (!pr || (count > sizeof(state_string) - 1))
++		return_VALUE(-EINVAL);
++	
++	if (copy_from_user(state_string, buffer, count))
++		return_VALUE(-EFAULT);
++	
++	state_string[count] = '\0';
++
++	if (state_string[0] == '1') {
++	    printk(KERN_INFO PREFIX "enabling acpi idle\n");
++	    pm_idle = acpi_processor_idle;
++	} else {
++	    printk(KERN_INFO PREFIX "disabling acpi idle\n");
++	    pm_idle = pm_idle_save;
++	    acpi_processor_power_activate(pr, ACPI_STATE_C1);
++	}
++
++	return_VALUE(count);
++}
++
++
++static int
+ acpi_processor_read_performance (
+ 	char			*page,
+ 	char			**start,
+@@ -1982,6 +2013,7 @@
+ 			ACPI_PROCESSOR_FILE_POWER));
+ 	else {
+ 		entry->read_proc = acpi_processor_read_power;
++		entry->write_proc = acpi_processor_write_power;
+ 		entry->data = acpi_driver_data(device);
+ 	}
+ 
+
+--Boundary-00=_EFtZ/srDIDM9mOp--
 
 
 -------------------------------------------------------
