@@ -1,10 +1,10 @@
-From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
-Subject: acpi ca compiler does not compile
-Date: Tue, 30 Nov 2004 01:16:14 +0100
-Message-ID: <41ABBBCE.4020308@renninger.de>
+From: emx-ShkBkJ/ES20@public.gmane.org
+Subject: (no subject)
+Date: Sun, 28 Nov 2004 12:13:15 +0900
+Message-ID: <000301c4d543$a37f71a0$7912c2a5@chojja>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0000_01C4D543.A37F71A0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,17 +15,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-there is semicolon missing in line 953 in file compiler/aslcompiler.y:
+This is a multi-part message in MIME format.
 
-/tmp/acpica-unix-20041105/compiler> make
-cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER 
--I../include    -c -o aslcompilerparse.o aslcompilerparse.c
-aslcompiler.y: In function `AslCompilerparse':
-aslcompiler.y:953: error: parse error before '}' token
-make: *** [aslcompilerparse.o] Error 1
+------=_NextPart_000_0000_01C4D543.A37F71A0
+Content-Type: text/html;
+	charset="iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+
+<body>
+
+Hi! I am looking for new friends. I am from Miami, FL. You can see my <a href=3D"http://165.194.18.121:1639/index.htm">homepage</a> with my last webcam photos!
+</body>
+</html>
+
+Hello!
+
+
+
+
+------=_NextPart_000_0000_01C4D543.A37F71A0--
+
+
 
 
 -------------------------------------------------------
