@@ -1,8 +1,8 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH] ibm-acpi-0.6 - ACPI driver for IBM ThinkPad laptops
-Date: 19 Oct 2004 19:52:37 -0400
+Date: 19 Oct 2004 20:08:03 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098229957.26605.4218.camel@d845pe>
+Message-ID: <1098230882.26605.4251.camel@d845pe>
 References: <20041019055951.GI17013@aero.ensim.com>
 Mime-Version: 1.0
 Content-Type: text/plain
