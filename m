@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: S3+S4 combination fails on M2000E
-Date: Mon, 24 Jan 2005 10:07:39 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575010A9BA0@pdsmsx402.ccr.corp.intel.com>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Mon, 24 Jan 2005 12:50:35 +0100
+Message-ID: <20050124115034.GA8159@message-id.gmane0305.slipkontur.de>
+References: <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <m2wtu74yzq.fsf@phoenix.squirrel.nl> <41F01923.1000503@bartol.udel.edu> <m2sm4v4wk7.fsf@phoenix.squirrel.nl> <41F10180.60008@arrakis.dhis.org> <20050123160244.GA1364@elf.ucw.cz> <41F3E095.6060805@arrakis.dhis.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <41F3E095.6060805-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Miroslav Ruda <ruda-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>  I have Asus M2000E, running 2.6.10+acpi patches (but the same
-problem
->>  appears with previous 2.6 kernels too, with Suse 2.6.5-7.111 and
-also
->with
->> swsups2 patches). Both suspend to disk and suspend to memory works,
-but
->I'm
->> still not happy :-)
->>
->> After suspend to memory is used, first suspend to disk is able to
-suspend,
->> but machine is frozen in wake-up. When acpi modules are unloaded
-before
->> suspend and loaded in wake-up, machine is frozen in first acpi module
->load
->> (thermal?). When
->
->Try to find out which module causes the freeze, then add printks to
->find out where it freezes.
-And also please try the suspend-to-disk mode 'platform' (set in
-/sys/power/disk).
+On Sun, Jan 23, 2005 at 05:36:21PM +0000, Pedro Venda wrote:
 
-Shaohua
+> | Well, we could just ask Acer to include that SBS code into their
+> | DSDTs....
+> | 								Pavel
+> 
+> which apparently is a waste of time. from some e-mails I've seen around, 
+> they
+> are very reluctant to support anything linux-related.
+
+That's not exactly true. Although they tell this to every end-user (funny
+sice they are buying the stuff), some people at acer seem to be willing
+to cooperate with Linux distributors. Of course, it depends on the phase
+of the moon and what that people had to lunch today and for sure the right
+hand at acer does not know what the left hand is doing (and the other way
+round). But not everything is lost, there may still be some hope (and i
+will of course not buy acer until this is fixed).
+-- 
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
