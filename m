@@ -1,12 +1,12 @@
-From: Jason Dagit <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: Driver Testing
-Date: Wed, 16 Mar 2005 22:27:20 -0800
-Message-ID: <87br9iwzw7.fsf@www.codersbase.com>
-References: <20050317024304.95595.qmail@web31402.mail.mud.yahoo.com>
+Date: Thu, 17 Mar 2005 13:02:19 +0000
+Message-ID: <1111064539.8136.165.camel@tyrosine>
+References: <20050317012151.36290.qmail@web31406.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-In-Reply-To: <20050317024304.95595.qmail-oqthl4G0bEevuULXzWHTWIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org> (nicdev05-/E1597aS9LQAvxtiuMwx3w@public.gmane.org's
- message of "Wed, 16 Mar 2005 18:43:04 -0800 (PST)")
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050317012151.36290.qmail-0gFffodynuCvuULXzWHTWIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,34 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: nicdev05 nic <nicdev05-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-nicdev05 nic <nicdev05-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> writes:
+On Wed, 2005-03-16 at 17:21 -0800, nicdev05 nic wrote:
+> Folks,
+>   I am adding power management support to a network
+> driver on Linux 2.6. I have a simple question, is
+> there a tool I can use to test my PM support?
+> Something that will put my PC (Dell Optiplex) to sleep
+> and wakes it up after say 1-minute?
 
->   So, any idea as what the resume command should be? I
-> a Fedora Core-2 system.
+cd /sys/class/net/(whatever)/device/power
 
-Unfortunately I don't have the answer to this questions, but perhaps
-others on the list do.  I'm a debian zealot (okay, perhaps satisfied
-user is more accurate :) and I'm not (yet) very versed in the ways of
-acpi.
+To suspend that device:
 
->   Outside of resume, the suspend process works fine
-> (by writing to /sys/power/state). If I press the power
-> button the system seems to resume but then follows
-> with a reboot...
+echo -n 3 >state
 
-If you reboot on resume you may be experiencing this bug:
-http://bugme.osdl.org/show_bug.cgi?id=3691
+To resume it:
 
-Does that sound like your problem?  I'm anxiously awaiting advice from
-others on this list about how to solve that bug.  I have a laptop
-which I currently use swsuspend2 on, but would much, much rather
-suspend to ram, at least most of the time.
+echo -n 0 >state
 
-Jason
+That doesn't necessarily check that you've got interrupt handling code
+right, but it's a good start.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
