@@ -1,14 +1,16 @@
-From: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Subject: 2.4.21-rc1-acpi20030424: hwclock --hctosys hangs on toshiba L2
-Date: Mon, 28 Apr 2003 16:03:23 +0800
+From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: ACPI vs. PCMCIA on Compaq Evo N800c
+Date: 28 Apr 2003 11:03:12 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200304281603.23325.mflt1@micrologica.com.hk>
+Message-ID: <87el3nj8of.fsf@lapper.ihatent.com>
+References: <3EAB29E2.5030702@woogie.net>
+	<20030427100023.A16436@fermat.unipv.it>
+	<1051436106.2388.9.camel@calvin.hjblocal.nl>
+	<20030427142438.A16678@fermat.unipv.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20030427142438.A16678-xzhXYMPkGmXoPXhRcRtihA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,95 +19,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+Cc: Hilbert Barelds <h.j.barelds-XfCjptVMDKWuyJwMYI9mNQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org> writes:
 
-RH9-pre (phoebe), system hangs on setting kernel parameters in rc.sysinit. 
+> > kernel 2.5.68 no display on my radeon
+> 
+> Never tried. For me the graphic card was detected out of the box (with nice
+> resolution 1400x1050).
+> Only annoying thing: screen looses horizontal sincronization when switching
+> between different virtual consoles crt-alt-F1/8, if you keep switching it
+> comes back to the good sincronization.
+> 
+> You can download my X config at
+> 
+> www-dimat.unipv.it/~boffi/compaq/XF86Config
+> 
+> > -Fn F7 and Fn F8 not working
+> 
+> This works fine for me (didn't work with RH9)
+> 
+> > -lidswitch not working, but if working display doesn't come back
+> 
+> This works fine. With RH9 I think the display didn't come back, but switching
+> to a different console made it work.
+> 
 
-Commenting out hwclock --hctosys in rc.sysinit enables normal boot. No other problems encountered. 
+I'm running on Gentoo 1.4rc1 (with updates) and I can confirm that
+XFree 4.2.1 in various releases has had problems with the lid switch
+on my 800c. Basically once it's pressed it would not turn on
+again. Loosing sync when switching the display to/from text-mode and
+graphics was also a problem. I'm now running with XFree 4.3.0 with up
+to date drm-modules for 4.3.0 and lid switch and sync problems are
+gone. 
 
-System clock can be set using ntpdate.
+I still have a problem what when i press the log out button in Gnome
+2.2 and the scren is faded, then the machine will isntantly do a hard
+reset. 
 
-2.4.21-rc1-acpi20030328 and 2.4.21-pre7-acpi20030328 tested ok this morning.
+My kernel is 2.4.21-pre7 with ACPI 20030328 and preempt applied to
+it. Also running with a custom DSDT that makes most stuff work,
+including turning the brightness up and down :)
 
-Regards
-Michael Frank
+mvh,
+A
 
------- dmesg [] = snip
-
-Linux version 2.4.21-rc1-mhf24 (root@mhfl3) (gcc version 2.95.3 20010315 (release)) #2 Mon Apr 28 14:34:45 HKT 2003
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
- BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000e0000 - 00000000000eee00 (reserved)
- BIOS-e820: 00000000000eee00 - 00000000000ef000 (ACPI NVS)
- BIOS-e820: 00000000000ef000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000000ef5c000 (usable)
- BIOS-e820: 000000000ef5c000 - 000000000ef60000 (reserved)
- BIOS-e820: 000000000ef60000 - 000000000ef70000 (ACPI data)
- BIOS-e820: 000000000ef70000 - 000000000f070000 (reserved)
- BIOS-e820: 00000000ffe00000 - 0000000100000000 (reserved)
-239MB LOWMEM available.
-ACPI: have wakeup address 0xc0001000
-On node 0 totalpages: 61276
-zone(0): 4096 pages.
-zone(1): 57180 pages.
-zone(2): 0 pages.
-ACPI: RSDP (v000 TOSHIB                     ) @ 0x000f01a0
-ACPI: RSDT (v001 TOSHIB L1       08194.01296) @ 0x0ef60000
-ACPI: FADT (v002 TOSHIB L1       08194.01296) @ 0x0ef60058
-ACPI: DBGP (v001 TOSHIB L1       08194.01296) @ 0x0ef600dc
-ACPI: BOOT (v001 TOSHIB L1       08194.01296) @ 0x0ef60030
-ACPI: DSDT (v001 TOSHIB GT       08194.01296) @ 0x00000000
-ACPI: BIOS passes blacklist
-Kernel command line: vga=0xf06 ro root=/dev/hda2 resume=/dev/hda4 4 nousb
-
-[]
-
-ACPI: Subsystem revision 20030424
-
-[]
-
-Parsing all Control Methods:...
-Table [DSDT] - 508 Objects with 38 Devices 93 Methods 9 Regions
-ACPI Namespace successfully loaded at root c031d37c
-evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode successful
-evgpeblk-0740 [06] ev_create_gpe_block   : GPE Block: [_GPE] 8 registers at 000000000000EE18 on interrupt 9
-evgpeblk-0745 [06] ev_create_gpe_block   : GPE Block defined as GPE 0x00 to GPE 0x3F
-evgpeblk-0262 [08] ev_save_method_info   : Registered GPE method _L09 as GPE number 0x09
-evgpeblk-0262 [08] ev_save_method_info   : Registered GPE method _L1A as GPE number 0x1A
-Executing all Device _STA and_INI methods:..
-38 Devices found containing: 38 _STA, 1 _INI methods
-Completing Region/Field/Buffer/Package initialization:.
-Initialized 6/9 Regions 0/0 Fields 15/15 Buffers 18/18 Packages (508 nodes)
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 (swsusp) S4 S5)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 10 *11)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 10 11, disabled)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 *10 11)
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 *7 10 11)
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 10 11, disabled)
-ACPI: Power Resource [PFN0] (off)
-ACPI: Power Resource [PFN1] (off)
-PCI: Probing PCI hardware
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 11
-
-[]
-
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Processor [CPU0] (supports C1 C2 C3)
-ACPI: Thermal Zone [THRM] (75 C)
-
-[]
-
+-- 
+Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
+CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
+"You have zero privacy anyway. Get over it."  --Scott McNealy
 
 
 -------------------------------------------------------
