@@ -1,10 +1,12 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2002-10-22 processor&thermal module broken?
-Date: Thu, 24 Oct 2002 13:03:33 -0700
+Subject: RE: ACPI Source patches updated (20021022)
+Date: Thu, 24 Oct 2002 14:30:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF7B@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF7E@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,27 +16,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Sebastian Zimmermann' <wegwerf-juni02-XrphxVexwn4ANkabGmIAxw@public.gmane.org>, Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Cc: ACPI-Devel <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: 'Kai Germaschewski' <kai-germaschewski-Q3dYeWy5uxSHXe+LvDLADg@public.gmane.org>, =?iso-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Sebastian Zimmermann [mailto:wegwerf-juni02-XrphxVexwn4ANkabGmIAxw@public.gmane.org] 
-> Am Mit, 2002-10-23 um 11.10 schrieb Markus Gaugusch:
-> > Hi,
-> > I just tried 2.4.20-pre11 with latest acpi patch (+ swsusp) 
-> and there is
-> > no processor/thermal entry in my /proc anymore. Any hints?
-> 
-> Here they are also missing. 2.4.20-pre11-acpi20021022
-> Thermal zone is enabled in config file.
+> From: Kai Germaschewski [mailto:kai-germaschewski-Q3dYeWy5uxSHXe+LvDLADg@public.gmane.org]=20
+> On Thu, 24 Oct 2002, Ville Syrj=E4l=E4 wrote:
+> > Yes I see the logic in that. But I don't know enough about=20
+> PCI to relly
+> > understand how things work. Over one iteration this does=20
+> exactly what my
+> > patch did and that's what I care about :) Is it even=20
+> realistic to expect
+> > that multiple bridges are lined up so that the loop would=20
+> get executed
+> > more than once?
+>=20
+> Well, it's possible, though I don't have any box which does.=20
+> Say you have=20
+> a PCI hotplug controller, which I think appears as bridge and=20
+> put a 4-port=20
+> tulip network card into it. These network cards are=20
+> implemented using a=20
+> PCI bridge as well, so that'd be a case where it would=20
+> actually happen.
 
-Please excuse me if you've sent them previously or something...but could you
-send your DSDT and dmesg output? What kind of machine is this, too?
+OK, so everyone agrees Kai's version is the way to go? ;-)
 
-Thanks -- Regards -- Andy
-
-PS you can get these with "cat /proc/acpi/dsdt > dsdt.dat" and "dmesg >
-dmesg.txt".
+Regards -- Andy
 
 
 -------------------------------------------------------
