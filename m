@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
 Subject: Re: S4 sleep woes
-Date: Sat, 31 Jul 2004 17:01:12 +0200
+Date: Sun, 1 Aug 2004 02:46:36 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040731150112.GA480@hell.org.pl>
-References: <20040730050615.GA24597@blackham.com.au>
+Message-ID: <20040731184636.GG3443@blackham.com.au>
+References: <20040730050615.GA24597@blackham.com.au> <20040731150112.GA480@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040730050615.GA24597-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
+In-Reply-To: <20040731150112.GA480-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,18 +20,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Bernard Blackham:
-> From what I gather, with pmdisk or swsusp, pm_disk_mode should never
-> be PM_DISK_FIRMWARE, as that essentially asks the BIOS to do S4 for
-> us.
+On Sat, Jul 31, 2004 at 05:01:12PM +0200, Karol Kozimor wrote:
+> Thus wrote Bernard Blackham:
+> > From what I gather, with pmdisk or swsusp, pm_disk_mode should never
+> > be PM_DISK_FIRMWARE, as that essentially asks the BIOS to do S4 for
+> > us.
+> 
+> Didn't the /sys/power/* interface allow to choose between platform or
+> firmware at some point?
 
-Didn't the /sys/power/* interface allow to choose between platform or
-firmware at some point?
-Best regards,
+Ah, there appears to be one, yes (disk_show and disk_store in
+kernel/power/disk.c). Looking again, pmdisk appears to handle it
+correctly (just a little jump of logic). Guess that means it's a bug
+in software suspend 2. :)
+
+Ta,
+
+Bernard.
 
 -- 
-Karol 'sziwan' Kozimor
--@public.gmane.org
+ Bernard Blackham <bernard at blackham dot com dot au>
 
 
 -------------------------------------------------------
