@@ -1,45 +1,33 @@
-From: Alessandro <alessandro-qt5M+3XYwT4sV2N9l4h3zg@public.gmane.org>
-Subject: can i try a merge of two dsdt?
-Date: Fri, 02 Apr 2004 18:20:33 +0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080930033.752.5.camel@dagon.lovecraft.it>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: suspend_s4bios needs asmlinkage, too
+Date: Fri, 2 Apr 2004 14:46:42 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040402124642.GA1005@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: Quoted-Printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi devel mlist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+Content-Disposition: inline
+To: Andrew Morton <akpm@zip.com.au>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-hi,=20
-i have a problem (a problem? many problems.. =3D\) with my acer aspire
-1703SM on freeBSD with ACPI.
-If I don't overwrite the DSDT with the one i found for acer aspire
-1703SC i get the floppy and the temperature indicator to work but the
-batery status is always at zero.=20
-If I overwrite my real DSDT whit the DSDT for aspire 1703SC I found that
-the batery method work properly.. but the system cannot recognize the
-floppy and the temperature indicator is always at 0.0=B0C.=20
-My idea is: can i merge my DSDT and the aspire 1703SC DSDT and then
-recompile the resultant DSDT?
-If it is possible.. where can i get more documentation about it?
+Hi!
 
-thankyou all.
-Ale.
+Subject says it pretty much all, otherwise it will crash during S4bios
+suspend with regparm=3. Please apply,
 
+								Pavel
+--- tmp/linux/drivers/acpi/hardware/hwsleep.c	2004-03-11 18:10:48.000000000 +0100
++++ linux/drivers/acpi/hardware/hwsleep.c	2004-03-11 18:16:06.000000000 +0100
+@@ -394,7 +394,7 @@
+  *
+  ******************************************************************************/
+ 
+-acpi_status
++acpi_status asmlinkage
+ acpi_enter_sleep_state_s4bios (
+ 	void)
+ {
 
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
