@@ -1,13 +1,14 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: udev non-bk archives?
-Date: Fri, 10 Oct 2003 15:07:01 -0700 (PDT)
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: ACPI + SiS IRQ Routing?
+Date: Fri, 10 Oct 2003 23:10:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0310101504420.3605-100000@cherise>
-References: <1065822719.26428.23.camel@bubbles.imr-net.com>
+Message-ID: <1065823816.14982.3.camel@dhcp23.swansea.linux.org.uk>
+References: <1065658665.26205.8.camel@menion.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1065822719.26428.23.camel-ANb3ei3N/+zlcIzXXilT+kEOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1065658665.26205.8.camel-nJ1XZiZhfd3/9pzu0YdTqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,26 +21,16 @@ To: Joshua Schmidlkofer <menion-8BColdH5dlvzIImvGDD8mw@public.gmane.org>
 Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Iau, 2003-10-09 at 01:17, Joshua Schmidlkofer wrote:
+> What is the status of the SiS IRQ router?  I have two motherboards, one
+> with a 645, and one with a 648.  I have confirmed that all the way up to
+> [and including] 2.6.0-test6 I am having problems.  I am going to test
+> with mm4, but on another system I experienced a wierd Oops with mm4.  
 
-> Is there a source of non-bk'd udev archives.  I don't give a rip one way
-> or the other about bitkeeper =)  [no flawewars plz] I just don't have it
-> here, and I wondered is there an easily accessable way to get the latest
-> 'cvs' copy w/o bk?  
+Unless Linus and Andrew have forward ported the 2.4 PIRQ rewrite then
+the SiS hardware won't work right with 2.6 in non ACPI mode at least.
 
-Are you speaking of udev, the device naming utility? 
-
-If you are, then the ACPI list is definitely not the list to be asking.  
-The one you're looking for is: linux-hotplug-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
-
-But, to answer your question, look here:
-
-http://kernel.org/pub/linux/utils/kernel/hotplug/
-
-Thanks,
-
-
-	Pat
-
+Alan
 
 
 
