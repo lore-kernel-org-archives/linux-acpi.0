@@ -1,14 +1,14 @@
-From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Fwd: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop
-Date: Wed, 30 Mar 2005 02:13:05 -0500
-Message-ID: <200503300213.05253.shawn.starr@rogers.com>
-References: <200503280302.57640.shawn.starr@rogers.com> <200503300142.54497.shawn.starr@rogers.com> <200503301508.08721.luming.yu@intel.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
+Date: Wed, 30 Mar 2005 12:05:39 +0200
+Message-ID: <200503301205.40555.rjw@sisk.pl>
+References: <200503291156.19112.rjw@sisk.pl> <200503301353.25492.luming.yu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="gb18030"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200503301508.08721.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <200503301353.25492.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,45 +20,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-Yes, I think thats a good idea... I'll look into that this week.
-
-Shawn.
-
-
-On March 30, 2005 02:08, Yu, Luming wrote:
-> Good question. could you write a patch for what you said.
->
-> On Wednesday 30 March 2005 14:42, Shawn Starr wrote:
-> > Right, but then why is it trying to do 'something' even if there is no S1
-> > support? :)
+On Wednesday, 30 of March 2005 07:53, Yu, Luming wrote:
+> On Tuesday 29 March 2005 17:56, Rafael J. Wysocki wrote:
+> > Hi,
 > >
-> > it should do the same thing if i echo 1 to /sys/power/state. which is
-> > nothing at all.
+> > There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI
+> > battery driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery
+> > monitor that I use (the kpowersave applet from SUSE 9.2) is no longer able
+> > to report the battery status (ie how much % it is loaded).  It can only
+> > check if the AC power is connected (if it is connected, kpowersave behaves
+> > as though there was no battery in the box, and if it is not connected,
+> > kpowersave always shows that the battery is 1% loaded).
 > >
-> > Shawn.
+> > Also, there are big latencies on loading and accessing the battery module,
+> > but the module loads successfully and there's nothing suspicious in dmesg.
 > >
-> > On March 30, 2005 01:37, Yu, Luming wrote:
-> > > On Monday 28 March 2005 16:02, Shawn Starr wrote:
-> > > > However, trying echo "1" to /proc/acpi/sleep the system attempts to
-> > > > (standby) and aborts:
-> > > >
-> > > > [4295945.236000] PM: Preparing system for suspend
-> > > > [4295946.270000] Stopping tasks:
-> > > > =====================================================================
-> > > >== == == == [4295946.370000] Restarting tasks... done
-> > > >
-> > > > We get no reason as to why it quickly aborts.
-> > >
-> > > echo 1 to acpi/sleep means S1 called standby.
-> > > echo 3 to acpi/sleep means S3 called STR: sleep to ram
-> > > echo 4 to acpi/sleep means S4 called STD: sleep to disk
-> > >
-> > > If you system just support S0, S3, S4, S5,
-> > > NO S1 support.
+> > Please let me know if you need any additional information.
+> >
+> > Greets,
+> > Rafael
+> 
+> Could you just revert ec-mode patch, then retest?
+
+Could you please point me to it?
+
+Rafael
+
+
+-- 
+- Would you tell me, please, which way I ought to go from here?
+- That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
 
 
 -------------------------------------------------------
