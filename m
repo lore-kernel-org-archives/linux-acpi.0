@@ -1,32 +1,55 @@
-From: Tugrul Galatali <tugrul-aJBGfH1wNSRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Linux 2.6-pre1 Does not boot on ASUS L3800C: lock up in acpi
-	while "Executing all Devices _STA and_INIT methods"
-Date: 14 Jul 2003 14:38:28 -0400
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1058207908.704.5.camel@duality.galatali.com>
-References: <3F12AF06.6080004@free.fr>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: need debugging help
+Date: Mon, 14 Jul 2003 11:49:12 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EE89@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F12AF06.6080004-GANU6spQydw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: Chander Kant <ck-cFQ2QR18kktMdczFR1vadtBPR1lH4CV8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2003-07-14 at 09:24, Eric Valette wrote:
-> I happily run 2.4.21-pre5 with ACPI enabled and everything works just 
-> fine. I tried today 2.6-pre1 with exactly the same hardware 
-> configuration as the 2.4 one and the laptop does not boot. It hangs 
-> while dispaying : "Executing all Devices _STA and_INIT methods" 
-> allthough it has already printed several '.'
+> From: Alan Cox [mailto:alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org]=20
+> BTW Andrew - do you think we can also safely fix up the
+>=20
+> 	Load a variable with itself when its undefined being load 0
+>=20
+> 	Implied returns stuff
+>=20
+> with the same kind of option ?
 
-	I get that error plus the message I've been getting from >2.5.69
-kernels when booting with ACPI on my Compaq W8000. dmesg/lspci/configs
-at 
+Look, I'm sure you know I hate compatibility hacks. Slippery slope, and
+here we start slipping down it. The only reason I can bring bear the
+opregion bounds hack is because it's extremely localized (and BTW it
+went to Marcelo through you, not me, although now that it's there it
+would be very rude for me to remove it.)
 
-	http://acm.cs.nyu.edu/~tugrul/acpi/
+Bob looked at how hard it would be to implement an implicit return
+workaround and it was very ugly. If you or whoever originally wrote the
+relaxed AML patch wanted to give it a shot then great.
 
-	The 2.6.0-test1 error is pretty big for hand transcription, but I'll
-try setting up serial console if requested.
+Len Brown is working on improving the blacklist to use DMI and BIOS
+date. If the machines who need these things have older BIOSes then I
+would love it if we could say no ACPI for them and keep things clean for
+more recent machines.
 
-	Tugrul Galatali
+Regards -- Andy
+
+
+-------------------------------------------------------
+This SF.Net email sponsored by: Parasoft
+Error proof Web apps, automate testing & more.
+Download & eval WebKing and get a free book.
+www.parasoft.com/bulletproofapps1
