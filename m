@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Re: PBLK length again
-Date: Thu, 24 Jun 2004 18:21:17 +0200
+From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: Re: [Swsusp-devel] swsusp and ac status
+Date: Fri, 25 Jun 2004 01:26:28 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040624162117.GA697@hell.org.pl>
-References: <BAY16-F112kKIBXEHt30004aded@hotmail.com> <20040620154726.GT20511@parcelfarce.linux.theplanet.co.uk> <1087770015.23371.27.camel@djinn> <40D73F9E.4030805@pca.it> <1087850404.2501.43.camel@camel> <20040623133208.GA3152@message-id.gmane0305.slipkontur.de>
+Message-ID: <opr93z2ex34evsfm@smtp.pacific.net.th>
+References: <200406241513.i5OFDpKC003189@fermat.unipv.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040623133208.GA3152-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <200406241513.i5OFDpKC003189-xzhXYMPkGmXoPXhRcRtihA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,22 +17,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Software Suspend - Mailing Lists <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Stefan Seyfried:
-> IIRC there was a discussion on this list some time ago and the outcome was,
-> that intel once shipped a "BIOS programmers guide" which told that 7 was
-> allowed. Later they changed their mind and decided only 6 was correct.
+On Thu, 24 Jun 2004 17:13:51 +0200, Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org> =
+wrote:
 
-Well, since Intel shipped / still ships chipsets that actually do have a 
-PBLK of length 7, that's somehow odd.
-Best regards,
+>
+>> For now, in practice all ACPI modules should be unloaded prior to
+>> suspend and loaded on resume.
+>>
+>> I use the AC module and kernel 2.4.24 with swsusp 2.0 and it works
+>> fine as long as it is removed prior to suspend.
+>
+> Unloading acpi modules, suspending, resuming and loading modules
+> again does not help for me (2.6.7 and swsusp 2.0.0.88).
+> Even after resuming, if I
+>
+> rmmod ac
+> insmod ac
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+It is too late, it is already broken ;)
+
+Please try:
+rmmod AC
+suspend/resume
+modprobe AC
+
+It should be OK...
+
+>
+> then I don't see the new charging state. On the other hand if, after
+> resuming, I change the charging state again, then ac detection works
+> OK.
+>
+> I tried also with 2.4.25 and swsusp 2.0 ... then it is stranger:
+>
+> - suspend with ac plugged
+> - unplug
+> - resume
+> - ac is correctly detected off-line
+> - next changes in ac state are not detected
+
+Please proceed as above
+
+>
+>
+> morph-XAiDara3MvRg9hUCZPvPmw@public.gmane.org said:
+>> Would you mind checking to see (with top or something) whether or
+>> not keventd is using 100% CPU next time this happens.
+>
+> It is not. CPU is about 1% (mostly used by X)
+>
+
+...As It is purely module related
+
+	Michael
 
 
 -------------------------------------------------------
