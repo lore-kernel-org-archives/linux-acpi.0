@@ -1,14 +1,12 @@
-From: Christian Hoenig <list-HpqG0tpAgVTF11Dp+j+f1g@public.gmane.org>
-Subject: Re: Samsung X05 it's driving me crazy!
-Date: Wed, 24 Nov 2004 18:14:43 +0100
-Message-ID: <200411241814.46313.list@hoenig.cc>
-References: <3ACA40606221794F80A5670F0AF15F8403BD5853@pdsmsx403> <200411240201.20204.pernas@acm.escet.urjc.es>
+From: "Celina Walton" <celina_walton_bj-N9Z7C1fEUDE@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Wed, 24 Nov 2004 11:21:24 -0700
+Message-ID: <806e01c4d252$ae4d7444$7455f1a0@keli.one.pl>
+Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200411240201.20204.pernas-fdvnYtO25ZEdrSGeuO01YvU/3Eu2kcEP@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,30 +19,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Heya,
 
-Hi,
+Do you want a rolex watch?
 
->
->  I have Samsung X05 and i cant view the status of battery. Could anyone
-> give me a link or document to configure acpi in debian?? If someone have
-> this notebook please answer me.
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-Have a look on my website ([1]), there you find information on how to get 
-stuff working.
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
-[1] http://www.hoenig.cc/linux/samsungx05.shtml
+Visit us: http://www.icors.com/rep/rolex/
 
-take care, have fun
-/christian
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
+Best regards,
+Hilton Jones
 
-iD8DBQFBpMGGmauZIX3ydQURAsdIAJ0Z0PemGRkKASexEGD9FGj0iGpBpACgwBiZ
-8nVi3NUvPhR2iTmcUtrkJv4=
-=TEWy
------END PGP SIGNATURE-----
+
+No thanks: http://www.icors.com/z.php
+
 
 
 -------------------------------------------------------
