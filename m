@@ -1,15 +1,15 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: [2.6.2-rc1] sleep called from invalid context (8250/ACPI
- related?)
-Date: Wed, 21 Jan 2004 13:36:52 -0800
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
+Date: 21 Jan 2004 21:51:27 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040121133652.04e02a13.akpm@osdl.org>
-References: <Pine.LNX.4.58.0401211139001.13077@joel.ist.utl.pt>
+Message-ID: <1074721887.3672.12.camel@darkstar.portugal>
+References: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
+	<m3d69dhukz.fsf@reason.gnu-hamburg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0401211139001.13077-8boff9MBBEKJoy8PIJZ9VA@public.gmane.org>
+In-Reply-To: <m3d69dhukz.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,43 +18,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rui Saraiva <rmps-8boff9MBBEKJoy8PIJZ9VA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Rui Saraiva <rmps-8boff9MBBEKJoy8PIJZ9VA@public.gmane.org> wrote:
->
-> --------------------------------------------------------------------------------|
-> 	Hello,
-> 
-> 	I've found this message in my logs while investigating some kernel Oops
-> (in other message). If you need more info, please ask.
-> 
-> 	Regards,
-> 		Rui Saraiva
-> 
-> 
-> Debug: sleeping function called from invalid context at include/asm/semaphore.h:119
-> in_atomic():1, irqs_disabled():0
-> Call Trace:
->  [<c0122ddb>] __might_sleep+0xab/0xd0
->  [<d1bd2df6>] uart_unregister_port+0x76/0xa9 [serial_core]
->  [<d1bd9559>] unregister_serial+0x19/0x20 [8250]
->  [<d1bcb2de>] acpi_serial_remove+0x2e/0x50 [8250_acpi]
->  [<c02523f0>] acpi_driver_detach+0xcc/0x184
->  [<c0252621>] acpi_bus_unregister_driver+0x18/0x168
->  [<d1bcb312>] acpi_serial_exit+0x12/0x14 [8250_acpi]
->  [<c014510f>] sys_delete_module+0x13f/0x160
->  [<c0166307>] sys_munmap+0x57/0x80
->  [<c010a14f>] syscall_call+0x7/0xb
+And disable apic (lopic and io-pic) options from kernel compilation ?
 
-acpi_driver_detach is calling the acpi_driver.remove() method under
-the acpi_device_lock spinlock.
 
-uart_unregister_port() happens to be using a semaphore for its locking.
+On Wed, 2004-01-21 at 21:15, Georg C. F. Greve wrote:
+> || On 2004-01-21 18:56:59, Linus Torvalds wrote:
+>=20
+>  > Does it go away if you just make "acpi_pic_set_level_irq()" do
+>  > nothing (ie just remove the "outb()" call
+>  >=20
+>  > 	arch/i386/kernel/acpi/boot.c line 273
+>  >=20
+>  > or just make the if-statement be always false).
+>=20
+>  > It's entirely possible that the SCI is just horribly broken, and
+>  > can't be level-triggered.
+>=20
+> Just tried removing the outb() call both from plain vanilla 2.6.1 and
+> one with the latest ACPI patch. No change. The system freezes with the
+> same message at the same point during bootup.
+>=20
+> Any other ideas?
+>=20
+> Regards,
+> Georg
 
-I do think that it would be better if ACPI were to permit this.  From a
-quick peek it appears that acpi_device_lock can simply become a semaphore?
+--=20
+S=E9rgio M B
+
 
 
 
