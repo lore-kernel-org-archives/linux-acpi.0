@@ -1,63 +1,136 @@
-From: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Lhms-devel] Re: [PATCH] ACPI based Memory Hotplug
-	Driver Patch
-Date: Mon, 13 Sep 2004 21:11:44 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095135104.10726.8.camel@localhost>
-References: <FEB6C4E97F6CAF41978FB2059D5454180F37E8@bgsmsx402.gar.corp.intel.com>
-	 <20040910230200.73eb0374.tokunaga.keiich@jp.fujitsu.com>
-	 <1094837554.32531.1997.camel@nighthawk>
-	 <20040913172318.791db349.tokunaga.keiich@jp.fujitsu.com>
-	 <1095064865.4671.5.camel@localhost>
-	 <20040914115844.1e12203d.tokunaga.keiich@jp.fujitsu.com>
+From: Alex Williamson <alex.williamson@hp.com>
+Subject: RE: [ACPI] [PATCH] restore _OS object to "Linux" for ia64
+Date: Mon, 13 Sep 2004 22:27:40 -0600
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <1095136060.8780.23.camel@mythbox>
+References: <37F890616C995246BE76B3E6B2DBE05501FB4ABB@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040914115844.1e12203d.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Matthew E Tolentino <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Joel Schopp <jschopp-V7BBcbaFuwjMbYB6QlFGEg@public.gmane.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE05501FB4ABB@orsmsx403.amr.corp.intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Gerald Pfeifer <gp@suse.de>, "Brown, Len" <len.brown@intel.com>, linux-ia64@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-09-13 at 19:58, Keiichiro Tokunaga wrote:
-> Creating links from one to the other sounds fine.  But I don't think a
-> physical start address of an ACPI memory object can be detemined
-> from the memsections that belong to that object.  This is because
-> there is no gurantee that an ACPI memory object and a memsection
-> that belongs to the object always have the same start address.  So,
-> I think the interface to show physical memory range is necessary in
-> both the ACPI and memsection directory.
+On Mon, 2004-09-13 at 15:59 -0700, Moore, Robert wrote:
+> Here's an example:
+> 
 
-I agree.  It's very possible that ACPI memory areas will be able to span
-multiple memory sections, as the inverse.  
+   But how can we be sure we're bug for bug and feature for feature
+compatible with an arbitrary version of Windows?  I got curious and
+looked at the DSDT on my home PC, generic VIA KM266 chipset.  Sure
+enough:
 
-Although, I do wonder if we can have memory laid out in the firmware/
-directory in some kind of firmware-agnostic way.  
+    Name (OSFL, 0x00)
+    Method (_INI, 0, NotSerialized)
+    {
+        \_SB.PCI0.IODT ()
+        If (MCTH (\_OS, "Microsoft Windows NT"))
+        {
+            Store (0x00, OSFL)
+        }
+        Else
+        {
+            If (MCTH (\_OS, "Microsoft Windows"))
+            {
+                Store (0x01, OSFL)
+            }
+            Else
+            {
+                If (MCTH (\_OS, "Microsoft WindowsME: Millennium Edition"))
+                {
+                    Store (0x02, OSFL)
+                }
+                Else
+                {
+                    Store (0x03, OSFL)
+                }
+            }
+        }
+    }
 
-What I want is to make sure that any hotplug memory application that is
-written can use the same directories no matter whether it is a ppc
-machine using OpenFirmware or an x86/ia64 machine using ACPI.  
+Looking for consumers of OSFL...
 
-Instead of just laying thing out in firmware/acpi, can we have another
-directory that mirrors this information in the system/devices/
-directory, but is identical across architectures?  
+        Device (PCI0)
+        {
+            Name (_HID, EisaId ("PNP0A03"))
+            Name (_ADR, 0x00)
+            Name (_BBN, 0x00)
+            Method (_S3D, 0, NotSerialized)
+            {
+                If (OSFL)
+                {
+                    Return (0x02)
+                }
+                Else
+                {
+                    Return (0x03)
+                }
+            }
 
-ppc64 guys, what do you think?
+OK, maybe that's a good thing...  several more like that on USB devices.
 
--- Dave
+        Device (SYSR)
+        {
+            Name (_HID, EisaId ("PNP0C02"))
+            Method (_STA, 0, NotSerialized)
+            {
+                If (OSFL)
+                {
+                    Return (0x0F)
+                }
 
+                Return (0x00)
+            }
+             Name (IORG, ResourceTemplate ()
+            {
+                FixedIO (0x0010, 0x10)
+                FixedIO (0x0022, 0x1E)
+                FixedIO (0x0044, 0x1C)
+                ...
+            })
+            Method (_CRS, 0, NotSerialized)
+            {
+                Return (IORG)
+            }
+        }
 
+Hmm, it's not so obvious this one is a win.  There's another like that
+for a PNP0C01 device listing Memory32Fixed ranges.  And another named
+PIC providing an interrupt resource.  The motherboard driver could have
+made use of these if they were marked as present, but they aren't for
+"Microsoft Windows NT".
 
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM. 
-Deadline: Sept. 13. Go here: http://sf.net/ppc_contest.php
+    Method (_PTS, 1, NotSerialized)
+    {
+        Store (Arg0, DBG8)
+        If (LAnd (LEqual (Arg0, 0x04), LEqual (\_SB.PCI0.OSFL, 0x02)))
+        {
+            Sleep (0x0BB8)
+        }
+        ...
+        If (LNot (\_SB.PCI0.OSFL))
+        {
+            Store (\_SB.PCI0.TLBC, PTB1)
+        }
+       ...
+       Store (\_SB.PCI0.OSFL, \_SB.PCI0.W2FG)
+       ...
+
+Ok, we're doing some special stuff here, a stall for Windows ME, a store
+for Windows NT, but how do we know those aren't bug workarounds specific
+to that version?  There's a corresponding Windows NT check in the _WAK
+method. 
+
+   Of course these are all examples of i386 ACPI implementations.  If
+there was an ia64 ACPI implementation that used _OS, who's to say that
+"Microsoft Windows NT" wouldn't be the untested case.  I don't know what
+Windows sets the _OS to for their ia64 releases.  "Microsoft Windows NT"
+might be as arbitrary as setting it to "foo" there.
+
+   I assume a blacklist was discussed when this was brought up earlier
+on the list.  I'll have to go look why that didn't fly.  Thanks,
+
+	Alex
+
