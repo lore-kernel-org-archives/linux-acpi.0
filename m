@@ -1,14 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Kernel 2.4.23 passive cooling
-Date: Tue, 13 Jan 2004 14:47:16 +0800
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: RE: Please Help!
+Date: Mon, 12 Jan 2004 22:59:04 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CC1@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040112225811.B59750@root.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720CBD@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720CBD-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jacek Blizinski <azidog-SDTLKeebBdLQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 13 Jan 2004, Yu, Luming wrote:
+> > Hello, I own a Fujitsu P5010D and I'm trying to fix my DSDT
+> > so that the volume
+> > controls work. The key mappings are as follows:
+> >
+> > Fn+F3 = Mute
+> > Fn+F4 = Disable/Enable Touchpad
+> > Fn+F5 = Widescreen/Native Resolution
+> > Fn+F6/7 = Brightness Down/UP
+> > Fn+F8/9 = Volume down/up
+> >
+> > The brightness controls work and all i wish to do is include
+> > the Mute and
+> > Volume up/down features.
+>
+> All this features seems to need support from
+> other module like asus_acpi.c.
 
-> > #echo -n 0x04000000 > /proc/acpi/debug_layer
-> > #echo -n 0xffffffff > /proc/acpi/debug_level
->=20
-> I produced a log (http://hell.org.pl/~sziwan/thermal.log) using those
-> switches. A bit of commentary:
-> 18:57:59 -- I switch to passive cooling
-> 18:59:07 -- Back to active
-> 18:59:19 -- Forth to passive
-> [no thermal events till 19:25:12, the readings are trigerred manually]
+I know this is a Linux list but for the developers assistance, here is a
+link to the FreeBSD Fujitsu driver:
 
-It's not strange , because when any GP events is detected,=20
-the method associated with this GPE  (_LXxx or _Exx) will be put at=20
-the end of queue, which will be asynch executed later.
+http://www.stalker.org/~sean/freebsd-p2040/FujiApp/
 
-> After that, the temperature rocks up and down, as fan switch=20
-> in at 3480 dK.=20
-> This seems to be a DSDT bug after all, since the debug output=20
-> doesn't seem
-
-If that message is from execution of method _Lxx or _Exx,=20
-then it's not strange too.
-
-
+-Nate
 
 
 -------------------------------------------------------
