@@ -1,16 +1,13 @@
-From: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Subject: Re: 2.5.69 - S3
-Date: Sun, 18 May 2003 20:05:28 +0800
+From: "Ashlyn Cedeno" <ashlyncedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org>
+Subject: Register me for FREE!!!
+Date: Sun, 18 May 2003 21:10:52 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200305182005.30192.mflt1@micrologica.com.hk>
-References: <200305140140.02188.mflt1@micrologica.com.hk> <200305180523.25157.mflt1@micrologica.com.hk> <20030518104852.GA324@elf.ucw.cz>
+Message-ID: <E19HNoi-0004fp-00@sc8-sf-list1.sourceforge.net>
+Reply-To: "Ashlyn Cedeno" <ccedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030518104852.GA324-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,71 +16,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday 18 May 2003 18:48, Pavel Machek wrote:
-> Hi!
->
-> > > > Was playing a bit with S3 - Single user mode, console, ACPI
-> > > > core only, no modules.
-> > > >
-> > > > Suspending always works.
-> > > >
-> > > > Resuming performs somewhat randomly as follows:
-> > > >
-> > > > 1) Linux! - hang
-> > > >
-> > > > 2) Resume failed
-> > > >
-> > > > 3) Resumes with lots of shell prompts scrolling, and seems to
-> > > > be functional thereafter
-> > > >
-> > > > What is the expected behaviour at this time?
-> > >
-> > > 3) is expected. You held down enter
-> > > when you did echo, so it still sees
-> > > enter down after resume.
-> >
-> > Thank you,  a script which delays a few seconds before suspend
-> > should fix 3)
-> >
-> > How to get rid of 1) and 2) ?
->
-> For 4) (harddisk problems from other mail): does it work after IDE
-> reset? If not, try disabling DMA with hdparm.
+Hi, my name is Ashlyn Cedeno. I would like to share with you a unique
+internet buyer's club that enables you to get great discounts on
+everything you buy at over 200 online stores worldwide including Wal-Mart,
+Dell Computer, Disney & Staples! Membership is FREE and has many benefits!
 
-Seems to work after hard disk reset. Problem seems to depend on disk activity. 
+To get your FREE membership ID, send an email to
+ashcedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org and put "REGISTER ME FOR FREE" in the
+subject and your full name in the body of your email. I will then register
+you into the system. You will receive a confirmation email asking you to
+verify. Open it up and activate your free membership immediately.
 
->
-> As for 1) and 2): Good luck debugging 1) [adding more letters to
-> see where it hangs etc]; 
+Remember, there is no cost, no risk and no obligation to join.  You have
+nothing to lose and possibly a lot to gain!
 
-The disk LED stays on, so perhaps it hangs in IDE. 
+Best Regards
 
-> what exactly means 2)?
+Ashlyn Cedeno
 
-  This is Toshiba BIOS message. System does cold reboot thereafter.
-
-  Q? How does BIOS know whether to do resume or reboot?
-
-further, there is mode 5)
-
-  which is mode 4) _plus_ disk reset fails, and disk won't spin up again, and kjournald gets mad....
-
-and mode 6)
-
-  System hangs after all tasks left fridge with disk led on.
-
------
-
-hdparm -d0 may reduce probability of 1) - not sure, but it failed with 4) and 5) with it.
-
-I suppose IDE gets false interupt upon resume.
-
-Regards
-Michael
-
+----------------------------------------------
+If you would prefer not to receive messages from me in the future, please
+send an email to ashcedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org with REMOVE in the
+subject line. Thanks.
 
 
 -------------------------------------------------------
