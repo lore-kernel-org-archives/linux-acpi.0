@@ -1,12 +1,10 @@
-From: Johnathan Hicks <thetech-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: An embedded-Linux power-management framework
-Date: Fri, 02 Aug 2002 20:48:15 -0400
+From: "Bishop Brock" <bcbrock-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: An embedded-Linux power-management framework
+Date: Fri, 2 Aug 2002 20:28:07 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D4B284F.20402@folkwolf.net>
-References: <20020802172802.GA32612@avalon.paulsen.org> 	<1028315477.18635.113.camel@irongate.swansea.linux.org.uk> 	<1028312475.23390.63.camel@granite.austin.ibm.com> <1028330951.31733.5.camel@irongate.swansea.linux.org.uk>
+Message-ID: <OF94EF243F.A49E95B4-ON86256C09.00716EF4@pok.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,33 +14,81 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org
+Cc: Linux Power Management Development <linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux ACPI Development <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux APMD <apmd-list-+wEybqfU8vgCzWx7n4ubxQ@public.gmane.org>, CPU Frequency <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Alan Cox wrote:
-> On Fri, 2002-08-02 at 19:20, Hollis Blanchard wrote:
-> 
->>There are situations (especially in dedicated-purpose devices running
->>only a few hand-written applications) in which it helps to change some
->>of these values without changing the others. Changing them all according
->>to a single variable (CPU core frequency) could be very limiting. To my
->>knowledge the cpufreq code also does not allow for this flexibility, but
->>certainly it would be nice to add it.
-> 
-> 
-> So improve the cpufreq code to be a bit more controllable. Its the right
-> framework. It also needs a littlw tweaking for the cases where we change
-> STPCLK on x86's.
+>From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+>Subject: Re: [ACPI] An embedded-Linux power-management framework
+>Date: 02 Aug 2002 20:11:17 +0100
 
-Are you sure that cpufreq should be tweaked to manage STPCLK? Would it not 
-make more sence to suck cpufreq into ACPI and call it during Tx (throttling) 
-states if applicable? Of course I realise that might not be allowed by the 
-ACPI spec, but some combination of cqufreq and the Tx states is a good idea... 
-and optional for the user.
+> Take a look at cpufreq. The processor speed/voltage side is a solved
+> problem with working code for x86 and ARM processors including the
+> framework to adjust other devices. For example on ARM you have to frob
+> with the RAM clocks. Cpufreq deals with it nicely both from user and
+> kernel sides
 
---John
+Processor speed and voltage setting are only two dimensions of the problem
+for current and future generations of embedded processors.  The PowerPC
+405LP supports 6 somewhat independent parameters that affect the power
+consumption of the system: Core voltage, CPU frequency, Memory Bus
+Frequency,
+On-board peripheral bus frequency, External peripheral bus frequency, and
+LCD
+pixel clock frequency. The next generation of processors will take this
+even
+further: They will support multiple internal voltage planes, asymmetric
+multiprocessing (cf. TI OMAP architecture) with independent voltage control
+and clocking, and advanced clocking schemes to maximize the potential for
+dynamic power management.  We will be able to do amazing things with
+minuscule amounts of energy, but only if the OS supports the flexibility
+inherent in the underlying hardware architectures.
 
---John
+We are proposing a scalable solution that naturally extends the
+capabilities of cpufreq. We encapsulate all of the mutually constrained
+physical and abstract parameters of a power management policy into
+a system-dependent object called an "operating point", and propose
+standard ways to manipulate operating points and sets of operating points.
+This mechanism will be integrated with the device model in such a way
+that as devices come on and off line, the optimum operating point is always
+available.
+
+We also add another dimension not present in the current solution, i.e.,
+kernel control of dynamic power management at critical points in the
+OS, particularly the entry and exit of the idle (halt) state, consistent
+with policies defined in advance.  As we noted in the original posting,
+significant system-wide energy savings are possible by rapidly scaling
+frequencies during even short idle periods, and only the OS has the
+visibility required to actively manage these events.
+
+> In terms of per process settings please read US patent 6,298,448.
+
+> Suggstions on how t work around it are welcomed
+
+The following comments must not be construed as a legal position of
+the IBM Corporation, or the legal opinion of any IBM attorney.
+
+We have discussed this patent with our IP attorneys.  Those of
+us developing this proposal are operating under the working
+assumption that this patent does not preclude us from publishing
+our code, and will not preclude anyone from executing our code
+on any IBM processors.  However, prior to any release of
+code to Open Source, we will go through a legal review process where
+these issues will be closed to the satisfaction of IBM and our
+Linux Distribution partners.
+
+As an aside, my colleagues and I have doubts about the enforceability
+of the patent in any case, due to extensive prior art before the
+filing date.
+
+
+Bishop Brock
+
+IBM Research, Austin Center for Low-Power Computing
+11400 Burnet Road    MS/904-6F021
+Austin, TX 78758
+(512) 838-0149    IBM T/L 678-0149
+
 
 
 
