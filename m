@@ -1,14 +1,14 @@
-From: Stuart_Hayes-DYMqY+WieiM@public.gmane.org
-Subject: stack overflow
-Date: Mon, 8 Mar 2004 10:43:13 -0600
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: fix ACPI poweroff in 2.4.25-rc2
+Date: Mon, 8 Mar 2004 17:34:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <CE41BFEF2481C246A8DE0D2B4DBACF4F128AA4@ausx2kmpc106.aus.amer.dell.com>
+Message-ID: <20040308163452.GE5352@openzaurus.ucw.cz>
+References: <200403031117.25937.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <200403031117.25937.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,44 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Stuart_Hayes-DYMqY+WieiM@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hu!
+> The recent 2.4 patch breaks the build for ia64 because we don't
+> set CONFIG_ACPI_SLEEP, and acpi_system_save_state() is only
+> defined under #ifdef CONFIG_ACPI_SLEEP.  Can you add the following
+> patch to deal with this?
 
-Hello!
-
-I'm using the x86_64 architecture with Linux, and I'm getting what =
-appear to be
-stack overflows while the ACPI stuff is being initialized (all the _STA=20
-methods are being executed).
-
-Just wondering if anyone has taken a look at stack usage with the ACPI =
-stuff,=20
-and what could be done to fix this (other than simplifying the ACPI =
-tables!). =20
-I suspect this problem might become an issue with a large number of =
-people as=20
-the x86_64 architecture becomes more common, since it uses ACPI by =
-default (and=20
-i386 did not).
-
-Here are some of the reasons I believe the stack is overflowing:
-
-I've added some "printk"s to the kernel, and I've found that the stack =
-pointer=20
-goes down by ~6K between namespace/nseval.c:acpi_ns_evaluate_relative() =
-and=20
-executer/exstore.c:acpi_ex_store().
-
-If I disable local interrupts while the ACPI stuff is being initialized, =
-it=20
-seems to make it through without failing.
-
-If I simplify some of the methods, it seems to work ok.
-
-Thanks
-Stuart
+Original patch should be reverted. Having different
+behaviour of poweroff depending on ACPI_SLEEP would
+be wrong.
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
 
 
