@@ -1,104 +1,59 @@
-From: Adrian Bunk <bunk-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>
-Subject: [2.5 patch] ACPI: remove #include <linux/compatmac.h>'s
-Date: Sun, 19 Jan 2003 11:15:57 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030119101557.GZ10647@fs.tum.de>
+From: Martin Platter <mxp1-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: [PATCH] S4Bios support for 2.4.20 + acpi-20021205
+Date: Sun, 19 Jan 2003 13:20:54 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3E2A9826.6010709@gmx.net>
+References: <20021213155309.GG4327@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20021213155309.GG4327-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In 2.5.59 eight ACPI files #include <linux/compatmac.h> but none of them 
-uses anything from this header file.
+ > The issues I encounter are still present, then; so play with
+ > it carrefully..
+Hi all!
 
-The patch below removes these #include <linux/compatmac.h>'s.
+I have just tried 2.4.20 + acpi-20021205+s4bios the suspend and resume does 
+work till it reaches
 
-I've tested the compilation with 2.5.59.
+CPU context restored
 
-Please apply
-Adrian
+after that it either hangs on
+
+PCI: Enabling device 00:09.0 (0000->0003) // this is my eth0
+
+or if I am trying to disable eth0 prior suspend on
+
+[ACPI Debug] String ... VIA Software SMI PMIO 2fh
+[ACPI Debug] String: ________________________
+[ACPI Debug] String: THRM_TMP
+[ACPI Debug] String: ________________________
 
 
---- linux-2.5.59-full/drivers/acpi/button.c.old	2003-01-19 11:08:47.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/button.c	2003-01-19 11:08:56.000000000 +0100
-@@ -27,7 +27,6 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include "acpi_bus.h"
---- linux-2.5.59-full/drivers/acpi/fan.c.old	2003-01-19 11:08:57.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/fan.c	2003-01-19 11:09:05.000000000 +0100
-@@ -27,7 +27,6 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include "acpi_bus.h"
- #include "acpi_drivers.h"
---- linux-2.5.59-full/drivers/acpi/ac.c.old	2003-01-19 11:09:05.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/ac.c	2003-01-19 11:09:13.000000000 +0100
-@@ -27,7 +27,6 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include "acpi_bus.h"
---- linux-2.5.59-full/drivers/acpi/power.c.old	2003-01-19 11:09:14.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/power.c	2003-01-19 11:09:21.000000000 +0100
-@@ -27,7 +27,6 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include "acpi_bus.h"
---- linux-2.5.59-full/drivers/acpi/ec.c.old	2003-01-19 11:09:22.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/ec.c	2003-01-19 11:09:29.000000000 +0100
-@@ -28,7 +28,6 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/delay.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include <asm/io.h>
- #include "acpi_bus.h"
---- linux-2.5.59-full/drivers/acpi/processor.c.old	2003-01-19 11:09:30.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/processor.c	2003-01-19 11:09:38.000000000 +0100
-@@ -38,7 +38,6 @@
- #include <asm/io.h>
- #include <asm/system.h>
- #include <asm/delay.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include "acpi_bus.h"
---- linux-2.5.59-full/drivers/acpi/battery.c.old	2003-01-19 11:09:38.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/battery.c	2003-01-19 11:09:46.000000000 +0100
-@@ -27,7 +27,6 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include "acpi_bus.h"
- #include "acpi_drivers.h"
---- linux-2.5.59-full/drivers/acpi/thermal.c.old	2003-01-19 11:09:46.000000000 +0100
-+++ linux-2.5.59-full/drivers/acpi/thermal.c	2003-01-19 11:09:54.000000000 +0100
-@@ -35,7 +35,6 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
--#include <linux/compatmac.h>
- #include <linux/proc_fs.h>
- #include <linux/sched.h>
- #include <linux/kmod.h>
+Are this the known issues you refered to in your posting? How do we solve 
+them ?
+
+Greetings
+Martin
+
+Ps: What do you mean by "play with it carefully" ? There is not a lot to 
+play with :-/
+
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by: FREE  SSL Guide from Thawte
+are you planning your Web Server Security? Click here to get a FREE
+Thawte SSL guide and find the answers to all your  SSL security issues.
+http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0026en
