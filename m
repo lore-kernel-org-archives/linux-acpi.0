@@ -1,49 +1,50 @@
-From: Nigel Cunningham <ncunningham@linuxmail.org>
-Subject: Re: status update for current development
-	on ASUS M2N
-Date: Mon, 27 Sep 2004 20:11:41 +1000
-Sender: softwaresuspend-devel-admin@berlios.de
-Message-ID: <1096279213.4222.5.camel@laptop.cunninghams>
-References: <m3lleww12c.fsf@brain.gnuhh.org>
-Reply-To: ncunningham@linuxmail.org
+From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[3/6]-Mapping lsapic to cpu
+Date: Mon, 27 Sep 2004 20:47:12 +0900
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <20040927204712.703a20bd.tokunaga.keiich@jp.fujitsu.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com>
+ <20040920093819.E14208@unix-os.sc.intel.com>
+ <20040922221538.650986f2.tokunaga.keiich@jp.fujitsu.com>
+ <1095864779.6105.3.camel@tdi>
+ <20040923021031.00007001.tokunaga.keiich@jp.fujitsu.com>
+ <20040924163632.C27778@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
-In-Reply-To: <m3lleww12c.fsf@brain.gnuhh.org>
-Errors-To: softwaresuspend-devel-admin@berlios.de
-List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
-List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
-List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
-	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
-List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
-	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
-List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
-To: "Georg C. F. Greve" <greve@gnu.org>
-Cc: ACPI List <acpi-devel@lists.sourceforge.net>, SoftwareSuspend-Devel <softwaresuspend-devel@lists.berlios.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-reply-to: <20040924163632.C27778@unix-os.sc.intel.com>
+To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: tokunaga.keiich@jp.fujitsu.com, alex.williamson@hp.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Georg.
+On Fri, 24 Sep 2004 16:36:32 -0700 Keshavamurthy Anil S wrote:
+> On Thu, Sep 23, 2004 at 02:10:31AM +0900, Keiichiro Tokunaga wrote:
+> > On Wed, 22 Sep 2004 08:52:59 -0600, Alex Williamson wrote:
+> > > On Wed, 2004-09-22 at 22:15 +0900, Keiichiro Tokunaga wrote:
+> > > > 
+> > > > I would like to suggest introducing a new function 'acpi_get_pxm()'
+> > > > since other drivers might need it in the future.  Acutally, ACPI container
+> > > > hotplug will be using it soon.
+> > > > 
+> > > > Here is a patch creating the function.
+> > > > 
+> > > 
+> > >    Nice, I have a couple I/O locality patches that could be simplified
+> 
+> Here is the revised patch which now fixes the all issues that were discussed.
+> 	- Now defines and uses acpi_get_pxm
+> 	- small bugfix "change __initdata to __devinitdata for pxm_to_nid_map varable
 
-On Mon, 2004-09-27 at 18:47, Georg C. F. Greve wrote:
-> The kacpid process seems to run wild and eat all available time, it
-> looks like some kind of wild loop, but there is no output. I can
-> normally shut the machine down -- although it takes a while.
+Thanks for your work!  But, you might forget to merge the small bugfix
+patch.  See the diffstat below.  The target file of small bugfix is
+include/asm-ia64/acpi.h, but it didn't show up below:)
 
-Could I get you to compile kdb in as well. If you then press the Sys Rq
-key when the CPU is being chewed, you should be able to use ps and btp
-<process number> to get an idea of what is going on. There have been
-thermal issues reported on the help list. They might be related. I'll
-see if I can reproduce anything on my desktop.
+>  linux-2.6.9-rc2-askeshav/arch/i386/kernel/acpi/boot.c |   22 +++
+>  linux-2.6.9-rc2-askeshav/arch/ia64/kernel/acpi.c      |  107 +++++++++++++++++-
+>  linux-2.6.9-rc2-askeshav/drivers/acpi/numa.c          |   19 +++
+>  linux-2.6.9-rc2-askeshav/include/linux/acpi.h         |   14 ++
+>  4 files changed, 159 insertions(+), 3 deletions(-)
 
-Regards,
-
-Nigel
--- 
-Nigel Cunningham
-Pastoral Worker
-Christian Reformed Church of Tuggeranong
-PO Box 1004, Tuggeranong, ACT 2901
-
-Many today claim to be tolerant. True tolerance, however, can cope with others
-being intolerant.
+Thanks,
+Keiichiro Tokunaga
