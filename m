@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Processor C states and USB problem
-Date: Wed, 7 Jan 2004 17:08:25 +0800
+From: Sebastien B <sebastien.bourdeauducq-QFKgK+z4sOrR7s880joybQ@public.gmane.org>
+Subject: Gericom Hummer 2430 problems
+Date: Wed, 7 Jan 2004 10:35:21 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C84@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <200401071035.21360.sebastien.bourdeauducq@laposte.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Petr Olivka <petr.olivka-jmYXjVuSQ4U@public.gmane.org>, mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> >usb host use poll mode to get data from usb peripherals, and result
-is
->> >continuous busmaster activity.
->>
->> Hmm,  it looks like we should stop such kind of poll to support power
->> save.
->
->Good luck.  That would require processor.c to become aware of the USB
->driver loaded.
->  In FreeBSD, we have a generic kernel interface module (.m)
->that you can add that allows other kernel features to call a function
->without knowing what will service the call in the backend.  I guess you
->could do this via a function pointer, but you'd still have added binary
-compatibility issues between ACPI and USB.
+Hello,
+I have several problems with my Gericom Hummer 2430 laptop :
+- I can't change the CPU throttling settings. When I write to 
+/proc/acpi/processor/CPU1/throttling, nothing happens and the contents of 
+this file remain unchanged. Writing to /proc/acpi/processor/CPU1/limit 
+doesn't work either. There isn't any error message displayed in the dmesg 
+output nor in the console.
+- Sometimes my machine locks up for less than a second and when this happens I 
+have the following message in the dmesg output : 
+atkbd.c: Unknown key pressed (translated set 2, code 0x0, data 0x0, on 
+isa0060/serio0).
+I'm unsure this problem is ACPI related, but it often happens when the fan 
+starts up.
+- The S-states just don't work. Trying to enter one either does nothing or 
+crashes the computer. The computer shutdowns properly, though.
+I'm using Linux 2.6.0 with the ACPI patch 20031203.
+You can find useful information about my laptop (contents of the DSDT, full 
+output of dmesg and so on) at http://irchat.free.fr/acpi/.
+Thank you,
+Seb
 
-
-Maybe we can do it through a generic driver (PM) .
 
 
 -------------------------------------------------------
