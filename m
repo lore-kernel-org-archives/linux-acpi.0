@@ -1,14 +1,11 @@
-From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: Success with kernel-swsusp and Nvidia-closed-source
-Date: Wed, 3 Nov 2004 23:29:59 +0100 (CET)
-Message-ID: <Pine.LNX.4.60.0411032322410.4984@frog.athome>
-References: <Pine.LNX.4.60.0411031215260.1187@frog.athome>
- <200411031958.47910.christian.hesse@linuxob.de>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+From: Stefanie Corona <nicxzwfribluzl-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: re[19]:
+Date: Thu, 04 Nov 2004 00:02:37 -0300
+Message-ID: <E1CPXsM-0002Rx-2d@sc8-sf-mx2.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: multipart/related;
+ boundary="------------080106050504040001070006"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200411031958.47910.christian.hesse-5lmcC6f56PSELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,43 +15,121 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christian Hesse <christian.hesse-5lmcC6f56PSELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is a multi-part message in MIME format.
+--------------080106050504040001070006
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Salut Christian,
-On Wed, 3 Nov 2004, Christian Hesse wrote:
-> I'm using software suspend 2.1. For me suspend works fine, but the system
-> freezes as soon as it is resumed, I only see a black screen then. Driver nv
-> works without any problems. Any hints what could be the cause?
-I did not patch in anything into the kernel. I used a vanilla 2.6.9 (only 
-the Makefile was patched to show 2.6.9 instead of 8 ... maybe somebody 
-watched a bit too much tv... :-)
-So I did not use swsusp 2.1. And I could not manage to freeze on resume 
-this time. So, why didn't you try the vanilla-kernel, with the 
-Haggi' s patch for the nvidia driver?
-When you test - be sure to sync before suspending. It's the second best, 
-besides having a jung backup handy.
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></head><body bgcolor="#FFFFF0" text="#FEB35A"><p><a href="http://www.ch-eap-mor-tga-ge.com/?bk1"><IMG SRC="cid:part1.05000505.06000302@gronxezyms-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org" border="0" ALT=""></a></p><p><font color="#FFFFF1">in 1806 in 1997 Could I speak to... in 1905</font></p><p><font color="#FFFFFE">I'll speak my mind. HotBot</font></p></body></html>
 
-Cheers
-   hartwig felger
+--------------080106050504040001070006
+Content-Type: image/gif;
+ name="auburn.GIF"
+Content-Transfer-Encoding: base64
+Content-ID: <part1.05000505.06000302@gronxezyms-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline;
+ filename="auburn.GIF"
 
-Hartwig Felger informatics
+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
 
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+--------------080106050504040001070006--
 
-iD8DBQFBiVvr9bBoTzOf1pMRAlyYAKDMN861PRr34cB1fwhpq/l+bWDpkACeJ2yO
-NJqtHOq5blb98z1bkTyD1x0=
-=gBOM
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
