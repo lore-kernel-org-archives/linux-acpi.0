@@ -1,15 +1,13 @@
 From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: [PATCH] ACPI drop back to pic mode -- linux-2.6.0-test2-acpi-picmode.patch
-Date: Thu, 31 Jul 2003 11:21:36 +0100
+Subject: Question about odd code in mpparse.c w.r.t IRQ routing
+Date: Thu, 31 Jul 2003 14:43:40 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307311121.36252.adq_dvb@lidskialf.net>
-References: <200307302100.01386.adq_dvb@lidskialf.net> <200307310228.35207.patrick@dreker.de> <200307310336.07486.patrick@dreker.de>
+Message-ID: <200307311443.40141.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200307310336.07486.patrick-G8S07CpUG8qzQB+pC5nmwQ@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,21 +17,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Dreker <patrick-G8S07CpUG8qzQB+pC5nmwQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+In arch/i386/kernel/mpparse.c/mp_parse_prt(), there is the following section 
+of code:
 
-> > Before patching the kernel with the picmode.patch booting with acpi=off
-> > was no problem (aside from some devices not getting an IRQ assigned).
-> > Whether I enable or disable the APIC (at compile time, as well as with
-> > the "noapic" kernel option) does not matter. If ACPI is enabled all is
-> > fine. The APIC is enabled and all devices are assigned IRQs (which is not
-> > the case without ACPI).
->
-> Booting with ACPI enabled and "noapic" outputs a long flood of APIC errors
-> on boot. Did not test any further.
+                ioapic = mp_find_ioapic(irq);
+                if (ioapic < 0)
+                        continue;
+                ioapic_pin = irq - mp_ioapic_routing[ioapic].irq_start;
 
-Great thanks, I'll have a look into that one.
+                if (!ioapic && (irq < 16))
+                        irq += 16;
+
+The questionable bit is the last two lines. If the IRQ is found on IO-APIC #0, 
+and it is < 16, then add 16 onto it! This completely breaks things on my 
+TX150 server as some IRQs which are less < 16 get mapped onto the second 
+IO-APIC.
+
+Can someone tell me what this is meant to be doing?
 
 
 
