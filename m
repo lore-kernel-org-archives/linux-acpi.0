@@ -1,12 +1,14 @@
-From: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
 Subject: Re: Re: Compaq Presario 2800T
-Date: Wed, 31 Jul 2002 14:48:20 -0400
+Date: Wed, 31 Jul 2002 20:57:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200207311848.OAA02789@buzzword-bingo.mit.edu>
-References: <20020731184124.316.qmail@scrye.com>
+Message-ID: <20020731185719.GA20627@dutidad.twi.tudelft.nl>
+References: <200207311759.g6VHx0H13028@mailhst2.its.tudelft.nl> <20020731183327.GE20461@dutidad.twi.tudelft.nl> <20020731184246.382.qmail@scrye.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Your message of "Wed, 31 Jul 2002 12:41:21 MDT."
-             <20020731184124.316.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20020731184246.382.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,39 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Jul 31, 2002 at 12:42:45PM -0600, Kevin Fenzi wrote:
+> thanks for the patch!
 
-> well, I did that, but then iasl gives me: 
-> 
-> iasl-linux-20020725/iasl -tc -bb -i dsdt.asl-new
-[...]
-> Is this the wrong format from acpidmp?
+Thanks for testing!
 
-Woah, I think you made the same mistake I did -- the utility
-you're using gives a hex dump rather than ASL.  Use this 
-utility:
+> I need to do some more testing... not sure I had any 3d stuff running
+> at any point, but it seems to work. 
 
-http://people.freebsd.org/~takawata/pacpidump.tar.gz 
+There _might_ be a problem with the DRI install.sh script being so paranoid
+about alien libGL libs that it moves yours somewhere else...  I'm going to
+fix that soon.
 
-> Are you using the acpi-swspend patch? I am using the
-> patch-acpi-acpi20020726-swsusp11.gz patch.
+If you can see a message in your XFree86.log like this:
+(II) RADEON(0): Direct rendering enabled after VT switch
+after switching back from the console, it means everything is hunky dory.
+Just remember to test for the radeon usecount before you suspend...
 
-Yes -- but rev. swsusp9 versus acpi-20020709.  I will upgrade
-both.
+Thanks,
+Charl
 
-> >> The DRI patch seems to work great on it as well, so it can chvt
-> >> away from X, echo 4 > /proc/acpi/sleep and suspend, and comes back
-> >> ok. Great work on that!
-
-Cool -- I'll try it out once I get the resume issue resolved.
-
-
-Sourav
-
-
+-- 
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
