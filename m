@@ -1,14 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Losing lid events after resume (2.6.6)
-Date: Mon, 17 May 2004 16:39:27 -0700 (PDT)
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [Swsusp-devel] cpu temp probs?
+Date: Tue, 18 May 2004 02:06:03 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040517163826.F21811@root.org>
-References: <20040513181051.GA29398@cs.ucla.edu> <20040517103818.GA1669@elf.ucw.cz>
- <20040517170424.GA19417@cs.ucla.edu> <40A909D3.1080009@free.fr>
+Message-ID: <20040518000603.GA28576@hell.org.pl>
+References: <40A8D431.9090506@ecn.purdue.edu> <1084824054.23442.6.camel@localhost> <40A9272D.7040405@ecn.purdue.edu> <20040517211849.GB24480@hell.org.pl> <40A937F4.8090601@ecn.purdue.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40A909D3.1080009-GANU6spQydw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <40A937F4.8090601-UGcGKVkOO5s4WbhGE/lxQQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,29 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
-Cc: Kevin Eustice <kfe-764C0pRuGfqVc3sceRu5cw@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Christopher N. Deckard" <cnd-UGcGKVkOO5s4WbhGE/lxQQ@public.gmane.org>
+Cc: Jon Olson <morph-XAiDara3MvRg9hUCZPvPmw@public.gmane.org>, Software Suspend Mailing List <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 17 May 2004, Eric Valette wrote:
-> > Yup. After going to standby mode, ACPI no longer registers any event
-> > other than the powerbutton events.
->
-> You are not alone and a similar bug with several proposed patches is
-> already open (for months now) at :
->
-> http://bugme.osdl.org/show_bug.cgi?id=2321
->
-> Note that apparently, the rewrite of the GPE handling is underway and
-> things should be fixed soon (at least that is what len says...)
+Thus wrote Christopher N. Deckard:
+> >>I don't close the screen while suspending.  I have been waiting for 
+> >>a complete power off just to make sure it's doing it's thing...
+> >What does /proc/acpi/processor/*/* say before and after suspend (cat it
+> >several times at least)?
+> After a normal boot, I seem to stay mostly in C2, but every now and 
+> then I see it jump to C1.  Jumps back to C2 almost immediately. 
+> After a suspend and resume I stay in C1.
 
-A related issue for Thinkpads:
-http://bugme.osdl.org/show_bug.cgi?id=2644
+That's odd. Are you sure it's not due to a run-away process or kernel
+thread such as keventd? If it's not, could you try reloading the processor
+module, or possibly unloading it before suspend and loading back after?
+Best regards,
 
-Basically, disabling the lid GPE even though it's marked wake/run makes
-suspend fail as soon as the lid switch is pressed.
-
--Nate
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
