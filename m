@@ -1,79 +1,34 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [ACPI] [PATCH] 6 of 6 rename some ACPI IRQ variables
-Date: Tue, 9 Mar 2004 16:27:12 -0700
+From: David Mosberger <davidm@napali.hpl.hp.com>
+Subject: Re: [ACPI] [PATCH] 4 of 6 introduce acpi_global_irq_to_irq()
+Date: Tue, 9 Mar 2004 15:44:39 -0800
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200403091627.12824.bjorn.helgaas@hp.com>
+Message-ID: <16462.22247.450237.896263@napali.hpl.hp.com>
 References: <200403091619.04333.bjorn.helgaas@hp.com>
+	<200403091626.31461.bjorn.helgaas@hp.com>
+Reply-To: davidm@hpl.hp.com
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <200403091619.04333.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-To: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
-Cc: Andi Kleen <ak@suse.de>, "Nakajima, Jun" <jun.nakajima@intel.com>, "Brown, Len" <len.brown@intel.com>
+In-Reply-To: <200403091626.31461.bjorn.helgaas@hp.com>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, Andi Kleen <ak@suse.de>, "Nakajima, Jun" <jun.nakajima@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI: Rename ACPI IRQ variables for clarity
+>>>>> On Tue, 9 Mar 2004 16:26:31 -0700, Bjorn Helgaas <bjorn.helgaas@hp.com> said:
 
-	acpi_irq_irq -> acpi_irq_global_irq
-	acpi_irq -> acpi_irq_trampoline
+  Bjorn> i386, x86_64, ia64, ACPI: Introduce acpi_global_irq_to_irq()
+  Bjorn> Rename acpi_irq_to_vector() to acpi_global_irq_to_irq().
+  Bjorn> This function takes an ACPI global IRQ (often called a
+  Bjorn> "global system interrupt", but "global_irq" seems to be
+  Bjorn> commonly used in Linux), and converts it to a Linux IRQ.
 
-diff -Nru a/drivers/acpi/osl.c b/drivers/acpi/osl.c
---- a/drivers/acpi/osl.c	Tue Mar  9 14:44:25 2004
-+++ b/drivers/acpi/osl.c	Tue Mar  9 14:44:25 2004
-@@ -63,7 +63,7 @@
- extern char line_buf[80];
- #endif /*ENABLE_DEBUGGER*/
- 
--static int acpi_irq_irq;
-+static int acpi_irq_global_irq;
- static OSD_HANDLER acpi_irq_handler;
- static void *acpi_irq_context;
- 
-@@ -88,7 +88,7 @@
- acpi_os_terminate(void)
- {
- 	if (acpi_irq_handler) {
--		acpi_os_remove_interrupt_handler(acpi_irq_irq,
-+		acpi_os_remove_interrupt_handler(acpi_irq_global_irq,
- 						 acpi_irq_handler);
- 	}
- 
-@@ -234,7 +234,7 @@
- }
- 
- static irqreturn_t
--acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
-+acpi_irq_trampoline(int irq, void *dev_id, struct pt_regs *regs)
- {
- 	return (*acpi_irq_handler)(acpi_irq_context) ? IRQ_HANDLED : IRQ_NONE;
- }
-@@ -258,11 +258,11 @@
- 	}
- 	acpi_irq_handler = handler;
- 	acpi_irq_context = context;
--	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
-+	if (request_irq(irq, acpi_irq_trampoline, SA_SHIRQ, "acpi", acpi_irq_trampoline)) {
- 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
- 		return AE_NOT_ACQUIRED;
- 	}
--	acpi_irq_irq = global_irq;
-+	acpi_irq_global_irq = global_irq;
- 
- 	return AE_OK;
- }
-@@ -277,9 +277,9 @@
- 			printk(KERN_ERR PREFIX "Can't remove ACPI interrupt handler\n");
- 			return AE_ERROR;
- 		}
--		free_irq(irq, acpi_irq);
-+		free_irq(irq, acpi_irq_trampoline);
- 		acpi_irq_handler = NULL;
--		acpi_irq_irq = 0;
-+		acpi_irq_global_irq = 0;
- 	}
- 
- 	return AE_OK;
+  Bjorn> This removes IA64 and PCI_USE_VECTOR #ifdefs from ACPI.
 
+The ia64-specific changes have my blessing.
+
+However, I'd _much_ prefer "gsi" in lieu of "global_irq".  It's much
+easier to think of the former as a numbering-scheme separate from the
+Linux irq numbers.  Justs my 2 cents...
+
+	--david
