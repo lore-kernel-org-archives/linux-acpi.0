@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Subject: Re: Applications & ACPI events
-Date: Mon, 13 Oct 2003 17:26:37 +0200
+Date: Mon, 13 Oct 2003 18:14:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031013152637.GC15441@elf.ucw.cz>
-References: <20031003193814.GE205@openzaurus.ucw.cz> <20031006124935.GQ11391@poupinou.org> <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org> <20031008191610.GB1035@elf.ucw.cz> <20031008215342.GE1920@fairlite.demon.co.uk> <20031008215850.GF1238@elf.ucw.cz> <20031009140648.GH1922@fairlite.demon.co.uk> <20031009213504.GC365@elf.ucw.cz> <20031013131022.GN11391@poupinou.org>
+Message-ID: <20031013161445.GA32511@hell.org.pl>
+References: <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org> <20031008191610.GB1035@elf.ucw.cz> <20031008215342.GE1920@fairlite.demon.co.uk> <20031008215850.GF1238@elf.ucw.cz> <20031009140648.GH1922@fairlite.demon.co.uk> <20031009213504.GC365@elf.ucw.cz> <20031013131022.GN11391@poupinou.org> <20031013133837.GA9178@hell.org.pl> <20031013152807.GD15441@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031013131022.GN11391-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20031013152807.GD15441-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,39 +17,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > X does _not_ do full save/restore, at least not for all
-> > drivers. vesafb does no saving, and generic vga driver is also
-> > incapable of full save/restore. Not sure about others.
+Thus wrote Pavel Machek:
+> > I second that. Sure, VT switch is necessary, but it takes quite a few
+> > seconds, which is unacceptable for S1 for example (Radeon M7 needs the
+> > restore after S1 too).
 > 
-> That exactly my point.  And I think it should not do full save/restore
-> on only VT switch, but we may try to have a better fine grained stuff for,
-> something like 'hey, X we have to go S3, please consider'.
+> Console switch
+> 
+> a) should not take seconds.
 
-Such interface would be pretty ugly.. There are at least these states
-kernel can enter:
+You mean switching between a text console and another, or between a text
+console and X? If it's the first case, than it doesn't. If th second, than
+yes, it takes some 3-4 seconds to switch. Part of that I attribute to the
+driver reinitializing the DRI engine.
 
-S1
-S3
-swsusp
-S4bios
-apm -s
-apm -S
+> b) should not be needed for S1. It is hw bug if it is.
 
-. And anyway not doing complete hw initialization on console switch is
-wrong. How can X know that the game on tty3 is not playing with hw
-acceleration?
+Well, entering S1 while X is running with DRI and no console switch is done
+causes similar symptoms to S4 resume in the same situation. I'm not sure
+that's the same thing. but it looks so.
 
-								Pavel
+> If radeon m7 is broken, well, ...
+
+I don't really know. I'm afraid X's PM support plays the key role here.
+Best regards,
 
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
