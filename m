@@ -1,14 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: article in ACM Queue
-Date: Tue, 18 Nov 2003 08:51:50 -0800
+From: "Dewitt Epps" <ghsf12-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: ePHARMACY Wholesale - LEV.ITRA, VIE.AGRA, Celebrex - INTERNET PRICES...Reuben
+Date: Tue, 18 Nov 2003 18:22:46 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255EF94@orsmsx401.jf.intel.com>
+Message-ID: <k537x-v9g-dz$t4$$x6-$-g@338.sqm4>
+Reply-To: "Dewitt Epps" <ghsf12-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="FD.59CB53CCC"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,20 +19,139 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-For anyone interested, an article I wrote on ACPI and general system
-power management is now available online:
-http://www.acmqueue.com/modules.php?name=3DContent&pa=3Dshowpage&pid=3D81=
 
-There are also a lot of other good articles on future PM challenges in
-that issue, as well.
+--FD.59CB53CCC
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-Regards -- Andy
-(ACPI maintainer emeritus)
+Wholesale Prescription Medications
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
+www.precscription-service-now.com/23
+
+
+LEV.ITRA
+
+VEI.AGRA
+
+PROPE.CIA
+
+
+
+www.precscription-service-now.com/23
+
+
+
+Our Licensed Doctors Will Write Your Prescription
+
+
+Allergies: allegra--clarinex--flonase--zyrtec
+
+Antibiotics: cipro
+
+Cold Sores: denavir
+
+Depression: celexa--lexapro--paxil--prozac--remeron--sarafem--zoloft
+
+Heartburn: nexium--prevacid--prilosec
+
+Herpes Treatment: aldara--condylox--denavir--valtrex
+
+Men's Health: lev.itra---prop.ecia--vei.egra
+
+Motion Sickness: transderm--scop
+
+Pain Relief: celebrex--fioricet--tramadol--ultram--vioxx
+
+Muscle Relaxers--cyclobenzaprine--flexeril--skelaxin--soma--zanaflex
+
+Skin Care: renova--retin a--metrogel--temovate
+
+Sleep Aid: ambien--sonata
+
+Stop Smoking: zyban
+
+
+
+www.precscription-service-now.com/23
+
+
+
+
+
+
+
+
+No more advertising: www.precscription-service-now.com/away.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+wcko  enxohnh ogaohrbqmbseetxohf
+p
+ipc famfvkuyyi
+nhk  lgr
+
+--FD.59CB53CCC--
 
 
 
