@@ -1,17 +1,14 @@
-From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: 2.6 won't poweroff
-Date: Thu, 27 May 2004 19:07:58 +0200 (CEST)
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: Centrino question
+Date: Thu, 27 May 2004 18:44:10 -0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.60.0405271903070.4655@frog.athome>
-References: <20040525044514.GC2217@smeagol> <Pine.LNX.4.60.0405251112580.1337@frog.athome>
- <1085638695.17686.64.camel@dhcppc4> <Pine.LNX.4.60.0405271714330.4143@frog.athome>
- <20040527160436.GE2810@smeagol>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Message-ID: <20040527184409.GA5538@message-id.gmane0305.slipkontur.de>
+References: <3ACA40606221794F80A5670F0AF15F84046AA243@PDSMSX403.ccr.corp.intel.com> <20040522005658.640e1d91.neurowork@free.fr> <1085282649.12352.739.camel@dhcppc4> <20040523132122.6ba363b4.neurowork@free.fr> <1085415078.12941.2.camel@Neuromancer.home.net> <20040525072725.GA12282@message-id.gmane0305.slipkontur.de> <1085638405.17692.59.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; FORMAT=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040527160436.GE2810-Kz9ENIl45+A@public.gmane.org>
-Content-ID: <Pine.LNX.4.60.0405271903361.4655-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1085638405.17692.59.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,45 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>, Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Thu, May 27, 2004 at 02:13:25AM -0400, Len Brown wrote:
+> Stefan
+> The LAPIC TSC is not reliable when C3 runs.
 
-Salut Emma & Fred,
-On Thu, 27 May 2004, Emma Jane Hogbin wrote:
-> I was thinking some more about this...I read somewhere that the 2.4 
-> kernel uses /proc events and the 2.6 kernel uses /sys events and that if 
-> you're using old scripts with a new kernel "halt" won't work because 
-> it's trying to turn off /proc events. Does that make sense? How would I 
-> know what my system is doing? (Debian unstable.)
-I would check the software as a last resort...
+Yes, i guessed something like that. What i wanted to point out is, that
+tools to determine the "real" CPU frequency, which are using tsc, are
+not reliable at all.
 
->> Emma, does your TM634 has the latest BIOS from Acer, i.e. R01-C0O?
-> I'm not sure how I'd check. :/
-On startup press F2 to enter the CMOS-Setup. There you will be on the page 
-Information, where you can find on the line, starting with
-  SystemBIOS version: V4.R6.1-C0O
-So no need to hurry Fred ;-))))
+-- 
+Stefan Seyfried
 
-Cheers
-   hartwig felger
-
-Hartwig Felger informatics
-
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQFAtiB29bBoTzOf1pMRAm1BAKCzhn1cif/dB0NxOMacD+6g1FqcQACgk4Y6
-pC6bvpwg9ZQSe+cvzny9CiA=
-=AlCZ
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
