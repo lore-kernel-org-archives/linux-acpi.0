@@ -1,8 +1,8 @@
 From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Subject: Lid up/down event
-Date: 22 Sep 2002 12:39:40 +0200
+Subject: Missing events?
+Date: 22 Sep 2002 12:45:17 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1032691180.1217.8.camel@paragon.slim>
+Message-ID: <1032691517.1217.15.camel@paragon.slim>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -20,14 +20,19 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-I am currently running ACPI 20020918 on 2.4.19 (with Sergio's patch). It
-all works quite nice. I have a question regarding the ACPI LID up/down
-events. In the logfile from ACPID the LID event show up nicely but there
-seems to be no difference between a LID up of down event. They both
-result in a "button/lid LID 00000080 00000xxx" message. Is this as
-designed or should there be different event for up and down?
+Since running a proper version of the ACPI driver (now 20020918) I 
+can use most special keys (Fn + special key) on my laptop. The buttons
+for brightness up/down and sleep work just fine. But there are some
+buttons which are not (properly?) handled by ACPI.
 
-Cheers,
+These buttons include: suspend to disk, volume up/down and mute. Are
+these buttons supposed to be handled by ACPI? How can I find out? Enable
+ACPI debugging?
+
+BTW my laptop is a Victor/JVC MP-XP7210.
+
+
+Thanks,
 
 Jurgen
 
