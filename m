@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 05/12] acpi: sleep-while-atomic during S3 resume from ram
-Date: Wed, 23 Feb 2005 01:53:00 -0800
-Message-ID: <200502230953.j1N9rFj1020702@shell0.pdx.osdl.net>
+Subject: [patch 08/12] Fix an issue in ACPI processor and container drivers related  with kobject_hotplug()
+Date: Wed, 23 Feb 2005 01:53:06 -0800
+Message-ID: <200502230953.j1N9rLEx020711@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,54 +12,81 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, linux-kernel-Ki4U9mvT0kswryQfseakQg@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Christian Borntraeger <linux-kernel-Ki4U9mvT0kswryQfseakQg@public.gmane.org>
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-During the wakeup from suspend-to-ram I get several warnings.
+This is to fix an issue around kobject_hotplug() used in ACPI processor and
+container drivers.  A while ago, the drivers used their own function
+'processor_run_sbin_hotplug() and container_run_sbin_hotplug()' to notify
+the agent script using /sbin/hotplug mechanism.  But, they were changed to
+use kobject_hotplug() instead and this has caused a side effect.
 
-Signed-off-by: Christian Borntraeger <linux-kernel-Ki4U9mvT0kswryQfseakQg@public.gmane.org>
+The container driver was supposed to invoke a container.agent (user mode
+agent script) using /sbin/hotplug mechanism, but after the changes, it is
+not able to call the agent any more and kobject_hotplug() in the
+container.c became to invoke a namespace.agent instead if exists.  So, I
+would like to use the namespace.agent to handle container hotplug event (or
+something else) and let the agent to call proper agent (e.g. 
+container.agent).  But, there is an issue we need to solve.  When the
+namespace.agent is called, a path name of associated kobject is passed as a
+DEVPATH (e.g./sys/firmware/ acpi/namespace/ACPI/_SB/DEV0).  However, the
+agent would not know what device is associated with the DEVPATH nor which
+agents to call since the DEVPATH name depends on platform.  The attached
+patch is to add .hotplug_ops member to acpi_namespace_kset structure and
+let it to set a driver name attached to the target kobject into the envp[]
+variable as a DRV_NAME element.  With this, the namespace.agent can call
+proper agents (e.g.  container.agent) by refering the DRV_NAME.
+
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/drivers/acpi/osl.c      |    4 ++--
- 25-akpm/drivers/acpi/pci_link.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ 25-akpm/drivers/acpi/scan.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+)
 
-diff -puN drivers/acpi/osl.c~acpi-sleep-while-atomic-during-s3-resume-from-ram drivers/acpi/osl.c
---- 25/drivers/acpi/osl.c~acpi-sleep-while-atomic-during-s3-resume-from-ram	2005-02-23 01:48:02.000000000 -0800
-+++ 25-akpm/drivers/acpi/osl.c	2005-02-23 01:48:02.000000000 -0800
-@@ -145,7 +145,7 @@ acpi_os_vprintf(const char *fmt, va_list
- void *
- acpi_os_allocate(acpi_size size)
- {
--	return kmalloc(size, GFP_KERNEL);
-+	return kmalloc(size, GFP_ATOMIC);
- }
+diff -puN drivers/acpi/scan.c~fix-an-issue-in-acpi-processor-and-container-drivers-related-with-kobject_hotplug drivers/acpi/scan.c
+--- 25/drivers/acpi/scan.c~fix-an-issue-in-acpi-processor-and-container-drivers-related-with-kobject_hotplug	2005-02-23 01:48:05.000000000 -0800
++++ 25-akpm/drivers/acpi/scan.c	2005-02-23 01:48:05.000000000 -0800
+@@ -81,12 +81,37 @@ static struct kobj_type ktype_acpi_ns = 
+ 	.release	= acpi_device_release,
+ };
  
- void
-@@ -905,7 +905,7 @@ acpi_os_wait_semaphore(
++static int namespace_hotplug(struct kset *kset, struct kobject *kobj,
++			     char **envp, int num_envp, char *buffer,
++			     int buffer_size)
++{
++	struct acpi_device *dev = to_acpi_device(kobj);
++	int i = 0;
++	int len = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	if (add_hotplug_env_var(envp, num_envp, &i, buffer, buffer_size, &len,
++				"PHYSDEVDRIVER=%s", dev->driver->name))
++		return -ENOMEM;
++
++	envp[i] = NULL;
++
++	return 0;
++}
++
++static struct kset_hotplug_ops namespace_hotplug_ops = {
++	.hotplug = &namespace_hotplug,
++};
++
+ static struct kset acpi_namespace_kset = {
+ 	.kobj		= { 
+ 		.name = "namespace",
+ 	},
+ 	.subsys = &acpi_subsys,
+ 	.ktype	= &ktype_acpi_ns,
++	.hotplug_ops = &namespace_hotplug_ops,
+ };
  
- 	ACPI_DEBUG_PRINT ((ACPI_DB_MUTEX, "Waiting for semaphore[%p|%d|%d]\n", handle, units, timeout));
- 
--	if (in_atomic())
-+	if (in_atomic() || irqs_disabled())
- 		timeout = 0;
- 
- 	switch (timeout)
-diff -puN drivers/acpi/pci_link.c~acpi-sleep-while-atomic-during-s3-resume-from-ram drivers/acpi/pci_link.c
---- 25/drivers/acpi/pci_link.c~acpi-sleep-while-atomic-during-s3-resume-from-ram	2005-02-23 01:48:02.000000000 -0800
-+++ 25-akpm/drivers/acpi/pci_link.c	2005-02-23 01:48:02.000000000 -0800
-@@ -315,7 +315,7 @@ acpi_pci_link_set (
- 	if (!link || !irq)
- 		return_VALUE(-EINVAL);
- 
--	resource = kmalloc( sizeof(*resource)+1, GFP_KERNEL);
-+	resource = kmalloc( sizeof(*resource)+1, GFP_ATOMIC);
- 	if(!resource)
- 		return_VALUE(-ENOMEM);
  
 _
 
