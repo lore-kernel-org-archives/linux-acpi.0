@@ -1,13 +1,13 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: Samsung P35 and S3 suspend
-Date: Wed, 22 Dec 2004 03:06:01 +0100
-Message-ID: <41C8D689.3020502@gmx.net>
-References: <41BFC3AD.5030001@gmx.net> <1103117333.5924.3.camel@mhcln03>	 <41C07B6F.70900@gmx.net> <1103159022.5924.17.camel@mhcln03> <41C0FFF3.4010902@gmx.net> <41C19BD8.7050201@gmx.net> <41C1CFA2.20304@gmx.net>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: LID button Event ACPI malfunction
+Date: Wed, 22 Dec 2004 10:05:18 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575D251A6@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41C1CFA2.20304-hi6Y0CQ0nG0@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,49 +17,94 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>, =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fbdev-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Carl-Daniel Hailfinger wrote:
+I guess the system invokes ACPI event when shut down. If the button
+driver provides a .shutdown method, the issue could be fixed.
+Actually in recent discussion, we agreed every ACPI driver should
+provide .shutdown/.suspend/.resume method, but we must migrate to sysfs
+interface for ACPI and use generic device model first.
 
-> OK, I got S3 working with all kernels since 2.6.9 (well, your
-> patches had to be modified slightly). Right now I'm running on the
-> latest Linus -bk tree.
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Benedek Frank
+>Sent: Wednesday, December 22, 2004 8:26 AM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] LID button Event ACPI malfunction
 >
-> I will now try other configurations and a full bootup.
+>Hi
 >
-> OK, it is working perfectly with the latest Linus -bk tree and
-> everything configured in (SuSE .config, comparable to allmodconfig).
-
-It turns out that (at least for 2.6.10-rc3 and later) the kernel
-resumes from S3 perfectly regardless of .config as long as
-- no framebuffer console is activated (kernel param video=vesa:off )
-- pci-resume-2.6.10.patch and resume-finish-split-2.6.10.patch
-  are applied
-- suspend and resume happen with an active TEXT console (chvt 2)
-- VESA registers are saved before suspend
-- the radeon card is POSTed after resume
-- the VESA registers are restored after that
-- now you are free to change back to X if you want.
-
-You do NOT need
-- a patched X server
-- a special kernel .config
-- sacrifices of any kind.
-
-See my other mail to acpi-devel for details about how to save/restore
-the VESA registers and POST the card.
-
-Question for the framebuffer experts: Is it possible to forbid access
-to the video card after resume until the card has been POSTed and all
-registers are restored? Any access to the card before that will freeze
-the machine.
-
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+>When I shut down, my machine (Dell 700m) goes into suspend to ram
+twice. I
+>have to wake it
+>up, and it goes further, sleeps again, wake it up, and finally shuts
+down.
+>I
+>just had ACPI worked out (kernel 2.6.9), and since just recently I can
+go
+>to
+>suspend to RAM
+>and DISK as well. Now, why a shut down triggers a suspend-to-ram?
+>
+>When I look at the LID button under ACPI
+>
+>/proc/acpi/button/lid/LID0/state
+>
+>it says
+>
+>state: closed
+>
+>It is clearly not closed, as I am looking at the screen. :)
+>
+>I have an ACPI event that gets triggered when I REALLY close the lid,
+and
+>that
+>works.
+>
+>Here is the event
+>
+>/etc/acpi/event/lidbtn
+>
+>event=3Dbutton/lid
+>action=3D/etc/acpi/lidbtn.sh
+>
+>And here is the script
+>
+>/etc/acpi/lidbtn.sh
+>
+>#!/bin/sh
+>/sbin/sleep
+>
+>And finally here is /sbin/sleep, that was written by me for the
+machine's
+>special needs (like module unloading, video_post etc.)
+>
+>rmmod b44
+>echo "mem" > /sys/power/state
+>#echo 3 > /proc/acpi/sleep
+>modprobe i830
+>/root/emu/video_post
+>modprobe b44
+>/etc/init.d/networking restart
+>
+>Thanks for any help
+>
+>Ben
+>
+>
+>-------------------------------------------------------
+>SF email is sponsored by - The IT Product Guide
+>Read honest & candid reviews on hundreds of IT Products from real
+users.
+>Discover which products truly live up to the hype. Start reading now.
+>http://productguide.itmanagersjournal.com/
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
