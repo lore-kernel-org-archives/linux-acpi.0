@@ -1,28 +1,82 @@
-From: "speretta" <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
-Subject: Recebido seu e-mail agrade=?ISO-8859-1?Q?=E7o_a_aten=E7=E3o=2E_Em_breve_ser=E1?= respondido. Sugiro sua visita ao si
-Date: Thu, 12 Aug 2004 11:48:20 -0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <10408121148.AA92813790@speretta.adv.br>
-Reply-To: <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: Allow userspace do something special on overtemp
+Date: 12 Aug 2004 11:19:05 -0400
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1092323945.5028.177.camel@dhcppc4>
+References: <20040811085326.GA11765@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268587AbUHLPTb@vger.kernel.org>
+In-Reply-To: <20040811085326.GA11765@elf.ucw.cz>
+To: Pavel Machek <pavel@suse.cz>
+Cc: trenn@suse.de, seife@suse.de, Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Recebido seu e-mail agradeço a atenção. Em breve será respondido. Sugiro sua visita ao site htpp://www.speretta.adv.br e ao blog  - http://speretta.blog.uol.com.br. Tenha um ótimo dia e que esteja sempre com a PAZ de DEUS.
+Simpler to delete the usermode call and rely on the (flexible)
+acpid event, yes?
+
+ thermal.c |   29 +----------------------------
+ 1 files changed, 1 insertion(+), 28 deletions(-)
+
+cheers,
+-Len
 
 
--------------------------------------------------------
-SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
-100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
-Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
-http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
+===== drivers/acpi/thermal.c 1.34 vs edited =====
+--- 1.34/drivers/acpi/thermal.c	Thu Jul  8 01:56:01 2004
++++ edited/drivers/acpi/thermal.c	Thu Aug 12 11:13:59 2004
+@@ -61,7 +61,6 @@
+ #define ACPI_THERMAL_MODE_ACTIVE	0x00
+ #define ACPI_THERMAL_MODE_PASSIVE	0x01
+ #define ACPI_THERMAL_MODE_CRT   	0xff
+-#define ACPI_THERMAL_PATH_POWEROFF	"/sbin/poweroff"
+ 
+ #define ACPI_THERMAL_MAX_ACTIVE	10
+ 
+@@ -422,30 +421,6 @@
+ 
+ 
+ static int
+-acpi_thermal_call_usermode (
+-	char			*path)
+-{
+-	char			*argv[2] = {NULL, NULL};
+-	char			*envp[3] = {NULL, NULL, NULL};
+-
+-	ACPI_FUNCTION_TRACE("acpi_thermal_call_usermode");
+-
+-	if (!path)
+-		return_VALUE(-EINVAL);
+-
+-	argv[0] = path;
+-
+-	/* minimal command environment */
+-	envp[0] = "HOME=/";
+-	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
+-	
+-	call_usermodehelper(argv[0], argv, envp, 0);
+-
+-	return_VALUE(0);
+-}
+-
+-
+-static int
+ acpi_thermal_critical (
+ 	struct acpi_thermal	*tz)
+ {
+@@ -468,10 +443,8 @@
+ 	if (result)
+ 		return_VALUE(result);
+ 
+-	printk(KERN_EMERG "Critical temperature reached (%ld C), shutting
+down.\n", KELVIN_TO_CELSIUS(tz->temperature));
++	printk(KERN_EMERG "Critical temperature reached (%ld C).\n",
+KELVIN_TO_CELSIUS(tz->temperature));
+ 	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL,
+tz->trips.critical.flags.enabled);
+-
+-	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
+ 
+ 	return_VALUE(0);
+ }
