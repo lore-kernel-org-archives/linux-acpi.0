@@ -1,12 +1,15 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
-Subject: Re: [PATCH] [suspend/resume] wrong wakeup address
-Date: Fri, 15 Oct 2004 13:40:41 +0200
+From: Sebastian <admin-HmhXUwHVxSOoYr4blSSd5g@public.gmane.org>
+Subject: Re: [privat] Re: 2.6.9-rc4 ACPI problem after starting X
+Date: Fri, 15 Oct 2004 17:36:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yzou0swdxae.fsf@cern.ch>
-References: <16A54BF5D6E14E4D916CE26C9AD30575546CFA@pdsmsx402.ccr.corp.intel.com> <20041015111546.GB2015@elf.ucw.cz>
+Message-ID: <20041015173633.1c9d3239.admin@wodkahexe.de>
+References: <20041013172118.0ec42975.admin@wodkahexe.de>
+	<20041014223607.GA9549@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041014223607.GA9549-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,24 +18,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel> Could you verify that address passed to firmware_waking_vector() is
-Pavel> actually different? 
+On Fri, 15 Oct 2004 00:36:07 +0200
+Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org> wrote:
 
-I haven't checked lately, but I think without any fancy BIGMEM
-options, the difference is 0xc0000000, only affecting the upper 4
-bits.
+> On Wed, Oct 13, 2004 at 05:21:18PM +0200, Sebastian wrote:
+> > Hi,
+> > 
+> > After starting X (v. 4.4.0) I'm getting still some strange ACPI
+> > errors in dmesg.
+> > 
+> >  dswload-0292: *** Error: Looking up [PBST] in namespace,
+> >  AE_ALREADY_EXISTS psparse-1133: *** Error: Method execution failed
+> >  [\_SB_.PCI0.LPC0.BAT1._BST] (Node c1474f28), AE_ALREADY_EXISTS
+> > 
+> > This does not happen, when working with the console. It starts some
+> > seconds, after i started X.
+> 
+> i suspect this is some battery applet accessing your battery.
+> What windowmanager / desktop environment are you using?
+> -- 
+> Stefan Seyfried
+> 
 
-Pavel> If the toshiba works with wrong return address... perhaps only
-Pavel> high bits differ and toshiba just ignores them?
+Hi,
 
-IUC, a (32bit) ACPI implementation should use bits 4-19 for CS
-and bits 0-3 for IP for the real-mode wake-up address.
+thanks for that hint. it seems gkrellm is causing these problem.
+after preventing gkrellm from starting via .xinitrc these messages don't
+apear anymore.
 
-Ole
+i did a little research, since gkrellm is only reading
+/proc/acpi/battery/BAT1/state and /proc/acpi/ac_adapter/ACAD/state to
+display battery status.
 
+i can reproduce these error messages with the following command:
+
+while [ 1 ]; do cat /proc/acpi/battery/BAT1/state && sleep 1; done
+
+it's 100% reproduceable on my laptop.
+
+should i fill a bug report ?
+
+kernelversion is 2.6.9-rc4. but this problem is present since 2.6.7 (or earlier)
+
+Sebastian
 
 
 -------------------------------------------------------
