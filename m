@@ -1,10 +1,11 @@
-From: Alberto Ornaghi <alor-G/4Acn03FKk@public.gmane.org>
-Subject: [2.5.50] ACPI problems on presario 705
-Date: Sat, 30 Nov 2002 16:05:52 +0100
+From: Sylvain Bertrand <xod-6bugY6I12JBBDgjK7y7TUQ@public.gmane.org>
+Subject: ASUS A7V266-E latest bios, kernel 2.4.20, latest ACPI patch problem
+Date: Sat, 30 Nov 2002 17:52:34 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.1.5.2.20021130160527.028ee1a0@wheresmymailserver.com>
+Message-ID: <3DE8ECD2.3080709@ifrance.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,33 +18,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Compiled a brand new 2.4.20 kernel with the latest ACPI patch on my ASUS 
+A7V266-E athlon-xp 1800+ with gcc 3.2.1. Thermal infos, MHz speed and 
+similar info are not present in /proc/acpi.
 
-If I enable the ACPI subsystem it doesn't boot at all.
-no log in /var/log/messages, only a call trace on the video, but it is too 
-long and it scroll down too fast so I can only see few line.
+Regards,
 
-the call trace ends with this message:
+  Sylvain
 
-Code: 8b 00 0f 0d 00 81 7c 24 0c ac 00 45 c0 0f 85 7a ff ff ff 9c
-  <0>Kernel panic: Aiee, killing interrupt handler!
-In interrupt handler - not syncing
-
-sorry, my laptop doesn't have a serial port, so I cannot dump the call 
-trace...
-anyone who can ? anyone experiencing the same problem ?
-
-passing the acpi=off option the kernel boots normally
-
-I'm running acpi 20021122 under 2.4.20 and it works like a charme...
-
-are there substantial difference between the 2.4. and 2.5. version of ACPI ?
-
-bye
-
-    --==> ALoR <==---------------------- -  -   -
-
-There are only 10 types of people in this world...
-those who understand binary, and those who don't.
+_____________________________________________________________________
+GRAND JEU SMS : Pour gagner un NOKIA 7650, envoyez le mot IF au 61321
+(prix d'un SMS + 0.35 euro). Un SMS vous dira si vous avez gagné.
+Règlement : http://www.ifrance.com/_reloc/sign.sms
 
 
 
