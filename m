@@ -1,7 +1,7 @@
 From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: Need help interpreting my DSDT
-Date: Sun, 02 May 2004 17:55:25 +0200
-Message-ID: <1083513325.23963.8.camel@scotchmobil>
+Subject: Need Help interpreting my DSDT
+Date: Sun, 02 May 2004 17:00:08 +0200
+Message-ID: <1083510020.20641.5.camel@scotchmobil>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -18,12 +18,11 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, 
-sorry, if you get this mail two times... 
-Okay, I figured out, that my notbeook supports up to 4 C-states. The
-problem is, that if I boot under Linux the ACPI returns only 1 C-state. 
-I tracked this to following asl code :
- If (\_SB.INV7)
+Hey, 
+I figured out, that my Notebook ist capable of 4 C states. 
+But in case I boot Linux ACPI return only one C-State. 
+I tracked it to this code :
+                If (\_SB.INV7)
                 {
                     Return (NOC3)
                 }
@@ -36,10 +35,8 @@ I tracked this to following asl code :
                 {
                     Return (ACST)
                 }
-In my case NOC3 is returned. This means that \_SB.INV7 is set. My
-question now is what exactly is \_SB.INV7 ? 
-I found one method manupilating \_SB.INV7 :
-  Scope (\_SB)
+Where \_SB.INV7 seems ot be set in this method :
+    Scope (\_SB)
     {
         OperationRegion (GPIO, SystemIO, IO2B, 0x40)
         Field (GPIO, ByteAcc, NoLock, Preserve)
@@ -80,9 +77,13 @@ I found one method manupilating \_SB.INV7 :
 
             Notify (\_PR.CPU1, 0x81)
         }
-So has anyone an idea what INV7 could be ? 
-THX
+As far as I could figure out, this would be some contol register of an
+embedded device (this is just a guess) Any idea, what this could be ?
+Thx
    Janosch
+
+P.S.: I thougt about hardcoding the C-states into my kernel, would this
+work ?  
 
 
 
