@@ -1,14 +1,12 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: RE: preparing toshiba_acpi driver release
-Date: Tue, 27 Jan 2004 12:31:09 +0100
+From: y.petrova-+M9NW37X/RNal66kLdaElA@public.gmane.org
+Subject: STATUS
+Date: Tue, 27 Jan 2004 12:55:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040127113109.GB21643@hell.org.pl>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A51@hdsmsx402.hd.intel.com>
+Message-ID: <200401271051.MAA11799@ftplo.plo.bulbank.bg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0011_06F53956.99AE735D"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8A51-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,23 +15,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Brown, Len:
-> I think it would be good to get acpi video standardized to defuse the
-> need for more platform-specific code...  Indeed, the next piece of the
-> puzzle it to figure out how to properly do hot-keys correctly.  Surely
-> Windows doesn't have a driver for each OEM's buttons...
+This is a multi-part message in MIME format.
 
-Well, ASUS certainly has one, though supporting hotkeys is here as easy as
-installing an appropriate notify handler.
-Best regards,
+------=_NextPart_000_0011_06F53956.99AE735D
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+The message cannot be represented in 7-bit ASCII encoding and has been sent as a binary attachment.
+
+
+------=_NextPart_000_0011_06F53956.99AE735D
+Content-Type: text/plain;
+	name="DELETED0.TXT"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="DELETED0.TXT"
+
+RmlsZSBhdHRhY2htZW50OiBtZXNzYWdlLnNjcgpBIGZpbGUgYXR0YWNoZWQgdG8gdGhpcyBl
+bWFpbCB3YXMgcmVtb3ZlZA0KYmVjYXVzZSBpdCB3YXMgaW5mZWN0ZWQgd2l0aCBhIHZpcnVz
+Lg0KDQpXMzIuTm92YXJnLkFAbW0=
+------=_NextPart_000_0011_06F53956.99AE735D--
+
+
 
 
 -------------------------------------------------------
