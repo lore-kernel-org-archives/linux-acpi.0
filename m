@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH][RFC] Clean up Kconfig logic for IA64 ACPI
-Date: Sun, 2 Nov 2003 04:34:02 +0000
+From: "Carlo E. Prelz" <fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org>
+Subject: Re: Unable to turn cooling device on - Asus M3N - test9bk4
+Date: Sun, 2 Nov 2003 07:41:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031102043402.GF3824@parcelfarce.linux.theplanet.co.uk>
-References: <Pine.GSO.4.58.0310251706470.15711@inky> <20031102031644.GB3824@parcelfarce.linux.theplanet.co.uk> <Pine.GSO.4.58.0311011945190.18996@sue>
+Message-ID: <20031102064117.GC16225@casa.fluido.as>
+References: <20031101201812.GA19277@austinchronicle.com> <20031101203319.GA19334@austinchronicle.com> <20031101215223.GB20858@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.58.0311011945190.18996-rWrNtCO5SiE@public.gmane.org>
+In-Reply-To: <20031101215223.GB20858-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,50 +17,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Noah J. Misch" <noah-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org>
-Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org, Lindsey Simon <lsimon-kAMMLXQ8Af9Wk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 01, 2003 at 08:05:44PM -0800, Noah J. Misch wrote:
-> I do not read linux-ia64 regularly, so I did not notice your work.  I
-> apologize for not acknowledging it.
+	Subject: Re: [ACPI] Unable to turn cooling device on - Asus M3N - test9bk4
+	Date: sab, nov 01, 2003 at 10:52:23 +0100
 
-No problem ;-)
+Quoting Karol Kozimor (sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org):
 
-> Why not include drivers/Kconfig and scrap the individual subdirectory
-> includes, as i386 does?
+> You have, however, a more serious problem if the fan is not really spinning
+> at all. You'd need to verify that using a wide range of temperatures,
+> though.
 
-At that time, I hadn't done the work to create drivers/Kconfig ;-)
-The main problem for ia64 is the simulator stuff.  Maybe something like:
+My personal experience: on my m3700n I used 2.6.0test6, needed a
+patched DSDT, and my fan was always, strongly on. Yesterday evening I
+did the upgrade to vanilla 2.6.0test9. I can happily announce that
+internal temperature is successfully maintained around the trip point
+(55 degrees). This also means that the temperature read from the
+/proc/acpi/thermal_zone/THRM/temperature file is now meaningful. 
 
-if !IA64_HP_SIM
-source "drivers/Kconfig"
-endif
+What I wanted to add is that the result is obtained by running the fan
+at an apparently much lower speed, so that it is scarcely felt that it
+runs at all.
 
-if IA64_HP_SIM
-source "drivers/base/Kconfig"
-source "drivers/scsi/Kconfig"
-source "net/Kconfig"
-source "drivers/block/Kconfig"
-source "arch/ia64/hp/sim/Kconfig"
-endif
+So, Lindsey, are you sure that your fan does not run? In my case, I
+had not loaded the fan and thermal modules at the beginning (they were
+useless with the older version, and had caused problems...) and after
+a few minutes' running time the upper, left part of the PC became so
+hot that it hurt my fingers. After loading the two modules, in a
+very short time the PC was again comfortable on my laptop. 
 
-(I guess Kconfig needs an "else" keyword).
+PS I can also announce that commuting from LCD to external monitor now
+works! ;-) Only, it works using the function key, not by writing
+numbers into /proc/acpi/asus/disp. The value read on the proc file
+changes though: LCD on shows 1, external CRT on shows 2048.
 
-(Also the duplication of drivers/block/Kconfig is no longer necessary).
-
-> Also, it looks like your patch makes ACPI non-mandatory.  Is that intentional?
-
-Hmmm... no ;-)  I agree the "select" should probably go in -- we seem
-to be infected with ACPI for the foreseeable future ;-(
-
-I imagine these kinds of patches can go into 2.6.1 -- the freeze should
-let up a bit by then.
+Carlo
 
 -- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+  *         Se la Strada e la sua Virtu' non fossero state messe da parte,
+* K * Carlo E. Prelz - fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org             che bisogno ci sarebbe
+  *               di parlare tanto di amore e di rettitudine? (Chuang-Tzu)
 
 
 -------------------------------------------------------
