@@ -1,13 +1,15 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Wed, 19 Jan 2005 22:03:06 -0500
-Message-ID: <41EF1F6A.5000807@bartol.udel.edu>
-References: <41E81C2C.8010809@bartol.udel.edu>	<1105747983.7368.3.camel@tyrosine>	<47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
+From: Bob Weber <rjweber-EkmVulN54Sk@public.gmane.org>
+Subject: Re: Compile problem in DSDT.dsl file
+Date: Wed, 19 Jan 2005 22:46:58 -0800
+Message-ID: <200501192246.58642.rjweber@ieee.org>
+References: <200501101200.13340.rjweber@ieee.org> <20050117130819.GA8558@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41EDE2EA.7090404-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+In-Reply-To: <20050117130819.GA8558-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +19,113 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Tonight's build:
+On Monday 17 January 2005 5:08 am, Karol Kozimor wrote:
+> A rebranded ASUS, M3N in this case. Someone once suggested to move those
+> statements to an _INI method, please search the archives for the exact
+> solution.
 
-http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20050120.tar.gz
+Thanks for the response Karol. I did find similar references in the archives, 
+but I couldn't find any suggestion of moving them to an _INI method. All I 
+could find was to comment them out. So, I did this (note the /*    */).
 
-...only has one modification (apart from fixing a typo in my name, 
-thanks to Olaf Jansen-OIlliges!). The 'present rate' field in the 
-legacy-interface /proc/acpi/battery/*/state file is supposed to show the 
-present discharge/charge rate in either mA or mW, depending on the 
-capacity_mode used. However, I've just been using the current (in mA) 
-returned by the Smart Battery System, which is clearly incorrect when 
-capacity_mode=2 (mW) is selected.
+    Name (_S0, Package (0x04)
+    {
+        0x00, 
+        0x00, 
+        0x00, 
+        0x00
+    })
+    
+    /* If (SS1)
+    {
+        Name (_S1, Package (0x04)
+        {
+            0x02, 
+            0x00, 
+            0x00, 
+            0x00
+        })
+    }
 
-I've fixed this in a rather cunning way. The SBS is more sophisticated 
-than normal control-method batteries, in that individual batteries can 
-report their time to empty or full (applications reporting on CM 
-batteries have to calculate these times from the last full capacity and 
-discharge/charge rates). What I've done in the latest release is to 
-calculate what value of the 'present rate' field will produce the 
-correct time to empty or full when combined with the last full capacity. 
-The upshot is, not only does the 'present rate' field now give sensible 
-values when capacity_mode=2, but also the times reported by applications 
-using the legacy interface will be direct reflections of the proper SBS 
-times.
+    If (SS3)
+    {
+        Name (_S3, Package (0x04)
+        {
+            0x05, 
+            0x00, 
+            0x00, 
+            0x00
+        })
+    }
 
-The SBS driver seems to be working reasonably well now -- there are no 
-outstanding bugs. My next task is to work out how best to aim for kernel 
-integration, and to figure out how to set up event handling. Don't 
-expect the pace of development to be as fast as the past few days -- I 
-need sleep like the rest of you!
+    If (SS4)
+    {
+        Name (_S4, Package (0x04)
+        {
+            0x06, 
+            0x00, 
+            0x00, 
+            0x00
+        })
+    }
+    */
+ 
+I question this fix. It seems moving them would be more appropriate, but let's 
+just see if I can boot up. I believe these deal with sleep states, right? 
+Recompiling results in several errors about methods not returning values, but 
+it builds. I'm looking for ideas on what I should really do to fix this dsdt. 
+This seems to be a common compiling problem. 
 
-cheers,
+I also checked the posted DSDT table for an Asus M3N on the website (custom). 
+It will not compile either, with the same error. Maybe this is a check that 
+wasn't enforced on previous compilers, or I'm looking at the wrong dsdt file.
 
-Rich
+I patched the 2.6.10 kernel and rebuilt it to include my new dsdt.hex file. 
+But, it still freezes at boot-up unless I include acpi=off as a boot arg. 
+When I do include "acpi=off" and boot-up, I do an acpidmp to see if the new 
+dsdt file has been loaded, and it looks the same as the original, but maybe 
+acpi=off keeps the new dsdt from being used. Do I need to do anything more to 
+get the new dsdt file loaded at boot-up? 
+
+How can I better debug what's going on? When the sysem freezes after "loading 
+kernel ...", it's kind of hard to get anywhere.
+
+- Bob
+
+On Monday 17 January 2005 5:08 am, Karol Kozimor wrote:
+> Thus wrote Bob Weber:
+> > Hello. I've had ACPI working on my laptop, but with the latest kernel I
+> > cannot boot unless I have "acpi=off".
+> >
+> > After reading up on the linux ACPI effort, I decided to try and tackle
+> > this. I have an enpower ENP24004 centrino-based system. With an Intel
+> > chipset, I figured chances are good that the only issue is in the DSDT
+> > table.
+> >
+> > I've extracted the DSDT code, and when I compile it with "iasl -tc
+> > dsdt.dsl", I get the following:
+> >
+> > Intel ACPI Component Architecture
+> > ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
+> > Copyright (C) 2000 - 2003 Intel Corporation
+> > Supports ACPI Specification Revision 2.0b
+> >
+> > dsdt.dsl  7573:     If (SS1)
+> > Error    1037 -      ^ parse error, unexpected PARSEOP_IF
+>
+> A rebranded ASUS, M3N in this case. Someone once suggested to move those
+> statements to an _INI method, please search the archives for the exact
+> solution.
+> Best regards,
+
+-- 
+----------------------------------------------------------------------------
+The only maxim of a free government ought to be to trust no man living with
+power to endanger the public liberty. -John Adams, 2nd US president
+(1735-1826)
 
 
 -------------------------------------------------------
