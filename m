@@ -1,12 +1,11 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Battery change in sleep mode breaks battery support
-Date: Wed, 09 Feb 2005 20:15:16 +0100
-Message-ID: <420A6144.5050501@suse.de>
-References: <420A224B.9050308@colitti.com>
+From: "Arruda, Steve" <Steve.Arruda-EnD59DRpZQMAvxtiuMwx3w@public.gmane.org>
+Subject: Old version of ACPI Patch
+Date: Wed, 09 Feb 2005 14:36:47 -0500
+Message-ID: <8C431EC125E9924186D8BB91DC1152B7C8C13D@TNTNC4SXCH.gdc4s.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <420A224B.9050308-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Content-Type: multipart/alternative;
+ boundary="----_=_NextPart_001_01C50EDE.B1987AC6"
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,63 +15,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Lorenzo Colitti wrote:
-> Hi,
-> 
-> I am having problems with battery monitoring and sleep mode: if I plug 
-> in or unplug the battery while the machine is asleep, when it wakes up 
-> the change has not been registered and no further changes are logged.
-> 
-> This means that I suspend the machine while on AC power and wake it up 
-> on battery power, there is no way for me to keep track of how much 
-> charge is left, which is a problem!
-> 
-> As an example, I started with init=/bin/sh, with no battery and AC 
-> plugged in, and did the following:
-> 
->> sh-3.00# modprobe battery
->> ACPI: Battery Slot [C138] (battery absent)
->> ACPI: Battery Slot [C137] (battery absent)
->> sh-3.00# modprobe ac
->> ACPI: AC Adapter [C135] (on-line)
->> sh-3.00# echo 3 > /proc/acpi/sleep
-> 
-> 
-> While the machine was asleep, I plugged in the battery and removed AC 
-> power, then turned the machine on. The kernel didn't notice that the 
-> battery had been plugged in:
-> 
->> sh-3.00# cat /proc/acpi/battery/C138/info present:                 no
->> sh-3.00# cat /proc/acpi/battery/C137/info
->> present:                 no
->> sh-3.00# cat /proc/acpi/ac_adapter/C135/state state:                   
->> off-line
-> 
-> 
-> Unplugging and reinserting the battery and/or reloading the battery 
-> module didn't help. :(
-> 
-> The machine is an HP NC6000 on which ACPI mostly works (decompiling and 
-> recompiling the DSDT yields only the warning "Unknown reserved name 
-> (_WDG)"). I have ACPI debugging enabled in the kernel, but I don't know 
-> how to use it.
-> 
-> Any ideas?
-> 
-I expect that your _WAK function does not work properly.
-Does S3 invoke the _WAK function after wake up?
+This is a multi-part message in MIME format.
 
-I remember some things like that concerning suspend to disk (no buttons, 
-wrong AC/battery states), that vanished when using platform mode.
-The main differnce to shutdown mode is (correct me if I am wrong), that 
-the BIOS _WAK function is called and the devices get initialised again.
+------_=_NextPart_001_01C50EDE.B1987AC6
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-        Thomas
+All,
 
+I'm looking for an old version of ACPI patches. Specifically, I need to =
+patch kernel 2.4.21. Do the patches go back that far?=20
+
+I can only find stable patches as far back as 2.4.28 on sourceforge.=20
+
+Thanks for the help.
+
+Steve
+
+
+------_=_NextPart_001_01C50EDE.B1987AC6
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Diso-8859-1">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.5.6944.0">
+<TITLE>Old version of ACPI Patch</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/plain format -->
+
+<P><FONT SIZE=3D2>All,<BR>
+<BR>
+I'm looking for an old version of ACPI patches. Specifically, I need to =
+patch kernel 2.4.21. Do the patches go back that far?<BR>
+<BR>
+I can only find stable patches as far back as 2.4.28 on sourceforge.<BR>
+<BR>
+Thanks for the help.<BR>
+<BR>
+Steve<BR>
+</FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C50EDE.B1987AC6--
 
 
 -------------------------------------------------------
