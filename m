@@ -1,13 +1,15 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Simon Derr <Simon.Derr-6ktuUTfB/bM@public.gmane.org>
 Subject: Re: [PATCH] fix(Fix _STA checking in acpi_bus_add)
-Date: Thu, 29 Apr 2004 10:44:36 +0200
+Date: Thu, 29 Apr 2004 10:18:16 +0200 (DFT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040429084436.GA578@poupinou.org>
-References: <Pine.LNX.4.58.0404281525160.30907@daphne.frec.bull.fr> <20040428142557.GB22558@parcelfarce.linux.theplanet.co.uk> <Pine.A41.4.53.0404281637220.37100@isabelle.frec.bull.fr> <200404280934.26381.bjorn.helgaas@hp.com>
+Message-ID: <Pine.A41.4.53.0404291005470.37100@isabelle.frec.bull.fr>
+References: <Pine.LNX.4.58.0404281525160.30907@daphne.frec.bull.fr>
+ <20040428142557.GB22558@parcelfarce.linux.theplanet.co.uk>
+ <Pine.A41.4.53.0404281637220.37100@isabelle.frec.bull.fr>
+ <200404280934.26381.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <200404280934.26381.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,49 +23,46 @@ To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Cc: Simon Derr <Simon.Derr-6ktuUTfB/bM@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 28, 2004 at 09:34:26AM -0600, Bjorn Helgaas wrote:
-> On Wednesday 28 April 2004 8:53 am, Simon Derr wrote:
-> > On Wed, 28 Apr 2004, Matthew Wilcox wrote:
-> > 
-> > > Sounds like you have a bug.  Why does your firmware not report that the
-> > > device is present?
-> > >
-> > Yes there is very probably some firmware bug involved, and as a matter of
-> > fact we happen to have a 16-way system where the 0xff bus is visible even
-> > with recent kernels.
-> 
+On Wed, 28 Apr 2004, Bjorn Helgaas wrote:
+
 > Is your box based on Intel chipsets and/or firmware?  You might be
+Indeed.
+
 > suffering from the problem I described here:
-> 
+>
 >     https://sourceforge.net/mailarchive/message.php?msg_id=6923358
-> 
+>
 > Intel firmware seems to describe the PCI root bridge where chipset
 > configuration space lives with _STA==0x8.  The spec says this means
 > "functional, but not present".  The current Linux code ignores things
 > that are "not present".
-> 
-> Nobody cared enough to do anything about this issue at the time, so
-> it is still broken.  I did raise the issue with our ACPI representative,
-> but I don't know what happened.  I'd like to see some clarification in
-> the spec.
-> 
 
-This is only my interpretation of the specs but I think that if bit3 is
-set, then that mean the device have been checked at POST time.
-But if bit0 is cleared also, that mean that the device is not present,
-so far it may be indication of an event like unplugging a laptop from a
-station (for example), or a pci card removed in a hotplug system, etc.
+I tried your patch and it works perfectly. Thank you.
+This chipset/firmware is probably very common in the ia64 world so I think
+it might be a good idea to include your patch in the stock Linux kernel.
 
-Note that even if there is somehow a way to say, hey, that device is
-present (via for example a RELAX rule), there is still the problem of
-bit1 (device decode ressources, which could be cleared if for example
-the device is set to a low power mode).
+	Simon.
 
--- 
-Bruno Ducrot
+This is just your patch with updated line offsets, applies cleanly to
+Linux 2.6.5:
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+--- linux-2.6.5-vanilla/drivers/acpi/bus.c	Sun Apr  4 05:37:24 2004
++++ linux-2.6.5/drivers/acpi/bus.c	Thu Apr 29 09:43:14 2004
+@@ -112,6 +112,14 @@
+ 	else
+ 		STRUCT_TO_INT(device->status) = 0x0F;
+
++	if (device->status.functional && !device->status.present) {
++		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
++			"functional but not present; setting present\n",
++			device->pnp.bus_id,
++			(u32) STRUCT_TO_INT(device->status));
++		device->status.present = 1;
++	}
++
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+ 		device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status)));
+
 
 
 -------------------------------------------------------
