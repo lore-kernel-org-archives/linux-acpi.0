@@ -1,16 +1,14 @@
-From: Masanori Kanaoka <kanaoka-Y4eNCM2L5QUzdwRXePBTQw@public.gmane.org>
-Subject: Re: Fix wake GPE enabling
-Date: Sat, 10 Apr 2004 08:27:55 +0900 (JST)
+From: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
+Subject: Re: Re: [PATCH] filling in ACPI method access via sysfs namespace
+Date: Fri, 09 Apr 2004 21:52:29 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040410.082755.189733959.kanaoka@ann.hi-ho.ne.jp>
-References: <37F890616C995246BE76B3E6B2DBE0554F207E@orsmsx403.amr.corp.intel.com>
+Message-ID: <4077535D.6020403@neggie.net>
+References: <1081453741.3398.77.camel@patsy.fc.hp.com> <1081549317.2694.25.camel@patsy.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Signed; protocol="application/pgp-signature";
- micalg=pgp-sha1;
- boundary="--Security_Multipart(Sat_Apr_10_08_27_55_2004_102)--"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <37F890616C995246BE76B3E6B2DBE0554F207E-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1081549317.2694.25.camel-Wmjt7DDUnIVxnVILBQAtiA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,60 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: kochi-S783fYmB3Ccdnm+yROfE0A@public.gmane.org, linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-----Security_Multipart(Sat_Apr_10_08_27_55_2004_102)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Alex Williamson wrote:
+>    Here's another approach that's far less ugly than the last and is
+> much more powerful.  The code is a little over half the size as a
+> bonus.  Rather than specifically poking for certain methods and exposing
+> them, this patch exposes everything.  The down side is that all reading
+> and writing of the files need to use binary acpi data structures.  This
+> interface certainly provides "shoot yourself in the foot" potential, but
+> the access to the namespace from userspace is hard to beat.  Any
+> thoughts on this approach versus the last?  This interface and a simple
+> set of libraries to go along with it has a lot of potential.  Thanks,
 
-Hi,
+The limitation of this interface is that it's not able to call an ACPI 
+method with some arguments and get the return value, correct?
 
-       From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-    Subject: RE: [ACPI] Fix wake GPE enabling
-      Date : Fri, 09 Apr 2004 09:57:01 -0700
- Message-ID: <37F890616C995246BE76B3E6B2DBE0554F207E-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-
-$ GPE 09 with _L09 looks OK, it is clearly a wake GPE (because all the
-$ Notify statements within it are of the form Notify(XXXX, 2) -- 2 means
-$ "wake".
-
-$ GPE 1A appears to be a runtime GPE, therefore the _PWR method under _LID
-$ looks suspicious.
-
-Thank you for detailed explanation.
-I see this. 
-
-So with acpica 20040326 or later, GPE does not enabled on My libretto L3.
-I set FLASE to AcpiGbl_LeaveWakeGpesDisabled to avoid this problem.
-
-I don't know whether it is right way or not.
-Any suggestions?
-
-Best Regards.
----
- Masanori Kanaoka	kanaoka-Y4eNCM2L5QUzdwRXePBTQw@public.gmane.org
+-John
 
 
-
-----Security_Multipart(Sat_Apr_10_08_27_55_2004_102)--
-Content-Type: application/pgp-signature
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (NetBSD)
-
-iQEVAwUAQHcxhaZTiBfoL27MAQJq3Qf/axnPZKaqzP91raLKkm969aZniHVJwYBi
-jAAB6Hck/DTQTz+qihd9sBY3FMz9wQ1lvRzTF/x0x7wrChGSLBDom65dULwxYN99
-maa4NdZJazWa0l2BfLILQVJC7ABCleFNGSs6D3izDt0At4rWPQ/fxv1167mKtvP3
-8vPv1JKQAG80+8hYSbO3mYe16jVQHw2A/PKo84VlOmfrF7gsheJ1Niu6DbmAsphs
-zTVnZOgsU6CI0MDjbsVe0Gz7aB3GjHb2ihs/IgFC9bgxpxWRuDup1uwlxgSccCvE
-K5iXRBMfkwIyPVK6l7evKnvRKTRWpMPcoQGr/mXwr5hmlfOVgv/wBQ==
-=oAAN
------END PGP SIGNATURE-----
-
-----Security_Multipart(Sat_Apr_10_08_27_55_2004_102)----
+-- 
+http:// if  ile.org/
 
 
 -------------------------------------------------------
