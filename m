@@ -1,9 +1,13 @@
-From: Gertjan Hofman <gertjan-nuBT7F/NYkeO3qShyYWIeA@public.gmane.org>
-Subject: No S3/S4 response on Toshiba A70 (FC3)
-Date: Wed, 9 Feb 2005 21:41:08 -0800 (PST)
-Message-ID: <Pine.LNX.4.33.0502092114410.8615-100000@koslx1.triumf.ca>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Old version of ACPI Patch
+Date: Thu, 10 Feb 2005 10:03:15 +0100
+Message-ID: <20050210090315.GA5286@fuchi>
+References: <8C431EC125E9924186D8BB91DC1152B7C8C13D@TNTNC4SXCH.gdc4s.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
+Content-Disposition: inline
+In-Reply-To: <8C431EC125E9924186D8BB91DC1152B7C8C13D-RTmRUduT6tOjMTNUfeOiA1aTQe2KTcn/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,80 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Arruda, Steve" <Steve.Arruda-EnD59DRpZQMAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-Hi All,
+--ReaqsoxgOBHFXBhH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I fear this message is going to sound like one of those 'my mouse doesnt
-work, please help' message, but I lack the expertise on ACPI to
-solve this one myself.
+hi Steve...
 
-In brief: I have a fairly new (Nov'04) Toshiba Satellite A70. Phoenix
-Bios.  Getting 'sleep' (or hibernate) to work is for me one the most
-crucial aspects of owning a lap top. I have had Linux suspend working on
-my old Gateway Solo since RH6.2 (when windoze didnt). But this laptop
-refuses to do anything.
-
-Bunch more facts: I run FC3, kernel 2.6.10-1.741_FC3smp. I have also
-compiled 2.6.10 kernel by hand, but with the same lack of results. Some
-ACPI functions are ok - batery power indication, and 'power-button'
-produces a normal shutdown -now. CPU throttling seems to work. Thermal
-info doesnt.
-
-commands like:  acpitools -s or (-S) dont seem to do anything. Using KDE
-tools (Klaptop) does nothing. cat S3 >/proc/acpi/sleep does nothing. No
-log file messages or anything.
-
-Lsmod shows
-button                 10577  0
-battery                13253  0
-ac                      8773  0
-
-dmesg | grep ACPI show promising line like:
-ACPI: IRQ0 used by override.
-ACPI: IRQ2 used by override.
-Using ACPI (MADT) for SMP configuration information
-ACPI: Subsystem revision 20041105
-ACPI: Interpreter enabled
-ACPI wakeup devices:
-ACPI: (supports S0 S3 S4 S5)
-
-(complete file on web link)
+* "Arruda, Steve" <Steve.Arruda-EnD59DRpZQMAvxtiuMwx3w@public.gmane.org> [2005-02-10 09:13 +0100]:
+>=20
+> I'm looking for an old version of ACPI patches. Specifically, I need to p=
+atch kernel 2.4.21. Do the patches go back that far?=20
 
 
-My question is, how do I check why there is no reaction to these sleep
-commands. I have included of debug/info files here at the bottom, but they
-also available via this link:
+> I can only find stable patches as far back as 2.4.28 on sourceforge.=20
 
-dmesg -s40000 is http://koslx1.triumf.ca/gertjan/acpi/dmesg_40000.txt
-lspc -vv      is http://koslx1.triumf.ca/gertjan/acpi/lspci.txt
-acpidmp       is http://koslx1.triumf.ca/gertjan/acpi/acpidmp.txt
-proc/irq      is http://koslx1.triumf.ca/gertjan/acpi/proc_irq.txt
-dmesg| grep ACPI http://koslx1.triumf.ca/gertjan/acpi/dmesg_grep_acpi.txt
+there are patches for 2.4.27 in Len's directory on kernel.org:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4=
+=2E27/
 
-Any help on how to investigate this further is much appreciated. ACPI
-makes all the difference...
+happy backporting :)
 
-Thanks
+cheers,
+ Sebastian
+--=20
+::: .O.
+::: ..O
+::: OOO
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
-Gertjan
+--ReaqsoxgOBHFXBhH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
+iD8DBQFCCyNSreHfL3pi+bQRApTjAJ9OKnwOxPksdA8qmU2/T2Etezg/zQCbBEk5
+LxL6sKHQxqsZb6tL9Msgcvc=
+=mSjH
+-----END PGP SIGNATURE-----
 
-
-
-
-
--- 
-//////////////////////////////////////////////////////////////////////////
-work    :   604-982-3574
-E-mai l :   gertjan-K9O0zq5Arhf3fQ9qLvQP4Q@public.gmane.org
-web     :   http://koslx1.triumf.ca/gertjan
-//////////////////////////////////////////////////////////////////////////
-
-
+--ReaqsoxgOBHFXBhH--
 
 
 -------------------------------------------------------
