@@ -1,10 +1,10 @@
-From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
-Subject: Re: RE: RE: problem dumping/fixing dsdt
-Date: Fri, 27 Sep 2002 13:04:40 +0200
+From: Jacques GANGLOFF <jacques-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org>
+Subject: acpi spend too much time in system mode
+Date: Fri, 27 Sep 2002 13:44:05 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200209271104.g8RB4eX18239@mailgate5.cinetic.de>
+Message-ID: <3D944485.1020701@eavr.u-strasbg.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,17 +15,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "'joerg.beyer=htSm2yLGOjU@public.gmane.org'" <joerg.beyer-htSm2yLGOjU@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-"Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> schrieb am 26.09.02 18:45:02:
-> Yes.
+Hi,
 
-I tried this and it seems to work, 
+I don't know if this problem is specific to my laptop,
+but when I do a cat /proc/acpi/battery/BAT1/info, the
+CPU monitor shows a very high percentage of activity
+in system mode. The consequence is a freezing mouse on
+each battery monitor polling.
 
-    Thanks for your help
-    Joerg
+Not a critical problem, but pretty ennoying...
+
+My laptop : VAIO FX702
+My system : 2.4.18 + acpi-20020918-2.4.18
+
+Jacques
+
+-- 
+ _________________________________
+(
+)   Jacques GANGLOFF
+(   Associate Professor
+)   LSIIT / EAVR			
+(   Bd Sebastien Brant
+)   67400 Illkirch
+(   Tel : +33 (0)3 90 24 44 68
+)   Fax : +33 (0)3 90 24 44 80
+(   http://eavr.u-strasbg.fr
+)_________________________________
+
 
 
 
