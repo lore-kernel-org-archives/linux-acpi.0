@@ -1,79 +1,74 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [BKPATCH] ACPI 2.6
-Date: 19 Nov 2003 23:41:34 -0500
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1069303294.2855.161.camel@dhcppc4>
+From: Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
+Subject: All 2.4.22 patches after 09-16 broken?
+Date: Thu, 20 Nov 2003 08:53:16 +0100 (CET)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <Pine.LNX.4.44.0311200838380.17057-100000@v8.miniserver.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Linus Torvalds <torvalds@osdl.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a 
+Hello,
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
+can someone confirm this strange behaviour:
 
-	The world will not stop revolving if these wait till 2.6.1,
-	but it will make 2.6.0 easier to support if they're included.
+I patched vanilla 2.4.22 kernel with acpi-20031002-2.4.22.diff, ran 
+make xconfig. In menu "character devices" i see option
+"/dev/agpgart (AGP Support)" twice, one as bool one as tristate option. 
+Without changing an option (and without .config of course) i get this 
+error after pressing "Save and Exit" Button:
 
-	3 bug fixes -- all are in 2.4:
+Error in Tcl Script
+Error: can't read "CONFIG_SCSI": no such variable
 
-	1390: adds cmdline to allow manual over-ride if out policy
-		of forcing the ACPI SCI to level triggered is wrong.
+ERROR - Attempting to write value for unconfigured variable 
+(CONFIG_PARPORT_PC_CML1).
 
-		If we don't apply, some folks with no ACPI events
-		will need to patch.
+Stack trace says:
 
-	1177: makes print_IO_APIC() output useful instead of garbage.
+can't read "CONFIG_SCSI": no such variable
+    while executing
+"list $CONFIG_BLK_CPQ_CISS_DA $CONFIG_SCSI"
+    (procedure "writeconfig" line 672)
+    invoked from within
+"writeconfig .config include/linux/autoconf.h"
+    invoked from within
+".f0.right.save invoke"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel #0 [list $w invoke]"
+    (procedure "tkButtonUp" line 7)
+    invoked from within
+"tkButtonUp .f0.right.save
+"
+    (command bound to event)
 
-		If we don't apply, then we need to send this patch
-		to anybody who has an IO-APIC mode interrupt issue
-		in ACPI mode.
+Not necessary to say that this does not happen with vanilla kernel 
+neighter with acpi-20030916-2.4.22.diff from sourceforge ftp.
 
-	1434: 1-line panic fix
-		BIOS with correct ACPI table check-sums but garbled
-		data can cause panic immediately after loading with
-		no kernel output unless this is fixed.
+Checked this with acpi-20030918-2.4.22.diff too, same strange result.
 
-thanks,
--Len
+Someone an idea what's going wrong here?
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.0-test9/acpi-20031002-2.6.0-test9.diff.gz
+(Didn't want to open a new bug unless i am 100% sure it's a bug in the 
+patch)
 
-This will update the following files:
+Greetings,
+Marcel.
 
- Documentation/kernel-parameters.txt |    5 ++
- arch/i386/kernel/acpi/boot.c        |   53 ++++++++++++++++++++----
- arch/i386/kernel/dmi_scan.c         |    1 
- arch/i386/kernel/io_apic.c          |   10 +---
- arch/i386/kernel/mpparse.c          |    4 +
- arch/x86_64/kernel/acpi/boot.c      |   53 ++++++++++++++++++++----
- arch/x86_64/kernel/io_apic.c        |    8 +--
- arch/x86_64/kernel/mpparse.c        |    2 
- drivers/acpi/bus.c                  |    4 -
- 9 files changed, 112 insertions(+), 28 deletions(-)
 
-through these ChangeSets:
 
-<len.brown@intel.com> (03/11/18 1.1453)
-   [ACPI] "acpi_pic_sci=edge" in case platform requires Edge Triggered
-SCI
-   http://bugzilla.kernel.org/show_bug.cgi?id=1390
-
-<len.brown@intel.com> (03/11/18 1.1452)
-   [ACPI] print_IO_APIC() only after it is programmed
-   http://bugzilla.kernel.org/show_bug.cgi?id=1177
-
-<len.brown@intel.com> (03/11/07 1.1414.1.7)
-   [ACPI] In ACPI mode, delay print_IO_APIC() to make its output valid.
-   http://bugzilla.kernel.org/show_bug.cgi?id=1177
-
-<len.brown@intel.com> (03/11/07 1.1414.1.6)
-   [ACPI] If ACPI is disabled by DMI BIOS date, then
-   turn it off completely, including table parsing for HT.
-   This avoids a crash due to ancient garbled tables.
-   acpi=force is available to over-ride this default.
-   http://bugzilla.kernel.org/show_bug.cgi?id=1434
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
