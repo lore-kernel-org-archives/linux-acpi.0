@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: Re: [PATCH] filling in ACPI method access via sysfs namespace
-Date: Sun, 11 Apr 2004 23:29:40 +0100
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: Suspend to ram broken for me with 2.6.5-mm3 (2.6.4 worked)
+Date: Mon, 12 Apr 2004 09:36:34 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040411222940.GJ18329@parcelfarce.linux.theplanet.co.uk>
-References: <1081453741.3398.77.camel@patsy.fc.hp.com> <1081549317.2694.25.camel@patsy.fc.hp.com> <4077535D.6020403@neggie.net> <1081566768.2562.8.camel@wilson.home.net> <407786C6.7030706@neggie.net> <1081629776.2562.40.camel@wilson.home.net> <1081653618.2562.52.camel@wilson.home.net>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA04F67BF3@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1081653618.2562.52.camel-U2dVeZ/ykGCM0SS3m2neIg@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,43 +17,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
-Cc: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: crazy-b-Mmb7MZpHnFY@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Apr 10, 2004 at 09:20:19PM -0600, Alex Williamson wrote:
-> On Sat, 2004-04-10 at 14:42, Alex Williamson wrote:
-> > 
-> >    Ok, I took a look.  The open/write/read/close interface seems to be
-> > the best approach.  It shouldn't be too hard, except the read/write
-> > interfaces don't pass in the attribute pointer like they do for the
-> > show/store interface.
-> 
->    I made the assumption that this wasn't that big of a stretch to the
-> bin file interface and extended it to add the arribute pointer.  Below
-> is what I came up with.  There are luckly only a handful of places using
-> the current sysfs bin file interface, so the additional changes are
-> pretty small.  I'm guessing I can probably get rid of the spinlocks I
-> added for the previous implementation, but they're not hurting anything
-> for now.  Am I getting closer?  Thanks,
 
-Yes, definitely closer to my way of thinking ...
 
-It seems unintuitive that you have to read the file for the method to
-take effect.  How about having the write function invoke the method and
-(if there is a result) store it for later read-back via the read function?
-It should be discarded on close, of course.  A read() on a file with
-no stored result should invoke the ACPI method (on the assumption this
-is a parameter-less method) and return the result directly.  Closing a
-file should discard any result from the method.
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of=20
+> Peter Meier
+> Sent: Saturday, April 10, 2004 11:22 PM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] Suspend to ram broken for me with 2.6.5-mm3 (2.6.4
+> worked)
+>=20
+>=20
+> Hi,                                                          =20
+>                                                                   =20
+> actually, I'm not abled to wake up from suspend to ram with 2.6.5-mm3.
+> Monitor stays black, fans are making noise forever, but=20
+> nothing. Network
+> is dead, too.
+>                                                              =20
+>                                                              =20
+>   I had no problems with suspend to ram untill 2.6.4 (X with=20
+> in10, unload usb and sound before sleep, use the fixpci=20
+> script of Stefan D=F6singer to get sound working after a wake=20
+> up). I did not change any kernel configuration options or=20
+> anything else. 2.6.5-rc2-mm5, 2.6.5-rc3-mm4 have the same=20
+> problems, as 2.6.5-rc3-mm1, as all 2.6.5-mm*. So somewhere=20
+> between 2.6.4 and 2.6.5-rc2 something changed which broke it for me.
 
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+Same experience here with 2.6.5-rc2-mm5.
+I've asked around and it's stated that there's some problem code
+on the vm (or something, I can't remember)
+
+Still on 2.6.3
+
+
+>=20
+> The only difference I noticed so far is, with the 'broken' kernels, I
+> see "PM Entering state" as last thing before the system goes to sleep.
+> With the working kernels, I see more lines before the "PM Entering
+> state" and system goes to sleep (something with hda, acpi,=20
+> etc., several
+> lines)
+>=20
+> Notebook is an Acer Travelmate 803 (Radeon Mobility 9000, Centrino).
+> I'll provide further details on request.
+>=20
+> With best regards,
+> Peter
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> =
+administration.http://ads.osdn.com/?ad_id=3D1470&alloc_id=3D3638&op=3Dcli=
+ck
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
