@@ -1,11 +1,16 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Fw: 2.6.12-rc2-mm1 fails to build with my config - acpi related
-Date: Tue, 5 Apr 2005 18:40:36 -0700
-Message-ID: <20050405184036.232068c6.akpm@osdl.org>
+From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop
+Date: Tue, 5 Apr 2005 22:49:29 -0400
+Message-ID: <200504052249.35030.shawn.starr@rogers.com>
+References: <20050405185620.80060.qmail@web88009.mail.re2.yahoo.com> <20050405204234.GE1380@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed;
+  boundary="nextPart1190047.sdQ0FRJkRK";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050405204234.GE1380-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,49 +20,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+--nextPart1190047.sdQ0FRJkRK
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-urgh.  My patch isn't extensice enough to fix all of this.
+So nobody minds if I make this into a CONFIG option marked as Deprecated? :)
 
+Shawn.
 
-Begin forwarded message:
+>
+> > Do you know if /proc/acpi/sleep will be deprecated in
+> > favour of /sys/power/state? If so, this thread will be
+> > moot ;)
+>
+> No idea, deprecating it would be ok with me.
+>
+>        Pavel
 
-Date: Tue, 5 Apr 2005 22:46:24 +0200 (CEST)
-From: Jesper Juhl <juhl-lkml-poRShpWsAiE@public.gmane.org>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: 2.6.12-rc2-mm1 fails to build with my config - acpi related
+--nextPart1190047.sdQ0FRJkRK
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
 
+iD8DBQBCU04+sX/SQXZigqcRAm3wAJ0Z3ZdArjH3rrQafruoZNtXpIDVoACeO+sN
+jEWXEPU1302+/Vee/4S6i7w=
+=/6l8
+-----END PGP SIGNATURE-----
 
-I get this when trying to build 2.6.12-rc2-mm1 : 
-
-  CC      arch/i386/kernel/setup.o
-arch/i386/kernel/setup.c:96: error: parse error before "acpi_sci_flags"
-arch/i386/kernel/setup.c:96: warning: type defaults to `int' in declaration of `acpi_sci_flags'
-arch/i386/kernel/setup.c:96: warning: data definition has no type or storage class
-arch/i386/kernel/setup.c: In function `parse_cmdline_early':
-arch/i386/kernel/setup.c:811: error: request for member `trigger' in something not a structure or union
-arch/i386/kernel/setup.c:814: error: request for member `trigger' in something not a structure or union
-arch/i386/kernel/setup.c:817: error: request for member `polarity' in something not a structure or union
-arch/i386/kernel/setup.c:820: error: request for member `polarity' in something not a structure or union
-arch/i386/kernel/setup.c: In function `setup_arch':
-arch/i386/kernel/setup.c:1571: warning: implicit declaration of function `acpi_boot_table_init'
-arch/i386/kernel/setup.c:1572: warning: implicit declaration of function `acpi_boot_init'
-make[1]: *** [arch/i386/kernel/setup.o] Error 1
-make: *** [arch/i386/kernel] Error 2
-
-If I enable CONFIG_ACPI all is well - it seems some things get enabled by 
-CONFIG_ACPI_BOOT regardless of CONFIG_ACPI being defined, this causes 
-things to break since some of the stuff CONFIG_ACPI_BOOT enables depends 
-on things only enabled in include/linux/acpi.h when CONFIG_ACPI is set...
-
-
--- 
-Jesper Juhl
+--nextPart1190047.sdQ0FRJkRK--
 
 
 -------------------------------------------------------
