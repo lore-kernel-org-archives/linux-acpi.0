@@ -1,18 +1,14 @@
-From: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Network failures with ACPI enabled (kernel 2.4, 2.6)
- PROBLEM FOUND!!!!!!
-Date: Tue, 30 Dec 2003 21:45:43 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: ASUS M3N and sleep states
+Date: Tue, 30 Dec 2003 21:56:36 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031230214543.19252406.mike@it-loops.com>
-References: <20031230010822.155c1466.mike@it-loops.com>
-	<20031230165749.34ed607d.mike@it-loops.com>
-	<1072806481.2364.201.camel@dhcppc4>
-	<20031230192301.5d17d418.mike@it-loops.com>
+Message-ID: <20031230205636.GB17344@hell.org.pl>
+References: <3FED7289.1070201@pca.it> <20031227215137.GA28438@hell.org.pl> <3FF1CD0D.6030602@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031230192301.5d17d418.mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3FF1CD0D.6030602-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,43 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 30 Dec 2003 19:23:01 +0100
-Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org> wrote:
+Thus wrote Luca Capello:
+> About the PWRF event, I sent this mail to the 'acpid' author: it seems
+> that any button you press to resume from S1 (so even not the
+> power-button), the 'acpid' generates a PWRF event. This should be avoid,
+> I mean, it seems that this happens only in S1 state and not in S3.
 
-> On 30 Dec 2003 12:48:02 -0500
-> Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> 
-> > > Today I tried the same transfer with a XIRCOM PCMCIA network card
-> > > and ACPI enabled. It worked without a problem.
-> > > I am not sure what this means for ACPI <-> B44 though. ;)
-> > 
-> > Please note which IRQ each kind of ethernet NIC gets,
-> > and if it shares an IRQ with any other device.
-> > If the working and non-working NICs come up on different IRQs
-> > then that may be a clue.
-> 
-> The broadcom card gets IRQ 5 and the Xircom card gets IRQ3.
-> Both IRQ are non-shared. Well IRQ 5 was shared with USB, but for
-> testing purposes I removed the USB modules.
+It's got nothing to do with acpid, it's just a userspace daemon, anyway.
+The real problem is either somewhere in BIOS (and no, it's not in the AML
+either) or in the ACPI code. For the record, I get the PWRF also after S3.
 
-Hia Len,
+And no, I'm not pressing the power button to resume.
 
-You won't believe me but I found out what was causing the problem.
-Since I never use the parallel port on this notebook I turned it OFF in
-the BIOS.
-Setting it to AUTOMATIC mode solved my issues.
-The Linux-ACPI still has a problem somewhere since I don't see the
-network timeouts in WinXP, if I turn off the parport.
-For me it looks like that the parport and the internal card share
-something, either ACPI or hardware wise and by turning off the parport
-the network card somehow changes too.
+> About the ALSA problem, maybe the *real* problem is related to the fact
+> that I've an 'osl-0892/semaphore' error in my 'dmesg' and at boot when
+> trying to load ALSA drivers (but they work without any problems): IIRC
+> this is a known problem on ASUS Centrino laptops (I'm sure at least on
+> ASUS M3N) and AFAIK there's no solution ATM.
 
-What do you think about that?
+ALSA's suspend / resume support is not really complete, judging on my
+experience. My impression is that it currently "works" by chance on my
+machine (ICH3M - CS4299).
 
-Michael
+> | Kill X and unload AGP or use Nigel's patches from swsusp.sf.net.
+> I answered in the Pavel's mail about AGP/DRM modules. Question: the
+> Nigel's patches let you leave the AGP modules on?
+
+Well, basically, yes, i.e. I'm able to suspend and resume with a DRI app
+running, but that's with Radeon-specific patches to the DRM and DRI
+modules. On the other hand, even with those patches both pmdisk and Pavel's
+swsusp would reboot at resume if X was running during suspend.
+Best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
