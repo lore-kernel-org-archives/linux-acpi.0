@@ -1,8 +1,8 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
 Subject: Re: failed patch for 2.4.20
-Date: Sat, 5 Apr 2003 17:08:55 +0100
+Date: Sat, 5 Apr 2003 18:06:46 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030405160855.GF23430@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20030405160646.GC13713@dutidad.twi.tudelft.nl>
 References: <20030405155552.GA22362@Tonelli.sns.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -17,25 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: mennucc1-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Sat, Apr 05, 2003 at 05:55:52PM +0200, A Mennucc1 wrote:
 > I tried to apply acpi-20021212-2.4.20.diff.gz
 > on the kernel sources 2.4.20  that are distributed with Debian;
 > but I got too many rejects, and indeed compilation fails
+> 
+> (whereas acpi-20020918-2.4.19 worked on Debian's 2.4.19)
+> 
+> here are the rejects
 
-this is debian's problem, not the acpi list.  there is no commitment on
-the part of the acpi developers to provide patches against any vendor's
-kernel.
-
-p.s. your mail headers are broken, they trim the list from the reply.
+Try it on a stock 2.4.20.  The ACPI developers can't be expected to release
+patches that work on the possibly modified kernels of all available
+distributions.
 
 -- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
