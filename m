@@ -1,13 +1,13 @@
-From: "Francisco Figueiredo Jr." <fxjrlists-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
-Subject: Re: How to control Thermal zone
-Date: Sat, 11 Dec 2004 21:47:06 -0200
-Message-ID: <41BB86FA.7040802@yahoo.com.br>
-References: <41B8FC12.5090602@yahoo.com.br> <20041210011029.GA28676@zhen-devel.sh.intel.com>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Shutting down PCI devices on suspend
+Date: Sat, 11 Dec 2004 15:20:38 -0800
+Message-ID: <41BB80C6.1020404@root.org>
+References: <1102779460.5984.17.camel@tyrosine>  <41BB4F70.9060606@root.org> <1102804893.5984.23.camel@tyrosine>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041210011029.GA28676-/VnEId6AORcBH7GVJk7YB9h3ngVCH38I@public.gmane.org>
+In-Reply-To: <1102804893.5984.23.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,85 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI devel list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Wang, Zhenyu" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Matthew Garrett wrote:
+> On Sat, 2004-12-11 at 11:50 -0800, Nate Lawson wrote:
+> 
+>>In FreeBSD, we do this at the bus layer.  So the ACPI and PCI bus code 
+>>is responsible for powering down/up children.  We currently do it:
+>>
+>>1. When no driver is attached and on reprobe
+>>2. When suspending/resuming, based on evaluating _SxD
+>>
+>>See this commit for details:
+>>http://docs.freebsd.org/cgi/getmsg.cgi?fetch=1604853+0+archive/2004/cvs-all/20041205.cvs-all
+> 
+> 
+> Does _SxD represent the "desired" mode for the hardware, or merely the
+> highest state it can be left in? A mail from Len earlier this year
+> suggested that if S3D returned 0x2, that meant that either D3 or D2 were
+> acceptable.
 
-Wang, Zhenyu wrote:
-|>Hi guys,
-|>
-|>sorry if this has been already asked,
-|>
-|>but I'd like to know if is it possible to control thermal zone in order
-|>to turn off my laptop fan when I get my login screen.
-|>
-|>I mean, The fan is being correctly turned on and off but only after
-|>getting some threshold. When the laptop is turned on and my thermal zone
-|>temp is 35C fan is kept on when it could be turned off.
-|>
-|>Any tips?
-|>
-|
-|
-| Have you loaded acpi fan module? Have you got any device under
-/proc/acpi/fan?
-| Try to trigger on/off to that device.
-|
+_SxD is the highest state supported by the device for a given sleep 
+state, yes.  We put devices in D3 unless _SxD specifies something 
+higher.  The reason to do this is some devices can't wake the system if 
+they are in D3.  ACPI 3.0 has ways to indicate a desired power state 
+(not just maximum).  I don't have any evidence but fear some devices 
+won't work after resuming if set to D3 and they indicate this with an 
+_SxD so we always use the value in _SxD if present.
 
-Hi Wang,
+> Is there any reason why adding something like
+> 
+> if (state==3) {
+> 	pci_set_power_state(dev,ACPI_STATE_D3COLD)
+> }
+> 
+> to pci_device_suspend in the non-driver path and reenabling it in
+> pci_default_resume would result in things breaking?
+> 
+> (Possibly with sanity checks as to whether it's a bridge or not)
 
-Yes, I get the following under /proc/acpi/fan:
+Not that I can think of.  You probably want state == S3 || S4 since it's 
+fine to power down devices for S4.  You'll probably find drivers that 
+don't properly resume their device.  You have to make sure you power 
+devices down after suspending them and power them up before resuming them.
 
-FAN1, FAN2, FAN3.
-
-I played triggering on off on fan.
-
-In fact, I could turn them on! :) I even could check that FAN2 and 3 are
-fan velocities as when I turned them on they did a much higher noise :)
-
-But unfortunately I couldn't turn them off :(
-
-I tried both echo off > /proc/acpi/fan/FAN1 and echo -n 0 >
-/proc/acpi/fan/FAN1, but they only turned it on. I mean, when I do echo
-off, it turns on. So I think that whatever I put is turning them on.
-
-What should I echo to turn them off?
-
-
-I think that if I learn how to turn it off by playing with acpi/fan it
-would be very cool!!
-
-Thanks in advance, Wang.
-
-
-- --
-Regards,
-
-Francisco Figueiredo Jr.
-Membro Fundador do Projeto MonoBrasil - MonoBrasil Project Founder Member
-http://monobrasil.softwarelivre.org
-
-
-
-- -------------
-"Science without religion is lame;
-religion without science is blind."
-
-~                  ~ Albert Einstein
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iQEVAwUBQbuG+v7iFmsNzeXfAQI1uQf/eGAvq9D0tahFcZYCnDVfMNXtygLZZMoQ
-3Pj+Zok7awWscsxZf0q4+MSNTCNeuDVFqaFRtUJ/kLvHop7nZoyn31IJW0dGeP2p
-8PDuxAxBnnByUu9Sbzm7kuzgSElmMMsRaTXqz4TC37YOFLGwz8SWX7qgSVAI0C/C
-D8C5xQl0ohPwe6XN1ivJjcDgv9x+xocvHqbAqNL0q+Aa65eLSgTS/bzv6zABWN47
-o62hViITqzQlGLaEYZHckM5WKNJfsziqgUMAsYeXxcIlBfDpTLIY1hoE3sZTiXhF
-Z2/x+cpTzq0j8jctHmfavisattGJi4m9tvKiH7V6vwAa1weXSku4aA==
-=VIIn
------END PGP SIGNATURE-----
+-- 
+Nate
 
 
 -------------------------------------------------------
