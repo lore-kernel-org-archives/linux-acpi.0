@@ -1,14 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Patches version problem
-Date: 07 Mar 2004 23:01:03 -0500
+From: Mike Partyka <mpartyka-EySxSuIQeMUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: /proc/acpi/
+Date: Mon, 8 Mar 2004 04:22:12 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078718463.2583.7.camel@dhcppc4>
-References: <4049CE4F.9090409@pca.it>
+Message-ID: <1083816719.3175.20.camel@coredump.stonepath.com>
+References: <BF1FE1855350A0479097B3A0D2A80EE0029EEDA9@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4049CE4F.9090409-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0029EEDA9-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,90 +17,101 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Wed, 05 May 2004 23:12:00 -0500
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Luca,
-The 20040220 in the patch version is the ACPICA version number -- the
-version of the core AML interpreter, and it is updated only upon
-upstream updates to the interpreter.
+Hmm, i had read that SuSE had enabled ACPI already but they did not seem
+to be working. That is . . .
 
-Sometimes the ACPI patch will update this number when it pulls a new
-version of the interpreter, but more often it will not.
+When the lid closes
+When the ac adapter is not plugged in 
 
-yes, this can be confusing.  We used to update this number always, but
-that turned out to be even more confusing as people wouldn't know what
-interpreter version they were running.  Still more confusing is the fact
-that in the latest kernel, the patch will periodically become out of
-date and no longer apply when the baseline kernel pulls the patch from
-us.  This is unavoidable -- unless you run the patch against a frozen
-release -- eg. patch 2.6.3 instead of patching 2.6.4.
+The latop should sense this.
 
-If you're really intent on getting the latest w/o any confusion, then
-use bk rather than plain patches.  details here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI
+When running on battery the gnome battery meter does not seem to
+understand.
 
-cheers,
--Len
+My understanding is that for these features to work there should be some
+files to control events under /proc/acpi/battery and
+/proc/acpi/ac_adapter but there is nothing under these directories. 
 
+Are these scripts generic? can i drop them in from another system? How
+do i get the ACPI implentation working?
 
+Thanks,
 
-
-On Sat, 2004-03-06 at 08:12, Luca Capello wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+On Sun, 2004-03-07 at 21:45, Brown, Len wrote:
+> SuSE 9.0 has ACPI enabled and you should see stuff under /proc/acpi with
+> that before you build a custom 2.6.3 kernel.
 > 
-> Hello,
+> We don't publish ACPI patches from sourceforge.net, and have not done so
+> for over 6 months, they're published from kernel.org.  Though if you're
+> not a developer, it I is probably better to use what is in the mainline
+> kernel.org tree since it is more widely tested than the latest ACPI
+> patch.
 > 
-> I download again the latest patches for 2.6.3 and 2.6.4 and I've a funny (and
-> IMHO *very-problematic*) situation:
-> =====
-> gismo:/usr/src# ls -l kernel/v2.6/acpi-20040220-2.6.*
-> - -rw-r--r--    1 luca     luca         9470 Mar  1 08:15
-> kernel/v2.6/acpi-20040220-2.6.3.diff.bz2
-> - -rw-r--r--    1 luca     luca        12582 Mar  2 12:24
-> kernel/v2.6/acpi-20040220-2.6.4.diff.bz2
-> gismo:/usr/src#
+> The output from dmesg -s40000 will probably tell all.
 > 
-> gismo:/usr/src# ls -l /home/luca/download/acpi-20040220-2.6.*
-> - -rw-------    1 luca     luca        15554 Mar  6 13:56
-> /home/luca/download/acpi-20040220-2.6.3.diff.bz2
-> - -rw-r--r--    1 luca     luca        12569 Mar  6 13:56
-> /home/luca/download/acpi-20040220-2.6.4.diff.bz2
-> gismo:/usr/src#
-> =====
-> 
-> So, there're 2 different patches with the same name and this can cause
-> inconsistency: if you release a patch at 20040305 (the last nigth), why do you
-> call it 'acpi-20040220'??? I mean, I use 'acpi-20040220' since 20040301 (as from
-> the 'ls -l') and now I'll use 'acpi-20040220' from 20040305: they are different,
-> as the size suggests, but from a 'cat /proc/acpi/info' I don't have any way to
-> know which one I'm using (the 20040301 or 20040305).
-> 
-> Again, why the same name?
-> 
-> Thx, bye,
-> Gismo / Luca
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.4 (GNU/Linux)
-> Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-> 
-> iD8DBQFASc5OVAp7Xm10JmkRAiqqAJ4twhxRmJlrLVubOR/NeYmnYx+5agCfQ+te
-> RbZlgJiAeXpcddzwTFluz2I=
-> =s3uL
-> -----END PGP SIGNATURE-----
+> Cheers,
+> -Len
 > 
 > 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: IBM Linux Tutorials
-> Free Linux tutorial presented by Daniel Robbins, President and CEO of
-> GenToo technologies. Learn everything from fundamentals to system
-> administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> >-----Original Message-----
+> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org 
+> >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of 
+> >Mike Partyka
+> >Sent: Wednesday, May 05, 2004 11:08 PM
+> >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> >Subject: [ACPI] /proc/acpi/
+> >
+> >Hello all,
+> >
+> >This is my first post to this group. 
+> >
+> >I just got a new laptop from work, a Gateway 200x, which i 
+> >thought woudl
+> >be perfect to make the transition to Linux dekstop for system
+> >management.
+> >
+> >I have read through many documents on the net about making ACPI work on
+> >Linux. I have downloaded the latest kernel stable kernel source 2.6.3
+> >and have patched that source with the latest acpi from
+> >http://acpi.sourceforge.net and then compiled the kernel.
+> >
+> >The compile using (make xconfig) doesn't look any different 
+> >when looking
+> >at the options. 
+> >
+> >But in any case after booting into it and looking in /proc/acpi and
+> >looking into the battery and ac_adapter etc there are no 
+> >scripts/events.
+> >Is this normal? I just picked up the magazine Linux User and they had a
+> >nice article about ACPI under Linux but the article says there 
+> >should be
+> >files under the directories battery, and ac_adapter etc but i 
+> >have none.
+> >
+> >This is a stock install of SuSE 9 Pro but it doesn't seem to have any
+> >ACPI features enabled by default. How can i do this?
+> >
+> >TIA
+> >Mikey
+> >
+> >
+> >
+> >
+> >-------------------------------------------------------
+> >This SF.Net email is sponsored by: IBM Linux Tutorials
+> >Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> >GenToo technologies. Learn everything from fundamentals to system
+> >administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+> >_______________________________________________
+> >Acpi-devel mailing list
+> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> >
 
 
 
