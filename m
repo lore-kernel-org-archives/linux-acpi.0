@@ -1,14 +1,12 @@
-From: =?ISO-8859-1?Q?Lenar_L=F5hmus?= <lenar-w3PkqIkA8A2zQB+pC5nmwQ@public.gmane.org>
-Subject: Re: 2.6.2-mm1 aka "Geriatric Wombat"
-Date: Fri, 06 Feb 2004 10:39:05 +0200
+From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
+Subject: Weird ACPI-related error in system logs
+Date: Fri, 6 Feb 2004 11:01:21 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <402352A9.7090705@vision.ee>
-References: <20040205014405.5a2cf529.akpm@osdl.org> <200402051357.04005.s0348365@sms.ed.ac.uk> <4022505B.1020900@vision.ee> <200402052130.30344.s0348365@sms.ed.ac.uk>
+Message-ID: <20040206110121.445f4433.andrej.prsa@guest.arnes.si>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200402052130.30344.s0348365-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,33 +15,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: s0348365-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org
-Cc: Arjen Verweij <A.Verweij2-V356GuK0og6dIhEUFHOBvg@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, =?ISO-8859-1?Q?Luis_Miguel_Garc=EDa?= <ktech-39ZsbGIQGT7e5aOfsHch1g@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Support <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Alistair John Strachan wrote:
+Hi, Guys!
 
->This fix doesn't work for me because I get problems if I disable ACPI IRQ 
->routing and still have apic enabled. Normally these problems would be 
->gracefully solved, but my USB HCD complains about not having been assigned an 
->IRQ.
->  
->
-Actually it's exactly the same here I'm just not bothered by my USB HCD 
-not having an IRQ since
-my USB mouse still works.
+I'm running a HiGrade laptop with SiS chipset; I haven't tried playing
+with sleep modes yet, but there's a funny error which I don't understand
+that jumps out during boot-up. I'm posting the relevant log part:
 
-It says this when booting:
+ BIOS-e820: 000000000dff0000 - 000000000dffffc0 (ACPI data)
+ BIOS-e820: 000000000dffffc0 - 000000000e000000 (ACPI NVS)
+ACPI: have wakeup address 0xc0001000
+ACPI: RSDP (v000 OID_00                                    ) @ 0x000e5010
+ACPI: RSDT (v001 INSYDE RSDT_000 0x00000001 & 0x00010007) @ 0x0dfffbc0
+ACPI: FADT (v001 INSYDE FACP_000 0x00000100 & 0x00010007) @ 0x0dfffac0
+ACPI: BOOT (v001 INSYDE ISC_BOOT 0x00000100 & 0x00010007) @ 0x0dfffb50
+ACPI: DBGP (v001 INSYDE DBGP_000 0x00000001 & 0x00010007) @ 0x0dfffb80
+ACPI: DSDT (v001 INSYDE     8575 0x00001002 INTL 0x02002025) @ 0x00000000
+ACPI: Subsystem revision 20040116
+ACPI: IRQ9 SCI: Edge set to Level Trigger.
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: System [ACPI] (supports S0 S3 S4 (swsusp) S5)
+ACPI: PCI Root Bridge [PCI0] (00:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: Embedded Controller [EC0] (gpe 25)
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 *5 6 10 11)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 5 *10 11)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 *6 10 11)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 *6 10 11)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 10 *11)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 10 *11)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 *10 11)
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 10 *11)
+ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 6
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 5
+PCI: Using ACPI for IRQ routing
+ACPI: Processor [CPU0] (supports C1, 8 throttling states)
+ACPI: AC Adapter [AC] (on-line)
+    ACPI-0352: *** Error: Looking up [ACST] in namespace, AE_NOT_FOUND
+    ACPI-1120: *** Error: Method execution failed [\_SB_.BAT0._BTP] (Node cdf39500), AE_NOT_FOUND
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Sleep Button (CM) [SBTN]
+ACPI: Lid Switch [LID]
 
-PCI: No IRQ known for interrupt pin A of device 0000:00:02.0. Please try 
-using pci=biosirq.
-drivers/usb/core/hcd-pci.c: Found HC with no IRQ.  Check BIOS/PCI 
-0000:00:02.0 setup!
+So, I'm just wondering what this error means? Resetting and poweroff *are*
+working properly.
 
-All I can say is that in 2.6.1-rc1-mm1 it worked and I could have all my 
-interrupts off the XT-PIC.
+I'm running 2.4.24 kernel with ACPI patch 20040116.
 
-Lenar
+Best wishes,
+
+Andrej
 
 
 -------------------------------------------------------
