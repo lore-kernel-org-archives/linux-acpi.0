@@ -1,13 +1,13 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: [PATCH 5/5] processor: jiffies-based bm_check
-Date: Fri, 21 Jan 2005 17:23:36 +0100
-Message-ID: <20050121162336.GA8435@dominikbrodowski.de>
-References: <20041223140849.GE7973@dominikbrodowski.de> <1103832683.4376.24.camel@d845pe> <1106280485.2397.135.camel@d845pe>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: Re: Smart Battery System driver
+Date: Fri, 21 Jan 2005 18:48:11 +0100
+Message-ID: <20050121174811.GA19485@message-id.gmane0305.slipkontur.de>
+References: <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <41EF1F6A.5000807@bartol.udel.edu> <41EFCA59.6040100@arrakis.dhis.org> <41EFD672.2040308@bartol.udel.edu> <20050120211044.GA27543@message-id.gmane0305.slipkontur.de> <41F1009C.30201@arrakis.dhis.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1106280485.2397.135.camel@d845pe>
+In-Reply-To: <41F1009C.30201-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Venkatesh Pallipadi <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 20, 2005 at 11:08:06PM -0500, Len Brown wrote:
-> On Thu, 2004-12-23 at 15:11, Len Brown wrote:
-> 
-> > Didn't apply the jiffies part yet.
-> 
-> I've applied it now. (attached as jiffy.patch)
-> 
-> However, "threshold.bm = 0xF" was written when
-> HZ = 100 yielding 40ms, but this
-> becomes 4ms for HZ = 1000.
-> 
-> While I don't know what the optimal value is for
-> the bus master history threshold, it seemed like
-> a good idea for it to default to about 40ms per
-> the original code until we know better.
-> 
-> So I've also applied the attached bm_history.patch
-> to default this to 0xFFFFFFFF for HZ = 1000 (32ms)
-> and it is tunable via /sys/module/processor/parameters/bm_history
-> 
-> what do you think?
+On Fri, Jan 21, 2005 at 01:16:12PM +0000, Pedro Venda wrote:
 
-This sounds sensible to do. Note that the "diff" measured in idle() will
-become problematic once "tickless" systems are implemented -- we'll sleep
-for multiple jiffies then, and there was _no_ bm activiy in between. We need
-to sort that out somehow...
+> wasn't there a not-so-recent-but-almost discussion about this issue in the
+> acpi-devel mailing list? I think people argued that acpi would NOT generate
+> events! that could mean that the acpi layer wouldn't generate events at all 
+> or
+> that it wouldn't generate events on behalf of hardware unable to generate 
+> events.
 
-	Dominik
+i have no idea ;-) I know that hp nx5000's continuously notify me via 
+/proc/acpi/event if the charge level changes, so i only have to poll battery
+after an notification and that is very handy IMO :-)
+-- 
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
