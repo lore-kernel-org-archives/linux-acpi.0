@@ -1,28 +1,43 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: Re: [ACPI] No APIC interrupts after ACPI suspend
-Date: Mon, 28 Jun 2004 00:06:38 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040627220638.GA1816@hell.org.pl>
-References: <1088160505.3702.4.camel@tyrosine> <40DDBA7A.6010404@travellingkiwi.com> <40DF0A98.9040604@travellingkiwi.com> <200406272052.43326@zodiac.zodiac.dnsalias.org> <40DF1D22.2010406@travellingkiwi.com>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Re: [Swsusp-devel] swsusp and ac status
+Date: Mon, 28 Jun 2004 00:28:42 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040627222842.GB1816@hell.org.pl>
+References: <200406250701.i5P71GKC006204@fermat.unipv.it> <opr95d71ln4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264500AbUF0WGf@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <40DF1D22.2010406@travellingkiwi.com>
-To: Hamie <hamish@travellingkiwi.com>
-Cc: Alexander Gran <alex@zodiac.dnsalias.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+In-Reply-To: <opr95d71ln4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Cc: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Software Suspend - Mailing Lists <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Hamie:
-> Since it sounds like a different bug to 2643, (Similiar but the patch 
-> that fixes the ethernet doesn't appear to doa  lot for the sound). I've 
-> opened a new one... #2965.
+Thus wrote Michael Frank:
+> Too bad, this implies that the AC module does not get reinitialized after
+> resume and I suspect that acpi core is broken on 2.6 in this regard.
 
-... which might be similar to http://bugme.osdl.org/show_bug.cgi?id=2752,
-except that I don't have the IO-APIC running.
-
+As far as I know, there is no need to reinitialize the AC module, as it
+does not cache the results -- upon read, it calls the appropriate _PSR
+method which is supposed to return the correct AC adapter state, as simple
+as it gets. This way, any problems would indicate a faulty BIOS.
 Best regards,
 
 -- 
 Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+
+-------------------------------------------------------
+This SF.Net email sponsored by Black Hat Briefings & Training.
+Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
+digital self defense, top technical experts, no vendor pitches, 
+unmatched networking opportunities. Visit www.blackhat.com
