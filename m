@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: insmod/rmmod bug?
-Date: Fri, 8 Nov 2002 09:34:38 -0800
+Subject: RE: ACPI and USB
+Date: Fri, 8 Nov 2002 09:38:00 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4D5@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4D6@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,24 +14,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'Cagle, John (ISS-Houston)'" <john.cagle-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Stian Jordet' <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Cagle, John (ISS-Houston) [mailto:john.cagle-VXdhtT5mjnY@public.gmane.org] 
-> There appears to be a bug in acpi_bus_unregister_driver().  
-> In the case
-> of the button driver, it's not calling acpi_button_remove() when I
-> "rmmod button".  This causes problems when I attempt to 
-> "insmod button"
-> again.
+> From: Stian Jordet [mailto:liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org] 
+> I sent a mail a couple of days ago without any response. I guess that
+> could be because it was so long, so here's an easy one:
+> 
+> USB don't work with my computer with acpi enabled. I have an ASUS
+> CUV266-DLS motherboard.
+> 
+> Any hope this can be resolved?
 
-> Has anyone else seen this problem?  I'm using the latest 
-> linux-2.4-acpi
-> kernel from bitkeeper.
+An easy one, is it? Ah, that's nice to know. ;)
 
-Yes, this may be a problem with bus.c, since I think this has been seen for
-other drivers besides button. Have you been able to determine exactly where
-the problem lies?
+Ok. cat /proc/interrupts. Do ACPI and USB share an interrupt. Try without
+ACPI. Is the same interrupt being assigned to USB as with ACPI enabled?
 
 Regards -- Andy
 
