@@ -1,14 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
-Date: Tue, 29 Jun 2004 15:11:53 +0800
+From: "Wayne Wylupski" <wayne-/9RTSe/R4cJBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Handling \_GPE._L03
+Date: Tue, 29 Jun 2004 08:58:24 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B44D37711ED29844BEA67908EAF36F0332CECD@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <000801c45dd8$c3b19210$700d0a0a@clam.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0005_01C45DB7.3C62C200"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,106 +15,75 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-could you please try if the patch in
-http://bugme.osdl.org/show_bug.cgi?id=3D1744  address your problem?=20
+This is a multi-part message in MIME format.
 
-Thanks,
-Shaohua
->-----Original Message-----
->From: Z F [mailto:mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org]
->Sent: Tuesday, June 29, 2004 9:22 AM
->To: Li, Shaohua
->Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: RE: [ACPI] Error: Handler for [EmbeddedControl] returned
->AE_BAD_PARAMETER
->
->Dear Shaohua Li,
->
->Thank you very muc for your reply. Attached are the outputs of the
->dmesg
->(I loaded ac, battery, processor and thermal modules) is in the
->dmesg.out file. The new_dsdt file contains output of acpidump
->from pacpidump package. Could you take a look and see what is wrong.
->
->Thank you very much for your kind help.
->
->Lazar
->
->--- "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> Please attach your dmesg and acpidmp output, so we can check it.
->>
->> Thanks,
->> -Shaohua
->> >-----Original Message-----
->> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->> >admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Z F
->> >Sent: Monday, June 28, 2004 1:26 PM
->> >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->> >Subject: [ACPI] Error: Handler for [EmbeddedControl] returned
->> >AE_BAD_PARAMETER
->> >
->> >Hello Everybody,
->> >
->> >IT seems to me that all my problems start with the error message
->> >indicated in the subject line. Could someone explain to me what this
->> >error message means and possibly how (if possible) to correct the
->> >problem.
->> >
->> >I use Dell Latitude x300 laptop and 2.4.26 kernel with the latest
->> acpi
->> >patch (acpi-20040326-2.4.26).
->> >
->> >I have modified the dsdt table so that it compiles without any
->> errors,
->> >but
->> >I still get the above error at boot. AC/Battery status does not
->> work.
->> >Thermal does not work. It seems I can change the throttling of the
->> CPU.
->> >
->> >Any suggestions are highly appreciated. Could I ask some one to
->> reply
->> >to me even if they do not know how to solve the problem? You see, I
->> >have sent
->> >several emails to this list and got very small number of replies.
->> Maybe
->> >
->> >my subscription is broken? Sometimes I get double postings of other
->> >people.
->> >Thanks a lot for you kind help
->> >
->> >Lazar
->> >
->> >
->> >
->> >__________________________________
->> >Do you Yahoo!?
->> >New and Improved Yahoo! Mail - Send 10MB messages!
->> >http://promotions.yahoo.com/new_mail
->> >
->> >
->> >-------------------------------------------------------
->> >This SF.Net email sponsored by Black Hat Briefings & Training.
->> >Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
->> >digital self defense, top technical experts, no vendor pitches,
->> >unmatched networking opportunities. Visit www.blackhat.com
->> >_______________________________________________
->> >Acpi-devel mailing list
->> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
->>
->>
->
->
->
->__________________________________
->Do you Yahoo!?
->Yahoo! Mail - 50x more storage than other providers!
->http://promotions.yahoo.com/new_mail
+------=_NextPart_000_0005_01C45DB7.3C62C200
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="iso-8859-1"
+
+>  My laptop is a Fujitsu Lifebook P2110.  I get ACPI events for the =
+function keys for video
+> (switch to other video adapter. or S-output, or shrink the screen).  =
+The Method that gets
+> called is \_GPE._L03.  I know that the ACPI portion of the kernel is =
+handling the method,
+> but how do I register my own handler so I may generate acpid events?  =
+It"s not obvious to me
+> there"s a device (_HID) associated with this method, and I don"t see a =
+precedent for this
+> within the other drivers in drivers/acpi.
+
+ =20
+Would the acpi_install_gpe_handler() function be appropriate for trying =
+to handle the above?
+
+Wayne
+
+
+------=_NextPart_000_0005_01C45DB7.3C62C200
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html;
+	charset="iso-8859-1"
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1400" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2><FONT size=3D3>&gt;&nbsp;&nbsp;My =
+laptop is a Fujitsu=20
+Lifebook P2110.&nbsp; I get ACPI events for the function keys for =
+video<BR>&gt;=20
+(switch to other video adapter. or S-output, or shrink the =
+screen).&nbsp; The=20
+Method that gets<BR>&gt; called is \_GPE._L03.&nbsp; I know that the =
+ACPI=20
+portion of the kernel is handling the method,<BR>&gt; but how do I =
+register my=20
+own handler so I may generate acpid events?&nbsp; It"s not obvious to =
+me<BR>&gt;=20
+there"s a device (_HID) associated with this method, and I don"t see a =
+precedent=20
+for this<BR>&gt; within the other drivers in=20
+drivers/acpi.<BR></FONT></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2><FONT size=3D3>&nbsp; <BR>Would the=20
+acpi_install_gpe_handler() function be appropriate for trying to handle =
+the=20
+above?</FONT></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2><FONT =
+size=3D3></FONT></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2><FONT size=3D3>Wayne</FONT></DIV>
+<DIV><BR></DIV></FONT></BODY></HTML>
+
+------=_NextPart_000_0005_01C45DB7.3C62C200--
+
 
 
 -------------------------------------------------------
