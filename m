@@ -1,14 +1,14 @@
-From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: Re: S3 on Intel Desktop Board D865GBF
-Date: Tue, 25 May 2004 21:09:54 -0500
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Fixing broken DSDT - code suggestions for comment   please!
+Date: Wed, 26 May 2004 10:35:57 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40B3FC72.20902@verizon.net>
-References: <1085272779.7511.11.camel@300mlinux>	 <40B373C5.4030400@verizon.net> <563681322.20040525144104@osu.edu>	 <40B3A215.3040309@verizon.net> <1085515868.3334.4.camel@300mlinux>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84047375C1@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1085515868.3334.4.camel-Yau0ytKvSx2eZLLa646FqQ@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>, Acpi-Devel List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: marmon-GymH4r+vMzPQT0dZR+AlfA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Andrew Barr wrote:
+ >
+>I've posted this question before, if its just a question that shall go
+>unanswered someone please let me know so I stop reposting it different
+>ways:
+>
+>Where would start searching for information on debugging a compiled
+>DSDT?  The iasl compiler believes it is fine, 0 errors, 0 warnings; but
+>I kernel panic in the one_complete_parse phase when booting using the
+>custom dsdt table.
+>
 
->On Tue, 2004-05-25 at 15:44, Nick Lidakis wrote:
->  
->
->>So it comes back to a console or X? Do you have a usb mouse to try out?
->>    
->>
->
->It comes back to both (wherever you were when you suspended). I tried a
->USB mouse, because USB and S3 is giving me hell on my laptop, and it's
->fine. No erratic pointer. I read somewhere that the psmouse driver just
->got its suspend/resume capabilities, so I might find out who was
->responsible for that and see what they think.
-> 
->--
->Andrew Barr
->
->/usr/games/fortune says:
->UFOs are for real: the Air Force doesn't exist.
->
->
->  
->
-So eveything is working fine? How many times have you suspended to S3 
-thus far? Could you list the other components you are using? Sound card, 
-raid contorller etc.
-USB keyboard or PS/2?
+  AFAIK, there is no AML debugging tool under linux. To debug the DSDT,
+you have to add some statement like "store ( xxx, debug) " in your ASL
+code.=20
+
+  PS, can you post the detailed message of the panic.
+
+Thanks,
+Luming
 
 
 -------------------------------------------------------
