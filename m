@@ -1,13 +1,15 @@
-From: Luís Miguel Pires Neves <luis.p.neves-/UxMdeFaS/k@public.gmane.org>
-Subject: S1bios
-Date: Mon, 10 Mar 2003 22:51:53 +0000
+From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ECDT breaks Thinkpad X22
+Date: Tue, 11 Mar 2003 22:02:18 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18sfx5-0001dg-00@incognito>
-Reply-To: lneves-3+EeCmRbAIo+BYJ/izffpQ@public.gmane.org
+Message-ID: <000c01c2e7ce$72d0a1f0$0e01a8c0@sayonara>
+References: <1047335075.17696.23.camel@mharnois.mdharnois.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1047335075.17696.23.camel-Jc8jiaiLSic2mD2JOtDPSJ9Kkgttl81Y@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,54 +18,87 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'Michael D. Harnois'" <mharnois-K5XHh8l1Aeht1OO0OYaSVA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+People on this list has been contacting IBM and made a difference. This
+problem must be fixed in IBM's next BIOS update.
 
-This is just a request (desire).
+You can try Ducrot Bruno's temporary patch:
 
-As S1 is not completely working (backlight, disks spinning...), I wonder =
-if=20
-one couldn't find a temporary solution similar to S4bios for machines tha=
-t=20
-have S1 in bios.
+Howto override your buggy ECDT table for the IBM Thinkpad under Linux
+http://www.poupinou.org/acpi/ibm_ecdt.html
 
-I apologise if what I'm saying is stupid as I'm not a developper, just a=20
-ordinary Linux user who has been following the development of ACPI and sw=
-susp=20
-in order to have it's Laptop with the usual functionality of laptops..
+Thanks,
+- Adachi, Kenichi
 
-In my first times with Linux in this machine (COMPAQ Presario 12XL515) I=20
-used APM with kernel 2.2.17 (Debian Potato's version) and I had "S1"=20
-behaviour with apm -S. At the time it was the single working function as =
-the=20
-battery status/information wasn't there, and "S4" seemed also to be absen=
-t (=20
-I know now that it was there but it needed a proper configured partition)=
-=2E=20
-However with more recent kernels, both 2.2 and 2.4  (not patched with Deb=
-ian=20
-patches) I never had the APM sleeping function working again.
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Michael D.
+Harnois
+Sent: Tuesday, March 11, 2003 7:25 AM
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] ECDT breaks Thinkpad X22
 
-Anyway I started using ACPI for battery information, and Swsusp for=20
-hibernation purposes, but I still miss the ability of putting the system =
-in a=20
-soft sleep so that I can move it from one place to another, or have a cup=
- of=20
-coffee without having to wait still some time for a swsusp suspend/resume=
-=20
-cycle.
 
-As S4Bios was created to use the ability of the machines who still have s=
-ome=20
-APM support to overcome the current limitations and difficulties of swsus=
-p,=20
-isn't it possible to do the same with S1?
+The 20030228 addition of ECDT breaks ACPI on my Thinkpad X22. (The
+result on 2.4.21-pre4 is the same.)
 
-Best regards,
+Linux version 2.5.62bk2 (root@michaelh) (gcc version 3.2.3 20030210
+(Debian prerelease)) #7 Wed Feb 19 10:54:28 CST 2003
 
-Lu=EDs Neves
+<snip>
+
+ACPI: RSDP (v002 IBM                        ) @ 0x000f73b0
+ACPI: XSDT (v001 IBM    TP-1D    00000.04736) @ 0x17f705d3
+ACPI: FADT (v001 IBM    TP-1D    00000.04736) @ 0x17f70617
+ACPI: SSDT (v001 IBM    TP-1D    00000.04736) @ 0x17f706cb
+ACPI: ECDT (v001 IBM    TP-1D    00000.04736) @ 0x17f79f87
+ACPI: BOOT (v001 IBM    TP-1D    00000.04736) @ 0x17f79fd8
+ACPI: DSDT (v001 IBM    TP-1D    00000.04736) @ 0x00000000
+ACPI: BIOS passes blacklist
+ACPI: MADT not present
+IBM machine detected. Enabling interrupts during APM calls.
+IBM machine detected. Disabling SMBus accesses.
+Building zonelist for node : 0
+Kernel command line: auto BOOT_IMAGE=Linux ro root=302
+Local APIC disabled by BIOS -- reenabling.
+Found and enabled local APIC!
+Initializing CPU#0
+
+<snip>
+
+ACPI: Subsystem revision 20030122
+ tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully
+acquired
+Parsing all Control
+Methods:....................................................
+........................................................................
+........
+........................................................................
+........
+........................................................................
+........
+...........................................................
+Table [DSDT] - 1190 Objects with 58 Devices 351 Methods 18 Regions
+Parsing all Control Methods:
+Table [SSDT] - 0 Objects with 0 Devices 0 Methods 0 Regions
+ACPI Namespace successfully loaded at root c03603bc
+evxfevnt-0092 [04] acpi_enable           : Transition to ACPI mode
+successful
+ACPI: Found ECDT
+ACPI: Could not use ECDT
+evxfevnt-0137 [06] acpi_disable          : ACPI mode disabled
+ utalloc-0986 [05] ut_dump_allocations   : No outstanding allocations.
+
+-- 
+Michael D. Harnois 
+
+2L, UST School of Law Minneapolis, Minnesota 
+"Any movement in history which attempts to perpetuate itself, becomes
+reactionary." -- Josip Broz Tito 
+
 
 
 
