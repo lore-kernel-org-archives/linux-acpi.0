@@ -1,15 +1,13 @@
-From: Dirk Meul <dirk.meul-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org>
-Subject: Re: S1 could work
-Date: Tue, 27 Jan 2004 20:45:09 +0100
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: [patch] remove null-ifiers
+Date: Tue, 27 Jan 2004 12:04:29 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1075232709.2673.14.camel@aragorn>
-References: <Pine.LNX.4.58.0401201816420.4869@localhost.localdomain>
- <20040122102912.GA355@elf.ucw.cz>
+Message-ID: <20040127120357.X37323@root.org>
+References: <E1AgkrW-00080w-00@jaguar.mkp.net> <20040127150954.GA12740@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20040122102912.GA355-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20040127150954.GA12740-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,40 +16,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Do, den 22.01.2004 schrieb Pavel Machek um 11:29:
-> Switching consoles doing S1 is not neccessary on working hardware. You
-> might want to simply comment it out.
+On Tue, 27 Jan 2004, Karol Kozimor wrote:
+> Thus wrote Jes Sorensen:
+> > diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c linux-2.6.1-mm3/drivers/acpi/asus_acpi.c
+> > --- orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c	Wed Dec 17 18:58:39 2003
+> > +++ linux-2.6.1-mm3/drivers/acpi/asus_acpi.c	Wed Jan 14 05:00:01 2004
+> > @@ -73,8 +73,8 @@
+> >  MODULE_LICENSE("GPL");
+> >
+> >
+> > -static uid_t asus_uid = 0;
+> > -static gid_t asus_gid = 0;
+> > +static uid_t asus_uid;
+> > +static gid_t asus_gid;
+> >  MODULE_PARM(asus_uid, "i");
+> >  MODULE_PARM_DESC(uid, "UID for entries in /proc/acpi/asus.\n");
+> >  MODULE_PARM(asus_gid, "i");
+>
+> We certainly *don't* want to do that, last time I checked C did not
+> actually guarantee to zero out uninitialized variables -- unless it's
+> different in the kernelspace. Are you sure pointers are initialized as
+> NULLs?
 
-Can you give me a pointer where switching is done? I could not find it.
+Static variables have always been guaranteed to be initialized to 0, at
+least since K&R.
 
-Trying to enter S1 when pdnsd is running aborts standby. But pdnsd is
-killed by entering S1 or S3 (didn't know S4 because it didn't work for
-me). Entering S3 with a running pdnsd works.
-
-By entering S1 audio from my tv-card will not stopped.
-
-Resuming from S3 will only work if i unload all sound modules. But i'm
-not able to reload them successfully:
-Starting ALSA (version 1.0.1):AC'97 0 does not respond - RESET
-AC'97 0 access is not valid [0xffffffff], removing mixer.
-EMU10K1_Audigy: probe of 0000:00:0d.0 failed with error -5
- emu10k1 bt87x.
-Restoring ALSA mixer settings ... done.
-
-Without sound module unloading there is:
-Kernel panic: Fatal exception in interrupt
-
-Best regards,
--- 
-                                  /"\
-Dirk Meul                         \ /    ASCII Ribbon Campaign
-dirk.meul-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org           X     Against HTML Mail
-                                  / \
-
-
+-Nate
 
 
 -------------------------------------------------------
