@@ -1,8 +1,8 @@
 From: Jacques GANGLOFF <jacques-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org>
 Subject: VAIO battery info : some more news
-Date: Mon, 12 Aug 2002 00:04:22 +0200
+Date: Mon, 12 Aug 2002 00:11:18 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208120004.23193.jacques@eavr.u-strasbg.fr>
+Message-ID: <3174.80008020556$1029103958@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
@@ -81,6 +81,7 @@ Jacques
 )   Fax : +33 (0)3 90 24 44 80
 (   http://eavr.u-strasbg.fr
 )_________________________________
+
 
 
 -------------------------------------------------------
