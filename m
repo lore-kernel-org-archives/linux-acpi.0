@@ -1,10 +1,12 @@
-From: Daugirdas =?iso-8859-2?Q?Ra=E8ys?= <daugirdas.racys-QUe+8C9cO5A@public.gmane.org>
-Subject: PROBLEM: ACPI S1 stanby doesn't work
-Date: Tue, 06 Jul 2004 23:05:08 +0300
+From: "Adriana Carrillo" <carrillodu-BFrwxs1NWBmzQB+pC5nmwQ@public.gmane.org>
+Subject: $33857
+Date: Tue, 06 Jul 2004 22:52:53 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1089144266.5947.1.camel@nuodai>
+Message-ID: <287b01c463ab$d8be21a0$99f86509@54.co.za>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-PebWn0HoaExUyORUm7JG"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,231 +16,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acornicq-bugs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
+I sent you an email a few days ago, because you now qualify for a new mortgage.
+You could get $300,000 for as little as $700 a month!
+Bad credit is no problem, you can pull cash out or refinance.
 
---=-PebWn0HoaExUyORUm7JG
-Content-Type: multipart/mixed; boundary="=-H4KS/rrM/2MlsBsCgIPP"
+Please click on this link:
+http://www.lending-now.com/h7/li.php?n5n=71
+
+Best Regards,
+Steve Morris
 
 
---=-H4KS/rrM/2MlsBsCgIPP
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
 
-Dear developer,
+No more: http://www.lending-now.com/r1/index.html
 
-I am writing to inform you about my problems with acpi S1 support. I am
-using 2.6.7 from kernel.org (config included). System: Debian Sid.
-Please note, that problem described here happened before installing
-nvidia drivers. This is from kern.log when "echo 1 > /proc/acpi/sleep"
-was executed in root linux console (without X):
+---- system information ----
+international around Internet examples: provides meet regime index 
+Description nearly Group natural version place server or 
+Traditional programmer graphics One absence identifier Provider's individual
 
-Jul  1 14:29:47 nuodai kernel: PM: Preparing system for suspend
-Jul  1 14:29:57 nuodai kernel: Stopping tasks:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D|
-Jul  1 14:29:57 nuodai kernel: Could not suspend device 0000:00:11.4:
-error -5
-Jul  1 14:29:57 nuodai kernel: Restarting tasks... done
-Jul  1 14:30:34 nuodai kernel: PM: Preparing system for suspend
-Jul  1 14:30:35 nuodai kernel: Stopping tasks:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D|
-Jul  1 14:30:35 nuodai kernel: Could not suspend device 0000:00:11.4:
-error -5
-Jul  1 14:30:35 nuodai kernel: Restarting tasks... done
-
-As you see these attempts just failed. In contrast, knoppix-3.4 (2.6)
-managed to enter S1, but the screen (TFT LCD Samsung SM151N) was not
-blanked, nut rather displayed linux console. Resume from S1 left my USB
-mouse disabled (needed to rerun hotplug). Strangely, knoppix couldn't
-enter S3 (haven't tried in debian).
-The just released nvidia drivers works well except standby. The system
-enter standby, but will never resume. The only working key set is
-C+SysRq+o (even no umount possible). Nvidia declares drivers support
-acpi suspend. All in all I guess thats related to the first issue.
-
-Please, let me know what you think.
-
-Yours sincerely,
-Daugirdas
-
---=-H4KS/rrM/2MlsBsCgIPP
-Content-Disposition: attachment; filename=info.tar.gz
-Content-Type: application/x-compressed-tar; name=info.tar.gz
-Content-Transfer-Encoding: base64
-
-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
-
---=-H4KS/rrM/2MlsBsCgIPP--
-
---=-PebWn0HoaExUyORUm7JG
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBA6wXKL8bniplOHx8RAv0PAJwJmBMkv4Y/i9KDSuFYv0i9G7KUmgCguU2f
-dr0y69Qmax8A0ge2kxPbIXg=
-=Z4zp
------END PGP SIGNATURE-----
-
---=-PebWn0HoaExUyORUm7JG--
 
 
 
