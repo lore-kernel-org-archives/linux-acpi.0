@@ -1,20 +1,14 @@
-From: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: Samsung P35, S3, black screen (radeon))
-Date: Fri, 4 Feb 2005 12:38:21 -0500
-Message-ID: <9e473391050204093837bc50d3@mail.gmail.com>
-References: <20050122134205.GA9354@wsc-gmbh.de>
-	 <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>
-	 <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz>
-	 <1107474198.5727.9.camel@desktop.cunninghams>
-	 <4202DF7B.2000506@gmx.net>
-	 <1107485504.5727.35.camel@desktop.cunninghams>
-	 <9e4733910502032318460f2c0c@mail.gmail.com>
-	 <20050204074454.GB1086@elf.ucw.cz>
-Reply-To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Fri, 4 Feb 2005 10:10:12 -0800
+Message-ID: <200502041010.13220.jbarnes@engr.sgi.com>
+References: <20050122134205.GA9354@wsc-gmbh.de> <20050204163019.GC1290@elf.ucw.cz> <9e4733910502040931955f5a6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050204074454.GB1086-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <9e4733910502040931955f5a6-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -24,26 +18,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 4 Feb 2005 08:44:54 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
-> We already try to do that, but it hangs on 70% of machines. See
-> Documentation/power/video.txt.
+On Friday, February 4, 2005 9:31 am, Jon Smirl wrote:
+> For non-x86 systems put an emu version on initramfs. My statically
+> linked against klibc x86 reset app is about 15K. The emu version is
+> significantly bigger but there is no way to avoid it if you are using
+> x86 hardware in a non-x86 box.
 
-We know that all of these ROMs are run at power on so they have to
-work. This implies that there must be something wrong with the
-environment the ROM are being run in. Video ROMs make calls into the
-INT vectors of the system BIOS. If these haven't been set up yet
-running the VBIOS is sure to hang.  Has someone with ROM source and
-the appropriate debugging tools tried to debug one of these hangs?
-Alternatively code could be added to wakeup.S to try and set these up
-or dump the ones that are there and see if they are sane.
+Jon does your emulator sit on top of the new legacy I/O and memory APIs?  I 
+added them for this very reason, though atm only ia64 supports them.  There's 
+documentation in Documentation/filesystems/sysfs-pci.txt if you want to take 
+a look.  On kernels that support it, sysfs can be a one stop shop for all 
+your gfx programming needs, since it provides access to the rom, PCI 
+resources (i.e. MMIO ranges, fb memory, etc.) and legacy I/O ports and 
+memory.
 
--- 
-Jon Smirl
-jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Jesse
 
 
 -------------------------------------------------------
