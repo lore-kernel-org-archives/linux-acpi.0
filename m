@@ -1,10 +1,10 @@
-From: "Cezar Halmagean" <cezar-WE3S9J525UShKNWrAYCRhA@public.gmane.org>
-Subject: back from suspend
-Date: Tue, 22 Feb 2005 10:53:26 +0200
-Message-ID: <20050222084935.M24787@mixandgo.ro>
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: [PATCH] Fix a if-statement in setup_sys_fs_device_files()
+Date: Tue, 22 Feb 2005 18:59:18 +0900
+Message-ID: <20050222185918.34429904.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,17 +14,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Anil Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi guys, I got a notebook HP/Compaq nc6000 with gentoo on it, kernel
-2.6.10-gentoo-r6. I am having problems with suspend, I can put it in suspend
-mode (i think) but all the control lights remain on, and I can't get back from
-it; I must reboot it.
+  This fixes a if-statement in setup_sys_fs_device_files().
+It seems to assume that 'struct acpi_device_flags.ejectable'
+indicates whether a device has _EJ0 or not.  But this is
+not a right assumption.  It indicates whether a device has
+_EJ0|_EJD (See acpi_bus_get_flags() function).
+  setup_sys_fs_device_files() creates 'eject' file for
+devices that have _EJ0 control method under a corresponding
+directory in /sys/firmware/acpi/namespace/ACPI/.  'eject'
+file is used to trigger hot-removal function from userland.
 
-Anyone can help ?
+Thanks,
+Keiichiro Tokunaga
 
-Thanks!
+
+
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+---
+
+ linux-2.6.11-rc4-kei/drivers/acpi/scan.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletion(-)
+
+diff -puN drivers/acpi/scan.c~eject_interface_bug drivers/acpi/scan.c
+--- linux-2.6.11-rc4/drivers/acpi/scan.c~eject_interface_bug	2005-02-22 18:22:29.000000000 +0900
++++ linux-2.6.11-rc4-kei/drivers/acpi/scan.c	2005-02-22 18:48:09.000000000 +0900
+@@ -358,7 +358,15 @@ setup_sys_fs_device_files (
+ 	struct acpi_device *dev,
+ 	acpi_device_sysfs_files *func)
+ {
+-	if (dev->flags.ejectable == 1)
++	acpi_status		status;
++	acpi_handle		temp = NULL;
++
++	/*
++	 * If device has _EJ0, 'eject' file is created that is used to trigger
++	 * hot-removal function from userland.
++	 */
++	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
++	if (ACPI_SUCESS(status))
+ 		(*(func))(&dev->kobj,&acpi_device_attr_eject.attr);
+ }
+ 
+
+_
 
 
 -------------------------------------------------------
