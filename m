@@ -1,12 +1,22 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: acpi proc: simplify error handling
-Date: Fri, 10 Sep 2004 10:59:49 +0200
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: acpi-20040715+D600+Suspend
+Date: Fri, 10 Sep 2004 20:21:34 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040910085949.GA14198@elf.ucw.cz>
+Message-ID: <1094811694.10978.9.camel@laptop.cunninghams>
+References: <1093972503.9372.38.camel@neuromancer.home.net>
+	 <20040902143034.GA676@elf.ucw.cz>
+	 <1094442085.21466.29.camel@neuromancer.home.net>
+	 <20040906171349.GC26195@atrey.karlin.mff.cuni.cz>
+	 <1094527351.25454.14.camel@neuromancer.home.net>
+	 <20040907093424.GA30810@atrey.karlin.mff.cuni.cz>
+	 <1094768209.2843.6.camel@laptop.cunninghams>
+	 <1094811463.27216.117.camel@neuromancer.home.net>
+Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1094811463.27216.117.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,48 +25,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi.
 
-This simplifies error handling in acpi/sleep/proc.c. Please apply,
+On Fri, 2004-09-10 at 20:17, Ow Mun Heng wrote:
+> > Ditto here. On the occasions when I have damaged my filesystem, I've had
+> > much better success recovering while using ext3. I tried xfs, but gave
+> > up on it quickly because of the zeroing-out-files issue.
+> Okay.. But here's another question. Is it recommended that _all_
+> partitions be ext3 or only the root partition??
 
-								Pavel
+I'd use ext3 only.
 
---- clean-mm/drivers/acpi/sleep/proc.c	2004-08-24 09:03:14.000000000 +0200
-+++ linux-mm/drivers/acpi/sleep/proc.c	2004-09-07 21:15:19.000000000 +0200
-@@ -57,7 +57,8 @@
- 	int	error = 0;
- 
- 	if (count > sizeof(str) - 1)
--		goto Done;
-+		return -EIO;
-+
- 	memset(str,0,sizeof(str));
- 	if (copy_from_user(str, buffer, count))
- 		return -EFAULT;
-@@ -65,17 +66,16 @@
- 	/* Check for S4 bios request */
- 	if (!strcmp(str,"4b")) {
- 		error = acpi_suspend(4);
--		goto Done;
-+		return error ? error : count;
- 	}
- 	state = simple_strtoul(str, NULL, 0);
- #ifdef CONFIG_SOFTWARE_SUSPEND
- 	if (state == 4) {
--		software_suspend();
--		goto Done;
-+		error = software_suspend();
-+		return error ? error : count;
- 	}
- #endif
- 	error = acpi_suspend(state);
-- Done:
- 	return error ? error : count;
- }
- 
+Nigel
+-- 
+Nigel Cunningham
+Pastoral Worker
+Christian Reformed Church of Tuggeranong
+PO Box 1004, Tuggeranong, ACT 2901
+
+Many today claim to be tolerant. True tolerance, however, can cope with others
+being intolerant.
+
 
 
 -------------------------------------------------------
