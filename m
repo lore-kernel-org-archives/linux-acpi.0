@@ -1,12 +1,14 @@
-From: Mail Delivery Subsystem <MAILER-DAEMON-YDxpq3io04c@public.gmane.org>
-Subject: Returned mail: User unknown
-Date: Mon, 8 Sep 2003 22:37:36 -0400 (EDT)
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: acpi_bus_register_driver() returns -ENODEV after resume
+Date: Tue, 9 Sep 2003 00:07:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309090237.WAD01318@rly-xj01.mx.aol.com>
+Message-ID: <20030908220722.GA24304@hell.org.pl>
+References: <20030901222619.GC27945@hell.org.pl> <Pine.LNX.4.33.0309021529410.1737-100000@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status;
-	boundary="WAD01318.1063075056/rly-xj01.mx.aol.com"
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0309021529410.1737-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,82 +17,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a MIME-encapsulated message
+Thus wrote Patrick Mochel:
+> Since it's __initdata, the memory will be freed early in the init process 
+> (c.f. init/main.c::init() -> free_initmem()). Anything that uses it later 
+> is touching memory that is either unallocated, or allocated by something 
+> else. That's a bug. 
+> 
+> Also, it doesn't need to be EXPORTed. If it is left as initdata, that's
+> another bug, because the two are semantically disjoint. However, even with
+> the patch below, I'm not sure why you would want to expose the variable 
+> (and I've in fact removed that). 
+> 
+> Please give it a try and let me know if helps. 
 
---WAD01318.1063075056/rly-xj01.mx.aol.com
+In short: 2.4.23-pre3 vanilla: problem present
+	  2.4.23-pre3 with __initdata and EXPRT_SYMBOL removed: compiles
+	  fine, the problem seems to have disappeared.
 
-The original message was received at Mon, 8 Sep 2003 22:36:57 -0400 (EDT)
-from  [163.180.127.185]
+The patch you made is OK for 2.6, I inline one for 2.4 (the same except for
+the top line)
+
+--- linux-2.4.23-pre3/arch/i386/kernel/setup.c~ 2003-09-04 15:21:03.000000000 +0200
++++ linux-2.4.23-pre3/arch/i386/kernel/setup.c  2003-09-08 23:56:00.000000000 +0200
+@@ -176,11 +176,10 @@
+ static u32 disabled_x86_caps[NCAPINTS] __initdata = { 0 };
+
+ #ifdef CONFIG_ACPI_INTERPRETER
+-       int acpi_disabled __initdata = 0;
++       int acpi_disabled = 0;
+ #else
+-       int acpi_disabled __initdata = 1;
++       int acpi_disabled = 1;
+ #endif
+-EXPORT_SYMBOL(acpi_disabled);
+
+ #ifdef CONFIG_ACPI_BOOT
+        int acpi_ht __initdata = 1;     /* enable HT */
 
 
-*** ATTENTION ***
+Thanks for help, best regards,
 
-Your e-mail is being returned to you because there was a problem with its
-delivery.  The address which was undeliverable is listed in the section
-labeled: "----- The following addresses had permanent fatal errors -----".
-
-The reason your mail is being returned to you is listed in the section
-labeled: "----- Transcript of Session Follows -----".
-
-The line beginning with "<<<" describes the specific reason your e-mail could
-not be delivered.  The next line contains a second error message which is a
-general translation for other e-mail servers.
-
-Please direct further questions regarding this message to your e-mail
-administrator.
-
---AOL Postmaster
-
-
-
-   ----- The following addresses had permanent fatal errors -----
-<heinerf-YDxpq3io04c@public.gmane.org>
-
-   ----- Transcript of session follows -----
-... while talking to air-xj04.mail.aol.com.:
->>> RCPT To:<heinerf-YDxpq3io04c@public.gmane.org>
-<<< 550 MAILBOX NOT FOUND
-550 <heinerf-YDxpq3io04c@public.gmane.org>... User unknown
-
---WAD01318.1063075056/rly-xj01.mx.aol.com
-Content-Type: message/delivery-status
-
-Reporting-MTA: dns; rly-xj01.mx.aol.com
-Arrival-Date: Mon, 8 Sep 2003 22:36:57 -0400 (EDT)
-
-Final-Recipient: RFC822; heinerf-YDxpq3io04c@public.gmane.org
-Action: failed
-Status: 5.1.1
-Remote-MTA: DNS; air-xj04.mail.aol.com
-Diagnostic-Code: SMTP; 550 MAILBOX NOT FOUND
-Last-Attempt-Date: Mon, 8 Sep 2003 22:37:36 -0400 (EDT)
-
---WAD01318.1063075056/rly-xj01.mx.aol.com
-Content-Type: text/rfc822-headers
-
-Received: from  LSM ([163.180.127.185]) by rly-xj01.mx.aol.com (v95.1) with ESMTP id MAILRELAYINXJ12-4f83f5d3cc2130; Mon, 08 Sep 2003 22:36:52 -0400
-From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <HeinerF-YDxpq3io04c@public.gmane.org>
-Subject: Re: Wicked screensaver
-Date: Tue, 9 Sep 2003 11:37:07 +0900
-X-MailScanner: Found to be clean
-Importance: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MSMail-Priority: Normal
-X-Priority: 3 (Normal)
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_0493A46E"
-X-AOL-IP: 163.180.127.185
-X-AOL-SCOLL-SCORE: 0:XXX:XX
-X-AOL-SCOLL-URL_COUNT: 0
-Message-ID: <200309082236.4f83f5d3cc2130-po0way87NVY7N1j9GEufq0EOCMrvLtNR@public.gmane.org>
-
---WAD01318.1063075056/rly-xj01.mx.aol.com--
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
