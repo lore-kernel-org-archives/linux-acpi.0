@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: nc4010 resume failure (was: ACPI S3 resume only reboots)
-Date: Fri, 22 Oct 2004 12:51:04 +0200
+From: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Sager NP3760 DSDT - how to enable thermal zoning?
+Date: Fri, 22 Oct 2004 14:37:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041022105103.GA1330@elf.ucw.cz>
-References: <20041004133340.76ba05ba.albeclemit@yahoo.it> <20041009130628.GA21781@elf.ucw.cz> <20041010105635.GA3362@doc.ic.ac.uk> <20041012175810.2920edf2.albeclemit@yahoo.it> <20041017193623.GB7476@elf.ucw.cz> <1098132147.4032.5.camel@tyrosine>
+Message-ID: <e294b46e041022063770358b66@mail.gmail.com>
+Reply-To: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1098132147.4032.5.camel@tyrosine>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,35 +16,112 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+(Please CC my e-mail address, I am not a member of this list)
 
-> >  ENTRY(wakeup_start)
-> > @@ -20,6 +35,7 @@
-> >  	wakeup_code_start = .
-> >  	.code16
-> >  
-> > +	BEEP
-> >   	movw	$0xb800, %ax
-> >  	movw	%ax,%fs
-> >  	movw	$0x0e00 + 'L', %fs:(0x10)
-> 
-> I've been trying this on an HP nc4010. As far as I can tell, the code
-> never even gets this far. The machine appears to suspend correctly - the
-> sleep light flashes. Pressing the power button then causes the fan to
-> switch on, but no beep is produced. This is with the gdt and
-> virt_to_phys patches applied. What's the best way to proceed with
-> debugging this?
+Has anyone managed to successfully modify the DSDT of the Sager NP3760
+(a rebranded Clevo M375E/M375W, IIRC) to support thermal zoning and
+temperature monitoring?
 
-Add infinite loop just after BEEP... if it crashed too fast after BEEP
-you might not hear anything.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Compiling the DSDT using iasl 20030918 returns the following errors:
+
+# iasl -tc dsdt.dsl
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20021002 [Oct  2 2002]
+Copyright (C) 2000 - 2002 Intel Corporation
+Supports ACPI Specification Revision 2.0a
+
+dsdt.dsl    22:             Method (_PPC, 0, NotSerialized)
+Warning  2019 -                        ^ Not all control paths return
+a value (_PPC)
+
+dsdt.dsl    22:             Method (_PPC, 0, NotSerialized)
+Warning  2026 -                        ^ Reserved method must return a
+value (_PPC)
+
+dsdt.dsl   148:             Method (_PDC, 1, NotSerialized)
+Warning  2033 -  Unknown reserved name ^  (_PDC)
+
+dsdt.dsl   201:             Method (_PSS, 0, NotSerialized)
+Warning  2019 -                        ^ Not all control paths return
+a value (_PSS)
+
+dsdt.dsl   201:             Method (_PSS, 0, NotSerialized)
+Warning  2026 -                        ^ Reserved method must return a
+value (_PSS)
+
+dsdt.dsl  1081:     Method (SBWB, 3, NotSerialized)
+Warning  2019 -                ^ Not all control paths return a value (SBWB)
+
+dsdt.dsl  1762:             Field (SMRM, DWordAcc, NoLock, Preserve)
+Error    1047 -                       ^ Access width is greater than region size
+
+dsdt.dsl  1765:                 GSRM,   1,
+Error    1051 -                    ^ Access width of Field Unit
+extends beyond region limit
+
+dsdt.dsl  1766:                 DLCK,   1,
+Error    1051 -                    ^ Access width of Field Unit
+extends beyond region limit
+
+dsdt.dsl  1767:                 DCLS,   1,
+Error    1051 -                    ^ Access width of Field Unit
+extends beyond region limit
+
+dsdt.dsl  1768:                 DOPN,   1,
+Error    1051 -                    ^ Access width of Field Unit
+extends beyond region limit
+
+dsdt.dsl  3025:                     Method (SARA, 0, NotSerialized)
+Warning  2019 -                                ^ Not all control paths
+return a value (SARA)
+
+dsdt.dsl  3133:                     Method (WSWD, 4, NotSerialized)
+Warning  2019 -                                ^ Not all control paths
+return a value (WSWD)
+
+dsdt.dsl  3520:                         /*** Missing
+EndDependentFunctions descriptor */         })
+Error    1071 -                                   Missing
+EndDependentFn() macro in dependent resource list ^
+
+dsdt.dsl  3661:                         /*** Missing
+EndDependentFunctions descriptor */         })
+Error    1071 -                                   Missing
+EndDependentFn() macro in dependent resource list ^
+
+dsdt.dsl  3732:                         /*** Missing
+EndDependentFunctions descriptor */         })
+Error    1071 -                                   Missing
+EndDependentFn() macro in dependent resource list ^
+
+dsdt.dsl  3745:                         /*** Missing
+EndDependentFunctions descriptor */         })
+Error    1071 -                                   Missing
+EndDependentFn() macro in dependent resource list ^
+
+dsdt.dsl  4160:                         /*** Missing
+EndDependentFunctions descriptor */         })
+Error    1071 -                                   Missing
+EndDependentFn() macro in dependent resource list ^
+
+dsdt.dsl  4229:                     /*** Missing EndDependentFunctions
+descriptor */ })
+Error    1071 -                           Missing EndDependentFn()
+macro in dependent resource list ^
+
+ASL Input:  dsdt.dsl - 4817 lines, 154622 bytes, 2139 keywords
+Compilation complete. 11 Errors, 8 Warnings, 0 Remarks, 461 Optimizations
+
+Do these errors have any bearing on the lack of thermal zoning?
+
+The decompiled DSDT is available here (154K AML source): 
+http://www.pryan.org/mozilla/site/TheOneKEA/misc/sager-np3760-dsdt.dsl
+
+Brad
 
 
 -------------------------------------------------------
