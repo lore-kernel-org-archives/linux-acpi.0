@@ -1,8 +1,11 @@
-From: postmaster-gyoWIWh6VKRn68oJJulU0Q@public.gmane.org
-Subject: Virus in mail from you.
-Date: Wed, 20 Aug 2003 09:37:29 -0700
+From: <mcr-b3vwm0MSY3FBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Approved
+Date: Wed, 20 Aug 2003 13:47:25 --0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19pVxh-0006n4-00@sc8-sf-list1.sourceforge.net>
+Message-ID: <E19pX3O-0002oY-00@sc8-sf-list1.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_00F5017F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,38 +18,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Our virus checker has found potentially malicious code in a mail by
-you. Delivery has been stopped. For further questions, please contact
-postmaster-gyoWIWh6VKSEaX3rWmWZZA@public.gmane.org
+This is a multipart message in MIME format
 
-The recipient(s) for this message were:
-nk-gyoWIWh6VKRn68oJJulU0Q@public.gmane.org
+--_NextPart_000_00F5017F
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-The message has been quarantined as 3f43a3c6-6271.
+See the attached file for details
+--_NextPart_000_00F5017F
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
 
- Virusscanner found:
- W32/Sobig.f@MM
+------------------  Virus Warning Message (on the network)
 
-------------------------------------------------------------------------
-Message headers follow:
-Received: from localhost [127.0.0.1] by bux
-	with SpamAssassin (2.55 1.174.2.19-2003-05-19-exp);
-	Wed, 20 Aug 2003 18:37:25 +0200
-From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <nk-gyoWIWh6VKRn68oJJulU0Q@public.gmane.org>
-Subject: SPAM: Re: Details
-Date: Thu, 21 Aug 2003 0:33:16 +0800
-X-Spam-Flag: YES
-X-Spam-Status: Yes, hits=7.3 required=5.0
-	tests=FORGED_MUA_OUTLOOK,INVALID_DATE,MICROSOFT_EXECUTABLE,
-	      MIME_BOUND_NEXTPART,MISSING_MIMEOLE,NO_REAL_NAME,
-	      RCVD_IN_RFCI
-	version=2.55
-X-Spam-Level: *******
-X-Spam-Checker-Version: SpamAssassin 2.55 (1.174.2.19-2003-05-19-exp)
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_3F43A3C5.2FD31CBE"
+movie0045.pif is removed from here because it is of type pif
+
+---------------------------------------------------------
+--_NextPart_000_00F5017F--
+
 
 
 -------------------------------------------------------
