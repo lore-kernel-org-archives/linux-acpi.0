@@ -1,50 +1,102 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ACPI] [PATCH] 1/3 ACPI resource handling
-Date: Fri, 21 Feb 2003 15:07:48 -0800
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BB0F@orsmsx107.jf.intel.com>
+From: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
+Subject: Re: acpi_battery_read_info kernel Oops
+Date: Sat, 22 Feb 2003 01:31:57 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200302220131.57228.earny@net4u.de>
+References: <200302110423.35001.earny@net4u.de>
+Reply-To: earny-euM3SP4ZHrg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: 'Bjorn Helgaas' <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_9TsV+bZ6uOJeFx2"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200302110423.35001.earny-euM3SP4ZHrg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is worth looking into, anyway.
-memcpy is appropriate, also.
-Bob
+
+--Boundary-00=_9TsV+bZ6uOJeFx2
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Freitag, 21. Februar 2003 02:48, Grover, Andrew wrote:
+> Hi Ernst,
+>
+> Could you see if this patch fixes the issue?
+
+Yupp. Look like the 'serial number' was the problem.
+
+lidl ~ # cat /proc/acpi/battery/BAT0/info
+present:                 yes
+design capacity:         54720 mWh
+last full capacity:      47600 mWh
+battery technology:      rechargeable
+design voltage:          14400 mV
+design capacity warning: 3808 mWh
+design capacity low:     1428 mWh
+capacity granularity 1:  238 mWh
+capacity granularity 2:  238 mWh
+model number:            PC-VP-WP22/OP-570-74001
+serial number:
+battery type:            Lion
+OEM info:                NEC
+
+<Earny>
+--Boundary-00=_9TsV+bZ6uOJeFx2
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="utcopy.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="utcopy.diff"
+
+===== drivers/acpi/utilities/utcopy.c 1.22 vs edited =====
+--- 1.22/drivers/acpi/utilities/utcopy.c	Tue Feb 18 15:32:34 2003
++++ edited/drivers/acpi/utilities/utcopy.c	Thu Feb 20 17:44:54 2003
+@@ -645,11 +645,11 @@
+ 
+ 		/*
+ 		 * Allocate and copy the actual buffer if and only if:
+-		 * 1) There is a valid buffer (length > 0)
++		 * 1) There is a valid buffer pointer
+ 		 * 2) The buffer is not static (not in an ACPI table) (in this case,
+ 		 *    the actual pointer was already copied above)
+ 		 */
+-		if ((source_desc->buffer.length) &&
++		if ((source_desc->buffer.pointer) &&
+ 			(!(source_desc->common.flags & AOPOBJ_STATIC_POINTER))) {
+ 			dest_desc->buffer.pointer = ACPI_MEM_ALLOCATE (source_desc->buffer.length);
+ 			if (!dest_desc->buffer.pointer) {
+@@ -665,11 +665,11 @@
+ 
+ 		/*
+ 		 * Allocate and copy the actual string if and only if:
+-		 * 1) There is a valid string (length > 0)
++		 * 1) There is a valid string pointer
+ 		 * 2) The string is not static (not in an ACPI table) (in this case,
+ 		 *    the actual pointer was already copied above)
+ 		 */
+-		if ((source_desc->string.length) &&
++		if ((source_desc->string.pointer) &&
+ 			(!(source_desc->common.flags & AOPOBJ_STATIC_POINTER))) {
+ 			dest_desc->string.pointer = ACPI_MEM_ALLOCATE ((acpi_size) source_desc->string.length + 1);
+ 			if (!dest_desc->string.pointer) {
+
+--Boundary-00=_9TsV+bZ6uOJeFx2--
 
 
------Original Message-----
-From: Bjorn Helgaas [mailto:bjorn_helgaas-VXdhtT5mjnY@public.gmane.org] 
-Sent: Friday, February 21, 2003 2:37 PM
-To: Matthew Wilcox
-Cc: Moore, Robert; Grover, Andrew; Walz, Michael; t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org;
-linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel@lists.sourceforge.net
-Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
 
-On Friday 21 February 2003 3:15 pm, Matthew Wilcox wrote:
-> On Fri, Feb 21, 2003 at 03:09:15PM -0700, Bjorn Helgaas wrote:
-> > Or, since you mention a macro, maybe your question is not about
-> > the usefulness of acpi_resource_to_address64() itself, but about
-> > how I implemented it, namely, with the copy_field and copy_address
-> > macros:
-> 
-> Can I suggest that you do a simple memcpy() for the case where you're
-> translating an address64 into an address64?
-
-I suppose we could.  Or maybe we should just get to the root of the
-thing and make a generic acpi_resource_address structure and never
-even expose the 16, 32, and 64 bit variants.  As far as I can tell,
-they just make life difficult for consumers.
-
-Then acpi_rs_address16_resource(), acpi_rs_address32_resource(),
-and acpi_rs_address64_resource() could be collapsed into one function
-with pretty trivial checks for the different sizes.  And there's lots
-of similar collapsing that could be done.  I bet we'd even find one
-or two defects in the process of removing all the duplicated code.
-
-Of course, I guess that would change the CA interface, so that
-constrains things a bit.
-
-Bjorn
+-------------------------------------------------------
+This SF.net email is sponsored by: SlickEdit Inc. Develop an edge.
+The most comprehensive and flexible code editor you can use.
+Code faster. C/C++, C#, Java, HTML, XML, many more. FREE 30-Day Trial.
+www.slickedit.com/sourceforge
