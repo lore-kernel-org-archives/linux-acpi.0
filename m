@@ -1,17 +1,15 @@
-From: Scott James Remnant <scott-Umf49k1wg4FWk0Htik3J/w@public.gmane.org>
-Subject: Re: S3 resume problems on HP compaq nc4010
-Date: Sun, 09 May 2004 23:00:24 +0100
+From: Cyril Wattebled <neurowork-GANU6spQydw@public.gmane.org>
+Subject: Re: Centrino question
+Date: Mon, 10 May 2004 00:28:14 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084140024.14657.8.camel@syndicate>
-References: <1083777804.4093.71.camel@descent.netsplit.com>
-	 <20040509015516.GA5487@elf.ucw.cz> <1084117826.2372.32.camel@syndicate>
-	 <20040509213919.GA13603@atrey.karlin.mff.cuni.cz>
-	 <1084139548.14657.4.camel@syndicate>
-	 <20040509215621.GB15307@atrey.karlin.mff.cuni.cz>
+Message-ID: <20040510002814.67f2022a.neurowork@free.fr>
+References: <20040509182524.03a9de0d.neurowork@free.fr>
+	<409E6F91.8090506@speakeasy.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-qvXFoO1tajTefUriU1n2"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040509215621.GB15307-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+In-Reply-To: <409E6F91.8090506-zY4eFNvK5D9If6P1QZMOBw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,89 +18,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Thanks for the link, I applied the patch but I still only have C2 max ...
+Any other clues ?
 
---=-qvXFoO1tajTefUriU1n2
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Sun, 09 May 2004 13:51:13 -0400
+Dino Klein <zagzag-lists-zY4eFNvK5D9If6P1QZMOBw@public.gmane.org> wrote:
 
-On Sun, 2004-05-09 at 23:56 +0200, Pavel Machek wrote:
-
-> > S3 resume you get nothing, because the screen never comes back (and
-> > nothing in the logs either).
-> >=20
-> > S4 you get the messages about restoring from swap, then the screen
-> > switches to show the messages it showed whilst suspending and it
-> > locks.
-> >=20
-> > Have tried by booting init=3D/bin/bash with no modules loaded.
->=20
-> Can you confirm that you did not have intel-agp or similar (AGP or DRI
-> drivers) loaded? Even loading then unloading it hurts.
->=20
-I deliberately compiled those out as modules, and when booting with
-init=3D/bin/bash the agpgart and ati_agp aren't loaded.  (if they're
-loaded, it makes no difference).
-
-> * go with minimal config, turn off drivers like USB, AGP you don't
->   really need
->=20
-Tried it.
-
-> * turn off APIC and preempt
->=20
-Tried it.
-
-> * use ext2. At least it has working fsck. [If something seemes to go
->   wrong, force fsck when you have a chance]
->=20
-Would the filesystem really make a difference to whether it can or can't
-come back?
-
-> * turn off modules
->=20
-Tried it.
-
-> * use vga text console, shut down X. [If you really want X, you might
->   want to try vesafb later]
->=20
-Tried it.
-
-> * try running as few processes as possible, preferably go to single
->   user mode.
->=20
-Tried it.
-
-> * due to video issues, swsusp should be easier to get working than
->   S3. Try that first.
->=20
-Doesn't work either.  I got swsusp2 to work, but that has to shut down X
-and unload all the modules otherwise it won't resume; and that takes
-longer than a simple shutdown and boot -- so I abandoned it.  Plus it
-scared me -- too much pretty :)
-
-Scott
---=20
-Have you ever, ever felt like this?
-Had strange things happen?  Are you going round the twist?
-
---=-qvXFoO1tajTefUriU1n2
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBAnqn4IexP3IStZ2wRAgXVAKCHf3lLkqP5ffRnxrXrwPX9fpQ4VACffHZN
-W8RulzvEOd2/ILMMCgyMrF0=
-=JhDT
------END PGP SIGNATURE-----
-
---=-qvXFoO1tajTefUriU1n2--
-
+> I have an Acer C302, with a Pentium M 1.6, and the Intel 855GME chipset. 
+> The CPU/chipset supports C1 - C4.
+> My hypothesis as to why you don't have C3 is because it is disabled thru 
+> the value of the C3 latency in the FADT. The DSDT code probably has a 
+> _CST field/method for the processor, which specifies the available 
+> C-States. I've used a patch (from here 
+> http://bugzilla.kernel.org/show_bug.cgi?id=1958), that reads the _CST 
+> object.
+> Give it a try, and see if it solves your issue.
+> 
+> 
+> Cyril Wattebled wrote:
+> > Hi there,
+> > 
+> > I'm wondering if all Pentium M processor support C1 C2 and C3 ?
+> > Because I have a Sony Vaio Z1 with a Pentium M 1.7ghz and linux only
+> > detects C1 and C2. I have a friend who has a Toshiba Tecra with a Pentium M
+> > 1.4ghz and it supports C3.
+> > I have heard that even C3 and C4 are supported by Centrinos.
+> > I'm using kernel 2.6.6-rc3. 
+> > Is there a logical answer why the kernel does only detect C1 and C3 ?
+> > Thanks
+> > 
+> > Cyril
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by Sleepycat Software
+> Learn developer strategies Cisco, Motorola, Ericsson & Lucent use to deliver
+> higher performing products faster, at low TCO.
+> http://www.sleepycat.com/telcomwpreg.php?From=osdnemail3
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
 
 
 -------------------------------------------------------
