@@ -1,40 +1,61 @@
-From: Michael Holzt <kju@fqdn.org>
-Subject: Re: [ACPI] RE: Toshiba ACPI battery status - ACPI errors
-Date: Mon, 24 Nov 2003 23:55:39 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20031124225539.GA22718@fqdn.org>
-References: <7F740D512C7C1046AB53446D37200173618752@scsmsx402.sc.intel.com>
+From: =?ISO-8859-1?Q?Andr=E9?= Ventura Lemos <tux-iajdibc0hrlg9hUCZPvPmw@public.gmane.org>
+Subject: special buttons
+Date: Mon, 24 Nov 2003 23:33:25 +0000
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1069716805.3780.4.camel@lapy.tuxslare.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7F740D512C7C1046AB53446D37200173618752@scsmsx402.sc.intel.com>
-To: "Nakajima, Jun" <jun.nakajima@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>, "Brown, Len" <len.brown@intel.com>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-TsxaMsVMCBuZZ6yhmtkM"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I suspect this is a known issue with AML code from Toshiba. 
 
-Sorry, but unfortunately your guess is wrong (would have been too easy). A
-few days ago i reported about the Tecra S1 problems on the acpi-devel list
-as well, maybe you missed my post, which can be found in the archives here:
+--=-TsxaMsVMCBuZZ6yhmtkM
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-  http://sourceforge.net/mailarchive/forum.php?thread_id=3511931&forum_id=6102
+Hi!
 
-Included was a link to the disassembled dsdt, which can be found here:
+I have a laptop without a known brand (it's assembled by a portuguese
+company), and I need one of the special buttons to work, as it activates
+my wireless interface, and without it I can't get it to work.
 
-  http://www.kju.de/data/dsdt.dsl
+What data can I provide, so that you can make my buttons work?
 
-As you can see, the _STA-Methods of both BAT0 and BAT1 do proper return
-calls. I'm sorry, but i'm do not have any knowledge about acpi or dsdts to
-debug this myself. The DSDT has some other errors as well.
+Ps.: I'm using the kernel 2.6.0-test10 atm
 
-It is somewhat strange, that toshiba as one of the core members of ACPI
-seems to be unable to provide sane DSDTs for years now. Something is real
-wrong with this company.
+Thanks
 
-Regards
-Michael
 
--- 
-Michael Holzt, DL3KJU, kju@fqdn.org, kju@debian.org, kju@IRCNet
+--=20
+Lego my ego, and I'll lego your knowledge
+
+--=-TsxaMsVMCBuZZ6yhmtkM
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQA/wpVEduWuN7ka4fkRAnMsAKDFnepvvZCXbJGbUFcHJu7tzRz3+gCdEk2u
+9ODcAqxNhr+z3Vv/blNVX4Q=
+=lj0m
+-----END PGP SIGNATURE-----
+
+--=-TsxaMsVMCBuZZ6yhmtkM--
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
