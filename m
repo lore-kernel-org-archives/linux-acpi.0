@@ -1,13 +1,14 @@
-From: "./SuperbepS" <superbeps-ceJDNWc+7SM@public.gmane.org>
-Subject: wrong battery info
-Date: Sat, 3 Aug 2002 10:48:23 +0200
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: An embedded-Linux power-management framework
+Date: 03 Aug 2002 14:32:01 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208031048.29073.superbeps@linux.nu>
+Message-ID: <1028381521.31718.26.camel@irongate.swansea.linux.org.uk>
+References: <OF4415334C.6C7486B8-ON86256C0A.00081BB4@pok.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <OF4415334C.6C7486B8-ON86256C0A.00081BB4-yJlKWOkj9xhBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,42 +17,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bishop Brock <bcbrock-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Linux Power Management Development <linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux ACPI Development <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux APMD <apmd-list-+wEybqfU8vgCzWx7n4ubxQ@public.gmane.org>, CPU Frequency <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Sat, 2002-08-03 at 03:29, Bishop Brock wrote:
+> On the first point, we're concerned with system-wide power management,
+> which includes the
+> memory subsystem.  Our processors are so power-efficient today that we burn
+> more power
 
-I just upgraded mi kernel (2.4.18) with the latest acpi patch (20020725).=
- This=20
-version lets me to read /proc/acpi/battery/BAT1/info without blocking the=
-=20
-keyboard, but introduces a new problem: the informations about battery=20
-capacity are wrong. This version tells me that my battery has:
-design capacity:         5 mWh
-last full capacity:      5 mWh
-The older versions and the state (when the battery is fully charged) file=
- tell=20
-me that my battery has:
-design capacity:=0944400 mWh
-last full capacity:=0944400 mWh
+IBM's may be, but this isnt an IBM PPC specific operating system
+project. If the servers are for example AMD dual Athlons or 1U Pentium
+IV rack boxes then it -really- begins to matter. To put the scale of
+this into perspective on x86 - I can run another entire system in the
+power differential between idle and full running dual athlon.
 
-- --=20
-Ciao ???
-___________________________________________________________
-Riker: "I say we turn him over to them."
-Q: "Oh, well, I take it back. You do have a sense of humor, a dreadful on=
-e at
-that."
-Riker: "I'm serious."
-- -- "Deja Q", Stardate 43539.1
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
+In some respects the Athlon is closer to what you claim since there is a
+chunk of power saving that occurs only when both cpus are stopped.
 
-iD8DBQE9S5jc62upIGwAieoRAiHlAKC0bwYPbHjZw+CS+n33kTgFhM76HACfYbQm
-vduqxq1muxOxPofbIfnCi8U=3D
-=3DDHcz
------END PGP SIGNATURE-----
+I'm not arguing against your claim. I want to be sure we can support
+both.behaviours.
+
+> power management policy lead to slack, i.e., idle time.  Our proposal
+> allows the system to
+> capture the slack by aggressively idling the processor for short periods,
+> e.g., between video
+> frames, without any effect on the application, and with significant energy
+> reduction.
+
+Some processes show short interactive behaviours. You can quantify and
+measure that, indeed the scheduler already has an extremely good idea
+what is and is not an interactive process that will execute short bursts
+then sleep a lot. Whether that is enough I don't know.
+
+Alan
 
 
 
