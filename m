@@ -1,13 +1,11 @@
 From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [patch 11/12] Export the interface to get PCI id for an ACPI handle
-Date: Fri, 18 Mar 2005 14:20:17 -0800
-Message-ID: <20050318142017.K1145@unix-os.sc.intel.com>
-References: <20050318133856.A878@unix-os.sc.intel.com>
+Subject: FW: [RFC/Patch 0/12] ACPI based root bridge hot-add
+Date: Fri, 18 Mar 2005 14:34:10 -0800
+Message-ID: <20050318143410.A1753@unix-os.sc.intel.com>
 Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20050318133856.A878-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>; from rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Mar 18, 2005 at 01:38:57PM -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,82 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: gregkh-l3A5Bk7waGM@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Export an acpi interface to get PCI domain/bus/devfn information
-from the corresponding namespace handle. Used by acpiphp code
-to transpate the device handle of the hot-plugged root bridge to
-the corresponding pci location information.
 
-Signed-off-by: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+I just sent out a series of acpi based root bridge hot-add
+patches. I realized that I didn't send the explanation to
+all the mailing lists, sorry.
 
- linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/pci_bind.c     |   11 +++++------
- linux-2.6.11-mm4-iohp-rshah1/include/acpi/acpi_drivers.h |    1 +
- 2 files changed, 6 insertions(+), 6 deletions(-)
+Rajesh
 
-diff -puN drivers/acpi/pci_bind.c~acpi-get-pci-id drivers/acpi/pci_bind.c
---- linux-2.6.11-mm4-iohp/drivers/acpi/pci_bind.c~acpi-get-pci-id	2005-03-16 13:07:39.028647689 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/pci_bind.c	2005-03-16 13:07:39.141928937 -0800
-@@ -61,15 +61,14 @@ acpi_pci_data_handler (
- 
- 
- /**
-- * acpi_os_get_pci_id
-+ * acpi_get_pci_id
-  * ------------------
-  * This function is used by the ACPI Interpreter (a.k.a. Core Subsystem)
-  * to resolve PCI information for ACPI-PCI devices defined in the namespace.
-  * This typically occurs when resolving PCI operation region information.
-  */
--#ifdef ACPI_FUTURE_USAGE
- acpi_status
--acpi_os_get_pci_id (
-+acpi_get_pci_id (
- 	acpi_handle		handle,
- 	struct acpi_pci_id	*id)
- {
-@@ -78,7 +77,7 @@ acpi_os_get_pci_id (
- 	struct acpi_device	*device = NULL;
- 	struct acpi_pci_data	*data = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_os_get_pci_id");
-+	ACPI_FUNCTION_TRACE("acpi_get_pci_id");
- 
- 	if (!id)
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
-@@ -92,7 +91,7 @@ acpi_os_get_pci_id (
- 	}
- 
- 	status = acpi_get_data(handle, acpi_pci_data_handler, (void**) &data);
--	if (ACPI_FAILURE(status) || !data || !data->dev) {
-+	if (ACPI_FAILURE(status) || !data) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
- 			"Invalid ACPI-PCI context for device %s\n",
- 			acpi_device_bid(device)));
-@@ -115,7 +114,7 @@ acpi_os_get_pci_id (
- 
- 	return_ACPI_STATUS(AE_OK);
- }
--#endif  /*  ACPI_FUTURE_USAGE  */
-+EXPORT_SYMBOL(acpi_get_pci_id);
- 
- 	
- int
-diff -puN include/acpi/acpi_drivers.h~acpi-get-pci-id include/acpi/acpi_drivers.h
---- linux-2.6.11-mm4-iohp/include/acpi/acpi_drivers.h~acpi-get-pci-id	2005-03-16 13:07:39.033530501 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/include/acpi/acpi_drivers.h	2005-03-16 13:07:39.142905500 -0800
-@@ -68,6 +68,7 @@ void acpi_pci_irq_del_prt (int segment, 
- 
- struct pci_bus;
- 
-+acpi_status acpi_get_pci_id (acpi_handle handle, struct acpi_pci_id *id);
- int acpi_pci_bind (struct acpi_device *device);
- int acpi_pci_unbind (struct acpi_device *device);
- int acpi_pci_bind_root (struct acpi_device *device, struct acpi_pci_id *id, struct pci_bus *bus);
-_
+----- Forwarded message from Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> -----
+
+> Date: Fri, 18 Mar 2005 13:38:57 -0800
+> From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> To: gregkh-l3A5Bk7waGM@public.gmane.org
+> Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+>         pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [RFC/Patch 0/12] ACPI based root bridge hot-add
+> 
+> Here is a series of patches to support ACPI hot-add of a root
+> bridge hierarchy. The added hierarchy may contain other p2p 
+> bridges and end/leaf I/O devices too. The root bridge itself is
+> assumed to have been assigned resource ranges, but the p2p
+> bridges and end devices are not required to be initialized by
+> firmware. Most of the code changes are to make the existing code
+> flows suitable for such a hierarchy of bridges & devices.
+> 
+> This code supports hot-add on ia64 only for now.It does not yet
+> support I/O APIC hot-add, which is needed to make this fully
+> functional.  The patches are against 2.6.11-mm4 (plus the patch 
+> needed for ia64 to boot). I've tested to make sure this does not 
+> break end/leaf device hotplug on the hotplug capable ia64 box I have.
+> 
+> Thanks,
+> Rajesh
+
+----- End forwarded message -----
 
 
 -------------------------------------------------------
