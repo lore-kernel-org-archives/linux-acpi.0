@@ -1,11 +1,11 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: small status catching patch
-Date: Thu, 13 Mar 2003 17:18:53 -0800
+Subject: RE: pmtools at intel
+Date: Thu, 13 Mar 2003 17:15:26 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96D04@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96D03@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,22 +16,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Irene Zubarev <zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Irene Zubarev [mailto:zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org] 
-> Hello, I'm not sure if anyone caught this, but it seems that 
-> in nswalk.c,
-> in acpi_ns_walk_namespace, there should be an extra variable 
-> for status,
-> otherwise, we always think it is a good status.  (this is on 
-> the 2nd "if
-> (unlock_before_callback)" statement).  Please see patch below (against
-> 2/28/2003 version):
+> From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org] 
+> Hmm, Intel asked me to fill in survey when trying to download
+> pmtools. Weird.
 
-Nice catch!! 
+That is weird...
 
-Thanks -- Regards -- Andy
+> Then pmtools will not compile:
+> 
+> gcc -Wall -fno-strength-reduce -fomit-frame-pointer -D__KERNEL__
+> -DMODULE -I/usr/src/linux/include -Wall -Wno-unused -Wno-multichar
+> -c -o pmtest.o pmtest.c
+> pmtest.c: In function `pmtest_devices':
+> pmtest.c:53: warning: int format, long int arg (arg 5)
+
+Yeah, it is kind of orphaned at the moment. Just about the only useful
+thing there is acpidmp, right now, IMO. Anyone want to adopt it?
+
+Regards -- Andy
+
+
 
 
 -------------------------------------------------------
