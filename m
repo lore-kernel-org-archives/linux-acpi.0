@@ -1,15 +1,14 @@
-From: Damien Sandras <damien.sandras-zdNq1GPRXr2akBO8gow8eQ@public.gmane.org>
-Subject: Re: Re: Tell user when ACPI is killing machine
-Date: Thu, 04 Dec 2003 11:01:16 +0100
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: fan status not working with kernel 2.6.0-test11 for Acer Travelmate 803 LCI
+Date: Thu, 4 Dec 2003 18:11:17 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1070532076.1645.42.camel@golgoth01>
-References: <3ACA40606221794F80A5670F0AF15F8401720BFD@pdsmsx403.ccr.corp.intel.com>
-	 <20031204095454.GC6911@atrey.karlin.mff.cuni.cz>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA0378BFD9@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031204095454.GC6911-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,35 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aaron Lehmann <aaronl-nCTQwlqzmeJBDgjK7y7TUQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?Herv=E9_Eychenne?= <rv-tT0dJoOmRgdg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I have a similar problem since test10 and test11 (2.4.23 is ok, test9 is
-ok too). ACPI reports bogus temperatures and powers the machine down.
 
-If you have a patch that could fix that problem, I'm ready to try it and
-report success or failure ;)
 
-Le jeu 04/12/2003 =E0 10:54, Pavel Machek a =E9crit :
-> Hi!
+> -----Original Message-----
+> From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> Sent: Thursday, December 04, 2003 11:47 AM
+> To: Ow Mun Heng; Herv=E9 Eychenne; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: RE: [ACPI] fan status not working with kernel=20
+> 2.6.0-test11 for
+> Acer Travelmate 803 LCI
 >=20
-> > >cpufreq is not connected to acpi thermal subsystem. Dominik has some
-> > >patches to change that, IIRC.
-> > Is it merged into ACPI ?
 >=20
-> Not yet, IIRC. It is pretty big patch.
-> 								Pavel
---=20
- _      Damien Sandras
-(o-    =20
-//\     It-Optics s.a.
-v_/_    GnomeMeeting: http://www.gnomemeeting.org/
-        FOSDEM 2004:  http://www.fosdem.org
-        H.323 phone:  callto:ils.seconix.com/dsandras-AvcYnRpcIedBDgjK7y7TUQ@public.gmane.org
+> Let me know, if you have done. --Luming
 
+
+Okay... I've filed the bug report.. I hope len.brown isn't furious..
+bugzilla sent him like 12 attachments reports :)
+
+The bug #/link is
+
+http://bugme.osdl.org/show_bug.cgi?id=3D1643
 
 
 -------------------------------------------------------
