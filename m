@@ -1,13 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [Fwd: [Fwd: patch to include a custom dsdt]]
-Date: Mon, 9 Aug 2004 19:49:36 +0200
+Date: Mon, 9 Aug 2004 20:28:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040809174935.GA20719@hell.org.pl>
+Message-ID: <e7963922040809112873fd7be4@mail.gmail.com>
 References: <1092070755.2217.16.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <1092070755.2217.16.camel@dhcppc4>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,21 +18,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Len Brown:
+On 09 Aug 2004 12:59:16 -0400, Len Brown <len.brown <at> intel.com> wrote:
 > This looks handy.
 > comments?
 
-I guess the DSDT-in-initrd patch is more flexible, specifying the DSDT at
-compile time is clearly not something distro maintainers would love to do
-:)
-Best regards,
+You should take the patch of Michael Blumenstein for initrd support:
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+http://gaugusch.at/kernel.shtml
+
+http://gaugusch.at/acpi-dsdt-initrd-patches/acpi-dsdt-initrd-patch-v0.4-2.6.7.patch
+
+I use it and I can confirm that it works :)
+
+Stefan
 
 
 -------------------------------------------------------
