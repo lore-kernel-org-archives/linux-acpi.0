@@ -1,50 +1,88 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Linux ACPI processor driver patch: user-definable power state
- limit
-Date: 05 Nov 2004 21:59:03 -0500
-Message-ID: <1099709942.13831.2092.camel@d845pe>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3001A193B6@hdsmsx401.amr.corp.intel.com>
-	 <200410112335.19159.jos.delbar@ugent.be>
-	 <1099683907.13837.1353.camel@d845pe>
-	 <200411060021.49794.jos.delbar@ugent.be>
-	 <1099702882.15333.1824.camel@d845pe>
+From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Subject: Re: 2.6.10-rc1-mm3: ACPI problem due to un-exported hotplug_path
+Date: Fri, 5 Nov 2004 21:18:48 -0800
+Message-ID: <20041105211848.A21098@unix-os.sc.intel.com>
+References: <20041105001328.3ba97e08.akpm@osdl.org> <20041105164523.GC1295@stusta.de> <20041105180513.GA32007@kroah.com> <20041105201012.GA24063@vrfy.org> <20041105204209.GA1204@kroah.com>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1099702882.15333.1824.camel@d845pe>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, James P Ketrenos <james.p.ketrenos-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261320AbUKFFYb@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20041105204209.GA1204@kroah.com>; from greg@kroah.com on Fri, Nov 05, 2004 at 12:42:09PM -0800
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>, anil.s.keshavamurthy@intel.com, tokunaga.keiich@jp.fujitsu.com, motoyuki@soft.fujitsu.com, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, rml@novell.com, linux-kernel@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Andi's c2/c3 blacklist patch alters the promote/demote
-structures and the acpi_cstate_limit patch
-lives within those bounds.
+On Fri, Nov 05, 2004 at 12:42:09PM -0800, Greg KH wrote:
+> On Fri, Nov 05, 2004 at 09:10:12PM +0100, Kay Sievers wrote:
+> > On Fri, Nov 05, 2004 at 10:05:13AM -0800, Greg KH wrote:
+> > > On Fri, Nov 05, 2004 at 05:45:23PM +0100, Adrian Bunk wrote:
+> > > > The following error (compin from Linus' tree) is caused by the fact that 
+> > > > hotplug_path is no longer EXPORT_SYMBOL'ed:
+> > > > 
+> > > > 
+> > > > <--  snip  -->
+> > > > 
+> > > > if [ -r System.map ]; then /sbin/depmod -ae -F System.map  2.6.10-rc1-mm3; fi
+> > > > WARNING: /lib/modules/2.6.10-rc1-mm3/kernel/drivers/acpi/container.ko needs unknown symbol hotplug_path
+> > > > 
+> > > > <--  snip  -->
+> > > 
+> > > Hm, must be an -mm specific change that is causing this.  I don't see
+> > > this in the current tree.
+> > > 
+> > > Len, why would any ACPI code be wanting to get access to hotplug_path
+> > > directly?
+> > 
+> > 
+> > I've found it. This wants to introduce a new direct /sbin/hotplug call,
+> > with "add" and "remove" events, without sysfs support.
+> > 
+> > It should use class support or kobject_hotplug() instead.  Nobody should
+> > fake hotplug events anymore, cause every other notification transport
+> > will not get called (currently uevent over netlink).
+> >   http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.10-rc1/2.6.10-rc1-mm3/broken-out/bk-acpi.patch
+> > 
+> > +static int
+> > +container_run_sbin_hotplug(struct acpi_device *device, char *action)
+> > +{
+> > ...
+> > +	argv[i++] = hotplug_path;
+> > +	argv[i++] = "container";
+> > +	argv[i] = NULL;
+> > ...
+> > +	i = 0;
+> > +	envp[i++] = "HOME=/";
+> > +	envp[i++] = "PATH=/sbin;/bin;/usr/sbin;/usr/bin";
+> > +	envp[i++] = action_str;
+> > +	envp[i++] = container_str;
+> > +	envp[i++] = "PLATFORM=ACPI";
+> > +	envp[i] = NULL;
+> > ...
+> 
+> Good catch.  Yeah, that code is just wrong.
+> 
+> Anil, your name is on this file.  Care to fix it up to use the proper
+> driver core hotplug functionality instead of rolling your own?
+> 
+> Or is there some reason you are wanting to do this kind of notification
+> that the driver core is not providing for you?
+Greg,
+	Yes, I agree what you say, we need to use class support or kobject_hotplug().
+But in this case "a container object" gets added and this container object has
+no direct representation in sysfs. So in this case can you please tell me 
+what is the best thing to notify user.agent. Sorry I had looked some really old examples when I
+wrote this driver.
 
-So we keep both for now and acpi_state_limit
-will never break the blacklist.
-
-Hopefully we'll figure out the problem with the
-two c2/c3 blacklisted systems and delete them
-and that workaround over time.
+Also, since you have brought this, I have one another question to you.
+Now in the new kernel, I see whenever anybody calls sysdev_register(kobj),
+an "ADD" notification is sent. why is this? I would like to call
+kobject_hotplug(kobj, ADD) later.
 
 thanks,
--Len
-
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+Anil
+> 
+> thanks,
+> 
+> greg k-h
