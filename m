@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi functionality?
-Date: Tue, 23 Dec 2003 13:47:34 +0800
+Subject: RE: dsdt
+Date: Tue, 23 Dec 2003 13:50:54 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C4B@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C4C@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -20,14 +20,12 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Vince Herried <vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->this laptop has a Fn key and several functions with holding Fn and then
+>Some time back someone posted a request for dsdt(s)
+What kind of problem they have?
 
->pressing another key.  Under acpi they don't seem to work (not in linux
+>I've got one from a Dell Lattitude C810
+File it with problem description on bugzilla.
 
-
-Did you enable CONFIG_I8K?=20
-
---Luming
 
 
 -------------------------------------------------------
