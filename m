@@ -1,11 +1,10 @@
-From: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
-Subject: ACPI on ECS A530 (Transmeta)
-Date: Wed, 16 Mar 2005 01:39:34 +0100
-Message-ID: <20050316003934.GB28204@schottelius.org>
+From: "Aryeh Bruce" <Yosef-/kdlyxK721/lKS8GlytQkw@public.gmane.org>
+Subject: Re: Ph aramacy  63KCBG 513
+Date: Wed, 16 Mar 2005 04:08:49 -0500
+Message-ID: <E1DBUs2-0003AP-Ha@sc8-sf-mx1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
-Content-Disposition: inline
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0008_01C52882.42380A45"
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,62 +14,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Adi Corbett <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---BwCQnh7xodEAoBMC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------=_NextPart_000_0008_01C52882.42380A45
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-Hello!
+Hello, 
 
-Do you want a real challenge? Help me my ECS A530
-with Transmeta prozessor to work fine with ACPI!
+upon that distant sail, were gloomily thoughtful.  Not for long.
+breast, could only falter: Why, why did you kill him?
+the medical skill of Bridgetown was summoned to their aid.  Peter
+and hanged, he will magnify himself and at the same time gratify 
+was no ship to which they could retreat, and here they must preva
+He waved away the men who would have interfered, and the blades
+not paid, even if when they press him Nuttall does not confess th
+news of it reached Tortuga and the buccaneers who awaited his
+Mine, mine at last, and in spite of all! he cried exultantly,
+destination, and but that ye detained me I'd have been on my way
 
-- No sleep state works, some work, but never wake up again
-- display blanking works only in X, never on console
-- no apm support (in hardware)
-- mail and internet buttons are not raising any event nor keypress
-- somehow broken usb2.0 (writing much data to/from harddisks results in dis=
-connect)
+Have a good day.
+------=_NextPart_000_0008_01C52882.42380A45
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-So guys, who wants to help me to get this monster supported?
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2600.0000" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D4></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D4>Hello, </FONT><A=20
+href=3D"http://www.veni.ip.com.phenomenallyell.com/"><FONT =
+face=3DArial size=3D4>VISlT Our Great P.harmByMail=20
+Shop</FONT></A><FONT face=3DArial size=3D4> and =
+SAVE 75%</FONT></FONT></DIV>
+<DIV><FONT face=3DArial size=3D4>
+<TABLE style=3D"FONT-SIZE: large; FONT-FAMILY: Arial, Helvetica, =
+sans-serif"=20
+cellSpacing=3D0 cellPadding=3D0 border=3D0>
+  <TBODY>
+  <TR vAlign=3Dbottom>
+    <TD rowSpan=3D2>Vl</TD>
+    <TD></TD>
+    <TD rowSpan=3D2>RA&nbsp;VA</TD>
+    <TD></TD>
+    <TD rowSpan=3D2>UM&nbsp;AM</TD>
+    <TD></TD>
+    <TD rowSpan=3D2>EN&nbsp;Cl</TD>
+    <TD></TD>
+    <TD rowSpan=3D2>S</TD>
+    <TD rowSpan=3D2>,&nbsp;man</TD>
+    <TD></TD>
+  <TR>
+    <TD>AG</TD>
+    <TD>Ll</TD>
+    <TD>Bl</TD>
+    <TD>ALl</TD>
+    <TD>y&nbsp;Other.</TD></TR></TBODY></TABLE></FONT></DIV>
+<DIV><FONT face=3DArial size=3D3></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D3>Have a good day.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>P.S. <EM>You will be pIeasantIy =
+surprised with our =
+PRlCES </EM>;-)</FONT></DIV></BODY></HTML>
 
-Tell me what todo, what to dump, I'll give you all information
-I can get.
+------=_NextPart_000_0008_01C52882.42380A45--
 
-Nico
-
---=20
-Keep it simple & stupid, use what's available.
-Please use pgp encryption: 8D0E 27A4 is my id.
-http://nico.schotteli.us | http://linux.schottelius.org
-
---BwCQnh7xodEAoBMC
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iQIVAwUBQjeARLOTBMvCUbrlAQIHLg//ex3T7ZcK66bt+sCsYEA3LZFlbwFjxHYc
-fRXKa/qfg70iJEPz+y5HCNhid+toANaUManGYZgpReAcUnZHd4hqE7zaulGW6tkm
-PzDflDqiQ1Z/Hpybuzj1/aOu7Ih9ybpKT8+APOOITHmEE3thbyet3h6Ns0NGENiP
-4KIjDywH8+hGdK4OGi7/LLks/PFppojSQ/I3LG+7wm6SOzFJqKMksyfZ4CMmG78k
-zPSJIaGjLcnJqE9h6P2oZgGWGAdd+0KWkQHCBYB0ibbjo/rrGHLtG4LyuM6D/aF2
-9Nt91kYGCPZRaQYaccHaFjLqxEzFkikuRd9QGnAmm5cceqgHbOHqwC/VdmpkfROL
-eNNF0sT5Id2nOo1L8T+UnbfUOoTlW29hedc4B6taXv0pC+zpGZIhQWRG9N7/loUX
-4KRSa9EgP9iqS7Ow/vD8rCJTW6m8tl1PA02Om3SNB2xgJk4UMEjwragsOzMe93X/
-H5/jzqjjXkJWwenDXCZAVXriHc2MNvFjB5mqW6phBrDbZy1BJnk1nHNQLF8Exf/o
-0zUXPEuxRHGDDo8wHahzRmi824AVsuBUAyki9IhCcNMJZbzlHDEW6yibYq0NtRoj
-geHo9JAAvqL2SdyDEkpefyuANKCbRqlTn4DgJMMVqqlKLQYfYp2k7YE8E53e7XcJ
-ofxCsNGfLuY=
-=ioQI
------END PGP SIGNATURE-----
-
---BwCQnh7xodEAoBMC--
 
 
 -------------------------------------------------------
