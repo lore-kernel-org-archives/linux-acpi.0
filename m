@@ -1,9 +1,10 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
-Date: Tue, 28 Dec 2004 20:29:11 +0000 (UTC)
-Message-ID: <E1CjNwC-000446-0q@sc8-sf-mx1.sourceforge.net>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Centrino speedstep
+Date: Tue, 28 Dec 2004 21:32:00 +0100
+Message-ID: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: <>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,13 +14,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Tue Dec 28 15:26:54 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Network Associates WebShield SMTP V4.5 MR1a on ibixmaila detected virus
-W32/Bagle!eml.gen in attachment unknown from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
-deleted.
+Hi,
+
+On my Acer Travelmate 4000WLMi, with various 2.6.9 and 2.6.10 kernels
+and patch sets, I keep getting the following message:
+
+  speedstep-centrino: invalid ACPI data
+  speedstep-centrino: no table support for CPU model "Intel(R) Pentium(R) M processor 1.50GHz": 
+
+(Some kernels report "Invalid control/status registers" instead of
+"invalid ACPI data").
+
+My latest attempt was the stock 2.6.10 kernel, with ACPI patch set
+acpi-20041210-2.6.10-rc3.diff, and a fixed DSDT. Still no success.
+
+Any help is appreciated.
+
+Thanks,
+        Johan 
 
 
 -------------------------------------------------------
