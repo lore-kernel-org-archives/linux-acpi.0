@@ -1,14 +1,17 @@
-From: Rob North <tzwvgwv2001-O/bDAPVd7B0N+BqQ9rBEUg@public.gmane.org>
-Subject: Re: ACPI ignoring IRQ flags in PRT
-Date: Sun, 13 Jul 2003 19:08:02 +0100
+From: Ivan Gyurdiev <ivg2-HmMyXyqgL2CVc3sceRu5cw@public.gmane.org>
+Subject: Re: 2.5.75 - ACPI and sound lockups
+Date: Sun, 13 Jul 2003 13:09:16 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <bes74d$ucr$1@main.gmane.org>
-References: <200307131452.39000.adq_dvb@lidskialf.net> <20030713142321.GC20424@parcelfarce.linux.theplanet.co.uk> <200307131745.42153.adq_dvb@lidskialf.net>
+Message-ID: <200307131309.16078.ivg2@cornell.edu>
+References: <Pine.LNX.4.33.0307131238520.561-100000@frog.athome>
+Reply-To: ivg2-HmMyXyqgL2CVc3sceRu5cw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200307131745.42153.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.33.0307131238520.561-100000-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +20,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andrew de Quincey wrote:
-> On Sunday 13 July 2003 15:23, Matthew Wilcox wrote:
-> 
+On Sunday 13 July 2003 06:43, you wrote:
+> Salut Ivan,
+> my first look says, that IRQ 3,7,10 and 11 (which is the one, that bit
+> you, I think) has to be level and not edge.
+> As irq 11 is shared, this is no good!
+>
+> May you please get the information you provided for 2.5.74 for the
+> 2.4-kernel you mentioned, too (including ACPI-version from
+> /proc/acpi/info)?
 
-> 
-> So, the code in io_apic.c is assuming that all IRQs > 15 are PCI-compatable. 
-> For me, at least, they are not, *EVEN THOUGH they're in the _PRT*. The ACPI 
-> tables are describing them as I have experimentally found them to be.
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email sponsored by: Parasoft
-> Error proof Web apps, automate testing & more.
-> Download & eval WebKing and get a free book.
-> www.parasoft.com/bulletproofapps1
+I no longer use a 2.4 kernel. I've forgotten which one worked last.
+I tested 2.4-current and unfortunately it doesn't work either.
+I could test older kernels, I guess - will that be helpful?
+Which kernel should I test?
 
-Andrew, I think you're on to something big here.
-I've been having similiar problems with my A7N8x Deluxe motherboard, and
-I've been looking into the kernel code in the 2.4.X series of kernels,
-and you've definately found something that look amiss.
+btw: irqs 3,7,10,11 are edge and not level in the nonworking 2.4 kernel
 
-I think what was throwing Matthew is that the interupt trigger types are 
-specified in  _PRS objects
-The _PRT object is a mapping from PCI device to a particular "PCI 
-Interrupt Link device" and in the defintion of the link device, the IRQs 
-are defined in _PRS objects.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
-I'm about to re-compile a 2.4.22-pre3-ac1 kernel with your suggested 
-quick fix.
-Will report back.
+Version of acpi in the current 2.5.75 kernel is:=20
+version:                 20030619
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=46rom offlist message I forgot to cc:
 
-Keep up the good work
-	-Rob.
+ACPI: No IRQ known for interrupt pin A of device 0000:00:10.0
+ACPI: No IRQ known for interrupt pin B of device 0000:00:10.1
+ACPI: No IRQ known for interrupt pin C of device 0000:00:10.2
+ACPI: No IRQ known for interrupt pin D of device 0000:00:10.3
+ACPI: No IRQ known for interrupt pin A of device 0000:00:11.1 - using IRQ 2=
+55
+ACPI: No IRQ known for interrupt pin C of device 0000:00:11.5
 
+for DEVICE in 10.0 10.1 10.2 10.3 11.1 11.5 ; do
+echo "`cat /sys/devices/pci*/*$DEVICE/name`"
+done
+
+VIA Technologies, In USB
+VIA Technologies, In USB (#2)
+VIA Technologies, In USB (#3)
+VIA Technologies, In USB 2.0
+VIA Technologies, In VT82C586/B/686A/B PI
+VIA Technologies, In VT8233 AC97 Audio Co
+
+usb hubs...connected to irqs 3, 7, 10, and 11 on an ACPI enabled 2.5 kernel.
+and 11 is shared with the soundcard.
 
 
 
