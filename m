@@ -1,69 +1,103 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [ACPI] Re: mem= option for broken bioses
-Date: Thu, 27 Feb 2003 16:49:22 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030227154922.GY13404@poup.poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A8471380D7@orsmsx401.jf.intel.com> <20030226224450.GD15455@atrey.karlin.mff.cuni.cz> <3E5E2061.2060807@paceblade.com> <20030227151907.GC12434@atrey.karlin.mff.cuni.cz>
+From: "Adachi, Kenichi" <aileenja_jpn-xFOqZoH7zVZ4Eiagz67IpQ@public.gmane.org>
+Subject: RE: DSDT Fix, one question ...
+Date: Fri, 28 Feb 2003 00:40:25 +0900
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <000001c2de76$8f16f9b0$7c4425db@sayonara>
+References: <20030227125318.GI21631@freshdot.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030227151907.GC12434-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Robert Woerle Paceblade/Support <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030227125318.GI21631-ntXksADE/7Pk1uMJSBkQmQ@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: 'Sander Smeenk' <ssmeenk-ntXksADE/7Pk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 27, 2003 at 04:19:07PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > >>OK, looks reasonable. Can you also gen up a patch documenting this in
-> > >>kernel-parameters.txt?
-> > >>   
-> > >>
-> > >
-> > >You can, assuming you took the patch ;-).
-> > > 
-> > >
-> > well how can i find the correct value`s to put in ??
-> 
-> Well, similar method to how you use mem=123@456 parameters. You just
-> guess them. [Given kernel messages, it is actually quite easy.]
-> 
+Hi,
 
-If I understand you,  you then just have to mem= with the correct
-value reported via, for example:
+Theoretically or ideally speaking, OS (IDE guy) retrieves the current
+setting for IDE by running _GTM, verifies/modifies the returned buffer
+from ACPI BIOS, and applies it back to IDE Controller's registers by
+running _STM. However, grep'ing drivers/ide for "GTM" or "STM" didn't
+come back positively with linux-2.5.51. This could mean that whole chunk
+annoying you is not used by Linux yet. 
 
-ducrot@novae:~$ dmesg | grep 'ACPI data'
- BIOS-e820: 000000000fef0000 - 000000000feff000 (ACPI data)
+> The complete DSDT is now located at:
+>   http://valor.freshdot.net/~ssmeenk/
 
-Interresting :)
+Your "TMD0" is locally created buffer to hold the setting info for IDE.
+This apparently conforms to the format of _GTM Result Code (ACPI Spec
+Table 10-4).
 
-Ok.  Here is actually a method:
-A phoenix bios (and you have one) will reserved typically 64ko
-for ACPI data below ACPI NVS.
+  1663              Name(TMD0, Buffer(0x14) { })
+  1664              CreateDWordField(TMD0, 0x0, PIO0)
+  1665              CreateDWordField(TMD0, 0x4, DMA0)
+  1666              CreateDWordField(TMD0, 0x8, PIO1)
+  1667              CreateDWordField(TMD0, 0xc, DMA1)
+  1668              CreateDWordField(TMD0, 0x10, CHNF)
 
-ducrot@novae:~$ dmesg | grep -i 'ACPI NVS'
- BIOS-e820: 000000000feff000 - 000000000ff00000 (ACPI NVS)
-ducrot@novae:~$ python
-Python 2.1.1+ (#1, Jan  8 2002, 00:37:12) 
-[GCC 2.95.4 20011006 (Debian prerelease)] on linux2
-Type "copyright", "credits" or "license" for more information.
->>> 0x000000000feff000 - 65536
-267317248
+OS calls _GTM to get the current setting, _GTM then calls "GTM_", and
+"GTM_" packs requested info in corresponding fields within "TMD0". Thus,
+returning "TMD0" does really make sense in this *GET* context, but does
+not in *SET* context very much. To me, at a glance, sub-method "STM_"
+called from _STM doesn't have to return anything in the following
+sequence (didn't check iASL code as to what made him give you warning):
 
-If my bios will be incorrect, I will then pass
-mem=267317248#65536
-and voila.
+  1709                  Method(_STM, 3) {
+  1710                      Store(Arg0, Debug)
+  1711                      Store(Arg0, TMD0)  // saving the passed
+buffer from OS for later use?
+  1712                      Store(PMPT, GMPT)
+  1713                      Store(PMUE, GMUE)
+  1714                      Store(PMUT, GMUT)
+  1715                      Store(PMCR, GMCR)
+  1716                      Store(PSPT, GSPT)
+  1717                      Store(PSUE, GSUE)
+  1718                      Store(PSUT, GSUT)
+  1719                      Store(PSCR, GSCR)
+  1720                      STM_()
+     :
+
+> This one came from an MSI KT333 Ultra ARU (MS-6580E) 
+> mainboard running the latest, or maybe the second to last 
+> BIOS, not sure about that. 
+
+Incidentally, your "REGF" flag simply tells you the availability of
+"CFG2" PCI_Config OpRegion (OpRegion handler is ready or not). OpRegion
+"CFG2" created at offset 0x40 - 0x60 of your IDE Controller(Bus:0,
+Dev:17, Func:1)'s PCI Config Space would represent something essential
+for IDE setting. For more details, you have to consult your South
+Bridge's Datasheet. Don't know if VIA publishes it or not...  
+
+  1564          Device(IDE0) {
+  1565              Name(_ADR, 0x00110001)
+  1566              Name(REGF, 0x1)
+  1567              Method(_REG, 2) {
+  1568                  If(LEqual(Arg0, 0x2)) {  
+  1569                      Store(Arg1, REGF)  
+  1570                  }
+  1571              }
+      :
+  1669              OperationRegion(CFG2, PCI_Config, 0x40, 0x20)
 
 
-But big problem though.  It is really really strange that the
-BIOS mainteners have broken e820 call, are you sure you have
-enabled acpi in BIOS, and/or power management ?
+Thanks,
+- Adachi, Kenichi
 
-Cheers,
 
--- 
-Ducrot Bruno
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
