@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: PCI not restored correctly after suspend to ram
-Date: Wed, 31 Mar 2004 18:15:38 +0200
+From: Geotronix <mail-list-na2r7Jod8xleoWH0uzbU5w@public.gmane.org>
+Subject: setting powernow-k7 conflicting on laptop.
+Date: Wed, 31 Mar 2004 16:40:01 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040331161538.GA7762@elf.ucw.cz>
-References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079719856.7278.30.camel@dhcppc4>
+Message-ID: <20040331144001.GC4474@gaia>
+Reply-To: mail-list-na2r7Jod8xleoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1079719856.7278.30.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,44 +16,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> ...
-> > I can get most devices devies to work by setting the pci registers with setpci 
-> > after resume. I use the attached fixpci.sh script to do so. I can get my 
-> > soundcard, the ethernet card(02:02.0) and the wireless(02:04.0) to work. I 
-> > have not tested firewire(02:07.0). The secound Cardbus bride(02:06.1) seems 
-> > to have more problems, it's not even listed correctly.
-> > The file "lspci_after_suspend_fix" contains the output of lspci -vvx after 
-> > running fixpci.sh
-> > 
-> > Restoring the pci registers is a workaround, but I'd like the kernel to handle 
-> > this so I don't have to unload and reload all modules, especially the 
-> > soundcard driver.
-> > 
-> > It this a acpi bug, a bug in the pci driver or a bug in the drivers for the 
-> > devices?
-> 
-> Stefan,
-> Bruno is correct, the PCI config space should be saved and restored by
-> the driver's suspend and resume routines.  suspend/resume routines
-> typically do other hardware dependent stuff, but your debugging suggests
-> that at least for some of these devices, simply saving and restoring pci
-> config space (pci_save_state()/pci_restore_state()) may be sufficient.
-> 
-> Time to take a look at the drivers for those devices...
+Hi.
 
-Perhaps doing it once in PCI layer is better, then?
+I have a Presario 710EA with Debian 2.6.4-k7 kernel image installed.
+With modconf I tried to install the PowerNow-k7 module but I get a
+message that tells me that the device is in use.
+As a matter of fact I have activated and loaded all ACPI modules and
+another module freq_table that is used by ACPI and that modconf dowsn't
+let me unload. I'm not able to understand who is conficting with
+powernow module and why it isn't loading.
 
-								Pavel
+WHich are the modules that mustn't be loaded in memory so that I can
+install powernow for my DUron 900 processor?
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Thanks
 
 
 -------------------------------------------------------
