@@ -1,14 +1,14 @@
-From: =?iso-8859-1?q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Subject: acpi irc channel?
-Date: Tue, 31 Aug 2004 00:50:13 +0100
+From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: thermal zone nuke
+Date: Tue, 31 Aug 2004 10:44:46 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408310050.14012.destynova@esatclear.ie>
+Message-ID: <9DE394C12A921946AEECE1F71944ECD52EF7A4@pdsmsx404>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,21 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?gb2312?B?T2lzqKpuIE1hYyBGaGVhcmGoqg==?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Every time I resolve an ACPI-related problem, I go on to realize there are 
-many more problems left to fix... rather than feeling guilty about clogging 
-up inboxes (as I'm sure others do, meaning a lot of questions probably go 
-unasked), does anyone else think it might be a nice idea to set up an ACPI 
-chatroom of sorts, somewhere, for people to discuss whatever problems/ideas 
-they might have (especially embarrassing ones, like the way I seem to have 
-the dsdt-in-initrd patch working, but I'm getting errors reported that should 
-have disappeared with the fixed dsdt)?
+Could you send your dsdt?
 
-Just a thought.
+________________________________
 
-Oisín Mac Fhearaí
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Ois=A8=AAn =
+Mac Fheara=A8=AA
+Sent: 2004=C4=EA8=D4=C230=C8=D5 15:45
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] thermal zone nuke
+
+
+In updating my kernel from 2.6.6 to 2.6.8, and my acpi patches to =
+20040816-26-stable-release version, my Acer Aspire 1705SMi is doing what =
+it did the first time I tried to configure ACPI about 8 months ago, =
+namely, thinking the temperature is 255 degrees C and shutting down =
+instantly, whenever I load the thermal module.
+=20
+Might a recent change have done this, or is it something I patched =
+manually to fix and forgot about, before overwriting it with the latest =
+release *cough*?
+=20
+The machine functions okay without loading thermal, and I seem to have =
+the DSDT working in initrd.
+=20
+thanks,
+Ois=A8=AAn
 
 
 -------------------------------------------------------
