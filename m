@@ -1,11 +1,10 @@
-From: "Konstantin Svist" <konstantin-6crfdjOYMUleoWH0uzbU5w@public.gmane.org>
-Subject: ACPI on HP ze4430us
-Date: Tue, 28 Dec 2004 13:43:55 -0800
-Message-ID: <004201c4ed26$551d24d0$0200a8c0@Home.local>
+From: Stefan Lintner <stefan.lintner-OBssYPn7tLPk7+2FdBfRIA@public.gmane.org>
+Subject: S3, SuSE Linux 9.1, Dell Dimension 8300
+Date: Wed, 29 Dec 2004 00:11:50 +0100 (CET)
+Message-ID: <1104275510.41d1e83630f26@webmail.telering.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,20 +18,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-*RESEND*
+Hi,
 
-Hi everyone,
+I am using SuSE Linux 9.1 and would like to use S3 on my home Dell
+Dimension 8300 desktop PC. S3 works fine in WinXP.
 
-I just tried Knoppix 3.7 on my laptop - it doesn't boot. After some playing
-around, I figured out that the problem is ACPI - it only boots if I specify
-any of the three "hacks": "acpi=off", "acpi=ht", and "acpi=force". The last
-one even powers down my laptop on shutdown.
-What is going on here?
+Unfortunately the SuSE handbook says that S3 is currently not
+supported on Intel Pentium 4 HT systems. There are also problems if
+AGP modules are loaded - I have such a module loaded: \"intel_mch_agp\"
 
-Thanks,
-Konstantin
+System:
+Dell Dimension 8300, A07 Bios
+Intel 875P chipset, Intel Pentium 4 HT 2,6GHz
+1024MB RAM
+NVidia GeforceFX 5200
+Maxtor 6Y080LO HDD
 
+If I press the power button the PC shuts down.
 
+Is it possible to use S3 on this machine?
+
+Thanks a lot for your help,
+Stefan
 
 
 -------------------------------------------------------
