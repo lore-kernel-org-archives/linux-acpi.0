@@ -1,14 +1,14 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] fix _MEM handling in Type Specific Flags
-Date: Tue, 20 Jan 2004 17:20:09 -0700
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Gateway 200X (again) - No power button events
+Date: Tue, 20 Jan 2004 16:23:52 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401201720.09609.bjorn.helgaas@hp.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84702C9323C@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,75 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is against 2.6.1.
+=20
 
-ACPI: Fix _MEM handling (it's only two bits, not four).
+> From: Greg Sarjeant [mailto:greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org]=20
+> Aha! That did the trick.
 
-The memory attributes (_MEM) in Type Specific Flags are only two bits,
-not four.  See ACPI spec 2.0c, Table 6-28.
+> And now dmesg reports:
+> So, it is picking up the Control Method Power Button, and I get events
+> from it now. Outstanding.
 
-===== drivers/acpi/resources/rsaddr.c 1.15 vs edited =====
---- 1.15/drivers/acpi/resources/rsaddr.c	Mon Oct  6 10:15:00 2003
-+++ edited/drivers/acpi/resources/rsaddr.c	Tue Nov 18 12:43:44 2003
-@@ -149,7 +149,7 @@
- 		output_struct->data.address16.attribute.memory.read_write_attribute =
- 				(u16) (temp8 & 0x01);
- 		output_struct->data.address16.attribute.memory.cache_attribute =
--				(u16) ((temp8 >> 1) & 0x0F);
-+				(u16) ((temp8 >> 1) & 0x03);
- 	}
- 	else {
- 		if (ACPI_IO_RANGE == output_struct->data.address16.resource_type) {
-@@ -347,7 +347,7 @@
- 
- 		temp8 |=
- 			(linked_list->data.address16.attribute.memory.cache_attribute &
--			 0x0F) << 1;
-+			 0x03) << 1;
- 	}
- 	else if (ACPI_IO_RANGE == linked_list->data.address16.resource_type) {
- 		temp8 = (u8)
-@@ -539,7 +539,7 @@
- 				(u16) (temp8 & 0x01);
- 
- 		output_struct->data.address32.attribute.memory.cache_attribute =
--				(u16) ((temp8 >> 1) & 0x0F);
-+				(u16) ((temp8 >> 1) & 0x03);
- 	}
- 	else {
- 		if (ACPI_IO_RANGE == output_struct->data.address32.resource_type) {
-@@ -735,7 +735,7 @@
- 
- 		temp8 |=
- 			(linked_list->data.address32.attribute.memory.cache_attribute &
--			 0x0F) << 1;
-+			 0x03) << 1;
- 	}
- 	else if (ACPI_IO_RANGE == linked_list->data.address32.resource_type) {
- 		temp8 = (u8)
-@@ -926,7 +926,7 @@
- 				(u16) (temp8 & 0x01);
- 
- 		output_struct->data.address64.attribute.memory.cache_attribute =
--				(u16) ((temp8 >> 1) & 0x0F);
-+				(u16) ((temp8 >> 1) & 0x03);
- 	}
- 	else {
- 		if (ACPI_IO_RANGE == output_struct->data.address64.resource_type) {
-@@ -1124,7 +1124,7 @@
- 
- 		temp8 |=
- 			(linked_list->data.address64.attribute.memory.cache_attribute &
--			 0x0F) << 1;
-+			 0x03) << 1;
- 	}
- 	else if (ACPI_IO_RANGE == linked_list->data.address64.resource_type) {
- 		temp8 = (u8)
+> Is this something that might find its way into the main kernel tree?
+> Should I submit a bug for this behavior?
 
+Yes open a bug. Sounds like if both are present, CM should be preferred
+over FF. This is against what the spec says, so this may come down to a
+judgment call by Len. I don't know how common this problem is.
+
+Regards -- Andy
 
 
 -------------------------------------------------------
