@@ -1,50 +1,54 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [ACPI] [PATCH] add acpi_interrupt_to_irq
-Date: Wed, 21 Jan 2004 13:18:19 -0700
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200401211318.19330.bjorn.helgaas@hp.com>
-References: <200401201607.32214.bjorn.helgaas@hp.com> <200401210939.08782.bjorn.helgaas@hp.com>
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Subject: Re: PROBLEM: ACPI freezes 2.6.1 on boot
+Date: Wed, 21 Jan 2004 22:15:24 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <m3d69dhukz.fsf@reason.gnu-hamburg>
+References: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <200401210939.08782.bjorn.helgaas@hp.com>
-Content-Disposition: inline
-To: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
-Cc: Len Brown <len.brown@intel.com>, "Nakajima, Jun" <jun.nakajima@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.58.0401211051530.2123-Xqd2YWsQM6mXDw4h08c5KA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 21 January 2004 9:39 am, Bjorn Helgaas wrote:
-> There's also something fishy in this area that neither the -mm5
-> code nor my patch addresses.  In the acpi_os_install_interrupt_handler()
-> fragment above, we do the "acpi interrupt->irq" conversion and save
-> the resulting irq in acpi_irq_irq.  The only place acpi_irq_irq is
-> used is in acpi_os_terminate(), where it is passed to acpi_os_remove_
-> interupt_handler(), where we apply the "acpi interrupt->irq" conversion
-> AGAIN.  This seems wrong.
+|| On 2004-01-21 18:56:59, Linus Torvalds wrote:
 
-OK, I think I understand what's wrong there.  acpi_irq_irq needs to
-be the PRE-CONVERSION interrupt, like this:
+ > Does it go away if you just make "acpi_pic_set_level_irq()" do
+ > nothing (ie just remove the "outb()" call
+ > 
+ > 	arch/i386/kernel/acpi/boot.c line 273
+ > 
+ > or just make the if-statement be always false).
 
-    acpi_status
-    acpi_os_install_interrupt_handler(u32 interrupt, OSD_HANDLER handler, void *context)
-    {
-	unsigned int irq;
+ > It's entirely possible that the SCI is just horribly broken, and
+ > can't be level-triggered.
 
-	interrupt = acpi_fadt.sci_int;
-	irq = acpi_irq_to_vector(interrupt); 
-	...
-        acpi_irq_irq = interrupt;
-	...
-	if (request_irq(irq, ...))
+Just tried removing the outb() call both from plain vanilla 2.6.1 and
+one with the latest ACPI patch. No change. The system freezes with the
+same message at the same point during bootup.
 
-Then acpi_os_terminate() will pass the pre-conversion value to
-acpi_os_remove_interrupt_handler(), which will apply acpi_irq_to_vector()
-and everything will match.
+Any other ideas?
 
-I'll make a note to clean this up after the previous issues in the
-area are straightened out.
+Regards,
+Georg
 
-Bjorn
+-- 
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
+
+-------------------------------------------------------
+The SF.Net email is sponsored by EclipseCon 2004
+Premiere Conference on Open Tools Development and Integration
+See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+http://www.eclipsecon.org/osdn
