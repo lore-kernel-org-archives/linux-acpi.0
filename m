@@ -1,13 +1,18 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Hibernate to LVM
-Date: Thu, 20 Jan 2005 14:36:43 +0100
-Message-ID: <20050120133643.GE476@openzaurus.ucw.cz>
-References: <OF97651F7F.22151B8B-ON87256F88.0076CB20-88256F88.00772C98@us.ibm.com>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Thu, 20 Jan 2005 21:38:49 +0100
+Message-ID: <m2wtu74yzq.fsf@phoenix.squirrel.nl>
+References: <41E81C2C.8010809@bartol.udel.edu>
+	<1105747983.7368.3.camel@tyrosine>
+	<47e0449d05011419037877f931@mail.gmail.com>
+	<m2fz13x8mw.fsf@phoenix.squirrel.nl>
+	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
+	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <OF97651F7F.22151B8B-ON87256F88.0076CB20-88256F88.00772C98-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <41EDE2EA.7090404-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> (Rich Townsend's message of
+ "Tue, 18 Jan 2005 23:32:42 -0500")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +22,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Donald W Watson <dwatson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
 
-> I am using the 2.6.10 kernel (linux-2.6.9.tar.bz2 with patch 2.6.10.bz2) on
-> an older IBM ThinkPad (T20 booted with acpi=force).
-> 
-> I have seen no discussion of the following in the archives.  Hibernate (S4)
-> does not work if the swap partition is on an LVM Logical Volume.  The
-> reason is that try_name (init/do_mounts.c) is unable to find the partition
-> in /sys/block.
+> http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20050119.tar.gz
 
-Well, I'd say that this is currently unsupported.
+It seems you install the modules in /lib/modules/XXX/i2c etc. instead
+of /lib/modules/XXX/kernel/driver/i2c etc. Is that intentional?
 
-> Further, if a second swap partition is established on a regular partition
-> and referenced in the "resume" state in menu.lst, hibernate appears to
-> succeed, but on resume check_sig (kernel/power.swsusp.c) complains because
-> the swsusp_header signature is "SWAPSPACE2" rather than the hard-coded
-> "S1SUSPEND" which it expects.
+I got bitten by this since I previously installed the i2c-acpi-ec
+driver in /lib/modules/XXX/kernel/driver/i2c, which apparently took
+precedence over the one installed in /lib/modules/XXX/i2c.
 
-...but this one should be fixed. suspend should only write to partition
-you specified with resume= parameter. If that is not the case, feel free to fix
-it and send me a patch.
-
-				Pavel
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+-- Johan
 
 
 -------------------------------------------------------
