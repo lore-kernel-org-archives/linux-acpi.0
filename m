@@ -1,15 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] 2.4.23 ACPI 20030918
-Date: 01 Oct 2003 01:46:42 -0400
+From: Robert Woerle <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
+Subject: Using INITRDDSDT:  was Re: Changing IRQ`s at DSDT
+Date: Wed, 01 Oct 2003 06:27:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1064987202.2583.196.camel@dhcppc4>
-References: <BF1FE1855350A0479097B3A0D2A80EE0D56318@hdsmsx402.hd.intel.com>
-	 <1064986198.2574.190.camel@dhcppc4>
+Message-ID: <3F7A57B0.6040906@paceblade.com>
+References: <3F780D1A.20908@paceblade.com> <200309291937.53825.adq_dvb@lidskialf.net> <3F793B88.60104@paceblade.com> <200309301215.13202.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1064986198.2574.190.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <200309301215.13202.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,87 +17,102 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>
-Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+Hi
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
+so now i managed it ( i think )
 
-	This batch includes the config change you requested to decouple
-	ACPI and HT, ACPICA 20030918, and more platform fixes.
+as i said i was suffering from a hard lock on my unit when using 2 out 
+of the 3 devices which use IRQ 5 ( eth0 , sound , usb ) at the same time .
+I now changed my DSDT and provided eth0 to IRQ 7 ( which is not obviosly 
+used before ) and it looks good ...
+a stress test with 2 GB traffic on eth0 , while playing the whole 
+Metallica -St. Anger album and using contiounsly my USB-keyboard ..
+gave me no lock at all ....
 
-thanks,
--Len
+i am now convinced that this will be the way to go and  i will do 
+further more testing .
 
-ps. for folks w/o BK, a plain patch is available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.23-pre5/acpi-20030918-2.4.23-pre5.diff.gz
+Of course ( like always ) i already discovered a new flaw with my new 
+configuration .
+Since i want to use swsusp i get now a hard lock after i resume and 
+bring the eht0 up again ...
 
-This will update the following files:
+I am blaming swsusp for that ( i will contact their devel-list today) . 
+Maybe they do not act
+probably to restore a selfmade DSDT IRQ context .....
 
- Documentation/Configure.help       |    3 
- MAINTAINERS                        |   10 
- drivers/acpi/Config.in             |   52 +---
- drivers/acpi/asus_acpi.c           |  294 +++++++++++++------------
- drivers/acpi/bus.c                 |    4 
- drivers/acpi/dispatcher/dsfield.c  |   42 ++-
- drivers/acpi/dispatcher/dsinit.c   |    4 
- drivers/acpi/dispatcher/dsopcode.c |   35 +-
- drivers/acpi/dispatcher/dsutils.c  |  114 +++++----
- drivers/acpi/dispatcher/dswload.c  |   18 +
- drivers/acpi/dispatcher/dswscope.c |   11 
- drivers/acpi/dispatcher/dswstate.c |   30 +-
- drivers/acpi/executer/excreate.c   |    8 
- drivers/acpi/namespace/nsdump.c    |    4 
- drivers/acpi/namespace/nssearch.c  |    8 
- drivers/acpi/namespace/nsutils.c   |    9 
- drivers/acpi/parser/psparse.c      |   31 +-
- drivers/acpi/pci_irq.c             |    3 
- drivers/acpi/pci_link.c            |    6 
- include/acpi/acconfig.h            |    2 
- include/acpi/acdisasm.h            |    4 
- include/acpi/acstruct.h            |    3 
- 22 files changed, 392 insertions(+), 303 deletions(-)
+we will see ..
 
-through these ChangeSets:
+Suggestion :  Why dont you guys put the "Read DSDT from initrd " into 
+the core ACPI source .. so that it gets
+merged to the vanilla kernel at one point .
+I really like idea to be able to load fixed DSDT`s . This can also be 
+extended by the big distributions then to implement a routine
+in their hardware scan so if a known Mainboard with  a buggy BIOS 
+version ( is there a tool to check the version string of a BIOS ?? ) is
+found they can load a fixed DSDT ....
+This would be a great thing which ACPI enable`s us and so make Linux run 
+even better on more units ...
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/30 1.1063.43.20)
-   [ACPI] deal with lack of acpi prt entries gracefully (Jesse Barnes)
+Cheers Rob
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/30 1.1063.43.19)
-   [ACPI] build fix: remove 2nd __exit from asus_acpi.c
+Andrew de Quincey schrieb:
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/30 1.1063.43.18)
-   [ACPI] acpi4asus-0.25-0.26 (Karol Kozimor)
+>>hmm .. this patch doenst change too much ... .it only let run that code
+>>in the else {} ?? right ?
+>>    
+>>
+>
+>yeah
+>
+>  
+>
+>>i used it but didnt found any difference ... all the IRQ`s which are
+>>active stay active and i cannot change them
+>>with my DSDT ...
+>>
+>>is there a way to not mark them as active and then be able to change
+>>them like i want ???
+>>    
+>>
+>
+>Hmm, which bit of the DSDT are you changing them in? The _PRT? Try checking 
+>out the _CRS method as well.. sometimes it is hardcoded to always return the 
+>same value.
+>
+>_CRS is also how you mark an IRQ as active... if it returns nonzero, the code 
+>assumes the BIOS allocated it (and that patch makes it not mess with it).
+>
+>
+>
+>
+>-------------------------------------------------------
+>This sf.net email is sponsored by:ThinkGeek
+>Welcome to geek heaven.
+>http://thinkgeek.com/sf
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>  
+>
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/30 1.1063.43.17)
-   [ACPI] acpi4asus-0.24a-0.25-2.4 (Karol Kozimor)
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/30 1.1063.43.16)
-   [ACPI] acpi_pci_link_allocate() should stick with irq.active if set. 
-(Andrew de Quincey)
-   Fixes OSDL #1186 "broken USB" and others
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/29 1.1063.43.15)
-   [ACPI] CONFIG_ACPI is no longer necessary to enable HT
-   if (CONFIG_ACPI || CONFIG_SMP) CONFIG_ACPI_BOOT=y
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/29 1.1063.43.14)
-   [ACPI] ACPI Component Architecture 20030918 (Bob Moore)
-   
-   Found and fixed a longstanding problem with the late execution of
-   the various deferred AML opcodes (such as Operation Regions,
-   Buffer Fields, Buffers, and Packages)...
-   This fixes the "region size computed incorrectly" problem.
-   
-   Fixed several 64-bit issues with prototypes, casting and data types.
-   
-   Removed duplicate prototype from acdisasm.h
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/25 1.1063.43.13)
-   [ACPI] For ThinkPad -- carry on in face of ECDT probe failure (Andi
-Kleen)
+-- 
+_____________________________________
+*Robert Woerle
+Linux & Customer Support*
+*PaceBlade Technology Europe SA*
+phone: 	+49 89 552 99935
+fax: 	+49 89 552 99910
+mobile: 	+49 179 474 45 27
+email: 	robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org <mailto:robert@paceblade.com>
+web: 	http://www.paceblade.com
+_____________________________________
 
 
 
