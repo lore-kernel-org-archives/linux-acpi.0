@@ -1,14 +1,14 @@
-From: Stefan =?iso-8859-15?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3
-Date: Thu, 17 Feb 2005 21:58:54 +0100
-Message-ID: <200502172158.56721.stefandoesinger@gmx.at>
-References: <20050214211105.GA12808@elf.ucw.cz> <200502152038.00401.stefandoesinger@gmx.at> <20050217190815.GC4925@gamma.logic.tuwien.ac.at>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Re: Call for help: list of machines with working S3
+Date: Thu, 17 Feb 2005 21:10:37 +0000
+Message-ID: <1108674637.4085.156.camel@tyrosine>
+References: <20050214211105.GA12808@elf.ucw.cz>
+	 <1108621005.2096.412.camel@d845pe> <1108638021.4085.143.camel@tyrosine>
+	 <4214C3B8.30502@gmx.net>  <m28y5ndjcz.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20050217190815.GC4925-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
-Content-Disposition: inline
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <m28y5ndjcz.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,31 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Donnerstag, 17. Februar 2005 20:08 schrieb Norbert Preining:
-> On Die, 15 Feb 2005, Stefan D=F6singer wrote:
-> > > - DRI must be disabled I guess?! Even with newer X server (x.org)?
-> >
-> > Do you use the fglrx driver? This doesn't work with any type of suspend
-> > so far. If you use the radeon driver try a driver update.
->
-> Ok, I installed xlibmesa-gl1-dri-trunk, xserver-xfree86-dri-trunk and
-> compiled linux-2.6.11-rc4 and drm modules from drm-trunk-module-src, all
-> from http://www.nixnuts.net/files/
->
-> But I had no success whatsoever. With this (Xorg server, current dri/drm
-> stuff, ..) the laptop not even wakes up from sleep!
-Sorry, no Idea. What about 2.6.11-rc3-mm2 + Xorg 6.8.1.99? Did you test thi=
-s=20
-combination?
-Am I right with assuming that resumeworked after the X upgrade if X wasn't=
-=20
-started before suspend?
+On Thu, 2005-02-17 at 21:25 +0100, Johan Vromans wrote:
+> Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org> writes:
+> 
+> > 3. Get some shiny certification/label going that can be put on
+> > fully conforming products as a sticker. Something like the old
+> > "EPA pollution preventer" logo, but with a more appealing design.
+> > Perhaps a "InstantOn/PowerSave" sticker, you get the idea.
+> 
+> Given that these notebooks will "InstantOn/PowerSave" correctly when
+> running Windows/XP, what would be the added value for the
+> manufacturer?
 
-Stefan
+In practical terms? A flash-sounding sticky label. It's unlikely to make
+much difference unless Intel offered some amount of funding in return
+for having one.
+
+(Of course, Intel /could/ make something like this a requirement for the
+Centrino branding, which would probably help a great deal)
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
