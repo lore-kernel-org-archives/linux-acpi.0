@@ -1,12 +1,14 @@
-From: Pierre Letouzey <Pierre.Letouzey-CYrOEBX6jiM@public.gmane.org>
-Subject: Re: Errors with iasl and dsdt.asl on Compaq laptop
-Date: Sun, 28 Sep 2003 14:24:20 +0200 (MEST)
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI changes in 2.4.23-pre5
+Date: Mon, 29 Sep 2003 11:48:12 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0309281411340.30723-100000@pc8-142>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B41@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,46 +17,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David van Hoose <david.vanhoose-Wuw85uim5zDR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I have filed a tracker http://bugme.osdl.org/show_bug.cgi?id=3D1283
+Would you please put your name into cc-list by yourself.
 
-Hello Sergio and Kjartan
+Cheers,
+Luming
 
-I wasn't able to retrieve the original post by Kjartan and have a look at
-your errors, but it might be the same I had before fixing my dsdt. My
-laptop is a Compaq Evo N800c, that shouldn't be too far away from a N800w.
-I described my errors and a quick fix in a previous post that can be
-found at:
-
-http://sourceforge.net/mailarchive/message.php?msg_id=3D5910328
-
-Hope this might help...
-
-Pierre Letouzey
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of David van =
+Hoose
+Sent: 2003?9?28? 10:49
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] ACPI changes in 2.4.23-pre5
 
 
-On 2003-09-22 at 22:24, Monteiro Basto wrote:
-> Hi
-> Same for you.
-> And with ASL Optimizing Compiler / AML Disassembler version 20030918 ?
->
-> thanks
->
-> On Fri, 2003-09-05 at 21:35, Kjartan Maraas wrote:
-> > I've been trying to fix up my dsdt on a Compaq Evo N800w laptop and I
-> > don't know how to handle the remaining errors so I thought I'd ask here
-> > to see if anyone has the time and stomach for it :)
-> >
-> > attaching dsdt.dsl and a diff of what I've done already toghether with
-> > error output from iasl.
-> >
-> > Cheers
-> > --
-> > Kjartan Maraas <kmaraas-2f6i7I/xbB0@public.gmane.org>
->
-> --
-> S=E9rgioMB
+I compiled and booted 2.4.23-pre5 the other morning, and my USB didn't=20
+work.
+The devices I have are a HP psc2110xi and a Logitech Cordless Optical
+Mouse (Logitech Click! Plus).
+My USB does work under 2.4.23-pre4.
+
+I sent a message about this to LKML, and I was told to report this=20
+problem to you guys as no USB patches were put in 2.4.23-pre5.
+
+I have attached my config and boot messages. I enabled ACPI and USB
+debugging.
+
+Thank you
+David
 
 
 
