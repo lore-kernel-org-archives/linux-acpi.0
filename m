@@ -1,15 +1,12 @@
-From: Stefan =?utf-8?q?D=C3=B6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: Re: Radeon PM Support
-Date: Fri, 20 Aug 2004 11:46:56 +0200
+From: BlaisorBlade <blaisorblade_spam-whZMOeQn8C0@public.gmane.org>
+Subject: [PATCH] Oops and panic while unloading holder of pm_idle
+Date: Thu, 19 Aug 2004 18:31:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408201146.57342.stefandoesinger@gmx.at>
-References: <88056F38E9E48644A0F562A38C64FB6002A92B31@scsmsx403.amr.corp.intel.com> <200408191754.50819.stefandoesinger@gmx.at> <loom.20040819T223751-917@post.gmane.org>
-Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Message-ID: <200408171728.06262.blaisorblade_spam@yahoo.it>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_QicJBhOfJbIi7JY"
+  boundary="Boundary-00=_mXNJBb+/6H9HyDb"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <loom.20040819T223751-917-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,542 +16,627 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Aman Gupta <acpi-e31a5gnSYeGubukWoKzokaxOck334EZe@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Boundary-00=_QicJBhOfJbIi7JY
+--Boundary-00=_mXNJBb+/6H9HyDb
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-> Can you post your lspci -vv and we can compare it with the two from Venki
-> and maybe figure out whats going on.
-I attached the output of lspci -vvxxx
+(CC me on replies as I'm not subscribed).
 
-Stefan
+A short description, with my hypothesis about how the panic() happened:
 
---Boundary-00=_QicJBhOfJbIi7JY
-Content-Type: text/plain;
-  charset="utf-8";
-  name="lspci"
+My 2.6.7 preemptible kernel oopsed because when I unloaded the "processor" 
+module (driver/acpi/processor.c), the pm_idle(see arch/i386/kernel/process.c) 
+function he provided was called after the module being unloaded (notice that 
+the "processor" module is not listed below).
+
+I.e., cpu_idle did "idle = pm_idle", it was probably preempted (I run with 
+CONFIG_PREEMPT=y), the processor module was unloaded, and then it called 
+"(*idle)();". In fact it does not happen always (I just got again this panic 
+by unloading the same module, and checked that the address was from the 
+"processor", but I cannot get it again; don't ask me why it can be obtained 
+only the first time it is unloaded, but not after reloading and re-unloading 
+it).
+
+This could happen as well on SMP, so we need a spinlock for accessing 
+pm_idle. We could maybe as well use a semaphore (since we will always be in 
+process context), but IMHO there is too much overhead. And it does not make 
+sense for the idle thread to sleep while holding a semaphore (I don't know if 
+it's a bug). So I attach spinlock-protect-pm_idle.patch (which corrects some 
+more things on some archs). With this patch applied, I cannot reproduce the 
+problem any more.
+
+But that does not suffice: saying
+
+static void (*pm_idle_save)(void);
+pm_idle_save = pm_idle;
+pm_idle = my_own_pm_idle; 
+
+does not work if you stack more modules onto it. Say, if module1 and module2 
+both install their pm_idle and then I unload module1 and after I unload 
+module2: module2 will restore module1_pm_idle, so we get Oopses. I.e. we need 
+a stack of pm_idle functions + some register_pm_idle() APIs. Do you agree?
+
+This may be a bit overkill given that only APM and ACPI, and, on SPARC, 
+arch/sparc/kernel/{apc,pmc}.c, define their pm_idle function. So, as an 
+alternative, see this code (which assumes pm_idle is renamed to _pm_idle and 
+unexported, to force changes in all drivers):
+
+int install_pm_idle(void (*idle)(void))
+{
+	if (_pm_idle == NULL) {
+		_pm_idle = idle;
+		return 1;
+	} else
+		return 0;
+}
+EXPORT_SYMBOL(install_pm_idle);
+
+Also, in my case, I don't think we have this kind of panic, because pm_idle is 
+just defined by APM and ACPI (CONFIG_APM=y, and APM is not supported by my 
+laptop). I also checked, when getting again the same panic, that the faulty 
+EIP was actually inside the processor module (from /proc/modules).
+
+And also, it PANICKED, but CONTINUED TO RUN: notice the last 3 lines:
+<0>Kernel panic: Attempted to kill the idle task!
+In idle task - not syncing
+ <6>ACPI: Processor [CPU0] (supports C1 C2)
+The third one comes from reloading the "processor" module.
+
+For reference, I attach the Oops output and the cpu_idle disassemble, so that 
+you can check the EIP value. However I checked that it was actually calling 
+pm_idle.
+
+Unable to handle kernel paging request at virtual address e0e8a238
+ printing eip:
+e0e8a238
+*pde = 1e1e1067
+*pte = 00000000
+Oops: 0000 [#1]
+PREEMPT
+Modules linked in: fan button battery non_fatal ac binfmt_misc snd_seq_oss 
+snd_seq_midi_event snd_seq snd_pcm_oss snd_mixer_oss snd_intel8x0 
+snd_ac97_codec snd_pcm snd_timer snd_page_alloc gameport snd_mpu401_uart 
+snd_rawmidi snd_seq_device snd soundcore af_packet ipv6 ds yenta_socket 
+pcmcia_core eth1394 tg3 ohci1394 ieee1394 nls_iso8859_15 nls_cp850 vfat fat 
+psmouse amd64_agp agpgart ide_cd cdrom sd_mod usb_storage scsi_mod tsdev 
+evdev dm_mod usbhid usbmouse ehci_hcd ohci_hcd usbcore rtc
+CPU:    0
+EIP:    0060:[<e0e8a238>]    Not tainted
+EFLAGS: 00010212   (2.6.7)
+EIP is at 0xe0e8a238
+eax: 00f6b2a4   ebx: 00008008   ecx: 00f6a78f   edx: 00008008
+esi: c15666b0   edi: c03d41c0   ebp: c1566600   esp: c03adfc8
+ds: 007b   es: 007b   ss: 0068
+Process swapper (pid: 0, threadinfo=c03ac000 task=c0330a40)
+Stack: 00099100 00099100 c03ac000 00099100 c03d41c0 00426007 c01020cd c03ac000
+       c03ae61d 00000012 c03ae370 c03d3fc0 00000800 c010019f
+Call Trace:
+ [<c01020cd>] cpu_idle+0x2d/0x40
+ [<c03ae61d>] start_kernel+0x14d/0x170
+ [<c03ae370>] unknown_bootoption+0x0/0x120
+
+Code:  Bad EIP value.
+ <0>Kernel panic: Attempted to kill the idle task!
+In idle task - not syncing
+ <6>ACPI: Processor [CPU0] (supports C1 C2)
+
+(gdb) disassemble cpu_idle
+Dump of assembler code for function cpu_idle:
+0xc01020a0 <cpu_idle+0>:        push   %ebx
+0xc01020a1 <cpu_idle+1>:        mov    $0xffffe000,%ebx
+0xc01020a6 <cpu_idle+6>:        and    %esp,%ebx
+0xc01020a8 <cpu_idle+8>:        jmp    0xc01020cd <cpu_idle+45>
+0xc01020aa <cpu_idle+10>:       lea    0x0(%esi),%esi
+0xc01020b0 <cpu_idle+16>:       mov    0xc03d3504,%eax
+0xc01020b5 <cpu_idle+21>:       mov    $0xc0102030,%edx
+0xc01020ba <cpu_idle+26>:       test   %eax,%eax
+0xc01020bc <cpu_idle+28>:       cmove  %edx,%eax
+0xc01020bf <cpu_idle+31>:       mov    0xc0331e40,%edx
+0xc01020c5 <cpu_idle+37>:       mov    %edx,0xc03e8e84
+0xc01020cb <cpu_idle+43>:       call   *%eax
+0xc01020cd <cpu_idle+45>:       mov    0x8(%ebx),%eax
+0xc01020d0 <cpu_idle+48>:       test   $0x8,%al
+0xc01020d2 <cpu_idle+50>:       je     0xc01020b0 <cpu_idle+16>
+0xc01020d4 <cpu_idle+52>:       call   0xc02d9200 <schedule>
+0xc01020d9 <cpu_idle+57>:       jmp    0xc01020cd <cpu_idle+45>
+0xc01020db <cpu_idle+59>:       nop
+0xc01020dc <cpu_idle+60>:       lea    0x0(%esi,1),%esi
+
+-- 
+Paolo Giarrusso, aka Blaisorblade
+Linux registered user n. 292729
+
+
+
+
+
+
+
+
+
+--Boundary-00=_mXNJBb+/6H9HyDb
+Content-Type: text/x-diff;
+  charset="iso-8859-15";
+  name="spinlock-protect-pm_idle.patch"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="lspci"
-
-0000:00:00.0 Host bridge: Intel Corp. 82855PM Processor to I/O Controller (rev 03)
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort+ >SERR- <PERR-
-	Latency: 0
-	Region 0: Memory at e0000000 (32-bit, prefetchable)
-	Capabilities: [e4] #09 [f104]
-	Capabilities: [a0] AGP version 2.0
-		Status: RQ=32 Iso- ArqSz=0 Cal=0 SBA+ ITACoh- GART64- HTrans- 64bit- FW+ AGP3- Rate=x1,x2,x4
-		Command: RQ=1 ArqSz=0 Cal=0 SBA+ AGP+ GART64- 64bit- FW- Rate=x4
-00: 86 80 40 33 06 01 90 20 03 00 00 06 00 00 00 00
-10: 08 00 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 e4 00 00 00 00 00 00 00 00 00 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 02 00 00 00 00 00 00 00 00 00 00 00 27 00 00
-60: 04 08 0c 10 00 00 00 00 00 00 00 00 00 00 00 00
-70: 02 02 00 00 00 00 00 00 00 02 02 2c 71 32 40 30
-80: 71 00 80 05 00 00 00 00 00 02 01 00 00 00 00 00
-90: 10 11 11 01 00 13 11 00 41 19 00 00 00 0a 7d 00
-a0: 02 00 20 00 17 02 00 1f 04 03 00 00 00 00 00 00
-b0: 80 00 00 00 00 00 00 00 00 00 14 1e 20 10 00 00
-c0: 44 40 50 11 00 20 05 08 00 00 00 00 00 00 00 00
-d0: 02 28 00 0e 0b 00 00 30 00 00 31 b5 00 00 02 00
-e0: 00 00 00 00 09 a0 04 f1 00 00 00 00 00 00 00 00
-f0: 00 00 01 00 74 f8 20 80 38 0f 00 00 04 00 00 00
-
-0000:00:01.0 PCI bridge: Intel Corp. 82855PM Processor to AGP Controller (rev 03) (prog-if 00 [Normal decode])
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 96
-	Bus: primary=00, secondary=01, subordinate=01, sec-latency=64
-	I/O behind bridge: 00003000-00003fff
-	Memory behind bridge: d0100000-d01fffff
-	Prefetchable memory behind bridge: d8000000-dfffffff
-	Expansion ROM at 00003000 [disabled] [size=4K]
-	BridgeCtl: Parity- SERR- NoISA+ VGA+ MAbort- >Reset- FastB2B-
-00: 86 80 41 33 07 01 a0 00 03 00 04 06 00 60 01 00
-10: 00 00 00 00 00 00 00 00 00 01 01 40 30 30 a0 22
-20: 10 d0 10 d0 00 d8 f0 df 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0c 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 01 00 00 00 00 00 49 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-
-0000:00:1d.0 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 (rev 03) (prog-if 00 [UHCI])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin A routed to IRQ 10
-	Region 4: I/O ports at 1800 [size=32]
-00: 86 80 c2 24 05 00 80 02 03 00 03 0c 00 00 80 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 01 18 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 0a 01 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 2f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 00 00
-
-0000:00:1d.1 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 (rev 03) (prog-if 00 [UHCI])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin B routed to IRQ 5
-	Region 4: I/O ports at 1820 [size=32]
-00: 86 80 c4 24 05 00 80 02 03 00 03 0c 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 21 18 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 05 02 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 2f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 00 00
-
-0000:00:1d.2 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3 (rev 03) (prog-if 00 [UHCI])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin C routed to IRQ 10
-	Region 4: I/O ports at 1840 [size=32]
-00: 86 80 c7 24 05 00 80 02 03 00 03 0c 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 41 18 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 0a 03 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 2f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 00 00
-
-0000:00:1d.7 USB Controller: Intel Corp. 82801DB/DBM (ICH4/ICH4-M) USB 2.0 EHCI Controller (rev 03) (prog-if 20 [EHCI])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin D routed to IRQ 10
-	Region 0: Memory at d0000000 (32-bit, non-prefetchable)
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-	Capabilities: [58] #0a [2080]
-00: 86 80 cd 24 06 01 90 02 03 20 03 0c 00 00 00 00
-10: 00 00 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 50 00 00 00 00 00 00 00 0a 04 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 01 58 c2 c9 00 00 00 00 0a 00 80 20 00 00 00 00
-60: 20 20 7f 00 10 00 00 00 01 00 00 00 00 00 08 c0
-70: 00 00 d7 0f 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 27 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 78 bf 1f 00 88 83 00 00 60 0f 00 00 06 00 00 00
-
-0000:00:1e.0 PCI bridge: Intel Corp. 82801 PCI Bridge (rev 83) (prog-if 00 [Normal decode])
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR+
-	Latency: 0
-	Bus: primary=00, secondary=02, subordinate=02, sec-latency=64
-	I/O behind bridge: 00004000-00004fff
-	Memory behind bridge: d0200000-d05fffff
-	BridgeCtl: Parity- SERR- NoISA+ VGA- MAbort- >Reset- FastB2B-
-00: 86 80 48 24 07 01 80 80 83 00 04 06 00 00 01 00
-10: 00 00 00 00 00 00 00 00 00 02 02 40 40 40 80 22
-20: 20 d0 50 d0 f0 ff 00 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 04 00
-40: 02 28 20 00 00 01 00 00 00 00 00 00 00 00 00 00
-50: 02 74 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 10 00 08 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 01 00 02 00 00 00 c0 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 2e 46
-
-0000:00:1f.0 ISA bridge: Intel Corp. 82801DBM LPC Interface Controller (rev 03)
-	Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-00: 86 80 cc 24 0f 00 80 02 03 00 01 06 00 00 80 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-40: 01 10 00 00 10 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 81 11 00 00 10 00 00 00
-60: 0a 0a 0a 05 90 00 00 00 0b 80 80 0a 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: ff fc 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: a4 03 00 00 04 00 00 00 0d 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 01 0a 00 00 00 00
-c0: 00 00 00 00 00 fe 00 00 00 00 00 00 00 00 00 00
-d0: 06 28 00 00 02 cf 00 00 04 00 00 00 00 00 00 00
-e0: 10 00 00 ff 00 00 00 00 33 22 11 00 00 00 67 45
-f0: 0f 00 00 00 00 00 00 00 60 0f 03 00 00 00 80 00
-
-0000:00:1f.1 IDE interface: Intel Corp. 82801DBM (ICH4) Ultra ATA Storage Controller (rev 03) (prog-if 8a [Master SecP PriP])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin A routed to IRQ 10
-	Region 0: I/O ports at <unassigned>
-	Region 1: I/O ports at <unassigned>
-	Region 2: I/O ports at <unassigned>
-	Region 3: I/O ports at <unassigned>
-	Region 4: I/O ports at 1860 [size=16]
-	Region 5: Memory at 20000000 (32-bit, non-prefetchable) [size=1K]
-00: 86 80 ca 24 07 00 80 02 03 8a 01 01 00 00 00 00
-10: 01 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00
-20: 61 18 00 00 00 00 00 20 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 ff 01 00 00
-40: 07 a3 07 a3 00 00 00 00 05 00 01 02 00 00 00 00
-50: 00 00 00 00 11 14 00 00 00 00 00 00 00 00 00 00
-60: 08 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 00 00
-
-0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) SMBus Controller (rev 03)
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Interrupt: pin B routed to IRQ 10
-	Region 4: I/O ports at 1880 [size=32]
-00: 86 80 c3 24 01 00 80 02 03 00 05 0c 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 81 18 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 00 00 00 00 00 00 00 00 0a 02 00 00
-40: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 00 00
-
-0000:00:1f.5 Multimedia audio controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 03)
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin B routed to IRQ 10
-	Region 0: I/O ports at 1c00
-	Region 1: I/O ports at 18c0 [size=64]
-	Region 2: Memory at d0000c00 (32-bit, non-prefetchable) [size=512]
-	Region 3: Memory at d0000800 (32-bit, non-prefetchable) [size=256]
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-00: 86 80 c5 24 07 00 90 02 03 00 01 04 00 00 00 00
-10: 01 1c 00 00 c1 18 00 00 00 0c 00 d0 00 08 00 d0
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 50 00 00 00 00 00 00 00 0a 02 00 00
-40: 09 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 01 00 c2 c9 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 00 00
-
-0000:00:1f.6 Modem: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Modem Controller (rev 03) (prog-if 00 [Generic])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 0
-	Interrupt: pin B routed to IRQ 10
-	Region 0: I/O ports at 2400
-	Region 1: I/O ports at 2000 [size=128]
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-00: 86 80 c6 24 05 00 90 02 03 00 03 07 00 00 00 00
-10: 01 24 00 00 01 20 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 50 00 00 00 00 00 00 00 0a 02 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 01 00 c2 c9 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 60 0f 00 00 00 00 00 00
-
-0000:01:00.0 VGA compatible controller: ATI Technologies Inc Radeon R250 Lf [Radeon Mobility 9000 M9] (rev 01) (prog-if 00 [VGA])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping+ SERR+ FastB2B+
-	Status: Cap+ 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 66 (2000ns min), cache line size 08
-	Interrupt: pin A routed to IRQ 10
-	Region 0: Memory at d8000000 (32-bit, prefetchable)
-	Region 1: I/O ports at 3000 [size=256]
-	Region 2: Memory at d0100000 (32-bit, non-prefetchable) [size=64K]
-	Capabilities: [58] AGP version 2.0
-		Status: RQ=48 Iso- ArqSz=0 Cal=0 SBA+ ITACoh- GART64- HTrans- 64bit- FW+ AGP3- Rate=x1,x2,x4
-		Command: RQ=32 ArqSz=0 Cal=0 SBA+ AGP+ GART64- 64bit- FW- Rate=x4
-	Capabilities: [50] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-00: 02 10 66 4c 87 03 b0 02 01 00 00 03 08 42 00 00
-10: 08 00 00 d8 01 30 00 00 00 00 10 d0 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 58 00 00 00 00 00 00 00 0a 01 08 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-50: 01 00 02 06 00 00 00 00 02 50 20 00 17 02 00 2f
-60: 04 03 00 1f 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-
-0000:02:02.0 Ethernet controller: Broadcom Corporation BCM4401 100Base-T (rev 01)
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64
-	Interrupt: pin A routed to IRQ 5
-	Region 0: Memory at d0204000 (32-bit, non-prefetchable)
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=375mA PME(D0+,D1+,D2+,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=2 PME-
-00: e4 14 01 44 06 01 10 00 01 00 00 02 00 40 00 00
-10: 00 40 20 d0 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 40 00 00 00 00 00 00 00 05 01 00 00
-40: 01 00 c2 ff 00 40 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 18 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 10 00 00 01 20 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-
-0000:02:04.0 Network controller: Intel Corp. PRO/Wireless LAN 2100 3B Mini PCI Adapter (rev 04)
-	Subsystem: Intel Corp. MIM2000/Centrino
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (500ns min, 8500ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 11
-	Region 0: Memory at d0206000 (32-bit, non-prefetchable)
-	Capabilities: [dc] Power Management version 2
-		Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=1 PME-
-00: 86 80 43 10 16 01 90 02 04 00 80 02 08 40 00 00
-10: 00 60 20 d0 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 86 80 27 25
-30: 00 00 00 00 dc 00 00 00 00 00 00 00 0b 01 02 22
-40: 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 01 00 02 00
-e0: 00 20 00 14 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-
-0000:02:06.0 CardBus bridge: O2 Micro, Inc. OZ711M1 SmartCardBus MultiMediaBay Controller (rev 20)
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping+ SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=slow >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64
-	Interrupt: pin A routed to IRQ 10
-	Region 0: Memory at d0207000 (32-bit, non-prefetchable)
-	Bus: primary=02, secondary=03, subordinate=06, sec-latency=176
-	Memory window 0: d0400000-d04ff000 (prefetchable)
-	Memory window 1: d0300000-d03ff000 (prefetchable)
-	I/O window 0: 00004400-000044ff
-	I/O window 1: 00004000-000040ff
-	BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset+ 16bInt+ PostWrite-
-	16-bit legacy interface ports at 0001
-00: 17 12 14 71 87 01 10 04 20 00 07 06 00 40 82 00
-10: 00 70 20 d0 a0 00 00 02 02 03 06 b0 00 00 40 d0
-20: 00 f0 4f d0 00 00 30 d0 00 f0 3f d0 01 44 00 00
-30: fd 44 00 00 01 40 00 00 fd 40 00 00 ff 01 c0 03
-40: 25 10 1f 00 01 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 82 18 8c 01
-90: 03 00 25 02 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 01 00 02 fe 00 40 c0 00 00 00 00 00 09 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 40 00 08 ea 0b 81 80 00 00 00 00 00 00 40 00
-e0: 01 00 82 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-
-0000:02:06.1 CardBus bridge: O2 Micro, Inc. OZ711M1 SmartCardBus MultiMediaBay Controller (rev 20)
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping+ SERR- FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=slow >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Interrupt: pin A routed to IRQ 10
-	Region 0: Memory at 20001000 (32-bit, non-prefetchable) [disabled]
-	Bus: primary=02, secondary=07, subordinate=0a, sec-latency=176
-	I/O window 0: 00000000-00000003 [disabled]
-	I/O window 1: 00000000-00000003 [disabled]
-	BridgeCtl: Parity- SERR- ISA- VGA- MAbort- >Reset- 16bInt- PostWrite-
-	16-bit legacy interface ports at 0001
-00: 17 12 14 71 80 00 10 04 20 00 07 06 00 00 82 00
-10: 00 10 00 20 a0 00 00 02 02 07 0a b0 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00
-30: 01 00 00 00 01 00 00 00 01 00 00 00 00 01 00 00
-40: 25 10 1f 00 01 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 82 18 8c 01
-90: 03 00 25 02 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 01 00 02 fe 00 40 c0 00 00 00 00 00 09 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 40 00 08 ea 0b 82 80 00 00 00 00 00 00 40 10
-e0: 01 00 82 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-
-0000:02:06.2 System peripheral: O2 Micro, Inc. OZ711Mx MultiMediaBay Accelerator
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=slow >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Interrupt: pin A routed to IRQ 10
-	Region 0: Memory at d0208000 (32-bit, non-prefetchable)
-	Capabilities: [a0] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold+)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-00: 17 12 10 71 03 01 10 04 00 00 80 08 08 40 00 00
-10: 00 80 20 d0 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 a0 00 00 00 00 00 00 00 0a 01 00 00
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 01 00 02 fe 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-
-0000:02:07.0 FireWire (IEEE 1394): Texas Instruments TSB43AB21 IEEE-1394a-2000 Controller (PHY/Link) (prog-if 10 [OHCI])
-	Subsystem: Acer Incorporated [ALI]: Unknown device 001f
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR+ FastB2B-
-	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (500ns min, 1000ns max), cache line size 08
-	Interrupt: pin A routed to IRQ 10
-	Region 0: Memory at d0209000 (32-bit, non-prefetchable)
-	Region 1: Memory at d0200000 (32-bit, non-prefetchable) [size=16K]
-	Capabilities: [44] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-00: 4c 10 26 80 16 01 10 02 00 10 00 0c 08 40 00 00
-10: 00 90 20 d0 00 00 20 d0 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
-30: 00 00 00 00 44 00 00 00 00 00 00 00 0a 01 02 04
-40: 00 00 00 00 01 00 02 7e 00 00 00 00 00 00 00 00
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 88 00 00 00
-f0: 10 00 00 00 86 10 00 00 25 10 1f 00 00 00 00 00
+Content-Disposition: inline;
+	filename="spinlock-protect-pm_idle.patch"
 
 
---Boundary-00=_QicJBhOfJbIi7JY--
+
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade_spam-whZMOeQn8C0@public.gmane.org>
+---
+
+ vanilla-linux-2.6.7-SKAS-paolo/arch/arm/kernel/process.c        |    9 +++++-
+ vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/armksyms.c     |    1 
+ vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/process.c      |    7 ++++-
+ vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/crisksyms.c     |    2 +
+ vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/process.c       |    7 ++++-
+ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/apm.c           |    4 ++
+ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/i386_ksyms.c    |    1 
+ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/process.c       |    7 ++++-
+ vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/acpi.c          |    2 +
+ vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/process.c       |    5 ++-
+ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/apc.c          |    5 ++-
+ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/pmc.c          |    2 +
+ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/process.c      |    9 +++++-
+ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/sparc_ksyms.c  |    1 
+ vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/process.c     |   13 ++++++---
+ vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/x8664_ksyms.c |    1 
+ vanilla-linux-2.6.7-SKAS-paolo/drivers/acpi/processor.c         |    7 ++++-
+ vanilla-linux-2.6.7-SKAS-paolo/include/linux/pm.h               |   14 ++++++++++
+ 18 files changed, 84 insertions(+), 13 deletions(-)
+
+diff -puN arch/arm/kernel/process.c~spinlock-protect-pm_idle arch/arm/kernel/process.c
+--- vanilla-linux-2.6.7-SKAS/arch/arm/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/arm/kernel/process.c	2004-08-18 21:12:23.113797464 +0200
+@@ -26,6 +26,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kallsyms.h>
+ #include <linux/init.h>
++#include <linux/pm.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -78,6 +79,9 @@ EXPORT_SYMBOL(pm_idle);
+ void (*pm_power_off)(void);
+ EXPORT_SYMBOL(pm_power_off);
+ 
++spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
++EXPORT_SYMBOL(pm_idle_lock);
++
+ /*
+  * This is our default idle handler.  We need to disable
+  * interrupts here to ensure we don't miss a wakeup call.
+@@ -99,7 +103,9 @@ void cpu_idle(void)
+ {
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+-		void (*idle)(void) = pm_idle;
++		void (*idle)(void);
++		lock_pm_idle();
++		idle = pm_idle;
+ 		if (!idle)
+ 			idle = default_idle;
+ 		preempt_disable();
+@@ -108,6 +114,7 @@ void cpu_idle(void)
+ 			idle();
+ 		leds_event(led_idle_end);
+ 		preempt_enable();
++		unlock_pm_idle();
+ 		schedule();
+ 	}
+ }
+diff -puN arch/i386/kernel/process.c~spinlock-protect-pm_idle arch/i386/kernel/process.c
+--- vanilla-linux-2.6.7-SKAS/arch/i386/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
+@@ -36,6 +36,7 @@
+ #include <linux/module.h>
+ #include <linux/kallsyms.h>
+ #include <linux/ptrace.h>
++#include <linux/pm.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -69,6 +70,7 @@ unsigned long thread_saved_pc(struct tas
+  * Powermanagement idle function, if any..
+  */
+ void (*pm_idle)(void);
++spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
+ 
+ void disable_hlt(void)
+ {
+@@ -142,13 +144,16 @@ void cpu_idle (void)
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+ 		while (!need_resched()) {
+-			void (*idle)(void) = pm_idle;
++			void (*idle)(void);
++			lock_pm_idle();
++			idle = pm_idle;
+ 
+ 			if (!idle)
+ 				idle = default_idle;
+ 
+ 			irq_stat[smp_processor_id()].idle_timestamp = jiffies;
+ 			idle();
++			unlock_pm_idle();
+ 		}
+ 		schedule();
+ 	}
+diff -puN arch/cris/kernel/process.c~spinlock-protect-pm_idle arch/cris/kernel/process.c
+--- vanilla-linux-2.6.7-SKAS/arch/cris/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/process.c	2004-08-17 21:06:28.000000000 +0200
+@@ -112,6 +112,7 @@
+ #include <linux/fs.h>
+ #include <linux/user.h>
+ #include <linux/elfcore.h>
++#include <linux/pm.h>
+ 
+ //#define DEBUG
+ 
+@@ -179,6 +180,7 @@ EXPORT_SYMBOL(enable_hlt);
+  * The following aren't currently used.
+  */
+ void (*pm_idle)(void);
++spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
+ 
+ extern void default_idle(void);
+ 
+@@ -193,12 +195,15 @@ void cpu_idle (void)
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+ 		while (!need_resched()) {
+-			void (*idle)(void) = pm_idle;
++			void (*idle)(void);
++			lock_pm_idle();
++			idle = pm_idle;
+ 
+ 			if (!idle)
+ 				idle = default_idle;
+ 
+ 			idle();
++			unlock_pm_idle();
+ 		}
+ 		schedule();
+ 	}
+diff -puN arch/ia64/kernel/process.c~spinlock-protect-pm_idle arch/ia64/kernel/process.c
+--- vanilla-linux-2.6.7-SKAS/arch/ia64/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/process.c	2004-08-17 20:57:07.000000000 +0200
+@@ -228,7 +228,9 @@ cpu_idle (void *unused)
+ 
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+-		void (*idle)(void) = pm_idle;
++		void (*idle)(void);
++		lock_pm_idle();
++		idle = pm_idle;
+ 		if (!idle)
+ 			idle = default_idle;
+ 
+@@ -241,6 +243,7 @@ cpu_idle (void *unused)
+ 				(*mark_idle)(1);
+ 			(*idle)();
+ 		}
++		unlock_pm_idle();
+ 
+ 		if (mark_idle)
+ 			(*mark_idle)(0);
+diff -puN arch/arm26/kernel/process.c~spinlock-protect-pm_idle arch/arm26/kernel/process.c
+--- vanilla-linux-2.6.7-SKAS/arch/arm26/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
+@@ -26,6 +26,7 @@
+ #include <linux/reboot.h>
+ #include <linux/interrupt.h>
+ #include <linux/init.h>
++#include <linux/pm.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -72,6 +73,7 @@ __setup("hlt", hlt_setup);
+  */
+ void (*pm_idle)(void);
+ void (*pm_power_off)(void);
++spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
+ 
+ /*
+  * This is our default idle handler.  We need to disable
+@@ -94,12 +96,15 @@ void cpu_idle(void)
+ 	/* endless idle loop with no priority at all */
+ 	preempt_disable();
+ 	while (1) {
+-		void (*idle)(void) = pm_idle;
++		void (*idle)(void);
++		lock_pm_idle();
++		idle = pm_idle;
+ 		if (!idle)
+ 			idle = default_idle;
+ 		leds_event(led_idle_start);
+ 		while (!need_resched())
+ 			idle();
++		unlock_pm_idle();
+ 		leds_event(led_idle_end);
+ 		schedule();
+ 	}
+diff -puN arch/sparc/kernel/process.c~spinlock-protect-pm_idle arch/sparc/kernel/process.c
+--- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
+@@ -48,6 +48,7 @@
+  * Set in pm platform drivers
+  */
+ void (*pm_idle)(void);
++spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
+ 
+ /* 
+  * Power-off handler instantiation for pm.h compliance
+@@ -90,6 +91,7 @@ int cpu_idle(void)
+ 
+ 	/* endless idle loop with no priority at all */
+ 	for (;;) {
++		void (*idle)(void);
+ 		if (ARCH_SUN4C_SUN4) {
+ 			static int count = HZ;
+ 			static unsigned long last_jiffies;
+@@ -121,9 +123,12 @@ int cpu_idle(void)
+ 			local_irq_restore(flags);
+ 		}
+ 
+-		while((!need_resched()) && pm_idle) {
+-			(*pm_idle)();		/* XXX Huh? On sparc?! */
++		lock_pm_idle();
++		idle = pm_idle;
++		while((!need_resched()) && idle) {
++			(*idle)();		/* XXX Huh? On sparc?! */
+ 		}
++		unlock_pm_idle();
+ 
+ 		schedule();
+ 		check_pgt_cache();
+diff -puN arch/x86_64/kernel/process.c~spinlock-protect-pm_idle arch/x86_64/kernel/process.c
+--- vanilla-linux-2.6.7-SKAS/arch/x86_64/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
+@@ -33,6 +33,7 @@
+ #include <linux/irq.h>
+ #include <linux/ptrace.h>
+ #include <linux/version.h>
++#include <linux/pm.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -58,6 +59,7 @@ atomic_t hlt_counter = ATOMIC_INIT(0);
+  * Powermanagement idle function, if any..
+  */
+ void (*pm_idle)(void);
++spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
+ 
+ void disable_hlt(void)
+ {
+@@ -130,11 +132,14 @@ void cpu_idle (void)
+ {
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+-		void (*idle)(void) = pm_idle;
++		void (*idle)(void);
++		lock_pm_idle();
++		idle = pm_idle;
+ 		if (!idle)
+ 			idle = default_idle;
+ 		while (!need_resched())
+ 			idle();
++		unlock_pm_idle();
+ 		schedule();
+ 	}
+ }
+@@ -170,8 +175,9 @@ void __init select_idle_routine(const st
+ 		 * Skip, if setup has overridden idle.
+ 		 * Also, take care of system with asymmetric CPUs.
+ 		 * Use, mwait_idle only if all cpus support it.
+-		 * If not, we fallback to default_idle()
++		 * If not, we fallback to default_idle() in cpu_idle().
+ 		 */
++		lock_pm_idle();
+ 		if (!pm_idle) {
+ 			if (!printed) {
+ 				printk("using mwait in idle threads.\n");
+@@ -179,10 +185,9 @@ void __init select_idle_routine(const st
+ 			}
+ 			pm_idle = mwait_idle;
+ 		}
++		unlock_pm_idle();
+ 		return;
+ 	}
+-	pm_idle = default_idle;
+-	return;
+ }
+ 
+ static int __init idle_setup (char *str)
+diff -puN arch/ia64/kernel/acpi.c~spinlock-protect-pm_idle arch/ia64/kernel/acpi.c
+--- vanilla-linux-2.6.7-SKAS/arch/ia64/kernel/acpi.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/acpi.c	2004-08-17 20:35:54.000000000 +0200
+@@ -61,6 +61,8 @@
+ void (*pm_idle) (void);
+ EXPORT_SYMBOL(pm_idle);
+ void (*pm_power_off) (void);
++spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
++EXPORT_SYMBOL(pm_idle_lock);
+ 
+ unsigned char acpi_kbd_controller_present = 1;
+ unsigned char acpi_legacy_devices;
+diff -puN arch/i386/kernel/apm.c~spinlock-protect-pm_idle arch/i386/kernel/apm.c
+--- vanilla-linux-2.6.7-SKAS/arch/i386/kernel/apm.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/apm.c	2004-08-17 20:57:07.000000000 +0200
+@@ -2032,8 +2032,10 @@ static int __init apm_init(void)
+ 	if (HZ != 100)
+ 		idle_period = (idle_period * HZ) / 100;
+ 	if (idle_threshold < 100) {
++		lock_pm_idle();
+ 		original_pm_idle = pm_idle;
+ 		pm_idle  = apm_cpu_idle;
++		unlock_pm_idle();
+ 		set_pm_idle = 1;
+ 	}
+ 
+@@ -2044,8 +2046,10 @@ static void __exit apm_exit(void)
+ {
+ 	int	error;
+ 
++	lock_pm_idle();
+ 	if (set_pm_idle)
+ 		pm_idle = original_pm_idle;
++	unlock_pm_idle();
+ 	if (((apm_info.bios.flags & APM_BIOS_DISENGAGED) == 0)
+ 	    && (apm_info.connection_version > 0x0100)) {
+ 		error = apm_engage_power_management(APM_DEVICE_ALL, 0);
+diff -puN drivers/acpi/processor.c~spinlock-protect-pm_idle drivers/acpi/processor.c
+--- vanilla-linux-2.6.7-SKAS/drivers/acpi/processor.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/drivers/acpi/processor.c	2004-08-17 20:57:07.000000000 +0200
+@@ -2334,8 +2334,10 @@ acpi_processor_add (
+ 	 * platforms that only support C1.
+ 	 */
+ 	if ((pr->id == 0) && (pr->flags.power)) {
++		lock_pm_idle();
+ 		pm_idle_save = pm_idle;
+ 		pm_idle = acpi_processor_idle;
++		unlock_pm_idle();
+ 	}
+ 	
+ 	printk(KERN_INFO PREFIX "%s [%s] (supports",
+@@ -2373,8 +2375,11 @@ acpi_processor_remove (
+ 	pr = (struct acpi_processor *) acpi_driver_data(device);
+ 
+ 	/* Unregister the idle handler when processor #0 is removed. */
+-	if (pr->id == 0)
++	if (pr->id == 0) {
++		lock_pm_idle();
+ 		pm_idle = pm_idle_save;
++		unlock_pm_idle();
++	}
+ 
+ 	status = acpi_remove_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY, 
+ 		acpi_processor_notify);
+diff -puN include/linux/pm.h~spinlock-protect-pm_idle include/linux/pm.h
+--- vanilla-linux-2.6.7-SKAS/include/linux/pm.h~spinlock-protect-pm_idle	2004-08-17 20:22:20.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/include/linux/pm.h	2004-08-17 20:28:42.000000000 +0200
+@@ -25,6 +25,7 @@
+ 
+ #include <linux/config.h>
+ #include <linux/list.h>
++#include <linux/spinlock.h>
+ #include <asm/atomic.h>
+ 
+ /*
+@@ -193,6 +194,19 @@ static inline void pm_dev_idle(struct pm
+ extern void (*pm_idle)(void);
+ extern void (*pm_power_off)(void);
+ 
++extern spinlock_t pm_idle_lock;
++
++/*Not sure if this should be a semaphore...*/
++static inline int lock_pm_idle(void)
++{
++	spin_lock(&pm_idle_lock);
++	return 0;
++}
++static inline void unlock_pm_idle(void)
++{
++	spin_unlock(&pm_idle_lock);
++}
++
+ enum {
+ 	PM_SUSPEND_ON,
+ 	PM_SUSPEND_STANDBY,
+diff -puN arch/i386/kernel/i386_ksyms.c~spinlock-protect-pm_idle arch/i386/kernel/i386_ksyms.c
+--- vanilla-linux-2.6.7-SKAS/arch/i386/kernel/i386_ksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:33.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/i386_ksyms.c	2004-08-17 21:04:06.000000000 +0200
+@@ -84,6 +84,7 @@ EXPORT_SYMBOL(probe_irq_mask);
+ EXPORT_SYMBOL(kernel_thread);
+ EXPORT_SYMBOL(pm_idle);
+ EXPORT_SYMBOL(pm_power_off);
++EXPORT_SYMBOL(pm_idle_lock);
+ EXPORT_SYMBOL(get_cmos_time);
+ EXPORT_SYMBOL(cpu_khz);
+ EXPORT_SYMBOL(apm_info);
+diff -puN arch/arm26/kernel/armksyms.c~spinlock-protect-pm_idle arch/arm26/kernel/armksyms.c
+--- vanilla-linux-2.6.7-SKAS/arch/arm26/kernel/armksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:33.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/armksyms.c	2004-08-17 21:04:06.000000000 +0200
+@@ -115,6 +115,7 @@ EXPORT_SYMBOL(disable_irq);
+ EXPORT_SYMBOL(set_irq_type);
+ EXPORT_SYMBOL(pm_idle);
+ EXPORT_SYMBOL(pm_power_off);
++EXPORT_SYMBOL(pm_idle_lock);
+ 
+ 	/* processor dependencies */
+ EXPORT_SYMBOL(__machine_arch_type);
+diff -puN arch/sparc/kernel/sparc_ksyms.c~spinlock-protect-pm_idle arch/sparc/kernel/sparc_ksyms.c
+--- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/sparc_ksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/sparc_ksyms.c	2004-08-17 21:04:06.000000000 +0200
+@@ -323,3 +323,4 @@ EXPORT_SYMBOL(do_BUG);
+ 
+ /* Sun Power Management Idle Handler */
+ EXPORT_SYMBOL(pm_idle);
++EXPORT_SYMBOL(pm_idle_lock);
+diff -puN arch/x86_64/kernel/x8664_ksyms.c~spinlock-protect-pm_idle arch/x86_64/kernel/x8664_ksyms.c
+--- vanilla-linux-2.6.7-SKAS/arch/x86_64/kernel/x8664_ksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/x8664_ksyms.c	2004-08-17 21:04:06.000000000 +0200
+@@ -61,6 +61,7 @@ EXPORT_SYMBOL(probe_irq_mask);
+ EXPORT_SYMBOL(kernel_thread);
+ EXPORT_SYMBOL(pm_idle);
+ EXPORT_SYMBOL(pm_power_off);
++EXPORT_SYMBOL(pm_idle_lock);
+ EXPORT_SYMBOL(get_cmos_time);
+ 
+ EXPORT_SYMBOL_NOVERS(__down_failed);
+diff -puN arch/sparc/kernel/pmc.c~spinlock-protect-pm_idle arch/sparc/kernel/pmc.c
+--- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/pmc.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/pmc.c	2004-08-17 21:04:06.000000000 +0200
+@@ -85,7 +85,9 @@ sbus_done:
+ 
+ #ifndef PMC_NO_IDLE
+ 	/* Assign power management IDLE handler */
++	lock_pm_idle();
+ 	pm_idle = pmc_swift_idle;	
++	unlock_pm_idle();
+ #endif
+ 
+ 	printk(KERN_INFO "%s: power management initialized\n", PMC_DEVNAME);
+diff -puN arch/sparc/kernel/apc.c~spinlock-protect-pm_idle arch/sparc/kernel/apc.c
+--- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/apc.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/apc.c	2004-08-17 21:04:06.000000000 +0200
+@@ -170,8 +170,11 @@ sbus_done:
+ 	}
+ 
+ 	/* Assign power management IDLE handler */
+-	if(!apc_no_idle)
++	if(!apc_no_idle) {
++		lock_pm_idle();
+ 		pm_idle = apc_swift_idle;	
++		unlock_pm_idle();
++	}
+ 
+ 	printk(KERN_INFO "%s: power management initialized%s\n", 
+ 		APC_DEVNAME, apc_no_idle ? " (CPU idle disabled)" : "");
+diff -puN arch/cris/kernel/crisksyms.c~spinlock-protect-pm_idle arch/cris/kernel/crisksyms.c
+--- vanilla-linux-2.6.7-SKAS/arch/cris/kernel/crisksyms.c~spinlock-protect-pm_idle	2004-08-17 21:05:13.000000000 +0200
++++ vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/crisksyms.c	2004-08-17 21:06:28.000000000 +0200
+@@ -38,6 +38,8 @@ EXPORT_SYMBOL(disable_irq);
+ EXPORT_SYMBOL(kernel_thread);
+ EXPORT_SYMBOL(get_cmos_time);
+ EXPORT_SYMBOL(loops_per_usec);
++EXPORT_SYMBOL(pm_idle);
++EXPORT_SYMBOL(pm_idle_lock);
+ 
+ /* String functions */
+ EXPORT_SYMBOL(memcmp);
+_
+
+--Boundary-00=_mXNJBb+/6H9HyDb--
+
 
 
 -------------------------------------------------------
