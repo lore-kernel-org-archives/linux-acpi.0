@@ -1,69 +1,78 @@
-From: Rajesh Shah <rajesh.shah@intel.com>
-Subject: [patch 03/12] Make pcibios_fixup_bus() hot-plug safe
-Date: Fri, 18 Mar 2005 14:02:27 -0800
-Message-ID: <20050318140227.C1145@unix-os.sc.intel.com>
+From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [patch 04/12] Prevent duplicate bus numbers when scanning PCI bridge
+Date: Fri, 18 Mar 2005 14:04:37 -0800
+Message-ID: <20050318140437.D1145@unix-os.sc.intel.com>
 References: <20050318133856.A878@unix-os.sc.intel.com>
-Reply-To: Rajesh Shah <rajesh.shah@intel.com>
+Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20050318133856.A878@unix-os.sc.intel.com>; from rajesh.shah@intel.com on Fri, Mar 18, 2005 at 01:38:57PM -0800
-Sender: linux-ia64-owner@vger.kernel.org
-To: gregkh@suse.de, tony.luck@intel.com, len.brown@intel.com
-Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
+In-Reply-To: <20050318133856.A878-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>; from rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Mar 18, 2005 at 01:38:57PM -0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: gregkh-l3A5Bk7waGM@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-PCI scan code calls the arch specific pcibios_fixup_bus() each
-time it scans a new bridge. For root bridge hot-plug, the bridge
-and it's attached devices may not have been configured properly
-yet, so it's not safe to claim those resources at this time.
+When hot-plugging a root bridge, as we try to assign bus numbers
+we may find that the hotplugged hieratchy has more PCI to PCI
+bridges (i.e. bus requirements) than available.  Make sure we
+don't step over an existing bus when that happens. 
 
-This code goes away when we clean up the way pci resources are
-claimed (in pci_enable_device()), so this is only a stopgap fix.
-
-Signed-off-by: Rajesh Shah <rajesh.shah@intel.com>
+Signed-off-by: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- linux-2.6.11-mm4-iohp-rshah1/arch/ia64/pci/pci.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletion(-)
+ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/probe.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/pci/pci.c~ia64-pcibios_fixup_bus-hotplug-safe arch/ia64/pci/pci.c
---- linux-2.6.11-mm4-iohp/arch/ia64/pci/pci.c~ia64-pcibios_fixup_bus-hotplug-safe	2005-03-16 13:07:06.343101214 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/arch/ia64/pci/pci.c	2005-03-16 13:07:06.450523088 -0800
-@@ -391,6 +391,25 @@ void pcibios_bus_to_resource(struct pci_
- 	res->end = region->end + offset;
- }
- 
-+static int __devinit is_valid_resource(struct pci_dev *dev, int idx)
-+{
-+	unsigned int i, type_mask = IORESOURCE_IO | IORESOURCE_MEM;
-+	struct resource *devr = &dev->resource[idx];
-+
-+	if (!dev->bus)
-+		return 0;
-+	for (i=0; i<PCI_BUS_NUM_RESOURCES; i++) {
-+		struct resource *busr = dev->bus->resource[i];
-+
-+		if (!busr || ((busr->flags ^ devr->flags) & type_mask))
-+			continue;
-+		if ((devr->start) && (devr->start >= busr->start) &&
-+				(devr->end <= busr->end))
-+			return 1;
-+	}
-+	return 0;
-+}
-+
- static void __devinit pcibios_fixup_device_resources(struct pci_dev *dev)
+diff -puN drivers/pci/probe.c~prevent_duplicate_busnr drivers/pci/probe.c
+--- linux-2.6.11-mm4-iohp/drivers/pci/probe.c~prevent_duplicate_busnr	2005-03-16 13:07:10.376304290 -0800
++++ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/probe.c	2005-03-16 13:07:10.496421476 -0800
+@@ -417,7 +417,7 @@ int __devinit pci_scan_bridge(struct pci
  {
- 	struct pci_bus_region region;
-@@ -404,7 +423,8 @@ static void __devinit pcibios_fixup_devi
- 		region.start = dev->resource[i].start;
- 		region.end = dev->resource[i].end;
- 		pcibios_bus_to_resource(dev, &dev->resource[i], &region);
--		pci_claim_resource(dev, i);
-+		if ((is_valid_resource(dev, i)))
-+			pci_claim_resource(dev, i);
- 	}
- }
+ 	struct pci_bus *child;
+ 	int is_cardbus = (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS);
+-	u32 buses;
++	u32 buses, i;
+ 	u16 bctl;
  
+ 	pci_read_config_dword(dev, PCI_PRIMARY_BUS, &buses);
+@@ -476,6 +476,10 @@ int __devinit pci_scan_bridge(struct pci
+ 		/* Clear errors */
+ 		pci_write_config_word(dev, PCI_STATUS, 0xffff);
+ 
++		/* Prevent assigning a bus number that already exists.
++		 * This can happen when a bridge is hot-plugged */
++		if (pci_find_bus(pci_domain_nr(bus), max+1))
++			return max;
+ 		child = pci_alloc_child_bus(bus, dev, ++max);
+ 		buses = (buses & 0xff000000)
+ 		      | ((unsigned int)(child->primary)     <<  0)
+@@ -507,7 +511,11 @@ int __devinit pci_scan_bridge(struct pci
+ 			 * as cards with a PCI-to-PCI bridge can be
+ 			 * inserted later.
+ 			 */
+-			max += CARDBUS_RESERVE_BUSNR;
++			for (i=0; i<CARDBUS_RESERVE_BUSNR; i++)
++				if (pci_find_bus(pci_domain_nr(bus),
++							max+i+1))
++					break;
++			max += i;
+ 		}
+ 		/*
+ 		 * Set the subordinate bus number to its real value.
 _
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
