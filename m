@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Hello every boddy, I have a compaq evo 800v any news a bout any dsdt (LONG)
-Date: Fri, 14 Feb 2003 08:31:29 +0100
+From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Subject: Re: System hang when trying to enter sleep/standby state
+Date: Fri, 14 Feb 2003 08:50:05 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030214073129.GX25625@poup.poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A847138050@orsmsx401.jf.intel.com> <1045159298.2048.22.camel@calvin.hjblocal.nl>
+Message-ID: <200302140750.h1E7o5D00870@ikffws2.ikff.uni-stuttgart.de>
+Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1045159298.2048.22.camel-PDBFyMGeMq1aCPxV5EPtfPP6llvjuJOh@public.gmane.org>
+Content-MD5: 2pkJe8VnK1e/zj5Vv9n6mA==
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,34 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hilbert Barelds <list-XfCjptVMDKWuyJwMYI9mNQ@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org
+Cc: mochel-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 13, 2003 at 07:01:39PM +0100, Hilbert Barelds wrote:
-> Hi Andy,
-> 
-> At least one isue, It has two power states:
-> 
-> *P0: 1700 MHz, 20000 mW, 500 uS
->  P1: 1200 MHz, 10000 mq, 500 uS
-> 
-> If I do an
-> echo 1 > performance
-> 
-> I get an error in /var/log/messages
-> That it could not change state:
-> 
-> kernel: acpi_processor-1095 [25] acpi_processor_set_per: Transition
-> failed
+> How about making it a .config option, default to "unset" and with a big
+> warning in the help?
 
-The P4-M is supported by the speedstep "legacy" driver in cpufreq.
+Best solution IMHO.
 
--- 
-Ducrot Bruno
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+Jens
+
+--=20
+Jens Haug
+IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
+Pfaffenwaldring 9                       Fax  0711/685-6356
+70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
+
 
 
 -------------------------------------------------------
