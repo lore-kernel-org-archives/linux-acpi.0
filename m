@@ -1,15 +1,15 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: PATCH/RFC: driver model/pmcore wakeup hooks (1/4)
-Date: 20 Oct 2004 02:16:07 -0400
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: How to help Len be a more effective maintainer...
+Date: Wed, 20 Oct 2004 10:25:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098252967.26601.4273.camel@d845pe>
-References: <200410051309.02105.david-b@pacbell.net>
-	 <1097906636.14156.41.camel@d845pe> <200410182041.02192.david-b@pacbell.net>
+Message-ID: <20041020082510.GA6407@fuchi>
+References: <1098218847.26595.3764.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200410182041.02192.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1098218847.26595.3764.camel@d845pe>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,47 +18,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-10-18 at 23:41, David Brownell wrote:
-> On Friday 15 October 2004 11:03 pm, Len Brown wrote:
-> > > - ACPI (this should probably replace the new /proc/acpi/wakeup)
-> >
-> > Agreed.  That file is a temporary solution.
-> > The right solution is for the devices to appear in the right
-> > place in the device tree and to hang the wakeup capabilities
-> > off of them there.
-> 
-> So what would that patch need before ACPI could convert to use it?
-> 
-> I didn't notice any obvious associations between the strings in
-> the acpi/wakeup file and anything in sysfs.  Which of USB1..USB4
-> was which of the three controllers shown by "lspci" (and which
-> one was "extra"!), as one head-scratcher.
 
-The strings "USB1" etc. are completely arbitrary, which is one
-reason that /proc/acpi/wakeup is only marginally useful.
+--UlVJffcvxoiEqYs2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> For PCI, I'd kind of expect pci_enable_wake() to trigger the
-> additional ACPI-specific work to make sure the device can
-> actually wake that system.   Seems like dev->platform_data
-> might need to combine with some platform-specific API hook.
+hello Len...
 
-In the ACPI DSDT...
-Devices are explicitly identified as PCI busses by their PNP-id.
-These PCI busses are enumerated by their _BBN or _CRS.
-The devices under the PCI busses all contain an _ADR which encodes the
-PCI device/function number.
+* Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [2004-10-20 09:15 +0200]:
 
-Ie. ACPI tells us the PCI bus/dev/func for each PCI device in the DSDT,
-and with this information it needs to be able to find devices in the
-Linux device tree and associate some ACPI capabilities with it.
+> Working with -mm
+>=20
+>   Andrew Morton pulls our ACPI patch from here
+>   http://linux-acpi.bkbits.net/linux-acpi-test-mm and includes it
+>   as bk-acpi.patch for every -mm release.
 
--Len
+shouldn't that be http://linux-acpi.bkbits.net:8080/linux-acpi-test-mm?
 
+document published as http://acpi.sourceforge.net/patches.html.
 
+cheers,
+ Sebastian
+--=20
+::: .O.
+::: ..O
+::: OOO
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
+
+--UlVJffcvxoiEqYs2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBdiDmreHfL3pi+bQRAmIXAJ0YwsEIDPdpNDhwTLwYUxokLVts3ACfZZJy
+/aVXS3lUk2jipfyW/YSIDu4=
+=u6hD
+-----END PGP SIGNATURE-----
+
+--UlVJffcvxoiEqYs2--
 
 
 -------------------------------------------------------
