@@ -1,51 +1,43 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASL help with latest acpi and compaq presario 2800t
-Date: Tue, 13 May 2003 15:10:41 -0600
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030513211044.85A2BF7E32@voldemort.scrye.com>
-References: <3ACA40606221794F80A5670F0AF15F842722F9@pdsmsx403.ccr.corp.intel.com>
+From: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
+Subject: DPMS state transition times
+Date: Tue, 13 May 2003 17:43:59 -0400 (EDT)
+Sender: linux-pm-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <Pine.GSO.4.53.0305131738580.14796@compserv2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F842722F9-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: linux-pm-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:linux-pm-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-pm-devel>,
+	<mailto:linux-pm-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-pm-devel>,
+	<mailto:linux-pm-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-pm-devel>
+To: linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi
 
->>>>> "Luming" == Luming Yu <Yu> writes:
+I apologize if this isn't too relevant to this list.
 
-Luming> Maybe you were missing something.  Try attached file please.
-Luming> Thanks, Lumng
+I am trying to measure the time it takes to transition between DPMS ON
+state to various low power (standby, suspend and off) states, and back by
+instrumenting X server.
 
-Yeah, I must have munged the patch or something. 
-Putting the External ones in the right place made it compile just
-fine. ;) 
+The X server, basically writes into hardware registers which ultimately
+turn off the screen and also turn off vertical and/or horizontal sync.
 
-It seems to load just as well as the previous one... 
+Is it possible to measure purely by software (say by polling a register)
+the time it takes for this transition to complete i.e. the time it
+takes to turn the display off after writing to the DPMS mode register.
 
-thanks for the help. 
+I'm working with Intel i810 graphics hardware.
 
-kevin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
+Any help would be greatly appreciated.
 
-iD8DBQE+wV9U3imCezTjY0ERAvQ0AJ41yvpzBvZP597bzzu8NUlRk2CtJgCggS3O
-WLP0gc7H1XCKCkyk3aOAF0A=
-=PCoB
------END PGP SIGNATURE-----
+Thanks !
+--Manish
 
 
 -------------------------------------------------------
