@@ -1,55 +1,28 @@
-From: Stelian Pop <stelian@popies.net>
-Subject: Re: [ACPI] [PATCH, new ACPI driver] new sony_acpi driver
-Date: Tue, 15 Feb 2005 16:39:12 +0100
-Message-ID: <20050215153912.GA3523@crusoe.alcove-fr>
-References: <20050210161809.GK3493@crusoe.alcove-fr> <1108481448.2097.71.camel@d845pe>
-Reply-To: Stelian Pop <stelian@popies.net>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: [ACPI] Re: Call for help: list of machines with working S3
+Date: Tue, 15 Feb 2005 15:41:23 +0000
+Message-ID: <1108482083.12031.10.camel@elrond.flymine.org>
+References: <20050214211105.GA12808@elf.ucw.cz>
+	 <200502150605.11683.s0348365@sms.ed.ac.uk>  <4211E729.1090305@colitti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1108481448.2097.71.camel@d845pe>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <4211E729.1090305@colitti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+To: Lorenzo Colitti <lorenzo@colitti.com>
+Cc: Alistair John Strachan <s0348365@sms.ed.ac.uk>, Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 15, 2005 at 10:30:49AM -0500, Len Brown wrote:
+On Tue, 2005-02-15 at 13:12 +0100, Lorenzo Colitti wrote:
 
-> On Thu, 2005-02-10 at 11:18, Stelian Pop wrote:,
-> 
-> > 
-> > PS: I am also going to submit a bugzilla RFE for the acpi people,
-> > I have been told they are more receptive to that.
-> 
-> I guess that refers to me:-)
+> I beg to differ: it works for me on 2.6.11-rc3 (even with the swsusp2 
+> patch). However, I need to use acpi_sleep=s3_bios, and I can't use 
+> radeonfb or it will lock up on resume.
 
-Hey, you *are* more receptive to bugzilla then !
+Could you grab dmidecode from http://www.nongnu.org/dmidecode/ and
+provide the output? It'd be interesting to compare working with
+non-working machines. It might also be good to see lspci and acpidmp
+output.
 
-> E-mail is fine, but the unfortunate reality is that due to simple
-> volume, it is lossy.  The reason we like bugzilla is that it never
-> forgets:-)
-> 
-> So thanks for taking the extra time to file a bug report
-> http://bugzilla.kernel.org/show_bug.cgi?id=4193
-> 
-> If it turns out that there is no way a generic solution
-> can handle the SNC Sony laptops, then I agree that a
-
-Note: this is not a subset of the Sony laptops, we are talking
-about all the Sony laptops here.
-
-> platform specific wart is the only way to go.  But
-> it would be best if we can make the exotic Sony/SNC
-> look more generic to the user so that the user
-> (and the distro supporting them) don't need to learn
-> special things to handle this system.
-
-I agree, but unfortunately I don't think it's possible to handle
-them in a generic way. However, my understanding of the ACPI layer
-is limited, so I very well be wrong.
-
-I attached two DSDT in bugzilla, I have a few more if you want them.
-
-Stelian.
 -- 
-Stelian Pop <stelian@popies.net>
+Matthew Garrett | mjg59@srcf.ucam.org
