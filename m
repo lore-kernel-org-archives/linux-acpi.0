@@ -1,14 +1,14 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: Re: ACPI status in 2.4 tree
-Date: Wed, 19 Nov 2003 20:50:57 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Wed, 19 Nov 2003 21:08:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031119205057.1799808e.subscript@free.fr>
-References: <BF1FE1855350A0479097B3A0D2A80EE00147D1FD@hdsmsx402.hd.intel.com>
+Message-ID: <20031119200830.GA22964@hell.org.pl>
+References: <20031119180119.GB22307@tate.loria.fr> <20031119194303.GA16571@hell.org.pl> <20031119205129.A19364@loria2.loria.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE00147D1FD-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031119205129.A19364-SAjW485I7Qt98t58zOhiHA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Brown, Len,
+Thus wrote Emmanuel Thome:
+> The fact that radeonfb is loaded or not does not make a big difference
+> anyway. It would, if eventually the radeonfb driver were able to talk the
+> right language to the device. Which is something I'm not going to expect
 
+Right.
 
-On Wed, 19 Nov 2003 13:09:15 -0500 "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> from vesafb. Proper acpi power management would be a dramatic feature to
+> add to radeonfb...
 
-> We use BK to merge into the baseline kernel, so as of this morning,
-> everything in the ACPI release tree
-> http://linux-acpi.bkbits.net:8080/linux-acpi-release-2.4.23 is also in
-> marcelo's 2.4 tree http://linux.bkbits.net:8080/linux-2.4 which is where
-> 2.4.23-rc2 comes from.
-> 
-> So the patch on kernel.org is already obsolete, as it has already been
-> applied to the 2.4.23 baseline.
-> 
-> This is not true for a base release that is frozen, such as 2.4.22
-> because it stopped accepting patches long ago.  So for 2.4.22 (and soon
-> 2.4.23) you'd grab the frozen base release and then apply the ACPI
-> release patch on top of it to get the latest ACPI changes.
-> 
-> See this README for more info
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.A
-> CPI
-> and let me know if there is anything I can do or document that would
-> clarify the process.
-
-Thanx to all people for all those clarification. The more verbose ones
-are really relevant and helpful.
-Sorry if some people felt upset w/ my request or if my wish was misunderstood
-'cause badly formulated :-\.
-
-
-Regards,
+I'm not sure I fully understand, but I think it's not really that
+complicated -- all you need is the radeonfb driver to receive the suspend
+request using standard driver model, and power down the graphic adapter
+using standard PCI methods, or do any card-specific wizardry, which, as you
+implied, should not be difficult to implement. A similar thing should be done
+at resume et voila, you get the display back on.
+Best regards,
 
 -- 
-wwp
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
