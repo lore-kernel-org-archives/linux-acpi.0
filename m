@@ -1,14 +1,14 @@
 From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
 Subject: Re: help needed with invalid method in GPE block
-Date: Tue, 18 Mar 2003 00:20:14 +0100
+Date: Tue, 18 Mar 2003 01:19:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030317232014.GA32736@dutidad.twi.tudelft.nl>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBCB@orsmsx107.jf.intel.com>
+Message-ID: <20030318001918.GA651@dutidad.twi.tudelft.nl>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBCC@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBCB-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBCC-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,18 +21,30 @@ To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 17, 2003 at 03:07:31PM -0800, Moore, Robert wrote:
-> You can ignore the GPE error messages, they are leftover cruft and have no
-> meaning.
+On Mon, Mar 17, 2003 at 03:57:00PM -0800, Moore, Robert wrote:
+> Here's what the code should look like
+> 
+>     /* Ensure that we have a valid GPE number for this GPE block */
+> 
+>     if ((GpeNumber < GpeBlock->BlockBaseNumber) ||
+>         (GpeNumber >= (GpeBlock->BlockBaseNumber + (GpeBlock->RegisterCount
+> * 8))))
+>     {
+>         /* 
+>          * Not valid for this GPE block, just ignore it
+>          * However, it may be valid for a different GPE block, since GPE0
+> and GPE1
+>          * methods both appear under \_GPE.
+>          */
+>         return (AE_OK);
+>     }
 
-In my kernel (2.5.64-bk12), if one sees that error message, it means that
-that event is not stored.  acpi_ev_save_method_info() in evgpeblk.c returns
-without adding the method to the passed gpe_event_info struct.  Is this
-really not a problem, i.e. is this code as well as the gpe_event_info
-structure not relevant anymore?
+Aaaah, the "if" is now clearly corrected.  The way it was did constitute a
+bug, right?  It resulted in control methods that were valid for the second
+GPE block not getting added.
 
-Do you perhaps have any other ideas as to why my sleep key just continues
-sleeping?  :)
+My frikking sleep button is still not waking my laptop up though.  I would
+appreciate any other tips for debugging that problem.
 
 Thanks,
 Charl
