@@ -1,10 +1,10 @@
-From: Estella Weeks <gbxlfn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: re [16]
-Date: Fri, 10 Dec 2004 21:01:28 +0400
-Message-ID: <E1CciYc-0005MK-Sl@sc8-sf-mx1.sourceforge.net>
+From: Robert Stacy <uktxaxkjlfaor-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: re[17]:
+Date: Fri, 10 Dec 2004 18:59:02 +0200
+Message-ID: <E1CciZJ-0005Qq-1C@sc8-sf-mx1.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: multipart/related;
- boundary="------------050208000004080504000003"
+ boundary="------------070805060703070304040005"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,25 +15,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050208000004080504000003
+--------------070805060703070304040005
 Content-Type: text/html; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></head><body bgcolor="#FFFFF4" text="#19629C"><p><a href="http://www.xmasrefinance.com/x/loan.php?id=b7"><IMG SRC="cid:part1.06000003.09010007@vtvoyazdzod-/E1597aS9LQAvxtiuMwx3w@public.gmane.org" border="0" ALT=""></a></p><p><font color="#FFFFFF">That won't do. you are stupid would you like to pay  Coca Cola</font></p><p><font color="#FFFFF0">comes from People</font></p></body></html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></head><body bgcolor="#FFFFFF" text="#035834"><p><a href="http://www.xmasrefinance.com/x/loan.php?id=b7"><IMG SRC="cid:part1.06030403.04020100@sklxabf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org" border="0" ALT=""></a></p><p><font color="#FFFFF3">Good. Tour de France Mad Cow Disease in 1894</font></p><p><font color="#FFFFFC">Friends in 1905</font></p></body></html>
 
---------------050208000004080504000003
+--------------070805060703070304040005
 Content-Type: image/gif;
- name="rollick.GIF"
+ name="umbilici.GIF"
 Content-Transfer-Encoding: base64
-Content-ID: <part1.06000003.09010007@vtvoyazdzod-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Content-ID: <part1.06030403.04020100@sklxabf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline;
- filename="rollick.GIF"
+ filename="umbilici.GIF"
 
-R0lGODlhJgKdAPPuAAYHAIAAAMDAwMDcwECggGCggGDAgIDAgIDAwKDAwP/78P8AAAAA/////wAAAAAAACH5BAQAAAAALAAAAAAjApwAAAT/sMlJq7046827/2AojmRpnmiqrmzrvvAJxHRt33iu73zv/ziAcEgs
+R0lGODlhJwKdAPMXAAYJAIAAAMDAwMDcwECggGCggGDAgIDAgIDAwKDAwP/78P8AAAAA/////wAAAAAAACH5BAQAAAAALAAAAAAjApwAAAT/sMlJq7046827/2AojmRpnmiqrmzrvvAJxHRt33iu73zv/ziAcEgs
 Ao/IpHLJbDqfrBl0Sq1ar9istiLder/gsHgM7pLP6LR6zRaZfYu4fCSvZ+rxCj5P2U/2gHYWgQsXhIeF
 HIGDgIp+GoiCfZGNGIQflZiLlpRzHZ2JjnicoJ4NpaGTmUpvPXsCmoiMdbB/r6pytai1EpR6qHG8d4DC
 p8Skh8i+tsDFxrIbl5+RhqXO1aDRm7/Nvda40kmtPLfTy+Cpx960ut/r1My7onjFgdfZs/jP8vHww+r/
@@ -126,9 +126,9 @@ QWsat67tBZ/yVYAACV/C63by4T3rtL7yBX8FCtDeME9vGMToQW7zNr9CfTz0RF/0Rn/0SJ/0Sr+g9Ezf
 9E7/9FAf9VJ/2Veg5sgL9EC/87Vr9VeP9Tev9aPL9RDu9dwO9uTa7TWf7SRA9l1r9taK9uYN6em78m7f
 rXDv9fwr93XvrHfP9rX+uee998/a937f9oBP84JPrIRf+Abfu4af+IrvAoyv9ofv6JAfrIs/+Y+f5pt/
 +cCa+Zr/9xfb+Z7vq3Bf+ol/+qiPvV+/+q7vBq8f+7I/+zYQAQAh/nBocWdodW1lYXlsbmxmZHhmaXJj
-aWtkdnZ1b3R4anJhaGp5anZybXpvb3FkYWdqY3NleG1wanRsdmZtdXhqanhja25peAA7
+Z2x5dmJhaG14Y3p5cWl0eWJkd3J4Y2p0bHVtb2l5dmh2a2N0eHNraQA7
 
---------------050208000004080504000003--
+--------------070805060703070304040005--
 
 
 
