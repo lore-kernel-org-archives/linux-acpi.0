@@ -1,8 +1,8 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [BK PATCH] ACPI updates
-Date: Tue, 12 Aug 2003 13:31:31 -0700
+Date: Tue, 12 Aug 2003 18:09:50 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255EEC9@orsmsx401.jf.intel.com>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FC3D@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,45 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Yes, this is intentional.
+
+We got complaints about the code duplication in 2.4 as table parsing
+code appeared both in both in mini-acpi (acpitable.c) as well as in the
+acpi driver.  Also, we want to keep 2.4 and 2.6 as similar as possible.
+
+Note that no functionality is lost, the CONFIG_ACPI_HT option simply
+pulls in the CONFIG_ACPI_BOOT table parsing code instead of the largely
+similar code in acpitable.c.
+If there was something you like about acpitable.c that we neglecected to
+learn from and could be used to improve the code in the driver -- let me
+know and we'll improve the code in the driver.  But maintaining two
+versions has already proven to be a mistake.
+
+Thanks,
+-Len
+
+> -----Original Message-----
 > From: Matthew Wilcox [mailto:willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org]=20
+> Sent: Tuesday, August 12, 2003 3:14 PM
+> To: Brown, Len
+> Cc: Grover, Andrew; acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+> Subject: Re: [ACPI] [BK PATCH] ACPI updates
+>=20
+>=20
+> On Tue, Aug 12, 2003 at 02:55:21PM -0400, Brown, Len wrote:
 > >  arch/i386/kernel/acpi/acpitable.c         |  553 ------------------
 > >  arch/i386/kernel/acpi/acpitable.h         |  260 --------
 >=20
 > umm.. are these really supposed to go away?  I thought for 2.4, they
 > would be left intact.
-
-Obviously there's been some waffling here (my fault). What happened was:
-
-1) ACPI table parsing code written, but not separable from interpreter
-
-2) People wanted just MADT parsing for HT logical CPUs without all of
-ACPI, and whipped up acpitable.[ch]. They added an "acpismp=3Dforce"
-cmdline option.
-
-3) Main ACPI patch doesn't get merged for a loooOOOOooong time. One of
-the criteria for merging is "don't lose the current functionality!"
-
-4) I put acpitable.[ch] and acpismp=3Dforce back in the ACPI patch, in a
-somewhat rushed manner.
-
-5) ACPI patch gets merged into 2.4.
-
-6) We realize that in the meantime acpismp=3Dforce has become obsolete
-anyways (replaced by a HT cpu feature flag check)
-
-7) Len starts looking at integrating SuSE improvements and sorting out
-ACPI's config option and cmdline option mess. He determines it is
-redundant, so it's gone again.
-
-Since Len has had his brain deep in the code and thinks it is not
-necessary, I think that in retrospect putting it back was the wrong
-thing to do, and so it should go away. Again. For the last time.
-
-Regards -- Andy
+>=20
+> --=20
+> "It's not Hollywood.  War is real, war is primarily not about=20
+> defeat or
+> victory, it is about death.  I've seen thousands and=20
+> thousands of dead bodies.
+> Do you think I want to have an academic debate on this=20
+> subject?" -- Robert Fisk
+>=20
 
 
 -------------------------------------------------------
