@@ -1,14 +1,14 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: acpi-20040715: functional regression on ASUS M2N
-Date: Fri, 06 Aug 2004 11:50:53 -0400
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Radeon PM Support
+Date: Fri, 6 Aug 2004 09:35:53 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4113A8DD.20609@optonline.net>
-References: <4112814C.2070808@optonline.net> <1091805831.3893.6.camel@tyrosine>
+Message-ID: <88056F38E9E48644A0F562A38C64FB60028F9AC3@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1091805831.3893.6.camel@tyrosine>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,64 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+To: ole.rohne-vJEk5272eHo@public.gmane.org, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, anib-La3J9u0raUk@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> On Thu, 2004-08-05 at 14:49 -0400, Nathan Bryant wrote:
-> 
-> 
->>The ELCR save/restore patch is causing regressions for some people. What 
->>if the problem is that we're saving/restoring registers at the wrong time?
-> 
-> 
-> On closer investigation, I found that the system was restoring my ioapic
-> state /after/ it had started the programmable interrupt timer back up.
-> Changing line 310 of drivers/base/sys.c to list_for_each_entry_reverse
-> seems to have greatly improved my ability to suspend and resume (which
-> worked fine before the interrupt controller suspend/resume patches,
-> except that I didn't get many interrupts...) 
-> 
-> There doesn't seem to be any fine-grained way to control the order of
-> suspend/resume for individual drivers. It seems to be assumed that
-> everything that devices depend on will be higher than them in the tree,
-> and so everything will "just work" - I'm not sure this is true. As
 
-Oh, of course it isn't true. Everyone's just keeping their fingers 
-crossed and hoping to avoid moving resume logic into complex special 
-cases. But we might have to go there regardless...
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>ole.rohne-vJEk5272eHo@public.gmane.org
+> Venki> Does this addon patch (over the Ole"s original patch) help?
+>=20
+> I"ve been hesitant to propose a generic VGAPOST, but it could be good
+> to have a way of resuming without using a driver. Would it be cleaner
+> to put the call in pci_default_resume?
 
-In this case, it may make sense to consolidate all 
-interrupt-controller-related suspend/resume into a single logical sys 
-device so that we'll be sure to get the order right within that module.
+Yes. If this patch works for tohers, then we can move it into
+pci_default_resume during the cleanup.
 
-Been thinking about this lately. There is some evidence that we may 
-eventually need resume drivers for southbridge components. For example, 
-my ACPI BIOS doesn't restore the ICH2 LPC bridge's SW_IRQ_GEN register 
-on resume, which leads to some benign debug messages that might be 
-concerning to some people who didn't know what the real problem is... 
-this register is responsible for masking out IRQ1 and/or IRQ12 in 
-legacy-free systems.
+>=20
+> Venki> This works with Radeon 9000M and frame buffer for me.
+>=20
+> Is that "frame buffer" as in aty/radeonfb? Then I"d expect the resume
+> code in aty/radeon_pm gets to run instead of your generic resume?
 
-But if these southbridge components get their callbacks as a pci_driver, 
-they might run AFTER various sys devices that are more accurately 
-considered children of the south bridge: for example the PIC and the irq 
-router.
+No. I meant VESA frame buffer. And it also works w/o framebuffer
+(std VGA).
 
-> another example, I just had my wireless card fail to resume correctly.
-> It tried to do a hotplug firmware load on resume. Which was difficult,
-> because it was resumed before the IDE interface was. How can this sort
-> of thing be avoided?
-> 
+I am still wondering why it doesn't work for Alexander.=20
+Alexander: Is your card sitting on PCI or AGP?
 
-That's a little more "interesting"...two possibilities
-1) find a more generic mechanism to handle these special-case 
-dependencies ;) Maybe let drivers register themselves as depending on 
-other component classes, and then do a topological sort...
-2) move everything that this driver needs to hotplug itself into kernel 
-space
-
+Thanks,
+Venki
 
 
 -------------------------------------------------------
