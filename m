@@ -1,11 +1,12 @@
-From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Subject: 2.5.30 on Sony Z600TEK
-Date: Mon, 05 Aug 2002 17:49:32 +0200
+From: Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
+Subject: Re: ACPI + loop(AES) + swsusp
+Date: Mon, 05 Aug 2002 19:08:14 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1028562571.21094.1.camel@bacchus.gpphy.uni-duesseldorf.de>
+Message-ID: <3D4EA2EE.C5252944@pp.inet.fi>
+References: <Pine.LNX.4.44.0208050914050.15185-100000@xborg.ipp-hgw.mpg.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,50 +16,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Robert Stark <rstark-viLzafFedAGELgA04lAiVw@public.gmane.org>
+Cc: Linux Mailinglists <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-crypto-qDhp9YYfzQpg9hUCZPvPmw@public.gmane.org, swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi there,
+Robert Stark wrote:
+> I've patched kernel-2.4.18 with acpi-20020726-2.4.18.diff, patch-acpi-acpi20020726-swsusp11,
+> and use Jari's loopaes. All partitions, also the root partition are encrypted symmetric.
+> 
+> I work on a Sony-PCG-FX501 and ACPI and loopaes do all the things they should do.
+> Have tested swsusp on the same machine without loopaes( and standard loop device )
+> successfully, but when i have an loop device losetuped and send an 'echo 4 > /proc/acpi/sleep'
+> then swsusp says "Strange, loopX not stopped" and abort suspend. After this error all loop devices
+> are under load and i must reboot the system.
+> 
+> Is there a way get this envoirement to work ?
 
-since I got my notebook right back from repair I gave 2.5.29 a try and
-noticed S4 is working great - since it does several suspend-resume
-cycles
-without any problems. Though some other stuff stopped working (or
-did
-never)
+Swsusp requires that loop thread puts itself to 'refrigerator' before
+suspend can happen. Current version of loop-AES just does not do that and is
+incompatible with swsusp.
 
-* Suddenly it does no longer reboot when I enter reboot on the shell
-* Processor Performance seems to be not supported - though the cpu has
-two
-speedstep states and I thought performance would use speedstep - did I
-got
-that wrong?
-* S1/S3 do not work - in the latter case the notebook is put to sleep
-but
-it does not wake up - when switching it on again with the powerbutton
-the
-lights go on but nothing more: no fan, display, proc, hd or anything. in
-the S1 case it suspends with lcd on, but does not come bad. Could the
-wakeup address (0xc0001000) might be wrong? Could someone clue me, how
-to
-check that?
+And even if loop thread did the 'refrigerator' thing, it would be really bad
+security wise because the encryption keys would be written to disk when
+kernel RAM is saved to disk. Of course that is not a problem with
+unencrypted loops.
 
-Thanks in advance
--Knut
+Robert, can you send me URLs of the patches that you used? It may be
+possible to add such code in '#ifdef CONFIG_SWSUSP / #endif' hunks, so that
+it gets activated only if swsusp is enabled in kernel config. I can't
+promise that it gets merged, but I will at least take a look at it.
 
--- 
-Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
-Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
-fon: +49-211-81-11314                           fax: +49-211-81-13105
-
-
-
-
-
-
-
-
+Regards,
+Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
 
 
 
