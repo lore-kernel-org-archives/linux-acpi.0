@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 07/12] acpi: flush TLB when pagetable changed
-Date: Wed, 23 Feb 2005 01:53:05 -0800
-Message-ID: <200502230953.j1N9rJiZ020708@shell0.pdx.osdl.net>
+Subject: [patch 05/12] acpi: sleep-while-atomic during S3 resume from ram
+Date: Wed, 23 Feb 2005 01:53:00 -0800
+Message-ID: <200502230953.j1N9rFj1020702@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,41 +12,55 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, linux-kernel-Ki4U9mvT0kswryQfseakQg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Christian Borntraeger <linux-kernel-Ki4U9mvT0kswryQfseakQg@public.gmane.org>
 
-Possibly it doesn't change anything here (it's low mem), but it's better to
-fix it.
+During the wakeup from suspend-to-ram I get several warnings.
 
+Signed-off-by: Christian Borntraeger <linux-kernel-Ki4U9mvT0kswryQfseakQg@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/arch/i386/kernel/acpi/sleep.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ 25-akpm/drivers/acpi/osl.c      |    4 ++--
+ 25-akpm/drivers/acpi/pci_link.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/sleep.c~acpi-flush-tlb-when-pagetable-changed arch/i386/kernel/acpi/sleep.c
---- 25/arch/i386/kernel/acpi/sleep.c~acpi-flush-tlb-when-pagetable-changed	2005-02-23 01:48:04.000000000 -0800
-+++ 25-akpm/arch/i386/kernel/acpi/sleep.c	2005-02-23 01:48:04.000000000 -0800
-@@ -8,7 +8,7 @@
- #include <linux/acpi.h>
- #include <linux/bootmem.h>
- #include <asm/smp.h>
--
-+#include <asm/tlbflush.h>
- 
- /* address in low memory of the wakeup routine. */
- unsigned long acpi_wakeup_address = 0;
-@@ -27,6 +27,7 @@ static void init_low_mapping(pgd_t *pgd,
- 		set_pgd(pgd, *(pgd+USER_PTRS_PER_PGD));
- 		pgd_ofs++, pgd++;
- 	}
-+	flush_tlb_all();
+diff -puN drivers/acpi/osl.c~acpi-sleep-while-atomic-during-s3-resume-from-ram drivers/acpi/osl.c
+--- 25/drivers/acpi/osl.c~acpi-sleep-while-atomic-during-s3-resume-from-ram	2005-02-23 01:48:02.000000000 -0800
++++ 25-akpm/drivers/acpi/osl.c	2005-02-23 01:48:02.000000000 -0800
+@@ -145,7 +145,7 @@ acpi_os_vprintf(const char *fmt, va_list
+ void *
+ acpi_os_allocate(acpi_size size)
+ {
+-	return kmalloc(size, GFP_KERNEL);
++	return kmalloc(size, GFP_ATOMIC);
  }
  
- /**
+ void
+@@ -905,7 +905,7 @@ acpi_os_wait_semaphore(
+ 
+ 	ACPI_DEBUG_PRINT ((ACPI_DB_MUTEX, "Waiting for semaphore[%p|%d|%d]\n", handle, units, timeout));
+ 
+-	if (in_atomic())
++	if (in_atomic() || irqs_disabled())
+ 		timeout = 0;
+ 
+ 	switch (timeout)
+diff -puN drivers/acpi/pci_link.c~acpi-sleep-while-atomic-during-s3-resume-from-ram drivers/acpi/pci_link.c
+--- 25/drivers/acpi/pci_link.c~acpi-sleep-while-atomic-during-s3-resume-from-ram	2005-02-23 01:48:02.000000000 -0800
++++ 25-akpm/drivers/acpi/pci_link.c	2005-02-23 01:48:02.000000000 -0800
+@@ -315,7 +315,7 @@ acpi_pci_link_set (
+ 	if (!link || !irq)
+ 		return_VALUE(-EINVAL);
+ 
+-	resource = kmalloc( sizeof(*resource)+1, GFP_KERNEL);
++	resource = kmalloc( sizeof(*resource)+1, GFP_ATOMIC);
+ 	if(!resource)
+ 		return_VALUE(-ENOMEM);
+ 
 _
 
 
