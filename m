@@ -1,64 +1,53 @@
-From: Daniel Egger <degger-Gv7zc1CdiNM@public.gmane.org>
-Subject: Re: [PATCH] 2.4.23-pre3 ACPI fixes series (1/3)
-Date: Wed, 10 Sep 2003 17:31:21 +0200
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI patch flow
+Date: Wed, 10 Sep 2003 15:01:06 -0400
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1063207880.7657.1.camel@sonja>
-References: <200309051958.02818.adq_dvb@lidskialf.net>
-	 <200309060016.16545.adq_dvb@lidskialf.net> <3F590E28.6090101@pobox.com>
-	 <200309060115.24340.adq_dvb@lidskialf.net>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FD58@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-KeEGG+OvUDx0iu/mawmN"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200309060115.24340.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+content-class: urn:content-classes:message
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+I've re-named the linux-acpi* tree to be linux-acpi-release*; and made
+the staging area for the release tree visible -- calling it
+linux-acpi-test*
 
---=-KeEGG+OvUDx0iu/mawmN
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+So a 2 stage release is now visible on the net:
 
-Am Sam, 2003-09-06 um 02.15 schrieb Andrew de Quincey:
+1. linux-acpi-test-*
+Staging area for linux-acpi-release-*  This is where to go to try out
+the latest integrated patch that is being tested in preparation for push
+into the release tree.  In the past this was not visible, and so it
+limited the ability of others to test the integrated patch w/o
+integrating it all themselves, and led to surprises when changes came
+out in the release that people may not have seen on the list.  Exporting
+this will also allow me to give contributors quicker feedback when their
+changes have entered the release pipeline.
 
-> This patch allows ACPI to drop back to PIC mode if ACPI mode setup fails.
+2. linux-acpi-release-*
+Same release trees as before, with same usage -- just added "release" to
+the name.  As before, whenever we update these and release to 2.4 and
+2.6 we'll also post post the plain patch to
+http://sourceforge.net/projects/acpi
 
-Those patches work miracles for me. Finally I can use my ECS L7VTA with
-KT400 chipset with IO-APIC in ACPI mode.
+As before, the BK trees live here:  http://linux-acpi.bkbits.com  If
+there is demand for plain patches of the _test_ tree we can probably
+also export those on http://sourceforge.net/projects/acpi too, but as
+the test tree will change more often, those updates would have to be
+on-demand or on significant events.
 
-egger@alex:/proc$ cat /proc/interrupts
-           CPU0
-  0:     119774    IO-APIC-edge  timer
-  1:        881    IO-APIC-edge  keyboard
-  2:          0          XT-PIC  cascade
-  8:          1    IO-APIC-edge  rtc
-  9:          0    IO-APIC-edge  acpi
- 14:          7    IO-APIC-edge  ide0
- 15:         39    IO-APIC-edge  ide1
- 16:         57   IO-APIC-level  ohci1394
- 17:          0   IO-APIC-level  eth1
- 19:          2   IO-APIC-level  ymfpci
- 21:          0   IO-APIC-level  usb-uhci, usb-uhci, usb-uhci, ehci_hcd
- 23:     253525   IO-APIC-level  eth0
-NMI:          0
-LOC:     119715
-ERR:          0
-MIS:          0
+Thanks,
+-Len
 
---=20
-Servus,
-       Daniel
-
---=-KeEGG+OvUDx0iu/mawmN
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQA/X0PIchlzsq9KoIYRAsHyAJ9WSEkn9d3InzndOoziHL25O242DACgynpk
-GUQ01q1oYmD40Ak2x6Im+c0=
-=2CHn
------END PGP SIGNATURE-----
-
---=-KeEGG+OvUDx0iu/mawmN--
+Ps. The release tree has always been sync'd with the latest baseline for
+each release; and this will still be the case.  But this makes it more
+difficult for people to apply the latest patch to older trees.  So now
+there is a 2.4.22 tree that is the (frozen) 2.4.22 plus only the ACPI
+updates.  I'll apply 2.4 patches there and then push them forward into
+the 2.4.23 tree.  We'll do the same with 2.6 when stable 2.6 baselines
+emerge.
