@@ -1,62 +1,193 @@
 From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: 2.4 PATCH: Fix acpi for bigsur
-Date: Wed, 6 Aug 2003 15:54:49 -0600
+Subject: PATCH: remove unused PCI root bridge resource stuff
+Date: Wed, 6 Aug 2003 16:44:53 -0600
 Sender: linux-ia64-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200308061554.49572.bjorn.helgaas@hp.com>
-References: <20030806154504.GC28899@lucon.org>
+Message-ID: <200308061644.53928.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20030806154504.GC28899-8HFB7qzu3A/YtjvyW6yDsg@public.gmane.org>
 Content-Disposition: inline
-To: "H. J. Lu" <hjl-8HFB7qzu3A/YtjvyW6yDsg@public.gmane.org>, linux ia64 kernel <linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I need this patch to get the current 2.4 kernel to boot on bigsur.
+This patch against the current 2.4 tree removes a bunch of
+ill-advised code I added to get _TRA information from PCI
+root bridges.
 
-I reproduced that problem, and applied the following patch for 2.4
-(this is what we had in 2.4.21, prior to the big ACPI update in 2.4).
+This was the wrong approach because for one thing, it only
+handled one MEM window and one IO window, and root bridges
+may have several of each.
 
-Andy, can you apply this to ACPI?  It's needed for both 2.4 and 2.5
-ia64 kernels.  The problem is that on machines with an 8259, the
-SCI interrupt might be a legacy ISA IRQ, not a GSI.
+This patch can be applied for both 2.4 and 2.5.  ia64 was the
+only user of this code, and we no longer need it.  The current
+approach we use is to walk the _CRS in pcibios_scan_root(),
+as shown here:
 
-I'm not thrilled about the name "acpi_irq_to_vector".  Something
-like "acpi_interrupt_to_irq" seems like it would fit the usage better.
-Suggestions?
+http://lia64.bkbits.net:8080/linux-ia64-2.4/anno/arch/ia64/kernel/pci.c-2AEWtv2qSSY@public.gmane.org?nav=index.html|src/.|src/arch|src/arch/ia64|src/arch/ia64/kernel
 
-Bjorn
+#### AUTHOR bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
+#### COMMENT START
+### Comments for ChangeSet
+ACPI: Remove acpi_pci_get_translations() and support.  pcibios_scan_root()
+	should walk the _CRS if necessary.
+### Comments for include/acpi/acpi_drivers.h
+(acpi_pci_get_translations): Removed.
+### Comments for drivers/acpi/pci_root.c
+(acpi_pci_get_translations)
+(acpi_pci_root_bus_tra)
+(acpi_pci_evaluate_crs): Removed.
+#### COMMENT END
 
-
-===== drivers/acpi/osl.c 1.27 vs edited =====
---- 1.27/drivers/acpi/osl.c	Thu Jul 10 04:20:31 2003
-+++ edited/drivers/acpi/osl.c	Wed Aug  6 16:16:38 2003
-@@ -251,7 +251,12 @@
- 	irq = acpi_fadt.sci_int;
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1066  -> 1.1067 
+#	drivers/acpi/pci_root.c	1.5     -> 1.6    
+#	include/acpi/acpi_drivers.h	1.5     -> 1.6    
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/08/06	bjorn.helgaas-VXdhtT5mjnY@public.gmane.org	1.1067
+# ACPI: Remove acpi_pci_get_translations() and support.  pcibios_scan_root()
+# 	should walk the _CRS if necessary.
+# --------------------------------------------
+#
+diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+--- a/drivers/acpi/pci_root.c	Wed Aug  6 17:29:00 2003
++++ b/drivers/acpi/pci_root.c	Wed Aug  6 17:29:00 2003
+@@ -61,8 +61,6 @@
+ 	acpi_handle		handle;
+ 	struct acpi_pci_id	id;
+ 	struct pci_bus		*bus;
+-	u64			mem_tra;
+-	u64			io_tra;
+ };
  
- #ifdef CONFIG_IA64
--	irq = gsi_to_vector(irq);
-+	irq = acpi_irq_to_vector(irq);
-+	if (irq < 0) {
-+		printk(KERN_ERR PREFIX "SCI (ACPI interrupt %d) not registerd\n",
-+		       acpi_fadt.sci_int);
-+		return AE_OK;
-+	}
- #endif
- 	acpi_irq_irq = irq;
- 	acpi_irq_handler = handler;
-@@ -269,7 +274,7 @@
- {
- 	if (acpi_irq_handler) {
- #ifdef CONFIG_IA64
--		irq = gsi_to_vector(irq);
-+		irq = acpi_irq_to_vector(irq);
- #endif
- 		free_irq(irq, acpi_irq);
- 		acpi_irq_handler = NULL;
+ struct list_head		acpi_pci_roots;
+@@ -114,97 +112,6 @@
+ 	}
+ }
+ 
+-void
+-acpi_pci_get_translations (
+-	struct acpi_pci_id	*id,
+-	u64			*mem_tra,
+-	u64			*io_tra)
+-{
+-	struct list_head	*node = NULL;
+-	struct acpi_pci_root	*entry;
+-
+-	/* TBD: Locking */
+-	list_for_each(node, &acpi_pci_roots) {
+-		entry = list_entry(node, struct acpi_pci_root, node);
+-		if ((id->segment == entry->id.segment)
+-			&& (id->bus == entry->id.bus)) {
+-			*mem_tra = entry->mem_tra;
+-			*io_tra = entry->io_tra;
+-			return;
+-		}
+-	}
+-
+-	*mem_tra = 0;
+-	*io_tra = 0;
+-}
+-
+-
+-static u64
+-acpi_pci_root_bus_tra (
+-       struct acpi_resource	*resource,
+-       int			type)
+-{
+-	struct acpi_resource_address16 *address16;
+-	struct acpi_resource_address32 *address32;
+-	struct acpi_resource_address64 *address64;
+-
+-	while (1) {
+-		switch (resource->id) {
+-		case ACPI_RSTYPE_END_TAG:
+-			return 0;
+-
+-		case ACPI_RSTYPE_ADDRESS16:
+-			address16 = (struct acpi_resource_address16 *) &resource->data;
+-			if (type == address16->resource_type) {
+-				return address16->address_translation_offset;
+-			}
+-			break;
+-
+-		case ACPI_RSTYPE_ADDRESS32:
+-			address32 = (struct acpi_resource_address32 *) &resource->data;
+-			if (type == address32->resource_type) {
+-				return address32->address_translation_offset;
+-			}
+-			break;
+-
+-		case ACPI_RSTYPE_ADDRESS64:
+-			address64 = (struct acpi_resource_address64 *) &resource->data;
+-			if (type == address64->resource_type) {
+-				return address64->address_translation_offset;
+-			}
+-			break;
+-		}
+-		resource = ACPI_PTR_ADD (struct acpi_resource,
+-				resource, resource->length);
+-	}
+-
+-	return 0;
+-}
+-
+-
+-static int
+-acpi_pci_evaluate_crs (
+-	struct acpi_pci_root	*root)
+-{
+-	acpi_status		status;
+-	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+-
+-	ACPI_FUNCTION_TRACE("acpi_pci_evaluate_crs");
+-
+-	status = acpi_get_current_resources (root->handle, &buffer);
+-	if (ACPI_FAILURE(status))
+-		return_VALUE(-ENODEV);
+-
+-	root->io_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
+-			buffer.pointer, ACPI_IO_RANGE);
+-	root->mem_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
+-			buffer.pointer, ACPI_MEMORY_RANGE);
+-
+-	acpi_os_free(buffer.pointer);
+-	return_VALUE(0);
+-}
+-
+-
+ static int
+ acpi_pci_root_add (
+ 	struct acpi_device	*device)
+@@ -287,10 +194,8 @@
+ 	root->id.function = device->pnp.bus_address & 0xFFFF;
+ 
+ 	/*
+-	 * Evaluate _CRS to get root bridge resources
+ 	 * TBD: Need PCI interface for enumeration/configuration of roots.
+ 	 */
+- 	acpi_pci_evaluate_crs(root);
+ 
+  	/* TBD: Locking */
+  	list_add_tail(&root->node, &acpi_pci_roots);
+diff -Nru a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+--- a/include/acpi/acpi_drivers.h	Wed Aug  6 17:29:00 2003
++++ b/include/acpi/acpi_drivers.h	Wed Aug  6 17:29:00 2003
+@@ -162,7 +162,6 @@
+ 
+ int acpi_pci_root_init (void);
+ void acpi_pci_root_exit (void);
+-void acpi_pci_get_translations (struct acpi_pci_id* id, u64* mem_tra, u64* io_tra);
+ 
+ /* ACPI PCI Interrupt Link (pci_link.c) */
+ 
 
 -
 To unsubscribe from this list: send the line "unsubscribe linux-ia64" in
