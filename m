@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: how to get Fn key working on compaq 2100/2110
-Date: Mon, 23 Jun 2003 11:28:54 +0200
+Subject: Re: _PDC method in DSDT
+Date: Mon, 23 Jun 2003 12:07:44 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030623092854.GT19556@poupinou.org>
-References: <Law9-F13aCdhxJKocJq0002f84d@hotmail.com>
+Message-ID: <20030623100744.GU19556@poupinou.org>
+References: <1056329130.10322.36.camel@aldebaran.caltech.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Law9-F13aCdhxJKocJq0002f84d-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1056329130.10322.36.camel-cfibRQahR+cF6I9xFAAkN5QCsf4PZ8us@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,30 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Cougle <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Cc: markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Moore <dcm-HInyCGIudOg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jun 22, 2003 at 01:40:51PM -0500, David Cougle wrote:
-> cat /proc/acpi/sleep
-> S0 S3 S4 (swsusp) S5
+On Sun, Jun 22, 2003 at 05:45:31PM -0700, David Moore wrote:
+> Hi,
 > 
-> I just have heard of people who are able to skip past kernel and force 
-> suspend to ram.
-> was wondering if i could do this.
+> Does anyone know the purpose or specification of the _PDC method of the
+> DSDT?  It's a reserved method that exists on my laptop (a Dell Latitude
+> D600) but does not seem to be documented in the ACPI specification on
+> the web.
+> 
+> The reason I ask is that I'm interested in porting the cpufreq driver
+> for Enhanced Speedstep to ACPI.  Right now, the cpufreq driver has the
+> tables of proper MSR register values encoded into the source, but a more
+> elegant solution would be to get this information from ACPI.  In my DSDT
+> source I notice that when the _PDC method is called properly, the _PCT
+> method will return FixedHardware addresses for the Enhanced Speedstep
+> MSRs instead of its normal SystemIO ports.  To get this to work on more
+> than just my system, I should probably use the proper specification for
+> calling _PDC rather than just making it work.
+> 
+> Anyone have any suggestions?
 > 
 
-I had a patch one year ago.  But it was really too buggy.  I even
-don't know if it worked properly due to lack of hardware...
-Anyway, even if that patch worked, all the power management
-of the devices in linux 2.4 in general have to be rewrotten.
 
-I don't think the cost of the time of this rework for 2.4 will be really
-usefull, since linux 2.5 have already a framework for this purpose.
-And this work will be too oriented to developpement, not improving
-things or write a new driver, etc.
-
-Cheers,
+Too late...  A CPUFreq driver is already writen and is in the CPUFreq cvs.
 
 -- 
 Ducrot Bruno
