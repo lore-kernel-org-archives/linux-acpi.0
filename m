@@ -1,11 +1,10 @@
-From: "Estella Jeffries" <ejeffries_ue-6BDe52MKmnw@public.gmane.org>
-Subject: Application is pre approved
-Date: Thu, 11 Nov 2004 01:27:53 -0200
-Message-ID: <453a01c4c79e$c4ac955c$83d1944c@bergakungen.se>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: 26-stable is now based on linux-2.6.9
+Date: 10 Nov 2004 23:46:54 -0500
+Message-ID: <1100148412.5876.499.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,23 +15,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Sir or Madam,
+There are four 26-based ACPI patches exported in BK
+http://linux-acpi.bkbits.net/
+and as plain patches
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
 
-Would you REFINANCE if you knew you'd SAVE TH0USANDS? 
+26-latest-test
+  Latest ACPI development patch against latest Linus dev tree.
+26-latest-release
+  Tested ACPI released patch -- a snapshot of above for Linus to pull.
 
-We'll get you lnterest as low as 1.92%. 
-Don't believe me? Fill out our small online questionaire and we'll show you how. 
+26-stable-test
+  Latest ACPI patch against released Linus tree for testing.
+26-stable-release
+  Tested ACPI released patch against tested & released Linus tree.
 
-Get the house/home and/or car you always wanted, it only takes 10 seconds of your time:
-http://statesmoneyz.com/
+This note announces that the 26-stable trees are now based on 2.6.9, and
+that I'll not be producing any new patches against 2.6.8.1.
 
-Best Regards,
-Andrew Banks
-
-No thanks: http://statesmoneyz.com/r1/
+thanks,
+-Len
 
 
 
