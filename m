@@ -1,87 +1,70 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: smartbattery support
-Date: Wed, 06 Oct 2004 12:52:18 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4163DC72.80708@mega.ist.utl.pt>
-References: <41630B6D.2000107@mega.ist.utl.pt> <41631809.7020204@lanil.mine.nu>
+From: "Georg C. F. Greve" <greve@gnu.org>
+Subject: Re: status update for current development on ASUS M2N
+Date: Wed, 06 Oct 2004 12:22:43 +0200
+Sender: softwaresuspend-devel-admin@berlios.de
+Message-ID: <m31xgcxi18.fsf@brain.gnuhh.org>
+References: <20040930214808.B5D9C3AA515@ws5-8.us4.outblaze.com>
+	<m3ekkiqdcy.fsf@brain.gnuhh.org>
+	<1097019863.16541.47.camel@desktop.cunninghams>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41631809.7020204-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christian Axelsson <smiler-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/signed; boundary="20041006122243+0200-3026523736900844-7630649";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
+In-Reply-To: <1097019863.16541.47.camel@desktop.cunninghams> (Nigel
+	Cunningham's message of "Wed, 06 Oct 2004 09:44:23 +1000")
+Errors-To: softwaresuspend-devel-admin@berlios.de
+List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
+List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
+List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
+List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
+List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
+To: ncunningham@linuxmail.org
+Cc: ACPI List <acpi-devel@lists.sourceforge.net>, SoftwareSuspend-Devel <softwaresuspend-devel@lists.berlios.de>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--20041006122243+0200-3026523736900844-7630649
 
-Christian Axelsson wrote:
-| Pedro Venda wrote:
-|
-|> i read some things also, but i disagree with christian. i think that
-|> smbus patch is not the way to go. don't get me wrong! i'm also just
-|> scratching the surface. for what i read, those patches put smbus bios
-|> support into the kernel.
-|
-|
-| yep
+ || On Wed, 06 Oct 2004 09:44:23 +1000
+ || Nigel Cunningham <ncunningham@linuxmail.org> wrote: 
 
-sorry... do you agree or not? i meant that we should be creating an i2c
-module to talk specifically to the smart battery independently of the
-bios...
+ >> When kdb is left and the buffer is different from 0, the contents
+ >> are dumped to dmesg/syslog.
 
-|
-|> 1. is this a "sensor" i2c driver? i mean, should we find help with the
-|> lmsensors team? there are some debugging tools for i2c developed by
-|> the lm-sensors people (i guess). this document
-|> (http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/doc/chips/SUMMARY)
-|> refers some smartbattery support, but i don't think it solves our
-|> problem.
-|
-|
-| I cant get the detect-thingies to see any i2c-bus and Im not aware of
-| any sensorchip in my laptop (but I would be happy to be proven wrong).
-|
+ nc> Something like printk :> It wouldn't work with suspending because
+ nc> we're overwriting such buffers when copying the original kernel
+ nc> back (with the contents from suspend-time). Furthermore, it won't
+ nc> help if you get such a crash because you're never going to start
+ nc> syslogd and get the data written.
 
-again i should have explained myself better... my laptop can see 5
-busses... although i cannot yet interpret that information well. anyway,
-what i wanted to ask was: should we be using some of the sensors code?
+I agree that it would not help in all cases.
 
-|> 2. what exactly should the i2c driver do? should it just know the
-|> smartbattery address and ask generic questions made by userland
-|> programs? or should it do all the work and retrive charge rates and
-|> capacity information and such?
-|
-|
-| I think it should publish as much generic info (info thats avaible on
-| all smartbatteries) as possible into sysfs.
+In this case it would have helped, though. The machine is running,
+syslog is doing its job -- that is how I got the sysrq-T output.
 
-agree. then useland programs could use that information. but i see a
-pitfall here... if it is so, how will it be hooked into ACPI?
+So if kbd had support for that, we could have saved ourselves the
+trouble of taking a photograph of the screen and mailing that around.
 
-[]
+Speaking of which: Since you told me that you did not see it, I just
+resent it, please let me know whether it reaches you this time.
+
+Regards,
+Georg
+
+-- 
+Georg C. F. Greve                                       <greve@gnu.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
+
+--20041006122243+0200-3026523736900844-7630649
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFBY9xyeRy7HWZxjWERAtW9AKCI/UBkin8Q+U/xiYAuX/Vkv0adogCeLsH6
-t1/108wqCrKYGP6bRWrWwXc=
-=54Fs
+iD8DBQBBY8dzbvivwoZXSsoRAiXXAKC2FFo4xcjvzNH80eMgclCQ2pG/LgCeN41H
+V/A+S8HWcHSd3uNZz4Bk2EQ=
+=7Yty
 -----END PGP SIGNATURE-----
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+--20041006122243+0200-3026523736900844-7630649--
