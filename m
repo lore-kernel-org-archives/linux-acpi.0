@@ -1,14 +1,11 @@
-From: Matthew Tippett <matthew.tippett-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org>
-Subject: Re: Battery Oops - more information
-Date: Mon, 09 Dec 2002 22:15:43 -0500
+From: NoZizzing OrDripping <nozizzingordripping-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI trouble (AC module, etc.) with Toshiba 1115-S103
+Date: Mon, 9 Dec 2002 22:59:22 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DF55C5F.1070507@sympatico.ca>
-References: <3DF4E748.3080300@casero.com>
+Message-ID: <20021210065922.31967.qmail@web14512.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="0-2109705957-1039503562=:31169"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3DF4E748.3080300-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,177 +17,101 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Further to this email, who would be the best person to discuss this with 
-to come to a resolution which is already affecting a number of people on 
-this list?
+--0-2109705957-1039503562=:31169
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Andrew?  (Although you seem to busy trying to get the latest ACPI into 
-2.4.21)
+Sorry, I have to send to this list from my Yahoo
+account. Mail body attached as file to prevent wrap.
 
-Regards,
+__________________________________________________
+Do you Yahoo!?
+Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
+http://mailplus.yahoo.com
+--0-2109705957-1039503562=:31169
+Content-Type: text/plain; name="report1.txt"
+Content-Description: report1.txt
+Content-Disposition: inline; filename="report1.txt"
 
-Matthew
+
+Status report for Toshiba Satellite 1115-S103 laptop....
+
+Just tried 2.4.20 + acpi-20021205-2.4.20.diff with a Toshiba Satellite
+1115-s103 laptop (new model, BIOS is "first production release", dated
+11/01/2002, street price is between $650 and $1000, depending on
+rebates).  Built it all-modular and with debug messages.
+
+	$ ls /lib/modules/*20/kernel/drivers/acpi
+	ac.o  battery.o  button.o  fan.o  processor.o  thermal.o  toshiba_acpi.o
+
+	$ root modprobe battery; dmesg
+	ACPI: Battery Slot [BAT1] (battery present)
+
+The module loaded and the Gnome battery monitor seems to work.  Pulled
+AC power and watched battery drain down to 8%, then plugged AC back
+in and watched it recharge.
+
+	$ root modprobe ac; dmesg
+
+	exfldio-0122 [31] Ex_setup_region       : Field [ACPW] Base+Offset+Width 38+0+4 is beyond end of region [GPIO] (length 3B)
+	psparse-1103: *** Error: Method execution failed [\_SB_.PCI0.LPCB.ACAD._PSR] (Node c1671948), AE_AML_REGION_LIMIT
+	acpi_ac-0083 [15] acpi_ac_get_state     : Error reading AC Adapter state
+
+The AC module gives the above error message.  No files appear under
+/proc/acpi/ac_adapter.  The Gnome battery status monitor always
+indicates the laptop is on battery power.
+
+Interestingly enough, my only previous ACPI experience was with the
+stock Redhat 2.4.18 kernel recompiled with non-modular ACPI turned on.
+In that case, the AC status worked, but the battery status was flaky.
+
+	$ root modprobe processor; dmesg
+
+	ACPI: Processor [CPU0] (supports C1 C2, 8 throttling states)
+
+	$ root modprobe button; dmesg
+
+	ACPI: Power Button (FF) [PWRF]
+	ACPI: Lid Switch [LID]
+
+	$ root modprobe fan; dmesg
+
+	[ no output]
+
+	$ root modprobe thermal; dmesg
+
+	[ no output]
+
+Dunno if any of the above stuff works.
+
+	$ root modprobe toshiba_acpi
+
+	/lib/modules/2.4.20/kernel/drivers/acpi/toshiba_acpi.o: init_module: No such device
+	Hint: insmod errors can be caused by incorrect module parameters, including invalid IO or IRQ parameters.
+	      You may find more information in syslog or the output from dmesg
+	/lib/modules/2.4.20/kernel/drivers/acpi/toshiba_acpi.o: insmod /lib/modules/2.4.20/kernel/drivers/acpi/toshiba_acpi.o failed
+	/lib/modules/2.4.20/kernel/drivers/acpi/toshiba_acpi.o: insmod toshiba_acpi failed
+
+Dunno if this was supposed to work or not.  The laptop has an extremely
+limited BIOS, you cannot change very much at all with it.
 
 
-Matthew Tippett wrote:
-> A little bit more research yeilds, that it is only when the battery is 
-> in when the oops occurs.
-> 
-> System is
-> 
->     Dell i8200/BIOS A7/two batteries/Debian/2.4.20 - from debian
-> 
-> Modprobe works.
-> 
->     # modprobe battery
->     ACPI: Battery Slot [BAT0] (battery absent)
->     ACPI: Battery Slot [BAT1] (battery absent)
-> 
-> So that worked.
-> 
-> Lots more below, so I will finish the body of the email here.  I have 
-> attached my dsdt (since that seems to be the norm).  If there is 
-> anything else that I can do, give me an email.
-> 
-> Matt
-> 
-> 
-> Insert battery...  Kernel Oops
-> 
->     ACPI-0189: *** Warning: Buffer created with zero length in AML
-> Unable to handle kernel NULL pointer dereference at virtual address
-> 00000010
->  printing eip:
-> c016d13a
-> *pde = 00000000
-> Oops: 0002
-> CPU:    0
-> EIP:    0010:[<c016d13a>]    Tainted: P
-> EFLAGS: 00210246
-> eax: 00000000   ebx: 00000000   ecx: cff38400   edx: c033b478
-> esi: cf1dbc00   edi: cff346c0   ebp: c87acd40   esp: c78c3d40
-> ds: 0018   es: 0018   ss: 0018
-> Process kacpidpc (pid: 19941, stackpage=c78c3000)
-> Stack: c27dde00 c87acd40 00000000 c5ab55b4 c016d227 c87acd40 c87acd40 
-> 00000000
->        00000000 c01755c4 c27dde00 c5ab55b4 c5ab5400 c5ab5400 00000010 
-> 00000000
->        c0175661 c5ab55b4 c5ab5400 c5ab55b4 00000000 c016da06 c5ab55b4 
-> c5ab5400
-> Call Trace:    [<c016d227>] [<c01755c4>] [<c0175661>] [<c016da06>] 
-> [<c016df70>]
->   [<c017ad75>] [<c01804f4>] [<c018169b>] [<c017f759>] [<c016ef99>] 
-> [<c017b13a>]
->   [<c017ba56>] [<c017813b>] [<c01780be>] [<c0177f85>] [<c01804f4>] 
-> [<c0180577>]
->   [<c017966c>] [<d1a29d76>] [<d1a290d3>] [<d1a29d76>] [<d1a29d68>] 
-> [<d1a293bc>]
->   [<d1a29b71>] [<c016fb9d>] [<c016b626>] [<c0105578>] [<c016fb38>]
-> 
-> Code: 89 68 10 57 e8 1d e7 00 00 6a 37 e8 b2 e4 00 00 89 c7 83 c4
-> 
-> 
-> Running this through ksymoops.
-> 
-> EFLAGS: 00210246
-> eax: 00000000   ebx: 00000000   ecx: cff38400   edx: c033b478
-> esi: cf1dbc00   edi: cff346c0   ebp: c87acd40   esp: c78c3d40
-> ds: 0018   es: 0018   ss: 0018
-> Process kacpidpc (pid: 19941, stackpage=c78c3000)
-> Stack: c27dde00 c87acd40 00000000 c5ab55b4 c016d227 c87acd40 c87acd40 
-> 00000000
->        00000000 c01755c4 c27dde00 c5ab55b4 c5ab5400 c5ab5400 00000010 
-> 00000000
->        c0175661 c5ab55b4 c5ab5400 c5ab55b4 00000000 c016da06 c5ab55b4 
-> c5ab5400
-> Call Trace:    [<c016d227>] [<c01755c4>] [<c0175661>] [<c016da06>] 
-> [<c016df70>]
->   [<c017ad75>] [<c01804f4>] [<c018169b>] [<c017f759>] [<c016ef99>] 
-> [<c017b13a>]
->   [<c017ba56>] [<c017813b>] [<c01780be>] [<c0177f85>] [<c01804f4>] 
-> [<c0180577>]
->   [<c017966c>] [<d1a29d76>] [<d1a290d3>] [<d1a29d76>] [<d1a29d68>] 
-> [<d1a293bc>]
->   [<d1a29b71>] [<c016fb9d>] [<c016b626>] [<c0105578>] [<c016fb38>]
-> Code: 89 68 10 57 e8 1d e7 00 00 6a 37 e8 b2 e4 00 00 89 c7 83 c4
-> 
-> 
->  >>EIP; c016d13a <acpi_ds_execute_arguments+8a/118>   <=====
-> 
->  >>ecx; cff38400 <_end+fbdae78/104bead8>
->  >>edx; c033b478 <acpi_gbl_acpi_mutex_info+98/a0>
->  >>esi; cf1dbc00 <_end+ee7e678/104bead8>
->  >>edi; cff346c0 <_end+fbd7138/104bead8>
->  >>ebp; c87acd40 <_end+844f7b8/104bead8>
->  >>esp; c78c3d40 <_end+75667b8/104bead8>
-> 
-> Trace; c016d227 <acpi_ds_get_buffer_arguments+23/34>
-> Trace; c01755c4 <acpi_ex_resolve_node_to_value+94/f0>
-> Trace; c0175661 <acpi_ex_resolve_to_value+41/50>
-> Trace; c016da06 <acpi_ds_resolve_operands+26/38>
-> Trace; c016df70 <acpi_ds_exec_end_op+100/260>
-> Trace; c017ad75 <acpi_ps_parse_loop+5ed/958>
-> Trace; c01804f4 <acpi_ut_update_object_reference+214/254>
-> Trace; c018169b <acpi_ut_release_mutex+7f/88>
-> Trace; c017f759 <acpi_ut_release_to_cache+89/94>
-> Trace; c016ef99 <acpi_ds_delete_walk_state+99/a0>
-> Trace; c017b13a <acpi_ps_parse_aml+5a/1b0>
-> Trace; c017ba56 <acpi_psx_execute+166/1c0>
-> Trace; c017813b <acpi_ns_execute_control_method+53/70>
-> Trace; c01780be <acpi_ns_evaluate_by_handle+86/b0>
-> Trace; c0177f85 <acpi_ns_evaluate_relative+b5/d0>
-> Trace; c01804f4 <acpi_ut_update_object_reference+214/254>
-> Trace; c0180577 <acpi_ut_remove_reference+23/2c>
-> Trace; c017966c <acpi_evaluate_object+114/1e0>
-> Trace; d1a29d76 <[battery]__module_author+0/2a>
-> Trace; d1a290d3 <[battery]acpi_battery_get_info+73/138>
-> Trace; d1a29d76 <[battery]__module_author+0/2a>
-> Trace; d1a29d68 <[battery]__module_kernel_version+8/16>
-> Trace; d1a293bc <[battery]acpi_battery_check+80/fc>
-> Trace; d1a29b71 <[battery]acpi_battery_notify+45/68>
-> Trace; c016fb9d <acpi_ev_notify_dispatch+65/74>
-> Trace; c016b626 <acpi_os_queue_exec+3e/50>
-> Trace; c0105578 <kernel_thread+28/38>
-> Trace; c016fb38 <acpi_ev_notify_dispatch+0/74>
-> 
-> Code;  c016d13a <acpi_ds_execute_arguments+8a/118>
-> 00000000 <_EIP>:
-> Code;  c016d13a <acpi_ds_execute_arguments+8a/118>   <=====
->    0:   89 68 10                  mov    %ebp,0x10(%eax)   <=====
-> Code;  c016d13d <acpi_ds_execute_arguments+8d/118>
->    3:   57                        push   %edi
-> Code;  c016d13e <acpi_ds_execute_arguments+8e/118>
->    4:   e8 1d e7 00 00            call   e726 <_EIP+0xe726>
-> Code;  c016d143 <acpi_ds_execute_arguments+93/118>
->    9:   6a 37                     push   $0x37
-> Code;  c016d145 <acpi_ds_execute_arguments+95/118>
->    b:   e8 b2 e4 00 00            call   e4c2 <_EIP+0xe4c2>
-> Code;  c016d14a <acpi_ds_execute_arguments+9a/118>
->   10:   89 c7                     mov    %eax,%edi
-> Code;  c016d14c <acpi_ds_execute_arguments+9c/118>
->   12:   83 c4 00                  add    $0x0,%esp
-> 
-> 
-> So hopefully that helps people a little bit more.
-> 
-> 
-> -----
-> 
-> The information contained in this message is proprietary of Casero Inc.,
-> protected from disclosure, and may be privileged. The information is
-> intended to be conveyed only to the designated recipient(s) of the
-> message. If the reader of this message is not the intended recipient,
-> you are hereby notified that any dissemination, use, distribution or
-> copying of this communication is strictly prohibited and may be
-> unlawful. If you have received this communication in error, please
-> notify us immediately by replying to the message and deleting it from
-> your computer. Thank you.
+Fooled around abit, unloaded battery.o and tried to reload it,
+but system locked up.
+
+BTW, I am willing to try additional patches, etc, to help get ACPI
+solid in general and specifically on this laptop.
+
+-Rick
+
 
 -- 
-Matthew Tippett - matthew.tippett-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org - (416) 435-4118
-Technology Forum - http://www.technology-forum.org/
-Commercial Open Source - http://www.commercialos.org/
+Rick Richardson  rickr-EySxSuIQeMUAvxtiuMwx3w@public.gmane.org        http://home.mn.rr.com/richardsons/
+Stock information at your fingertips:   http://linuxtrade.0catch.com/
 
+"@%#$^@&" - Ozzy Osbourne
+
+--0-2109705957-1039503562=:31169--
 
 
 -------------------------------------------------------
