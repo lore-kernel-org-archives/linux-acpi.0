@@ -1,14 +1,14 @@
-From: Proinnsias Breathnach <proinnsias-cv59FeDIM0c@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: Suspend-to-RAM on Sony Vaios
-Date: Wed, 20 Oct 2004 10:45:31 +0100
+Date: Mon, 18 Oct 2004 13:26:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041020094531.GI13662@butler.project-bob.home>
-References: <88056F38E9E48644A0F562A38C64FB600323619D@scsmsx403.amr.corp.intel.com> <20041019164702.GB25753@hottah.alcove-fr>
+Message-ID: <20041018112632.GB4400@openzaurus.ucw.cz>
+References: <20041018020816.48673359@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20041019164702.GB25753-Snhs3Gxj9njPHUqn3ntIkQ@public.gmane.org>
+In-Reply-To: <20041018020816.48673359-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,44 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 19, 2004 at 06:47:02PM +0200, Luc Saillard wrote:
-> On Tue, Oct 19, 2004 at 09:32:56AM -0700, Pallipadi, Venkatesh wrote:
->  
-> > Which graphics controller do you have?
-> Radeon Mobility M6
-> > Are you using framebuffer with text console or simple VGA?
-> no framebuffer, pure text console, and radeon graphics driver with xfree86.
-> > Can you try acpi_sleep boot options (refer
-> > Documentation/power/video.txt) for text console suspend-resume.
-> Ok i'll try to call vga bios...
-> 
-Not sure this'll be much help - but something I was referred to on a
-site about getting S3 working on a Dell D600 might be useful:
+Hi!
 
-http://www.loria.fr/~thome/d600/
+Please wrap your messages at column 72
 
-There's a patch there for the radeonFB that may solve your problem
+> Specifically: Once it's suspended, it seems dead except for a slowly blinking red power LED. When I press any button or key, it goes completely dead, requiring the battery to be taken out and reinserted before it'll even respond to the power button. Between those two states (blinking LED and completely dead) there is no indication whatsoever that it even tries to wake up - the LED simply stops blinking the moment I touch a key.
+>
 
--------------8<--------------
-"The radeonfb patch does a real-mode call to the video bios, so that the
-radeon performs the necesssary resume code when returning from sleep.
-This is done from within the kernel, but has to be done at the proper
-point, namely after PCI is reinitialized (which happens in protected
-mode, so another pmode/rmode switch happens). There is nothing
-radeon-specific in this code, but it's triggered from the radeon frame
-buffer driver. You may insert a similar call from the vesa frame buffer
-driver to obtain similar results for a wide range of cards (unless I'm
-mistaken, this has pretty good chances of working). The radeon frame
-buffer driver must be built into the kernel, and not built as a module,
-since it must take over the console as early as possible."
--------------8<--------------
+If battery needs to be reinserted, complain to sony. They have hw bug in there.
 
-Might be useful to some ...
+For debugging techniques... There's beeping patch from me floating around.
 
-P
+
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
