@@ -1,14 +1,13 @@
-From: Jim Summers <jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org>
-Subject: Re: Learning ACPI
-Date: Mon, 31 Jan 2005 08:17:57 -0600
-Message-ID: <41FE3E15.5060705@cs.ou.edu>
-References: <41FA9F93.4090105@cs.ou.edu> <20050129161334.GA28055@hell.org.pl>
-Reply-To: jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATHC] Relaxed syntax for the processor PBLK length
+Date: Mon, 31 Jan 2005 15:58:36 +0100
+Message-ID: <20050131145836.GA1145@poupinou.org>
+References: <41FD3E02.8010701@tremplin-utc.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20050129161334.GA28055-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41FD3E02.8010701-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,38 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: Listacpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Eric Piel <Eric.Piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Karol Kozimor wrote:
-> Thus wrote Jim Summers:
+On Sun, Jan 30, 2005 at 09:05:22PM +0100, Eric Piel wrote:
+> Hello,
 > 
->>I guess I am not understanding how, if the acpid is correctly monitoring 
->>the lid state then why would it not fire the events/actions?  I can 
->>porvide more info, dmesg output etc...
+> In the original DSDT of my laptop (Acer TravelMate 614) the processor 
+> PBLK length is declared to be 5. The legal and only allowed value is 6. 
+> This is an error in the DSDT and actually it is 6. Allowing Linux ACPI 
+> to read also processor PBLK length of 5 works and permits the processor 
+> to have the C-states correctly detected. In turn it allows the processor 
+> to get less hot (so this is eventually useful).
 > 
+> I've noticed that some other Acer DSDT also have this length 
+> mis-indicated. The attached patch adds some logic to the ACPI to allow a 
+> processor PBLK length of 5 when the syntax is relaxed.
 > 
-> Basically, the lid stat is polled, while the events are interrupt driven.
-> For the record, could you try with an older ( <= 2.6.7) kernel?
 
-I will give it a go.  If it works in 2.6.7 what would have gotten lost 
-in 2.6.10?
+You should consider to disable C3 in this case IMHO.
 
-I have not applied the 2005-01-26 patch for 2.6.10.  Could that fix the 
-lost interrupt issue?
-
-TIA
-
-  There seems
-> to be an issue in handling EC interrupts in recent kernels, it might be
-> that.
-> Best regards,
-> 
+Thanks,
 
 -- 
-Jim Summers
-School of Computer Science-University of Oklahoma
--------------------------------------------------
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
