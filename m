@@ -1,13 +1,10 @@
-From: Jochen Streicher <bumkunjo-Mmb7MZpHnFY@public.gmane.org>
-Subject: IBM Thinkpad A Series - new bios is out w. fixed ECDT table
-Date: Sat, 29 Mar 2003 12:28:37 +0100
+From: "Tomasz Torcz, BG" <zdzichu-YxaM2a6SwlU@public.gmane.org>
+Subject: [acpid] corrected acpi_handler.sh
+Date: Sat, 29 Mar 2003 12:59:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200303291228.38009.bumkunjo@gmx.de>
-Reply-To: bumkunjo-Mmb7MZpHnFY@public.gmane.org
+Message-ID: <20030329115910.GA10257@irc.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -21,9 +18,54 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hope I can switch back to ACPI now, couldn't use latest ACPI for 5 moths...
 
-Greetings, JS
+Hi,
+
+I've corrected acpi_handler.sh to work with 2.4.x and 2.5.x kernels.
+Name of powerbutton event has changed. My motherboard is Matsonic 7132A,
+on VIA Apollo Pro+ 133 chipset.
+
+This is my acpi_handler.sh (note, that I've changed powerbutton event
+in 2.5.x part to suit my needs):
+
+#v+
+
+#!/bin/sh
+# Default acpi script that takes an entry for all actions
+
+set $*
+
+case "$1" in
+	# ACPI in 2.4.x
+	button)
+		case "$2" in
+			power)	 /sbin/init 0
+				;;
+			*)	logger "ACPI action $2 is not defined"
+				;;
+		esac
+		;;
+	# ACPI in 2.5.x
+	button/power)
+		case "$2" in
+			PWRF)	hdparm -W0 /dev/hdd;
+				ifconfig eth0 down;
+				echo 4 > /proc/acpi/sleep;
+				ifconfig eth0 up;
+				;;
+			*)      logger "ACPI action $2 is not defined"
+				;;
+		esac
+		;;
+	*)
+		logger "ACPI group $1 / action $2 is not defined"
+		;;
+esac
+#v-
+
+-- 
+Tomasz Torcz               RIP is irrevelant. Spoofing is futile.
+zdzichu-X3HQ1c18OqI0iLA60pu2Z2ZHpeb/A1Y/@public.gmane.org     Your routes will be aggreggated.
 
 
 -------------------------------------------------------
