@@ -1,15 +1,15 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
-Date: Wed, 30 Mar 2005 13:53:25 +0800
-Message-ID: <200503301353.25492.luming.yu@intel.com>
-References: <200503291156.19112.rjw@sisk.pl>
+Subject: Re: Re: [BKPATCH] ACPI for 2.6.12-rc1
+Date: Wed, 30 Mar 2005 14:09:00 +0800
+Message-ID: <200503301409.00785.luming.yu@intel.com>
+References: <1111127024.9332.157.camel@d845pe> <20050319215239.GA5105@rukbat.dea.icai.upco.es> <20050329081321.GA4133@pern.dea.icai.upco.es>
 Reply-To: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="gb18030"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200503291156.19112.rjw-KKrjLPT3xs0@public.gmane.org>
+In-Reply-To: <20050329081321.GA4133-NfIQswJzSEaq9fEpoSJUslHdEuJhDOxL@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,30 +20,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 29 March 2005 17:56, Rafael J. Wysocki wrote:
-> Hi,
+On Tuesday 29 March 2005 16:13, Romano Giannetti wrote:
+>  This is to report an issue with 2.6.11 and ACPI battery/ac. The resume is:
+>  acpi battery with preemptive kernel do not work, while the same kernel
+> with no preempt works ok. I have tried to collect all the possible info;
+> tell me if you need something more.
 >
-> There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI
-> battery driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery
-> monitor that I use (the kpowersave applet from SUSE 9.2) is no longer able
-> to report the battery status (ie how much % it is loaded).  It can only
-> check if the AC power is connected (if it is connected, kpowersave behaves
-> as though there was no battery in the box, and if it is not connected,
-> kpowersave always shows that the battery is 1% loaded).
+>  The details:
 >
-> Also, there are big latencies on loading and accessing the battery module,
-> but the module loads successfully and there's nothing suspicious in dmesg.
->
-> Please let me know if you need any additional information.
->
-> Greets,
-> Rafael
+>  The working kernel is 2.6.11 with the patch from the acpi-devel list to
+> fix acpi keys (not working otherwise). See for a description
+>  http://bugme.osdl.org/show_bug.cgi?id=4124
 
-Could you just revert ec-mode patch, then retest? 
+If you can find AE_AML_BUFFER_LIMIT in your long, then, it should be 
+interpreter bug.  please see http://bugzilla.kernel.org/show_bug.cgi?id=4150
+Otherwise, maybe it is related to EC driver.
 -- 
 Thanks,
 Luming
