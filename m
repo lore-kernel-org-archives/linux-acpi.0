@@ -1,83 +1,56 @@
-From: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: ACPI HOWTO
-Date: Wed, 19 May 2004 09:47:59 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B774920D825C2D4880A3C1B0D6EF94189E7BE3@ssdmx.ssd.fsi.com>
+From: Len Brown <len.brown@intel.com>
+Subject: [BKPATCH] ACPI for 2.4
+Date: 20 May 2004 02:14:14 -0400
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1085033653.12359.484.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264984AbUETGO2@vger.kernel.org>
+To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I took a look and it was about the same as last time I looked.
-It had specialized articles on things like DSDT.  I followed the
-link to ACPI4Linux home then to documentation then to existing
-ACPI HOWTOs.  All HOWTOs seemed to lack what I was hoping to find
-(in my provided outline in original list response).
+Hi Marcelo, please do a 
 
-John also seemed this was lacking, i.e.,
+	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.27
 
-> On Mon, May 17, 2004 at 08:13:05PM -0400, John Belmonte wrote:
-> > Certainly ACPI is a complex system, and transitioning from APM is=20
-> > difficult.  These topics are worthy of documentation=20
-> efforts like yours.=20
-> >  However, it may be better to start such a document with=20
-> "Be sure you=20
-> > are using the latest 2.4 or 2.6 kernel", provide a reference to=20
-> > documents which may assist users in upgrading their kernel,=20
-> and focus on=20
-> > ACPI configuration and troubleshooting itself.
+thanks,
+-Len
 
-What I think would be ideal would be to have the experts iron out
-the outline I provided; move and add things so that the organization
-hangs together better.  Then perhaps put this as the "living" ACPI
-HOWTO on the wiki page you suggested.
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.27/acpi-20040326-2.4.27.diff.gz
 
-> -----Original Message-----
-> From: Bruno Ducrot [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]=20
-> Sent: Tuesday, May 18, 2004 10:37 AM
-> To: Rockefeller, Harry
-> Cc: acpi
-> Subject: Re: [ACPI] ACPI HOWTO
->=20
-> On Tue, May 18, 2004 at 09:50:53AM -0500, Rockefeller, Harry wrote:
-> > Several tech HowTos are maturing via direct input from users using
-> > a wiki of some sort.  The ones I have used and seen however
-> > suffer from poor organization.
-> >=20
-> > I would suggest readers of this group pound out some kind of
-> > a framework (outline?) that someone could host on a wiki where
-> > everyone/anyone can ask questions and provide answers.
-> >=20
-> > So, here is my attempt at getting it started:
-> ...
->=20
-> Basically, you are describing
-> <http://acpi.sourceforge.net/wiki/index.php>, aren't you?
->=20
->=20
-> --=20
-> Bruno Ducrot
->=20
-> --  Which is worse:  ignorance or apathy?
-> --  Don't know.  Don't care.
->=20
->=20
+This will update the following files:
 
+ arch/x86_64/kernel/io_apic.c |    3 ++-
+ drivers/acpi/Makefile        |    2 +-
+ drivers/acpi/ac.c            |    2 ++
+ drivers/acpi/asus_acpi.c     |   24 ++++++++++++++++++++++++
+ drivers/acpi/battery.c       |    6 ++++++
+ drivers/acpi/bus.c           |   14 +++-----------
+ drivers/acpi/button.c        |   17 +++++++++--------
+ drivers/acpi/ec.c            |    6 ++++++
+ drivers/acpi/fan.c           |    2 ++
+ drivers/acpi/power.c         |    2 ++
+ drivers/acpi/thermal.c       |   10 ++++++++++
+ 11 files changed, 67 insertions(+), 21 deletions(-)
 
--------------------------------------------------------
-This SF.Net email is sponsored by: SourceForge.net Broadband
-Sign-up now for SourceForge Broadband and get the fastest
-6.0/768 connection for only $19.95/mo for the first 3 months!
-http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
+through these ChangeSets:
+
+<len.brown@intel.com> (04/05/18 1.1359.6.21)
+   [ACPI] remove /proc files before unloading modules
+   from Sau Dan Lee, Zhenyu Wang
+   http://bugzilla.kernel.org/show_bug.cgi?id=2705
+
+<len.brown@intel.com> (04/05/18 1.1359.6.20)
+   [ACPI] revert button module unload fix (OSDL 2281)
+   Cset exclude: len.brown@intel.com|ChangeSet|20040504154434|56458
+   Cset exclude: len.brown@intel.com|ChangeSet|20040428081912|57065
+   Cset exclude: len.brown@intel.com|ChangeSet|20040428054017|55837
+
+<len.brown@intel.com> (04/05/14 1.1359.6.19)
+   [ACPI] delete IOAPIC-disable workaround on x86_64/VIA
+   BTW. looks like 2.6 has an IOMMU disable workaround here that may be
+needed or VIA in 2.4.
+   http://bugme.osdl.org/show_bug.cgi?id=1530
