@@ -1,14 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ASL fixing questions
-Date: Fri, 13 Feb 2004 05:40:14 +0100
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Compaq EVO n1000c: Missing battery status
+Date: Fri, 13 Feb 2004 13:45:12 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040213044014.GG13262@poupinou.org>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB6AF@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6B3@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB6AF-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,42 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas.Sjolshagen-VXdhtT5mjnY@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 13, 2004 at 12:08:10PM +0800, Yu, Luming wrote:
-> > >         Name (_PSS, Package (0x03) // 102 (206)
-> > >         {
-> > >             Package (0x06)
-> > >             {
-> > >                 0x08070000,
-> > >                 0xB36A0000,
-> > >                 0x7D000000,
-> > >                 0x09000000,
-> > >                 0x8A2920E0,
-> > >                 0x8A010000
-> >                   ^^^^^^^^^^
-> > 		  I think that all of those
-> > 		  values are broken, because
-> > 		  they are stored in a little bit
-> > 		  order.
-> > 		  It should be in fact, at least for the that
-> > 		  first package:
-> 
-> I'm curious how you can get such conclusion. ACPI spec
-> just state there should be 6 DWordConst for each Performance
-> State Definition Package.  
-> 
+> ACPI: Subsystem revision 20040116
+> ACPI: IRQ9 SCI: Edge set to Level Trigger.
+>     ACPI-1120: *** Error: Method execution failed
+> [\_SB_.C03B.C04E.C0CF.C0D3] (Node c157dcc0), AE_NOT_EXIST
+>     ACPI-1120: *** Error: Method execution failed
+> [\_SB_.C03B.C04E.C0CF._INI] (Node c157b4c0), AE_NOT_EXIST
+> ACPI: Interpreter enabled
+>=20
+> It seems to me that the problem may be the inclusion of the trailing
+> underscore for "_SB"? (as seen in the dmesg output)? I've=20
+> been unable to
+> locate a "_SB_" string anywhere in my disassembled .dsl file.  =20
+>=20
 
-The first one is 0x08070000 which means that this processor can
-run at 134676480 MHz, which (I think) is a little bit to high.
+You can confirm it by overriding DSDT with your hacked one.
 
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+--Luming=20
 
 
 -------------------------------------------------------
