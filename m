@@ -1,10 +1,10 @@
-From: Deman <deman2k-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: DSDT for Compaq Presario 2538AP
-Date: Thu, 3 Feb 2005 02:17:21 +0000 (UTC)
-Message-ID: <loom.20050203T031252-840@post.gmane.org>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: C2/C3 don't do anything
+Date: Wed, 2 Feb 2005 19:46:40 -0800
+Message-ID: <20050203034639.GA29164@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,18 +17,38 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi all,
 
-I'm running Compaq Presario 2538AP. It seem that the battery status is not 
-updated (or sometimes intermittent). 
+I've been playing with Dynamic Tick, where the system timer is
+stopped for the idle ticks. This allows the system to stay in sleep
+mode inbetween the skipped ticks. [1] The most recent patch for
+dynamic-tick is [2]
 
-I suspect that this was due to DSDT used by ACPI during booting is the one with 
-MSFT. Anybody have the same laptop model? What's solution you have?
+This works fine on ARM OMAP, but on my i386 boxes I've noticed that
+only hlt works, C2 and C3 just spin in a busy loop and consume more
+power than C1 with hlt!
 
-Thanks.
+I've done an idle module few years ago that enables C2 for dual
+Athlon boxes [3], and that involved enabling it in the southbridge.
 
-- deman
+I thought the current ACPI code enables this already? But it does
+not seem to be the case?
 
+Should we have some extra code to scan the southbridges, or what is
+the official way of handling that? It would be nice to get it
+enabled...
+
+At least my Crusoe based laptop with ALi 1533 chipset and Ali M7101
+PMU does not get enabled. (Does anybody have docs to enable it on
+1533/1535/7101???)
+
+Cheers,
+
+Tony
+
+[1] http://lkml.org/lkml/2005/1/27/270
+[2] http://lkml.org/lkml/2005/1/27/270
+[3] http://muru.com/linux/amd-smp-idle/
 
 
 -------------------------------------------------------
