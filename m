@@ -1,14 +1,13 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Subject: Re: keylock regression with i8042 + S3 resume
-Date: Mon, 15 Nov 2004 09:11:09 -0500
-Message-ID: <d120d50004111506116f9c2f3f@mail.gmail.com>
-References: <4197F388.2050701@optonline.net>
-Reply-To: dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org
+Date: Mon, 15 Nov 2004 09:58:25 -0500
+Message-ID: <4198C411.4070705@optonline.net>
+References: <88056F38E9E48644A0F562A38C64FB600356939A@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4197F388.2050701-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+In-reply-to: <88056F38E9E48644A0F562A38C64FB600356939A-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,32 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 14 Nov 2004 19:08:40 -0500, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org> wrote:
-> Hi,
-> 
-> Ever since upgrading from a 2.6.9-rc1 era bitkeeper snapshot to a
-> 2.6.10-rc1 era snapshot, the keyboard is nonfunctional after resume from
-> S3 and the kernel prints this message on resume:
-> i8042.c: Warning: Keylock active.
-> 
-> Anybody know anything about this?
-> 
+Pallipadi, Venkatesh wrote:
 
-HI,
+>I had some problem with S3 resume and keyboard and I nailed down to this
+>changeset
+>
+>http://linux.bkbits.net:8080/linux-2.6/cset@40fc9c34Uv8lvE8IkEDy5dqjDzb_
+>Kw?nav=index.html|src/.|src/drivers|src/drivers/input|src/drivers/input/
+>serio|related/drivers/input/serio/i8042.c 
+>
+>But, it was not a consistent failure and I only saw it once in a while.
+>
+>HTH,
+>Venki
+>
+For me, it's pretty consistent. Will work on Dmitry's debug options later.
+Nathan
 
-Could you change #undef DEBUG into #define DEBUG in
-drivers/input/serio/i8042.c, recompile and reboot passing
-log_buf_len=131072 option to the kernel. Then suspend,
-resume and save full dmesg somewhere and send it to me.
-
-Thanks! 
-
--- 
-Dmitry
 
 
 -------------------------------------------------------
