@@ -1,12 +1,12 @@
-From: "Neil Rosario" <jzdmfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Bachelor's Diploma, Master's, or PhD - No Classes Necessary...daphne
-Date: Sat, 15 Nov 2003 21:38:58 -0400
+From: "Bennie Erwin" <h73mgzfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Bachelor's Diploma, Master's, or PhD - No Classes Necessary...benard
+Date: Sun, 16 Nov 2003 03:25:42 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pz2$$w$u-b11t48-03w$lw1-n-r@4q2fx>
-Reply-To: "Neil Rosario" <jzdmfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <inv6$-12s7n7ve0j2g6-igq@z2z5.kr.39>
+Reply-To: "Bennie Erwin" <h73mgzfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="E.B.._08.A"
+	boundary="BB1CD20AB_A._4F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,11 +17,10 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: jeditea6-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---E.B.._08.A
+--BB1CD20AB_A._4F
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
@@ -155,14 +154,13 @@ No more, thanks: http://44rr5f.com
 
 
 
-yjpm ul v
+mtqc wtkhjtqtw nwasfnlon mxzt
+enfckhgxmg w
+gghrcefr 
+advoh  hcrkpu
+uthspzg nnt
 
-p a oqsry
-kvjx
-mqye 
-nodcdd
-
---E.B.._08.A--
+--BB1CD20AB_A._4F--
 
 
 
