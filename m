@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Subject: Re: smartbattery support
-Date: Thu, 7 Oct 2004 11:41:10 +0200
+Date: Thu, 07 Oct 2004 13:33:48 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041007094109.GA534@openzaurus.ucw.cz>
-References: <41630B6D.2000107@mega.ist.utl.pt>
+Message-ID: <416537AC.1010304@mega.ist.utl.pt>
+References: <41630B6D.2000107@mega.ist.utl.pt> <20041007094109.GA534@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <41630B6D.2000107-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+In-Reply-To: <20041007094109.GA534-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,32 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> i decided to change the subject so that the thread could more easily 
-> be followed by others.
-> 
-> i read some things also, but i disagree with christian. i think that 
-> smbus patch is not the way to go. don't get me wrong! i'm also just 
-> scratching the surface. for what i read, those patches put smbus bios 
-> support into the kernel.
+i have joined the lmsensors mailing list and the sbs-forum to get some
+more help but i'm still waiting for feedback there, so... mean while
+i'll just study i2c protocols.
 
-Agreed, we do not want to touch BIOS.
+i'm thinking in writing a sensor driver to read the battery information
+and then a userland program could format it and do whatever it likes.
 
-> 2. what exactly should the i2c driver do? should it just know the 
-> smartbattery address and ask generic questions made by userland 
-> programs? or should it do all the work and retrive charge rates and 
-> capacity information and such?
+as far as acpi goes, i still need some information on how will the i2c
+driver be plugged into the ACPI framework.
 
-I believe doing all the work is right.
+regards,
+pedro venda.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+iD8DBQFBZTeseRy7HWZxjWERAhruAKD2+1WfdGmnVTK0D193UI/0McnRqwCcCWwL
+xJ8po5VdwLyS2/pMP25drh8=
+=dQP1
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
