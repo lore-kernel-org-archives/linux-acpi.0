@@ -1,8 +1,8 @@
 From: elbg <elbg-QFKgK+z4sOrR7s880joybQ@public.gmane.org>
 Subject: Re: Acpica problem and explanations !
-Date: Tue, 01 Jul 2003 12:32:49 +0200
+Date: Tue, 01 Jul 2003 12:32:13 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F016351.30908@laposte.net>
+Message-ID: <3F01632D.7000907@laposte.net>
 References: <F760B14C9561B941B89469F59BA3A847E96FE5@orsmsx401.jf.intel.com> <3F015FDD.3040104@laposte.net>
 Reply-To: elbg-QFKgK+z4sOrR7s880joybQ@public.gmane.org
 Mime-Version: 1.0
