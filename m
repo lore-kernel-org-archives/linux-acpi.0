@@ -1,12 +1,11 @@
-From: =?ISO-8859-7?Q?Robert_Wo=22rle?= <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Runlevel for Sleep?
-Date: Wed, 04 Sep 2002 16:35:20 +0200
+From: John M Trostel <john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org>
+Subject: Error starting acpi with 2.4.19
+Date: Wed, 04 Sep 2002 16:25:54 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D761A28.5050704@symplon.com>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE0D@orsmsx119.jf.intel.com> <200209041055.g84AsFW05361@pfn1.pefnos>
+Message-ID: <1031171155.30356.2.camel@jtsdell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-7; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,117 +15,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+I am having problems getting ACPI started using the latest SGI XFS
+kernel (2.4.19) with patches sergiomb added. 
+
+I get the following output on bootup: 
 
 
-P. Christeas schrieb:
+ACPI: Subsystem revision 20020829 
+PCI: PCI BIOS revision 2.10 entry at 0xfdb31, last bus=1 
+PCI: Using configuration type 1 
+tbxface-0099 [03] Acpi_load_tables      : ACPI Tables successfully
+loaded 
+dswload-0210: *** Error: Invalid type (Integer) for target of Scope
+operator [DEB_] 
+psparse-0570 [10] Ps_parse_loop         : During name lookup/catalog,
+AE_AML_OPERAND_TYPE 
+tbxface-0107: *** Error: Acpi_load_tables: Could not load namespace:
+AE_AML_OPERAND_TYPE 
+tbxface-0116: *** Error: Acpi_load_tables: Could not load tables:
+AE_AML_OPERAND_TYPE 
+ACPI: Unable to load the System Description Tables 
+PCI: Probing PCI hardware 
+PCI: ACPI tables contain no PCI IRQ routing entries 
+PCI: Probing PCI hardware (bus 00) 
+PCI: Discovered primary peer bus 01 [IRQ] 
+Linux NET4.0 for Linux 2.4 
 
->Grover, Andrew wrote:
->  
->
->>>From: P. Christeas [mailto:p_christ-U04EIuiosng@public.gmane.org]
->>>It has just come up to me, should we use a runlevel for sleep?
->>>      
->>>
->>Right now I am leaning towards no. We don't have a runlevel for APM's
->>suspend, why would we for ACPI sleep?
->>
->>Sleep should be very quick to enter and exit. We shouldn't have to shut
->>down any services. If the drivers properly save and restore context, things
->>on resume should just pick up where they left off.
->>
->>I think we'll know better once we have working device power management if a
->>new runlevel is needed or not.
->>
->>Regards -- Andy
->>    
->>
->
->I think we already have a working power device management, thanks for that!
->The mail I sent only reflects my humble opinion, I just ask if it's time we 
->thought of such a change.
->
->APM suspend never worked for me and I guess that anybody that managed to use 
->it has used workarounds. ACPI already is much better than that.
->  
->
-Well i had a working APM , but i also had to use the magic apmd_proxy 
-script where i placed the scripts to start and stop the critical things 
-( for me it was _USB and pcmcia )
-So why dont we think about something similar so a script where ACPI 
-looks for at States and do the things which supposed to be done ...
+later in the boot process I see: 
 
->We may never have 100% bug-free drivers, some of them will always need 
->workarounds.
->In the other hand, hardware is not the only matter. The ethernet card may not 
->have any trouble at all sleeping. The net behind it, however, may change much 
->while our box is sleeping. What if we have clients connected and shouldn't 
->sleep after all? Now, it's up to the person pressing the 'sleep' button to 
->take care of such issues. I prefer everything to be automated.
->
->IMHO it shouldn't matter how long sleep needs to enter or exit. After all, 
->initscripts won't necessarily mean that the system will be loaded 
->significantly. I like binaries to keep small, as we have them loaded all the 
->time. So, why have all the resume code inside the kernel, while we can only 
->call a few binaries to resume?
->
->Here is what I suggest [flame bait] :
->
->sleep button/command
->||
->V
->'init 7' event
->||
->V
->initscripts like 'netfs suspend' etc. The initscrips are allowed to fail 
->(say, a client on httpd) => return to previous runlevel
->|
->v
->on sucess => 'echo 1/3/4 > /proc/acpi/sleep' by the inittab
->
->sleeping... wake event => we're leaving runlevel 7 => restore suspended 
->services with 'netfs resume' and use workarounds for buggy drivers like 
->'bugcard restore' etc.
->||
->V
->our system is ready.
->
->
->
->
->
->-------------------------------------------------------
->This sf.net email is sponsored by: OSDN - Tired of that same old
->cell phone?  Get a new here for FREE!
->https://www.inphonic.com/r.asp?r=sourceforge1&refcode1=vs3390
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
->
->  
->
+Starting acpid: acpid: can't open /proc/acpi/event: No such file or
+directory 
+[FAILED] 
+
+Which is unfortunate, as I would like to use acpid ;-> 
+
+I see no acpi(d) process running and there is no /proc/acpi subdirectory
+created... What do I need to do to debug this situation 
 
 -- 
-_____________________________________
-*Robert Wo"rle
-Linux | Embedded Device*
-*
-Symplon AG*
-
-*...touch the internet*
-
-phone: +49 89 552 999 35
-fax: +49 89 552 999 10
-email: robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org <mailto:robert.woerle@symplon.com>
-web: www.symplon.com <http://www.symplon.com/>
-
-_____________________________________
-
+John M. Trostel
+Senior Software Engineer
+Quantum Corp.
+john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org
+-- 
+John M. Trostel
+Senior Software Engineer
+Quantum Corp.
+john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org
 
 
 
