@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: bug report: multi-byte access in indexfields broken
-Date: Mon, 22 Sep 2003 16:02:56 +0200
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] invalid resource lists and extra checking
+Date: Mon, 22 Sep 2003 16:53:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030922140256.GK11391@poupinou.org>
-References: <20030921200525.GB2968@krikkit>
+Message-ID: <20030922145315.GC13165@wotan.suse.de>
+References: <20030918221109.L16619@root.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030921200525.GB2968-duT3ICHXG/I@public.gmane.org>
+In-Reply-To: <20030918221109.L16619-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +17,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Robert Vollmert <rvollmert-lists-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: acpi-jp-l7ZBCLq5RC066kwqclu8Pg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Sep 21, 2003 at 10:05:25PM +0200, Robert Vollmert wrote:
-> Hello,
+> --- rsaddr.c	13 Jul 2003 22:43:31 -0000	1.1.1.11
+> +++ rsaddr.c	19 Sep 2003 04:59:50 -0000
+> @@ -168,6 +168,10 @@
+>      Buffer += 1;
+>      ACPI_MOVE_16_TO_16 (&Temp16, Buffer);
 > 
-> it appears the problems I mailed about earlier are due to a bug in the
-> ACPI code. Reading from multi-byte fields in a ByteAccess-IndexField
-> seems to be broken.
-> 
-> When I replace
-> 
-> IndexField (EIND, EDAT, ByteAcc, NoLock, Preserve)
-> {
->     Offset (0x10), 
->     IKFG,   8, 
->     FRPN,   16, 
->     RAMB,   32,
->     AVOL,   8, 
-> ...
-> }
-> 
-> Method (CRMB, 0, NotSerialized)
-> {
->     Return (RAMB)
-> }
-> 
+> +    /* Check for the minimum length. */
+> +    if (Temp16 < 13)
+> +        return_ACPI_STATUS (AE_AML_INVALID_RESOURCE_TYPE);
 
-After some testing, I found that this bug happens with word access
-as well, and only when the field is not aligned with 8 (in case
-of dword), which do not make sence as a buggy ASL due to the ByteAcc.
+For which acpica version is this exactly? I tried to apply it to a Linux
+tree which has nearly the latest, but it rejected on every hunk. 
+The file is also repetive enough that hand applying looks a bit risky.
 
-I consider that bug being critical.  I'm not sure if that happens for
-other types other than Index one (that piece of code being shared between
-4 kind of OR).
+Can you perhaps post a patch against the latest ACPICA version?
 
-Anyway, most of use done by IndexField is to access CMOS data.  I prefer
-not to think what happens if a write is done, and if the write is buggy
-as well.
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+-Andi
 
 
 -------------------------------------------------------
