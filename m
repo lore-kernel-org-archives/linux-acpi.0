@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [ipw2200]Confirmation of power management problem
-Date: Mon, 18 Oct 2004 15:35:30 +0200
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Re: Power button events unavailable after resume
+Date: Mon, 18 Oct 2004 10:58:36 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041018133530.GA17754@elf.ucw.cz>
-References: <200410101932.12431.shawn.starr@rogers.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <200410181058.43697.barr.156@osu.edu>
+References: <200410121343.31099.barr.156@osu.edu> <20041017202103.GE7476@elf.ucw.cz>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041017202103.GE7476-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200410101932.12431.shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,25 +18,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Cc: ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, @elf.ucw.cz, Searty-RRHT56Q3PSNYvCBQFZa3p3heFR1PPvRg7cI0GvzjSPY@public.gmane.org, Salwan <salwan.searty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> I managed to install Windows XP and test the ipw2200 wireless card, when I 
-> shut down the system with Windows, ACPI turned off the ipw2200 card, In 
-> Linux, because ACPI does not work for the T42 thinkpad, the wifi card remains 
-> on even after holding the power button to cut power. 
+On Sunday 17 October 2004 04:21 pm, Pavel Machek wrote:
+> Hi!
+>
+> > Recently, I have been unable to get power button events from my notebook
+> > after a Software Suspend 2 (version 2.1-rc1) resume without removing and
+>
+> Try again with vanilla kernel and "platform" powerdown method.
 
-So you hold power button for four seconds and it does not turn the
-ipw2200 off? Well, IBM has some broken hardware to fix if that is the
-case.
+Thanks for the suggestion. Earlier you suggested turning on ACPI S4 support. 
+This seems to fix my problem. With recent versions of Software Suspend 2, S4 
+support has moved from a compile option to a /proc entry, so it wasn't 
+getting used by default. Adding a script to turn it on fixed my button issue.
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Thanks,
+Andrew
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQFBc9ojhuM+Z62a52oRAnPcAJ9HRBcJeNe5b2SchL7FOSusiIrIkwCgyIme
+vxeooUSiNtSlyzdVUFwmcNc=
+=Ldlj
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
