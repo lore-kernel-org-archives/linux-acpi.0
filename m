@@ -1,14 +1,13 @@
-From: Sebastian <Ostdeutschland-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: 2.6.11-rc1 problem with battery state
- (AE_ALREADY_EXISTS)
-Date: Sun, 23 Jan 2005 16:47:27 +0100
-Message-ID: <20050123164727.2aadbf1f.Ostdeutschland@gmx.de>
-References: <20050120225748.2d1a7cfc.Ostdeutschland@gmx.de>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Sun, 23 Jan 2005 17:02:45 +0100
+Message-ID: <20050123160244.GA1364@elf.ucw.cz>
+References: <47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <m2wtu74yzq.fsf@phoenix.squirrel.nl> <41F01923.1000503@bartol.udel.edu> <m2sm4v4wk7.fsf@phoenix.squirrel.nl> <41F10180.60008@arrakis.dhis.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050120225748.2d1a7cfc.Ostdeutschland-Mmb7MZpHnFY@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41F10180.60008-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,22 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 20 Jan 2005 22:57:48 +0100
-Sebastian <Ostdeutschland-Mmb7MZpHnFY@public.gmane.org> wrote:
+Hi!
 
-> hi,
+> |>I do this because everything in /lib/modules/XXX/kernel/* gets
+> |>clobbered when you do a make modules_install from the kernel source
+> |>tree;
+> |
+> |
+> | I see.
+> |
+> |
+> |>I have recently realized that the whole SBS functionality can be
+> |>implemented in terms of control methods in the DSDT, without the
+> |>need for any kernel drivers.
+> |
+> |
+> | Nice. This would require a kernel recompile/reboot  for each DSDT
+> | modification...
 > 
-> i reported this error some time ago, without any reply...
-> i'm running 2.6.11-rc1 now on an acer travelmate 291lci laptop.
+> not nice, I guess. 99.9% of the interested (me included) wouldn't be able to
+> patch their DSDT and with generated ASL (is it ASL or AML or... ACPI 
+> language)
+> code for their specific case.
 > 
-> [admin@laptop]$ while [ 1 ]; do cat /proc/acpi/battery/BAT1/state &&
-> ....
+> but academically interesting :-)
 
-
-also happening on 2.6.11-rc2...
+Well, we could just ask Acer to include that SBS code into their
+DSDTs....
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
