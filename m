@@ -1,12 +1,13 @@
-From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
-Subject: Some questions about ACPI and laptops
-Date: Thu, 25 Jul 2002 19:44:52 +0200
+From: Mathias Kolehmainen <mathiask-bdq14YP6qtRg9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI on the Compaq Presario 2800T
+Date: Thu, 25 Jul 2002 11:04:32 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020725194452.4e6f66fa.hanno@gmx.de>
+Message-ID: <Pine.GSO.4.21.0207251103580.27979-100000@crak.roomfullaspies.com>
+References: <200207251708.NAA05377@department-of-alchemy.mit.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200207251708.NAA05377-eUc2XO7YEjkUjpTVVQ/zfLxLbxdZZkq26YJIh+Me2V8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,20 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm currently running a 2.4.18-kernel with newest acpi and the nocorruption-2-patch.
+The no-corruption patch is here:
 
-I have some questions:
-- Most time I use my laptop simply to work, i don't need the full power of my system. Is it possible to slowdown my pc to make the battery last longer?
-- What else can I do to let my laptop work longer?
-- Currently I don't have any suspend mode. Only thing is that my monitor is black after some time, but it still gives some light. Can I configure my system that it will switch the monitor completely off and also stop the harddisk?
+  http://www.brodo.de/english/pub/acpi/20020709/bugfixes.html
 
-Another thing is that I still get errors like
-* Error: Could not install Pci_config handler for PCI0,AE_ALREADY_EXISTS
-on boot and on halt.
-Has anyone found out why they are there? (They have been posted some times in the past, mostly on Sony Vaio Gr-Series)
+
+-mathias
+
+On Thu, 25 Jul 2002, Sourav K Mandal wrote:
+
+> >From perusing the mailing lists, it seems that I require:
+> 
+> * "nocorruption" patch
+> * a patch to fix the lack of a sleep CONFIG entry
+> * a replacement DSDT since I have a Compaq
+> 
+
 
 
 -------------------------------------------------------
