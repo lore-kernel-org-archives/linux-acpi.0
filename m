@@ -1,16 +1,13 @@
-From: Jeroen Wijnhout <wijnhout-FT9nftu9LUxX9el/+yt6TA@public.gmane.org>
-Subject: Re: what is the worst laptop atm?
-Date: Mon, 27 Dec 2004 22:34:11 +0100
-Message-ID: <200412272234.11984.wijnhout@science.uva.nl>
-References: <20041227165207.GB9606@poupinou.org>
- <200412271800.31064.wijnhout@science.uva.nl>
- <20041227171202.GC9606@poupinou.org>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [REGRESSION] 'pciehp' stops working since 2.6.10-rc2
+Date: Tue, 28 Dec 2004 09:23:45 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575E0068B@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20041227171202.GC9606-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,21 +17,160 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 27 December 2004 18:12, Bruno Ducrot wrote:
-> > I'm using a Acer 4001WLmi (supposedly with a smart-battery). I would be
-> > so delighted if I could finally see my battery status. Besides, it is a
-> > good buy (after all you do want to have a working computer, right?).
->
-> Does that one fail S3 btw?
->
+PCIEHCP is for PCI-E hotplug. Does T42p support PCI-E?
 
-Didn't try that yet (I'm not sure how risky this is for my laptop).
+Shaohua
+>I'm not sure this is the right place for my problem. I was wondering if
+>I should direcly fill a kernel bug and then I choose to post here as
+IMO
+>its an ACPI related problem.
+>
+>I installed Debian unstable on my IBM ThinkPad T42p [1] and the
+>Debian-installer used the 2.6.8 kernel. Then, I upgraded to kernel
+>2.6.10-rc3 and now to 2.6.10 (both with the latest ACPI 20041210
+patch).
+>Since my upgrade, the module 'pciehp' cannot be loaded anymore. I tried
+>different kernel (from 2.6.9 to 2.6.10) and the problem starts with a
+>vanilla kernel 2.6.10-rc2.
+>
+>Here the output from /var/log/kern.log in the 2 cases (working and
+not):
+>=3D=3D=3D=3D=3D
+>[2.6.8-1]
+>Dec 27 18:37:56 gismo kernel: agpgart: AGP aperture is 256M @
+0xd0000000
+>Dec 27 18:37:56 gismo kernel: cpci_hotplug: CompactPCI Hot Plug Core
+>version: 0.2
+>Dec 27 18:37:56 gismo kernel: pci_hotplug: PCI Hot Plug PCI Core
+>version: 0.5
+>Dec 27 18:37:56 gismo kernel: shpchp: acpi_shpchprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:37:56 gismo kernel: shpchp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:37:56 gismo kernel: shpchp: acpi_shpchprm:   Slot sun(1) at
+>s:b:d:f=3D0x00:02:00:00
+>Dec 27 18:37:56 gismo kernel: shpchp: acpi_shpchprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:37:56 gismo kernel: shpchp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:37:56 gismo kernel: shpchp: acpi_shpchprm:   Slot sun(2) at
+>s:b:d:f=3D0x00:02:00:01
+>Dec 27 18:37:56 gismo kernel: shpchp: shpc_init : shpc_cap_offset =
+=3D=3D 0
+>Dec 27 18:37:56 gismo kernel: shpchp: shpc_init : shpc_cap_offset =
+=3D=3D 0
+>Dec 27 18:37:56 gismo kernel: shpchp: Standard Hot Plug PCI Controller
+>Driver version: 0.4
+>Dec 27 18:37:56 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:37:56 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:37:56 gismo kernel: pciehp: acpi_pciehprm:   Slot sun(1) at
+>s:b:d:f=3D0x00:02:00:00
+>Dec 27 18:37:56 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:37:56 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:37:56 gismo kernel: pciehp: acpi_pciehprm:   Slot sun(2) at
+>s:b:d:f=3D0x00:02:00:01
+>Dec 27 18:37:56 gismo kernel: pciehp: PCI Express Hot Plug Controller
+>Driver version: 0.4
+>Dec 27 18:37:56 gismo kernel: hw_random hardware driver 1.0.0 loaded
+>Dec 27 18:37:56 gismo kernel: ACPI: PCI interrupt 0000:00:1f.5[B] ->
+GSI
+>11 (level, low) -> IRQ 11
+>
+>[2.6.10, latest ACPI 20041210]
+>Dec 27 18:40:32 gismo kernel: agpgart: AGP aperture is 256M @
+0xd0000000
+>Dec 27 18:40:32 gismo kernel: cpci_hotplug: CompactPCI Hot Plug Core
+>version: 0.2
+>Dec 27 18:40:32 gismo kernel: pci_hotplug: PCI Hot Plug PCI Core
+>version: 0.5
+>Dec 27 18:40:32 gismo kernel: Evaluate _OSC Set fails. Status =3D =
+0x0005
+>Dec 27 18:40:32 gismo kernel: pciehp: add_host_bridge: status 5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:   Slot sun(1) at
+>s:b:d:f=3D0x00:02:00:00
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:   Slot sun(2) at
+>s:b:d:f=3D0x00:02:00:01
+>Dec 27 18:40:32 gismo kernel: pciehp: Fails to gain control of native
+>hot-plug
+>Dec 27 18:40:32 gismo kernel: shpchp: acpi_shpchprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:40:32 gismo kernel: shpchp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:40:32 gismo kernel: shpchp: acpi_shpchprm:   Slot sun(1) at
+>s:b:d:f=3D0x00:02:00:00
+>Dec 27 18:40:32 gismo kernel: shpchp: acpi_shpchprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:40:32 gismo kernel: shpchp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:40:32 gismo kernel: shpchp: acpi_shpchprm:   Slot sun(2) at
+>s:b:d:f=3D0x00:02:00:01
+>Dec 27 18:40:32 gismo kernel: shpchp: shpc_init : shpc_cap_offset =
+=3D=3D 0
+>Dec 27 18:40:32 gismo kernel: shpchp: shpc_init : shpc_cap_offset =
+=3D=3D 0
+>Dec 27 18:40:32 gismo kernel: shpchp: Standard Hot Plug PCI Controller
+>Driver version: 0.4
+>Dec 27 18:40:32 gismo kernel: hw_random hardware driver 1.0.0 loaded
+>Dec 27 18:40:32 gismo kernel: Evaluate _OSC Set fails. Status =3D =
+0x0005
+>Dec 27 18:40:32 gismo kernel: pciehp: add_host_bridge: status 5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:   Slot sun(1) at
+>s:b:d:f=3D0x00:02:00:00
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+_HPP
+>fail=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:\_SB_.PCI0.PCI1
+OSHP
+>fails=3D0x5
+>Dec 27 18:40:32 gismo kernel: pciehp: acpi_pciehprm:   Slot sun(2) at
+>s:b:d:f=3D0x00:02:00:01
+>Dec 27 18:40:32 gismo kernel: pciehp: Fails to gain control of native
+>hot-plug
+>Dec 27 18:40:32 gismo kernel: snd: Unknown parameter `device_mode'
+>Dec 27 18:40:32 gismo kernel: ACPI: PCI interrupt 0000:00:1f.5[B] ->
+GSI
+>11 (level, low) -> IRQ 11
+>=3D=3D=3D=3D=3D
+>
+>I'm here for any other info or tests.
 
-best,
-Jeroen
 
 
 -------------------------------------------------------
