@@ -1,10 +1,10 @@
-From: "Andreas Leppert" <wudmx-S0/GAf8tV78@public.gmane.org>
-Subject: throttling is not changing
-Date: Sat, 11 Sep 2004 20:28:52 +0200
+From: Melkor <sfnet-mail-8gZPSnQ9TUZeoWH0uzbU5w@public.gmane.org>
+Subject: Fan spinning speed
+Date: Sun, 12 Sep 2004 02:31:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1554095126@web.de>
+Message-ID: <20040912021310.0838.SFNET-MAIL@melkor.st>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,66 +18,53 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hi,
+Hi,
 
-sorry, i've posted firstly to the wrong list... hope this is the correct one!
+I have a strange problem and it may be ACPI related (well, I think it is ;)
 
-i have a fujitsu amilo D 7830 laptop with a pentium 4 desktop with HT technology running gentoo linux with kernel 2.6.8.1. it doesn't matter if i enable or disable smp in the kernel config!
+I own an ASUS P4P800-SE running Linux (Debian) with kernel 2.6.8.1 with
+built-in ACPI support (button, fan, processor and thermal_zone).
 
-1) a pentium 4 (desktop, not mobile) has the throttling ability, correct?
+At boot, only processor and button are recognized as the excerpt of dmesg
+show (see below). My motherboard have the BIOS feature Q-Fan enabled which
+is controled by ACPI. What it does is adapting the fan speed according to CPU
+temperature. If disabled, the fan is always at max speed. When enabled, fan is
+at max speed during the boot process and after 15/20 seconds, it decreases fan
+speed by steps. I can distinctly hear 3 steps where fan spins slower and
+slower until it becomes hardly noticeable.
 
-2) does acpid works with smp enabled in the kernel?
+But, as thermal_zone isn't working, I'd like at least to use the lm-sensors.
+To achieve that, I have to load 4 modules :
 
-3)
-cat /proc/acpi/processor/CPU1/info
-processor id: 0
-acpi id: 1
-bus mastering control: yes
-power management: no
-throttling control: yes
-limit interface: yes
+i2c-dev
+i2c-i801
+i2c-isa
+w83627hf
 
-am i able to change the frequency (hint: /sys/device/system/cpu/cpu0/cpufreq/scaling_setspeed?)
+By itself, lm-sensors works perfectly but there's a drawback. When the module "w83627hf"
+is loaded (modprobe w83627hf) the fan switches to max speed and never
+decreases again (tested on about 1 hour delay).
 
-4)
-# cat /proc/acpi/processor/CPU1/throttling
-state count: 8
-active state: T1
-states
-T0: 00%
-*T1: 12%
-T2: 25%
-T3: 37%
-T4: 50%
-T5: 62%
-T6: 75%
-T7: 87%
+Has anyone already experienced a similar issue and would be in position to
+give any clue ? I've tried lots of configurations (removing ACPI 2.0 support
+in BIOS, removing thermal_zone support in kernel) but nothing seems to have
+any influence on this behaviour !
 
-# echo -n 4 > /proc/acpi/processor/CPU1/throttling
-# cat /proc/acpi/processor/CPU1/throttling
-state count: 8
-active state: T1
-states
-T0: 00%
-*T1: 12%
-T2: 25%
-T3: 37%
-T4: 50%
-T5: 62%
-T6: 75%
-T7: 87%
+Subsidiary question : All the motherboard I have access to (PII, PIII, P4 and
+AthlonXP) and supporting ACPI always show (kernel 2.6.8.1) processor only
+supporting C1 ! Are C2 and C3 only reserved for laptop machines ?
 
-nothing changes! thats my problem....
 
-okay, here some information:
-BIOS-e820: 000000001ffd0000 - 000000001ffdf000 (ACPI data)
-BIOS-e820: 000000001ffdf000 - 0000000020000000 (ACPI NVS)
-ACPI: RSDP (v000 ACPIAM ) @ 0x000f5520
-ACPI: RSDT (v001 A M I OEMRSDT 0x10000314 MSFT 0x00000097) @ 0x1ffd0000
-ACPI: FADT (v002 A M I OEMFACP 0x10000314 MSFT 0x00000097) @ 0x1ffd0200
-ACPI: MADT (v001 A M I OEMAPIC 0x10000314 MSFT 0x00000097) @ 0x1ffd0390
-ACPI: OEMB (v001 A M I AMI_OEM 0x10000314 MSFT 0x00000097) @ 0x1ffdf040
-ACPI: DSDT (v001 UW____ FSC_____ 0x00000016 INTL 0x02002026) @ 0x00000000
+Excerpt of DMESG : dmesg | grep -i acpi
+
+ BIOS-e820: 000000003ffb0000 - 000000003ffc0000 (ACPI data)
+ BIOS-e820: 000000003ffc0000 - 000000003fff0000 (ACPI NVS)
+ACPI: RSDP (v002 ACPIAM                                    ) @ 0x000fad60
+ACPI: XSDT (v001 A M I  OEMXSDT  0x03000426 MSFT 0x00000097) @ 0x3ffb0100
+ACPI: FADT (v003 A M I  OEMFACP  0x03000426 MSFT 0x00000097) @ 0x3ffb0290
+ACPI: MADT (v001 A M I  OEMAPIC  0x03000426 MSFT 0x00000097) @ 0x3ffb0390
+ACPI: OEMB (v001 A M I  OEMBIOS  0x03000426 MSFT 0x00000097) @ 0x3ffc0040
+ACPI: DSDT (v001  A0049 A0049000 0x00000000 INTL 0x02002026) @ 0x00000000
 ACPI: Local APIC address 0xfee00000
 ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
 ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
@@ -89,126 +76,41 @@ ACPI: IRQ2 used by override.
 ACPI: IRQ9 used by override.
 Using ACPI (MADT) for SMP configuration information
 ACPI: Subsystem revision 20040326
-tbxface-0117 [03] acpi_load_tables : ACPI Tables successfully acquired
-ACPI Namespace successfully loaded at root c03dd7bc
-evxfevnt-0093 [04] acpi_enable : Transition to ACPI mode successful
-Executing all Device _STA and_INI methods:..................................[ACPI Debug] String: Length 0x0D, "BAT_STA Start"
 ACPI: Interpreter enabled
 ACPI: Using IOAPIC for interrupt routing
 ACPI: PCI Root Bridge [PCI0] (00:00)
 ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-ACPI: Power Resource [URP1] (off)
-ACPI: Power Resource [URP2] (off)
-ACPI: Power Resource [FDDP] (off)
-ACPI: Power Resource [LPTP] (off)
-ACPI: Embedded Controller [EC0] (gpe 28)
-[ACPI Debug] String: Length 0x0D, "BAT_STA Start"
-[ACPI Debug] String: Length 0x0D, "BAT_STA Start"
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs *3 4 5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 *10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 *7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *3 4 5 6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 10 11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 10 11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 10 *11 12 14 15)
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 10 *11 12 14 15)
 PCI: Using ACPI for IRQ routing
 ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 16 (level, low) -> IRQ 16
 ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 19
 ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 18
+ACPI: PCI interrupt 0000:00:1d.3[A] -> GSI 16 (level, low) -> IRQ 16
 ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 23 (level, low) -> IRQ 23
 ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
+ACPI: PCI interrupt 0000:00:1f.2[A] -> GSI 18 (level, low) -> IRQ 18
 ACPI: PCI interrupt 0000:00:1f.3[B] -> GSI 17 (level, low) -> IRQ 17
 ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 17 (level, low) -> IRQ 17
-ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 17 (level, low) -> IRQ 17
 ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 16
-ACPI: PCI interrupt 0000:02:03.0[A] -> GSI 17 (level, low) -> IRQ 17
-ACPI: PCI interrupt 0000:02:0a.0[A] -> GSI 18 (level, low) -> IRQ 18
-ACPI: PCI interrupt 0000:02:0c.0[A] -> GSI 17 (level, low) -> IRQ 17
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
-ACPI: PCI interrupt 0000:02:0c.0[A] -> GSI 17 (level, low) -> IRQ 17
-ACPI: AC Adapter [AC0] (on-line)
-[ACPI Debug] String: Length 0x0D, "BAT_STA Start"
-[ACPI Debug] String: Length 0x03, "BIf"
-ACPI: Battery Slot [BAT0] (battery present)
+ACPI: PCI interrupt 0000:02:05.0[A] -> GSI 22 (level, low) -> IRQ 22
 ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU1] (supports C1, 8 throttling states)
-ACPI: Thermal Zone [THRM] (75 C)
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 17 (level, low) -> IRQ 17
+ACPI: Processor [CPU1] (supports C1)
+ACPI: Processor [CPU2] (supports C1)
+ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
+ACPI: PCI interrupt 0000:00:1f.2[A] -> GSI 18 (level, low) -> IRQ 18
+ACPI: PCI interrupt 0000:02:05.0[A] -> GSI 22 (level, low) -> IRQ 22
+ACPI: PCI interrupt 0000:02:05.0[A] -> GSI 22 (level, low) -> IRQ 22
 
-
-#
-# Power management options (ACPI, APM)
-#
-CONFIG_PM=y
-# CONFIG_SOFTWARE_SUSPEND is not set
-# CONFIG_PM_DISK is not set
-
-#
-# ACPI (Advanced Configuration and Power Interface) Support
-#
-CONFIG_ACPI=y
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_INTERPRETER=y
-# CONFIG_ACPI_SLEEP is not set
-CONFIG_ACPI_AC=m
-CONFIG_ACPI_BATTERY=m
-CONFIG_ACPI_BUTTON=m
-CONFIG_ACPI_FAN=m
-CONFIG_ACPI_PROCESSOR=m
-CONFIG_ACPI_THERMAL=m
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_TOSHIBA is not set
-CONFIG_ACPI_DEBUG=y
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SYSTEM=y
-# CONFIG_X86_PM_TIMER is not set
-
-#
-# APM (Advanced Power Management) BIOS Support
-#
-# CONFIG_APM is not set
-
-#
-# CPU Frequency scaling
-#
-CONFIG_CPU_FREQ=y
-# CONFIG_CPU_FREQ_PROC_INTF is not set
-CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
-# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-CONFIG_CPU_FREQ_GOV_POWERSAVE=y
-CONFIG_CPU_FREQ_GOV_USERSPACE=y
-# CONFIG_CPU_FREQ_24_API is not set
-CONFIG_CPU_FREQ_TABLE=y
-
-#
-# CPUFreq processor drivers
-#
-# CONFIG_X86_ACPI_CPUFREQ is not set
-# CONFIG_X86_POWERNOW_K6 is not set
-# CONFIG_X86_POWERNOW_K7 is not set
-# CONFIG_X86_POWERNOW_K8 is not set
-# CONFIG_X86_GX_SUSPMOD is not set
-# CONFIG_X86_SPEEDSTEP_CENTRINO is not set
-# CONFIG_X86_SPEEDSTEP_ICH is not set
-# CONFIG_X86_SPEEDSTEP_SMI is not set
-CONFIG_X86_P4_CLOCKMOD=m
-CONFIG_X86_SPEEDSTEP_LIB=m
-# CONFIG_X86_LONGRUN is not set
-# CONFIG_X86_LONGHAUL is not set
-
-thanks in advance
-Andreas Leppert
-________________________________________________________________
-Verschicken Sie romantische, coole und witzige Bilder per SMS!
-Jetzt neu bei WEB.DE FreeMail: http://freemail.web.de/?mc=021193
+-- 
+Melkor
 
 
 
