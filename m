@@ -1,12 +1,12 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: Samsung P35, S3, black screen (radeon))
-Date: Thu, 10 Feb 2005 20:31:23 +0100
-Message-ID: <20050210193123.GC1391@elf.ucw.cz>
-References: <1107695583.14847.167.camel@localhost.localdomain> <420BB267.8060108@tmr.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Thu, 10 Feb 2005 20:39:37 +0100
+Message-ID: <20050210193937.GH1145@poupinou.org>
+References: <20050210161809.GK3493@crusoe.alcove-fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <420BB267.8060108-sQDSfeB7uhw@public.gmane.org>
+In-Reply-To: <20050210161809.GK3493-KwDxFO93HejPHUqn3ntIkQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,44 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bill Davidsen <davidsen-sQDSfeB7uhw@public.gmane.org>
-Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> >>Rumors say that notebooks no longer have video bios at C000h:0; rumors
-> >>say that video BIOS on notebooks is simply integrated into main system
-> >>BIOS. I personaly do not know if rumors are true, but PCs are ugly
-> >>machines....
-> >>							
-> >
-> >
-> >A small number of laptop systems are known to pull this trick. There are
-> >other problems too - the video bios boot may make other assumptions
-> >about access to PCI space, configuration, interrupts, timers etc.
-> >
-> >Some systems (intel notably) appear to expect you to use the bios
-> >save/restore video state not re-POST.
+On Thu, Feb 10, 2005 at 05:18:10PM +0100, Stelian Pop wrote:
+> Hi,
 > 
-> Isn't that what it's there for? In any context other than save/restore I 
-> wouldn't think using the BIOS was a good approach. But this is a special 
-> case, and if there's a BIOS function which does the right thing, it 
-> would seem to be easier to assume that the BIOS works than that the 
-> driver can do every operation for a clean restart.
-> 
-> The problem is that while POST leaves the video in a known state, it may 
-> not the known state you want, nor is it a given that you can get from 
-> there to where you were on suspend. PC hardware isn't always that 
-> dependable.
+> +ACPI Sony Notebook Control Driver (SNC) Readme
+> +----------------------------------------------
+> +	Copyright (C) 2004 Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+> +
+> +This mini-driver drives the ACPI SNC device present in the 
+> +ACPI BIOS of the Sony Vaio laptops.
+> +
+> +It gives access to some extra laptop functionalities. In 
+> +its current form, the only thing this driver does is letting
+> +the user set or query the screen brightness.
 
-Eh? POST leaves video in 80x25 text mode, and we know how to handle
-that mode just fine... Historically that's what we ran our consoles
-at, so X can handle it etc.
-								Pavel
+Does those laptops support acpi_video?
+
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
