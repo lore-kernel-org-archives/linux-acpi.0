@@ -1,73 +1,56 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/5]8250_pnp fix
-Date: Thu, 21 Oct 2004 11:00:08 +0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098327571.6132.228.camel@sli10-desk.sh.intel.com>
+From: =?ISO-8859-15?Q?Mika_Penttil=E4?= <mika.penttila@kolumbus.fi>
+Subject: Re: [PATCH 4/5]ACPI PNP driver
+Date: Thu, 21 Oct 2004 09:01:26 +0300
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <417750B6.7000409@kolumbus.fi>
+References: <1098327568.6132.226.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-VicswwPBdwvbN1Rvosxi"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu <castet.matthieu-GANU6spQydw@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268652AbUJUGCI@vger.kernel.org>
+In-Reply-To: <1098327568.6132.226.camel@sli10-desk.sh.intel.com>
+To: Li Shaohua <shaohua.li@intel.com>
+Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Adam Belay <ambx1@neo.rr.com>, Matthieu <castet.matthieu@free.fr>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-VicswwPBdwvbN1Rvosxi
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 
-Hi,
-This is a small fix found when debugging the 8250 driver in IA64.
+Li Shaohua wrote:
 
-Thanks,
-Shaohua
+>Hi,
+>This patch provides an ACPI based PNP driver. It is based on Matthieu
+>Castet's original work. With this patch, legacy device drivers (floppy
+>ACPI driver, COM ACPI driver, and ACPI motherboard driver) which
+>directly use ACPI can be removed, since now we have unified PNP
+>interface for legacy devices.
+>
+>Thanks,
+>Shaohua
+>
+>Signed-off-by: Li Shaohua <shaohua.li@intel.com>
+>
+>The patch depends on previous 3 patches.
+>
+>--- 2.6/drivers/pnp/isapnp/Kconfig.stg3	2004-10-18 17:34:17.591712040
+>+0800
+>+++ 2.6/drivers/pnp/isapnp/Kconfig	2004-10-18 17:36:19.173228840 +0800
+>  
+>
+Are you supposed to list here _every_ device to which not to bind? Is 
+this feasible? Maybe take another approach and bind to the "default" 
+acpi pnp driver if no specific driver found ?
 
-Signed-off-by: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
---- 2.6/drivers/serial/8250_pnp.c.stg4	2004-09-28 11:27:42.371840736
-+0800
-+++ 2.6/drivers/serial/8250_pnp.c	2004-09-28 11:28:14.036027048 +0800
-@@ -407,7 +407,7 @@ serial_pnp_probe(struct pnp_dev * dev, c
- 	serial_req.irq = pnp_irq(dev,0);
- 	serial_req.port = pnp_port_start(dev, 0);
- 	if (HIGH_BITS_OFFSET)
--		serial_req.port = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
-+		serial_req.port_high = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
- #ifdef SERIAL_DEBUG_PNP
- 	printk("Setup PNP port: port %x, irq %d, type %d\n",
- 	       serial_req.port, serial_req.irq, serial_req.io_type);
-
-
---=-VicswwPBdwvbN1Rvosxi
-Content-Disposition: attachment; filename=8250.patch
-Content-Type: text/x-patch; name=8250.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
---- 2.6/drivers/serial/8250_pnp.c.stg4	2004-09-28 11:27:42.371840736 +0800
-+++ 2.6/drivers/serial/8250_pnp.c	2004-09-28 11:28:14.036027048 +0800
-@@ -407,7 +407,7 @@ serial_pnp_probe(struct pnp_dev * dev, c
- 	serial_req.irq = pnp_irq(dev,0);
- 	serial_req.port = pnp_port_start(dev, 0);
- 	if (HIGH_BITS_OFFSET)
--		serial_req.port = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
-+		serial_req.port_high = pnp_port_start(dev, 0) >> HIGH_BITS_OFFSET;
- #ifdef SERIAL_DEBUG_PNP
- 	printk("Setup PNP port: port %x, irq %d, type %d\n",
- 	       serial_req.port, serial_req.irq, serial_req.io_type);
-
---=-VicswwPBdwvbN1Rvosxi--
++static char excluded_id_list[] =
++	"PNP0C0A," /* Battery */
++	"PNP0C0C,PNP0C0E,PNP0C0D," /* Button */
++	"PNP0C09," /* EC */
++	"PNP0C0B," /* Fan */
++	"PNP0A03," /* PCI root */
++	"PNP0C0F," /* Link device */
++	"PNP0000," /* PIC */
++	"PNP0100," /* Timer */
++	;
 
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+---Mika
