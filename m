@@ -1,54 +1,55 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Userspace ACPI interpreter ( was RE: [RFC] dev_acpi: support for userspace access to acpi)
-Date: Fri, 29 Oct 2004 10:51:44 +0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC000@pdsmsx403>
+From: Jeff Garzik <jgarzik@pobox.com>
+Subject: Re: Why ACPI is in the kernel, notes from 2001
+Date: Fri, 29 Oct 2004 00:06:02 -0400
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <4181C1AA.7050004@pobox.com>
+References: <37F890616C995246BE76B3E6B2DBE05502764E54@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S263082AbUJ2EGX@vger.kernel.org>
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE05502764E54@orsmsx403.amr.corp.intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>, "Brown, Len" <len.brown@intel.com>, "Grover, Andrew" <andrew.grover@intel.com>, "Therien, Guy" <guy.therien@intel.com>, "Yu, Luming" <luming.yu@intel.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Alex Williamson <alex.williamson@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+Moore, Robert wrote:
+> Here's some notes from 2001:
+> 
+> Why ACPI is in the kernel
+> 
+> ACPI and the AML interpreter are required very early during kernel
+> initialization, before the device drivers are loaded.  Control methods
+> are executed by the interpreter at this time (such as all device _INI
+> methods).
+> 
+> ACPI owns the ACPI hardware and ACPI interrupt (SCI), and therefore this
+> part of the ACPI subsystem is similar to a device driver.
+> 
+> Control methods that are executed via the AML interpreter are allowed
+> direct access to all of physical memory, all I/O space, and all PCI
+> configuration space (via Operation Regions.)
+> 
+> Device drivers such as the Embedded Controller, Battery, and Thermal use
+> ACPI services and execute AML control methods during their operation.
+> 
+> Device driver callback routines are invoked directly from the AML
+> interpreter when the ASL Notify operation is executed.
+> 
+> ACPI and the AML interpreter cannot be paged out.  How do you wake up
+> the disk used for paging?  Not a good idea for other device drivers to
+> depend on code that may be paged out.
+> 
+> Also,
+> 
+> As of May 2000, the AML interpreter was in acpid! Shortly after that, we
+> made a conscious decision to move it into the driver for the reasons
+> above.  The code may be large (for Linux), but it is necessary and must
+> remain resident (it is non-pageable).
 
->On Wednesday 27 October 2004 10:04 pm, Yu, Luming wrote:
->> On IA64 platform, ACPI interpreter seems to be mandatory for those
->> stuff, but IA32 is not.  So, the ram disk is the generic solution=20
->> for loading user space interpreter for boot.=20
->
->In two sentences: If you want to play with moving the interpreter
->to user-space, please do so, and do it on ia64, so you have to
->deal with the interesting problems.
->
->And this whole thing is a gigantic tangent that is only distracting
->attention from the real question at hand, namely, Alex's dev_acpi
->patch, which exists today and enables some very interesting new
->functionality.
->
 
-  Yes, I agree Alex's dev_acpi is interesting, which could result in=20
-the removal of some acpi specific drive such as battery.c, button.c,
-fan.c, thermal.c ....   So, I raised the question of userspace ACPI=20
-interpreter.  Intuitively, userspace is the right place for interpreter.
+None of this implies that the interpreter cannot be in initramfs-like 
+userspace, which neither requires a device driver nor will ever be paged 
+out.
 
-Thanks,
-Luming
-
-
-
--------------------------------------------------------
-This Newsletter Sponsored by: Macrovision 
-For reliable Linux application installations, use the industry's leading
-setup authoring tool, InstallShield X. Learn more and evaluate 
-today. http://clk.atdmt.com/MSI/go/ins0030000001msi/direct/01/
+	Jeff
