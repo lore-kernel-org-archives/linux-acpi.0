@@ -1,11 +1,17 @@
-From: Christopher Allen Wing <wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org>
-Subject: suggestions for debugging ACPI IRQ routing in 2.6.11.6? (timer
- interrupt received twice)
-Date: Mon, 4 Apr 2005 17:51:27 -0400 (EDT)
-Message-ID: <Pine.LNX.4.58.0504041743340.32159@hammer.engin.umich.edu>
+From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: Re: [RFC 5/6]clean cpu state after hotremove CPU
+Date: Tue, 05 Apr 2005 08:14:25 +1000
+Message-ID: <1112652864.3757.31.camel@desktop.cunningham.myip.net.au>
+References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com>
+	 <20050404052844.GB3611@otto>
+	 <1112593338.4194.362.camel@sli10-desk.sh.intel.com>
+	 <20050404153345.GC3611@otto>
+Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050404153345.GC3611@otto>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,48 +21,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nathan Lynch <ntl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Cc: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-With ACPI enabled and APIC enabled on my x86_64 system (Athlon64 with ATI
-RS200 chipset), the timer interrupt gets received twice for every tick.
-This causes the clock to run twice as fast as normal.
+Hi.
 
-I entered a bugzilla report with the kernel bug tracker:
+On Tue, 2005-04-05 at 01:33, Nathan Lynch wrote:
+> > Yes, exactly. Someone who understand do_exit please help clean up the
+> > code. I'd like to remove the idle thread, since the smpboot code will
+> > create a new idle thread.
+> 
+> I'd say fix the smpboot code so that it doesn't create new idle tasks
+> except during boot.
 
-	http://bugme.osdl.org/show_bug.cgi?id=4442
+Would that mean that CPUs that were physically hotplugged wouldn't get
+idle threads?
 
+Regards,
 
+Nigel
+-- 
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
+Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
 
-Anyway, the problem goes away if I disable APIC interrupts using the
-'noapic' kernel boot option. I am guessing the problem is that somehow the
-timer interrupt gets routed twice when in APIC mode. I would be interested
-in suggestions for how to debug this. I note the kernel boot options:
+Maintainer of Suspend2 Kernel Patches http://suspend2.net
 
-	acpi_dbg_layer=
-	acpi_dbg_level=
-
-Would these provide any useful information in this case?
-
-
-I tried to disassemble the ACPI tables via:
-
-	acpidmp >acpidmp.out
-	acpixtract DSDT acpidmp.out >dsdt.dat
-	iasl -d dsdt.dat
-
-
-but 'iasl' crashes with a segfault in AcpiTbChecksum(). I tried the same
-procedure on two different systems (one of them is my x86_64 system with
-the bad clock, another is an older pentium III system). iasl crashed on
-both. Does iasl work properly, are my ACPI tables corrupted, or am I doing
-something else wrong?
-
-
-Thanks,
-
-Chris Wing
-wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org
 
 
 -------------------------------------------------------
