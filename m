@@ -1,60 +1,41 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 18 Jun 2004 03:32:49 -0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1087540935.4488.214.camel@dhcppc4>
+From: Veit =?iso-8859-1?q?N=F6renberg?= <veit_n-LWAfsSFWpa4@public.gmane.org>
+Subject: DSDT SystemMemory
+Date: Fri, 18 Jun 2004 11:29:41 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200406181129.41669.veit_n@yahoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265029AbUFRHdR@vger.kernel.org>
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+Hello,
+i downloaded the original Samsung p30 dsdt from your site
+and it worked fine.
+After setting my SystemMemory from 512 to 768 MB i received a lot of acpi=20
+errors. I know that the value for the memory have to be set .
+I took a look at the DSDT, but i don=B4t know which value i have to set cau=
+se
+I found "SystemMemory" several times.
+could you tell, which value i have to set for 768 MB.
+thank you.
 
-	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.27
+Veit
 
-thanks,
--Len
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.27/acpi-20040326-2.4.27.diff.gz
-
-This will update the following files:
-
- arch/i386/kernel/acpi.c      |    5 +++
- arch/i386/kernel/mpparse.c   |   18 ++++++++++-
- arch/x86_64/kernel/mpparse.c |    1 
- drivers/acpi/asus_acpi.c     |    4 +-
- drivers/acpi/pci_link.c      |   22 +------------
- drivers/acpi/pci_root.c      |   49 ++++++++++++++++++++++++++++++-
- drivers/acpi/thermal.c       |    7 ++++
- 7 files changed, 82 insertions(+), 24 deletions(-)
-
-through these ChangeSets:
-
-<len.brown@intel.com> (04/06/18 1.1359.6.28)
-   [ACPI] handle SCI override to nth IOAPIC
-   http://bugzilla.kernel.org/show_bug.cgi?id=2835
-
-<len.brown@intel.com> (04/06/18 1.1359.6.27)
-   [ACPI] fix 2.4.27-pre3 IRQ override regression
-   due to dynamically allocated mp_irqs[].
-   http://bugzilla.kernel.org/show_bug.cgi?id=2834
-
-<len.brown@intel.com> (04/06/18 1.1359.6.26)
-   [ACPI] avoid spurious interrupts on VIA
-   http://bugzilla.kernel.org/show_bug.cgi?id=2243
-
-<len.brown@intel.com> (04/06/18 1.1359.6.25)
-   [ACPI] fix passive cooling mode indicator (Luming Yu)
-   http://bugzilla.kernel.org/show_bug.cgi?id=1770
-
-<len.brown@intel.com> (04/06/17 1.1359.6.24)
-   [ACPI] PCI bus numbering workaround for ServerWorks
-   from David Shaohua Li
-   http://bugzilla.kernel.org/show_bug.cgi?id=1662
-
-<sziwan@hell.org.pl> (04/06/03 1.1359.6.23)
-   [PATCH] acpi4asus trivial sync with 2.6 (Karol 'sziwan' Kozimor)
+-------------------------------------------------------
+This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
+Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
+Conference, June 28 - July 1 at the Moscone Center in San Francisco, CA
+REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code NWMGYKND
