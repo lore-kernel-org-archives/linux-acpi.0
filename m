@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI/ECDT on gateway 200x notebook
-Date: Wed, 7 Jan 2004 11:54:24 +0100
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI/ECDT on gateway 200x notebook
+Date: Wed, 7 Jan 2004 19:57:54 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040107105424.GM14031@poupinou.org>
-References: <571ACEFD467F7749BC50E0A98C17CDD8E84E7B@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C89@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84E7B-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,23 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
+Cc: Rich Ibbotson <richibb-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 07, 2004 at 09:04:25AM +0800, Li, Shaohua wrote:
-> Yes, the patch may resolve some problems, but it is just a workaround. I guess a possible solution is if ECDT is lacked, scan namespace to get EC device's info, such as GPE, IO ports, then use these info to automatically make a fake ECDT. Because getting info doesn't involve any operating on EC device, it's feasible. A problem is if a system has more than 1 EC, how do we?
-> 
+>The EC is a child of other devices and you
+>have to be sure that those devices are initialized before EC (even
+>though that is done by BIOS at POST already, due to legacy access
+>in some laptops).
 
-Yes, exactly.  Anyway, io ports 0x62, 0x66 are the legacy access
-for the "main" EC.  Perhaps checking those ports and initilializing
-that one only may be OK?
+One point is that my patch don't want to fully initialize EC devices.
+It just want to get EC resource to init EC addresspace handler ,
+Although the patch looks ugly.
 
--- 
-Ducrot Bruno
+The motivation is just to have EC address space=20
+handler ready for devices that get initialized before EC devices on
+laptop without ECDT.   If this attempt is failed due to what you
+said,  then ECDT is necessary.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+At least, it seems to work for gateway laptop. Of cause, it need to be
+refined.
+
+
+
+
+
+
 
 
 -------------------------------------------------------
