@@ -1,13 +1,14 @@
-From: "Deana Bermudez" <iqvwplptf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: AFTER-HOURS TRADING - Breaking News...dex
-Date: Thu, 04 Dec 2003 01:25:53 -0600
+From: roychris <roychris-GANU6spQydw@public.gmane.org>
+Subject: Re: SCI interrupt handler : spend too much time
+Date: Thu, 04 Dec 2003 09:25:41 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <cw8$g09k$h1--0@bt8hf8.2.c4>
-Reply-To: "Deana Bermudez" <iqvwplptf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <3FCEEF85.3050802@free.fr>
+References: <3ACA40606221794F80A5670F0AF15F8401720BF7@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="19D54DEF._5.4..5AE_"
+ boundary="------------030202020103090408080302"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720BF7-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,117 +17,135 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: gabai-penyumbang-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---19D54DEF._5.4..5AE_
-Content-Type: text/plain;
+This is a multi-part message in MIME format.
+--------------030202020103090408080302
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by esstin.uhp-nancy.fr id hB48TE7S007620
 
-AFTER-HOURS TRADING - BREAKING NEWS
+Personally, I think so.
 
-Get Quote - http://quote.money.cnn.com/quote/quote?symbols=3Dhtds
+Yu, Luming a =E9crit :
 
-Hard to Treat Diseases Incorporated - HTDS - Announces: Receipt of Tuberci=
-n Toxicity Study and Formation of Scientific Advisory Panel - Wednesday De=
-cember 3, 8:04 pm ET 
-
-DELRAY BEACH, Fla.--(BUSINESS WIRE)--Dec. 3, 2003--Hard to Treat Diseases =
-Incorporated (Pink Sheets: HTDS) announces today that the spokesperson for=
- the independent medical group conducting the testing for HTTD (HTDS) has =
-forwarded the formal Testing Results of Tubercin=AE's Toxicity Trials to H=
-TTD.
-
-Tubercin of five different concentrations was administered to five groups =
-of mice. A pathologist at the University of Oklahoma Health Science Center=
- performed autopsies. The mice were randomized and only the control mouse =
-was known to the pathologist, as stated in the cover letter of the Patholo=
-gy Report.
-
-The report concludes, "All tissues evaluated, visceral organs and the brai=
-n were essentially normal in appearance." "The importance of this report i=
-s even better than I expected," stated the spokesperson for the medical gr=
-oup. "As the testing continues and if the results are similar to those of =
-Chemotherapy and or radiation with no harmful side effects, Tubercin has e=
-normous potential for the treatment of cancer and the immune system."
-
-The President and CEO of HTTD, Mr. Colm J. King is in the process of formi=
-ng a Scientific Advisory Panel with leading Oncologists and Immunologists =
-from prestigious institutions in the U.S. The panel will review the report=
-s and results of Tubercin=AE's findings and will report back to Mr. King w=
-ith the ongoing reports in layman language for the shareholders.
-
-"We are continuing to receive promising results regarding Tubercin=AE and =
-we're looking forward to additional positive results in the near future," =
-stated Mr. King. "These tests prove that Tubercin=AE is non-toxic and is t=
-he first step on the way to human clinical trials as well as the first pos=
-itive breakthrough conducted in the United States with an independent medi=
-cal group for Tubercin=AE. 
-
-Operating out of Delray Beach, Florida, Hard to Treat Diseases Incorporate=
-d ("HTTD") holds the international marketing rights, except South Korea, t=
-o Tubercin=AE, a patented immunostimulant developed for combating Cancer u=
-nder medical patent (US Patent 6,274,356). The unique properties unlike ot=
-her cancer products are clearly stated in the abstract summary of the pate=
-nt... "A carbohydrate complex, which is a mixture of low molecular-weight =
-polysaccharides of an arabinomannan structure extracted from Mycobacterium=
- tuberculosis, is highly effective in treating various cancer patients wit=
-hout incurring any adverse side effects." 
+> Does it mean the overhead of SCI interrupt was not the root cause of=20
+> this issue. --Luming
+> =20
+>
+>     -----Original Message-----
+>     *From:* roychris [mailto:roychris-GANU6spQydw@public.gmane.org]
+>     *Sent:* 2003?12?3? 20:49
+>     *To:* Pavel Machek
+>     *Cc:* Yu, Luming; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>     *Subject:* Re: [ACPI] SCI interrupt handler : spend too much time
+>
+>     Just a precision,
+>     synaptic driver is not like the other mouses. psmouse call a
+>     specific fonction for this touchpad that is in an other module.
+>     The problem happens since 2.6, since psmouse and synaptic had been
+>     seperated....
+>
+>     Pavel Machek wrote:
+>
+>>Hi!
+>>
+>> =20
+>>
+>>>It sound like serious one, if SCI interrupt handler was blamed for
+>>>this issue.     --Luming
+>>>   =20
+>>>
+>>
+>>I investigated a bit, and interrupt latency alone is not enough to
+>>break mouse. [Unfortunately, I do not have easy/sure way to reproduce
+>>it.]
+>>
+>>Is it possible that SCI interrupt handler accesses keyboard controller
+>>(and breaks mouse?)
+>>								Pavel
+>>
+>>
+>>
+>> =20
+>>
+>
 
 
+--------------030202020103090408080302
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
+  <title></title>
+</head>
+<body text="#000000" bgcolor="#ffffff">
+Personally, I think so.<br>
+<br>
+Yu, Luming a &eacute;crit&nbsp;:<br>
+<blockquote type="cite"
+ cite="mid3ACA40606221794F80A5670F0AF15F8401720BF7-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org">
+  <meta content="text/html; " http-equiv="Content-Type">
+  <title></title>
+  <meta name="GENERATOR" content="MSHTML 6.00.2722.900">
+  <div><span class="927474203-04122003"><font size="2" color="#0000ff"
+ face="&#23435;&#20307;">Does it mean the overhead of SCI interrupt was not the root
+cause of this issue. --Luming</font></span></div>
+  <div><span class="927474203-04122003"></span>&nbsp;</div>
+  <blockquote>
+    <div align="left" dir="ltr" class="OutlookMessageHeader"><font
+ size="2" face="Tahoma">-----Original Message-----<br>
+    <b>From:</b> roychris [<a class="moz-txt-link-freetext" href="mailto:roychris-GANU6spQydw@public.gmane.org">mailto:roychris@free.fr</a>]<br>
+    <b>Sent:</b> 2003&#24180;12&#26376;3&#26085; 20:49<br>
+    <b>To:</b> Pavel Machek<br>
+    <b>Cc:</b> Yu, Luming; <a class="moz-txt-link-abbreviated" href="mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org">acpi-devel@lists.sourceforge.net</a><br>
+    <b>Subject:</b> Re: [ACPI] SCI interrupt handler : spend too much
+time<br>
+    <br>
+    </font></div>
+Just a precision,<br>
+synaptic driver is not like the other mouses. psmouse call a specific
+fonction for this touchpad that is in an other module.<br>
+The problem happens since 2.6, since psmouse and synaptic had been
+seperated....<br>
+    <br>
+Pavel Machek wrote:<br>
+    <blockquote type="cite"
+ cite="mid20031203124720.GA11239-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org">
+      <pre wrap="">Hi!
+
+  </pre>
+      <blockquote type="cite">
+        <pre wrap="">It sound like serious one, if SCI interrupt handler was blamed for
+this issue.     --Luming
+    </pre>
+      </blockquote>
+      <pre wrap=""><!---->
+I investigated a bit, and interrupt latency alone is not enough to
+break mouse. [Unfortunately, I do not have easy/sure way to reproduce
+it.]
+
+Is it possible that SCI interrupt handler accesses keyboard controller
+(and breaks mouse?)
+								Pavel
 
 
 
+  </pre>
+    </blockquote>
+    <br>
+  </blockquote>
+</blockquote>
+<br>
+</body>
+</html>
 
-Statements in this press release that are not historical facts are forward=
--looking statements within the meaning of the Securities Act of 1933, as a=
-mended. Those statements include statements regarding the intent, belief o=
-r current expectations of the Company and its management. Such statements =
-reflect management's current views, are based on certain assumptions and i=
-nvolve risks and uncertainties. Actual results, events, or performance may=
- differ materially from the above forward-looking statements due to a numb=
-er of important factors, and will be dependent upon a variety of factors, =
-including, but not limited to, our ability to obtain additional financing =
-and access funds from our existing financing arrangements that will allow =
-us to continue our current and future operations and whether demand for ou=
-r product and testing service in domestic and international markets will c=
-ontinue to expand. The Company undertakes no obligation to publicly update=
- these forward-looking statements to reflect events or circumstances that =
-occur after the date hereof or to reflect any change in the Company's expe=
-ctations with regard to these forward-looking statements or the occurrence=
- of unanticipated events.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-djexkywzj  fhgi r zmwq fz ddlncrzbx rozqks
-
---19D54DEF._5.4..5AE_--
+--------------030202020103090408080302--
 
 
 
