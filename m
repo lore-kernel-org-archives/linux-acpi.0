@@ -1,14 +1,15 @@
-From: Marc Franquesa <mark-KaoEA2pfkXWsTnJN9+BGXg@public.gmane.org>
-Subject: Re: Suspend 2 disk
-Date: Sat, 15 Nov 2003 14:44:09 +0100
+From: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
+Subject: Re: Crash with fs corruption on 2.4.23-rc1 + CONFIG_ACPI_PROCESSOR
+Date: Sat, 15 Nov 2003 14:48:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1068903849.940.45.camel@nexus.l3jane.net>
-References: <1068895745.944.9.camel@nexus.l3jane.net>
-	 <20031115130211.GA12062@server.by>
+Message-ID: <20031115134811.GA2630@hottah.alcove-fr>
+References: <20031113161857.GM26911@roosevelt.alcove-fr> <20031114124713.GK32464@poupinou.org> <20031114152403.GK29316@roosevelt.alcove-fr> <20031115065020.GO32464@poupinou.org>
+Reply-To: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-7GUp2jgeKzx9nOR5+0KF"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031115130211.GA12062-skno0aUYb0LHCqZ3qdFy9g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031115065020.GO32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +18,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sat, Nov 15, 2003 at 07:50:20AM +0100, Ducrot Bruno wrote:
 
---=-7GUp2jgeKzx9nOR5+0KF
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> I think the trouble come from C3, just need to check some values.  If you
+> can, it may be usefull that you disable C3, with something like that:
+> 
+> +		acpi_fadt.plvl3_lat = 1234;
 
-On ds, 2003-11-15 at 14:02, Alex Yustasov wrote:
+And the patch works, your assumption was correct. 
 
-> > I know what says the docs, that I need to patch the kernel and use
-> > additional software, but if in the past my Laptop made it without any
-> > special software, I belive that it can make it now also without any
->=20
-> and without any special hardware?
+Now, C3 seem to be reported as supported, 2.6 (correctly) doesn't
+promote to it, but 2.4 does. I can't find an obvious reason by reading
+the processor.c code (almost identical between 2.4/2.6...)
 
-No, without any special hardware. Only the standard BIOS of the Dell
-Inspiron Laptop.
+The only 'strange' thing I see in /proc/acpi/processor/CPU0/power
+(different wrt the 2.6 data I posted earlier) is the 'bus mastering 
+activity' field:
+	active state:            C2
+	default state:           C1
+	bus master activity:     00000000
+	states:
+	    C1:                  promotion[C2] demotion[--] latency[000] usage[00000340]
+	   *C2:                  promotion[--] demotion[C1] latency[003] usage[00034161]
+	    C3:                  <not supported>
 
-Actually I can start my system using 2 kernels: the standard 2.4.20
-non-patched (Red Hat) and the 2.4.22 vanilla kernel patched with the
-ACPI patch.
+Any ideas ?
 
-In the first kernel (2.4.20-8 with apm) if i do a 'apm -s' it suspends
-to disk (on a suspend partition on /dev/hda1) and resumes OK. In the
-second kernel (2.4.22 acpi-patched) I can't (and I don't know how)
-suspend to disk.
-
-
-Thanks.
-
-
---=-7GUp2jgeKzx9nOR5+0KF
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQA/ti2o4CVRFTc6wP8RAmpwAKCGn4IIpy7bYRk3omwJldIpoEvNtgCgtBsC
-XHR/VNB7N3SHGZ6yGyiaMnM=
-=oxQw
------END PGP SIGNATURE-----
-
---=-7GUp2jgeKzx9nOR5+0KF--
-
+Stelian.
+-- 
+Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
+Alcove - http://www.alcove.com
 
 
 -------------------------------------------------------
