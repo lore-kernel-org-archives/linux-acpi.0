@@ -1,49 +1,27 @@
-From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: unregister
-Date: Tue, 24 Jun 2003 18:15:35 +0300
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <506C3D7B14CDD411A52C00025558DED60ED4C1@mtlex01.yok.mtl.com>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ACPI] MS-6368L ACPI IRQ problem still in 2.4.21
+Date: Tue, 24 Jun 2003 10:00:36 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96FC5@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C33A63.761448C0"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: Marek Michalkiewicz <marekm-HuSaFJn/uQtscumT1wHf3A@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+> From: Marek Michalkiewicz [mailto:marekm-HuSaFJn/uQtscumT1wHf3A@public.gmane.org] 
+> On Mon, Jun 23, 2003 at 11:23:11PM +0100, Matthew Wilcox wrote:
+> > Have you patched 2.4.21 with the latest ACPI patch, or is 
+> this vanilla
+> > 2.4.21?
+> 
+> Vanilla 2.4.21 - tried 2.4.21-ac1 once, but it said Oops at boot time
+> (something about the VIA686A sound driver - not related to ACPI).
 
-------_=_NextPart_001_01C33A63.761448C0
-Content-Type: text/plain
+OK then I'm pretty sure this is fixed in 2.4.22-pre1.
 
-
-------_=_NextPart_001_01C33A63.761448C0
-Content-Type: text/html
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=US-ASCII">
-<META NAME="Generator" CONTENT="MS Exchange Server version 5.5.2653.12">
-<TITLE>unregister</TITLE>
-</HEAD>
-<BODY>
-
-</BODY>
-</HTML>
-------_=_NextPart_001_01C33A63.761448C0--
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+Regards -- Andy
