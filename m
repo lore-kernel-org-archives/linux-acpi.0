@@ -1,45 +1,42 @@
-From: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
-Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Sat, 8 May 2004 13:18:28 +0300
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200405081318.28853.vda@port.imtp.ilyichevsk.odessa.ua>
-References: <4069A359.7040908@nortelnetworks.com> <Pine.LNX.4.55.0404011423070.3675@jurand.ds.pg.gda.pl> <Pine.LNX.4.53.0404010814420.15020@chaos>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264218AbUEHKS4@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.53.0404010814420.15020@chaos>
-Content-Disposition: inline
-To: root@chaos.analogic.com, "Maciej W. Rozycki" <macro@ds2.pg.gda.pl>
-Cc: Jamie Lokier <jamie@shareable.org>, Bill Davidsen <davidsen@tmr.com>, Len Brown <len.brown@intel.com>, Chris Friesen <cfriesen@nortelnetworks.com>, Willy Tarreau <willy@w.ods.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+From: laste-WVlzvzqoTvw@public.gmane.org
+Subject: universal joint and sewing machine
+Date: Sat, 08 May 04 20:20:54 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <E1BMQnt-0002WK-AW@sc8-sf-mx1.sourceforge.net>
+Reply-To: sales-bJ874uQodkYAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=gb2312
+Content-Transfer-Encoding: base64
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> In Intel machines ALL memory operations are atomic. What
-> the means is that if I make code that does:
->
-> 	addl	%eax,(memory)
->
-> ... what's in memory will always be the sum of what it was
-> before and the value in the EAX register.
+RGVhciBhY3BpLWRldmVsOg0KDQpTaGFuZ0hhaSBPd253YXkgRWxlY3RyaWMgQ08uIExURC4gWXVlcWlu
+ZyBsZWRlIGNhcmRhbiBzaGFmdCBpbmR1c3RyeSBjby4gLCBpcyBwcm9kdWNlcyBhbmQgc2VsbFRyYW5z
+bWlzc2lvbiBtYWNoaW5lLCBIYXJkd2FyZSAmIFRvb2xzLCBjb21tb2RpdHksIEluZHVzdHJpYWwgZXF1
+aXBtZW50Lg0KICANClRyYW5zbWlzc2lvbiBtYWNoaW5lOiBVbml2ZXJzYWwgSm9pbnRzLCBDdXJ2ZWQt
+dG9vdGggSm9pbnRzLCBFbGFzdGljaXR5IEpvaW50Lg0KU2V3aW5nIGVxdWlwbWVudDogU2V3aW5nIE1h
+Y2hpbmUsIFNob2UtbWFraW5nIE1hY2hpbmUsIEN1dHRpbmcgTWFjaGluZSwgU3RlYW0gSXJvbiBFcXVp
+cG1lbnQuDQoNCiBBREQ6ICBObzo1NSBKaW5zaGkgUm9hZCxOYW5hbiBZdWVxaW5nIFpoZWppbmcgQ2hp
+bmENCg0KVEVMOjAwODYtNTc3LTgyMjMzMTg1ICAgICBGQVg6MDA4Ni01NzctNjIzMTExODUgICAgICAg
+IA0KaHR0cDovL3d3dy5sYXN0ZS5jb20gIGh0dHA6Ly93d3cueWFuLXhpbmcuY29tDQoNClNld2luZyBl
+cXVpcG1lbnQgRGVwYXJ0bWVudCANClRFTDogMDA4Ni0xMzUtODg5NjQzODkgICANCkUtbWFpbDogc2V3
+aW5nQGxhc3RlLmNvbQ0KDQpUcmFuc21pc3Npb24gbWFjaGluZSBEZXBhcnRtZW50IA0KVEVMOjAwODYt
+MTMzLTUzMzc4MDc1DQpFLW1haWw6IGpvaW50QGxhc3RlLmNvbSwgICBqb2ludEB5YW4teGluZy5jb20N
+CiANCmlmIHlvdSBhcmUgaW50ZXJlc3RlZCwgcGxlYXNlIGNvbnRhY3QgdXMuDQoNCllvdXJzIGZhaXRo
+ZnVsbHkNCg0KDQoNCg
 
-Except on SMP.
 
-> A long time ago, somebody invented the 'lock' instruction
-> for Intel machines. It turns out that the first ones locked
-> the whole bus during an operation. Eventually somebody looked
-> at that, and by the time the '486 came out, they no longer
-> locked the whole bus. Then somebody else said; "WTF...
-> Why do we even need this stuff". It was a throw-back to
-> early primitive machines where there were only load and
-> store operations in memory. All arithmetic had to be done
-> in registers. Now, there are only a couple instructions you
-> can use the lock prefix with, or you get an invalid opcode
-> trap, and they are really no-ops because the instruction
-> itself is atomic.
 
-Not on SMP. On SMP, lock prefix *is needed*.
-
-If you think I'm wrong, point me to the relevant docs.
---
-vda
+-------------------------------------------------------
+This SF.Net email is sponsored by Sleepycat Software
+Learn developer strategies Cisco, Motorola, Ericsson & Lucent use to deliver
+higher performing products faster, at low TCO.
+http://www.sleepycat.com/telcomwpreg.php?From=osdnemail3
