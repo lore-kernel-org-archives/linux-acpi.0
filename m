@@ -1,11 +1,12 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: ACPI_BUS dependency for CONFIG_PNP
-Date: Mon, 15 Nov 2004 12:46:54 +0100
-Message-ID: <20041115114654.GJ1662@wotan.suse.de>
+From: Paulo da Silva <pvmagacho78-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: OperationRegion outside scope
+Date: Mon, 15 Nov 2004 05:08:29 -0800 (PST)
+Message-ID: <20041115130829.23239.qmail@web41113.mail.yahoo.com>
+References: <20041112173750.GH31422@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20041112173750.GH31422-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,26 +16,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-2.6.10rc2 got this new dependency: 
+Hello,
 
-config PNP
-        bool "Plug and Play support"
-        depends on ISA || ACPI_BUS
+  the version I was using was 20040715. I've tryed
+with version 20040427 and the problem seems to have
+disapperead. Looking at the compiled file it's
+possible to see that the operation regions don't have
+zero size anymore. I will try later today to reboot my
+computer with the file compiled with version 20040427
+to see if everything goes ok. I will post the results
+later.
+  Thank you for your answer.
 
-from the ACPI update. This enables ISA-PNP on x86-64, where
-it was always disabled previously and is completely useless. Can someone
-explain the rationale behind that change? IMHO you should never use 
-ISA-PNP without CONFIG_ISA.
+Regards,
+Paulo
 
-I would prefer if that hunk was reverted.
+--- Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
 
-Thanks,
--Andi
+> On Fri, Nov 12, 2004 at 06:22:16PM +0100, Bruno
+> Ducrot wrote:
+> > 
+> > I would say this is a bug in iasl or else a *lot*
+> of DSDT are buggy as
+> > well though never got that kind of report
+> before...
+> > 
+> > Which iasl version are you using?  Could you post
+> to me the DSDT.aml produced?
+> 
+> I can reproduce this trouble with current iasl, but
+> not with the
+> 20040427.  I will send you (privately due to the
+> size) the iasl I'm using.
+> 
+> -- 
+> Bruno Ducrot
+> 
+> --  Which is worse:  ignorance or apathy?
+> --  Don't know.  Don't care.
+> 
+
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+Check out the new Yahoo! Front Page. 
+www.yahoo.com 
+ 
+
 
 
 -------------------------------------------------------
