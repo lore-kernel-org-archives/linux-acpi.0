@@ -1,13 +1,14 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: Re: reading battery status and CPU time
-Date: Thu, 10 Apr 2003 15:18:51 +0200 (CEST)
+From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
+Subject: AW: reading battery status and CPU time
+Date: Thu, 10 Apr 2003 15:40:01 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.53.0304101513220.27207@dynast.gaugusch.at>
-References: <m2n0j6uktr.fsf@tnuctip.rychter.com>
+Message-ID: <B900970C7DD9474C972986EB3EC7C58F0D4096@andromeda.agcad.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2n0j6uktr.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,39 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Apr 4, Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org> wrote:
-> FYI: reading battery status still consumes lots of CPU time. Unless it's
-> supposed to be that way?
-> This is on 2.4.21-pre6 with acpi-20030328. Sharp Mebius PC-MT1-H3.
-I have the same on a Sony Vaio FX405 (0.11 sec for one "cat state").
-I just disassembled and recompiled my DSDT and put some debug output
-there.
-Very interesting: _BIF gets called twice!
-It would still mean 0.05 secs for one query, but it would at least help a
-little bit.
+Hi Markus!
 
-Maybe someone can also tell me, why there are two _BIF methods in my dsdt
-and only one is called. Could it be for the second battery slot? I just
-pulled the battery out of the first one and the machine crashed ... maybe
-my dsdt is a bit broken.
-I had to remove several Store(Local0, Local0) (NOOP's?????) to make it
-compile. There were no other warnings except missing return code of _WAK
-(but I don't/can't use ACPI suspend).
+> btw: Does anybody know how I could print out 1/100 sec accurate
+> timestamps via syslog/dmesg?
 
-btw: Does anybody know how I could print out 1/100 sec accurate timestamps
-via syslog/dmesg?
+Read out the time stamp counter of the cpu (Pentium and up, RDTSC =
+instruction) and print it. This register is incremented with the clock =
+rate of the cpu. Therefore the accuracy should be much better than 1/100 =
+sec.
 
-thanks
-Markus
+Herbert.
 
--- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
 
 
 -------------------------------------------------------
