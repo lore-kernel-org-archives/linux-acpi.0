@@ -1,13 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 broken Samsung P35 - howto debug?
-Date: Sun, 21 Nov 2004 19:05:15 +0100
-Message-ID: <20041121180514.GA729@openzaurus.ucw.cz>
-References: <200411211600.01820.od@fet.uni-hannover.de>
+From: "Twila F. Serrano" <t_f_serrano_gv-7+EEqaLCu+D5bx+VYEBIVA@public.gmane.org>
+Subject: Application is pre approved
+Date: Sun, 21 Nov 2004 20:01:42 +0000
+Message-ID: <5b9101c4d004$c9a50e13$55ed24f9@sonet.lublin.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200411211600.01820.od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +16,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Dear Sir or Madam,
 
-> - Any idea, how to debug on low level without display, connection via ethernet 
-> etc? Serial port? Printerport? Soldering a module with leds on printer port 
-> to output states?
+Would you REFINANCE if you knew you'd SAVE TH0USANDS? 
 
+We'll get you lnterest as low as 1.92%. 
+Don't believe me? Fill out our small online questionaire and we'll show you how. 
 
-See archives for beeping patch. leds on parport should
-do the trick, too.
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Get the house/home and/or car you always wanted, it only takes 10 seconds of your time:
+http://www.your-financial.com/
+
+Best Regards,
+Andrew Banks
+
+No thanks: http://www.your-financial.com/r1/
+
 
 
 
