@@ -1,14 +1,14 @@
-From: ben lamothe <blamothe-DPNOqEs/LNQ@public.gmane.org>
-Subject: Re: Thinkpad T40 Fan
-Date: Thu, 5 Feb 2004 03:04:27 -0500
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: ACPI -- Workaround for broken DSDT
+Date: Thu, 5 Feb 2004 03:10:53 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040205030427.24025108.blamothe@mit.edu>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB5@hdsmsx402.hd.intel.com>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB9@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB5-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,81 +17,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks for the reply.  I tried to find a utility that monitored
-temperature in windows, but I was completely unsuccessful.  Do you know
-of any?  I was able to notice that after running windows for about three
-hours without the fan ever coming on, immediately after booting linux,
-the temperature was 107F, and the temperature is usually in the mid 80's
-from a cold boot.  The fan came on after about 30 seconds, alot faster
-than normal (usually takes 10-15 minutes).
+> On Wed, 2004-02-04 at 21:15, Brown, Len wrote:=20
+> > The strategy is to improve ACPI on Linux such that all=20
+> Linux distros are
+> > able to successfully ship ACPI enabled kernels.
+> >=20
+> > When we reach that stage, the OEMs will use these commercial Linux
+> > products when they validate their platforms -- fixing DSDT problems
+> > themselves before the 1st BIOS is released to the public.
+>=20
+> realistically, that's 3-5+ years away.  In the meantime, what are
+> existing users to do?  (i.e. those of us who don't like reading 430+
+> pages of the spec)
 
-I haven't noticed a consistent starting temperature for the fan, but
-generally it starts when it gets around 95F. I havn't noticed a stopping
-temperature either.  As I said, I've noticed the fan running at temps as
-low as 80-85F.  If I leave my room window open, then the fan shuts off
-after about 30 mins, but the THMO driver tells me that the temp is
-around 90F, which is really weird because I have definitely heard it
-loud and kicking at temps well below that.
+Linux users should buy machines from OEMs that support Linux,
+and not buy machines from OEMs that ignore Linux.  There are
+OEMS that validate their platforms with Linux today -- this isn't
+3-5 years away.
 
-I vaguely remember the fan staying on after installing windows from
-scratch, but i am not completely sure as that was a long time ago and I
-didn't know about this fan problem, so I wasn't looking out for it.  The
-vast majority of my other hardware didn't work either, I had to call and
-get restore cd's to get things working.  
+> So basically we shouldn't use ACPI then, and instead use APM?
 
-I don't think that it's an I^2C device, because I think the
-documentation given to me by IBM would list such a thing, but I may be
-wrong.
+If you have an old machine with APM and it satisfies your needs,
+then continue using APM on that machine.  However, APM isn't
+available on many systems today, and it will be available on
+even fewer systems in the future.
 
-Out of your list of choices, it seems like #2 is most likely, because I
-can't imagine why a fan needs to run for a processor at a temp of 90F,
-so I don't think it's totally hardware.  The fact that the fan is on so
-much may be a failsafe that IBM put in place just in case the OS doesn't
-know how to control the fan effectively, but that's just a guess.
+> If Linux ACPI could emulate the bugs that Windows has, then ACPI would
+> work on Linux on most platforms right away.  That would make=20
+> Linux more
+> accessible to people.  Linux already has a bunch of hacks to support
+> broken hardware which presumably Windows can work around;=20
+> this seems to
+> be just another one of those.
 
-On Wed, 4 Feb 2004 21:44:14 -0500
-"Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Where the spec is vague and vendor's BIOS suggests that Microsoft
+interprets the spec a certain way, we make linux work that way.  We also
+have several places where we accommodate ACPI spec violations because
+OEMs shipped them and Windows doesn't catch them -- but we complain
+loudly when we see such errors -- otherwise next year's BIOS' will still
+have the same errors...
+=20
+> While it would be great if BIOS' used correct DSDT's, then what would
+> happen if those DSDT's didn't work on Windows?  Which version do you
+> think they'd ship?  Methinks not the one that works on Linux.
 
-> >> This behavior is not exibited in Windows,
-> >> on the contrary, the fan is almost never on.
-> 
-> > ACPI can't control fan in many IBM systems,
-> > including T40. DSDT of T40 has no fan device defined.
-> 
-> Hmm, how can Windows keep the fan off but Linux can't?
-> 
-> As there is no ACPI fan device, there must be a different method to
-> control the fan on this box.
-> 
-> 1. It may be some i2c device that Windows knows about but Linux does
-> not?
->    Maybe IBM ships some platform specific software with windows?
->    Would be interesting to know if a from-scratch install of the
->    generic non-IBM windows was still able to keep the fan off.
-> 
-> 2. It may be some BIOS code using SMM that Linux somehow breaks?
-> 
-> 3. It may be done entirely in hardware without the knowledge of the
-> OS?
-> 
-> I'm hopeful that it is #3, and that Windows is simply doing better
-> passive cooling than Linux -- and perhaps we can perhaps improve our
-> passive cooling...
-> 
-> Can you run some experiments?  Maybe you can monitor the temperature
-> in windows to see if it really is cooler.  Perhaps you can experiment
-> with the power management policy settings such that it is in
-> high-power mode instead of maximum battery mode and observe the
-> temperature rises, and at what temperature the fan starts running?
-> 
-> Thanks,
-> -Len
+It isn't a choice between a Windows DSDT and a Linux DSDT.  An ACPI spec
+compliant DSDT will run on both Windows and Linux.  Note also that ACPI
+provides a mechanism where the it can behave differently depending on
+the type and version of the OS.
 
+> OTOH, what happens when Microsoft tries to fix their existing bugs --
+> they'll either stick with their buggy version forever, or have to
+> support several versions, depending on how many bugs are=20
+> fixed and when
+> they are fixed.  Or you'll end up with some versions of Windows that
+> won't run on older or newer laptops.
 
+Yes, I expect that Microsoft will have to maintain certain bug
+compatibilty or they will not be able to upgrade Windows on existing
+platforms that contains those bugs.  Linux may or may not be able to run
+ACPI on those platforms.  This isn't a deal killer, however, as Linux
+never did run ACPI on those old platforms -- we don't even enable ACPI
+for platforms older than Jan 1, 2001.  If they've run Linux w/o ACPI
+since then, it is fine that they continue to do so.  The key is that
+_new_ platforms should be ACPI spec compliant and validated with
+ACPI-enabled Linux -- and as some Linux distros have enabled ACPI --
+this is happening today.
+
+Cheers,
+-Len
 
 
 -------------------------------------------------------
