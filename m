@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Interrupt routing problem
-Date: Mon, 5 Jan 2004 10:17:36 +0800
+Subject: RE: can't switch CPU frequency while running on batterypower
+Date: Mon, 5 Jan 2004 10:30:08 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C75@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C76@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,24 +17,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yury V. Umanets" <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>, Defiant <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->strange phenomenons concerning USB with this setup, i.e. devices
->suddenly getting disconnected and reconnected again, HUBs beeing
->disabled altogether, ports being disabled and so on; and yes, using
-uhci
->instead of usb-uhci does not help any.
 
-How did you know this is caused by sharing IRQ 9?=20
+> CONFIG_X86_ACPI_CPUFREQ=3Dy
+> CONFIG_X86_ACPI_CPUFREQ_PROC_INTF=3Dy
 
-What is the exact failure that causes?
-
-
->So my question is if I can "help" my kernel somehow to distribute the
->IRQs in a more clever way.
-
-You can try boot with acpi_irq_balance option.
+Please try patch filed at
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1489
 
 --Luming
 
