@@ -1,13 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: kacpid problems
-Date: Thu, 11 Nov 2004 22:37:36 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC057@pdsmsx403>
+From: Valerio Felici <valerio-3NZjWNnCfY8@public.gmane.org>
+Subject: Re: Error in dsdt from asus a3527nuh
+Date: Thu, 11 Nov 2004 15:35:01 +0100
+Message-ID: <200411111535.01558.valerio@bgweb.it>
+References: <37F890616C995246BE76B3E6B2DBE05502982B70@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_Vi3kBtYdAGLKZ/3"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE05502982B70-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,152 +18,173 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>, "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-RGlkIHlvdSB0cnkgdGhpcz8NCg0KSSBmb3VuZCBhIHNpbWlsYXIgYnVnIGh0dHA6Ly9idWdtZS5v
-c2RsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MzY4Ni4NCg0KIHBsZWFzZSBhcHBseSB0aGUgZm9sbG93
-aW5nIHBhdGNoZXMgb25lIGJ5IG9uZSwgYW5kIHNlZSB3aGljaCBwYXRjaCANCmNvdWxkIG1ha2Ug
-dGhlIHN5bXB0b20gZGlzYXBwZWFyLg0KDQotLS0gZWRpdGVkL2RyaXZlcnMvYWNwaS9lYy4wICAg
-IDIwMDQtMTEtMTEgMDA6MDE6MzAuMDAwMDAwMDAwICswODAwDQorKysgZWRpdGVkL2RyaXZlcnMv
-YWNwaS9lYy5jICAgIDIwMDQtMTEtMTEgMDA6MDM6MTMuMDAwMDAwMDAwICswODAwDQpAQCAtMzk1
-LDkgKzM5NSwxNCBAQA0KDQogICAgICAgIGFjcGlfZGlzYWJsZV9ncGUoTlVMTCwgZWMtPmdwZV9i
-aXQsIEFDUElfSVNSKTsNCg0KKyNpZiAwDQogICAgICAgIHN0YXR1cyA9IGFjcGlfb3NfcXVldWVf
-Zm9yX2V4ZWN1dGlvbihPU0RfUFJJT1JJVFlfR1BFLA0KICAgICAgICAgICAgICAgIGFjcGlfZWNf
-Z3BlX3F1ZXJ5LCBlYyk7DQoNCisjZW5kaWYNCisgICAgICAgc3RhdHVzID0gQUVfT0s7DQorDQor
-DQogICAgICAgIGlmIChzdGF0dXMgPT0gQUVfT0spDQogICAgICAgICAgICAgICAgcmV0dXJuIEFD
-UElfSU5URVJSVVBUX0hBTkRMRUQ7DQogICAgICAgIGVsc2UNCg0KDQotLS0gZWRpdGVkL2RyaXZl
-cnMvYWNwaS9ldmVudHMvZXZncGUuYy4xICAgICAgICAyMDA0LTExLTExIDAwOjEwOjQ0LjAwMDAw
-MDAwMCArMDgwMA0KKysrIGVkaXRlZC9kcml2ZXJzL2FjcGkvZXZlbnRzL2V2Z3BlLmMgIDIwMDQt
-MTEtMTEgMDA6MDk6MjguMDAwMDAwMDAwICswODAwDQpAQCAtNjY4LDYgKzY2OCw3IEBADQogICAg
-ICAgICAgICAgICAgICogRXhlY3V0ZSB0aGUgbWV0aG9kIGFzc29jaWF0ZWQgd2l0aCB0aGUgR1BF
-DQogICAgICAgICAgICAgICAgICogTk9URTogTGV2ZWwtdHJpZ2dlcmVkIEdQRXMgYXJlIGNsZWFy
-ZWQgYWZ0ZXIgdGhlIG1ldGhvZCBjb21wbGV0ZXMuDQogICAgICAgICAgICAgICAgICovDQorI2lm
-IDANCiAgICAgICAgICAgICAgICBpZiAoQUNQSV9GQUlMVVJFIChhY3BpX29zX3F1ZXVlX2Zvcl9l
-eGVjdXRpb24gKE9TRF9QUklPUklUWV9HUEUsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBhY3BpX2V2X2FzeW5jaF9leGVjdXRlX2dwZV9tZXRob2QsDQogICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBncGVfZXZlbnRfaW5mbykpKSB7DQpAQCAtNjc1LDYgKzY3Niw3IEBA
-DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJhY3BpX2V2X2dwZV9kaXNwYXRjaDog
-VW5hYmxlIHRvIHF1ZXVlIGhhbmRsZXIgZm9yIEdQRVslMlhdLCBldmVudCBpcyBkaXNhYmxlZFxu
-IiwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZ3BlX251bWJlcikpOw0KICAgICAg
-ICAgICAgICAgIH0NCisjZW5kaWYNCiAgICAgICAgICAgICAgICBicmVhazsNCg0KICAgICAgICBk
-ZWZhdWx0Og0KDQpUaGFua3MNCkx1bWluZyANCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+RnJvbTogZGV2X3plcm8gW21haWx0bzpkZXZfeG9yQHlhaG9vLm5vXSANCj5TZW50OiAyMDA0
-5bm0MTHmnIgxMeaXpSAxOjEwDQo+VG86IFdhbmcsIFpoZW55dSBaDQo+Q2M6IFl1LCBMdW1pbmc7
-IGFjcGktZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0DQo+U3ViamVjdDogUmU6IFtBQ1BJXSBr
-YWNwaWQgcHJvYmxlbXMNCj4NCj5UaGlzIHBhdGNoIGFjdHVhbGx5IG1hZGUgc29tZSBkaWZmZXJl
-bmNlLiBJIGNvdWxkIHBsYXkNCj5tdWNoIGxvbmdlciBub3cuIEZpcnN0IGl0IHN0YXJ0ZWQgbGFn
-Z2luZywgdGhlbiBpdA0KPnN0b3BwZWQsIHRoZW4gaXQgc3RhcnRlZCBsYWdnaW5nIGFnYWluLCB0
-aGVuIGl0DQo+c3RvcHBlZC4gSXQgd2VudCBsaWtlIHRoaXMgZm9yIGEgd2hpbGUsIGJ1dCBhZnRl
-ciBJDQo+aGFkIHBsYXllZCBzb20gbW9yZSwgaXQgc3RhcnRlZCBsYWdnaW5nIGFnYWluIGJ1dCBu
-b3cNCj5pdCBkaWRuJ3Qgc3RvcC4NCj4NCj4gLS0tICJXYW5nLCBaaGVueXUiIDx6aGVueXUuei53
-YW5nQGludGVsLmNvbT4gd3JvdGU6IA0KPj4gb29wcywNCj4+IA0KPj4gLS0tDQo+PiBhY3BpLTIu
-Ni9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jfnJlbW92ZV9xdWV1ZV93b3JrDQo+PiAyMDA0LTExLTEw
-IDIzOjM4OjUxLjY5MzAyMjQ2NCArMDgwMA0KPj4gKysrIGFjcGktMi42L2RyaXZlcnMvYWNwaS90
-aGVybWFsLmMJMjAwNC0xMS0xMA0KPj4gMjM6NTI6NDAuODIwOTc1ODU2ICswODAwDQo+PiBAQCAt
-NDcyLDYgKzQ3Miw4IEBAIGFjcGlfdGhlcm1hbF9jcml0aWNhbCAoDQo+PiAgCXByaW50ayhLRVJO
-X0VNRVJHICJDcml0aWNhbCB0ZW1wZXJhdHVyZSByZWFjaGVkDQo+PiAoJWxkIEMpLCBzaHV0dGlu
-ZyBkb3duLlxuIiwNCj4+IEtFTFZJTl9UT19DRUxTSVVTKHR6LT50ZW1wZXJhdHVyZSkpOw0KPj4g
-IAlhY3BpX2J1c19nZW5lcmF0ZV9ldmVudChkZXZpY2UsDQo+PiBBQ1BJX1RIRVJNQUxfTk9USUZZ
-X0NSSVRJQ0FMLA0KPj4gdHotPnRyaXBzLmNyaXRpY2FsLmZsYWdzLmVuYWJsZWQpOw0KPj4gIA0K
-Pj4gKwl0ei0+em9tYmllID0gMTsNCj4+ICsJYWNwaV9vc193YWl0X2V2ZW50c19jb21wbGV0ZShO
-VUxMKTsNCj4+ICANCj4+DQo+YWNwaV90aGVybWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFM
-X1BBVEhfUE9XRVJPRkYpOw0KPj4gIA0KPj4gIAlyZXR1cm5fVkFMVUUoMCk7DQo+PiANCj4+IElm
-IHRoaXMgaGFzIG5vIGhlbHAsIG1heWJlIG90aGVycyBlYXQgdXAga2FjcGlkLi4NCj4+IA0KPj4g
-T24gMjAwNC4xMS4xMCAyMzo0NDozMyArMDAwMCwgV2FuZywgWmhlbnl1IHdyb3RlOg0KPj4gPiBQ
-bHMgdHJ5IHRoaXMgcGF0Y2gsDQo+PiA+IA0KPj4gPiAtLS0NCj4+IGFjcGktMi42L2RyaXZlcnMv
-YWNwaS90aGVybWFsLmN+cmVtb3ZlX3F1ZXVlX3dvcmsgIA0KPj4gMjAwNC0xMS0xMCAyMzozODo1
-MS42OTMwMjI0NjQgKzA4MDANCj4+ID4gKysrIGFjcGktMi42L2RyaXZlcnMvYWNwaS90aGVybWFs
-LmMgICAgIDIwMDQtMTEtMTANCj4+IDIzOjM5OjUwLjE5NTEyODc5MiArMDgwMA0KPj4gPiBAQCAt
-NDcyLDYgKzQ3Miw3IEBAIGFjcGlfdGhlcm1hbF9jcml0aWNhbCAoDQo+PiA+ICAgICAgICAgcHJp
-bnRrKEtFUk5fRU1FUkcgIkNyaXRpY2FsIHRlbXBlcmF0dXJlDQo+PiByZWFjaGVkICglbGQgQyks
-IHNodXR0aW5nIGRvd24uXG4iLA0KPj4gS0VMVklOX1RPX0NFTFNJVVModHotPnRlbXBlcmF0dXJl
-KSk7DQo+PiA+ICAgICAgICAgYWNwaV9idXNfZ2VuZXJhdGVfZXZlbnQoZGV2aWNlLA0KPj4gQUNQ
-SV9USEVSTUFMX05PVElGWV9DUklUSUNBTCwNCj4+IHR6LT50cmlwcy5jcml0aWNhbC5mbGFncy5l
-bmFibGVkKTsNCj4+ID4gDQo+PiA+ICsgICAgICAgdHotPnpvbWJpZSA9IDE7DQo+PiA+ICAgICAg
-ICANCj4+DQo+YWNwaV90aGVybWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFMX1BBVEhfUE9X
-RVJPRkYpOw0KPj4gPiANCj4+ID4gICAgICAgICByZXR1cm5fVkFMVUUoMCk7DQo+PiA+IA0KPj4g
-PiBJcyB0aGlzIHdvcms/DQo+PiA+IA0KPj4gPiAtemhlbg0KPj4gPiANCj4+ID4gT24gMjAwNC4x
-MS4xMCAxNDozMzozNSArMDAwMCwgZGV2X3plcm8gd3JvdGU6DQo+PiA+ID4ga2FjcGlkIHN0aWxs
-IHJ1bm5zIHdpdGggOTklY3B1IHVzYWdlIHdoZW4gdGhlDQo+PiBjcHUgZ2V0cw0KPj4gPiA+IHRv
-byBob3QuIEkgdHJpZWQgdGhlIGdhbWUgcXVha2UgMi4gWW91IGNhbiBwbGF5DQo+PiBhcm91bmQN
-Cj4+ID4gPiAxMCAtMTUgbWludXRlcyBiZWZvcmUgdGhlIGthY3BpZCBzdGFydHMgcnVubmluZw0K
-Pj4gb24gOTklDQo+PiA+ID4gY3B1IHVzYWdlLiBJIGFsc28gdXNlZCBxdWFrZSAyIHRvbyB0ZXN0
-IHRoZQ0KPj4ga2VybmVsDQo+PiA+ID4gYmVmb3JlIEkgYXBwbGllZCB5b3VyIHBhdGNoLg0KPj4g
-PiA+IA0KPj4gPiA+ICAtLS0gIll1LCBMdW1pbmciIDxsdW1pbmcueXVAaW50ZWwuY29tPiB3cm90
-ZTogDQo+PiA+ID4gPiBJdCBtZWFucyB0aGVyZSB3YXMgTk8gZXZlbnQgZ2VuZXJhdGVkIGF0IHRo
-YXQNCj4+IHRpbWUuDQo+PiA+ID4gPiBEbyB5b3UgdGhpbmsgdGhlIHN5bXB0b20gaXMgZ29uZSB3
-aXRoIG15IGRlYnVnDQo+PiA+ID4gPiBwYXRjaD8NCj4+ID4gPiA+IElmIHNvLCBJIHRoaW5rIHlv
-dXIgYm94IG5lZWQgYSBtb3JlIHNhbmUNCj4+IHNjaGVkdWxlDQo+PiA+ID4gPiBmb3IgYWNwaV90
-aGVybWFsX2NoZWNrIA0KPj4gPiA+ID4gQW5kLCBJIGNhbiBjb21lIHVwIHdpdGggYSBwYXRjaC4N
-Cj4+ID4gPiA+IA0KPj4gPiA+ID4gVGhhbmtzDQo+PiA+ID4gPiBMdW1pbmcgDQo+PiA+ID4gPiAN
-Cj4+ID4gPiA+ID4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj4gPiA+ID4gPkZyb206IGRl
-dl96ZXJvIFttYWlsdG86ZGV2X3hvckB5YWhvby5ub10gDQo+PiA+ID4gPiA+U2VudDogMjAwNMOl
-wrnCtDExw6bFk8uGMTDDpuKAlMKlIDE6MDYNCj4+ID4gPiA+ID5UbzogWXUsIEx1bWluZw0KPj4g
-PiA+ID4gPkNjOiBhY3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KPj4gPiA+ID4gPlN1
-YmplY3Q6IFJFOiBbQUNQSV0ga2FjcGlkIHByb2JsZW1zDQo+PiA+ID4gPiA+DQo+PiA+ID4gPiA+
-V2hlbiBJIHRyeSB0byBvdXRwdXQgdGhlIGV2ZW50IGZpbGUgSSBkbw0KPj4gdGhpczoNCj4+ID4g
-PiA+ID5bcm9vdEBiYWxkZXI6IC9wcm9jL2FjcGldIyBjYXQgZXZlbnQgPg0KPj4gPiA+ID4gL2hv
-bWUvZXZlbnQubG9nDQo+PiA+ID4gPiA+DQo+PiA+ID4gPiA+QnV0IHRoZW4gSXQganVzdCBzdGFu
-ZHMgdGhlcmUgd2l0aG91dCBkb2luZw0KPj4gPiA+ID4gYW55dGhpbmcuDQo+PiA+ID4gPiA+U28g
-aSB0cmllZCB0byBjaGVjayB3aGF0IHdhcyB3cm9uZyAocHMgYXgpDQo+PiBjb21tYW5kOg0KPj4g
-PiA+ID4gPjI5MjIgcHRzLzAgICAgUysgICAgIDA6MDAgY2F0IGV2ZW50DQo+PiA+ID4gPiA+DQo+
-PiA+ID4gPiA+SSBkb24ndCBrbm93IGlmIGl0IGlzIHN1cHBvc2VkIHRvIGJlDQo+PiBzdXNwZW5k
-ZWQ/DQo+PiA+ID4gPiA+PiBJIHdhbnQgdG8ga25vdyB3aGF0IGtpbmQgb2YgZXZlbnRzIGNvdWxk
-IGJlDQo+PiA+ID4gPiA+PiBnZW5lcmF0ZWQgaGVhdmlseSwgd2hpY2ggY291bGQgaGF2ZQ0KPj4g
-Y29ycmVzcG9uZGluZw0KPj4gPiA+ID4gPj4gcGVuZGluZyBleGVjdXRpb24gb2YgQU1MIG1ldGhv
-ZCBpc3N1ZWQgdG8NCj4+IHdvcmsNCj4+ID4gPiA+IHF1ZXVlDQo+PiA+ID4gPiA+PiBoYW5kbGVk
-IGJ5IGthY3BpZC4gIFNvIGp1c3QgY2F0DQo+PiAvcHJvYy9hY3BpL2V2ZW50DQo+PiA+ID4gPiA+
-DQo+PiA+ID4gPiA+PiBldmVudC5sb2cNCj4+ID4gPiA+ID4+IHRvIG1lIHdoZW4geW91IHdlcmUg
-b2JzZXJ2aW5nIGFibm9ybWFsICBjcHUNCj4+ID4gPiA+ID4+IGNvbnN1bXB0aW9uIGJ5IGthY3Bp
-ZC4gIA0KPj4gPiA+ID4gPj4gDQo+PiA+ID4gPiA+PiBUaGFua3MNCj4+ID4gPiA+ID4+IEx1bWlu
-ZyANCj4+ID4gPiA+ID4+IA0KPj4gPiA+ID4gPj4gPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+PiA+ID4gPiA+PiA+RnJvbTogZGV2X3plcm8gW21haWx0bzpkZXZfeG9yQHlhaG9vLm5vXSAN
-Cj4+ID4gPiA+ID4+ID5TZW50OiAyMDA0w4PigJ7Dg8KqMTHDg+KAncOD4oCaMTDDg8uGw4PigKIg
-MDowMA0KPj4gPiA+ID4gPj4gPlRvOiBZdSwgTHVtaW5nDQo+PiA+ID4gPiA+PiA+U3ViamVjdDog
-UkU6IFtBQ1BJXSBrYWNwaWQgcHJvYmxlbXMNCj4+ID4gPiA+ID4+ID4NCj4+ID4gPiA+ID4+ID5P
-ZiBjb3Vyc2UuLiBCdXQgd2hpY2ggbG9nIGZpbGVzIGRvIHlvdQ0KPj4gd2FudCB0bw0KPj4gPiA+
-ID4gdGFrZQ0KPj4gPiA+ID4gPj4gYQ0KPj4gPiA+ID4gPj4gPmxvb2sgYXQ/DQo+PiA+ID4gPiA+
-PiA+PiA+SG93IGFtIGkgc3VwcHBvc2UgdG8gZ2V0IGFuIG91dHB1dCBmcm9tDQo+PiA+ID4gPiA+
-PiA+PiA+L3Byb2MvYWNwaS9ldmVudCA/Pz8gSSBjYW4ndCBhY2Nlc3MgdGhlDQo+PiBmaWxlLA0K
-Pj4gPiA+ID4gPj4gPj4gYmVjYXVzZQ0KPj4gPiA+ID4gPj4gPj4gPml0J3MgaW4gdXNlLg0KPj4g
-PiA+ID4gPj4gPj4gDQo+PiA+ID4gPiA+PiA+PiBKdXN0IGtpbGwgYWNwaWQgb3IgdGhlIHNpbWls
-YXIuDQo+PiA+ID4gPiA+PiA+PiANCj4+ID4gPiA+ID4+ID4+IA0KPj4gPiA+ID4gPj4gPj4NCj4+
-ID4gPiA+ID4+DQo+PiA+ID4gPg0KPj4gPiA+DQo+Pg0KPj4+LS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gPiA+ID4gPj4gPj4gVGhpcyBT
-Ri5OZXQgZW1haWwgaXMgc3BvbnNvcmVkIGJ5Og0KPj4gPiA+ID4gPj4gPj4gU3liYXNlIEFTRSBM
-aW51eCBFeHByZXNzIEVkaXRpb24gLQ0KPj4gZG93bmxvYWQNCj4+ID4gPiA+IG5vdw0KPj4gPiA+
-ID4gPj4gZm9yDQo+PiA+ID4gPiA+PiA+PiBGUkVFDQo+PiA+ID4gPiA+PiA+PiBMaW51eFdvcmxk
-IFJlYWRlcidzIENob2ljZSBBd2FyZCBXaW5uZXINCj4+IGZvcg0KPj4gPiA+ID4gYmVzdA0KPj4g
-PiA+ID4gPj4gPj4gZGF0YWJhc2Ugb24gTGludXguDQo+PiA+ID4gPiA+PiA+Pg0KPj4gPiA+ID4g
-Pj4NCj4+ID4gPiA+DQo+PiBodHRwOi8vYWRzLm9zZG4uY29tLz9hZF9pZFU4OCZhbGxvY19pZBIw
-NjUmb3A9Y2xpY2sNCj4+ID4gPiA+ID4+ID4+DQo+PiA+ID4gPg0KPj4gX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCj4+ID4gPiA+ID4+ID4+IEFjcGktZGV2
-ZWwgbWFpbGluZyBsaXN0DQo+PiA+ID4gPiA+PiA+PiBBY3BpLWRldmVsQGxpc3RzLnNvdXJjZWZv
-cmdlLm5ldA0KPj4gPiA+ID4gPj4gPj4NCj4+ID4gPiA+ID4+DQo+PiA+ID4gPg0KPj4gPiA+DQo+
-Pg0KPj4+aHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGluZm8vYWNwaS1k
-ZXZlbA0KPj4gPiA+ID4gPj4gPj4gIA0KPj4gPiA+ID4gPj4gPg0KPj4gPiA+ID4gPj4gIA0KPj4g
-PiA+ID4gPg0KPj4gPiA+ID4gDQo+PiA+ID4gDQo+PiA+ID4gDQo+PiA+ID4NCj4+DQo+LS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gPiA+
-IFRoaXMgU0YuTmV0IGVtYWlsIGlzIHNwb25zb3JlZCBieToNCj4+ID4gPiBTeWJhc2UgQVNFIExp
-bnV4IEV4cHJlc3MgRWRpdGlvbiAtIGRvd25sb2FkIG5vdw0KPj4gZm9yIEZSRUUNCj4+ID4gPiBM
-aW51eFdvcmxkIFJlYWRlcidzIENob2ljZSBBd2FyZCBXaW5uZXIgZm9yIGJlc3QNCj4+IGRhdGFi
-YXNlIG9uIExpbnV4Lg0KPj4gPiA+DQo+Pg0KPmh0dHA6Ly9hZHMub3Nkbi5jb20vP2FkX2lkPTU1
-ODgmYWxsb2NfaWQ9MTIwNjUmb3A9Y2xpY2sNCj4+ID4gPiBfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXw0KPj4gPiA+IEFjcGktZGV2ZWwgbWFpbGluZyBsaXN0
-DQo+PiA+ID4gQWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQNCj4+ID4gPg0KPj4NCj5o
-dHRwczovL2xpc3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9hY3BpLWRldmVsDQo+
-PiA+IA0KPj4gPiANCj4+ID4NCj4+DQo+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gPiBUaGlzIFNGLk5ldCBlbWFpbCBpcyBzcG9uc29y
-ZWQgYnk6DQo+PiA+IFN5YmFzZSBBU0UgTGludXggRXhwcmVzcyBFZGl0aW9uIC0gZG93bmxvYWQg
-bm93DQo+PiBmb3IgRlJFRQ0KPj4gPiBMaW51eFdvcmxkIFJlYWRlcidzIENob2ljZSBBd2FyZCBX
-aW5uZXIgZm9yIGJlc3QNCj4+IGRhdGFiYXNlIG9uIExpbnV4Lg0KPj4gPg0KPj4gaHR0cDovL2Fk
-cy5vc2RuLmNvbS8/YWRfaWRVODgmYWxsb2NfaWQSMDY1Jm9wPWNsaWNrDQo+PiA+IF9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQo+PiA+IEFjcGktZGV2ZWwg
-bWFpbGluZyBsaXN0DQo+PiA+IEFjcGktZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0DQo+PiA+
-DQo+Pg0KPmh0dHBzOi8vbGlzdHMuc291cmNlZm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZvL2FjcGkt
-ZGV2ZWwNCj4+ICANCj4NCg==
+
+--Boundary-00=_Vi3kBtYdAGLKZ/3
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Alle 22:08, mercoled=EC 10 novembre 2004, Moore, Robert ha scritto:
+> Just create one, Method (_INI) under _SB_
+>
+Ok, I've just made that and you can see the attached diff file.
+I don't know if my changes are correct.
+Now I don't got errors but various warning as you can see here:
+=2D------
+iasl -tc dsdt.dsl
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20040527 [May 27 2004]
+Copyright (C) 2000 - 2004 Intel Corporation
+Supports ACPI Specification Revision 2.0c
+
+dsdt.dsl =A01592: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Scope (\_SB.PCI0)
+Warning =A02031 - =A0 =A0 =A0 =A0 =A0 Internal compiler error ^ =A0(Not usi=
+ng optimized=20
+name- =A0did not find node)
+
+dsdt.dsl =A02053: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 Store (ACPS (), \ACPF)
+Warning =A02030 - =A0Called method may not always return a value ^
+
+dsdt.dsl =A02054: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 Store (DCPS (0x00), \DCPF)
+Warning =A02030 - =A0Called method may not always return a value ^
+
+dsdt.dsl =A02266: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Method (ACPS, 0, =
+Serialized)
+Warning =A02019 - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 ^ Not all control paths=20
+return=A0a value (ACPS)
+
+dsdt.dsl =A02350: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Method (DCPS, 1, =
+Serialized)
+Warning =A02019 - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 ^ Not all control paths=20
+return=A0a value (DCPS)
+
+dsdt.dsl =A03105: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Scope (\_SB.PCI0)
+Warning =A02031 - =A0 =A0 =A0 =A0 =A0 Internal compiler error ^ =A0(Not usi=
+ng optimized
+name - =A0did not find node)
+
+dsdt.dsl =A03133: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 If (ACPS =
+())
+Warning =A02030 - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 ^ Called method may not
+always =A0return a value
+
+dsdt.dsl =A03167: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Scope (\_SB.PCI0)
+Warning =A02031 - =A0 =A0 =A0 =A0 =A0 Internal compiler error ^ =A0(Not usi=
+ng optimized
+name -=A0did not find node)
+
+dsdt.dsl =A03484: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 If (LNot =
+(DCPS (0x00)))
+Warning =A02030 - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 ^ Called method
+may not always return a value
+
+dsdt.dsl =A04552: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Scope (\_SB.PCI0)
+Warning =A02031 - =A0 =A0 =A0 =A0 =A0 Internal compiler error ^ =A0(Not usi=
+ng optimized
+name - =A0did not find node)
+
+ASL Input: =A0dsdt.dsl - 7943 lines, 271919 bytes, 3643 keywords
+AML Output: DSDT.aml - 27867 bytes 873 named objects 2770 executable opcodes
+
+Compilation complete. 0 Errors, 10 Warnings, 0 Remarks, 809 Optimizations
+=2D------
+Well, what can I do now?
+Is that dsdt good to test? or I'm still in errors.
+Many thank as always
+=2D-=20
+A presto
+=2DValerio-
+
+--Boundary-00=_Vi3kBtYdAGLKZ/3
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="dsdt.dsl.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="dsdt.dsl.diff"
+
+--- dsdt.dsl	2004-11-08 21:54:06.000000000 +0100
++++ dsdtVMF.dsl	2004-11-11 14:15:24.000000000 +0100
+@@ -7813,32 +7813,38 @@
+                 Return (CRS)
+             }
+         }
+-    }
+-
+-    If (SS1)
+-    {
++	
++	Method (_INI)
++	{
++	If (SS1)
++	{
+         Name (\_SB.PCI0._S1D, 0x02)
+         Name (\_SB.PCI0.P0P1._S1D, 0x02)
+         Name (\_SB.PCI0.USB1._S1D, 0x02)
+         Name (\_SB.PCI0.USB2._S1D, 0x02)
+         Name (\_SB.PCI0.USB3._S1D, 0x02)
+-    }
++	}
+ 
+-    If (SS3)
+-    {
++	If (SS3)
++	{
+         Name (\_SB.PCI0._S3D, 0x02)
+         Name (\_SB.PCI0.P0P1._S3D, 0x02)
+         Name (\_SB.PCI0.USB1._S3D, 0x02)
+         Name (\_SB.PCI0.USB2._S3D, 0x02)
+         Name (\_SB.PCI0.USB3._S3D, 0x02)
+-    }
++	}
+ 
+-    If (SS4)
+-    {
++	If (SS4)
++	{
+         Name (\_SB.PCI0._S4D, 0x02)
+         Name (\_SB.PCI0.P0P1._S4D, 0x02)
++	}
++	}
++	
+     }
+ 
++    
++
+     Method (_PTS, 1, NotSerialized)
+     {
+         Store (Arg0, DBG8)
+@@ -7872,6 +7878,8 @@
+         0x00, 
+         0x00
+     })
++    Method (_INI)
++    {
+     If (SS1)
+     {
+         Name (_S1, Package (0x04)
+@@ -7904,7 +7912,7 @@
+             0x00
+         })
+     }
+-
++    }
+     Name (_S5, Package (0x04)
+     {
+         0x07, 
+
+--Boundary-00=_Vi3kBtYdAGLKZ/3--
 
 
 -------------------------------------------------------
