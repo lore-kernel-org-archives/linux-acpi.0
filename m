@@ -1,11 +1,10 @@
-From: "Nicholas Mistry" <nick-acpi-rrCFhXTPMk0L0swiZSXcMb5dPsmED6B0@public.gmane.org>
-Subject: newbie question:  building w/ CONFIG_ACPI_SLEEP on 2.5.40+
-Date: Thu, 17 Oct 2002 14:30:10 -0400 (EDT)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Acer aspire 1203 & ACPI
+Date: Thu, 17 Oct 2002 11:33:04 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <2203.63.214.83.221.1034879410.squirrel@65.85.27.130>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF2F@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,32 +14,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Gabriele Alberti' <gabriele.alberti-06ZeP6ie+xM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> From: Gabriele Alberti [mailto:gabriele.alberti-06ZeP6ie+xM@public.gmane.org] 
+> ACPI: Core Subsystem version [20011018]
+> but it doesn't seem to work properly..for example, linux 
+> reports always no battery and ac-cable online also
+> when it's not.
+> Any clue? If you need more info let me know, i will be glad to help.
 
-I am relatively new to the ACPI implementation in linux, and was trying to
-build my 2.5.40kernel w/ the acpi-20021002-2.5.40.diff.gz patch.  I first compiled the
-kernel with thedefault options for ACPI and all ran perfectly.  Pressing the button
-yeilded :
-[...]
-received event "button/power PWRF 00000080 00000003"
-[...] completed event
-"button/power PWRF 00000080 00000003
+How does 2.5.latest's ACPI work on this machine?
 
-The one thing i noticed is that i cannot enable the
-CONFIG_ACPI_SLEEP option.  I have tried trough make
-(config|menuconfig|xconfig), andafter i select "Y", the option returns back to the default state of "N".
-
-I am wonering if
-there are some options that are required to be (un)set for this option to
-work.
-Thanks in
-advance.
-
--N
-
-
+Regards -- Andy
 
 
 -------------------------------------------------------
