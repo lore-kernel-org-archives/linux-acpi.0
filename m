@@ -1,12 +1,11 @@
-From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 22:09:26 +0100
-Message-ID: <42126506.8020407@colitti.com>
-References: <20050214211105.GA12808@elf.ucw.cz>	 <1108482083.12031.10.camel@elrond.flymine.org>	 <42122054.8010408@colitti.com>  <200502151742.55362.s0348365@sms.ed.ac.uk> <1108500194.12031.21.camel@elrond.flymine.org>
+From: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Subject: Re: Call for help: list of machines with working S3
+Date: Tue, 15 Feb 2005 22:28:52 +0100
+Message-ID: <1108502932.29172.5.camel@sponge.fungus>
+References: <20050214211105.GA12808@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1108500194.12031.21.camel-Xmbc1Sz64/5pghhO6/9/sx2eb7JE58TQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-D/qzgXnlZmrfEGwBYxEt"
+In-Reply-To: <20050214211105.GA12808-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,45 +15,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Alistair John Strachan <s0348365-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
->>                Vendor: Hewlett-Packard
->>-               Version: 68BDD Ver. F.0F
->>-               Release Date: 07/23/2004
->>+               Version: 68BDD Ver. F.11
->>+               Release Date: 11/22/2004
-> 
-> 
-> Ok, so you both have different BIOS versions and different CPUs.
 
-S3 works for me with both BIOS F.0F, which I was using before, and F.11, 
-which I flashed today after learning it existed.
+--=-D/qzgXnlZmrfEGwBYxEt
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-> Everything else looks pretty identical. Could you both
-> stick /proc/acpi/dsdt up somewhere so I can check if there are any
-> relevant looking differences?
+Hi,
 
-I would advise trying to compile a custom kernel from scratch with my 
-.config first.
+On Mon, 2005-02-14 at 22:11 +0100, Pavel Machek wrote:
+> Stefan provided me initial list of machines where S3 works (including
+> video). If you have machine that is not on the list, please send me a
+> diff. If you have eMachines... I'd like you to try playing with
+> vbetool (it worked for me), and if it works for you supplying right
+> model numbers.
 
-I got S3 working first with a very basic kernel config, but I couldn't 
-get it to work with my usual kernel. Assuming it was some feature that 
-caused the problem, I started disabling features in the hope of getting 
-it to work, but I ended up with two different kernels with seemingly 
-irrelevant differences, of which one would succesfully resume and one 
-wouldn't. So I started added features to the other kernel, and I never 
-found out what caused the problem.
+I have S3 working with 2.6.11-rc4 here:
 
-I'm not saying that this is not deterministic, but I am saying that, at 
-least in my case, it's not obvious what it is that stops S3 from 
-working. :-)
+Model                           hack (or "how to do it")
+---------------------------------------------------------------------------=
+---
+IBM TP X31 / Type 2672-XXH      LCD backlight must be turned off=20
+                                manually using radeontool [1]
 
+Sincerely,
+Brix
 
-Cheers,
-Lorenzo
+[1]: http://fdd.com/software/radeon/
+--=20
+Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Gentoo Linux
+
+--=-D/qzgXnlZmrfEGwBYxEt
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQBCEmmUv+Q4flTiePgRAsLfAJ4gpmbP+onTyzPrmxe8lHUxSGStcwCeOcH3
+WLUGItS94rAX+dyP/+D/jPI=
+=HCtK
+-----END PGP SIGNATURE-----
+
+--=-D/qzgXnlZmrfEGwBYxEt--
+
 
 
 -------------------------------------------------------
