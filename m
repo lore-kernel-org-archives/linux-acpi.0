@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Gericom Hummer 2430 problems
-Date: Mon, 12 Jan 2004 14:57:49 +0800
+Subject: RE: Where can I find some documentation/examples?
+Date: Mon, 12 Jan 2004 15:20:15 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CB3@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CB4@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,42 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastien B <sebastien.bourdeauducq-QFKgK+z4sOrR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> - I can't change the CPU throttling settings. When I write to=20
-> /proc/acpi/processor/CPU1/throttling, nothing happens and the=20
-> contents of=20
-> this file remain unchanged. Writing to=20
-> /proc/acpi/processor/CPU1/limit=20
-> doesn't work either. There isn't any error message displayed=20
-> in the dmesg=20
-> output nor in the console.
-> - Sometimes my machine locks up for less than a second and=20
-> when this happens I=20
-> have the following message in the dmesg output :=20
-> atkbd.c: Unknown key pressed (translated set 2, code 0x0,=20
-> data 0x0, on=20
-> isa0060/serio0).
-> I'm unsure this problem is ACPI related, but it often happens=20
-> when the fan=20
-> starts up.
-
-Maybe this is ec event handling relative bug.  Please file it
-on bugzilla.=20
-
-> - The S-states just don't work. Trying to enter one either=20
-> does nothing or=20
-> crashes the computer. The computer shutdowns properly, though.
-> I'm using Linux 2.6.0 with the ACPI patch 20031203.
-> You can find useful information about my laptop (contents of=20
-> the DSDT, full=20
-> output of dmesg and so on) at http://irchat.free.fr/acpi/.
-> Thank you,
-> Seb
+> One comment about removing - I didn't mean calling the serial=20
+> device's=20
+> remove method in the ACPI namespace, but rather having the=20
+> serial driver=20
+> call serial_unregister() to release the resources.
+> I would think that if the driver unregisters from the acpi=20
+> bus, then it=20
+> should also release the resources, after all, wouldn't it be=20
+> possible that=20
+> after the driver unregisters with the acpi bus, yet still holds the=20
+> resources, couldn't a second serial driver come along and=20
+> register for the=20
+> same type of devices, and get the same serial device that is=20
+> already handled=20
+> by the first serial driver?
 >=20
 
-What kind of crash? Maybe this could the most easy one. :)
+As for resources management, ACPI seems to just let other
+driver know the resources configuration. So you cannot count=20
+on acpi for that purpose.
 
 
 -------------------------------------------------------
