@@ -1,12 +1,11 @@
-From: "Lucien Sheridan" <lucien.sheridan_hl-v9Y51zrMt1/3fQ9qLvQP4Q@public.gmane.org>
-Subject: Powerful weightloss now available for you.
-Date: Wed, 09 Jun 2004 18:43:31 -0200
+From: "speretta" <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
+Subject: Recebido seu e-mail agrade=?ISO-8859-1?Q?=E7o_a_aten=E7=E3o=2E_Em_breve_ser=E1?= respondido. Sugiro sua visita ao si
+Date: Wed,  9 Jun 2004 14:36:28 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <0ff601c44e62$8c5be5ac$7b18b23b@catalyst.net.au>
+Message-ID: <10406091436.AA94661745@speretta.adv.br>
+Reply-To: <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,37 +15,10 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special_offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Boost your Confidence level and Self Esteem.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-Get the facts about all-natural Adipren720 <http://3adipren.com/>
-
-
-
----- system information ----
-might zh-Hant set information different identification more-specific services
-
-end rely Internationalization field internationalization respect of who
-
-employ Localization] future requests transport properties do Cases 
-correctly categories status software POSIX services result architecture
-
-Group's formatting Content-Language interaction Provider's difficult shorthand
-your 
-
+Recebido seu e-mail agradeço a atenção. Em breve será respondido. Sugiro sua visita ao site htpp://www.speretta.adv.br e ao blog  - http://speretta.blog.uol.com.br. Tenha um ótimo dia e que esteja sempre com a PAZ de DEUS.
 
 
 -------------------------------------------------------
