@@ -1,100 +1,47 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Why does gcc suck at switch()?
-Date: Fri, 3 Oct 2003 15:56:14 +0100
-Sender: gcc-owner-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org
-Message-ID: <20031003145614.GP24824@parcelfarce.linux.theplanet.co.uk>
+From: Stefan Behnel <behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
+Subject: Samsung P10 DSDT patches, BIOS versions 04AE and newer
+Date: Fri, 03 Oct 2003 18:25:23 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3F7DA2F3.8080008@gkec.tu-darmstadt.de>
+References: <20030508195513.GA29957@thedesignexperience.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <gcc-return-83540-gcc-@public.gmane.org>
-List-Unsubscribe: <mailto:gcc-unsubscribe-gcc-@public.gmane.org>
-List-Archive: <http://gcc.gnu.org/ml/gcc/>
-List-Post: <mailto:gcc-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org>
-List-Help: <http://gcc.gnu.org/ml/>
-Content-Disposition: inline
-To: gcc-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030508195513.GA29957-eQMij45H2SHXYFsarriMmxagbA6BzR3y@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dave Bauer <dave-eQMij45H2SHXYFsarriMmxagbA6BzR3y@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Dave Bauer wrote:
+> I also noticed that Stefan posted a link to his fixed DSDT, but I can't
+> download it. The message the link was posted in is here: 
+> http://sourceforge.net/mailarchive/message.php?msg_id=3643745
 
-Why does gcc generate worse code for switch() statements than for
-multiple-if?
+Sorry, my fault. I accidentally copied an old version of that page there...
 
-$ gcc --version
-gcc (GCC) 3.3.2 20030908 (Debian prerelease)
+The old link should work now, but it only takes you to the new page:
+http://www.behnel.de/acpi/samsung-acpi.html
+resp.
+http://www.behnel.de/acpi/samsung-acpi.de.html
 
-I would expect a compiler to produce the same code for these cases.
-Instead, switch is worse than the multiple-if:
+You'll now find tar archives that contain all the necessary files for different BIOS versions.
 
--       switch (event) {
--       case ACPI_THERMAL_NOTIFY_TEMPERATURE:
-+       if (event == ACPI_THERMAL_NOTIFY_TEMPERATURE) {
-                acpi_thermal_check(tz);
--               break;
--       case ACPI_THERMAL_NOTIFY_THRESHOLDS:
-+       } else if (event == ACPI_THERMAL_NOTIFY_THRESHOLDS) {
-                acpi_thermal_get_trip_points(tz);
-                acpi_thermal_check(tz);
-                acpi_bus_generate_event(device, event, 0);
--               break;
--       case ACPI_THERMAL_NOTIFY_DEVICES:
-+       } else if (event == ACPI_THERMAL_NOTIFY_DEVICES) {
-                if (tz->flags.devices)
-                        acpi_thermal_get_devices(tz);
-                acpi_bus_generate_event(device, event, 0);
--               break;
--       default:
-+       } else {
-                ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-                        "Unsupported event [0x%x]\n", event));
--               break;
-        }
+Have fun,
+Stefan :)
 
-$ size *.o
-   text    data     bss     dec     hex filename
-   5996     704      16    6716    1a3c thermal-multiple-if.o
-   6005     704      16    6725    1a45 thermal-switch.o
 
-Here's the asm diff between the two versions:
 
--       cmpl    $129, %esi
--       je      .L597
--       cmpl    $129, %esi
--       ja      .L602
--       addl    $-128, %esi
--       je      .L596
--       jmp     .L592
--.L602:
--       cmpl    $130, %esi
--       je      .L598
--       jmp     .L592
--.L596:
-+       cmpl    $128, %esi
-+       jne     .L595
- ...
--.L597:
-+.L595:
-+       cmpl    $129, %esi
-+       jne     .L597
- ...
--.L598:
-+.L597:
-+       cmpl    $130, %esi
-+       jne     .L592
 
-The other diffs are just label numbers changing.  Given that gcc was
-instructed to optimise for space (full command line:
-
-gcc -Wp,-MD,drivers/acpi/.thermal.o.d -nostdinc -iwithprefix include \
-	-D__KERNEL__ -Iinclude  -D__KERNEL__ -Iinclude  -Wall \
-	-Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing \
-	-fno-common -pipe -mpreferred-stack-boundary=2 -march=i686 \
-	-Iinclude/asm-i386/mach-default -fomit-frame-pointer  -Os   \
-	-DKBUILD_BASENAME=thermal -DKBUILD_MODNAME=thermal -c \
-	-o drivers/acpi/thermal.o drivers/acpi/thermal.c
-
-I think it should choose the more space-efficient approach.
-
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
