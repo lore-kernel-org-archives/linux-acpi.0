@@ -1,14 +1,15 @@
-From: Russell King <rmk-pci-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
-Date: Tue, 23 Mar 2004 09:23:38 +0000
+From: Romano Giannetti <romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org>
+Subject: Re: AC adapter status wrong after resume (swsusp, pmdsik)
+Date: Tue, 23 Mar 2004 10:42:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040323092338.A21352@flint.arm.linux.org.uk>
-References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk> <20040320181000.GA8272@kroah.com> <20040322223425.GB3213@neo.rr.com>
+Message-ID: <20040323094226.GA6911@pern.dea.icai.upco.es>
+References: <20040322154654.GA10305@pern.dea.icai.upco.es> <20040322223145.GA2549@luna.mooo.com>
+Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040322223425.GB3213-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>; from ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org on Mon, Mar 22, 2004 at 10:34:25PM +0000
+In-Reply-To: <20040322223145.GA2549-4cxDFgrrBECgSpxsJD1C4w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,36 +18,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 22, 2004 at 10:34:25PM +0000, Adam Belay wrote:
-> What do you think would be the best way to go about this?
-> 
-> I was able to come up with the following options:
-> 
-> 1.) flags in struct device_driver
-> 2.) return codes from (*match)
-> 3.) a seperate bus specific function to evaluate driver priority
-> 
-> Also how can we prevent the order in which drivers are loaded from
-> determining which driver is bound?  It seems that we would need to
-> delay device matching.
+On Tue, Mar 23, 2004 at 12:31:45AM +0200, Micha Feigin wrote:
+> On Mon, Mar 22, 2004 at 04:46:54PM +0100, Romano Giannetti wrote:
 
-There's also the problem of devices which don't have a driver loaded.
-For instance, if you suspend and power down a cardbus bridge which
-hasn't had yenta_socket loaded, you could loose the extra configuration
-information in TI bridges necessary for IRQ routing, which we won't
-be able to recover at a later point in time.
+> >       Iam an user of linux 2.6.x on a Vaio FX701 laptop. I found a little
+> >       problem with AC charger status and the suspend/resume software, and so
+> >       I copy this message to your list, after a kernel developer suggested
+> >       me to do so. 
 
-Do we even care about this?
+> I saw this same problem with swsusp2. The solution was to compile the
+> battery support as a module, unload it before suspend and reload it
+> after resume.
+
+Well... I will try and do it, bur really it seems to me more a workaround
+than a solution... nevertheless, thank you very much. 
+
+       Romano 
+
 
 -- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 PCMCIA      - http://pcmcia.arm.linux.org.uk/
-                 2.6 Serial core
+Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
+Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
 
 
 -------------------------------------------------------
