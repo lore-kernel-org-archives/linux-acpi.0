@@ -1,10 +1,15 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: ACPI DSDT BIOS bug workaround - exceeding operation regions
-Date: Fri, 18 Mar 2005 19:01:30 +0100
-Message-ID: <423B177A.6050302@suse.de>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
+Date: Fri, 18 Mar 2005 11:07:19 -0700
+Message-ID: <1111169239.13286.39.camel@eeyore>
+References: <1110989436.8378.19.camel@eeyore>
+	 <1111023217.15278.7.camel@sli10-desk.sh.intel.com>
+	 <1111082914.11380.30.camel@eeyore>
+	 <1111108150.22239.6.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <1111108150.22239.6.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,105 +19,156 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: kernel-l3A5Bk7waGM@public.gmane.org
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Fri, 2005-03-18 at 09:09 +0800, Li Shaohua wrote:
+> On Fri, 2005-03-18 at 02:08, Bjorn Helgaas wrote:
+> > On Thu, 2005-03-17 at 09:33 +0800, Li Shaohua wrote:
+> > > The comments in previous quirk said it's required only in PIC mode.
+> > ...
+> > > I feel we concerned too much. Changing the interrupt line isn't harmful,
+> > > right? Linux actually ignored interrupt line. Maybe just a
+> > > PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq) is
+> > > sufficient.
+> > 
+> > I think it's good to limit the scope of the quirk as much as
+> > possible because that makes it easier to do future restructuring,
+> > such as device-specific interrupt routers.
+> > 
+> > The comment (before quirk_via_acpi(), nowhere near quirk_via_irqpic())
+> > says *on-chip devices* have this unusual behavior when the interrupt
+> > line is written.  That makes sense to me.
+> > 
+> > Writing the interrupt line on random plug-in Via PCI devices does
+> > not make sense to me, because for that to have any effect, an
+> > upstream bridge would have to be snooping the traffic going through
+> > it.  That doesn't sound plausible to me.
+> > 
+> > What about this:
+> Hmm, this looks like previous solution. We removed the specific via
+> quirk is because we don't know how many devices have such issue. Every
+> time we encounter an IRQ issue in a VIA PCI device, we will suspect it
+> requires quirk and keep try. This is a big overhead. 
 
-I got one report of a broken DSDT on a Medion P4 HT machine (#72391).
-I could only work on a forced compiled broken DSDT on my own system.
-Another report seems to be similar (Medion P4 HT EM64T), waiting for
-dsdt whether it's the same bug.
+OK.  Try this one for size.  It differs from what's currently in
+the tree in these ways:
 
-In both cases speedstep (possibly other things, too) do not work..
+    - It's a quirk, so we don't have to clutter acpi_pci_irq_enable()
+      and pirq_enable_irq() with Via-specific code.
 
+    - It doesn't do anything unless we're in PIC mode.  The comment
+      suggests this issue only affects PIC routing.
 
-The problem are those lines in the DSDT (- broken, + fixed):
-(Tested fixed DSDT on the broken system -> works)
+    - We do this for ALL Via devices.  The current code in the tree
+      does it for all devices in the system IF there is a Via device
+      with devfn==0, which misses Grzegorz's case.
 
-     OperationRegion (PORT, SystemIO, 0x80, 0x01)
--    Field (PORT, WordAcc, NoLock, Preserve)
-+    Field (PORT, ByteAcc, NoLock, Preserve)
-     {
-         P80H,   8
-     }
-The Operation Region or data field is declared to be one byte in size (last
-argument). The access on the region is declared WordAcc (2 bytes).
-Even the variable inside the field is only declared 1 byte (8 bit), the kernel
-will try to read/write 2 bytes as declared in the header of the field (WordAcc).
-I found out that there is already a hook in drivers/acpi/executer/exfldio.c
-for buggy DSDTs. It allows to read/write outside the OperationRegion:
-______________________
+Does anybody have a pointer to a spec that talks about this?  It'd
+be awfully nice to have a reference.
 
-if (acpi_gbl_enable_interpreter_slack) {
-                        /*
-                         * Slack mode only:  We will go ahead and allow access to this
-                         * field if it is within the region length rounded up to the next
-                         * access width boundary.
-                         */
-______________________
+Grzegorz, can you check to make sure this still works after all the
+tweaking?
 
-So in the above case the kernel allows when DSDT code access P80H to read byte
-0x80 and 0x81. This seems to fail on the new Medions, probably when writing to byte 0x81.
-
-
-                     OperationRegion (EVGR, PCI_Config, 0x00, 0x02)
--                    Field (EVGR, DWordAcc, NoLock, Preserve)
-+                    Field (EVGR, WordAcc, NoLock, Preserve)
-                     {
-                         EVID,   16
-                     }
-Same here, but 32 bit should be read (DWordAcc), even the region is only 16
-bit.
-
-My patch below shortens the access of the field unit (P80H) to the next byte width,
-by considering the bit_length of the field unit (8), not the whole field declaration (WordAcc, 16).
-In this case the bit width is 8, so it's shortened to 1 byte, reading/writing only 0x80.
-
-Differences should only come in place on a buggy BIOS, where a field exceeds the operation region.
-Therefore I think it should be safe?
-
-
---- linux-2.6.11/drivers/acpi/executer/exfldio.c	2005-03-02 08:37:53.000000000 +0100
-+++ linux-2.6.11_i386_ExceedingRegion/drivers/acpi/executer/exfldio.c	2005-03-17 18:02:44.000000000 +0100
-@@ -134,7 +134,8 @@
- 			/*
- 			 * Slack mode only:  We will go ahead and allow access to this
- 			 * field if it is within the region length rounded up to the next
--			 * access width boundary.
-+			 * access width boundary, the access will be cut if necessary
-+			 * later in acpi_ex_access_region below
- 			 */
- 			if (ACPI_ROUND_UP (rgn_desc->region.length,
- 					   obj_desc->common_field.access_byte_width) >=
-@@ -248,8 +249,24 @@
-
- 	/* Invoke the appropriate address_space/op_region handler */
-
--	status = acpi_ev_address_space_dispatch (rgn_desc, function,
--			  address, ACPI_MUL_8 (obj_desc->common_field.access_byte_width), value);
-+	if (rgn_desc->region.length < (obj_desc->common_field.base_byte_offset
-+				       + field_datum_byte_offset
-+				       + obj_desc->common_field.access_byte_width)) {
-+		/* Access exceeds region, try to cut it down
-+		 * only read bit length of the field unit, don't care about
-+		 * region access (e.g. ByteAcc ...), round up to next byte */
-+			ACPI_DEBUG_PRINT ((ACPI_DB_INFO, "Workaround BIOS bug - field exceeds region: "
-+					   "cut access from %d bits to %d", ACPI_MUL_8 (obj_desc->common_field.access_byte_width),
-+					   (obj_desc->common_field.bit_length + 7 ) & ~7));
-+			status = acpi_ev_address_space_dispatch (rgn_desc, function,
-+								 address, (obj_desc->common_field.bit_length + 7) & ~7, value);
-+	}
-+	else{
-+		status = acpi_ev_address_space_dispatch (rgn_desc, function,
-+							 address, ACPI_MUL_8 (obj_desc->common_field.access_byte_width), value);
-+	}
+===== arch/i386/pci/irq.c 1.55 vs edited =====
+--- 1.55/arch/i386/pci/irq.c	2005-02-07 22:39:15 -07:00
++++ edited/arch/i386/pci/irq.c	2005-03-15 10:11:44 -07:00
+@@ -1026,7 +1026,6 @@
+ static int pirq_enable_irq(struct pci_dev *dev)
+ {
+ 	u8 pin;
+-	extern int via_interrupt_line_quirk;
+ 	struct pci_dev *temp_dev;
+ 
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+@@ -1081,10 +1080,6 @@
+ 		printk(KERN_WARNING "PCI: No IRQ known for interrupt pin %c of device %s.%s\n",
+ 		       'A' + pin, pci_name(dev), msg);
+ 	}
+-	/* VIA bridges use interrupt line for apic/pci steering across
+-	   the V-Link */
+-	else if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq & 15);
+ 	return 0;
+ }
+ 
+===== drivers/acpi/pci_irq.c 1.37 vs edited =====
+--- 1.37/drivers/acpi/pci_irq.c	2005-03-01 09:57:29 -07:00
++++ edited/drivers/acpi/pci_irq.c	2005-03-15 10:10:57 -07:00
+@@ -388,7 +388,6 @@
+ 	u8			pin = 0;
+ 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+ 	int			active_high_low = ACPI_ACTIVE_LOW;
+-	extern int		via_interrupt_line_quirk;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
+ 
+@@ -437,9 +436,6 @@
+ 			return_VALUE(0);
+ 		}
+  	}
+-
+-	if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq & 15);
+ 
+ 	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
+ 
+===== drivers/pci/quirks.c 1.72 vs edited =====
+--- 1.72/drivers/pci/quirks.c	2005-03-10 01:38:25 -07:00
++++ edited/drivers/pci/quirks.c	2005-03-18 10:55:01 -07:00
+@@ -683,19 +683,40 @@
+ }
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82454NX,	quirk_disable_pxb );
+ 
+-/*
+- *	VIA northbridges care about PCI_INTERRUPT_LINE
+- */
+-int via_interrupt_line_quirk;
++#ifdef CONFIG_ACPI
++#include <linux/acpi.h>
++#endif
+ 
+-static void __devinit quirk_via_bridge(struct pci_dev *pdev)
++static void __devinit quirk_via_irqpic(struct pci_dev *dev)
+ {
+-	if(pdev->devfn == 0) {
+-		printk(KERN_INFO "PCI: Via IRQ fixup\n");
+-		via_interrupt_line_quirk = 1;
++	u8 irq, new_irq;
 +
-+
++#ifdef CONFIG_X86_IO_APIC
++	if (skip_ioapic_setup)
++		return;
++#endif
++#ifdef CONFIG_ACPI
++	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
++		return;
++#endif
++	/*
++	 * Some Via devices make an internal connection to the PIC when the
++	 * PCI_INTERRUPT_LINE register is written.  If we've changed the
++	 * device's IRQ, we need to update this routing.
++	 *
++	 * I suspect this only happens for devices on the same chip as the
++	 * PIC, but I don't know how to identify those without listing them
++	 * all individually, which is a maintenance problem.
++	 */
++	new_irq = dev->irq & 0xf;
++	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
++	if (new_irq != irq) {
++		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
++			pci_name(dev), irq, new_irq);
++		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+ 	}
+ }
+-DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_ANY_ID,                     quirk_via_bridge );
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
+ 
+ /*
+  *	Serverworks CSB5 IDE does not fully support native mode
 
- 	if (ACPI_FAILURE (status)) {
- 		if (status == AE_NOT_IMPLEMENTED) {
+
 
 
 -------------------------------------------------------
