@@ -1,13 +1,14 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: sbs-linux: smart batteries on SourceForge (was New SmartBattery DSDT-based
- controller)
-Date: Sat, 05 Feb 2005 21:19:42 -0500
-Message-ID: <42057EBE.5090102@bartol.udel.edu>
-References: <41FBDDE2.1050403@bartol.udel.edu>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Re: [RFC] Reliable video POSTing on resume
+Date: Sun, 6 Feb 2005 12:05:13 +0100
+Message-ID: <200502061205.14131.stefandoesinger@gmx.at>
+References: <20050122134205.GA9354@wsc-gmbh.de> <200502051748.43547.stefandoesinger@gmx.at> <9e47339105020509382adbbf39@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <41FBDDE2.1050403-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <9e47339105020509382adbbf39-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,64 +18,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ondrej Zary <linux-ZCIryABCsrmttCpgsWEBFmD2FQJk+8+b@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all --
-
-I've finished the first cut of the DSDT hackery needed to get smart 
-battery systems (SBS) working like 'traditional' control method (CM) 
-batteries. This sounds like a kludge, but it's worth pointing out that 
-many modern laptops already use SBS batteries internally, but expose 
-them as CM batteries.
-
-The new code can be downloaded from the new SourceForge project I've 
-established:
-
-https://sourceforge.net/projects/sbs-linux/
-
-The package to download is SBS-CM-20050205. Basically, this package 
-provides patches against the DSDT (in source form, as decompiled using 
-the Intel compiler), that adds in the SBS-CM support. Full instructions 
-are provided in the accompanying README file.
-
-The following systems are "supported":
-
-  *) Acer Extensa 3002WLMi
-  *) Acer TravelMate 4000LMi
-  *) Acer TravelMate 4001LMi
-  *) Acer TravelMate 4001WLMi
-  *) Acer TravelMate 4002LMi
-  *) Acer TravelMate 4502LMi
-  *) Acer TravelMate 4502WLMi
-  *) Acer Extensa 3202XCi
-
-I'm currently working on the Acer Aspire 1692WLMi, which already 
-contains a broken SBS-CM implementation. The Acer TravelMate 382 and 
-Ferrari 3400 also already contain SBS-CM implementations, but I'm not 
-sure to what extent they work or not.
-
-As well as the DSDT patches, I provide in the package my embedded 
-controller patch, that improves the EC responsiveness by switching from 
-spinlocks to semaphores. I've tried out the other patches mentioned 
-recently on this list, but they either don't work, or reduce EC access 
-rates to a crawl.
-
-Note that battery events, including alarms, are properly handled; so you 
-should get notifications in /proc/acpi/event when something interesting 
-happens. In tandem with acpid, you can use these notifications to, e.g., 
-shutdown your system when the battery gets low.
-
-Bug reports, feature requests, etc, should be submitted using the 
-SourceForge project page -- not to the acpi-devel list, since it would 
-be a bit rude to flood the list with this stuff. But of course, general 
-smart battery discussion should continue on acpi-devel.
-
-Happy battery monitoring!
-
-cheers,
-
-Rich
+Am Samstag, 5. Februar 2005 18:38 schrieb Jon Smirl:
+> On Sat, 5 Feb 2005 17:48:43 +0100, Stefan D=F6singer
+>
+> <stefandoesinger-RbZlAiThDcE@public.gmane.org> wrote:
+> > The reset code of radeon card seems to be easy to reverse engineer. I
+> > have started an attempt and I have 50-60% of my radeon M9 reset code
+> > implemented in a 32 bit C program. I had to stop due to school reasons.
+>
+> The problem with the radeon reset code is that there are many, many
+> variations of the radeon chips, including different steppings of the
+> same part. The ROM is matched to the paticular bugs of the chip. From
+> what I know ATI doesn't even have a universal radeon reset program.
+I don't think they differ a lot. Does anybody know how the Win32 driver res=
+ets=20
+the card? If it calls 0xc000:3 it will also have the problem with overwritt=
+en=20
+reset code, and if it has it's own reset routine the cards can't differ a=20
+lot.
 
 
 -------------------------------------------------------
