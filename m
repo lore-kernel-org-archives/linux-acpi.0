@@ -1,8 +1,11 @@
-From: Postmaster-Ck5RVAGKxczwxrB+fcxW7Q@public.gmane.org
-Subject: Returned mail: Unknown user
-Date: Sat, 06 Sep 2003 17:50:09 +0900
+From: Ethernet <ethernet-cwAjtnUKHr2MZzV0eMwobdBPR1lH4CV8@public.gmane.org>
+Subject: Out of Office AutoReply: Your application
+Date: Sat, 6 Sep 2003 06:28:24 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309060850.RAA24996@ums512.nifty.ne.jp>
+Message-ID: <973C11FE0E3ED41183B200508BC7774C0F6BF438@csexchange.crystal.cirrus.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,40 +18,10 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------ Unsent reason follows -----
-HGD00747-fFkzxiWP14C37DQgxWxUzw@public.gmane.org Unknown user
-
------ Unsent message follows -----
-Return-Path: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Date: Sat, 6 Sep 2003 17:47:22 +0900
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: <mori-tUxIBjwWFSgTBYAz+LHnZg@public.gmane.org>
-Subject: Your details
-Received: from postman2.local.infocity.co.jp (usen-219x113x212x179.ap-US.usen.
-ad.jp [219.113.212.179])
-	by ums517.nifty.ne.jp with SMTP id RAA19226;
-	Sat, 6 Sep 2003 17:47:18 +0900 (JST)
-Received: (qmail 30575 invoked by alias); 6 Sep 2003 17:46:49 +0900
-Delivered-To: mori-tUxIBjwWFSgTBYAz+LHnZg@public.gmane.org
-Received: (qmail 30571 invoked from network); 6 Sep 2003 17:46:49 +0900
-Received: from nurikabe.local.infocity.co.jp (HELO nurikabe2.infocity.co.jp) (
-172.16.0.2)
-  by postman2.local.infocity.co.jp with SMTP; 6 Sep 2003 17:46:49 +0900
-Received: from LSM ([163.180.127.185])
-	by nurikabe2.infocity.co.jp (8.12.8/8.12.9) with ESMTP id h868k4Fq0023
-19
-	for <mori-tUxIBjwWFSgTBYAz+LHnZg@public.gmane.org>; Sat, 6 Sep 2003 17:46:05 +0900
-Message-Id: <200309060846.h868k4Fq002319-mwvKXI+dt6zpxQl14CW27QV/S9XJNSoN@public.gmane.org>
-X-MailScanner: Found to be clean
-Importance: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MSMail-Priority: Normal
-X-Priority: 3 (Normal)
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_066802E5"
-
------ Message body suppressed -----
+Thank you for your interest in Cirrus Logic. We value our
+customers and would like to support you. Please visit the Support
+area of www.cirrus.com and submit a Design Support Request form
+telling us how we can help you.
 
 
 -------------------------------------------------------
