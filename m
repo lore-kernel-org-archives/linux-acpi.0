@@ -1,13 +1,14 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [PATCH][BUG] LoadTable() operator fails
-Date: Fri, 07 Jan 2005 11:14:39 +0900
-Message-ID: <41DDF08F.6030800@jp.fujitsu.com>
-References: <41DB7B2A.4020005@jp.fujitsu.com>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Missing acpi-20050101-2.6.10 patch?
+Date: Fri, 7 Jan 2005 09:56:05 +0100
+Message-ID: <20050107085605.GA19136@fuchi>
+References: <1105040016.11930.11.camel@sponge.fungus>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050501060300010703040809"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41DB7B2A.4020005-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1105040016.11930.11.camel-7g89Hwo0MwsWlyYapE9R8Q@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,99 +18,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050501060300010703040809
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
 
-Hi,
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-My mailer inserted unnecessary line feeds into the patch.
-So I send it again.
+hello Henrik..
 
-Thanks,
-Kenji Kaneshige
+* Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org> [2005-01-07 09:45 +0100]:
+>=20
+> A new release of the acpi patch dating 2005-01-01 was announced at
+> http://acpi.sf.net, but it is not present in the download directory at
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2=
+=2E6.10/
+>=20
+> The latest patch available at the above mentioned ftp site is dated
+> 2004-12-10 and doesn't contain any patch - only a ChangeSet list.
+>=20
+> Where can I find the lastest ACPI patch?
 
-Kenji Kaneshige wrote:
-> Hi,
-> 
-> The execution of the LoadTable() operator might fail because of the
-> bug on OEM ID comparison. The following patch fixes this issue.
-> 
-> Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-> 
-> 
-> ---
-> 
->  linux-2.6.10-kanesige/drivers/acpi/tables/tbxfroot.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff -puN drivers/acpi/tables/tbxfroot.c~fix_acpi_tb_find_table
-> drivers/acpi/tables/tbxfroot.c
-> --- linux-2.6.10/drivers/acpi/tables/tbxfroot.c~fix_acpi_tb_find_table
-> 2005-01-04 09:05:29.000000000 +0900
-> +++ linux-2.6.10-kanesige/drivers/acpi/tables/tbxfroot.c	2005-01-04
-> 09:05:29.000000000 +0900
-> @@ -114,8 +114,8 @@ acpi_tb_find_table (
-> 
->  	/* Check oem_id and oem_table_id */
-> 
-> -	if ((oem_id[0]     && ACPI_STRCMP (oem_id, table->oem_id)) ||
-> -		(oem_table_id[0] && ACPI_STRCMP (oem_table_id, table->oem_table_id))) {
-> +	if ((oem_id[0]     && ACPI_STRNCMP (oem_id, table->oem_id, sizeof
-> (table->oem_id))) ||
-> +		(oem_table_id[0] && ACPI_STRNCMP (oem_table_id, table->oem_table_id,
-> sizeof (table->oem_table_id)))) {
->  		return_ACPI_STATUS (AE_AML_NAME_NOT_FOUND);
->  	}
-> 
-> 
-> _
-> 
-> 
-> -------------------------------------------------------
-> The SF.Net email is sponsored by: Beat the post-holiday blues
-> Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-> It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+acpi-20050101-2.6.10 does not exist. the date given in that filename is
+not the date of the release of the patch but the date of the release of
+the ACPI-CA implemented by that patch. besides the latest ACPI-CA, a
+patch also includes Linux-specific code. please correct me, if i am
+wrong, Len. :)
+Len released yet another patch yesterday, go download:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6=
+=2E10/acpi-20041210-2.6.10.diff.bz2
 
+hth,
+ Sebastian
+--=20
+::: .O.
+::: ..O
+::: OOO
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
---------------050501060300010703040809
-Content-Type: text/plain;
- name="fix_acpi_tb_find_table.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="fix_acpi_tb_find_table.patch"
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-ClRoZSBleGVjdXRpb24gb2YgdGhlIExvYWRUYWJsZSgpIG9wZXJhdG9yIG1pZ2h0IGZhaWwg
-YmVjYXVzZSBvZiB0aGUKYnVnIG9uIE9FTSBJRCBjb21wYXJpc29uLiBUaGUgZm9sbG93aW5n
-IHBhdGNoIGZpeGVzIHRoaXMgaXNzdWUuCgpTaWduZWQtb2ZmLWJ5OiBLZW5qaSBLYW5lc2hp
-Z2UgPGthbmVzaGlnZS5rZW5qaUBqcC5mdWppdHN1LmNvbT4KCgotLS0KCiBsaW51eC0yLjYu
-MTAta2FuZXNpZ2UvZHJpdmVycy9hY3BpL3RhYmxlcy90Ynhmcm9vdC5jIHwgICAgNCArKy0t
-CiAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRp
-ZmYgLXB1TiBkcml2ZXJzL2FjcGkvdGFibGVzL3RieGZyb290LmN+Zml4X2FjcGlfdGJfZmlu
-ZF90YWJsZSBkcml2ZXJzL2FjcGkvdGFibGVzL3RieGZyb290LmMKLS0tIGxpbnV4LTIuNi4x
-MC9kcml2ZXJzL2FjcGkvdGFibGVzL3RieGZyb290LmN+Zml4X2FjcGlfdGJfZmluZF90YWJs
-ZQkyMDA1LTAxLTA0IDA5OjA1OjI5LjAwMDAwMDAwMCArMDkwMAorKysgbGludXgtMi42LjEw
-LWthbmVzaWdlL2RyaXZlcnMvYWNwaS90YWJsZXMvdGJ4ZnJvb3QuYwkyMDA1LTAxLTA0IDA5
-OjA1OjI5LjAwMDAwMDAwMCArMDkwMApAQCAtMTE0LDggKzExNCw4IEBAIGFjcGlfdGJfZmlu
-ZF90YWJsZSAoCiAKIAkvKiBDaGVjayBvZW1faWQgYW5kIG9lbV90YWJsZV9pZCAqLwogCi0J
-aWYgKChvZW1faWRbMF0gICAgICYmIEFDUElfU1RSQ01QIChvZW1faWQsIHRhYmxlLT5vZW1f
-aWQpKSB8fAotCQkob2VtX3RhYmxlX2lkWzBdICYmIEFDUElfU1RSQ01QIChvZW1fdGFibGVf
-aWQsIHRhYmxlLT5vZW1fdGFibGVfaWQpKSkgeworCWlmICgob2VtX2lkWzBdICAgICAmJiBB
-Q1BJX1NUUk5DTVAgKG9lbV9pZCwgdGFibGUtPm9lbV9pZCwgc2l6ZW9mICh0YWJsZS0+b2Vt
-X2lkKSkpIHx8CisJCShvZW1fdGFibGVfaWRbMF0gJiYgQUNQSV9TVFJOQ01QIChvZW1fdGFi
-bGVfaWQsIHRhYmxlLT5vZW1fdGFibGVfaWQsIHNpemVvZiAodGFibGUtPm9lbV90YWJsZV9p
-ZCkpKSkgewogCQlyZXR1cm5fQUNQSV9TVEFUVVMgKEFFX0FNTF9OQU1FX05PVF9GT1VORCk7
-CiAJfQogCgpfCg==
---------------050501060300010703040809--
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFB3k6lreHfL3pi+bQRAluTAJ9wx1yDmfC4NgfkI23vrkD5+4O88wCfaORb
+ynSQaxV5YkWQ/oV/YaG2aec=
+=HRys
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
 
 
 -------------------------------------------------------
