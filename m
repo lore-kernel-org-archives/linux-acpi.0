@@ -1,12 +1,13 @@
-From: Michal Zimen <zimen-gugY4efDeRhaa/9Udqfwiw@public.gmane.org>
-Subject: TM632 and S3. Network after wakeup. (kernel 2.6.10-rc3-mm1)
-Date: Thu, 16 Dec 2004 10:11:37 +0100
-Message-ID: <20041216091137.GB5605@alfa.intrak.sk>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Re: Samsung P35 and S3 suspend
+Date: Thu, 16 Dec 2004 15:29:44 +0100
+Message-ID: <41C19BD8.7050201@gmx.net>
+References: <41BFC3AD.5030001@gmx.net> <1103117333.5924.3.camel@mhcln03>	 <41C07B6F.70900@gmx.net> <1103159022.5924.17.camel@mhcln03> <41C0FFF3.4010902@gmx.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xgyAXRrhYN0wYx8y"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <41C0FFF3.4010902-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,68 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>, =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Carl-Daniel Hailfinger schrieb:
+> Matthias Hentges schrieb:
+> 
+>>Am Mittwoch, den 15.12.2004, 18:59 +0100 schrieb Carl-Daniel Hailfinger:
+>>
+>>>Oh, and once I get S3 working with 2.6.9 I'll do a binary search
+>>>to find the changeset that is causing the problems after 2.6.9
+>>>and report back.
+>>
+>>That would be most appreciated. I still haven't fully recovered from
+>>trying 30+ kernels / configurations to find the borked patch ;)
+> 
+> A first hint: CONFIG_REGPARM killed swsusp in some kernels before
+> 2.6.10-rc3, it could also be the culprit for S3.
 
---xgyAXRrhYN0wYx8y
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK, I got S3 working with all kernels since 2.6.9 (well, your patches
+had to be modified slightly). Right now I'm running on the latest
+Linus -bk tree.
 
-Salut.
+I will now try other configurations and a full bootup.
 
-   a good job ! :)  Thanks a lot.
-  =20
-   Last night i've tested 2.6.10-rc3-mm1 kernel with S3 sleep state and i w=
-as surprised,
-   when i can wakeup normally :) (without hangs)
-
-   It looks very good, soundcard ALI5451 driver wakeups fine, but there is =
-a one
-   strange problem with network.
-   (I couldn't test X, because this version have several bugs, also X's
-    disfunction.:( I think, nv driver have work well for me.)
-
-   Resolver did not work, i guess.
-  =20
-   When i try to ping to another site: Uknown host.
-
-   But when i try to ping with IP address, it is all right.
-
-
-
-   Any ideas ?
-
-
-   				mizu
-
-  =20
-
-
-  =20
---=20
-              mizu
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
-[-> E-mail:michal_AT_zimen_DOT_sk   =20
-[-> ICQ:97165392
-[-> WWW: http://michal.zimen.sk
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
-
---xgyAXRrhYN0wYx8y
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBwVFJ9kFXwDL4DRkRApydAKCl31mlF0Lm0/fWIe4MGn7uYqhtgACfUdp9
-l+5gNYGXdTDxZoEzBPIsZS0=
-=k7lS
------END PGP SIGNATURE-----
-
---xgyAXRrhYN0wYx8y--
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
