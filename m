@@ -1,12 +1,16 @@
-From: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>
-Subject: turning off individual devices
-Date: Fri, 5 Mar 2004 23:21:17 +0100
+From: Dieter Rohlfing <u490248-uKKRHEr75Vc@public.gmane.org>
+Subject: Re: Laptop does not reboot
+Date: Fri, 05 Mar 2004 19:56:51 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040305222117.GA20865@rap.rap.dk>
+Message-ID: <4048CD73.ADA4941F@imail.de>
+References: <403E59FF.990E2CD0@imail.de>
+ <200402270209.04355.bernd-schubert@web.de> <40420AEA.63D1586C@imail.de>
+ <20040301010414.GA16766@hell.org.pl>
+Reply-To: u490248-uKKRHEr75Vc@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,17 +19,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I try to turn off individual devices by saying
+Karol Kozimor wrote:
 
-   echo -n 4 >  /sys/devices/pci0000:00/0000:00:1f.6/detach_state
+> See if booting with noapic nolapic changes anything.
 
-But it seems that nothing happens. Am I missing something?
-Kernel 2.6.3
+Sorry, didn't change anything. :-(
 
-Keld
+I switched back to 2.4.22, because 2.6.3 isn't an option for me. Perhaps
+the ACPI of 2.6.x is backported to 2.4.x, then - maybe - I'll get a
+properly rebooting 2.4.26? kernel.
+
+Dieter
+
+-- 
+Every mail not from this mailing list will be deleted.
+
 
 
 -------------------------------------------------------
