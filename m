@@ -1,14 +1,13 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: newbie question:  building w/ CONFIG_ACPI_SLEEP on 2.5.40+
-Date: Thu, 17 Oct 2002 20:54:14 +0200
+From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Subject: Need for an ACPI webpage
+Date: Fri, 18 Oct 2002 00:20:39 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021017205414.A29983@brodo.de>
-References: <2203.63.214.83.221.1034879410.squirrel@65.85.27.130>
+Message-ID: <200210180020.39135.p_christ@hol.gr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2203.63.214.83.221.1034879410.squirrel-49ZD0VaXFhDG25CqQ1ok8A@public.gmane.org>; from nick-acpi-rrCFhXTPMk0L0swiZSXcMb5dPsmED6B0@public.gmane.org on Thu, Oct 17, 2002 at 02:30:10PM -0400
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +16,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nicholas Mistry <nick-acpi-rrCFhXTPMk0L0swiZSXcMb5dPsmED6B0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 17, 2002 at 02:30:10PM -0400, Nicholas Mistry wrote:
-> The one thing i noticed is that i cannot enable the
-> CONFIG_ACPI_SLEEP option.  I have tried trough make
-> (config|menuconfig|xconfig), andafter i select "Y", the option returns back to the default state of "N".
-> 
-> I am wonering if
-> there are some options that are required to be (un)set for this option to
-> work.
-> Thanks in
-> advance.
+Until now I have hust been lurking in this list. 
+I realized now that I may need to patch my DSDT and found out that:
+- I cannot find any web-page with a list of known/buggy/patched systems, where 
+we could share knowledge on a *per system* basis. I can only lurk the list 
+for previous discussions etc.
+Never mind about my own system, this should apply to all..
 
-CONFIG_SOFTWARE_SUSPEND needs to be set.
+I propose that we construct a table like: (example)
+System		kernel/ACPI		State		More
+------------------------------------------------
+HP Xe3GC	all			DSDT		Patch with <a href...> the patch </a>
+		2.4.20/20020918		tested-OK	No suspend
+		2.5.29-/-		buggy		No sleep resume, hang on kbd
+		2.5.33+/20021002	unknown		Sleep fixed, rest?
+Asus M2000E	2.5.40			bug		hangs.. (some_name-cx69T0KZIJYAvxtiuMwx3w@public.gmane.org)
+Foobar(TM)	all			horrible		Don't use!
 
-	Dominik
+---------------------
+
+... and put it in an official page, where all can see it.
+
+I believe that DSDT's need only be fixed once, so that would be a useful place 
+to put them in. 
+
+We could all contribute there, by treating the table as a project. Each time 
+we mention sth useful in the list, we could make sure it is transferred 
+there.
+
+Regards
+P. Christeas
+
 
 
 -------------------------------------------------------
