@@ -1,14 +1,18 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Missing Sleep State object on thinkpad
-Date: Tue, 12 Oct 2004 13:56:02 -0700
+From: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
+Subject: Re: ACPI S3 resume only reboots
+Date: Tue, 12 Oct 2004 23:17:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <37F890616C995246BE76B3E6B2DBE0550247DF66@orsmsx403.amr.corp.intel.com>
+Message-ID: <20041012231737.62c5b99b.albeclemit@yahoo.it>
+References: <20041004133340.76ba05ba.albeclemit@yahoo.it>
+	<20041009130628.GA21781@elf.ucw.cz>
+	<20041010105635.GA3362@doc.ic.ac.uk>
+	<20041012175810.2920edf2.albeclemit@yahoo.it>
+	<416C0F14.5000107@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <416C0F14.5000107-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,102 +21,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jesse Stockall <stockall-J4oS66wZXds@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: nate-Y6VGUYTwhu0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Once this namespace is loaded, the _Sx_ values seem ok:
+On Tue, 12 Oct 2004 10:06:28 -0700
+Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org> wrote:
 
-                           \_S0_ (00500768) - Package
-                           \_S1_ (005006F8) - Package
-                           \_S3_ (00500688) - Method
-                           \_S4_ (00500598) - Package
-                           \_S5_ (00500528) - Package
+> > Code from arch/i386/kernel/acpi/wakeup.S
+> > 
+> > [...] 
+> > 	# setup data segment
+> > 	movw	%cs, %ax
+> > 	movw	%ax, %ds					# Make ds:0 point to wakeup_start
+> > 	movw	%ax, %ss
+> > 	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
+> > 	movw	$0x0e00 + 'S', %fs:(0x12)
+> > 
+> > 	pushl	$0		###THIS LINE CAUSES REBOOT###			# Kill any dangerous flags
+> > 	popfl
+> 
+> Hehe.  Look up above where the stack pointer is changed to point to the 
+> wakeup stack and then 0 is pushed on it.  It's likely there is some 
+> problem with the config or location of the wakeup stack.
 
+Ok, so the question is: where should %sp point to?
 
+from wakeup.S :
 
-> -----Original Message-----
-> From: Yu, Luming
-> Sent: Monday, October 11, 2004 9:42 AM
-> To: Jesse Stockall
-> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Moore, Robert
-> Subject: RE: [ACPI] Missing Sleep State object on thinkpad
->=20
-> Hmmm,  your 600x should have S3 support.
-> The root cause of failure is that  linux is using element in
-> const char      *acpi_gbl_sleep_state_names[ACPI_S_STATE_COUNT] =3D
-> {
->         "\_S0_",
->         "\_S1_",
->         "\_S2_",
->         "\_S3_",
->         "\_S4_",
->         "\_S5_"
-> };
->=20
-> to call acpi_get_sleep_type_data, but your box define _S3 under the
-> device PNP0A03. So, the evaluating \_S3 will fail.
-> We can come up with a workaround for this case soon.
->=20
-> Thanks,
-> Luming
->=20
->=20
->=20
->=20
-> >> To verify it, just simply do "cp /proc/acpi/dsdt  ./dsdt.dat; iasl
--d
-> >> /proc/acpi/dsdt",
-> >> and go searching for _S3 or _S1. And post the searching result.
-> >>
-> >
-> >There are 2 references to both _S1 and _S3 the first are at line 941
-> >(see attached file) inside the declaration of the device named
-> >"PNP0A03"
-> >
-> >Name (_S1D, 0x01)
-> >Name (_S3D, 0x01)
-> >
-> >The other references are:
-> >
-> >    Name (\_S1, Package (0x04)
-> >    {
-> >        0x04,
-> >        0x04,
-> >        0x00,
-> >        0x00
-> >    })
-> >    Method (_S3, 0, NotSerialized)
-> >    {
-> >        If (BXPT)
-> >        {
-> >            Return (Package (0x04)
-> >            {
-> >                0x06,
-> >                0x06,
-> >                0x00,
-> >                0x00
-> >            })
-> >        }
-> >        Else
-> >        {
-> >            Return (Package (0x04)
-> >            {
-> >                0x01,
-> >                0x01,
-> >                0x00,
-> >                0x00
-> >            })
-> >        }
-> >    }
-> >
-> >Thanks for looking in to this
-> >
-> >Jesse
-> >
-> >--
-> >Jesse Stockall <stockall-J4oS66wZXds@public.gmane.org>
-> >
+[...]
+.org    0x800
+wakeup_stack_begin:     # Stack grows down
+
+.org    0xff0           # Just below end of page
+wakeup_stack:
+ENTRY(wakeup_end)
+
+.org    0x1000
+[...]
+
+I noticed that dmesg shows the following lines:
+# dmesg | grep BIOS
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
+ BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000d2000 - 00000000000d8000 (reserved)
+ BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000001fff0000 (usable)
+ BIOS-e820: 000000001fff0000 - 000000001fff8000 (ACPI data)
+ BIOS-e820: 000000001fff8000 - 0000000020000000 (ACPI NVS)
+ BIOS-e820: 00000000fec00000 - 00000000fec01000 (reserved)
+ BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+ BIOS-e820: 00000000fff80000 - 0000000100000000 (reserved)
+
+maybe i'm just saying nonsense, but could this be useful?
 
 
 -------------------------------------------------------
