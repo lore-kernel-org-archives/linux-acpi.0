@@ -1,15 +1,12 @@
-From: valvoline <valvoline-KGm45+8e4WzOeuqD6ShaSA@public.gmane.org>
-Subject: Re: ACPI and APM
-Date: Mon, 26 Aug 2002 17:33:28 +0200
+From: Giridhar Pemmasani <giri-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
+Subject: patch: acpi-20020821 fix?
+Date: Tue, 27 Aug 2002 02:55:25 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020826173328.085fb200.valvoline@tiscalinet.it>
-References: <20020825120034.4f3ce5b4.valvoline@tiscalinet.it>
-	<Pine.LNX.4.44.0208261203070.3643-100000@flyby>
+Message-ID: <15723.8797.507913.189282@marple.lmc.cs.sunysb.edu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- boundary="=.OATtzZ9Vu+4m:x"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44.0208261203070.3643-100000-iFUwJ2qmV1I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,38 +18,21 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---=.OATtzZ9Vu+4m:x
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+It seems that the following patch against drivers/acpi/system.c
+is needed to get 'echo -n 5 > /proc/acpi/sleep' to work as
+expected. 
 
-On Mon, 26 Aug 2002 12:19:27 +0200 (CEST)
-marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wrote:
-
-
-> using acpi-20020821-2.4.19 and then I commented out PM_IS_ACTIVE()
-> control in arch/i386/kernel/apm.c around 1902 line (is your kernel hack
-> limited to this only?).
-
-also, u've to patch drivers/acpi, to avoid PM-acpi vs PM-apm conflicts...
-
--- 
-[ valvoline :: VRL Team :: s0ftpj :: freaknet Medialab :: GPG key available  ]
-[ key fingerprint :: - :: B7E2 48BC 705F AE8F 9ABE  E422 076A 2561 1D67 B4DD ]
-[ GPG key available on keyserver :: pgp.mit.edu :: with keyID :: 1D67B4DD :: ]
-
---=.OATtzZ9Vu+4m:x
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-
-iD8DBQE9akpKB2olYR1ntN0RAvawAKCh4RXhsDf7ENpl5oONvyyuB446iACfU6zo
-5QO/V9DX16D/nz0BU9nYAWI=
-=w6Ey
------END PGP SIGNATURE-----
-
---=.OATtzZ9Vu+4m:x--
-
+--- system.c.orig   Tue Aug 27 02:42:17 2002
++++ system.c    Tue Aug 27 02:43:42 2002
+@@ -110,7 +110,7 @@
+    acpi_status status;
+ 
+    /* only support S1 and S5 on kernel 2.4 */
+-   if (state != ACPI_STATE_S1 || state != ACPI_STATE_S5)
++   if (state != ACPI_STATE_S1 && state != ACPI_STATE_S5)
+        return AE_ERROR;
+ 
+    acpi_enter_sleep_state_prep(state);
 
 
 -------------------------------------------------------
