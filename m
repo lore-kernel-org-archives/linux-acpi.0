@@ -1,8 +1,8 @@
 From: Fedor Karpelevitch <fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org>
-Subject: another issue with presario 900 - conflicting FF and CM declarations of power and sleep buttons
-Date: Wed, 24 Sep 2003 07:51:55 -0700
+Subject: double power button events on presario 900 - apparently a timing issue?
+Date: Wed, 24 Sep 2003 07:23:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309240751.55097.fedor@karpelevitch.net>
+Message-ID: <200309240723.28526.fedor@karpelevitch.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -18,72 +18,24 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linuxpresario900-+vy+FFr6rAI3CPJRO4ggG/Z8FUJU4vz8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-here is the other problem with my presario 900 :
-
-if I read ACPI spec correctly, sleep & power buttons may either be 
-declared as FF or CM not both, but looks like this is just what is 
-happening here: both PWR_BUTTON and SLEEP_BUTTON bits in FADT are 
-unset which is supposed to mean that they are to be treated as FF, 
-however in dsdt the buttons are declared as well:
-
-    Scope (_SB)
-    {
-        Device (SLPB)
-        {
-            Name (_HID, EisaId ("PNP0C0E"))
-            Name (_PRW, Package (0x02)
-            {
-                0x01,
-                0x03
-            })
-        }
-
-        Device (PWRB)
-        {
-            Name (_HID, EisaId ("PNP0C0C"))
-            Name (_PRW, Package (0x02)
-            {
-                0x01,
-                0x04
-            })
-        }
-
-and there is an EC event which is indeed being invoked when sleep 
-button is pressed:
-
-		Method (_Q0B, 0, NotSerialized)
-                    {
-                        Store ("Sleep btn runtime event", Debug)
-                        Notify (\_SB.SLPB, 0x80)
-                    }
-
-Linux ACPI code looks at FADT bits first and ignores contradicting AML 
-afterwards, so both buttons show up as FF.
-Power button seems to indeed work correctly (besides the double event 
-issue I mentioned before), however it seems that sleep button should 
-really be CM and FADT is wrong here. To veryfy that I commnted out 
-these lines in drivers/acpi/bus.c in method acpi_bus_scan_fixed:
-
-	if (acpi_fadt.sleep_button == 0)
-                result = acpi_bus_add(&device, acpi_root,
-                        NULL, ACPI_BUS_TYPE_SLEEP_BUTTON);
-
-to force it to ignore FF sleep button altogather, so now sleep button 
-shows up as CM and works correctly - I get the events.
-
-So I am interested in hearing what is the best way to fix this problem 
-"correctly" - overriding FADT in a way similar to DSDT or something 
-better?
+as I previously mentioned I am seeing an annoying problem on my 
+presario 900 - when power button (works as FF here) is pressed it 
+generates two events every time. I was experimentin with debugging 
+output and noticed an interesting thing - if I do 
+echo 0xffffffff > /proc/acpi/debug_level
+to get verbose debug output the problem goes away - I only get one 
+event every time button is pressed. Looks like the problem is caused 
+by some kind timing issue which goes away when debugging slows it 
+down. Does this sound like a reasonable guess? Would anyone suggest 
+how this can be debugged further?
 
 Thanks
 
 Fedor
-
 
 
 -------------------------------------------------------
