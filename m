@@ -1,10 +1,10 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: [Fwd: Re: Dell Inspiron 510m sleep states S3/S4 not working]
-Date: Sat, 05 Mar 2005 23:31:51 -0800
-Message-ID: <422AB1E7.4050304@root.org>
+From: =?ISO-8859-1?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
+Subject: sbs-linux acpi-ec-nospinlock patch for 2.6.11
+Date: Sun, 06 Mar 2005 10:08:35 +0100
+Message-ID: <422AC893.7070304@technik-emden.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,51 +14,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I have reports that Linux works for S3 on these machines but FreeBSD=20
-does not.  The Dell Inspiron 510M at least has a problem where the write=20
-to PM1A in hwsleep.c resets the system instead of entering S3.  I heard=20
-that Linux had similar problems in the past but now works.  Can someone=20
-let me know what was going on?
+Hi!
 
-Thanks much,
-Nate
+is the acpi-ec-nospinlock patch for the new 2.6.11 anywhere on the net?
+the patch for the 2.6.10 does not work for 2.6.11 =/
 
--------- Original Message --------
-Subject: Re: Dell Inspiron 510m sleep states S3/S4 not working
-Date: Sat, 05 Mar 2005 20:02:44 -0500
-From: Igor Partola <ipartola-27MbaEWyEdNeoWH0uzbU5w@public.gmane.org>
-To: freebsd-acpi-h+KGxgPPiopAfugRpC6u6w@public.gmane.org
-
-Ulrich Sp=F6rlein wrote:
-
->On Thu, 03.03.2005 at 17:10:25 -0800, Nate Lawson wrote:
-> =20
->
->>Easiest way to test for resets is to stick this loop in the C code,=20
->>pushing it farther down until you identify the line of code that resets=
-=20
->>instead of hanging.
->>
->>hang: goto hang;
->>
->>Try this in AcpiEnterSleepState().
->>   =20
->
->Been there, done that. See
->http://lists.freebsd.org/mailman/htdig/freebsd-acpi/2004-December/000949=
-.html
->
->Ulrich Spoerlein
-
-I just did some testing just to make sure that my system resets on the
-same line. Sadly that is the problem, writing PM1A resets the machine.
-
-I also compared the code with hwsleep.c from linux 2.6.10. They almost
-exactly the same, except for at one point but that should only affect
-S5. Everything else is the same.
+Bye
+Hendrik
 
 
 -------------------------------------------------------
