@@ -1,13 +1,13 @@
-From: "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org>
-Subject: Re: [BKPATCH] ACPI for 2.6.10
-Date: Mon, 6 Dec 2004 03:51:50 +0000 (WET)
-Message-ID: <Pine.LNX.4.61.0412060349300.24910@student.dei.uc.pt>
-References: <1101945436.8026.392.camel@d845pe>  <Pine.LNX.4.61.0412031840340.19044@student.dei.uc.pt>
- <1102304175.2312.25.camel@d845pe>
+From: David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
+Subject: DSDT loading patch
+Date: Mon, 6 Dec 2004 09:07:53 +0000
+Message-ID: <200412060907.53079.david.goodenough@btconnect.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1102304175.2312.25.camel@d845pe>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,55 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I recently bought my eldest son a Samsung P28 laptop, which works just fine
+with Linux except of course that it suffers from a badly built DSDT.  I have
+found instructions as to how to fix it and found that this required me to 
+add in a patch to the kernel to allow a DSDT image to be appended to the
+initrd image.  This patch seems to have been around for a long time and 
+judging by the number of machines listed as needing to have their DSDT
+updated there is a need to have this patch in the standard kernel.  Is there
+a reason why this patch has not been included?
 
-On Mon, 5 Dec 2004, Len Brown wrote:
+The most useful page I found that describes this particular patch was 
+http://gaugusch.at/kernel.shtml, which says that SuSE now include the
+patch anyway, and that Mandrake are considering it.
 
->> If this release is equivalent with -mm's bk-acpi.patch from
->> 2.6.10-rc2-mm1 to 2.6.10-rc2-mm4,
->> notice that this kernels' bk-acpi patches have the bug
->> described in http://lkml.org/lkml/2004/11/16/263 , so I wouldn't
->> really like to
->> see this pull done to 2.6.10 until the problem is solved...
->>
->> If you want, I can try this patch to see if it acts like
->> bk-acpi.patch, but I guess it does...
->
-> Please try 2.6.10-rc3, which includes this set of patches.
->
-> Yes, this set of patches includes most of what was in -mm, but not
-> everything.  Note also, that it includes some more recent patches,
-> including a poweroff fix, that was not in the -mm patches above.
-
-2.6.10-rc3 works fine, so I guess that the poweroff fix solves the problem, or
-the problem is in the stuff in -mm that isn't here...
-
-I guess we'll have to wait for 2.6.10-rc3-mm1 to find out! ;-)
-
-Mind Booster Noori
-
-- -- 
-/* *************************************************************** */
-    Marcos Daniel Marado Torres	     AKA	Mind Booster Noori
-    http://student.dei.uc.pt/~marado   -	  marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org
-    () Join the ASCII ribbon campaign against html email, Microsoft
-    /\ attachments and Software patents.   They endanger the World.
-    Sign a petition against patents:  http://petition.eurolinux.org
-/* *************************************************************** */
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Made with pgp4pine 1.76
-
-iD8DBQFBs9dXmNlq8m+oD34RAnuIAKC+9Uhr/Ry+/Is+oW5MJ5/v1HgSlQCfe4TB
-cy/YxAM7tw91R+l+voQ9VVk=
-=2y4d
------END PGP SIGNATURE-----
-
+David
 
 
 -------------------------------------------------------
