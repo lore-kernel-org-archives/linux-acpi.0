@@ -1,13 +1,12 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: [PATCH] invalid resource lists and extra checking
-Date: Mon, 22 Sep 2003 08:03:33 -0700 (PDT)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: [buggy index field handling] [patch]
+Date: Mon, 22 Sep 2003 19:18:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030922080137.G40076@root.org>
-References: <20030918221109.L16619@root.org> <20030922145315.GC13165@wotan.suse.de>
+Message-ID: <20030922171847.GN11391@poupinou.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030922145315.GC13165-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,34 +15,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-jp-l7ZBCLq5RC066kwqclu8Pg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Robert Vollmert <rvollmert-lists-hi6Y0CQ0nG0@public.gmane.org>, Mads Paulin <paulin-/w0Os/Ss2Sh/SzgSGea1oA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 22 Sep 2003, Andi Kleen wrote:
-> > --- rsaddr.c	13 Jul 2003 22:43:31 -0000	1.1.1.11
-> > +++ rsaddr.c	19 Sep 2003 04:59:50 -0000
-> > @@ -168,6 +168,10 @@
-> >      Buffer += 1;
-> >      ACPI_MOVE_16_TO_16 (&Temp16, Buffer);
-> >
-> > +    /* Check for the minimum length. */
-> > +    if (Temp16 < 13)
-> > +        return_ACPI_STATUS (AE_AML_INVALID_RESOURCE_TYPE);
->
-> For which acpica version is this exactly? I tried to apply it to a Linux
-> tree which has nearly the latest, but it rejected on every hunk.
-> The file is also repetive enough that hand applying looks a bit risky.
->
-> Can you perhaps post a patch against the latest ACPICA version?
+Hi Andy,
 
-This was against 0619.  Things can't have diverged THAT much since the
-only public release after this was 0714 and the linux pushes have been
-mostly in the linux-specific code (i.e. PIC).  I have a feeling you didn't
-run the patch through the LiNuXuLaTor de-caps tool and that's why it
-rejected.  Apply it against a stock acpica unix dist and then de-caps it.
+There is a funny bug in acpi/executer/exfldio.c::acpi_ex_field_datum_io
 
--Nate
+When the field come from an indexed one, we read all the time from the
+address obj_desc->index_field.value
+Unfortunately, this is wrong, since the correct address is
+obviously &obj_desc->index_field.value + field_datum_byte_offset
+
+
+
+
+
+--- linux-2.6.0-test5/drivers/acpi/executer/exfldio.c	2003/09/22 17:09:20	1.1
++++ linux-2.6.0-test5/drivers/acpi/executer/exfldio.c	2003/09/22 17:10:11
+@@ -425,7 +425,7 @@
+ 		/* Write the index value to the index_register (itself a region_field) */
+ 
+ 		status = acpi_ex_insert_into_field (obj_desc->index_field.index_obj,
+-				 &obj_desc->index_field.value,
++				 &obj_desc->index_field.value + field_datum_byte_offset,
+ 				 sizeof (obj_desc->index_field.value));
+ 		if (ACPI_FAILURE (status)) {
+ 			return_ACPI_STATUS (status);
+
+
+
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
