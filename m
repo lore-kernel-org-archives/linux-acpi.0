@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 01/12] ia64 CONFIG_APCI_NUMA fix
-Date: Wed, 23 Feb 2005 01:52:57 -0800
-Message-ID: <200502230953.j1N9rC1c020690@shell0.pdx.osdl.net>
+Subject: [patch 02/12] ia64 acpi build fix
+Date: Wed, 23 Feb 2005 01:52:58 -0800
+Message-ID: <200502230953.j1N9rCep020693@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +17,31 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 
-arch/ia64/kernel/smpboot.c:511:17: #error Fixme: Dunno how to build CPU-to-node 
-map.
+arch/ia64/kernel/acpi.c: In function `acpi_map_iosapic':
+arch/ia64/kernel/acpi.c:822: error: `MAX_PXM_DOMAINS' undeclared (first use in this function)
+arch/ia64/kernel/acpi.c:822: error: (Each undeclared identifier is reported only once
+arch/ia64/kernel/acpi.c:822: error: for each function it appears in.)
+arch/ia64/kernel/acpi.c:827: error: `pxm_to_nid_map' undeclared (first use in this function)
 
-Seems that CONFIG_NUMA requires CONFIG_ACPI_NUMA.
 
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/arch/ia64/Kconfig |    1 +
- 1 files changed, 1 insertion(+)
+ 25-akpm/arch/ia64/kernel/acpi.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/Kconfig~ia64-config_apci_numa-fix arch/ia64/Kconfig
---- 25/arch/ia64/Kconfig~ia64-config_apci_numa-fix	2005-02-23 01:47:48.000000000 -0800
-+++ 25-akpm/arch/ia64/Kconfig	2005-02-23 01:47:48.000000000 -0800
-@@ -169,6 +169,7 @@ config NUMA
- 	bool "NUMA support"
- 	depends on !IA64_HP_SIM
- 	default y if IA64_SGI_SN2
-+	select ACPI_NUMA
- 	help
- 	  Say Y to compile the kernel to support NUMA (Non-Uniform Memory
- 	  Access).  This option is for configuring high-end multiprocessor
+diff -puN arch/ia64/kernel/acpi.c~ia64-acpi-build-fix arch/ia64/kernel/acpi.c
+--- 25/arch/ia64/kernel/acpi.c~ia64-acpi-build-fix	2005-02-23 01:47:50.000000000 -0800
++++ 25-akpm/arch/ia64/kernel/acpi.c	2005-02-23 01:47:50.000000000 -0800
+@@ -771,7 +771,7 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+  
+ 
+-#ifdef CONFIG_NUMA
++#ifdef CONFIG_ACPI_NUMA
+ acpi_status __init
+ acpi_map_iosapic (acpi_handle handle, u32 depth, void *context, void **ret)
+ {
 _
 
 
