@@ -1,14 +1,12 @@
-From: Gaetano Sferra <gaesferr-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: AE_NOT_EXISTS errors details
-Date: Thu, 8 Jul 2004 22:18:51 +0200
+From: Vernon Mauery <vernux-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: ACPI S3 draws too much power on T40/T41
+Date: Thu, 08 Jul 2004 13:58:24 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200407082218.51597.gaesferr@libero.it>
+Message-ID: <1089320304.2089.176.camel@bluerat>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,56 +15,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-this is a grep of dmesg output related to ACPI:
+The following message was posted on the LKML not long ago.  I thought
+that this mailing list might be a good forum to help in finding out the
+cause for this.
 
-ACPI: RSDP (v000 ACPIAM                                    ) @ 0x000f5520
-ACPI: RSDT (v001 A M I  OEMRSDT  0x08000329 MSFT 0x00000097) @ 0x1ffd0000
-ACPI: FADT (v002 A M I  OEMFACP  0x08000329 MSFT 0x00000097) @ 0x1ffd0200
-ACPI: MADT (v001 A M I  OEMAPIC  0x08000329 MSFT 0x00000097) @ 0x1ffd0390
-ACPI: OEMB (v001 A M I  AMI_OEM  0x08000329 MSFT 0x00000097) @ 0x1ffdf040
-ACPI: DSDT (v001 UW     FSC_____ 0x00000016 INTL 0x02002026) @ 0x00000000
-ACPI: Subsystem revision 20040326
-ACPI: IRQ9 SCI: Level Trigger.
-    ACPI-1133: *** Error: Method execution failed [\GPRW] (Node dffc0380), 
-AE_NOT_EXIST
-    ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0.P0P2._PRW] (Node 
-dffc0a80), AE_NOT_EXIST
-    ACPI-0154: *** Error: Method execution failed [\_SB_.PCI0.P0P2._PRW] (Node 
-dffc0a80), AE_NOT_EXIST
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 S4 S5)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-ACPI: Power Resource [URP1] (off)
-ACPI: Power Resource [URP2] (off)
-ACPI: Power Resource [FDDP] (off)
-ACPI: Power Resource [LPTP] (off)
-ACPI: Embedded Controller [EC0] (gpe 28)
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs *3 4 5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, 
-disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, 
-disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0, 
-disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 9
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 3
-PCI: Using ACPI for IRQ routing
-ACPI: AC Adapter [AC0] (on-line)
-ACPI: Battery Slot [BAT0] (battery absent)
+Being rather new to this area (ACPI), I am not entirely sure of what
+would be the cause of this.  My guess is that the drivers used for the
+T40 are not power management aware and thus do not properly power down
+the devices when entering S3.
+
+Just out of curiosity, I checked to see how well it does in winXP and it
+works fine there.  APM under Linux also works fine to suspend.  But S3
+draws enough power to keep the laptop warm when it is asleep.  These
+tests are what pushed me to the conclusion that the drivers are not PM
+aware.
+
+A bug has been opened by Volker Braun (the author of the forwared email)
+on the bugme database: http://bugme.osdl.org/show_bug.cgi?id=3022
+
+--Vernon
+
+-----Forwarded Message-----
+From: Volker Braun <volker.braun-DqRHhl98DdeAKZTfuerNgRvVK+yQ3ZXh@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
+Subject: Re: ACPI Hibernate and Suspend Strange behavior 2.6.7/-mm1
+Date: Tue, 06 Jul 2004 10:14:48 -0400
+
+ACPI S3 draws too much power on the T40/T41, this has been confirmed by
+various people (so its not just mine). Suspended it lasts about 10h,
+about twice as long as powered up. Supposed to be 1-2 weeks. 
+
+I guess we should have filed a bug report a long time ago. I'll do that
+now.
+
+If anybody has any tips on how to debug this (debug a suspended machine
+:-) I would like to know.
+
+Best,
+Volker
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
 
 
 
