@@ -1,13 +1,16 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
-Subject: Re: Suspend-to-RAM on Sony Vaios
-Date: Thu, 04 Nov 2004 13:14:00 +0100
-Message-ID: <yzooeid4xrr.fsf@cern.ch>
-References: <88056F38E9E48644A0F562A38C64FB60033E4DDC@scsmsx403.amr.corp.intel.com> <20041103155217.GH24195@wotan.suse.de>
- <yzosm7q97q2.fsf@cern.ch> <20041103172120.GB18092@wotan.suse.de>
- <yzo654mowci.fsf@cern.ch> <20041104090233.GD28895@wotan.suse.de>
+From: Christian Hesse <mail-8oMOrB1mGocUSW6y5lq3GQ@public.gmane.org>
+Subject: Re: Success with kernel-swsusp and Nvidia-closed-source
+Date: Thu, 4 Nov 2004 14:03:05 +0100
+Message-ID: <200411041403.05445.mail@earthworm.de>
+References: <Pine.LNX.4.60.0411031215260.1187@frog.athome> <1099534267.3991.52.camel@desktop.cunninghams> <Pine.LNX.4.60.0411041242210.1565@frog.athome>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart4592627.z9qNfo88RC";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.60.0411041242210.1565-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,20 +20,76 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Cc: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->> There is absolutely no guarantee that the machine comes "fresh out of
->> suspend"! Here is my recollection of what the ACPI specs says: The
+--nextPart4592627.z9qNfo88RC
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Andi> I don't see who should cause busmaster in flight operations
-Andi> before suspend wakeup.
+On Thursday 04 November 2004 12:59, liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
+> Salut Nigel,
+>
+> On Thu, 4 Nov 2004, Nigel Cunningham wrote:
+> > Hi.
+> >
+> > On Thu, 2004-11-04 at 09:29, liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
+> >> -----BEGIN PGP SIGNED MESSAGE-----
+> >> Hash: SHA1
+> >>
+> >> Salut Christian,
+> >>
+> >> On Wed, 3 Nov 2004, Christian Hesse wrote:
+> >>> I'm using software suspend 2.1. For me suspend works fine, but the
+> >>> system freezes as soon as it is resumed, I only see a black screen
+> >>> then. Driver nv works without any problems. Any hints what could be t=
+he
+> >>> cause?
+> >>
+> >> I did not patch in anything into the kernel. I used a vanilla 2.6.9
+> >> (only the Makefile was patched to show 2.6.9 instead of 8 ... maybe
+> >> somebody watched a bit too much tv... :-)
+> >> So I did not use swsusp 2.1. And I could not manage to freeze on resume
+> >> this time. So, why didn't you try the vanilla-kernel, with the
+> >> Haggi' s patch for the nvidia driver?
+> >> When you test - be sure to sync before suspending. It's the second bes=
+t,
+> >> besides having a jung backup handy.
+> >
+> > I guess I'm doing something driver related that Pavel isn't or vv :>.
+> > Can I get a pointer to the driver source?
+>
+> The closed source driver from Nvidia is at
+> http://download.nvidia.com/XFree86/Linux-x86/1.0-6111/NVIDIA-Linux-x86-1.=
+0-
+>6111-pkg1.run For me to make it work, you first needed to extract it with
+> --extract-only Then apply Haggi's patch (attached). Otherwise it refused =
+to
+> suspend: Could not suspend device 0000:01:00.0: error -1
+> But all this is not with Swsusp 2.1, but with the 2.6.9-kernel, and works
+> as it should.
+> I think Christian is also using 6.111??? nvidia driver with Swsusp 2.1.
 
-I'm supposing non-initialized hardware could physically hang on the
-bus master request line.
+Yes, I use 1.0-6111 as well.
 
-Ole
+=2D-=20
+Christian
 
+--nextPart4592627.z9qNfo88RC
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.9.10 (GNU/Linux)
+
+iD8DBQBBiiiJlZfG2c8gdSURAmsWAKCj/VTmrxViuwgHOw7kbHmJ7m71pgCg/cb2
+XY51KVLI9nDDZGMtzJLoB00=
+=wsiW
+-----END PGP SIGNATURE-----
+
+--nextPart4592627.z9qNfo88RC--
 
 
 -------------------------------------------------------
