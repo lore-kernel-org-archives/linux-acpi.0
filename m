@@ -1,10 +1,10 @@
-From: Charles Kendricks <ckendricks-rGvcZsxnnNR8Odgaehf8fA@public.gmane.org>
-Subject: Problem with acpi_power_off
-Date: Thu, 24 Jun 2004 13:21:17 -0700
+From: John Paul Walters <jwalters-jgEIgUtgKzeHXe+LvDLADg@public.gmane.org>
+Subject: lid events not working
+Date: Thu, 24 Jun 2004 16:58:34 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40DB37BD.3050904@accelerated.org>
+Message-ID: <1088114314.5048.14.camel@walters06>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,14 +18,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am in charge of several linux 2.6.4 systems with Dragon P4I875P 
-motherboards.  I am relatively new to acpi so my question might seem a 
-little elementary, but I can't seem to get my systems to power off 
-consistently when I issue an init 0.  It seems that all of them will 
-power down sometimes, and at other times the same systems won't power 
-down.  Once powered down I have no problem (at least not yet anyway) 
-waking the systems back up.  What can be causing this inconsistent 
-behavior?????
+I've got a Sager 8882 laptop and I'm trying to get ACPI working
+properly.  I'm using kernel 2.6.6.  The main problem that I'm having is
+that lid events don't seem to work properly.  If I check the
+/proc/acpi/button/lid/LID/state file, it's always listed as being
+closed.  
+
+I've corrected my DSDT and have eliminated all errors/warnings and have
+recompiled the kernel to integrate the new DSDT, but this has no
+effect.  I've also removed all APIC support from the kernel and have
+passed acpi_os_name="Microsoft Windows XP" as a kernel option.  None of
+this makes any difference.  Anybody have any thoughts?
+
+regards,
+JP  
 
 
 
