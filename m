@@ -1,7 +1,7 @@
 From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
 Subject: RE: kacpid problems
-Date: Wed, 10 Nov 2004 15:40:16 +0100 (CET)
-Message-ID: <20041110144016.9575.qmail@web25310.mail.ukl.yahoo.com>
+Date: Wed, 10 Nov 2004 15:50:51 +0100 (CET)
+Message-ID: <20041110145051.20002.qmail@web25304.mail.ukl.yahoo.com>
 References: <3ACA40606221794F80A5670F0AF15F84041AC048@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
@@ -17,14 +17,10 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I can try to get it, but usually I can't touch any
-files which have something to do with the acpi after
-it runs at 99%.
- --- "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote: 
+ --- "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> skrev: 
 > 
 > I want this info when kacpid runing with 99% CPU
 > time.
