@@ -1,14 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: localX var's
-Date: Tue, 20 May 2003 09:46:07 -0700
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: RE: DSDT in initrd
+Date: Tue, 20 May 2003 18:56:59 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A2AD@orsmsx401.jf.intel.com>
+Message-ID: <Pine.LNX.4.53.0305191725350.9728@dynast.gaugusch.at>
+References: <A5974D8E5F98D511BB910002A50A6647054FC40A@hdsmsx103.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <A5974D8E5F98D511BB910002A50A6647054FC40A-MgY+aF+eRfZviC08c4yzC1DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,32 +16,142 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Mark Santcroos [mailto:marks-h3GR0owD+wQ@public.gmane.org]=20
+On May 19, Brown, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-> What's the diff between a "normal" variable and a LocalX variable?
->=20
-> I can see that they can't be referenced until they are initialized, so
-> there is at least one difference. :-)
->=20
-> Are they maybe "static" in their scope? (As in the C meaning=20
-> of static)
+> The concept of a DSDT override is a workaround -- fine for bringup,
+> development, hackers, enthusiasts, wizards etc.  But somebody who pays
+> money for a production box that runs Linux will buy one that the OSD
+> certifies and supports.
+Isn't linux the OS that runs on nearly EVERY hardware? Although there is a
+lot of power behind the linux movement, we should not become arrogant.
+We can't force the industry to support old machines (sometimes not even
+new ones).
 
->From the spec:
+> So unless the Linux community wants to slide down the slippery slope of
+> running any old broken BIOS -- forever -- we should maintain -- indeed
+> sharpen -- our ability to reject bad firmware -- and generously apply that
+> ability when the OEM goes before an OSD for certification.
+Certification is usually expensive (at least one has to do it, I am not
+even talking about paying for it). I am NOT always in the position where I
+can choose the hardware, and many other people as well.
 
-"Up to 8 local objects can be referenced in a control method. On entry
-to a control method, these objects are
-uninitialized and cannot be used until some value or reference is stored
-into the object. Once initialized,
-these objects are preserved in the scope of execution for that control
-method."
+My patch is configurable (can be turned off via menuconfig), so please
+apply it and do us hackers a favor.
 
-They're temporary scratch data objects, like C variables declared in
-function scope, not like static C vars.
+kind regards
+Markus
 
-Regards -- Andy
+
+--- linux.orig/drivers/acpi/osl.c	2003-05-09 20:08:34.000000000 +0200
++++ linux/drivers/acpi/osl.c	2003-05-09 20:16:37.000000000 +0200
+@@ -36,6 +36,8 @@
+ #include <asm/io.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi.h>
++#include <linux/init.h>
++#include <linux/vmalloc.h>
+
+ #ifdef CONFIG_ACPI_EFI
+ #include <linux/efi.h>
+@@ -222,14 +224,59 @@
+ 	return AE_OK;
+ }
+
++
++#ifdef CONFIG_ACPI_INITRD
++unsigned char* get_dsdt_from_initrd(unsigned char *start, unsigned char *end)
++{
++	unsigned char *data;
++	unsigned char signature[] = "INITRDDSDT123DSDT123";
++
++	if (start == NULL)
++		return NULL;
++	printk(KERN_INFO "Looking for DSDT in initrd ...");
++	if (!memcmp(start, "DSDT", 4)) {
++		printk(" found at beginning!\n");
++		return start;
++	}
++	end-=sizeof(signature)+5; /* don't scan above end, signature+\0+DSDT */
++	for (data=start; data < end ; ++data) {
++		if (!memcmp(data, signature, sizeof(signature)-1)) {
++			if (!memcmp(data+sizeof(signature), "DSDT", 4)) {
++				printk(" found (at offset %u)!\n", data+sizeof(signature)-start);
++				return data+sizeof(signature);
++			}
++		}
++	}
++	printk(" not found!\n");
++
++	return NULL;
++}
++#endif
++
++
+ acpi_status
+ acpi_os_table_override (struct acpi_table_header *existing_table,
+ 			struct acpi_table_header **new_table)
+ {
++#ifdef CONFIG_ACPI_INITRD
++	extern unsigned long initrd_start, initrd_end;
++	unsigned char* new_dsdt=NULL;
++
++#endif
+ 	if (!existing_table || !new_table)
+ 		return AE_BAD_PARAMETER;
+
++#ifdef CONFIG_ACPI_INITRD
++	if (strncmp(existing_table->signature, "DSDT", 4) == 0 &&
++		(new_dsdt=get_dsdt_from_initrd((unsigned char*)initrd_start,
++			(unsigned char*)initrd_end)) != NULL)
++		*new_table = (struct acpi_table_header*)new_dsdt;
++	else
++		*new_table = NULL;
++#else
+ 	*new_table = NULL;
++#endif
++
+ 	return AE_OK;
+ }
+
+--- linux.orig/drivers/acpi/Config.in	2003-05-05 18:44:41.000000000 +0200
++++ linux/drivers/acpi/Config.in	2003-05-05 20:19:06.000000000 +0200
+@@ -12,6 +12,10 @@
+       bool         'CPU Enumeration Only' CONFIG_ACPI_HT_ONLY
+     fi
+
++    if [ "$CONFIG_BLK_DEV_INITRD" = "y" ]; then
++      bool         'Read DSDT from initrd' CONFIG_ACPI_INITRD
++    fi
++
+     if [ "$CONFIG_ACPI_HT_ONLY" = "y" ]; then
+       define_bool CONFIG_ACPI_BOOT		y
+     else
+--- linux.orig/Documentation/Configure.help	2003-05-05 19:51:09.000000000 +0200
++++ linux/Documentation/Configure.help	2003-05-05 20:18:56.000000000 +0200
+@@ -18602,6 +18602,14 @@
+   handles PnP messages.  All ACPI devices use its services, so using
+   them requires saying Y here.
+
++ACPI DSDT in initrd
++CONFIG_ACPI_INITRD
++	The DSDT (Differentiated System Description Table) often needs to be
++	overridden because of broken BIOS implementations. If you want to use
++	a customized DSDT, just copy it to /boot/initrd (which must be used as
++  initrd, of course). See http://gaugusch.at/kernel.shtml for instructions
++  on using an existing initrd with ACPI. If unsure, say N here.
++
+ ACPI System Driver
+ CONFIG_ACPI_SYS
+   This driver will enable your system to shut down using ACPI, and
+
+-- 
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
 
 
 -------------------------------------------------------
