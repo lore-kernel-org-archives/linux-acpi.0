@@ -1,14 +1,15 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Can't poweroff anymore.
-Date: Sat, 6 Mar 2004 13:41:16 +0100
+Subject: Re: thermal shutdown
+Date: Thu, 4 Mar 2004 21:07:07 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040306124115.GB5352@openzaurus.ucw.cz>
-References: <20040304180301.GA1754@conectiva.com.br>
+Message-ID: <20040304200706.GF531@openzaurus.ucw.cz>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB71C@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040304180301.GA1754-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB71C-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +18,147 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Flavio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jakob Praher <jpraher-LWAfsSFWpa4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> My notebook is an Acer TravelMate 630 and until 2.6.2-rc2 
-> poweroff works well, but upgrading to bitkeeper of 
-> 2004/01/27 (have many acpi changesets) it can't poweroff
-> anymore and show this message:
-> "acpi_power_off called"
-> "hwsleep-0265 [44] acpi_enter_sleep_state: Entering sleep state [S5]." 
-> 
-> Any ideas?
+> It's known issue!
 
-Entering sleep state (5) fixed someones machine, so he pushed the diff. 
-It probably infected 2.4, too.
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Well, its broken hw to start with.
+
+> Pavel has the following solution. Let me know whether it works for you
+
+The first hunk is really debugging hack, probably should
+be dropped.
+				Pavel
+
+> --- clean/drivers/acpi/thermal.c	2004-02-05 01:54:00.000000000
+> +0100
+> +++ linux/drivers/acpi/thermal.c	2004-02-05 02:24:15.000000000
+> +0100
+> @@ -223,8 +223,11 @@
+>  	tz->last_temperature =3D tz->temperature;
+> =20
+>  	status =3D acpi_evaluate_integer(tz->handle, "_TMP", NULL,
+> &tz->temperature);
+> -	if (ACPI_FAILURE(status))
+> +	if (ACPI_FAILURE(status)) {
+> +		if (tz->temperature !=3D tz->last_temperature)
+> +			printk(KERN_ERR "temperature damaged while
+> processing\n");
+>  		return -ENODEV;
+> +	}
+> =20
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Temperature is %lu dK\n",
+> tz->temperature));
+> =20
+> @@ -457,7 +460,17 @@
+>  		return_VALUE(-EINVAL);
+> =20
+>  	if (tz->temperature >=3D tz->trips.critical.temperature) {
+> +		long old_temperature =3D tz->temperature;
+>  		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Critical trip
+> point\n"));
+> +
+> +		result =3D acpi_thermal_get_temperature(tz);
+> +		if (!result) {
+> +			if (tz->temperature <
+> (tz->trips.critical.temperature - 100)) {
+> +				printk(KERN_ALERT "ACPI changed its mind
+> about temperature, was %ld C, now %ld C",=20
+> +
+> KELVIN_TO_CELSIUS(old_temperature), KELVIN_TO_CELSIUS(tz->temperature));
+> +				return_VALUE(0);
+> +			}
+> +		}
+>  		tz->trips.critical.flags.enabled =3D 1;
+>  	}
+>  	else if (tz->trips.critical.flags.enabled)
+>=20
+>=20
+>=20
+> > -----Original Message-----
+> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+> > Jakob Praher
+> > Sent: Wednesday, March 03, 2004 7:42 PM
+> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: [ACPI] thermal shutdown
+> >=20
+> >=20
+> > hi,
+> >=20
+> > my system: 2.6.3 acpi patched
+> >=20
+> > I have noticed, that at some sudden point in time (especially=20
+> > when I am
+> > not working actively ( I mean using input devices )), I receive a
+> > thermal shutdown, because of a (false?) temperature value.
+> >=20
+> > looking under /var/log/kern.log I found =20
+> >=20
+> > jaques2:/var/log# cat  kern.log | grep  Critical
+> > Feb 19 16:11:21 jaques2 kernel: Critical temperature reached (123 C),
+> > shutting down.
+> > Feb 19 16:11:22 jaques2 kernel: Critical temperature reached (46 C),
+> > shutting down.
+> > Feb 20 10:47:02 jaques2 kernel: Critical temperature reached (123 C),
+> > shutting down.
+> > Feb 20 10:47:02 jaques2 kernel: Critical temperature reached (44 C),
+> > shutting down.
+> > Mar  2 22:38:27 jaques2 kernel: Critical temperature reached (123 C),
+> > shutting down.
+> > Mar  2 22:38:27 jaques2 kernel: Critical temperature reached (44 C),
+> > shutting do
+> >=20
+> > this temperature always happens to be 123 C.
+> > How is that possible?
+> > I noticed that the acpi_thermal_critical method uses some kind of flag
+> > for enabled disabled, but apparently in any case the shutdown=20
+> > user space
+> > app (/sbin/poweroff) is called.
+> > Should this only be the case when the temperature is too high and the
+> > flag (enabled) is set to !=3D 0? Otherwise, what is the point in the
+> > enabled thing. [tz->trips.critical.flags.enabled]
+> >=20
+> > As you can see from my kern.log, the second value is=20
+> > drastically lower,
+> > so could this be a weekness in the system, that one sporadically high
+> > value can trigger a shutdown?
+> >=20
+> > thanks
+> > -- Jakob
+> >=20
+> >=20
+> >=20
+> >=20
+> > -------------------------------------------------------
+> > SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+> > Build and deploy apps & Web services for Linux with
+> > a free DVD software kit from IBM. Click Now!
+> > http://ads.osdn.com/?ad_id=3D1356&alloc_id=3D3438&op=3Dclick
+> > _______________________________________________
+> > Acpi-devel mailing list
+> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> >=20
+>=20
+>=20
+> -------------------------------------------------------
+> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+> Build and deploy apps & Web services for Linux with
+> a free DVD software kit from IBM. Click Now!
+> http://ads.osdn.com/?ad_id=1356&alloc_id438&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+--=20
+64 bytes from 195.113.31.123: icmp_seq=3D28 ttl=3D51 time=3D448769.1 ms    =
+    =20
 
 
 
