@@ -1,29 +1,105 @@
-From: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Subject: 2.6.0-test2: Lost USB mouse after resuming from S3
-Date: Thu, 7 Aug 2003 00:37:31 +0800
+From: Dieter =?iso-8859-1?q?N=FCtzel?= <d.nuetzel-VZcQ4qwp+CzQLMG2gba6HQ@public.gmane.org>
+Subject: Re: 2.4.22-rc1 + ACPI patch: amd76x_pm do not work any longer
+Date: Wed, 6 Aug 2003 18:49:01 +0200
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200308070037.31630.mflt1@micrologica.com.hk>
+Message-ID: <200308061849.01416.d.nuetzel@wearabrain.de>
+References: <200308060621.06216.d.nuetzel@wearabrain.de> <20030806100815.GH16091@fs.tum.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20030806100815.GH16091-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>
 Content-Disposition: inline
-To: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, usb-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Adrian Bunk <bunk-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>, phil-KXOFo5pg7o1l57MIdRCFDg@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Linux Kernel List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sensors-LT64U7CwzWEZMC/lefXSXFaTQe2KTcn/@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Causes are that usb-host controller does no handle S3 yet _plus_ possibly (depending on your hardware) 
-loss of PCI interrupt links as current ACPI does not resume those.
+Am Mittwoch, 6. August 2003 12:08 schrieb Adrian Bunk:
+> On Wed, Aug 06, 2003 at 06:21:06AM +0200, Dieter N=FCtzel wrote:
+> > Hello,
+>
+> Hi Dieter,
+>
+> > I had it running very well on my dual Athlon MP 1900+ for several m=
+onths
+> > before. Latest Kernel was 2.4.22-pre5+ACPI patch.
+> >
+> > Any changes?
+> > I changed lm_sensors from 2.7.0 (?) to 2.8.0
 
-Regards
-Michael
+This one is the culprit.
+Reverting to 2.7.0 cure my problems.
+
+i2c-core.o: i2c core module version 2.7.0 (20021208)
+i2c-proc.o version 2.7.0 (20021208)
+i2c-amd756.o version 2.7.0 (20021208)
+i2c-amd756.o: Found AMD768 SMBus controller.
+i2c-amd756.o: AMD768 bus detected and initialized
+
+amd76x_pm: Version 20020730
+amd76x_pm: Initializing northbridge Advanced Micro Devices [AMD] AMD-76=
+0 MP=20
+[IGD4-2P] System Controller
+amd76x_pm: Initializing southbridge Advanced Micro Devices [AMD] AMD-76=
+8=20
+[Opus] ACPI
+i2c-isa.o version 2.7.0 (20021208)
+i2c-isa.o: ISA bus access for i2c modules initialized.
+eeprom.o version 2.7.0 (20021208)
+w83781d.o version 2.7.0 (20021208)
+
+> > System:
+> > dual Athlon MP 1900+
+> > MSI K7D Master-L
+> >
+> > 2.4.22-rc1
+> > acpi-20030730-2.4.22-pre8.diff
+> > preempt-kernel-rml-2.4.21-1.patch
+> >...
+
+Work all fine, now.
+
+>
+> does an unpatched 2.4.22-rc1 work?
+
+I think it do;-)
+
+amd76x_pm is GREAT!
+
+/home/nuetzel> sensors
+w83627hf-isa-0290
+Adapter: ISA adapter
+Algorithm: ISA algorithm
+VCore 1:   +1.72 V  (min =3D  +1.61 V, max =3D  +1.77 V)
+VCore 2:   +2.49 V  (min =3D  +2.36 V, max =3D  +2.62 V)
++3.3V:     +3.36 V  (min =3D  +3.13 V, max =3D  +3.45 V)
++5V:       +4.99 V  (min =3D  +4.72 V, max =3D  +5.24 V)
++12V:     +12.01 V  (min =3D +10.79 V, max =3D +13.19 V)
+-12V:     -12.39 V  (min =3D -13.21 V, max =3D -10.90 V)
+-5V:       -5.10 V  (min =3D  -5.26 V, max =3D  -4.76 V)
+V5SB:      +5.44 V  (min =3D  +4.72 V, max =3D  +5.24 V)
+VBat:      +3.47 V  (min =3D  +2.40 V, max =3D  +3.60 V)
+U160:     2327 RPM  (min =3D 1500 RPM, div =3D 4)
+CPU 0:    4090 RPM  (min =3D 3000 RPM, div =3D 2)
+CPU 1:    4115 RPM  (min =3D 3000 RPM, div =3D 2)
+System:   +37.0=B0C   (limit =3D +40=B0C, hysteresis =3D +37=B0C) senso=
+r =3D thermistor
+CPU 1:    +29.0=B0C   (limit =3D +52=B0C, hysteresis =3D +47=B0C) senso=
+r =3D 3904=20
+transistor
+CPU 0:    +31.0=B0C   (limit =3D +52=B0C, hysteresis =3D +47=B0C) senso=
+r =3D 3904=20
+transistor
+vid:      +18.50 V
+alarms:   Chassis intrusion detection
+beep_enable:
+          Sound alarm disabled
 
 
--- 
-Powered by linux-2.6-test2-mm4. Compiled with gcc-2.95-3 - mature and rock solid
+Cheers,
+	Dieter
 
-2.4/2.6 kernel testing: ACPI PCI interrupt routing, PCI IRQ sharing, swsusp
-2.6 kernel testing:     PCMCIA yenta_socket, Suspend to RAM with ACPI S1-S3
-
-More info on swsusp: http://sourceforge.net/projects/swsusp/
+--=20
+Dieter N=FCtzel
+Leiter F&E, WEAR-A-BRAIN GmbH, Wiener Str. 5, 28359 Bremen, Germany
+Mobil: 0162 673 09 09
