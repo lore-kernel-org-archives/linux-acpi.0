@@ -1,12 +1,14 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Battery info given in mW, should be mA
-Date: Sat, 5 Jul 2003 16:40:08 +0100
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: /sys/firmware/acpi/namespace/
+Date: Sat, 5 Jul 2003 17:32:21 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030705154008.GA18878@srcf.ucam.org>
+Message-ID: <20030705163221.GP23597@parcelfarce.linux.theplanet.co.uk>
+References: <20030704213746.GM23597@parcelfarce.linux.theplanet.co.uk> <20030705142520.GK7796@poupinou.org> <20030705152100.GO23597@parcelfarce.linux.theplanet.co.uk> <20030705152427.GP7796@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030705152427.GP7796-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,47 +17,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-/proc/acpi/battery/BAT1/info gives me, amongst other things:
+On Sat, Jul 05, 2003 at 05:24:27PM +0200, Ducrot Bruno wrote:
+> On Sat, Jul 05, 2003 at 04:21:00PM +0100, Matthew Wilcox wrote:
+> > On Sat, Jul 05, 2003 at 04:25:20PM +0200, Ducrot Bruno wrote:
+> > > I guess it is a sysfs bug because it worked.
+> > 
+> 
+> The /sys/.../acpi/namespace worked.  I don't think that nobody touched
+> the code for acpi.  Then I think it is a sysfs bug.
 
-design capacity:         3500 mWh
-last full capacity:      3500 mWh
-
-According to the manufacturer, it's supposed to have a capacity of 
-3.4mAh. Running at 10V, that gives somewhat more than 3500mWh. The 
-numbers being returned look like they should be in mAh. Looking at 
-battery.c, the code for choosing which unit to display looks reasonable. 
-In my dsdt, I have:
-
-            Name(PBIF,Package(0x0D){
-                0x01,
-                0xFFFFFFFF,
-                0xFFFFFFFF,
-                0x01,
-                0xFFFFFFFF,
-                0x96,
-                0x7E,
-                0x04,
-                0x04,
-                "BAT1",
-                " ",
-                " ",
-                " "
-            })
-
-which would suggest that the "default" for the dsdt is to provide this 
-in Watts. I'm guessing that the information in this is supposed to be 
-overwriten by information from the battery (since I do get reasonable 
-values), but I'm not sure where that's happening or what information is 
-actually being provided by the battery. Is there any way I can verify 
-that the battery itself claims to be measuring capacity in Watts, or 
-track down where it's getting this idea? Is the current code behaving 
-sanely elsewhere?
+Ah, now I understand.  Do you happen to remember what version it used
+to work in?  I've got two boxes running 2.5.7[34] (one i386, one ia64)
+and neither show anything but directories under /sys/firmware/acpi
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
