@@ -1,12 +1,16 @@
-From: Ville =?ISO-8859-1?Q?P=E4tsi?= <drc-dZkOyQknF4g@public.gmane.org>
-Subject: Acer 233xc dsdt table broken?
-Date: 18 Jun 2003 12:36:12 +0300
+From: Hrvoje Habjanic <hrvoje.habjanic-wUpq2f5uKgb0NTdHYsHBKg@public.gmane.org>
+Subject: Re: Re: HP xw6000 acpi problem
+Date: Wed, 18 Jun 2003 11:53:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1055928971.2970.14.camel@corsair>
+Message-ID: <200306181153.33680.hrvoje.habjanic@zg.hinet.hr>
+References: <F760B14C9561B941B89469F59BA3A847E96F8B@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96F8B-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,64 +19,136 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I get no compile errors with the current dsdt table, but sleep mode S1
-or cooling_mode aren't supported. Throttle works fine, and the fan seems
-to adapt to the temperature. At ~23C the fan is almost silent, and at
-~46C+ it blows with full speed. /proc/acpi/fan is empty. The original
-dsdt table is available here:
 
-http://mail.ramk.fi/~drc/dsdt-acer-233xc.dsl.gz
+Hello!
 
-I personally have no programming knowledge.
+I've made partial success. In drivers/acpi/namespace/nsload.c ...
+Consider the situation where one of SSDT tables HAS ERRORS. "acpi_ns_load_table" will return error.
+BUT what about the rest of SSD tables? THEY DON'T GET LOADED/PARSED!?!?!?
 
-ACPI bootup messages (2.4.21-rc1): 
+  case ACPI_TABLE_SSDT:
 
-ACPI: have wakeup address 0xc0001000
-ACPI: RSDP (v000 PTLTD                      ) @ 0x000f5c60
-ACPI: RSDT (v001 PTLTD    RSDT   01540.00000) @ 0x0f7698d1
-ACPI: FADT (v001 INTEL  NBGV     01540.00000) @ 0x0f76df14
-ACPI: MADT (v001 PTLTD           APIC   01540.00000) @ 0x0f76df88
-ACPI: BOOT (v001 PTLTD  $SBFTBL$ 01540.00000) @ 0x0f76dfd8
-ACPI: DSDT (v001   WIST  PELICAN 01540.00000) @ 0x00000000
-ACPI: BIOS passes blacklist
-ACPI: Subsystem revision 20030522
-    ACPI-0286: *** Error: No installed handler for fixed event
-[00000000]
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 S4 S5)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
-ACPI: Embedded Controller [EC] (gpe 28)
-ACPI: PCI Interrupt Link [LNKA] (IRQs *10)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 10, enabled at IRQ 11)
-ACPI: PCI Interrupt Link [LNKC] (IRQs *11)
-ACPI: PCI Interrupt Link [LNKD] (IRQs *11)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 10 11, disabled)
-ACPI: PCI Interrupt Link [LNKF] (IRQs 11, disabled)
-ACPI: PCI Interrupt Link [LNKG] (IRQs 10 11, disabled)
-ACPI: PCI Interrupt Link [LNKH] (IRQs *11)
-ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 10
-PCI: Using ACPI for IRQ routing
-ACPI: AC Adapter [AC] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU] (supports C1 C2 C3, 8 throttling states)
-ACPI: Thermal Zone [THM0] (23 C)
-    ACPI-0286: *** Error: No installed handler for fixed event
-[00000000]
-    ACPI-0286: *** Error: No installed handler for fixed event
-[00000000]
+    ACPI_DEBUG_PRINT ((ACPI_DB_INFO, "Loading %d SSDTs\n",
+      acpi_gbl_table_lists[ACPI_TABLE_SSDT].count));
+
+    /*
+     * Traverse list of SSDT tables
+     */
+    table_desc = acpi_gbl_table_lists[ACPI_TABLE_SSDT].next;
+    for (i = 0; i<acpi_gbl_table_lists[ACPI_TABLE_SSDT].count; i++) {
+      /*
+       * Only attempt to load table if it is not
+       * already loaded!
+       */
+      if (!table_desc->loaded_into_namespace) {
+        status = acpi_ns_load_table (table_desc, acpi_gbl_root_node);
+        if (ACPI_FAILURE (status)) {
+           break;				<<<====== i think this may be a error.   =======
+        }
+
+        table_desc->loaded_into_namespace = TRUE;
+      }
+
+      table_desc = table_desc->next;
+    }
+
+    break;
+
+If I modify thi block to:
+
+  case ACPI_TABLE_SSDT:
+
+    ACPI_DEBUG_PRINT ((ACPI_DB_INFO, "Loading %d SSDTs\n",
+      acpi_gbl_table_lists[ACPI_TABLE_SSDT].count));
+
+    /*
+     * Traverse list of SSDT tables
+     */
+    table_desc = acpi_gbl_table_lists[ACPI_TABLE_SSDT].next;
+    for (i = 0; i<acpi_gbl_table_lists[ACPI_TABLE_SSDT].count; i++) {
+      /*
+       * Only attempt to load table if it is not
+       * already loaded!
+       */
+      if (!table_desc->loaded_into_namespace) {
+        status = acpi_ns_load_table (table_desc, acpi_gbl_root_node);
+        if (ACPI_FAILURE (status)) {
+          ACPI_DEBUG_PRINT ((ACPI_DB_INIT,"Error -> skipping to next"));
+          /* break; */
+        }
+        else
+          table_desc->loaded_into_namespace = TRUE;
+      }
+
+      table_desc = table_desc->next;
+    }
+
+    break;
+
+Then my computer boots, and it seems to be working.
+
+BUT, i'm not sure what i have done by modifying this ... Is this "the right way" to force parsing of ALL
+SSDT tables, EVEN some of them have errors???
+
+Please see:
+
+http://free-zg.htnet.hr/HrvojeHabjanic/acpi
 
 
+Hrvoje
+
+
+
+
+
+
+On Tuesday 17 June 2003 21:16, Grover, Andrew wrote:
+> Hi,
+>
+> ACPI should be printing a version string in the kernel boot messages.
+> What is it for rc1 and rc2 respectively?
+>
+> Thanks -- Regards -- Andy
+>
+> > -----Original Message-----
+> > From: Hrvoje Habjanic [mailto:hrvoje.habjanic-wUpq2f5uKgb0NTdHYsHBKg@public.gmane.org]
+> > Sent: Tuesday, June 17, 2003 12:07 PM
+> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: [ACPI] Re: HP xw6000 acpi problem
+> >
+> >
+> >
+> > Hi again ...
+> >
+> > OK, small update:
+> >
+> > acpi - rc1 is WORKING
+> > but rc2 IS NOT!
+> >
+> > Maybe this helps ....
+> >
+> > Any clues yet?
+> >
+> > Hrvoje
+> >
+> > p.s. Previous post
+> > http://sourceforge.net/mailarchive/forum.php?thread_id=2599281
+>
+> &forum_id=6102
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: INetU
+> Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+> Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+> INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 
