@@ -1,14 +1,14 @@
-From: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: Problem with acpi_power_off
-Date: Fri, 25 Jun 2004 13:01:42 +0200 (CEST)
+From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: reading files in /proc/acpi hangs machine for a short time
+Date: Fri, 25 Jun 2004 19:29:54 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.60.0406251252280.1488@frog.athome>
-References: <40DB37BD.3050904@accelerated.org>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Message-ID: <opr95d74mf4evsfm@smtp.pacific.net.th>
+References: <20040625082929.45335181@tethys.solarsys.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40DB37BD.3050904-rGvcZsxnnNR8Odgaehf8fA@public.gmane.org>
+In-Reply-To: <20040625082929.45335181-x0nrVmVds9QJrXWdq/lNz0B+6BGkLq7r@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,46 +17,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Charles Kendricks <ckendricks-rGvcZsxnnNR8Odgaehf8fA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: wwp <subscript-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Fri, 25 Jun 2004 08:29:29 +0200, wwp <subscript-GANU6spQydw@public.gmane.org> wrote:
 
-Salut Charles,
+> Hi there,
+>
+>
+> many acpi programs that show the battery/etc. usage that I tested are m=
+aking
+> my system not to respond for a very short while, but periodically. For
+> instance, the mouse is being locked for 1/n of a second, which is not a=
+ big
+> loss of performance, but it really damn itchy for a normal (intensive) =
+usage
+> of my Dell Inspiron 8200 laptop (kernel 2.4.26). I do remember of some
+> programs that were not producing such itchyness a long time ago (maybe
+> because the kernel things were different?).
+>
+> I've found that if I some files from /proc/acpi (let's say battery stat=
+e), I
+> get the same behaviour.
+>
+> So my questions are:
+> - is this a known issue?
+> - program/kernel/dsdt/what-else issued?
+> - are there known workarounds?
+> - is it possible to get the acpi states from another place that /proc (=
+if only it
+> doesn't show the same problem)?
+>
 
-On Thu, 24 Jun 2004, Charles Kendricks wrote:
-> I am in charge of several linux 2.6.4 systems with Dragon P4I875P 
-> motherboards.  I am relatively new to acpi so my question might seem a little 
-> elementary, but I can't seem to get my systems to power off consistently when 
-> I issue an init 0.  It seems that all of them will power down sometimes, and 
-> at other times the same systems won't power down.  Once powered down I have 
-> no problem (at least not yet anyway) waking the systems back up.  What can be 
-> causing this inconsistent behavior?????
-there are two things you may try:
-  1. If your system does not use the local APIC you might build a kernel
-   without "Local APIC support on uniprocessors" CONFIG_X86_UP_APIC
-  2. do not use the rtc-module "Enhanced Real Time Clock Support", but if
-   you need the generic RTC CONFIG_GEN_RTC instead.
-And please report back, if one of this things solves your problem.
+First figure out whether it is the PM app or ACPI.
 
-Cheers
-   hartwig felger
+1) Disable all PM apps touching /proc/acpi.
 
-Hartwig Felger informatics
+2) In a seperate terminal or VT run a script like
 
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+while :; do cat /proc/acpi/xxx/xxx/what_you_want_to_test > /dev/null; usl=
+eep 300000; done
 
-iD8DBQFA3AYa9bBoTzOf1pMRAnEWAJ4sjOVDLtXlmeTBBxRAqb3yIIZITgCg407t
-HXSTsVfSijTz1Am7RG+Gabs=
-=Ui5K
------END PGP SIGNATURE-----
+Example sleeps 300ms (300000us) after every read, try various settings
+ from as low as 100ms to 10s and see how you system behaves.
+
+If you don't have usleep sleep will do in 1s increments...
+
+Note also can try cat /proc/acpi/battery/*/*
+
+Run it continuously in the background and hopefully the test will show pr=
+oblems
+due to ACPI proc accesses. If not, the PM  apps are the problem - are the=
+se running
+big scripts or impose high system load somehow?
+
+
+	Regards
+
+
 
 
 -------------------------------------------------------
