@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: FW: ACPI too sensitive about critical temperature
-Date: Mon, 19 Jan 2004 23:02:52 +0100
+From: Albert Schueller <schuelaw-23yYEaFFs4qVc3sceRu5cw@public.gmane.org>
+Subject: Thermal trip_points, raise them?
+Date: Tue, 20 Jan 2004 00:26:29 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040119220251.GD380@elf.ucw.cz>
-References: <F760B14C9561B941B89469F59BA3A84702C9321E@orsmsx401.jf.intel.com>
+Message-ID: <20040120002629.A21624@carrot.whitman.edu>
+Reply-To: Albert Schueller <schuelaw-23yYEaFFs4qVc3sceRu5cw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84702C9321E-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,72 +17,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Tue Jan 20 00:23:44 PST 2004
 
-> I didn't want to bug the whole lkml with this, so I'm sending this to 
-> you guys who wrote "drivers/acpi/thermal.c". I hope that's okay...
-> 
-> A friend of mine has a mainboard (I can find out the specific type if 
-> you want to know) which reports inaccurately high temperature "peaks" 
-> from time to time.
-> Looking at /proc/acpi/thermal_zone/THR1/temperature every second might 
-> look something like this: 45, 43, 47, 42, 90, 43, 41, 45
+Hi,
 
-Try this one.
+After a brief search of the archives on this subject, I have the
+following questions:
 
-								Pavel
+(I'm running ACPI that's in the stock 2.6.1 kernel, this is a debian
+woody (mostly stable) machine, with, of course, the 2.6.1 kernel. )=20
 
---- clean/drivers/acpi/thermal.c	2003-07-27 22:31:09.000000000 +0200
-+++ linux/drivers/acpi/thermal.c	2004-01-13 22:33:49.000000000 +0100
-@@ -223,8 +223,11 @@
- 	tz->last_temperature = tz->temperature;
- 
- 	status = acpi_evaluate_integer(tz->handle, "_TMP", NULL, &tz->temperature);
--	if (ACPI_FAILURE(status))
-+	if (ACPI_FAILURE(status)) {
-+		if (tz->temperature != tz->last_temperature)
-+			printk(KERN_ERR "temperature damaged while processing\n");
- 		return -ENODEV;
-+	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Temperature is %lu dK\n", tz->temperature));
- 
-@@ -457,7 +460,17 @@
- 		return_VALUE(-EINVAL);
- 
- 	if (tz->temperature >= tz->trips.critical.temperature) {
-+		long old_temperature = tz->temperature;
- 		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Critical trip point\n"));
-+
-+		result = acpi_thermal_get_temperature(tz);
-+		if (!result) {
-+			if (tz->temperature < (tz->trips.critical.temperature - 100)) {
-+				printk(KERN_ALERT "ACPI changed its mind about temperature, was %ld C, now %ld C", 
-+				       KELVIN_TO_CELSIUS(old_temperature), KELVIN_TO_CELSIUS(tz->temperature));
-+				return_VALUE(0);
-+			}
-+		}
- 		tz->trips.critical.flags.enabled = 1;
- 	}
- 	else if (tz->trips.critical.flags.enabled)
-@@ -467,8 +480,8 @@
- 	if (result)
- 		return_VALUE(result);
- 
-+	printk(KERN_EMERG "Critical temperature reached (%ld C), shutting down.\n", KELVIN_TO_CELSIUS(tz->temperature));
- 	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->trips.critical.flags.enabled);
--
- 	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
- 
- 	return_VALUE(0);
+	- Ever since I started running acpi on my Dell SmartStep 200N
+	  I've been getting thermal shutdowns.  I suppose having them is
+	  better than not having them, but even in a well-ventilated,
+	  cool room, the machine will shutdown if I compile a kernel.
+	  This is a 2GHz P4 (mobile).  It's clean inside, no dust.
+	  According to the specs at Intel the chip is safe upto 100=B0C
+	  (though maybe not the stuff around it, I don't know).
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+	  In
+	 =20
+	  /proc/acpi/thermal_zone/THR1/trip_points =3D 72 C
+	  /proc/acpi/thermal_zone/THR2/trip_points =3D 78 C
+
+	  well shy of the 100=B0C on the Intel spec.
+
+	  I was planning to hack the acpi source and raise the trip
+	  points to something like 80 and 86, but I can't find where
+	  they're being set.  This makes me think that they're being
+	  obtained from the BIOS somehow.
+
+	  Is it ok to just:
+
+	  cat "80 C" > /proc/acpi/thermal_zone/THR1/trip_points
+	  cat "86 C" > /proc/acpi/thermal_zone/THR2/trip_points
+
+	  I'll take responsibility for any thermal damage, I'm just
+	  wondering if this will raise the trip_points for me.
+
+	  Alternatively, would removing the thermal module before a big
+	  job, like a kernel compile, and then reinserting it be ok?
+	  Or, would it break the ACPI that's currently running?
+	  (again I take responsibility for thermal damage).
+
+	- Just out of curiosity, what is the difference between the ACPI
+	  code in the stock 2.6.1 kernel and, say, the 2.6.1 patch
+	  provided on the acpi.sf.net page?  (I know, I know, look at
+	  the diffs.)  Are there different development groups for ACPI?
+	  One that's getting their stuff into the current kernels, and
+	  this group that provides a patch replacement?
+
+Sorry if these are FAQ's.
+
+A
+
+--=20
+Albert Schueller                                 Department of Mathematic=
+s
+Office Phone:  509-527-5140                      Whitman College
+Public Key:  http://carrot.whitman.edu/gpg.key   Walla Walla, WA USA 9936=
+2
 
 
 -------------------------------------------------------
