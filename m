@@ -1,17 +1,13 @@
-From: Joshua Schmidlkofer <menion-8BColdH5dlvzIImvGDD8mw@public.gmane.org>
-Subject: Re: ACPI + SiS IRQ Routing?
-Date: Mon, 13 Oct 2003 21:21:46 -0700
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Applications & ACPI events
+Date: Tue, 14 Oct 2003 16:04:31 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1066105305.4424.9.camel@menion.home>
-References: <1065658665.26205.8.camel@menion.home>
-	 <1065823816.14982.3.camel@dhcp23.swansea.linux.org.uk>
-	 <1065827434.26428.35.camel@bubbles.imr-net.com>
-	 <1065852976.4112.84.camel@dhcppc4>
+Message-ID: <Pine.LNX.4.44.0310141556320.803-100000@cherise>
+References: <20031013171704.GH15441@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1065852976.4112.84.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <20031013171704.GH15441-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,49 +16,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Well first I have a little trouble sorting out the problem with that bug
-report.  It looks like USB failure is the key symptom.  I see no
-symptoms, except the oops.  I will enshrine this in a new bug report.
 
-Also, my problems are with 2.6.0-testX, and I have not done much testing
-with 2.4.xx.  Tell me, is pci=noacpi, or acpi=off a recommended way to
-go?  I have a similar problem with the 645 mostly.  The 648 has given me
-very few problems.  I will create a report for the 645, and try to
-re-produce reliable problems with the 648.
+> > It's also unncessary for X to do a full save/restore of the video card on 
+> > every VT switch. I personally find it annoying to wait a second or two 
+> > when switching from X to the console. 
+> 
+> ??
+> 
+> What if game or another X server is running on different console.
 
-js
+Is it really the current X server's responsibility to provide for what
+ever may be running on what ever console the user switches to? That seems
+backwards - the application that is being switched to should save the
+state of that which it's switching from. This is an X question, though, 
+and not fodder for this list.. 
+
+> Patch looks reasonable, but:
+> 
+> STATE= should really be more finegrained. ACPI s3 is really differnent
+> from apm -s, and it looks to me like you'll only tell userspace 'mem'.
+
+Well, it depends on what X (and in general userspace) needs to know on a 
+power-state transition. Alan, how does/will X behave differently for each 
+power state that we can enter? 
+
+I really don't want to lose the abstraction, since it currently is 
+platform-neutral, and doesn't include any x86isms.
+
+> Hmm, apm.. they already have some mechanism to do just this. These two
+> should be coordinated. [And this one certainly looks nicer than apm
+> way.]
+
+I agree. If we can agree on an interface, it should be usable for any 
+platform's power management notification. 
+
+> Kernel waiting for userspace to finish with pm_sem held... If that
+> code tries to do "echo platform > disk" in the meantime, you get ugly
+> deadlock.
+
+Then, that would be a bug, and would be fixed in early stages of testing. 
+:) 
 
 
-On Fri, 2003-10-10 at 23:16, Len Brown wrote:
-> Does your SiS 648 system behave like this one?:
-> http://bugme.osdl.org/show_bug.cgi?id=1283
-> 
-> Can you describe how the 645 behaviour differs -- hopefully in a bug
-> report?
-> 
-> thanks,
-> -Len
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: SF.net Giveback Program.
-> SourceForge.net hosts over 70,000 Open Source Projects.
-> See the people who have HELPED US provide better services:
-> Click here: http://sourceforge.net/supporters.php
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
--- 
-VB programmers ask why no one takes them seriously, 
-it's somewhat akin to a McDonalds manager asking employees 
-why they don't take their 'career' seriously.
+	Pat
 
 
 
