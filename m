@@ -1,12 +1,14 @@
-From: Preston Lord <webmaster-xSlfl9GhdHA@public.gmane.org>
-Subject: ACPI SuSE 8.2
-Date: 16 May 2003 16:32:38 -0700
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Asus ACPI Hotkeys
+Date: Fri, 16 May 2003 15:37:02 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1053127958.3923.13.camel@zipur.doublet>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A2A6@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,33 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: Stefan Behnel <behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>, Gertjan <g.zwartjes-oe7qfRrRQfdlL9U78CI+FQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Julien Lerouge <julien.lerouge-o/5/jSaJEHk+NdeTPqioyti2O/JbrIOy@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I had trouble with ACPI on my Acer TM 430 on SuSE 8.1 so I redid my
-Kernel to the latest 2.4.20-6x with still getting the error:
+> From: Karol Kozimor [mailto:sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org]=20
+> Thus wrote Grover, Andrew:
+> > Well then probably someone needs to write a device driver=20
+> for this, just
+> > like for Toshiba's special device.
+>=20
+> Actually, it has already been done. Right now, we're working=20
+> with Julien to=20
+> simplify the code and to add some features. The code is now=20
+> under heavy=20
+> re-development, and we'll make an appropriate announce once=20
+> it becomes=20
+> stable enough.
+>=20
+> Since we were aiming at merging the driver with the ACPI code=20
+> (more or less
+> on the same basis the Toshiba driver is) anyway, we can as=20
+> well ask right
+> now, whether this would be possible somewhere in the future?=20
 
-Your computer seems to have a partial ACPI installation
-brobably ACPI was enabled, but some of the sub-options
-were not enabled - you need to enable at least 'AC Adaptor'
-and 'Control Method Battery' and rebuild your kernel.
+Of course! This is exactly what I was hoping for.
 
-So I did a fresh install of SuSE 8.2  ... same error as above.
-I thought that SUSE 8.2 was all ready to go with ACPI ... babey it is my
-laptop? The Acer TM 430 is brand new... ideas?
-
-Thanks
-
--- 
-Preston Lord
-Programmer/Developer/Network Specialist
-Double "T" Computer Services
-SK, CA Ph.1.306.773.2054
-==============================
-http://www.t2.net (Hosting)
-http://www.dinamicweb.com (iHTML Driven Dropsites)
-http://www.ebboard.ca (iHTML Discussion Forum Software)
-
+Regards -- Andy
 
 
 
