@@ -1,11 +1,11 @@
-From: aldo.virusmaster-xLnV79OblelBDgjK7y7TUQ@public.gmane.org
-Subject: hi  - ALCATEL POLICY: Your message has been refused
-Date: Tue, 13 Jul 2004 13:36:44 +0800
+From: "Arch. Giovanni Andrea Lucaferri" <lucaferri-npIeQ/MgtcxBDgjK7y7TUQ@public.gmane.org>
+Subject: acpi poweroff linux problem
+Date: Tue, 13 Jul 2004 08:59:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OFDAC81487.EAED2968-ON48256ED0.001ED46F@net.alcatel.com.cn>
+Message-ID: <40F38865.1050007@makines.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,34 +18,23 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-george-0jvOvoZAu4EAvxtiuMwx3w@public.gmane.org
-**************** e-mail Manager Notification ****************
-As a security precaution this mail was blocked and discarded since it
-contains attachments with file extensions not allowed
-by our email policy (.exe .vbs etc..)
-Our mail system policy does not accept certain attachment types.
-See http://aww.alcatel.com/group/ist/policy/email_attachments.htm for
-additional details.
+Hallo,
+I have slackware 9.1, kernel 2.4.20 patched with latest acpi .diff
+on acer laptop travelmate632
+Everything works but not poweroff.
+The system close all service and daemon but acipd goes in sleep mode, 
+not in poweroff.
+The configuration is the original of the distibution.
 
-In addition
-a list of  ZIP files attachments are filtered at the moment
-such as attach.zip
-document.zip
-info.zip ...
-This is a temporary measure due to a number of worms currently rapidly
-spreading on the Internet.
+some months ago there was a package for the implementation of acpi under 
+unix/linux in the webite of intel.
+I've used this modules  and they works!
+Now it's not possible to find this package on the intel website.
+Somebody still have this package?
+I would like to find the difference in the configuration of the modules.
+Somebody have an idea why my acpi goes in sleep-mode and not poweroff?
+thaks.
 
-In case of doubt
-please rename your attachment with a second extension (such as
-filename.zip.RENAMED) and resend it.
-
-If you have questions contact your local e-mail support representative.
-************************ End of message ***********************
-
-
-Scanned by ScanMail for Lotus Notes 2.51
-with scanengine 6.510-1002
-and patternfile lpt$vpn.131
 
 
 
