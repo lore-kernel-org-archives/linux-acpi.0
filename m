@@ -1,13 +1,14 @@
-From: "MRS L  ESTRADA" <msekko1-QOiod4cnrWAN+BqQ9rBEUg@public.gmane.org>
-Subject: ESTRADA  [HELP]
-Date: Fri, 14 Feb 2003 02:13:13 -0800
+From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+Subject: Re: Kernel 2.5 configuration, was: compaq evo 800v dsdt
+Date: Fri, 14 Feb 2003 10:36:02 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18jcqD-00084x-00@sc8-sf-list1.sourceforge.net>
-Reply-To: loui_estra13-fE4/JEjjHa7QT0dZR+AlfA@public.gmane.org
+Message-ID: <20030214103602.GC8318@clara.net>
+References: <F760B14C9561B941B89469F59BA3A847138050@orsmsx401.jf.intel.com> <1045159298.2048.22.camel@calvin.hjblocal.nl> <20030214073129.GX25625@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030214073129.GX25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,74 +17,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Hilbert Barelds <list-XfCjptVMDKWuyJwMYI9mNQ@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear sir 
+Hi,
 
-My name is LOUISA C=2EESTRADA=2CThe wife of Mr=2E JOSEPH 
-ESTRADA=2C the former President of Philippines located 
-in the South East Asia=2E 
+Ducrot Bruno [ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] wrote:
+> The P4-M is supported by the speedstep "legacy" driver in cpufreq.
 
-My husband was recently impeached from office by a 
-backed uprising of mass demonstrators and the Senate=2E 
+I think this is a big problem at the moment in the kernel 2.5 power
+management configuration.  There are too many ways of doing the same
+thing, and things which look as though they are new in 2.5 (cpufreq) say
+that they are 2.4 and 'legacy'.  And SWSUSP, should it be on or off if you
+want to try S3/4 BIOS?
 
-My husband is presently in jail and facing trial on 
-charges of corruption=2C embezzlement=2C and the 
-mysterious charge of plunder which might lead to death sentence=2E 
-The present government is forcing my husband out of 
-manila to avoid demonstration by his supporters=2E 
+What are the options which should be turned on to have the best
+supported configuration for all ACPI features including S3/S4 sleep.
 
-During my husband's regime as president of Philippine=2C 
+Which kernel and patches should I apply to have the best starting point
+for helping debug?
 
-I realized some reasonable amount of money from 
-various deals that I successfully executed=2E I have 
-plans to invest this money for my children's future on real 
-estate and industrial production=2E My husband is not 
-aware of this because I wish to do it secretly for 
-now=2E 
+Also, I've seen conflicting reports about whether you should use
+/proc/acpi/sleep or the swsusp interface in order to trigger sleep
+states.
 
-Before my husband was impeached=2C I secretly siphoned 
-the sum of $30=2C000=2C000 million USD =28Thirty million United states 
-dollars=29 
-out of Philippines and deposited the money with a security 
-firm that transports valuable goods and consignments 
-through diplomatic means=2E I also declared that the 
-consignment was solid gold and my foreign business 
-partner owned it=2E 
+I've compiled up a 2.5.60 kernel but I'm not sure I have the correct set
+of options enabled.
 
-I am contacting you because I want you to go to the 
-security company and claim the money on my behalf 
-since I have declared that the consignment belong to 
-my foreign business partner=2E You shall also be 
-required to assist me in investment in your country=2E 
+Also, the kernel PCMCIA (yenta) drivers don't work for me on a Sony Vaio
+GRX516MD.  I've been using pcmcia-cs drivers under 2.4 but I believe I
+have to use the kernel drivers for 2.5 and they fail to allocate an IRQ
+because of lack of resources for my wireless card when it is plugged.
 
-I hope to trust you as a God fearing person who will 
-not sit on this money when you claim it=2C rather assist me 
-properly=2C I expect you to declare what percentage of 
-the total money you will take for your assistance=2E 
+How can I tell whether the failure to allocate an IRQ is a PCMCIA issue
+or an ACPI issue?  Under 2.4 everything seems to want to use IRQ 9 but
+it only seems to be a problem for USB which complains that it's seeing
+IRQs for non USB events and doesn't actually function properly.
 
-When I receive your positive response I will let you 
-know where the security company is and the payment 
-pin code to claim the money which is 
-very important=2E 
+I've put as much information as I can think of on my home page at
+http://dude.noc.clara.net/~faye/ if any other information is necessary,
+I'll happily provide it.
 
-For now=2C let all our communication be by e-mail 
-because my line are right now connected to the 
-Philippines Telecommunication Network services=2E 
-
-Please also send me your telephone and fax number=2E 
-
-I will ask my son to contact you to give you more details on after i 
-have 
-received a responce from you=2E 
-
-Thank you and God bless you and your family=2E 
-
-MRS LOUISA C=2E ESTRADA 
+Kernel 2.4 is working pretty well at the moment, but I really want to
+help to get suspend functional.
 
 
+Faye
 
+-- 
+Faye Pearson,
+Covert Development
+ClaraNET Ltd.       Tel 020 7903 3000
+
+Everything can be filed under "miscellaneous".
 
 
 -------------------------------------------------------
