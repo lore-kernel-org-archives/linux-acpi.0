@@ -1,10 +1,21 @@
-From: "Aryeh Bruce" <Yosef-/kdlyxK721/lKS8GlytQkw@public.gmane.org>
-Subject: Re: Ph aramacy  63KCBG 513
-Date: Wed, 16 Mar 2005 04:08:49 -0500
-Message-ID: <E1DBUs2-0003AP-Ha@sc8-sf-mx1.sourceforge.net>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
+Date: Wed, 16 Mar 2005 09:10:36 -0700
+Message-ID: <1110989436.8378.19.camel@eeyore>
+References: <20050304234622.63e8a335.akpm@osdl.org>
+	 <Pine.LNX.4.62.0503110006260.30687@alpha.polcom.net>
+	 <1110559685.4822.15.camel@eeyore>
+	 <Pine.LNX.4.62.0503112009070.22293@alpha.polcom.net>
+	 <1110574599.4822.54.camel@eeyore>
+	 <Pine.LNX.4.62.0503112239580.25254@alpha.polcom.net>
+	 <1110580150.4822.75.camel@eeyore>
+	 <Pine.LNX.4.62.0503131607330.23588@alpha.polcom.net>
+	 <1110915355.5917.41.camel@eeyore>
+	 <Pine.LNX.4.61.0503151543420.23036@montezuma.fsmlabs.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0008_01C52882.42380A45"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.61.0503151543420.23036-SOP5cCwKKQRMCHjbocvOOJqQE7yCjDx5@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,78 +25,82 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Adi Corbett <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Tue, 2005-03-15 at 16:02 -0700, Zwane Mwaikambo wrote:
+> On Tue, 15 Mar 2005, Bjorn Helgaas wrote:
+> > That seems awfully suspicious to me.  So the following is
+> > probably safe as far as it goes, but not sufficient for all
+> > cases.
+> 
+> VIA bridges allow for IRQ routing updates by programming 
+> PCI_INTERRUPT_LINE, so it is supposed to work even if we do it for all the 
+> devices, so it appears to be a board/bios specific problem.
 
-------=_NextPart_000_0008_01C52882.42380A45
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+This just feels like a sledgehammer approach, i.e., we're
+programming PCI_INTERRUPT_LINE in more cases that we actually
+need to.  I especially don't like that any Via device with
+devfn==0 triggers the quirk.  That doesn't seem like the
+right test if we're really looking for a Via bridge.
 
-Hello, 
+> > -static void __devinit quirk_via_bridge(struct pci_dev *pdev)
+> > +static void __devinit quirk_via_irqpic(struct pci_dev *dev)
+> >  {
+> > -	if(pdev->devfn == 0) {
+> > -		printk(KERN_INFO "PCI: Via IRQ fixup\n");
+> > -		via_interrupt_line_quirk = 1;
+> > +	u8 irq, new_irq = dev->irq & 0xf;
+> > +
+> > +	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+> > +	if (new_irq != irq) {
+> > +		printk(KERN_INFO "PCI: Via IRQ fixup for %s, from %d to %d\n",
+> > +			pci_name(dev), irq, new_irq);
+> > +		udelay(15);
+> > +		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+> >  	}
+> >  }
+> > -DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_ANY_ID,                     quirk_via_bridge );
+> > +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C586_2, quirk_via_irqpic);
+> > +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_5, quirk_via_irqpic);
+> > +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_6, quirk_via_irqpic);
+> > +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8233_5,   quirk_via_irqpic);
+> > +DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8233_7,   quirk_via_irqpic);
+> 
+> This looks like it'll only affect the PCI device associated with the 
+> listed south bridges, which might break systems which relied on the per 
+> device setting. Your 'debug' patch actually made sense to me, that is, 
+> moving the PCI_INTERRUPT_LINE fixup at gsi register.
 
-upon that distant sail, were gloomily thoughtful.  Not for long.
-breast, could only falter: Why, why did you kill him?
-the medical skill of Bridgetown was summoned to their aid.  Peter
-and hanged, he will magnify himself and at the same time gratify 
-was no ship to which they could retreat, and here they must preva
-He waved away the men who would have interfered, and the blades
-not paid, even if when they press him Nuttall does not confess th
-news of it reached Tortuga and the buccaneers who awaited his
-Mine, mine at last, and in spite of all! he cried exultantly,
-destination, and but that ye detained me I'd have been on my way
+Yes, that's what I meant by the above probably not being sufficient.
 
-Have a good day.
-------=_NextPart_000_0008_01C52882.42380A45
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+The main thing the debug patch did was to move the write to after
+the IOAPIC programming.  (And I think it added back the mysterious
+udelay().)  My point is that the write could just as easily be done
+in a pci_enable fixup, because that also happens after the IOAPIC
+update.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2600.0000" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D4></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D4>Hello, </FONT><A=20
-href=3D"http://www.veni.ip.com.phenomenallyell.com/"><FONT =
-face=3DArial size=3D4>VISlT Our Great P.harmByMail=20
-Shop</FONT></A><FONT face=3DArial size=3D4> and =
-SAVE 75%</FONT></FONT></DIV>
-<DIV><FONT face=3DArial size=3D4>
-<TABLE style=3D"FONT-SIZE: large; FONT-FAMILY: Arial, Helvetica, =
-sans-serif"=20
-cellSpacing=3D0 cellPadding=3D0 border=3D0>
-  <TBODY>
-  <TR vAlign=3Dbottom>
-    <TD rowSpan=3D2>Vl</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>RA&nbsp;VA</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>UM&nbsp;AM</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>EN&nbsp;Cl</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>S</TD>
-    <TD rowSpan=3D2>,&nbsp;man</TD>
-    <TD></TD>
-  <TR>
-    <TD>AG</TD>
-    <TD>Ll</TD>
-    <TD>Bl</TD>
-    <TD>ALl</TD>
-    <TD>y&nbsp;Other.</TD></TR></TBODY></TABLE></FONT></DIV>
-<DIV><FONT face=3DArial size=3D3></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D3>Have a good day.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D3>P.S. <EM>You will be pIeasantIy =
-surprised with our =
-PRlCES </EM>;-)</FONT></DIV></BODY></HTML>
+The quirk would have to be something like this:
 
-------=_NextPart_000_0008_01C52882.42380A45--
+	static void __devinit quirk_via_irq(struct pci_dev *dev)
+	{
+		if  (!via_interrupt_line_quirk)
+			return;
+
+		/* update PCI_INTERRUPT_LINE */
+		...
+	}
+	DECLARE_PCI_FIXUP_ENABLE(PCI_ANY_ID, PCI_ANY_ID, quirk_via_irq);
+
+with a PCI_FIXUP_HEADER quirk that sets via_interrupt_line_quirk when
+we find a Via bridge.
+
+But I'm uneasy even about this -- what if there are multiple bridges,
+with only one of them being a Via?  Why would we want to apply this
+quirk to the devices under the non-Via bridges?  Wouldn't it be better
+to search up the hierarchy of each device, looking for a Via bridge,
+and apply the quirk only if we find one?
 
 
 
