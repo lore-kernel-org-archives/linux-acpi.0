@@ -1,45 +1,58 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: sbs-linux acpi-ec-nospinlock patch for 2.6.11
-Date: Sun, 06 Mar 2005 13:32:15 -0500
-Message-ID: <422B4CAF.9070401@bartol.udel.edu>
-References: <422AC893.7070304@technik-emden.de>
+From: mhf@berlios.de
+Subject: Re: Cause of Suspend2 resume failures on Toshiba  
+	laptops
+Date: Sun, 06 Mar 2005 22:28:02 +0100
+Message-ID: <422B75E2.nailMW11WULN@berlios.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <422AC893.7070304-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+List-Unsubscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
+	<mailto:suspend2-devel-request@lists.suspend2.net?subject=unsubscribe>
+List-Archive: <http://lists.suspend2.net/lurker/list/suspend2-devel.html>
+List-Post: <mailto:suspend2-devel@lists.suspend2.net>
+List-Help: <mailto:suspend2-devel-request@lists.suspend2.net?subject=help>
+List-Subscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
+	<mailto:suspend2-devel-request@lists.suspend2.net?subject=subscribe>
+Sender: suspend2-devel-bounces@lists.suspend2.net
+Errors-To: suspend2-devel-bounces@lists.suspend2.net
+To: swsusp-devel@lnx.ro
+Cc: acpi-devel@lists.sourceforge.net, suspend2-devel@lists.suspend2.net
 List-Id: linux-acpi@vger.kernel.org
 
-Hendrik J=FCrgens wrote:
-> Hi!
->=20
-> is the acpi-ec-nospinlock patch for the new 2.6.11 anywhere on the net?
-> the patch for the 2.6.10 does not work for 2.6.11 =3D/
->=20
-> Bye
-> Hendrik
->=20
+On Sunday 06 March 2005 18:34, Dumitru Ciobarcianu wrote:
+> =C3=8En data de Du, 06-03-2005 la 17:46 +0100, mhf@berlios.de a=20
+scris:
+> > I am afraid the only effect of the patch on my Toshiba
+> > L2 is that the RTC stops working, thus the rtc.ko
+> > module can not be inserted (no such device).
+>
+> Please revert the first patch and use the second and the
+> 3rd. toshiba-acpi-hack-2.diff and
+> toshiba-acpi-hack-3.diff. (if you already did that i'll
+> just shut up and sit in a corner :)
 
-I'll be fixing this in the latest release of the SBS stuff -- sometime=20
-over the next few days.
+With 2.6.11 and swsusp-2.1.8:
 
-cheers,
+I have tried a patch Bernard sent me and which improves
+the situation considerably. I am now able to resume in
+my test setup which is root on tempfs linked to suspended=20
+reiser partition. However running of the same reiser=20
+partition directly (the normal way) does hang after=20
+copying kernel back, but now _without_ the GPE message.=20
+Suppose it is a driver issue.  I'll figure it out and=20
+report back=20
 
-Rich
+Am optimistic that the GPE issue is actually fixed :-)
 
+The RTC problem (in the test setup) was related to a messed
+up/unhandled udev installation and was _not_  due to the=20
+first version of the patch. RTC OK with devfs and after
+cleanup of dev directory. Got to work on testing with
+udev...
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+OT: does 2.6 toshiba ACPI driver still require a patch to=20
+work with toshset-1.66 (I had also to patch 2.4.29 so it
+looks like it)
+
+	Regards
+	Michael
