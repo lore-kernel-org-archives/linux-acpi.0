@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Never in C3
-Date: Mon, 14 Jun 2004 16:33:12 +0200
+From: Malte Gell <malte.gell-Mmb7MZpHnFY@public.gmane.org>
+Subject: proper enabling of AMD K7 power saving
+Date: Mon, 14 Jun 2004 23:11:53 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040614143312.GA16952@hell.org.pl>
-References: <16589.41686.480893.225338@aber.ac.uk>
+Message-ID: <200406142311.54120.malte.gell@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <16589.41686.480893.225338-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Fred Labrosse:
-> I did read at some point that this was because of hotplug.  I thus stopped
-> hotplug and, at that time, I did see my processor in C3 state.  Hoever,
-> since then, I've never seen that again, and hotplug is not running.
+Hi,
 
-hotplug itself doesn't do any harm, though USB does. Possibly depending on
-your host controller, you can't have anything plugged in and you might have
-to reload the module (under 2.4) to have C3 working.
-Best regards,
+i have an AMD Duron 750 desktop computer with Via KT133a chipset and to 
+get some noticeable temperature decrease I need to invoke a command 
+from the Athlon Powersaving Howto for this chipset
+(http://www.tldp.org/HOWTO/Athlon-Powersaving-HOWTO/
+approaches.html#commandline )
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Is it right that it is the fault of the mainboard manufacturer if one 
+has to invoke such a command to get C2-level for power saving?
+
+Will Linux-ACPI one day address this problem so a user doesn't need to 
+invoke something like "setpci -v -H1 -s 0:0.0 52=$(printf %x $((0x
+$(setpci -H1 -s 0:0.0 52) | 0x80)))" to enable proper power saving?
+
+My fear is just one day I buy a new mainboard and there's no appropriate 
+setpci-command on the Powersaving Howto and Linux-ACPI doesn't enable 
+C2-powersaving if the mainboard doesn't do it first... 
+
+Why the f*** do mainboard makers not offer a BIOS switch to enable this? 
+Besides the lack of out-of-the-box C2-level ACPI just runs fine. I 
+guess if new generation mainboards (KT400 and up) would better handle 
+K7 power saving we wouldn't need the Powersaving Howto, right?
+
+regards
+Malte
+
+(SuSE 9.0,Linux 2.4.21+ACPI 20030619 on Elitegroup K7VZA Rev3.0 + AMD 
+Duron 750 (old spitfire core))
+
 
 
 -------------------------------------------------------
-This SF.Net email is sponsored by the new InstallShield X.
->From Windows to Linux, servers to mobile, InstallShield X is the
-one installation-authoring solution that does it all. Learn more and
-evaluate today! http://www.installshield.com/Dev2Dev/0504
+This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
+Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
+Conference, June 28 - July 1 at the Moscone Center in San Francisco, CA
+REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code NWMGYKND
