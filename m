@@ -1,14 +1,16 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: sleep states - maybe a dumb question...
-Date: Sun, 28 Mar 2004 15:31:51 +0200
+From: "Dax Kelson" <dax-tjn3EnM4d99Wk0Htik3J/w@public.gmane.org>
+Subject: RE: ACPI battery issue - Dell Inspiron 4150 - 2.6.1-rc1-mm2
+Date: Mon, 29 Mar 2004 16:46:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040328133150.GC1453@openzaurus.ucw.cz>
-References: <40642CDA.6070007@lorenz.eu.org>
+Message-ID: <044001c415a4$f2224ad0$d100000a@sbs2003.local>
+References: <3ACA40606221794F80A5670F0AF15F8401720C78@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40642CDA.6070007-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
+Content-Class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C78-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,40 +19,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Martin Lorenz <martin-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Administrator-fARf8FLM0JdLN7wammbJVlpr/1R2p/CL@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Mon, 2004-01-05 at 18:03, Yu, Luming wrote:
+> >Subject: [ACPI] ACPI battery issue - Dell Inspiron 4150 - 2.6.1-rc1-mm2
+> >
+> >Found at boot: 
+> >ACPI: Battery Slot [BAT0] (battery present)
+> >ACPI: Battery Slot [BAT1] (battery present)
+> >But no run-time information:
+> 
+> Some DELL battery issues in recent kernel are solved by
+> patch filed at http://bugzilla.kernel.org/show_bug.cgi?id=1766 .
+> 
+> Is it worthy to have it a try?
 
-> maybe this is a very dumb question, but I did not find an answer in 
-> the docs. (or I was not looking at the right place)
-> 
-> I see two different sleep-state capabilities on my laptop (run by a 
-> transmeta cursoe CPU) running 2.6.4 vanilla kernel and a debian 
-> unstable system.
-> 
-> # cat /proc/acpi/sleep
-> S0 S3 S4 S5
-> 
-> # cat /sys/power/state
-> standby mem disk
-> 
-> as I understand 'standby' is synonymous to 'S1', which is not showing 
-> up in the /proc version...
-> 
-> when issuing echo -n standby > /sys/power/state the system acts as if 
-> it would go to standby (switch to console, some output saying so, 
-> etc.) but resumes immediately.
-> 
-> what does that mean?
-> does my laptop lack S1/standby capability?
+Seems to work ... is it normal to have the "unknown" values below when
+plugged in?
 
-Bug in Patricks code. It should not announce standby when
-no S1 is available. Oh and it indeed is very igly to have
-2 interfaces for same thing; hopefully that will get fixed, too.
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+$ cat /proc/acpi/battery/BAT0/state
+present:                 yes
+capacity state:          ok
+charging state:          unknown
+present rate:            unknown
+remaining capacity:      66000 mWh
+present voltage:         16501 mV
+
+$ cat /proc/acpi/battery/BAT1/info
+present:                 yes
+design capacity:         65120 mWh
+last full capacity:      54980 mWh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 3000 mWh
+design capacity low:     1000 mWh
+capacity granularity 1:  200 mWh
+capacity granularity 2:  200 mWh
+model number:            LIP8120DL
+serial number:           5122
+battery type:            LION
+OEM info:                Sony C
+
+When unplugged:
+
+$ cat /proc/acpi/battery/BAT0/state
+present:                 yes
+capacity state:          ok
+charging state:          discharging
+present rate:            2743 mW
+remaining capacity:      52340 mWh
+present voltage:         16526 mV
+
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+
 
 
 
