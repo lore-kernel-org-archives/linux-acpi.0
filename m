@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
-Date: Fri, 7 Feb 2003 18:46:10 +0100
+From: Chmouel Boudjnah <chmouel-FOUw8OHuoQdBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: driver 8139too prevents swsusp.
+Date: Sat, 08 Feb 2003 21:03:04 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030207174609.GA129@elf.ucw.cz>
-References: <20030206153757.GB19350@atrey.karlin.mff.cuni.cz> <20030206165340.D7D361480A@o-o.yi.org>
+Message-ID: <m2isvur153.fsf@bukitingi.mandrakesoft.com>
+References: <20030208091526.GA20891@lps.ens.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030206165340.D7D361480A-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +16,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lyle Seaman <lws-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
-Cc: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Éric Brunet <ebrunet=l5PIGlIYzrxGWvitb5QawA@public.gmane.org> writes:
 
-> > No, no. It has to be exactly the same kernel, otherwise you get a nice
-> > crash (if you are lucky) and ugly data corruption (when you are not);
-> > there's check to prevent that and panic, however.
-> 
-> but why does this happen?  is the kernel text not being replaced?
+> Indeed, I have a kernel thread called [eth0] in the ps output. I cannot
+> kill this process, but if I do ``ifconfig eth0 down'', the process
+> diseapear and the swsusp works better (see below). So it seems that
+> swsusp cannot put this [eth0] process in the refrigerator.
 
-Kernel text is not replaced, and we rely on kernel being same size as
-before.
+why dont you patch the script to make a ifconfig eth0 down and
+ifconfig eth0 up on wakeup (or whatever like restart network on your
+distriution) ?
 
-								Pavel
+Cheers.
+
+PS: questions about swsusp are on http://lister.fornax.hu/mailman/listinfo/swsusp
+PS2: there is some patch on 8139too.c in the latest swsusp you may
+     want to make sure you have latest.
 -- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
+http://www.chmouel.com/
+
 
 
 -------------------------------------------------------
