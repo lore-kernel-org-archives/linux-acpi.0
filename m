@@ -1,16 +1,14 @@
-From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Ipw2100-devel] [ipw2200]Confirmation of power management problem
-Date: Mon, 11 Oct 2004 02:38:44 -0400
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: smartbattery support
+Date: Mon, 11 Oct 2004 11:49:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200410110238.44421.shawn.starr@rogers.com>
-References: <200410101932.12431.shawn.starr@rogers.com> <200410102023.50379.shawn.starr@rogers.com> <2894.194.77.192.95.1097474839.squirrel@www.mocka.de>
+Message-ID: <20041011094935.GA23992@poupinou.org>
+References: <16A54BF5D6E14E4D916CE26C9AD30575457124@pdsmsx402.ccr.corp.intel.com> <4166EC29.8070006@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <2894.194.77.192.95.1097474839.squirrel-Iw/ES6IqVGAuZeo0DBJMuQ@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <4166EC29.8070006-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,50 +17,94 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Interesting, I believe the IBM ACPI has been merged into ACPI proper as latest 
--mm shows ACPI ThinkPad IBM source files.
+On Fri, Oct 08, 2004 at 08:36:09PM +0100, Pedro Venda wrote:
+> Li, Shaohua wrote:
+> >>On Thu, Oct 07, 2004 at 09:43:20PM +0800, Li, Shaohua wrote:
+> >>
+> >>>You needed an EC-based SMBus host driver (IIRC, some Acer latops
+> >
+> >defined
+> >
+> >>>such host in DSDT). ACPI spec has the definition for EC-based SMBus
+> >
+> >host
+> >
+> >>>interface. Second, a sensor driver for reading smart battery
+> >
+> >information
+> >
+> >>>is required.
+> >>>
+> >>
+> >>Some times ago, for a toshiba laptop, I began an i2c-acpi-ec driver:
+> >>ftp://ftp.poupinou.org/acpi/i2c-acpi-ec.c
+> >>
+> >>It's a little bit buggy though but this allowed for me to access the
+> >>sensors
+> >>behind the EC.  The main trouble was that there were not actually a
+> >>smbus declared in the ACPI namespace and it was needed to hardcode
+> >
+> >where
+> >
+> >>is the base adress in the EC space.
+> >>You may try to start with that maybe, and I guess a real
+> >
+> >acpi_ec_smb_probe
+> >
+> >>function must be written.
+> >
+> >Some Acer laptops define the SMBus host as below:
+> >  		Device (SMBC)
+> >                    {
+> >                        Name (_HID, "ACPI0001")
+> >                        Name (_EC, 0x1820)
+> >                        Device (SBS0)
+> >                        {
+> >                            Name (_HID, "ACPI0002")
+> >                            Name (_SBS, 0x02)
+> >                        }
+> >                    }
+> >The base address and the notification number are defined on the _EC
+> >method.
+> >Please check if you system has such definition.
+> 
+> my acer travelmate 4001WLmi looks like this:
+> 
+> Device (SMBC)
+>                     {
+>                         Name (_HID, "ACPI0001")
+>                         Name (_EC, 0x1820)
+>                         Device (SBS0)
+>                         {
+>                             Name (_HID, "ACPI0002")
+>                             Name (_SBS, 0x02)
+>                         }
+>                     }
+> 
 
-On October 11, 2004 02:07, Joris Mocka wrote:
-> Hi Shawn,
->
-> Shawn Starr sagte:
-> > The problem is, there is power going to the adapter even if I don't
-> > load the  driver.
->
-> ...before I load the module on my T42 there is no power on wlan, if I
-> indicate it on the wlan-led!
->
-> > I can confirm this because when you shut it off, there is a distinct
-> > buzzing  coming from the ipw2200 device (right underneath the Sympatics
-> > touchpad).
->
-> ...I will try to hear for it in the evening!
->
-> > If I use Linux to shut down the system w/ ACPI, then I have to
-> > physically cut  power by removing battery then it is totally off.
->
-> ...I did asking for the same couple of days ago but nobaody had any hints
-> for me. Unloading the driver didn't work, led was still on an powering off
-> didn't work. There was a hint to switch off apic:
-> http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/2004-September/0
->19992.html but it didn't worked for me. I have to test it without loading
-> the ipw2200 module, maybe then it will work!? But for powering off you just
-> have to press the power button maybe 30 to 50 seconds. Then it will power
-> off without removing battery.
->
-> > This does not happen when booted into XP...something is fishy, I do
-> > know ACPI  *IS* broken with the T42 as this was confirmed @ OLS this
-> > year.
->
-> ...but it's working much better than apm. Using apm will freeze the T42
-> totally. The only thing that didn't work is power off, rest is fine:
-> Buttons, Sleep in state 3, powering off hd's and so on.
-> Regards
-> Joris
+This mean that you have a SMB-HC with adress 0x18 and query 0x20.
+You may try i2c-acpi-ec, but you have to change:
+#define SMBUS_ADDRESS_TO_HAVE 0x60
+to 
+#define SMBUS_ADDRESS_TO_HAVE 0x18
+Also, you need to get at least i2c-core in your kernel for this to work.
+
+Note that this code have 2 years... and if there is more than one EC in
+your system, this may not work.  In that case, could you please send me
+a dump of the acpi tables?
+btw, there is two batteries, because 'Name (_SBS, 0x02)'.
+
+Cheers,
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
