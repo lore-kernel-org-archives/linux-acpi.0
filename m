@@ -1,15 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [PATCH] add "pnpacpi=off", print info during discovery
-Date: Fri, 14 Jan 2005 11:28:26 -0700
-Message-ID: <1105727306.7034.18.camel@eeyore>
-References: <1105489541.31942.81.camel@eeyore>
-	 <1105491763.29370.5.camel@sli10-desk.sh.intel.com>
-	 <1105632437.3818.5.camel@eeyore>  <20050113181333.GS6069@neo.rr.com>
-	 <1105666525.22995.9.camel@sli10-desk.sh.intel.com>
+From: =?iso-8859-1?q?Jo=E3o_Cardoso?= <jcard-A1Gx7Te15Zc@public.gmane.org>
+Subject: Re: ASUS M3N standby resume regression in 2.6.x -- works under 2.4.x
+Date: Fri, 14 Jan 2005 19:09:33 +0000
+Message-ID: <200501141909.34406.jcard@fe.up.pt>
+References: <200501111652.28556.jcard@fe.up.pt> <20050112224425.GB2139@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-43Ndiy4K5YNBK+xgUni4"
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_ujB6B+rHiJI7aAu"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1105666525.22995.9.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <20050112224425.GB2139-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,626 +17,206 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---=-43Ndiy4K5YNBK+xgUni4
-Content-Type: text/plain
+--Boundary-00=_ujB6B+rHiJI7aAu
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Fri, 2005-01-14 at 09:35 +0800, Li Shaohua wrote:
-> On Fri, 2005-01-14 at 02:13, Adam Belay wrote: 
-> > Could you send me a copy of your patch.  I'm curious.
-> We have a case (PNPACPI breaks ES7000 system). We want blacklist PNPACPI
-> in the arch. My patch doesn't do blacklist now, so I didn't send it out.
+On Wednesday 12 January 2005 22:44, Pavel Machek wrote:
+> Hi!
+>
+> > In my ASUS M3N laptop, Centrino based, standby (S1) works fine with
+> > linux 2.4.x, x>~24, but fails for all 2.6.x series.
+> >
+> > In runlevel 1, even with all modules unloaded (but the filesystem
+> > modules and usbcore, I can't remove it), the system enters standby
+> > upon executing
+> >    echo 1 > /proc/acpi/sleep
+> > but after pressing the power button to resume the PC hangs.
+> > Standby works fine under linux-2.4.x, even under runlevel 5.
+...
+> > What else can I do to help you helping me? :)
+>
+> Obviously try again without usb ever loaded. Recompile kernel without
+> USB support if you have to.
+> Does keyboard work? Try to find out where it hangs. Try noapic. Did
+> you try with 2.6.11-rc1?
+> 								Pavel
 
-Yeah, I have gotten several reports of problems that go away
-when turning off PNPACPI.  They came to me because they also
-go away when using "pci=routeirq".
+OK, I have compiled 2.6.11-rc1 without USB support.
 
-For example, I have a report of the keyboard on an IBM T41
-that doesn't work unless you either use "pci=routeirq" or
-set CONFIG_PNPACPI=n.
+dmesg output is appended. There are some acpi related errors/warnings. 
 
-In the attached dmesg logs, I can't see anything different
-related to keyboard.  But it is interesting that PNPACPI
-makes parport interrupt-driven (IRQ 7) rather than polling,
-and somehow "pci=routeirq" makes a difference.
+But now, the system don't enters S1.
+Upon "echo 1 > /proc/acpi/sleep" in runlevel 1, the following message is 
+printed: (the ... mean I'm ommiting some figures I don't think are 
+important )
 
-
---=-43Ndiy4K5YNBK+xgUni4
-Content-Disposition: attachment; filename=dmesg
-Content-Type: text/plain; name=dmesg; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-Linux version 2.6.10 (js@ares) (gcc version 3.3.4 (Debian 1:3.3.4-13)) #1 Sat Dec 25 14:40:03 CET 2004
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
- BIOS-e820: 000000000009f000 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000d2000 - 00000000000d4000 (reserved)
- BIOS-e820: 00000000000dc000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000001ff60000 (usable)
- BIOS-e820: 000000001ff60000 - 000000001ff78000 (ACPI data)
- BIOS-e820: 000000001ff78000 - 000000001ff7a000 (ACPI NVS)
- BIOS-e820: 000000001ff80000 - 0000000020000000 (reserved)
- BIOS-e820: 00000000ff800000 - 0000000100000000 (reserved)
-511MB LOWMEM available.
-DMI present.
-Built 1 zonelists
-Kernel command line: BOOT_IMAGE=Linux(2.6.10) ro root=303
-Initializing CPU#0
-PID hash table entries: 2048 (order: 11, 32768 bytes)
-Detected 1694.794 MHz processor.
-Using tsc for high-res timesource
-Console: colour VGA+ 80x25
-Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
-Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
-Memory: 514516k/523648k available (2414k kernel code, 8648k reserved, 997k data, 136k init, 0k highmem)
-Checking if this processor honours the WP bit even in supervisor mode... Ok.
-Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
-CPU: L1 I cache: 32K, L1 D cache: 32K
-CPU: L2 cache: 1024K
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU: Intel(R) Pentium(R) M processor 1700MHz stepping 05
-Enabling fast FPU save and restore... done.
-Enabling unmasked SIMD FPU exception support... done.
-Checking 'hlt' instruction... OK.
- tbxface-0118 [02] acpi_load_tables      : ACPI Tables successfully acquired
-Parsing all Control Methods:........................................................................................................................................................................................................................................................................................................................................................................................................
-Table [DSDT](id F005) - 1317 Objects with 63 Devices 392 Methods 20 Regions
-Parsing all Control Methods:.
-Table [SSDT](id F003) - 1 Objects with 0 Devices 1 Methods 0 Regions
-ACPI Namespace successfully loaded at root c048e560
-ACPI: setting ELCR to 0200 (from 0800)
-evxfevnt-0094 [03] acpi_enable           : Transition to ACPI mode successful
-NET: Registered protocol family 16
-PCI: PCI BIOS revision 2.10 entry at 0xfd8d6, last bus=8
-PCI: Using configuration type 1
-mtrr: v2.0 (20020519)
-ACPI: Subsystem revision 20041105
-evgpeblk-0979 [06] ev_create_gpe_block   : GPE 00 to 1F [_GPE] 4 regs on int 0x9
-evgpeblk-0987 [06] ev_create_gpe_block   : Found 8 Wake, Enabled 0 Runtime GPEs in this block
-ACPI: Found ECDT
-Completing Region/Field/Buffer/Package initialization:.......................................................................................................................................................................................................................................................
-Initialized 19/20 Regions 123/123 Fields 67/67 Buffers 38/46 Packages (1327 nodes)
-Executing all Device _STA and_INI methods:..............................................................
-62 Devices found containing: 62 _STA, 9 _INI methods
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
-PCI: Transparent bridge - 0000:00:1e.0
-ACPI: Embedded Controller [EC] (gpe 28)
-ACPI: Power Resource [PUBS] (on)
-Linux Plug and Play Support v0.97 (c) Adam Belay
-pnp: PnP ACPI init
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff4ea68]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff54768]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff59ce8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5c628]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5cfe8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5dda8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5dc28]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5d868]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [c14e07e8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [c14e2f28]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [c14e2428]
-pnp: PnP ACPI: found 13 devices
-SCSI subsystem initialized
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
-PCI: Using ACPI for IRQ routing
-** PCI interrupts are no longer routed automatically.  If this
-** causes a device to stop working, it is probably because the
-** driver failed to call pci_enable_device().  As a temporary
-** workaround, the "pci=routeirq" argument restores the old
-** behavior.  If this argument makes the device work again,
-** please email the output of "lspci" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
-** so I can fix the driver.
-Simple Boot Flag at 0x35 set to 0x1
-NTFS driver 2.1.22 [Flags: R/W].
-Initializing Cryptographic API
-ACPI: AC Adapter [AC] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU] (supports C1 C2 C3)
-ACPI: Processor [CPU] (supports 8 throttling states)
-ACPI: Thermal Zone [THM0] (55 C)
-ibm_acpi: IBM ThinkPad ACPI Extras v0.8
-ibm_acpi: http://ibm-acpi.sf.net/
-acpi_bus-0081 [05] acpi_bus_get_device   : Error getting context for object [dff59ce8]
-Real Time Clock Driver v1.12
-Linux agpgart interface v0.100 (c) Dave Jones
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-PCI: setting IRQ 11 as level-triggered
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
-[drm] Initialized radeon 1.11.0 20020828 on minor 0: ATI Technologies Inc Radeon R250 Lf [Radeon Mobility 9000 M9]
-serio: i8042 AUX port at 0x60,0x64 irq 12
-serio: i8042 KBD port at 0x60,0x64 irq 1
-Serial: 8250/16550 driver $Revision: 1.90 $ 8 ports, IRQ sharing disabled
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 11 (level, low) -> IRQ 11
-pnp: Device 00:09 activated.
-ttyS0 at I/O 0x3f8 (irq = 4) is a NS16550A
-io scheduler noop registered
-io scheduler anticipatory registered
-io scheduler deadline registered
-io scheduler cfq registered
-Intel(R) PRO/1000 Network Driver - version 5.5.4-k2-NAPI
-Copyright (c) 1999-2004 Intel Corporation.
-ACPI: PCI interrupt 0000:02:01.0[A] -> GSI 11 (level, low) -> IRQ 11
-e1000: eth0: e1000_probe: Intel(R) PRO/1000 Network Connection
-Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
-ICH4: IDE controller at PCI slot 0000:00:1f.1
-PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 11 (level, low) -> IRQ 11
-ICH4: chipset revision 1
-ICH4: not 100%% native mode: will probe irqs later
-    ide0: BM-DMA at 0x1860-0x1867, BIOS settings: hda:DMA, hdb:pio
-    ide1: BM-DMA at 0x1868-0x186f, BIOS settings: hdc:DMA, hdd:pio
-hda: HTS726060M9AT00, ATA DISK drive
-elevator: using anticipatory as default io scheduler
-ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-hdc: TOSHIBA DVD-ROM SD-R9012, ATAPI CD/DVD-ROM drive
-ide1 at 0x170-0x177,0x376 on irq 15
-hda: max request size: 128KiB
-hda: Host Protected Area detected.
-^Icurrent capacity is 110648690 sectors (56652 MB)
-^Inative  capacity is 117210240 sectors (60011 MB)
-hda: Host Protected Area disabled.
-hda: 117210240 sectors (60011 MB) w/7877KiB Cache, CHS=65535/16/63, UDMA(100)
- hda: hda1 hda2 hda3 hda4
-hdc: ATAPI 24X DVD-ROM CD-R/RW drive, 2048kB Cache, UDMA(33)
-Uniform CD-ROM driver Revision: 3.20
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 11 (level, low) -> IRQ 11
-ehci_hcd 0000:00:1d.7: Intel Corp. 82801DB/DBM (ICH4/ICH4-M) USB 2.0 EHCI Controller
-ehci_hcd 0000:00:1d.7: irq 11, pci mem 0xc0000000
-ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 1
-ehci_hcd 0000:00:1d.7: USB 2.0 initialized, EHCI 1.00, driver 26 Oct 2004
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 6 ports detected
-USB Universal Host Controller Interface driver v2.2
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.0: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1
-uhci_hcd 0000:00:1d.0: irq 11, io base 0x1800
-uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 2
-hub 2-0:1.0: USB hub found
-hub 2-0:1.0: 2 ports detected
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.1: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2
-uhci_hcd 0000:00:1d.1: irq 11, io base 0x1820
-uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 3
-hub 3-0:1.0: USB hub found
-hub 3-0:1.0: 2 ports detected
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.2: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3
-uhci_hcd 0000:00:1d.2: irq 11, io base 0x1840
-uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 4
-hub 4-0:1.0: USB hub found
-hub 4-0:1.0: 2 ports detected
-Initializing USB Mass Storage driver...
-usbcore: registered new driver usb-storage
-USB Mass Storage support registered.
-usbcore: registered new driver hiddev
-usbcore: registered new driver usbhid
-drivers/usb/input/hid-core.c: v2.0:USB HID core driver
-mice: PS/2 mouse device common for all mice
-input: AT Translated Set 2 keyboard on isa0060/serio0
-Synaptics Touchpad, model: 1
- Firmware: 5.9
- Sensor: 44
- new absolute packet format
- Touchpad has extended capability bits
- -> multifinger detection
- -> palm detection
- -> pass-through port
-input: SynPS/2 Synaptics TouchPad on isa0060/serio1
-serio: Synaptics pass-through port at isa0060/serio1/input0
-input: PS/2 Generic Mouse on synaptics-pt/serio0
-Advanced Linux Sound Architecture Driver Version 1.0.6 (Sun Aug 15 07:17:53 2004 UTC).
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 11 (level, low) -> IRQ 11
-intel8x0_measure_ac97_clock: measured 49452 usecs
-intel8x0: clocking to 48000
-ALSA device list:
-  #0: Intel 82801DB-ICH4 with AD1981B at 0xc0000c00, irq 11
-NET: Registered protocol family 2
-IP: routing cache hash table of 4096 buckets, 32Kbytes
-TCP: Hash tables configured (established 32768 bind 65536)
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-ACPI wakeup devices:
- LID SLPB PCI0 UART PCI1 USB0 USB1 USB2 AC9M
-ACPI: (supports S0 S3 S4 S5)
-EXT3-fs: mounted filesystem with ordered data mode.
-VFS: Mounted root (ext3 filesystem) readonly.
-Freeing unused kernel memory: 136k freed
-kjournald starting.  Commit interval 5 seconds
-Adding 498952k swap on /dev/hda2.  Priority:-1 extents:1
-EXT3 FS on hda3, internal journal
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS on hda4, internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
-parport_pc: Ignoring new-style parameters in presence of obsolete ones
-parport: PnPBIOS parport detected.
-parport0: PC-style at 0x3bc, irq 7 [PCSPP(,...)]
-lp0: using parport0 (interrupt-driven).
-c013ae51
+Stopping tasks: ===|
+------[ cut here]----
+Kernel bug at drivers/pci/pci.c:330!
+Invalid operand: 0000 [#1]
 PREEMPT
-Modules linked in: parport_pc lp parport video
-CPU:    0
-EIP:    0060:[<c013ae51>]    Not tainted VLI
-EFLAGS: 00010012   (2.6.10)
-EIP is at free_block+0x41/0xd0
-eax: ffffffff   ebx: df7a57a0   ecx: df0cc000   edx: c14df994
-esi: c14df980   edi: 00000000   ebp: dff39f04   esp: dff39eec
-ds: 007b   es: 007b   ss: 0068
-Process events/0 (pid: 3, threadinfo=dff38000 task=dff0b020)
-Stack: c14df99c 00000005 c14dc110 c14dc110 c14dc100 00000005 dff39f1c c013b484
-       c14df980 c14dfb9c c14df980 dff38000 dff39f44 c013b526 c14dfb9c dff38000
-       00000002 c14df9f0 00000292 c048b300 dff38000 c048b304 dff39fc8 c0125ddf
+Modules linked in: e100 mii ext3 jbd reiserfs
+CPU: 0
+EIP: 0060[<c01e5e78.>] Not tainted VLI
+...
+EIP is at pci_choose_state+0x38/0x60
+EFLAGS: 00010202 (2.6.11-rc1)
+...
 Call Trace:
- [<c010347a>] show_stack+0x7a/0x90
- [<c01035f9>] show_registers+0x149/0x1b0
- [<c01037ed>] die+0xdd/0x170
- [<c0112135>] do_page_fault+0x275/0x657
- [<c0103107>] error_code+0x2b/0x30
- [<c013b484>] drain_array_locked+0x64/0x90
- [<c013b526>] cache_reap+0x76/0x1b0
- [<c0125ddf>] worker_thread+0x19f/0x260
- [<c0129c79>] kthread+0x99/0xa0
- [<c01012c5>] kernel_thread_helper+0x5/0x10
-Code: 39 cf 7d 7e 8d 40 1c 89 45 e8 8b 45 f0 8b 15 10 b4 48 c0 8b 0c b8 8d 81 00 00 00 40 c1 e8 0c c1 e0 05 8b 5c 02 1c 8b 53 04 8b 03 <89> 50 04 89 02 8b 43 0c 31 d2 c7 03 00 01 10 00 c7 43 04 00 02
- <6>note: events/0[3] exited with preempt_count 1
-xfs: ignoring font path element /usr/lib/X11/fonts/CID/ (unreadable)
-xfs: ignoring font path element /usr/lib/X11/fonts/cyrillic/ (unreadable)
-xfs: ignoring font path element /var/lib/defoma/x-ttcidfont-conf.d/dirs/CID (unreadable)
-shutdown[1599]: shutting down for system halt
-Xprt_64: Xprint server pid=1495 done, exitcode=0.
+... e100_suspend+0x8b/0xe0
+... e100_suspend...
+...pci_device_suspend...
+...suspend_device...
+...device_suspend...
+...suspend_prepare...
+...enter_state...
+...acpi_suspend...
+...acpi_system_write_sleep
+...vfs_write...
+...sys_write...
+...syenter_past_esp
+Code:...
 
---=-43Ndiy4K5YNBK+xgUni4
-Content-Disposition: attachment; filename=dmesg.routeirq
-Content-Type: text/plain; name=dmesg.routeirq; charset=us-ascii
+At this point the keyboard is not dead (CAPS LOCK toogles the keyboard 
+led) but CTRL-ALT-DEL does not  reboot machine.
+
+After hardware-reboot, I removed the e100 and mii modules (now only the 
+ext3, jdb and reiserfs modules are loaded) and repeated the enter 
+standby.
+The system went to standby (power LED flashing, blank screen), and upon 
+pressing the power button again to resume from sleep, the LCD screen 
+turned on, showing the following:
+
+   Stopping tasks: ===|
+     hwsleep-0306 [78] acpi_enter_sleep_state: Entering sleep state [S1]
+
+So, there is obviously a problem with the e100 network driver. But the 
+system is locked, the keyboard does not works.
+
+S3 doesn't work either, but never worked, even in 2.4.xx
+
+And now, after the S3 test, at power up, my laptop starts, the fan works 
+for a couple of seconds, and the laptop shuts down itself -- without 
+even showing the initial bios messages!
+
+What is the next step? A new laptop? WinXP? (sorry, but I'm not exactly 
+happy)
+
+OK! Uffff! After resting for some 15 minutes the laptop rebooted again! 
+Obviously(?) while I was copying the screen messages, the CPU 
+overheated.
+
+Thanks,
+Joao
+
+
+--Boundary-00=_ujB6B+rHiJI7aAu
+Content-Type: text/plain;
+  charset="iso-8859-1";
+  name="2.6.11-rc1.dmesg"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="2.6.11-rc1.dmesg"
 
-Linux version 2.6.10 (js@ares) (gcc version 3.3.4 (Debian 1:3.3.4-13)) #1 Sat Dec 25 14:40:03 CET 2004
+Linux version 2.6.11-rc1 (root@flash) (gcc version 3.3.3 (SuSE Linux)) #2 Fri Jan 14 17:47:27 WET 2005
 BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
- BIOS-e820: 000000000009f000 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000d2000 - 00000000000d4000 (reserved)
- BIOS-e820: 00000000000dc000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000001ff60000 (usable)
- BIOS-e820: 000000001ff60000 - 000000001ff78000 (ACPI data)
- BIOS-e820: 000000001ff78000 - 000000001ff7a000 (ACPI NVS)
- BIOS-e820: 000000001ff80000 - 0000000020000000 (reserved)
- BIOS-e820: 00000000ff800000 - 0000000100000000 (reserved)
-511MB LOWMEM available.
-DMI present.
+ BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
+ BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000e0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000001f740000 (usable)
+ BIOS-e820: 000000001f740000 - 000000001f750000 (ACPI data)
+ BIOS-e820: 000000001f750000 - 000000001f800000 (ACPI NVS)
+503MB LOWMEM available.
+On node 0 totalpages: 128832
+  DMA zone: 4096 pages, LIFO batch:1
+  Normal zone: 124736 pages, LIFO batch:16
+  HighMem zone: 0 pages, LIFO batch:1
+DMI 2.3 present.
+ACPI: RSDP (v000 ACPIAM                                ) @ 0x000f4b70
+ACPI: RSDT (v001 A M I  OEMRSDT  0x05000314 MSFT 0x00000097) @ 0x1f740000
+ACPI: FADT (v002 A M I  OEMFACP  0x05000314 MSFT 0x00000097) @ 0x1f740200
+ACPI: OEMB (v001 A M I  OEMBIOS  0x05000314 MSFT 0x00000097) @ 0x1f750040
+ACPI: DSDT (v001  0ABBD 0ABBD001 0x00000001 MSFT 0x0100000d) @ 0x00000000
+ACPI: PM-Timer IO Port: 0xe408
 Built 1 zonelists
-Kernel command line: BOOT_IMAGE=Linux(2.6.10) ro root=303 pci=routeirq
+Kernel command line: root=/dev/hda9 vga=0x317 splash=silent resume=/dev/hda7 2
 Initializing CPU#0
 PID hash table entries: 2048 (order: 11, 32768 bytes)
-Detected 1694.825 MHz processor.
-Using tsc for high-res timesource
-Console: colour VGA+ 80x25
-Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
-Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
-Memory: 514516k/523648k available (2414k kernel code, 8648k reserved, 997k data, 136k init, 0k highmem)
+Detected 1600.534 MHz processor.
+Using pmtmr for high-res timesource
+Console: colour dummy device 80x25
+Dentry cache hash table entries: 65536 (order: 6, 262144 bytes)
+Inode-cache hash table entries: 32768 (order: 5, 131072 bytes)
+Memory: 505704k/515328k available (2261k kernel code, 9084k reserved, 675k data, 192k init, 0k highmem)
 Checking if this processor honours the WP bit even in supervisor mode... Ok.
+Calibrating delay loop... 3170.30 BogoMIPS (lpj=1585152)
+Security Framework v1.0.0 initialized
+SELinux:  Initializing.
+SELinux:  Starting in permissive mode
 Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
+CPU: After generic identify, caps: a7e9fbbf 00000000 00000000 00000000 00000180 00000000 00000000
+CPU: After vendor identify, caps: a7e9fbbf 00000000 00000000 00000000 00000180 00000000 00000000
 CPU: L1 I cache: 32K, L1 D cache: 32K
 CPU: L2 cache: 1024K
+CPU: After all inits, caps: a7e9fbbf 00000000 00000000 00000040 00000180 00000000 00000000
 Intel machine check architecture supported.
 Intel machine check reporting enabled on CPU#0.
-CPU: Intel(R) Pentium(R) M processor 1700MHz stepping 05
+CPU: Intel(R) Pentium(R) M processor 1600MHz stepping 05
 Enabling fast FPU save and restore... done.
 Enabling unmasked SIMD FPU exception support... done.
 Checking 'hlt' instruction... OK.
  tbxface-0118 [02] acpi_load_tables      : ACPI Tables successfully acquired
-Parsing all Control Methods:........................................................................................................................................................................................................................................................................................................................................................................................................
-Table [DSDT](id F005) - 1317 Objects with 63 Devices 392 Methods 20 Regions
-Parsing all Control Methods:.
-Table [SSDT](id F003) - 1 Objects with 0 Devices 1 Methods 0 Regions
-ACPI Namespace successfully loaded at root c048e560
-ACPI: setting ELCR to 0200 (from 0800)
+Parsing all Control Methods:............................................................................................................................................................................................................................................................................................................................................
+Table [DSDT](id F004) - 1064 Objects with 55 Devices 332 Methods 29 Regions
+ACPI Namespace successfully loaded at root c04467a0
+ACPI: setting ELCR to 0200 (from 0830)
 evxfevnt-0094 [03] acpi_enable           : Transition to ACPI mode successful
+checking if image is initramfs...it isn't (no cpio magic); looks like an initrd
+Freeing initrd memory: 1175k freed
 NET: Registered protocol family 16
-PCI: PCI BIOS revision 2.10 entry at 0xfd8d6, last bus=8
 PCI: Using configuration type 1
 mtrr: v2.0 (20020519)
-ACPI: Subsystem revision 20041105
+ACPI: Subsystem revision 20041210
 evgpeblk-0979 [06] ev_create_gpe_block   : GPE 00 to 1F [_GPE] 4 regs on int 0x9
-evgpeblk-0987 [06] ev_create_gpe_block   : Found 8 Wake, Enabled 0 Runtime GPEs in this block
-ACPI: Found ECDT
-Completing Region/Field/Buffer/Package initialization:.......................................................................................................................................................................................................................................................
-Initialized 19/20 Regions 123/123 Fields 67/67 Buffers 38/46 Packages (1327 nodes)
-Executing all Device _STA and_INI methods:..............................................................
-62 Devices found containing: 62 _STA, 9 _INI methods
+evgpeblk-0987 [06] ev_create_gpe_block   : Found 7 Wake, Enabled 2 Runtime GPEs in this block
+Completing Region/Field/Buffer/Package initialization:...................................................................................................................................
+Initialized 28/29 Regions 30/30 Fields 42/42 Buffers 31/31 Packages (1073 nodes)
+Executing all Device _STA and_INI methods:...........................................................
+59 Devices found containing: 59 _STA, 5 _INI methods
 ACPI: Interpreter enabled
 ACPI: Using PIC for interrupt routing
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 10 *11)
 ACPI: PCI Root Bridge [PCI0] (00:00)
 PCI: Probing PCI hardware (bus 00)
 PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
 PCI: Transparent bridge - 0000:00:1e.0
-ACPI: Embedded Controller [EC] (gpe 28)
-ACPI: Power Resource [PUBS] (on)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
+ACPI: Embedded Controller [EC0] (gpe 28)
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 *11 12)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 11 12) *0, disabled.
+ACPI: PCI Interrupt Link [LNKC] (IRQs *4 12)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *5 6)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 6 *11)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 7) *0, disabled.
+ACPI: PCI Interrupt Link [LNKG] (IRQs 4 7) *0, disabled.
+ACPI: PCI Interrupt Link [LNKH] (IRQs *4 6 12)
+ACPI: Power Resource [GFAN] (off)
 Linux Plug and Play Support v0.97 (c) Adam Belay
 pnp: PnP ACPI init
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff4ea68]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff54768]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff59ce8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5c628]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5cfe8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5dda8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5dc28]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [dff5d868]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [c14e07e8]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [c14e2f28]
-acpi_bus-0081 [06] acpi_bus_get_device   : Error getting context for object [c14e2428]
-pnp: PnP ACPI: found 13 devices
+exoparg2-0436 [73] ex_opcode_2A_1T_1R    : Index value (14) beyond end of buffer (14)
+ psparse-1138: *** Error: Method execution failed [\MCTH] (Node df601ba8), AE_AML_BUFFER_LIMIT
+ psparse-1138: *** Error: Method execution failed [\OSFL] (Node df601be8), AE_AML_BUFFER_LIMIT
+ psparse-1138: *** Error: Method execution failed [\_SB_.RMEM._CRS] (Node c145d668), AE_AML_BUFFER_LIMIT
+  uteval-0158: *** Error: Method execution failed [\_SB_.RMEM._CRS] (Node c145d668), AE_AML_BUFFER_LIMIT
+pnp: PnPACPI: METHOD_NAME__CRS failure for PNP0c01
+pnp: PnP ACPI: found 14 devices
 SCSI subsystem initialized
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
-PCI: Using ACPI for IRQ routing
-** Routing PCI interrupts for all devices because "pci=routeirq"
-** was specified.  If this was required to make a driver work,
-** please email the output of "lspci" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
-** so I can fix the driver.
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-PCI: setting IRQ 11 as level-triggered
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1f.3[B] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:02:00.0[A] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:02:00.1[B] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:02:01.0[A] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI interrupt 0000:02:02.0[A] -> GSI 11 (level, low) -> IRQ 11
-Simple Boot Flag at 0x35 set to 0x1
-NTFS driver 2.1.22 [Flags: R/W].
-Initializing Cryptographic API
-ACPI: AC Adapter [AC] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU] (supports C1 C2 C3)
-ACPI: Processor [CPU] (supports 8 throttling states)
-ACPI: Thermal Zone [THM0] (61 C)
-ibm_acpi: IBM ThinkPad ACPI Extras v0.8
-ibm_acpi: http://ibm-acpi.sf.net/
-acpi_bus-0081 [05] acpi_bus_get_device   : Error getting context for object [dff59ce8]
-Real Time Clock Driver v1.12
-Linux agpgart interface v0.100 (c) Dave Jones
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
-[drm] Initialized radeon 1.11.0 20020828 on minor 0: ATI Technologies Inc Radeon R250 Lf [Radeon Mobility 9000 M9]
-serio: i8042 AUX port at 0x60,0x64 irq 12
-serio: i8042 KBD port at 0x60,0x64 irq 1
-Serial: 8250/16550 driver $Revision: 1.90 $ 8 ports, IRQ sharing disabled
-ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 11 (level, low) -> IRQ 11
-pnp: Device 00:09 activated.
-ttyS0 at I/O 0x3f8 (irq = 4) is a NS16550A
-io scheduler noop registered
-io scheduler anticipatory registered
-io scheduler deadline registered
-io scheduler cfq registered
-Intel(R) PRO/1000 Network Driver - version 5.5.4-k2-NAPI
-Copyright (c) 1999-2004 Intel Corporation.
-ACPI: PCI interrupt 0000:02:01.0[A] -> GSI 11 (level, low) -> IRQ 11
-e1000: eth0: e1000_probe: Intel(R) PRO/1000 Network Connection
-Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
-ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
-ICH4: IDE controller at PCI slot 0000:00:1f.1
-PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 11 (level, low) -> IRQ 11
-ICH4: chipset revision 1
-ICH4: not 100%% native mode: will probe irqs later
-    ide0: BM-DMA at 0x1860-0x1867, BIOS settings: hda:DMA, hdb:pio
-    ide1: BM-DMA at 0x1868-0x186f, BIOS settings: hdc:DMA, hdd:pio
-hda: HTS726060M9AT00, ATA DISK drive
-elevator: using anticipatory as default io scheduler
-ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-hdc: TOSHIBA DVD-ROM SD-R9012, ATAPI CD/DVD-ROM drive
-ide1 at 0x170-0x177,0x376 on irq 15
-hda: max request size: 128KiB
-hda: Host Protected Area detected.
-^Icurrent capacity is 110648690 sectors (56652 MB)
-^Inative  capacity is 117210240 sectors (60011 MB)
-hda: Host Protected Area disabled.
-hda: 117210240 sectors (60011 MB) w/7877KiB Cache, CHS=65535/16/63, UDMA(100)
- hda: hda1 hda2 hda3 hda4
-hdc: ATAPI 24X DVD-ROM CD-R/RW drive, 2048kB Cache, UDMA(33)
-Uniform CD-ROM driver Revision: 3.20
-ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 11 (level, low) -> IRQ 11
-ehci_hcd 0000:00:1d.7: Intel Corp. 82801DB/DBM (ICH4/ICH4-M) USB 2.0 EHCI Controller
-ehci_hcd 0000:00:1d.7: irq 11, pci mem 0xc0000000
-ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 1
-ehci_hcd 0000:00:1d.7: USB 2.0 initialized, EHCI 1.00, driver 26 Oct 2004
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 6 ports detected
-USB Universal Host Controller Interface driver v2.2
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.0: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1
-uhci_hcd 0000:00:1d.0: irq 11, io base 0x1800
-uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 2
-hub 2-0:1.0: USB hub found
-hub 2-0:1.0: 2 ports detected
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.1: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2
-uhci_hcd 0000:00:1d.1: irq 11, io base 0x1820
-uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 3
-hub 3-0:1.0: USB hub found
-hub 3-0:1.0: 2 ports detected
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.2: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3
-uhci_hcd 0000:00:1d.2: irq 11, io base 0x1840
-uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 4
-hub 4-0:1.0: USB hub found
-hub 4-0:1.0: 2 ports detected
-Initializing USB Mass Storage driver...
-usbcore: registered new driver usb-storage
-USB Mass Storage support registered.
-usbcore: registered new driver hiddev
-usbcore: registered new driver usbhid
-drivers/usb/input/hid-core.c: v2.0:USB HID core driver
-mice: PS/2 mouse device common for all mice
-input: AT Translated Set 2 keyboard on isa0060/serio0
-Synaptics Touchpad, model: 1
- Firmware: 5.9
- Sensor: 44
- new absolute packet format
- Touchpad has extended capability bits
- -> multifinger detection
- -> palm detection
- -> pass-through port
-input: SynPS/2 Synaptics TouchPad on isa0060/serio1
-serio: Synaptics pass-through port at isa0060/serio1/input0
-input: PS/2 Generic Mouse on synaptics-pt/serio0
-Advanced Linux Sound Architecture Driver Version 1.0.6 (Sun Aug 15 07:17:53 2004 UTC).
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 11 (level, low) -> IRQ 11
-intel8x0_measure_ac97_clock: measured 49459 usecs
-intel8x0: clocking to 48000
-ALSA device list:
-  #0: Intel 82801DB-ICH4 with AD1981B at 0xc0000c00, irq 11
-NET: Registered protocol family 2
-IP: routing cache hash table of 4096 buckets, 32Kbytes
-TCP: Hash tables configured (established 32768 bind 65536)
-NET: Registered protocol family 1
-NET: Registered protocol family 17
-ACPI wakeup devices:
- LID SLPB PCI0 UART PCI1 USB0 USB1 USB2 AC9M
-ACPI: (supports S0 S3 S4 S5)
-EXT3-fs: mounted filesystem with ordered data mode.
-VFS: Mounted root (ext3 filesystem) readonly.
-Freeing unused kernel memory: 136k freed
-kjournald starting.  Commit interval 5 seconds
-Adding 498952k swap on /dev/hda2.  Priority:-1 extents:1
-EXT3 FS on hda3, internal journal
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS on hda4, internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
-parport_pc: Ignoring new-style parameters in presence of obsolete ones
-parport: PnPBIOS parport detected.
-parport0: PC-style at 0x3bc, irq 7 [PCSPP(,...)]
-lp0: using parport0 (interrupt-driven).
-xfs: ignoring font path element /usr/lib/X11/fonts/CID/ (unreadable)
-xfs: ignoring font path element /usr/lib/X11/fonts/cyrillic/ (unreadable)
-xfs: ignoring font path element /var/lib/defoma/x-ttcidfont-conf.d/dirs/CID (unreadable)
-
---=-43Ndiy4K5YNBK+xgUni4
-Content-Disposition: attachment; filename=dmesg.nopnpacpi
-Content-Type: text/plain; name=dmesg.nopnpacpi; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-Linux version 2.6.10 (js@ares) (gcc version 3.3.5 (Debian 1:3.3.5-5)) #2 Sat Jan 8 14:29:13 CET 2005
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
- BIOS-e820: 000000000009f000 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000d2000 - 00000000000d4000 (reserved)
- BIOS-e820: 00000000000dc000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000001ff60000 (usable)
- BIOS-e820: 000000001ff60000 - 000000001ff78000 (ACPI data)
- BIOS-e820: 000000001ff78000 - 000000001ff7a000 (ACPI NVS)
- BIOS-e820: 000000001ff80000 - 0000000020000000 (reserved)
- BIOS-e820: 00000000ff800000 - 0000000100000000 (reserved)
-511MB LOWMEM available.
-DMI present.
-Built 1 zonelists
-Kernel command line: BOOT_IMAGE=Linux(2.6.10) ro root=303
-Initializing CPU#0
-PID hash table entries: 2048 (order: 11, 32768 bytes)
-Detected 1694.739 MHz processor.
-Using tsc for high-res timesource
-Console: colour VGA+ 80x25
-Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
-Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
-Memory: 514524k/523648k available (2410k kernel code, 8640k reserved, 996k data, 136k init, 0k highmem)
-Checking if this processor honours the WP bit even in supervisor mode... Ok.
-Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
-CPU: L1 I cache: 32K, L1 D cache: 32K
-CPU: L2 cache: 1024K
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU: Intel(R) Pentium(R) M processor 1700MHz stepping 05
-Enabling fast FPU save and restore... done.
-Enabling unmasked SIMD FPU exception support... done.
-Checking 'hlt' instruction... OK.
- tbxface-0118 [02] acpi_load_tables      : ACPI Tables successfully acquired
-Parsing all Control Methods:........................................................................................................................................................................................................................................................................................................................................................................................................
-Table [DSDT](id F005) - 1317 Objects with 63 Devices 392 Methods 20 Regions
-Parsing all Control Methods:.
-Table [SSDT](id F003) - 1 Objects with 0 Devices 1 Methods 0 Regions
-ACPI Namespace successfully loaded at root c048c560
-ACPI: setting ELCR to 0200 (from 0800)
-evxfevnt-0094 [03] acpi_enable           : Transition to ACPI mode successful
-NET: Registered protocol family 16
-PCI: PCI BIOS revision 2.10 entry at 0xfd8d6, last bus=8
-PCI: Using configuration type 1
-mtrr: v2.0 (20020519)
-ACPI: Subsystem revision 20041105
-evgpeblk-0979 [06] ev_create_gpe_block   : GPE 00 to 1F [_GPE] 4 regs on int 0x9
-evgpeblk-0987 [06] ev_create_gpe_block   : Found 8 Wake, Enabled 0 Runtime GPEs in this block
-ACPI: Found ECDT
-Completing Region/Field/Buffer/Package initialization:.......................................................................................................................................................................................................................................................
-Initialized 19/20 Regions 123/123 Fields 67/67 Buffers 38/46 Packages (1327 nodes)
-Executing all Device _STA and_INI methods:..............................................................
-62 Devices found containing: 62 _STA, 9 _INI methods
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 10 *11)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
-PCI: Transparent bridge - 0000:00:1e.0
-ACPI: Embedded Controller [EC] (gpe 28)
-ACPI: Power Resource [PUBS] (on)
-Linux Plug and Play Support v0.97 (c) Adam Belay
-SCSI subsystem initialized
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
 PCI: Using ACPI for IRQ routing
 ** PCI interrupts are no longer routed automatically.  If this
 ** causes a device to stop working, it is probably because the
@@ -647,148 +225,154 @@ PCI: Using ACPI for IRQ routing
 ** behavior.  If this argument makes the device work again,
 ** please email the output of "lspci" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
 ** so I can fix the driver.
-Simple Boot Flag at 0x35 set to 0x1
-NTFS driver 2.1.22 [Flags: R/W].
+exoparg2-0436 [74] ex_opcode_2A_1T_1R    : Index value (14) beyond end of buffer (14)
+ psparse-1138: *** Error: Method execution failed [\MCTH] (Node df601ba8), AE_AML_BUFFER_LIMIT
+ psparse-1138: *** Error: Method execution failed [\OSFL] (Node df601be8), AE_AML_BUFFER_LIMIT
+ psparse-1138: *** Error: Method execution failed [\_SB_.RMEM._CRS] (Node c145d668), AE_AML_BUFFER_LIMIT
+  uteval-0158: *** Error: Method execution failed [\_SB_.RMEM._CRS] (Node c145d668), AE_AML_BUFFER_LIMIT
+pnp: 00:06: ioport range 0x480-0x48f has been reserved
+pnp: 00:06: ioport range 0x4c0-0x4cf has been reserved
+scx200: NatSemi SCx200 Driver
+audit: initializing netlink socket (disabled)
+audit(1105727114.258:0): initialized
+Total HugeTLB memory allocated, 0
+VFS: Disk quotas dquot_6.5.1
+Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+SELinux:  Registering netfilter hooks
 Initializing Cryptographic API
-ACPI: AC Adapter [AC] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU] (supports C1 C2 C3)
-ACPI: Processor [CPU] (supports 8 throttling states)
-ACPI: Thermal Zone [THM0] (56 C)
-ibm_acpi: IBM ThinkPad ACPI Extras v0.8
-ibm_acpi: http://ibm-acpi.sf.net/
-acpi_bus-0081 [05] acpi_bus_get_device   : Error getting context for object [dff59ce8]
+vesafb: framebuffer at 0xf0000000, mapped to 0xe0080000, using 3072k, total 8000k
+vesafb: mode is 1024x768x16, linelength=2048, pages=4
+vesafb: protected mode interface info at 00ff:44f0
+vesafb: scrolling: redraw
+vesafb: Truecolor: size=0:5:6:5, shift=0:11:5:0
+Console: switching to colour frame buffer device 128x48
+fb0: VESA VGA frame buffer device
+isapnp: Scanning for PnP cards...
+isapnp: No Plug & Play device found
 Real Time Clock Driver v1.12
 Linux agpgart interface v0.100 (c) Dave Jones
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-PCI: setting IRQ 11 as level-triggered
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
-[drm] Initialized radeon 1.11.0 20020828 on minor 0: ATI Technologies Inc Radeon R250 Lf [Radeon Mobility 9000 M9]
-serio: i8042 AUX port at 0x60,0x64 irq 12
+agpgart: Detected an Intel 855 Chipset.
+agpgart: Maximum main memory to use for agp memory: 431M
+agpgart: Detected 8060K stolen memory.
+agpgart: AGP aperture is 128M @ 0xf0000000
+ACPI: PS/2 Keyboard Controller [PS2K] at I/O 0x60, 0x64, irq 1
+ACPI: PS/2 Mouse Controller [PS2M] at irq 12
+i8042.c: Detected active multiplexing controller, rev 1.1.
+serio: i8042 AUX0 port at 0x60,0x64 irq 12
+serio: i8042 AUX1 port at 0x60,0x64 irq 12
+serio: i8042 AUX2 port at 0x60,0x64 irq 12
+serio: i8042 AUX3 port at 0x60,0x64 irq 12
 serio: i8042 KBD port at 0x60,0x64 irq 1
-Serial: 8250/16550 driver $Revision: 1.90 $ 8 ports, IRQ sharing disabled
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 11 (level, low) -> IRQ 11
 io scheduler noop registered
 io scheduler anticipatory registered
 io scheduler deadline registered
 io scheduler cfq registered
-Intel(R) PRO/1000 Network Driver - version 5.5.4-k2-NAPI
-Copyright (c) 1999-2004 Intel Corporation.
-ACPI: PCI interrupt 0000:02:01.0[A] -> GSI 11 (level, low) -> IRQ 11
-e1000: eth0: e1000_probe: Intel(R) PRO/1000 Network Connection
+elevator: using anticipatory as default io scheduler
+floppy0: no floppy controllers found
+RAMDISK driver initialized: 16 RAM disks of 64000K size 1024 blocksize
+loop: loaded (max 8 devices)
+Linux video capture interface: v1.00
 Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
 ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
 ICH4: IDE controller at PCI slot 0000:00:1f.1
 PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 11 (level, low) -> IRQ 11
-ICH4: chipset revision 1
-ICH4: not 100%% native mode: will probe irqs later
-    ide0: BM-DMA at 0x1860-0x1867, BIOS settings: hda:DMA, hdb:pio
-    ide1: BM-DMA at 0x1868-0x186f, BIOS settings: hdc:DMA, hdd:pio
-hda: HTS726060M9AT00, ATA DISK drive
-elevator: using anticipatory as default io scheduler
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 4
+PCI: setting IRQ 4 as level-triggered
+ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 4 (level, low) -> IRQ 4
+ICH4: chipset revision 3
+ICH4: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0xffa0-0xffa7, BIOS settings: hda:DMA, hdb:pio
+    ide1: BM-DMA at 0xffa8-0xffaf, BIOS settings: hdc:DMA, hdd:pio
+Probing IDE interface ide0...
+hda: FUJITSU MHS2060AT, ATA DISK drive
 ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-hdc: TOSHIBA DVD-ROM SD-R9012, ATAPI CD/DVD-ROM drive
+Probing IDE interface ide1...
+hdc: QSI CD-RW/DVD-ROM SBW-242, ATAPI CD/DVD-ROM drive
 ide1 at 0x170-0x177,0x376 on irq 15
+Probing IDE interface ide2...
+ide2: Wait for ready failed before probe !
+Probing IDE interface ide3...
+ide3: Wait for ready failed before probe !
+Probing IDE interface ide4...
+ide4: Wait for ready failed before probe !
+Probing IDE interface ide5...
+ide5: Wait for ready failed before probe !
 hda: max request size: 128KiB
-hda: Host Protected Area detected.
-^Icurrent capacity is 110648690 sectors (56652 MB)
-^Inative  capacity is 117210240 sectors (60011 MB)
-hda: Host Protected Area disabled.
-hda: 117210240 sectors (60011 MB) w/7877KiB Cache, CHS=65535/16/63, UDMA(100)
- hda: hda1 hda2 hda3 hda4
-hdc: ATAPI 24X DVD-ROM CD-R/RW drive, 2048kB Cache, UDMA(33)
-Uniform CD-ROM driver Revision: 3.20
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 11 (level, low) -> IRQ 11
-ehci_hcd 0000:00:1d.7: Intel Corp. 82801DB/DBM (ICH4/ICH4-M) USB 2.0 EHCI Controller
-ehci_hcd 0000:00:1d.7: irq 11, pci mem 0xc0000000
-ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 1
-ehci_hcd 0000:00:1d.7: USB 2.0 initialized, EHCI 1.00, driver 26 Oct 2004
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 6 ports detected
-USB Universal Host Controller Interface driver v2.2
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.0: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1
-uhci_hcd 0000:00:1d.0: irq 11, io base 0x1800
-uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 2
-hub 2-0:1.0: USB hub found
-hub 2-0:1.0: 2 ports detected
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.1: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2
-uhci_hcd 0000:00:1d.1: irq 11, io base 0x1820
-uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 3
-hub 3-0:1.0: USB hub found
-hub 3-0:1.0: 2 ports detected
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 11 (level, low) -> IRQ 11
-uhci_hcd 0000:00:1d.2: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3
-uhci_hcd 0000:00:1d.2: irq 11, io base 0x1840
-uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 4
-hub 4-0:1.0: USB hub found
-hub 4-0:1.0: 2 ports detected
-Initializing USB Mass Storage driver...
-usbcore: registered new driver usb-storage
-USB Mass Storage support registered.
-usbcore: registered new driver hiddev
-usbcore: registered new driver usbhid
-drivers/usb/input/hid-core.c: v2.0:USB HID core driver
+hda: 117210240 sectors (60011 MB) w/2048KiB Cache, CHS=65535/16/63, UDMA(100)
+hda: cache flushes supported
+ hda: hda1 hda2 hda3 hda4 < hda5 hda6 hda7 hda8 hda9 >
+ide-floppy driver 0.99.newide
 mice: PS/2 mouse device common for all mice
 input: AT Translated Set 2 keyboard on isa0060/serio0
 Synaptics Touchpad, model: 1
  Firmware: 5.9
- Sensor: 44
+ 180 degree mounted touchpad
+ Sensor: 18
  new absolute packet format
  Touchpad has extended capability bits
- -> multifinger detection
+ -> four buttons
  -> palm detection
- -> pass-through port
-input: SynPS/2 Synaptics TouchPad on isa0060/serio1
-serio: Synaptics pass-through port at isa0060/serio1/input0
-input: PS/2 Generic Mouse on synaptics-pt/serio0
-Advanced Linux Sound Architecture Driver Version 1.0.6 (Sun Aug 15 07:17:53 2004 UTC).
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 11 (level, low) -> IRQ 11
-intel8x0_measure_ac97_clock: measured 49360 usecs
-intel8x0: clocking to 48000
-ALSA device list:
-  #0: Intel 82801DB-ICH4 with AD1981B at 0xc0000c00, irq 11
+input: SynPS/2 Synaptics TouchPad on isa0060/serio4
+input: PC Speaker
 NET: Registered protocol family 2
 IP: routing cache hash table of 4096 buckets, 32Kbytes
-TCP: Hash tables configured (established 32768 bind 65536)
+TCP established hash table entries: 16384 (order: 5, 131072 bytes)
+TCP bind hash table entries: 16384 (order: 4, 65536 bytes)
+TCP: Hash tables configured (established 16384 bind 16384)
 NET: Registered protocol family 1
-NET: Registered protocol family 17
-ACPI wakeup devices:
- LID SLPB PCI0 UART PCI1 USB0 USB1 USB2 AC9M
-ACPI: (supports S0 S3 S4 S5)
-EXT3-fs: INFO: recovery required on readonly filesystem.
-EXT3-fs: write access will be enabled during recovery.
-EXT3-fs: hda3: orphan cleanup on readonly fs
+NET: Registered protocol family 8
+NET: Registered protocol family 20
+ACPI wakeup devices: 
+P0P1 LAN0 CBS0 P394 MPCI MODM USB1 USB2 USB3 EHCI SLPB 
+ACPI: (supports S0 S1 S3 S4 S5)
+RAMDISK: Compressed image found at block 0
+VFS: Mounted root (ext2 filesystem).
+ReiserFS: hda9: found reiserfs format "3.6" with standard journal
+ReiserFS: hda9: using ordered data mode
+ReiserFS: hda9: journal params: device hda9, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: hda9: checking transaction log (hda9)
+ReiserFS: hda9: replayed 8 transactions in 0 seconds
+ReiserFS: hda9: Using r5 hash to sort names
+VFS: Mounted root (reiserfs filesystem) readonly.
+Trying to move old root to /initrd ... failed
+Unmounting old root
+Trying to free ramdisk memory ... okay
+Freeing unused kernel memory: 192k freed
 kjournald starting.  Commit interval 5 seconds
-EXT3-fs: hda3: 40 orphan inodes deleted
+EXT3 FS on hda2, internal journal
 EXT3-fs: recovery complete.
 EXT3-fs: mounted filesystem with ordered data mode.
-VFS: Mounted root (ext3 filesystem) readonly.
-Freeing unused kernel memory: 136k freed
-Adding 498952k swap on /dev/hda2.  Priority:-1 extents:1
-EXT3 FS on hda3, internal journal
-kjournald starting.  Commit interval 5 seconds
-EXT3 FS on hda4, internal journal
-EXT3-fs: mounted filesystem with ordered data mode.
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
-parport_pc: Ignoring new-style parameters in presence of obsolete ones
-parport0: PC-style at 0x3bc [PCSPP(,...)]
-lp0: using parport0 (polling).
-xfs: ignoring font path element /usr/lib/X11/fonts/CID/ (unreadable)
-xfs: ignoring font path element /usr/lib/X11/fonts/cyrillic/ (unreadable)
-xfs: ignoring font path element /var/lib/defoma/x-ttcidfont-conf.d/dirs/CID (unreadable)
+ReiserFS: hda8: found reiserfs format "3.6" with standard journal
+ReiserFS: hda8: using ordered data mode
+ReiserFS: hda8: journal params: device hda8, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: hda8: checking transaction log (hda8)
+ReiserFS: hda8: Using r5 hash to sort names
+Adding 819272k swap on /dev/hda7.  Priority:42 extents:1
+e100: Intel(R) PRO/100 Network Driver, 3.3.6-k2-NAPI
+e100: Copyright(c) 1999-2004 Intel Corporation
+ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 11
+PCI: setting IRQ 11 as level-triggered
+ACPI: PCI interrupt 0000:01:08.0[A] -> GSI 11 (level, low) -> IRQ 11
+e100: eth0: e100_probe: addr 0xff7ff000, irq 11, MAC addr 00:0C:6E:59:7D:D0
+e100: eth0: e100_watchdog: link up, 100Mbps, full-duplex
+NET: Registered protocol family 17
+hw_random: RNG not detected
+ACPI: AC Adapter [AC0] (on-line)
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Battery Slot [BAT1] (battery absent)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Lid Switch [LID]
+ACPI: Fan [FN00] (off)
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+ACPI: Processor [CPU1] (supports 8 throttling states)
+ACPI: Thermal Zone [THRM] (73 C)
+     osl-0958 [367] os_wait_semaphore     : Failed to acquire semaphore[df73e580|1|0], AE_TIME
+hdc: ATAPI 24X DVD-ROM CD-R/RW drive, 2048kB Cache
+Uniform CD-ROM driver Revision: 3.20
+BIOS EDD facility v0.16 2004-Jun-25, 1 devices found
 
---=-43Ndiy4K5YNBK+xgUni4--
-
+--Boundary-00=_ujB6B+rHiJI7aAu--
 
 
 -------------------------------------------------------
