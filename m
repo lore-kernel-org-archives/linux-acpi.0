@@ -1,95 +1,29 @@
-From: tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org (Tomasz Ciolek)
-Subject: Re: Bad: scheduling while atomic!
-Date: Wed, 31 Mar 2004 23:59:25 +1000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040331135925.GF28355@dreamcraft.com.au>
-References: <200403311054.55536.schrangl@gmx.net> <200403311107.02570.schrangl@gmx.net>
+From: Jamie Lokier <jamie@shareable.org>
+Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
+Date: Wed, 31 Mar 2004 16:02:19 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040331150219.GC18990@mail.shareable.org>
+References: <4069A359.7040908@nortelnetworks.com> <1080668673.989.106.camel@dhcppc4> <4069D3D2.2020402@tmr.com> <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200403311107.02570.schrangl-hi6Y0CQ0nG0@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lukas Schrangl <schrangl-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
+To: "Maciej W. Rozycki" <macro@ds2.pg.gda.pl>
+Cc: Bill Davidsen <davidsen@tmr.com>, Len Brown <len.brown@intel.com>, Chris Friesen <cfriesen@nortelnetworks.com>, Willy Tarreau <willy@w.ods.org>, "Richard B. Johnson" <root@chaos.analogic.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
- I get the same error with suspend to disk on a Fujitsu P2120. Ali 1535
- chipset is the common bit...=20
+Maciej W. Rozycki wrote:
+>  Well, "cmpxchg", "xadd", etc. can be easily emulated with an aid of a
+> spinlock.  With SMP operation included.
 
- Whats the network card you use?
+Nope.  Len Brown wrote:
 
- Tomasz Ciolek
+> Linux uses this locking mechanism to coordinate shared access
+> to hardware registers with embedded controllers,
+> which is true also on uniprocessors too.
 
-On Wed, Mar 31, 2004 at 11:07:02AM +0200, Lukas Schrangl wrote:
-> Am Mittwoch, 31. M?rz 2004 10:54 schrieb Lukas Schrangl:
-> > Hi!
-> >
-> > I've been trying to get S4 working for several weeks now using kernel 2=
-=2E6.4
-> > and it still does not work.
-> > Going to sleep with "echo -n 4 > /proc/acpi/sleep" works - but i get so=
-me
-> > APIC error (don't know exactly - can't read that fast).
-> > When powering on again it first start normal, but then there is an endl=
-ess
-> > loop displaying "Bad: Scheduling while atomic!" and a call trace again =
-and
-> > again very fast. I can only hard- poweroff my computer.
-> > Disabling local APIC does not help.
-> >
-> > S3 does not wake up either (fan and hd spin up and then silence). Once,
-> > with minimal kernel configuration I managed to get a picture again on t=
-he
-> > screen, showing the same "Bad: Scheduling while atomic!" thing.
-> >
-> > Maybe someone can help me getting S4 working!
-> > Lukas
->=20
-> I forgot:
-> ALi M1533 Chipset
-> ATI IGP 320M Northbridge
-> Ahlon XP 2500+ Northbridge
-> SuSE 9.0
-> Kernel 2.6.4
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: IBM Linux Tutorials
-> Free Linux tutorial presented by Daniel Robbins, President and CEO of
-> GenToo technologies. Learn everything from fundamentals to system
-> administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+You can't do that with a spinlock.  The embedded controllers would
+need to know about the spinlock.
 
---=20
-Tomasz M. Ciolek=09
-***************************************************************************=
-****
- tmc at dreamcraft dot com dot au or tmc at goldweb dot com dot au =09
-***************************************************************************=
-****
-	GPG Key ID: 0x41C4C2F0  Key available on www.pgp.net=09
-***************************************************************************=
-****
-  Everything falls under the law of change;=09
-  Like a dream, a phantom, a bubble, a shadow,
-  like dew of flash of lightning.
-  You should contemplate like this.=20
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+-- Jamie
