@@ -1,13 +1,19 @@
-From: Fedor Karpelevitch <fedor.karpelevitch-X80Pqrzrk4F8zQARNC3f2A@public.gmane.org>
-Subject: RE: [LinuxPresario900] Re: DSDT fixes for Presario 900
-Date: Tue, 23 Sep 2003 09:19:07 -0700
+From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: Battery status reading problems
+Date: Tue, 23 Sep 2003 18:25:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <AA1E1F7FC9E1124F999E37BFA1DD344766DC36@iris.win.barra.com>
+Message-ID: <1064334307.14784.92.camel@idoru.kc.de>
+References: <m2vfrpthxt.fsf@tnuctip.rychter.com>
+	 <Pine.LNX.4.58.0309192257480.1613@phoenix.kerstin.at>
+	 <3F6EAADC.4020509@basmevissen.nl>
+	 <Pine.LNX.4.53.0309220954120.9385@dynast.gaugusch.at>
+	 <1064230622.8592.14.camel@dhcp23.swansea.linux.org.uk>
+	 <3F703933.50604@basmevissen.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3F703933.50604-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,110 +22,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fedor Karpelevitch <fedor.karpelevitch-f8cN8pwTcO8AvxtiuMwx3w@public.gmane.org>, "'linuxpresario900-+vy+FFr6rAI3CPJRO4ggG/Z8FUJU4vz8@public.gmane.org'" <linuxpresario900-+vy+FFr6rAI3CPJRO4ggG/Z8FUJU4vz8@public.gmane.org>, 'Fedor Karpelevitch' <fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org>
-Cc: 'acpi-devel' <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-sorry, what I sent is actually a reversed diff. you can apply it using =
--R
-option.
+Am Di, 2003-09-23 um 14.14 schrieb Bas Mevissen:
+> Alan Cox wrote:
+> > Several vendors implement the actual battery reading logic as an SMI
+> > trap and disable interrupts during their slow chat with the battery.
+> > There isnt much anyone can do about that bit alas (except read it a lot
+> > less often)
+> OK. I'll check with Win XP and Linux with latest ACPI CA to see if I 
+> notice a speed difference between Windows and Linux. The XP battery 
+> indicator detects AC/battery power changes in a few seconds, so I expect 
+> the batery status polling in Windows to occur at the same speed.
+> (or does the AC/battery power work with an event? The my assumption 
+> won't hold then)
 
+I could very well accept CPU load.
+I would even accept delays, given they are small.
+But I experienced kernel hangs, i.e. short periods of no I/O activity at
+all when querying the battery status. And even that could be acceptable.
+What was not acceptable were very bizarre happenings that lokked like
+lost interrupts!? Events that did not cause the reaction they should
+have. Less severe were lost mouse events but more severe was packet loss
+on network.
+
+So for me it looks more like a bug in the ACPI code than just a
+performnce issue or hardware misdesign.
+The other thing that leads to this assumption is that so many of us see
+this happening, with various notebooks by various manufacturers. It is
+not bound to certain or limited number of "bad" machines.
+
+> Bas.
+CU
+  nils faerber
+
+-- 
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          D1 : +49-170-2729106
 --
-fedor.
 
-----
-Nothing is more admirable than the fortitude with which millionaires
-tolerate the disadvantages of their wealth.
-		-- Nero Wolfe
-
-
-> -----Original Message-----
-> From: Fedor Karpelevitch=20
-> Sent: Tuesday, September 23, 2003 9:18 AM
-> To: 'linuxpresario900-+vy+FFr6rAI3CPJRO4ggG/Z8FUJU4vz8@public.gmane.org'; Fedor Karpelevitch
-> Cc: acpi-devel
-> Subject: RE: [LinuxPresario900] Re: [ACPI] DSDT fixes for Presario =
-900
->=20
->=20
-> > -----Original Message-----
-> > From: S=E9rgio Monteiro Basto [mailto:sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org]
-> > Sent: Monday, September 22, 2003 10:20 PM
-> > To: Fedor Karpelevitch
-> > Cc: LinuxPresario900-+vy+FFr6rAI3CPJRO4ggG/Z8FUJU4vz8@public.gmane.org; acpi-devel
-> > Subject: [LinuxPresario900] Re: [ACPI] DSDT fixes for Presario 900
-> >=20
-> >=20
-> > Hi!
-> > I can you give a diff of your orig dsl and your corrected dsl?
-> >=20
-> > BTW:=20
-> http://developer.intel.com/technology/iapc/acpi/downloads.htm as
-> > been updated in September 19, 2003 and have some things new=20
-> > for presario
-> > for example mine 706EA , now compiles without any error or=20
-> warning !.
-> >=20
-> > thanks
->=20
-> see attachment. most of the differences are just additional=20
-> debugging output.
->=20
->=20
-> > =20
-> >=20
-> > On Fri, 2003-09-19 at 22:39, Fedor Karpelevitch wrote:
-> > > Hi, people!
-> > >=20
-> > > I finally got around to fixing some of the annoying acpi=20
-> problems I=20
-> > > was experiencing:
-> > >=20
-> > > 1) lid state reported incorrectly ("open" when closed and=20
-> "closed"=20
-> > > when open)
-> > >=20
-> > > 2) lack of AC plug/unplug events
-> > >=20
-> > > one remaining annoying problem is double powerbutton events=20
-> > (i get two=20
-> > > events when I press button once). For what I understand it=20
-> > cannot be=20
-> > > fixed by DSDT since it is handled as fixed-feature.
-> > >=20
-> > > Attached are: source and compiled DSDT and a patch to=20
-> > vanilla 2.4.22=20
-> > > (maybe it will apply to 2.6 kernels too) to have this fixed DSDT=20
-> > > override the one from ROM...
-> > >=20
-> > > I would be interested to hear
-> > >=20
-> > > 1) do other people experience same issues on presario 900=20
-> > (and maybe=20
-> > > Evos) in all it's permutations
-> > > 2) if yes, does this patch remedy these problems?
-> > >=20
-> > > I would appreciate you sending me your DSDTs (cat=20
-> > /proc/acpi/dsdt to a=20
-> > > file) to see if they all have it identical or not...
-> > >=20
-> > > Thanks.
-> > >=20
-> > > Fedor.
-> > > ----
-> >=20
-> > --=20
-> > S=E9rgioMB
-> > email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-> >=20
-> > Who gives me one shell, give me everything.
-> >=20
-> > _______________________________________________
-> > LinuxPresario900 mailing list
-> > LinuxPresario900-+vy+FFr6rAI3CPJRO4ggG/Z8FUJU4vz8@public.gmane.org
-> > http://videl.ics.hawaii.edu/mailman/listinfo/linuxpresario900
-> >=20
->=20
 
 
 -------------------------------------------------------
