@@ -1,11 +1,11 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: What's up with the Embedded Controller driver? [was Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
-Date: Tue, 29 Mar 2005 10:22:59 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8407923522@pdsmsx403>
+Subject: RE: Re: Reading /proc/acpi/battery/BAT0/info causes high latency on Dell Lattitude D800
+Date: Tue, 29 Mar 2005 10:56:44 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8407923605@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,81 +17,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?utf-8?B?RnJhbsOnb2lzIFZhbGVuZHVj?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, ACPI devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-WW91IG1vZGlmaWVkIERTRFQganVzdCByZW1vdmUgc29tZSBBTUwgbWV0aG9kcyB0aGF0IHJlbGF0
-ZWQgdG8gRUMuDQpUaGF0IG1lYW5zIGl0IGp1c3QgZGVsZXRlIHRoZSBwcm9ibGVtLiANCkkgYmVs
-aWV2ZSBpZiB5b3UgdGhpbmsgdGhpcyBpcyB0aGUgcmVncmVzc2lvbiwganVzdCBiZWNhdXNlIHRo
-ZSBjaGFuZ2VzZXQNCmh0dHA6Ly9saW51eC1hY3BpLmJrYml0cy5uZXQ6ODA4MC8yNi1sYXRlc3Qt
-dGVzdC9kaWZmcy9pbmNsdWRlL2FjcGkvYWNjb25maWcuaEAxLjU1P25hdj1pbmRleC5odG1sfHNy
-Yy8ufHNyYy9pbmNsdWRlfHNyYy9pbmNsdWRlL2FjcGl8aGlzdC9pbmNsdWRlL2FjcGkvYWNjb25m
-aWcuaA0KbWFrZSBfdGhvc2UgQU1MIG1ldGhvZHMganVzdCBydW4uDQpTbywgdGhpcyBpcyBOT1Qg
-YSByZWdyZXNzaW9uIHByb2JsZW0uDQoNClBsZWFzZSBjYXQgL3Byb2MvaW50ZXJydXB0cyB0byBt
-ZSBiZWZvcmUgYWNjZXNzaW5nIEVDIGFuZCBhZnRlciBhY2Nlc3NpbmcgRUMuKHVzaW5nIGJ1cnN0
-IG1vZGUgRUMgcGF0Y2gpDQoNClRoYW5rcywNCkx1bWluZw0KDQoNCg0KPi0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tDQo+RnJvbTogYWNwaS1kZXZlbC1hZG1pbkBsaXN0cy5zb3VyY2Vmb3JnZS5u
-ZXQgDQo+W21haWx0bzphY3BpLWRldmVsLWFkbWluQGxpc3RzLnNvdXJjZWZvcmdlLm5ldF0gT24g
-QmVoYWxmIE9mIFl1LCBMdW1pbmcNCj5TZW50OiAyMDA15bm0M+aciDI15pelIDk6MjQNCj5Ubzog
-RnJhbsOnb2lzIFZhbGVuZHVjOyBBQ1BJIGRldmVsDQo+U3ViamVjdDogUkU6IFtBQ1BJXSBSZTog
-V2hhdCdzIHVwIHdpdGggdGhlIEVtYmVkZGVkIENvbnRyb2xsZXIgDQo+ZHJpdmVyPyBbd2FzIFJl
-OiBbQUNQSV0gcGF0Y2hlZCBzbXMtY20gYWNwaS9lYy5jIHRvIDIuNi4xMS41XQ0KPg0KPkhtbSwg
-SXQncyBpbnRlcmVzdGluZy4gQ291bGQgeW91IGdpdmUgbWUgdGhlIG9yaWdpbmFsIHZlcnNpb24/
-DQo+c28gSSBjYW4gZmluZCBvdXQgd2hhdCdzIHRoZSBtYWdpYy4NCj4NCj5UaGFua3MsDQo+THVt
-aW5nDQo+DQo+Pi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+PkZyb206IEZyYW7Dp29pcyBW
-YWxlbmR1YyBbbWFpbHRvOmZ2YWxlbmR1Y0B0aXNjYWxpLmJlXSANCj4+U2VudDogMjAwNeW5tDPm
-nIgyNeaXpSAzOjQxDQo+PlRvOiBZdSwgTHVtaW5nOyBBQ1BJIGRldmVsDQo+PlN1YmplY3Q6IFJl
-OiBbQUNQSV0gUmU6IFdoYXQncyB1cCB3aXRoIHRoZSBFbWJlZGRlZCBDb250cm9sbGVyIA0KPj5k
-cml2ZXI/IFt3YXMgUmU6IFtBQ1BJXSBwYXRjaGVkIHNtcy1jbSBhY3BpL2VjLmMgdG8gMi42LjEx
-LjVdDQo+Pg0KPj5TbyBJIHN1cHBvc2UgaXQgaXMgdGhpcyBwYXRjaDogDQo+Pmh0dHA6Ly9idWdt
-ZS5vc2RsLm9yZy9hdHRhY2htZW50LmNnaT9pZD00NTE2JmFjdGlvbj12aWV3LiBJZiANCj4+dGhh
-dCdzIHRoZSANCj4+Y2FzZSwgaXQgZG9lc24ndCB3b3JrIGF0IGFsbC4gSXQgaGFzIGJpdCB0aGUg
-c2FtZSByZXN1bHRzIGFzIA0KPnRoZSBwYXRjaCANCj4+UGVkcm8gVmVuZGEgc2VuZCB0byB0aGUg
-bGlzdCBhIGZldyBkYXlzIGFnby4gVGhlcmUgaXMgYSBkZWxheSANCj4+b24gYm9vdHVwIA0KPj5k
-dXJpbmcgd2hpY2ggdGhlIHNjcmVlbiBzdGF5cyBibGFjay4gSXQgdGFrZSBzb21lIHRpbWUgdG8g
-bG9hZCB0aGUgYWMgDQo+PmFuZCBiYXR0ZXJ5IGRyaXZlci4gSXQgdGFrZSBhbHNvIGEgdmVyeSBs
-b25nIHRpbWUgdG8gcmVhZCANCj4+YmF0dGVyeSBzdGF0dXMgDQo+PihhZnRlciBoYXZpbmcgcGF0
-Y2hlZCBteSBEU0RUKS4gRnVydGhlcm1vcmUsIHRoZXJlIGFyZSBzb21lIA0KPj5lcnJvcnMgaW4g
-ZG1lc2c6DQo+PiAgICBBQ1BJLTA0MDU6ICoqKiBFcnJvcjogSGFuZGxlciBmb3IgW0VtYmVkZGVk
-Q29udHJvbF0gDQo+PnJldHVybmVkIEFFX1RJTUUNCj4+ICAgIEFDUEktMTEzODogKioqIEVycm9y
-OiBNZXRob2QgZXhlY3V0aW9uIGZhaWxlZCANCj4+W1xfU0JfLlBDSTAuTFBDMC5FQzBfLlNNQjAu
-X1NCUl0gKE5vZGUgZGZlYzlkMjApLCBBRV9USU1FDQo+PiAgICBBQ1BJLTExMzg6ICoqKiBFcnJv
-cjogTWV0aG9kIGV4ZWN1dGlvbiBmYWlsZWQgDQo+PltcX1NCXy5QQ0kwLkxQQzAuRUMwXy5TTUIw
-LlNCUlddIChOb2RlIGRmZWNhNzgwKSwgQUVfVElNRQ0KPj4gICAgQUNQSS0xMTM4OiAqKiogRXJy
-b3I6IE1ldGhvZCBleGVjdXRpb24gZmFpbGVkIFtcX1NCXy5CQVQwLlVQQkldIA0KPj4oTm9kZSBk
-ZmVjYTUwMCksIEFFX1RJTUUNCj4+ICAgIEFDUEktMTEzODogKioqIEVycm9yOiBNZXRob2QgZXhl
-Y3V0aW9uIGZhaWxlZCBbXF9TQl8uQkFUMC5TRUJJXSANCj4+KE5vZGUgZGZlY2E1NDApLCBBRV9U
-SU1FDQo+PiAgICBBQ1BJLTExMzg6ICoqKiBFcnJvcjogTWV0aG9kIGV4ZWN1dGlvbiBmYWlsZWQg
-DQo+PltcX1NCXy5QQ0kwLkxQQzAuRUMwXy5fUTIwXSAoTm9kZSBkZmVjYWZlMCksIEFFX1RJTUUN
-Cj4+WW91IGNhbiBmaW5kIG15IG1vZGlmaWVkIERTRFQgaW4gdGhlIGF0dGFjaG1lbnQuDQo+Pg0K
-Pj5TaW5jZXJlbHkgeW91cnMsDQo+PkZyYW7Dp29pcyBWYWxlbmR1Yw0KPj4NCj4+ICAgDQo+Pll1
-LCBMdW1pbmcgYSDDqWNyaXQgOg0KPj4NCj4+PlRoaXMgb25lOiBodHRwOi8vYnVnbWUub3NkbC5v
-cmcvc2hvd19idWcuY2dpP2lkPTM4NTEjYzUyDQo+Pj5Zb3UgbmVlZCB0byBoYXZlIGJrIHRvb2wg
-Zm9yIGJrIHB1bGwuIFBsZWFzZSBnb29nbGUgYmtiaXRzLg0KPj4+DQo+Pj5UaGFua3MNCj4+Pkx1
-bWluZyANCj4+Pg0KPj4+ICANCj4+Pg0KPj4+Pi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+
-Pj4+RnJvbTogRnJhbsOnb2lzIFZhbGVuZHVjIFttYWlsdG86ZnZhbGVuZHVjQHRpc2NhbGkuYmVd
-IA0KPj4+PlNlbnQ6IDIwMDXlubQz5pyIMjXml6UgMDozMw0KPj4+PlRvOiBZdSwgTHVtaW5nDQo+
-Pj4+U3ViamVjdDogUmU6IFtBQ1BJXSBSZTogV2hhdCdzIHVwIHdpdGggdGhlIEVtYmVkZGVkIENv
-bnRyb2xsZXIgDQo+Pj4+ZHJpdmVyPyBbd2FzIFJlOiBbQUNQSV0gcGF0Y2hlZCBzbXMtY20gYWNw
-aS9lYy5jIHRvIDIuNi4xMS41XQ0KPj4+Pg0KPj4+Pll1LCBMdW1pbmcgYSDDqWNyaXQgOg0KPj4+
-Pg0KPj4+PiAgICANCj4+Pj4NCj4+Pj4+Tm8sIHRoZSBidXJzdC1tb2RlIGVjIHBhdGNoIGlzIHBs
-YW5lZCB0byBiZSBtZXJnZWQgaW50byAyLjYuMTIuDQo+Pj4+PlNvLCBJIHRoaW5rIGl0IHdpbGwg
-Tk9UIGFwcGVhciBpbiB0aGF0IHBhdGNoLg0KPj4+Pj5QbGVhc2UgdHJ5IHRvIHB1bGwgZnJvbSBo
-dHRwOi8vbGludXgtYWNwaS5ia2JpdHMubmV0OjgwODAvdG8tYWtwbQ0KPj4+Pj5vciBhcHBseSBw
-YXRjaCBmaWxlZCBhdCBodHRwOi8vYnVnbWUub3NkbC5vcmcvc2hvd19idWcuY2dpP2lkPTM4NTEN
-Cj4+Pj4+DQo+Pj4+PlBTLiBJJ20gdHJ5aW5nIHRvIG1haW50YWluIGFjcGkgZWMgZHJpdmVyLg0K
-Pj4+Pj4NCj4+Pj4+VGhhbmtzDQo+Pj4+Pkx1bWluZyANCj4+Pj4+IA0KPj4+Pj4NCj4+Pj4+ICAg
-ICAgDQo+Pj4+Pg0KPj4+PlNvcnJ5IGJ1dCBJIGRvbid0IG1hbmFnZSB0byBmaW5kIHRoZSBwYXRj
-aCB5b3UgaW5kaWNhdGVkIG1lLiANCj4+Pj5JcyBpdCB0aGlzIA0KPj4+Pm9uZTogaHR0cDovL2J1
-Z21lLm9zZGwub3JnL2F0dGFjaG1lbnQuY2dpP2lkPTQyMzMmYWN0aW9uPXZpZXcgb3IgDQo+Pj4+
-aHR0cDovL2J1Z21lLm9zZGwub3JnL2F0dGFjaG1lbnQuY2dpP2lkPTQyNDYmYWN0aW9uPXZpZXcg
-b3IgIA0KPj4+Pmh0dHA6Ly9idWdtZS5vc2RsLm9yZy9hdHRhY2htZW50LmNnaT9pZD00MjQ3JmFj
-dGlvbj12aWV3ID8NCj4+Pj5BbHNvIEkgZG9uJ3Qgd2hhdCB5b3UgbWVhbiBieSBwdWxsaW5nIGZy
-b20gbGludXgtYWNwaS5ia2JpdHMubmV0DQo+Pj4+SG93IHNob3VsZCBJIGRvIHRvIG9idGFpbiB0
-aGUgcGF0Y2ggPw0KPj4+Pg0KPj4+PlRoYW5rcyBpbiBhZHZhbmNlLA0KPj4+PkZyYW7Dp29pcw0K
-Pj4+Pg0KPj4+Pg0KPj4+PiAgICANCj4+Pj4NCj4+DQo+Pg0KPkhXailiaCt5ThdMdi0aeRd2Gid6
-XGp3YnYseG52HyEz25xqalt6AygnIR1sWHptXipeStardikhf2xncmnYnQN9ZQ0KPsidA143KQFi
-ckAcJ15mailiCWIcJ15lbHEgem0/WCgefnp3WGI/aWJ1DQo+DQo=
+Maybe this changeset make you think this is a regression.
+http://linux-acpi.bkbits.net:8080/26-latest-test/diffs/include/acpi/accon=
+fig.h@1.55?nav=3Dindex.html|src/.|src/include|src/include/acpi|hist/inclu=
+de/acpi/acconfig.h
+
+But, It just make some methods just run. It should be a totally new =
+problem.
+
+Thanks,
+Luming
+
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Stefan Seyfried
+>Sent: 2005=C4=EA3=D4=C229=C8=D5 4:46
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] Re: Reading /proc/acpi/battery/BAT0/info=20
+>causes high latency on Dell Lattitude D800
+>
+>On Sun, Mar 27, 2005 at 08:01:45AM +1000, Neil Brown wrote:
+>> On Saturday March 26, luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>> > Do you have this kind of problem before? Or just this kernel.
+>
+>it started being this bad between 2.6.10-rc2-bk9 and 2.6.10-rc2-bk10.
+>But only with CONFIG_ACPI_DEBUG
+>
+>> Yes, I've had it for quite a while.  I don't remember a time when I
+>> didn't have it.  It has just slowly become more and more=20
+>annoying (not
+>> worse, just more annoyig) so that I have decided to do=20
+>something about
+>> it.
+>
+>i reported the same on february 4th in a mail with subject
+>"Bad battery regression on Dell D600 from 2.6.10-rc2-bk9 to=20
+>2.6.10-rc2-bk10"
+>
+>The "solution" (although a bad one IMO) was to turn=20
+>CONFIG_ACPI_DEBUG off.
+>--=20
+>Stefan Seyfried
+>
+>
+>
+>-------------------------------------------------------
+>SF email is sponsored by - The IT Product Guide
+>Read honest & candid reviews on hundreds of IT Products from=20
+>real users.
+>Discover which products truly live up to the hype. Start reading now.
+>http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
