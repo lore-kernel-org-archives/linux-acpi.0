@@ -1,12 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI memory hotplug driver
-Date: 17 Feb 2005 02:45:00 -0500
-Message-ID: <1108626299.2096.491.camel@d845pe>
-References: <D36CE1FCEFD3524B81CA12C6FE5BCAB008D17348@fmsmsx406.amr.corp.intel.com>
+From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
+Subject: Re: Call for help: list of machines with working S3
+Date: Thu, 17 Feb 2005 09:52:46 +0100
+Message-ID: <20050217095246.37b8b3c4@orfeo.nikhef.nl>
+References: <20050214211105.GA12808@elf.ucw.cz>
+	<20050216142916.0f48c36f@orfeo.nikhef.nl>
+	<20050216134745.GE1446@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <D36CE1FCEFD3524B81CA12C6FE5BCAB008D17348-oCDej+MBycNZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20050216134745.GE1446-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,42 +18,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-applied to acpi-test.
+On Wed, 16 Feb 2005 14:47:45 +0100
+Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
 
-thanks,
--Len
+> Hi!
+> 
+> > Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org> wrote:
+> > 
+> > 
+> > > 
+> > > Model                           hack (or "how to do it")
+> > > -----------------------------------------------------------------
+> > > ----
+> > Acer TravelMate 636Lci		acpi_sleep=s3_bios vga=normal
+> > 
+> > This is with vanilla 2.6.10 kernel. I had some problems before but
+> > now it seems to work with a full system. This means, X (with ali-agp
+> > and nv driver, haven't tried anything else), wlan-pccard, usb, etc.
+> > The only thing that I've found that will hang resume is the ieee1394
+> > subsystem.
+> > 
+> > If I choose anything else than vga=normal, the screen will go back
+> > to vga=normal resolution on resume without linux noticing: a big
+> > unusable mess as a result.
+> 
+> You may want to try acpi_sleep=s3_bios,s3_mode (without vga=normal)...
 
-On Mon, 2005-01-17 at 17:07, Tolentino, Matthew E wrote:
-> This is a reposting of the ACPI memory hotplug driver posted by 
-> Naveen a couple of months back.  This has been maintained in the 
-> memory hotplug tree since then and unless there's additional 
-> feedback resultant to this post, we're resubmitting it for 
-> upstream inclusion.  Patch is against 2.6.11-rc1.
-> 
-> I also elaborated a bit in the Kconfig help section based on 
-> Grant's post on the container driver over the weekend...  ;-)
-> 
-> matt
-> 
-> Below description also included at the top of the attached patch:
-> 
-> The ACPI based memory hot plug driver patch supports physical hotplug
-> operations on memory. This driver fields notifications for memory add
-> and remove operations from firmware and notifies the VM of the affected
-> memory ranges. Accordingly, this driver also maintains and updates the
-> states of all the memory ranges. This driver is useful on hardware which
-> helps firmware generating ACPI events for every physical hotplug
-> operation of memory boards on the system during runtime.
-> 
-> Signed-off-by: Matt Tolentino <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Naveen B S <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-> 
+Ahh, yes! That seems to do the trick. With high resolutions on the
+console, I don't need X anymore;)
 
+grts Tim
 
 
 -------------------------------------------------------
