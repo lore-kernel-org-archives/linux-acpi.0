@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: testing ACPI under 2.5 with / on LVM
-Date: Fri, 11 Oct 2002 16:54:13 +0200
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: ACPI-Patch against 2.4.20-pre10-ac1
+Date: 11 Oct 2002 22:46:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021011145413.GA708@elf.ucw.cz>
-References: <21870.1033647384@www63.gmx.net>
+Message-ID: <1034372783.12355.4.camel@irongate.swansea.linux.org.uk>
+References: <20021011183427.20a55d1c.hanno@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <21870.1033647384-0mmRn995n8Bmcu3hnIyYJQ@public.gmane.org>
+In-Reply-To: <20021011183427.20a55d1c.hanno-Mmb7MZpHnFY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Markus Weiss <mweiss38-hi6Y0CQ0nG0@public.gmane.org>
+To: Hanno =?ISO-8859-1?Q?B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Fri, 2002-10-11 at 17:34, Hanno B=F6ck wrote:
+> I tried to apply the acpi-patch against 2.4.20-pre10-ac1.
+>=20
+> It is not perfect, there are some problems with cpufreq i couldn't fix. I=
+f you disable cpufreq, it should compile and run.
+>=20
+> If anyone fixes the cpufreq-issue, please inform me.
 
-> I would like to test ACPI under a recent 2.5 kernels on my laptop
-> (especially 
-> because of S4 support). Unfortunately I have the root filesystem on LVM, a
-> fact 
-> which makes testing under 2.5 a little complicated. Someone on linux-kernel 
-> suggested to use a recent version of evms for 2.5, but I am afraid that evms
-> will 
-> not play nicely together with S4/swsusp. 
-> Does anyone have suggestions / comments ? 
+You don't want to mix the two. If you do need native power management on
+your ACPI system the ACPI layer eventually has to be the one making the
+cpufreq requests
 
-There's no reason evms should collide with swsusp. Of course probably
-noone tested that. ... Just dont have your swap partition handled by LVM.
-
-									Pavel
--- 
-I'm pavel-7aPAsKgELzg@public.gmane.org "In my country we have almost anarchy and I don't care."
-Panos Katsaloulis describing me w.r.t. patents at discuss-q33YXrgyAoMgsBAKwltoeQ@public.gmane.org
 
 
 -------------------------------------------------------
