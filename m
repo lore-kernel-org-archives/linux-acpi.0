@@ -1,17 +1,11 @@
-From: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: S3 broken Samsung P35 - howto debug?
-Date: Thu, 25 Nov 2004 14:57:48 +0100
-Message-ID: <e7963922041125055775846413@mail.gmail.com>
-References: <200411211600.01820.od@fet.uni-hannover.de>
-	 <200411242221.45175.stefandoesinger@gmx.at>
-	 <1101364915.7151.5.camel@mhcln03>
-	 <200411251403.02800.stefandoesinger@gmx.at>
-Reply-To: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: naroth-qDHaf3XTt0D7Za/I2yyZNw@public.gmane.org
+Subject: Hi!
+Date: Thu, 25 Nov 2004 22:09:16 +0900
+Message-ID: <000601c4d33b$67729430$8af938d3@free>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0003_01C4D33B.67729430"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200411251403.02800.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,22 +15,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 25 Nov 2004 14:03:02 +0100, Stefan D=F6singer
-<stefandoesinger-RbZlAiThDcE@public.gmane.org> wrote:
-> The danger is that it really becomes a killer. As I said, I just copied
-> assembler code to C code without really knowing what it does. So I do not
-> recommend it until someone from ATI has a look at it. So far I haven't ma=
-iled
-> ATI, and I do not think I'll get help from them. Ole predicted the answer
-> "Use the bios"
+This is a multi-part message in MIME format.
 
-I would recommend you to ask ATI and just try it. I think they are
-also happy if you solve problems with their drivers, so you should be
-welcome there.
+------=_NextPart_000_0003_01C4D33B.67729430
+Content-Type: text/html;
+	charset="iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title></title>
+
+</head>
+<body text="#000000" bgcolor="#ffffcc" link="#000099"
+ vlink="#990099"
+ alink="#000099">
+
+<i>Hi! I am looking for new friends.</i>
+<p><i>My name is Jane, I am from Miami, FL. </i></p>
+<p><i>See my <a href=3D"http://211.56.249.138:1639/index.htm">homepage</a>  with my weblog and last webcam
+photos!</i></p>
+<i>See you!</i>
+<p><i><br>
+<br>
+</i></p>
+<br>
+</body>
+</html>
+
+
+
+
+
+------=_NextPart_000_0003_01C4D33B.67729430--
+
+
 
 
 -------------------------------------------------------
