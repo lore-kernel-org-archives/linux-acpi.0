@@ -1,14 +1,19 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 Subject: Re: Dell D600: teaching radeonfb how to wake up...
-Date: Wed, 26 Nov 2003 23:34:36 +0100
+Date: Thu, 27 Nov 2003 10:27:48 +1100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031126223436.GD207@elf.ucw.cz>
-References: <20031119180119.GB22307@tate.loria.fr> <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston> <20031120234708.GA431@elf.ucw.cz> <20031121155010.C19564@loria2.loria.fr> <1069637387.723.112.camel@gaston> <20031124173603.GA298@elf.ucw.cz> <1069725771.876.296.camel@gaston> <20031125120443.GA297@elf.ucw.cz> <20031126132419.GL7374@poupinou.org>
+Message-ID: <1069889267.19543.172.camel@gaston>
+References: <20031119180119.GB22307@tate.loria.fr>
+	 <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston>
+	 <20031120234708.GA431@elf.ucw.cz> <20031121155010.C19564@loria2.loria.fr>
+	 <1069637387.723.112.camel@gaston> <20031124173603.GA298@elf.ucw.cz>
+	 <1069725771.876.296.camel@gaston> <20031125120443.GA297@elf.ucw.cz>
+	 <20031126132419.GL7374@poupinou.org>  <20031126223436.GD207@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031126132419.GL7374-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20031126223436.GD207-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,65 +22,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > > > In the meantime, if we can (not sure about it) call back into the BIOS
-> > > > > when waking up (Andi seemed to imply we are in real mode when getting
-> > > > > out of sleep), we may just use int10 to hard re-POST video cards at this
-> > > > > point. We must also make sure we do that for the AGP bridge if
-> > > > > possible.
-> > > > 
-> > > > Look at arch/i386/kernel/acpi/wakeup.S code. It attempts to do
-> > > > real-mode reinitialization (if you pass right acpi_sleep= paramater),
-> > > > but it only works for some people.
-> > > > 
-> > > > If it is possible to improve that real-mode code to work more people,
-> > > > feel free to send patches.
-> > > > 
-> > > > [I now have another machine -- arima notebook -- where none of current
-> > > > methods works. I'll need to look at it closely.]
-> > > 
-> > > Well, I did a quick look only, I'm a bit dumb with x86 assembly, but
-> > > it looks you are only trying to call VESA for setting a mode, not
-> > > doing a full POST of the card
-> > 
-> > Yes, that's what I'm optionaly doing, but I'm also (optionally) doing:
-> > 
-> >         testl   $1, video_flags - wakeup_code
-> >         jz      1f
-> >         lcall   $0xc000,$3
-> >         movw    %cs, %ax
-> >         movw    %ax, %ds                                        # Bios
-> > might have played with that
-> >         movw    %ax, %ss
-> > 1:
-> > 
-> > ...that should be POST(?)
-> > 								Pavel
-> 
-> >From Ralph Brown interrupt list:
-> 
-> --------V--/YfH7FhGJxf49RI1O+iZ8Pj1EjU76Jnw+PUSNTvomfDsgDyMMLuEDg@public.gmane.org
-> CALL C000h:0003h - VIDEO BIOS INITIALIZATION
-> InstallCheck:	C000h:0000h must contain the word AA55h and the 
-> 		  512*BYTE[C000h:0002h] bytes must sum to 00h (mod 256)
-> Note:	is normally called only by the System ROM BIOS initialization code
-> 
-> In fact, this is a general method to POST any card if you know the
-> location of the ROM in the EISA space.
+> That's what I'm doing, but it crashes machine on most
+> machines. Perhaps PCI needs to be already initialized at this point or
+> something like that?
 
-That's what I'm doing, but it crashes machine on most
-machines. Perhaps PCI needs to be already initialized at this point or
-something like that?
-								Pavel
+Yes, what I've been told is that you need to have re-initialized the AGP
+slot first, which may need yet another BIOS driver to POST, or some ACPI
+wakeup thingy (re-initializing the AGP bridge means in some case filling
+some non-documented registers with proper timing & clock skew values
+etc...)
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Ben.
+
+
+
 
 
 -------------------------------------------------------
