@@ -1,13 +1,12 @@
-From: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>
-Subject: Re: Re: first shoot for smartbattery
-Date: Sat, 01 Jan 2005 23:33:10 +0100
-Message-ID: <41D72526.3030205@tiscali.be>
-References: <20041231092156.GA612@phys.ethz.ch>	<41D56002.5060008@mega.ist.utl.pt>	<20041231150724.GK19199@poupinou.org>	<20041231181628.GL19199@poupinou.org>	<20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl>
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: kernel 2.6.10 , uhci-hcd problem after ACPI S3 suspend.
+Date: Sat, 1 Jan 2005 20:36:01 -0800 (PST)
+Message-ID: <20050102043601.63276.qmail@web50202.mail.yahoo.com>
+References: <20050101175715.GA1345@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2acrth375.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+In-Reply-To: <20050101175715.GA1345-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,74 +16,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-usb-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Johan Vromans a =E9crit :
+Hi Pavel,
 
-> Happy New Year to y'all!
->
-> Mathias Weyland <mweyland-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org> writes:
->
->> corcovado:/usr/src/smartbatt# ./smartbattery
->> Error: No i2c-bus specified!
->> Syntax: smartbatt I2CBUS
->> Installed I2C busses:
->> i2c-1 unknown ACPI EC SMBus adapter at 0018
->> Algorithm unavailable
->> i2c-0 unknown SMBus I801 adapter at 1880
->> Algorithm unavailable
->
->
-> I only have one bus i2c-0 (ACPI EC SMBus adapter at 0018) here.
->
->> corcovado:/usr/src/smartbatt# ./smartbattery 1
->> current: 65535 mA
->> remain: 65535 mA or mWh
->> time to empty: 65535 minutes
->> time to full: 65535 minutes
->> temperature: 6280.5 C
->> voltage: 65535 mV
->
->
-> Same here (with bus 0).
-> I also get a lot of spinlock errors in my system log.
->
->> Loading the module shows:
->>
->> i2c_acpi_ec: disagrees about version of symbol struct_module
->> base: 0x18 alert: 0x20
->> i2c-acpi-ec.c: ACPI EC SMBus adapter at 0x18
->
->
-> Same here, except for the disagreement.
->
->> corcovado:/home/lea# i2cdetect 1
->> WARNING! This program can confuse your I2C bus, cause data loss and=20
->> worse!
->> I will probe file /dev/i2c-1.
->> I will probe address range 0x03-0x77.
->> Continue? [Y/n]
->> 0 1 2 3 4 5 6 7 8 9 a b c d e f
->> 00: XX XX XX XX XX XX XX XX XX XX XX XX XX
->
->
-> Same here (also with a lot of spinlock errors).
->
-> Thanks for the good work!
->
-> -- Johan
->
-Hello everybody,
-I also get the same results when I run the smartbattery or the i2cdetect=20
-program. Nevertheless, I don't get error in symbol while loading the=20
-i2c-acpi-ec module. I only get the base: 0x18 alert: 0x20 message.
-Nevertheless thanks a lot for your effort. Unfortunately, I don't have=20
-any knowledge in kernel programming so I can't help you to improve the=20
-driver.
+I don't have swsusp compiled in, but if I unload and
+reload the module, then it works.
+Anyway, this is not the intended behaviour, as it
+worked fine till 2.6.10 without unload/reload.
 
-Sincerely yours,
-Fran=E7ois Valenduc
+Thanks,
+Paul
+
+--- Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+
+> Hi!
+> 
+> > With kernel 2.6.10, I have the following problem
+> with uhci_hcd:
+> > After an ACPI S3 suspend it fails to see any USB
+> device plugged in.
+> > If I unload the module and load it again, it works
+> again.
+> > I hadn't this problem with previous kernels, where
+> it worked just fine.
+> > Do you know something that changed between 2.6.9
+> and 2.6.10 that could
+> > lead to this behavior ?
+> > It is ACPI or USB fault ?
+> 
+> Does it work after swsusp? Can you try unloading
+> module before suspend
+> and reloading it after resume?
+> 								Pavel
+> -- 
+> People were complaining that M$ turns users into
+> beta-testers...
+> ...jr ghea gurz vagb qrirybcref, naq gurl frrz gb
+> yvxr vg gung jnl!
+> 
+
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+Send a seasonal email greeting and help others. Do good. 
+http://celebrity.mail.yahoo.com
 
 
 -------------------------------------------------------
