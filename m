@@ -1,14 +1,15 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Presario R3120US not updating present rate
-Date: Tue, 15 Jun 2004 12:09:54 +0200
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: Never in C3
+Date: Tue, 15 Jun 2004 14:35:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040615100954.GO1095@poupinou.org>
-References: <20040614215520.GA17906@dominikbrodowski.de> <40CE5F69.7030500@pacific.edu>
+Message-ID: <16590.64317.405885.159934@aber.ac.uk>
+References: <16589.41686.480893.225338@aber.ac.uk>
+	<20040614143312.GA16952@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40CE5F69.7030500-s7p20SfEDVaVc3sceRu5cw@public.gmane.org>
+In-Reply-To: <20040614143312.GA16952-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,91 +18,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ken Hughes <khughes-s7p20SfEDVaVc3sceRu5cw@public.gmane.org>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 14, 2004 at 07:31:05PM -0700, Ken Hughes wrote:
-> I noticed that I alway get "present rate: 0 mA" when I
-> cat /proc/acpi/battery/BAT1/state .  Running acpi -ab
-> gives the following:
-> 
->  35 budgie: ./acpi -ab
->      Battery 1: charging, 88%, charging at zero rate - will never fully 
-> charge.
->    AC Adapter 1: on-line
->  36 budgie: ./acpi -ab
->      Battery 1: discharging, 88%, charging at zero rate - will never 
-> fully charge.
->    AC Adapter 1: off-line
-> 
-> The DSDT is attached - any hints?
-> 
+Karol Kozimor writes:
+ > Thus wrote Fred Labrosse:
+ > > I did read at some point that this was because of hotplug.  I thus stopped
+ > > hotplug and, at that time, I did see my processor in C3 state.  Hoever,
+ > > since then, I've never seen that again, and hotplug is not running.
+ > 
+ > hotplug itself doesn't do any harm, though USB does.
 
-You have that in the ASL:
-	Device (BAT1)
-	{
-	    Name (_HID, EisaId ("PNP0C0A"))
-	    Name (_UID, 0x01)
+That is right.  At least this rings a bell.
 
-            ...
-            ...
+ > Possibly depending on
+ > your host controller, you can't have anything plugged in and you might have
+ > to reload the module (under 2.4) to have C3 working.
 
-	    Name (PBST, Package (0x04)
-	    {
-		0x01, 
-		0xFFFFFFFF, 
-		0xFFFFFFFF, 
-		0x39D0
-	    })
+Well, I have no usb device plugged in, no usb module loaded (I just made
+sure that no usb bits were in the kernel) and still no C3.  What do you
+mean by "you might have to reload the module"?  Which module.
 
-            ...
-            ...
+BTW, I run vanilla 2.6.6. on an ACER TM636.
 
-	    Method (_BST, 0, NotSerialized)
-	    {
-		If (ECOK ())
-		{
-		    Sleep (0x14)
-		    Store (\_SB.PCI0.LPC0.EC0.BST0, Local0)
-		    And (Local0, 0x07, Local0)
-		    Store (Local0, Index (PBST, 0x00))
-		    Sleep (0x14)
-		    Store (\_SB.PCI0.LPC0.EC0.GAU0, Local2)
-		    Sleep (0x14)
-		    Store (\_SB.PCI0.LPC0.EC0.BPV0, Index (PBST, 0x03))
-		    Sleep (0x14)
-		    Store (\_SB.PCI0.LPC0.EC0.BFC0, Local1)
-		    Sleep (0x14)
-		    If (Local2)
-		    {
-			Multiply (Local2, Local1, Local2)
-			Divide (Local2, 0x64, Local6, Local2)
-			If (Local6)
-			{
-			    Increment (Local2)
-			}
-		    }
+TIA,
 
-		    Store (0x00, Index (PBST, 0x01))
-		    Store (Local2, Index (PBST, 0x02))
-		}
+Fred
 
-		Return (PBST)
-	    }
-
-The 'Store(0, Index(PBST, 0x01))' will put 0 in the second entry to the
-PBST.  This entry match the present-rate.  As you can see, 0 will always
-be put, so it's a DSDT trouble, not a linux one unfortunately.
-
-Cheers, 
-
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
