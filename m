@@ -1,12 +1,14 @@
-From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
-Subject: Weird ACPI-related error in system logs
-Date: Fri, 6 Feb 2004 11:01:21 +0100
+From: Daniel Drake <dan-LrsmPHowOvpd3aXB8m+yKQ@public.gmane.org>
+Subject: Re: acpi problem with nforce motherboards and ethernet
+Date: Fri, 06 Feb 2004 09:47:02 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040206110121.445f4433.andrej.prsa@guest.arnes.si>
+Message-ID: <40236296.6040503@reactivated.net>
+References: <402298C7.5050405@wanadoo.es> <40229D2C.20701@blue-labs.org> <4022B55B.1090309@wanadoo.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <4022B55B.1090309-39ZsbGIQGT7e5aOfsHch1g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,65 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Support <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: =?ISO-8859-1?Q?Luis_Miguel_Garc=EDa?= <ktech-39ZsbGIQGT7e5aOfsHch1g@public.gmane.org>
+Cc: David Ford <david+challenge-response-qokYbnrgTHEgsBAKwltoeQ@public.gmane.org>, akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, Guys!
+Luis Miguel Garc=EDa wrote:
+> By the way, is anyone involved in solving the IO-APIC thing in nforce=20
+> motherboards? Anyone trying a different approach? Anyone contacting=20
+> nvidia about this problem?
 
-I'm running a HiGrade laptop with SiS chipset; I haven't tried playing
-with sleep modes yet, but there's a funny error which I don't understand
-that jumps out during boot-up. I'm posting the relevant log part:
+Ross said in previous mails that he had tried to contact nvidia through=20
+various methods, and had not recieved a response.
+He also mentioned that AMD were being much more responsive, and he had a=20
+support request open with them, which he was assured was being investigat=
+ed.
 
- BIOS-e820: 000000000dff0000 - 000000000dffffc0 (ACPI data)
- BIOS-e820: 000000000dffffc0 - 000000000e000000 (ACPI NVS)
-ACPI: have wakeup address 0xc0001000
-ACPI: RSDP (v000 OID_00                                    ) @ 0x000e5010
-ACPI: RSDT (v001 INSYDE RSDT_000 0x00000001 & 0x00010007) @ 0x0dfffbc0
-ACPI: FADT (v001 INSYDE FACP_000 0x00000100 & 0x00010007) @ 0x0dfffac0
-ACPI: BOOT (v001 INSYDE ISC_BOOT 0x00000100 & 0x00010007) @ 0x0dfffb50
-ACPI: DBGP (v001 INSYDE DBGP_000 0x00000001 & 0x00010007) @ 0x0dfffb80
-ACPI: DSDT (v001 INSYDE     8575 0x00001002 INTL 0x02002025) @ 0x00000000
-ACPI: Subsystem revision 20040116
-ACPI: IRQ9 SCI: Edge set to Level Trigger.
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 S4 (swsusp) S5)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: Embedded Controller [EC0] (gpe 25)
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 *5 6 10 11)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 5 *10 11)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 *6 10 11)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 *6 10 11)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 10 *11)
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 10 *11)
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 *10 11)
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 10 *11)
-ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 6
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 5
-PCI: Using ACPI for IRQ routing
-ACPI: Processor [CPU0] (supports C1, 8 throttling states)
-ACPI: AC Adapter [AC] (on-line)
-    ACPI-0352: *** Error: Looking up [ACST] in namespace, AE_NOT_FOUND
-    ACPI-1120: *** Error: Method execution failed [\_SB_.BAT0._BTP] (Node cdf39500), AE_NOT_FOUND
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Sleep Button (CM) [SBTN]
-ACPI: Lid Switch [LID]
+But yeah, doesn't look like we are getting anywhere with the manufacturer=
+s...
 
-So, I'm just wondering what this error means? Resetting and poweroff *are*
-working properly.
-
-I'm running 2.4.24 kernel with ACPI patch 20040116.
-
-Best wishes,
-
-Andrej
+Daniel
 
 
 -------------------------------------------------------
