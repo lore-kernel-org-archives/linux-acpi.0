@@ -1,13 +1,16 @@
-From: Raik =?ISO-8859-1?Q?Gr=FCnberg?= <rg-UHhJK3iHGRA@public.gmane.org>
-Subject: DSDT for EvoN160 ??
-Date: Thu, 28 Nov 2002 23:46:55 +0100
+From: Andrew Kohlsmith <akohlsmith-acpi-uiYP0llB1AZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: DSDT for EvoN160 ??
+Date: Fri, 29 Nov 2002 13:12:57 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DE69CDF.10503@raiks.de>
-Reply-To: graik-S0/GAf8tV78@public.gmane.org
+Message-ID: <200211291312.57478@-mixdown.ca>
+References: <3DE69CDF.10503@raiks.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3DE69CDF.10503-UHhJK3iHGRA@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,14 +22,14 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+> has anyone a fixed version of the DSDT file for the Compaq Evo N160 ?
+> Is there perhaps some central ressource for these hardware-specific fixes?
 
-has anyone a fixed version of the DSDT file for the Compaq Evo N160 ?
-Is there perhaps some central ressource for these hardware-specific fixes?
+I need this too.  I had disassembled my DSDT at one point but it was a while 
+back and I haven't tried it again.
 
-Thanks a lot!
-Raik
-
+Regards,
+Andrew
 
 
 -------------------------------------------------------
