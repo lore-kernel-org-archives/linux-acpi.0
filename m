@@ -1,14 +1,14 @@
-From: Dino Klein <zagzag-lists-zY4eFNvK5D9If6P1QZMOBw@public.gmane.org>
-Subject: Re: Centrino question
-Date: Sun, 09 May 2004 13:51:13 -0400
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 resume problems on HP compaq nc4010
+Date: Sun, 9 May 2004 23:39:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <409E6F91.8090506@speakeasy.net>
-References: <20040509182524.03a9de0d.neurowork@free.fr>
+Message-ID: <20040509213919.GA13603@atrey.karlin.mff.cuni.cz>
+References: <1083777804.4093.71.camel@descent.netsplit.com> <20040509015516.GA5487@elf.ucw.cz> <1084117826.2372.32.camel@syndicate>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040509182524.03a9de0d.neurowork-GANU6spQydw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1084117826.2372.32.camel-ImmFMecdQhGzQB+pC5nmwQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Cyril Wattebled <neurowork-GANU6spQydw@public.gmane.org>
+To: Scott James Remnant <scott-Umf49k1wg4FWk0Htik3J/w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have an Acer C302, with a Pentium M 1.6, and the Intel 855GME chipset. 
-The CPU/chipset supports C1 - C4.
-My hypothesis as to why you don't have C3 is because it is disabled thru 
-the value of the C3 latency in the FADT. The DSDT code probably has a 
-_CST field/method for the processor, which specifies the available 
-C-States. I've used a patch (from here 
-http://bugzilla.kernel.org/show_bug.cgi?id=1958), that reads the _CST 
-object.
-Give it a try, and see if it solves your issue.
+Hi!
 
+> > > This seemed like the most likely place to bring up my ACPI woes :)  I've
+> > > recently purchased an HP compaq nc4010 (it's mostly identical to the
+> > > nc4000) and haven't been able to get ACPI S3 (memory) suspend
+> > > working.
+> > 
+> > Does ACPI S4 work for you? Try that first, its easier.
+> > 
+> Nope, swsusp does actually resume the keyboard and screen but then locks
+> up.  pm-disk doesn't even suspend.
 
-Cyril Wattebled wrote:
-> Hi there,
-> 
-> I'm wondering if all Pentium M processor support C1 C2 and C3 ?
-> Because I have a Sony Vaio Z1 with a Pentium M 1.7ghz and linux only detects C1
-> and C2. I have a friend who has a Toshiba Tecra with a Pentium M 1.4ghz and it
-> supports C3.
-> I have heard that even C3 and C4 are supported by Centrinos.
-> I'm using kernel 2.6.6-rc3. 
-> Is there a logical answer why the kernel does only detect C1 and C3 ?
-> Thanks
-> 
-> Cyril
+What are the last messages? Do you suspend from singleuser mode, no
+modules?
+
+									Pavel
+-- 
+Horseback riding is like software...
+...vgf orggre jura vgf serr.
 
 
 -------------------------------------------------------
