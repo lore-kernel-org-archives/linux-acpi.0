@@ -1,83 +1,60 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: smp/swsusp done right
-Date: Wed, 30 Mar 2005 13:32:54 +0200
-Message-ID: <20050330113254.GE572@elf.ucw.cz>
-References: <20050323204019.GA11616@elf.ucw.cz> <200503301242.38280.rjw@sisk.pl>
+From: Felix Domke <tmbinc-J6wMscjeMKTk1uMJSBkQmQ@public.gmane.org>
+Subject: Who else is writing to the EC? (Sony Vaio S3XP / PCG-6E1M)
+Date: Wed, 30 Mar 2005 16:16:30 +0200
+Message-ID: <424AB4BE.1010009@elitedvb.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261870AbVC3LdP@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200503301242.38280.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, ACPI mailing list <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+I'm a bit annoyed of the way the fan behaves in my Sony Vaio S3XP /
+PCG-6E1M. Basically it's totally disabled until ~55=B0C, then switches on
+and gets faster with higher temperature. However the system tends to
+oscillate with a ~1min period, which is very annoying. I would rather
+like the fan to be active at a slow speed all the time.
 
-> > This is against -mm kernel; it is smp swsusp done right, and it
-> > actually works for me. Unlike previous hacks, it uses cpu hotplug
-> > infrastructure. Disable CONFIG_MTRR before you try this...
-> > 
-> > Test this if you can, and report any problems. If not enough people
-> > scream, this is going to -mm.
-> > 								Pavel
-> > 
-> > --- clean-mm/drivers/pci/pci.c	2005-03-21 11:39:32.000000000 +0100
-> > +++ linux-mm/drivers/pci/pci.c	2005-03-22 01:41:48.000000000 +0100
-> > @@ -376,11 +376,13 @@
-> >  	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
-> >  		return PCI_D0;
-> >  
-> > +#if 0
-> >  	if (platform_pci_choose_state) {
-> >  		ret = platform_pci_choose_state(dev, state);
-> >  		if (ret >= 0)
-> >  			state = ret;
-> >  	}
-> > +#endif
-> >  	switch (state) {
-> >  	case 0: return PCI_D0;
-> >  	case 3: return PCI_D3hot;
-> 
-> You probably don't want the above change to go in the final patch?
+I noticed that there's no FAN-Resource in the DSDT.
+There's no active cooling entry in the thermal zone, only a passive one
+at 50=B0C. A quick overview over the thermal zone in the DSDT didn't show
+any stuff where the fan is controlled.
 
-No, not in final patch.
+Now there's a FAN0 entry in the embedded controller, at offset 0x93. I
+made a small hacking by making a kernel module which directly writes to
+the EC, and it works, i can set the fan speed between 0 and 0xFF.
 
-> > -	atomic_set(&cpu_counter, 0);
-> > -	atomic_set(&freeze, 1);
-> > -	smp_call_function(smp_pause, NULL, 0, 0);
-> > -	while (atomic_read(&cpu_counter) < (num_online_cpus() - 1)) {
-> > -		cpu_relax();
-> > -		barrier();
-> > +	error = 0;
-> > +	cpus_clear(frozen_cpus);
-> > +	printk("Freezing cpus ...\n");
-> > +	for_each_online_cpu(cpu) {
-> > +		if (cpu == 0)
-> > +			continue;
-> > +		error = cpu_down(cpu);
-> > +		if (!error) {
-> > +			cpu_set(cpu, frozen_cpus);
-> > +			printk("CPU%d is down\n", cpu);
-> > +			continue;
-> > +		}
-> > +		printk("Error taking cpu %d down: %d\n", cpu, error);
-> >  	}
-> > -	printk("ok\n");
-> > +	BUG_ON(smp_processor_id() != 0);
-> > +	if (error)
-> > +		panic("cpus not sleeping");
-> >  }
-> 
-> I'm not sure whether we should panic() here.  It may be better to make
-> suspend fail and print a "please reboot immediately" message for the user.
-> In that case, the user may be able to reboot without loosing data
-> -	...
+However, about one second or so after i write the value, the fan speed
+gets reset to the original value. reading from the EC show that the
+value there gets reset, too.
 
-I guess I could just fail the suspend, but I want to see the messages
-for now. (And I do not think it will ever trigger).
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+I could not find any references inside the DSDT to the FAN0 resource in
+the EC, i searched for both 0x93 (the offset) and "FAN0".
+
+Even when i remove the "thermal" module, the fan behaves exactly like
+before.
+
+Who controls the fan when there's no thermal module active? Is there any
+way i can override the fan control on this machine?
+
+the dsdt: http://tmb.elitedvb.net/dsdt
+and the disassembled version: http://tmb.elitedvb.net/dsdt.dsl
+
+thanks,
+Felix
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
