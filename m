@@ -1,14 +1,14 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: swsusp/s3: Assembly interactions need asmlinkage
-Date: Wed, 25 Feb 2004 09:39:57 +0100
+Subject: Re: S1 and S3 not working with ide-scsi on Toshiba 3000
+Date: Wed, 25 Feb 2004 09:45:22 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040225083957.GE2869@poupinou.org>
-References: <20040224130051.GA8964@elf.ucw.cz>
+Message-ID: <20040225084522.GF2869@poupinou.org>
+References: <20040224141715.GA1376@wsc-gmbh.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040224130051.GA8964-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20040224141715.GA1376-u75qzGzWA6cb1SvskN2V4Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nikolaus Filus <nfilus-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 24, 2004 at 02:00:51PM +0100, Pavel Machek wrote:
-> Hi!
+On Tue, Feb 24, 2004 at 03:17:15PM +0100, Nikolaus Filus wrote:
+> Hi,
 > 
-> swsusp/s3 assembly parts, and parts called from assembly are not
-> properly marked asmlinkage; that leads to double fault on resume when
-> someone compiles kernel with regparm. Thanks go to Stefan Seyfried for
-> discovering this. Please apply,
+> after beeing too long frustrated about not working standby and suspend
+> on my Tosh3k, I checked all possible drivers for ACPI-support.
+> Finally I found, that I booted with hdc=ide-scsi and resume was stopping
+> on talking with hdc.
+> After changing to ide-cd everything is working fine (on console), even
+> with uhci-hcd loaded! Tested with 2.6.3.
+> 
+> Is this a known bug or may I add it to bugzilla?
+> 
 
-Does acpi_enter_sleep_state_s4bios() have the same issue ?
-
+For me, yes.  Never had time to fix this ok, and worst I don't have
+anymore a toshiba 3000 by now.  The problem (on kernel 2.4) was that
+the ide hwif is not properly restored so that DMA do not worked any
+more.  A little hack permit to get it ok (I think I put it on the
+acpi.sf.net with the toshiba 3000-100 dsdt).
 
 -- 
 Bruno Ducrot
