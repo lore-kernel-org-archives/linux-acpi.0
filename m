@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI; S5 state; powerbutton->clean shutdown
-Date: Fri, 7 Jan 2005 09:38:03 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575F049BB@pdsmsx402.ccr.corp.intel.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: ACPI; S5 state; powerbutton->clean shutdown
+Date: Fri, 07 Jan 2005 01:24:16 +0000
+Message-ID: <1105061056.8674.91.camel@tyrosine>
+References: <20050107005652.GA17647@squash.dsto.defence.gov.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20050107005652.GA17647-670g5dPm81kHVWjHP2o3SMhQixhbPYnYEK66K81epY8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,18 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Wilkinson, Alex" <alex.wilkinson-7BNmJD1m9TP299njBJCvBrpzq4S04n8Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->
->Can some please recommend to me the correct method in Linux to confirm
->whether or not pressing the power-button on an ATX box triggers an ACPI
->state S5 (for both 2.6 and 2.4 kernels).
->
-Change your acpid script. In FC2, the script is in /etc/acpi/events
+On Fri, 2005-01-07 at 11:26 +1030, Wilkinson, Alex wrote:
 
-Thanks,
-Shaohua
+> Can some please recommend to me the correct method in Linux to confirm
+> whether or not pressing the power-button on an ATX box triggers an ACPI
+> state S5 (for both 2.6 and 2.4 kernels).
+
+Linux has no in-kernel policy for acpi events. The userspace acpid (SuSE
+have something with a different name) receives the events and can be
+configured to do anything in response.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
