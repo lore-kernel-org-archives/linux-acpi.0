@@ -1,14 +1,17 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] Video Extension patch
-Date: Thu, 26 Aug 2004 17:30:02 -0400
+From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: reboot instead of poweroff in 20040715
+Date: Thu, 26 Aug 2004 23:24:21 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1093555801.11567.26.camel@6-allhosts>
-References: <3ACA40606221794F80A5670F0AF15F84054F41D0@pdsmsx403>
+Message-ID: <200408262324.27284.andre@eisenbach.com>
+References: <Pine.LNX.4.44.0408261627420.22242-100000@emilia.cs.unibo.it>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed;
+  boundary="nextPart4875649.s9sOPcbZpM";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84054F41D0@pdsmsx403>
+In-Reply-To: <Pine.LNX.4.44.0408261627420.22242-100000-Vq0lJsD9GtP26hp/dGVQZKicDR3qMxSs@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,55 +20,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-08-26 at 06:21, Yu, Luming wrote:
-> All,
-> Since Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> has implemented acpi video
-> extension filed at bug 1944.
-> I made some improvement against his code. 
-> 
-> The patch [1/2] posted here is the original implementation of video
-> extension written by Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> .
-> The patch [2/2] posted here is my patch on top of the patch [1/2]. 
-> Please give it a review, and have it a try.
-> 
-> Thanks 
-> Luming
+--nextPart4875649.s9sOPcbZpM
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Hello,
+Am Donnerstag 26 August 2004 07:27 schrieb Andrea Borgia:
+> I gave kernel 2.6.9-rc1 a spin and discovered that my Acer 1357LMi
+> laptop does not poweroff anymore but simply reboots at the end of the
 
-I have a Dell Insprion 300m notebook with an Intel 855GM integrated
-graphics device. I gave the video extensions code a try, primarily with
-an interest in brightness control from userspace (for example, lowering
-brightness at a certain battery level). Right now, the brightness keys
-(Fn+Up/Down Arrow) are caught by the BIOS and work without any extra
-code in the kernel. There are two problems for me right now: first,
-brightness control is not effective. Doing:
+Just a "me too" here...
 
-root@dell-laptop /home/abarr/tmp # echo 40 >
-/proc/acpi/video/GFX0/LCD/brightness
-root@dell-laptop /home/abarr/tmp # cat
-/proc/acpi/video/GFX0/LCD/brightness
-levels:  80 60 0 20 40 60 80 100
-current: 40
+My notebook (Compaq Presatio 2100z) simply doesn't shut off. It says "Power=
+=20
+off" and then simply hangs. Reboot works just find still.
 
-will change the current value, as you can see, but it does not change
-the brightness value for my screen. Second, pressing the brightness
-control buttons with the video extensions patch applied causes a loss of
-keyboard input. The mouse will work, but both internal and external
-keyboards are dead after using those keys. BIOS-trapped keys such as
-brightness and CRT/LCD still work. I do get a video event in
-/proc/acpi/event when I press the CRT/LCD switch key.
+Cheers,
+    Andre
 
-Now, I realize that this code is new and experimental. I'm just hacking
-around here, and if anyone gets a chance to help me out I'd greatly
-appreciate it.
+--nextPart4875649.s9sOPcbZpM
+Content-Type: application/pgp-signature
 
-Andrew
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.9.10 (GNU/Linux)
 
+iD8DBQBBLtObtofNKe8dDvARAhq+AJ4gM+0nvWlSPIC7felue0yAFVPbqwCeNO14
+ZuXVGVTbH38TuRkiLFFoE/Y=
+=Nifd
+-----END PGP SIGNATURE-----
+
+--nextPart4875649.s9sOPcbZpM--
 
 
 -------------------------------------------------------
