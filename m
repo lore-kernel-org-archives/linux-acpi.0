@@ -1,9 +1,13 @@
-From: nicdev05 nic <nicdev05-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Driver Testing
-Date: Wed, 16 Mar 2005 17:21:51 -0800 (PST)
-Message-ID: <20050317012151.36290.qmail@web31406.mail.mud.yahoo.com>
+From: Jason Dagit <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org>
+Subject: Re: Driver Testing
+Date: Wed, 16 Mar 2005 17:45:25 -0800
+Message-ID: <87hdjbvydm.fsf@www.codersbase.com>
+References: <20050317012151.36290.qmail@web31406.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+From: Jason Dagit <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org>
+In-Reply-To: <20050317012151.36290.qmail-0gFffodynuCvuULXzWHTWIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org> (nicdev05-/E1597aS9LQAvxtiuMwx3w@public.gmane.org's
+ message of "Wed, 16 Mar 2005 17:21:51 -0800 (PST)")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,23 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: nicdev05 nic <nicdev05-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Folks,
-  I am adding power management support to a network
-driver on Linux 2.6. I have a simple question, is
-there a tool I can use to test my PM support?
-Something that will put my PC (Dell Optiplex) to sleep
-and wakes it up after say 1-minute?
+nicdev05 nic <nicdev05-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> writes:
 
-  Appreciate any pointers!
--Nic
+> Folks,
+>   I am adding power management support to a network
+> driver on Linux 2.6. I have a simple question, is
+> there a tool I can use to test my PM support?
+> Something that will put my PC (Dell Optiplex) to sleep
+> and wakes it up after say 1-minute?
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+You may want to try this:
+
+http://acpi.sourceforge.net/documentation/alarm.html
+
+Jason
 
 
 -------------------------------------------------------
