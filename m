@@ -1,14 +1,17 @@
-From: Savio Lau <saviol-z1KUqvL5UUQ@public.gmane.org>
-Subject: Re: Tecra S1 ACPI
-Date: Thu, 17 Jun 2004 12:31:38 -0700
+From: Bart Verwilst <verwilst-InCIlvFuQC0@public.gmane.org>
+Subject: Re: acpi=on -> black screen instead of bootup
+Date: Fri, 18 Jun 2004 03:56:24 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40D1F19A.5050509@sfu.ca>
-References: <1087471470.2437.5.camel@click>
+Message-ID: <200406180356.28995.verwilst@pyxa.org>
+References: <200406172059.05501.verwilst@pyxa.org> <200406172241.52231.ashashiwa@wanadoo.fr>
+Reply-To: verwilst-InCIlvFuQC0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1087471470.2437.5.camel-oimnHglTbBA@public.gmane.org>
+In-Reply-To: <200406172241.52231.ashashiwa-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,52 +20,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Roderich Schupp <Roderich.Schupp-GrGkmOP51Gf7N15VZvx3lQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, marekw77-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The patch Roderich described works.  It works even better than the 
-custom DSDT that have been posted.
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-However, I did noticed that there is an error with PFA_0  AE "ON" 
-instance failing if the computer starts at a warm/hot temperature.
+Hellow,
 
-As for suspend - I have user reports that S4 works for them using 
-PM_Disk.  S3 still very iffy at ths point.
+I tried your suggestion, but it doesn't change anything :(
+Something else i could try? Does anybody happen to know what the exact prob=
+lem=20
+is?
 
-Cheers,
-Savio
+Thanks in advance!
 
-Roderich Schupp wrote:
+Bart
 
->>This may be ambitious but I am trying to get ACPI working on a Tecra
->>    
->>
->S1 Gentoo 
->
->Try the patch attached to
->http://bugzilla.kernel.org/show_bug.cgi?id=1690
->It sorta worked for my Tecra S1, i.e. the error message goes away
->and I get the battery status. Suspend-to-ram (S3) still
->doesn't work even with kernel 2.6.7, but that's probably not
->an ACPI problem.
->
->Cheers, Roderich
->
->
->-------------------------------------------------------
->This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
->Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
->Conference, June 28 - July 1 at the Moscone Center in San Francisco, CA
->REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code NWMGYKND
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
->
->  
->
+On Thursday 17 June 2004 22:41, jb wrote:
+|| Hi
+||
+|| > I have a HP Pavillion ZE4455EA. I'm running Mandrake 10.0.
+|| > I have tried acpi=3Don in both the official kernel (2.6.3) and an rpm =
+for
+|| > 2.6.7-rc3.
+||
+|| "nolapic pci=3Dnoacpi"  and remove "acpi=3Dht".
+||
+|| Clear skies,
+||
+|| 							JB
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA0kvMtp3m+MfS4dcRAjKDAJ4l7YaLSYU7GSjlt+OvW8xTAYNEAgCeLv9k
+16BzsrCFB48KOVHnrsqI/DY=3D
+=3DGinu
+=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
