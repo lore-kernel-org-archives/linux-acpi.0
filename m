@@ -1,12 +1,12 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [patch 11/12] new sony_acpi driver
-Date: Wed, 2 Mar 2005 17:37:44 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3002E2E026@hdsmsx401.amr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3+S4 combination fails on M2000E
+Date: Thu, 3 Mar 2005 00:04:12 +0100
+Message-ID: <20050302230411.GA1390@elf.ucw.cz>
+References: <16A54BF5D6E14E4D916CE26C9AD30575010A9BA0@pdsmsx402.ccr.corp.intel.com> <421C9209.6090700@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <421C9209.6090700-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,27 +16,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Miroslav Ruda <ruda-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->But still, I don't see why there is no place for a sony acpi somewhere
->where there are already drivers for ibm, toshiba and asus laptops.
+Hi!
 
-The goal is to DELETE ibm, toshiba, and asus drivers -- or at least the
-duplicated functions in them.
+> >And also please try the suspend-to-disk mode 'platform' (set in
+> >/sys/power/disk).
+> 
+> I was finally able to make some tests. Still testing 2.6.10+acpi patches. I 
+> have
+> tried to boot and suspend kernel with acpi compiled in, but none of acpi 
+> modules
+> were loaded. Plain S3 or S4 works fine, resume from S4 (when S3 
+> suspend/resume
+> was already done) froze complete machine when using 'platform'. With 
+> 'shutdown'
+> mode resume works fine, but first modprobe of ANY acpi modules freeze 
+> machine
+> (testbed with ac, battery, button).
+> 
+> My guess is that during S3 suspend, some memory is freed but still
+> used/referenced somewhere in acpi code. When acpi module is loaded after 
+> resume
+> from S3, freed memory still contains expected data. But after S4 resume, 
+> memory
+> is cleaned ...
 
-platform specific drivers make it harder, not easier, to support more
-hardware -- there are a zillion vendors out there, implementing special
-drivers for each of them is a strategy of last resort.
+Can you try it on another machine? I'm afraid it is going to be
+hw-specific.
 
->I attached to the bugzilla entry the DSDTs for two Vaio laptops, which
->should hopefuly prove that those laptops do not support the standard
->ACPI way to access the video. Did you look at them ?
-
-thanks for filing the bug, it is in the queue.
-
--Len
+									Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
