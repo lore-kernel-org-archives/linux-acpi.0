@@ -1,14 +1,13 @@
-From: Mark Stocker <mark-pX1FbxK42pU@public.gmane.org>
-Subject: acpi on toshiba satellite 1625CDT
-Date: Tue, 25 Mar 2003 14:47:12 -0500
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [20030321] Failed to acquire semaphore
+Date: Tue, 25 Mar 2003 13:13:16 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200303251447.12168.mark@ale8.org>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96D5B@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,21 +16,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm still having trouble with the latest acpi patch and 2.4.21-pre5.  The 
-problem is once the cpu fan comes on it will never go off again.  Disabling 
-acpi will correct this problem but then closing the lid will cause the 
-machine to hard lock requiring a cold restart.  Acpi is correctly reading the 
-state of the lid and power button, thermal zone seems to work, sleep doesnt 
-seem to work as it should but this doesnt bother me.  Battery info appears 
-incorrect as it will show a battery even when the battery is removed.  Ac 
-power is correctly read.
-I would greatly appreciate any help!!  Compiling acpi without fan support 
-doesnt help, the fan still gets stuck on.  Is there anyway around this other 
-than disabling acpi completly causing the lid switch problem?
+> From: Karol Kozimor [mailto:sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org] 
+> Thus wrote Karol Kozimor:
+> >    osl-0888 [24] os_wait_semaphore     : Failed to acquire 
+> semaphore[cfff74c0|1|0], AE_TIME
+> > utmisc-0743 [23] ut_acquire_mutex      : Thread 0 could not 
+> acquire Mutex [ACPI_MTX_Events] AE_TIME
+> 
+> It is present in the 2.5.65-acpi-20030321 also, the same symptoms.
+> Best regards,
 
+Hiya -- can you (or someone else experiencing the same problem - I know
+there are a few) stick a WARN_ON(1) where that error message is
+happening, and turn on CONFIG_KALLSYMS, so we can get a stack trace?
+
+Thanks -- Andy
 
 
 -------------------------------------------------------
