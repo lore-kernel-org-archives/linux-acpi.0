@@ -1,13 +1,14 @@
-From: alex@local.promotion-ie.de
+From: Alexander Rauth <Alexander.Rauth@promotion-ie.de>
 Subject: [PATCH] Re: acpi shutdown problem on SMP (tyan tiger mp, athlon)
-Date: Mon, 16 Aug 2004 11:16:23 +0200
+Date: Mon, 16 Aug 2004 11:23:18 +0200
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1092647783.8494.4.camel@pro30.local.promotion-ie.de>
+Message-ID: <1092648198.8494.7.camel@pro30.local.promotion-ie.de>
 References: <1092376617.8529.13.camel@pro30.local.promotion-ie.de>
+Reply-To: Alexander.Rauth@promotion-ie.de
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267493AbUHPJQO@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267487AbUHPJWu@vger.kernel.org>
 In-Reply-To: <1092376617.8529.13.camel@pro30.local.promotion-ie.de>
 To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>
