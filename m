@@ -1,12 +1,11 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: generic ACPI video and hotkey drivers vs. platform-specificdrivers
-Date: Sun, 6 Mar 2005 22:02:30 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC149@pdsmsx403>
+From: mhf-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org
+Subject: Re: [Suspend2-devel] Cause of Suspend2 resume failures on Toshiba
+ laptops
+Date: Sun, 06 Mar 2005 17:46:01 +0100
+Message-ID: <422B33C9.nailFXZ11PEDH@berlios.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,77 +15,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, toshiba_acpi-7wiBuN1tZDdg9hUCZPvPmw@public.gmane.org, vojtech-IBi9RG/b67k@public.gmane.org, Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: suspend2-devel-g/J2nbn7YhmWn91e4EydUaxOck334EZe@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-UGxlYXNlIHRha2UgYSBsb29rIGF0IHRoZSBwcm90b3R5cGUgZmlsZWQgYXQgaHR0cDovL2J1Z3pp
-bGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTM4ODcgDQpUaGUgYmFzaWMgaWRlYSBpcyB0
-byBzdXBwbHkgaW50ZXJmYWNlcyB0byBjb25maWd1cmUgZ2VuZXJpYyBob3RrZXkgZHJpdmVyIHRv
-IG1ha2UgaXQgd29yayBvbiBhbnkgc3BlY2lmaWMgcGxhdGZvcm0gdGhhdCByZXF1aXJlcyB0aGUg
-ZXhlY3V0aW9uIG9mIHNvbWUgc3BlY2lmaWMgQU1MIG1ldGhvZHMuDQoNClRoYW5rcw0KTHVtaW5n
-IA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBUaW1vIEhvZW5pZyBbbWFp
-bHRvOnRob2VuaWdAbm91c2UubmV0XSANCj5TZW50OiAyMDA15bm0M+aciDTml6UgMTc6MzUNCj5U
-bzogQnJvd24sIExlbg0KPkNjOiBKb2huIEJlbG1vbnRlOyBBbmRyZXcgTW9ydG9uOyBLYXJvbCBL
-b3ppbW9yOyBZdSwgTHVtaW5nOyANCj50b3NoaWJhX2FjcGlAbWVtZWJlYW0ub3JnOyB2b2p0ZWNo
-QHN1c2UuY29tOyBTdGVsaWFuIFBvcDsgQUNQSSANCj5EZXZlbG9wZXJzDQo+U3ViamVjdDogUmU6
-IGdlbmVyaWMgQUNQSSB2aWRlbyBhbmQgaG90a2V5IGRyaXZlcnMgdnMuIA0KPnBsYXRmb3JtLXNw
-ZWNpZmljZHJpdmVycw0KPg0KPkhpLA0KPg0KPnRoYW5rcyBmb3Igb3BlbmluZyB0aGlzIGRpc2N1
-c3Npb24uDQo+DQo+T24gVGh1LCAyMDA1LTAzLTAzIGF0IDE2OjA4IC0wNTAwLCBMZW4gQnJvd24g
-d3JvdGU6DQo+Pkl0IGlzIGdyZWF0IHRoYXQgcHJvZ3JhbW1lcnMgLS0gc29tZXRpbWVzIHdpdGgg
-bGl0dGxlIG9yIG5vDQo+DQo+Wy4uLl0NCj4NCj4+QXMgSSd2ZSBzYWlkIGJlZm9yZSwgaXQgaXMg
-ZmluZSB3aXRoIG1lIGZvciBleG90aWMgZHJpdmVycw0KPj50byBoYW5kbGUgZXhvdGljIGhhcmR3
-YXJlIC0tIG5vYm9keSB3YW50cyB0byBtdWNrLXVwIGdlbmVyaWMNCj4+Y29kZSBmb3IgYSBmZXcg
-ZXhvdGljcy4gIEJ1dCB3ZSBuZWVkIGEgZGVzaWduIHdoZXJlDQo+PnN0YW5kYXJkIHN5c3RlbXMg
-d2UndmUgbmV2ZXIgaGVhcmQgb2YgImp1c3Qgd29yayI7DQo+PmFuZCB3ZSBuZWVkIHRvIG1ha2Ug
-dGhlIHVzZSwgYWRtaW5pc3RyYXRpb24sIGFuZCBzdXBwb3J0DQo+Pm9mIGV4b3RpYyBzeXN0ZW1z
-IGFzIG11Y2ggbGlrZSBzdGFuZGFyZCBzeXRlbXMNCj4+YXMgcG9zc2libGUuDQo+DQo+WWVzLiAg
-V2hhdCBkbyB5b3UgdGhpbmsgb2YgcHJvdmlkaW5nIGFuIEFQSSBmb3Igc3BlY2lmaWMgZHJpdmVy
-cyBhcw0KPnByb3Bvc2VkIGJ5IFN0ZWxpYW4gb24gYWNwaS1kZXZlbCBiZWZvcmU/ICBXZSB0aGVu
-IGNvdWxkIG1vdmUgdGhlDQo+c3BlY2lmaWMgZHJpdmVycyBvdXQgb2YgdGhlIEFDUEkgbWFpbnRy
-ZWUuDQo+DQo+UmVnYXJkaW5nIGhvdGtleXMgZm9yIGV4YW1wbGUgd2UgY291bGQgcHJvdmlkZSBh
-biBpbnRlcmZhY2Ugd2hpY2ggaXMNCj51c2VkIGJ5IHRoZSBzcGVjaWZpYyBkcml2ZXJzIHRvIHJl
-cG9ydCBldmVudHMuICBTdWNoIGV2ZW50cyB3b3VsZCBiZQ0KPnJlcG9ydGVkIGludG8gdXNlci1z
-cGFjZSBsaWtlIHRoZSBvbmUncyB0cmlnZ2VyZWQgYnkgdGhlIA0KPmdlbmVyaWMgZHJpdmVyLg0K
-PlBlcmhhcHMgYnkgdXNpbmcgdGhlIExpbnV4IGlucHV0IGNvcmUuICBCdXQgSSBndWVzcyB0aGlz
-IHN0aWxsIG5lZWRzIHRvDQo+YmUgZGlzY3Vzc2VkIHRob3JvdWdobHkuDQo+DQo+Wy4uLl0NCj4N
-Cj4+SSBiZWxpZXZlIHRoYXQgQnJ1bm8ncyBnZW5lcmljIHZpZGVvIGRyaXZlciAoaW4gdHJlZSkN
-Cj4+aXMgYSBzdGVwIGluIHRoaXMgZGlyZWN0aW9uLiAgSSBiZWxpZXZlIHRoYXQgTHVtaW5nJ3MN
-Cj4+Z2VuZXJpYyBob3Qga2V5IGRyaXZlciAob24gbGlzdCwgYnV0IG5vdCB5ZXQgaW4gdHJlZSkN
-Cj4+aXMgYSBzdGVwIGluIHRoaXMgZGlyZWN0aW9uLiAgQXJlIGVpdGhlciBvZiB0aGVzZQ0KPj4i
-ZmluYWwiPyAgaGVjayBubywgYnV0IEknbSBjb25maWRlbnQgdGhhdCB0aGV5J3JlDQo+PmhlYWRp
-bmcgdXMgaW4gdGhlIHJpZ2h0IGRpcmVjdGlvbi4NCj4+DQo+PkkgcGxhbiB0byBwdWxsIEx1bWlu
-ZydzIGhvdC1rZXkgZHJpdmVyIGludG8gdGhlIEFDUEkgcGF0Y2gNCj4+c29vbiAtLSB0aGUgb25s
-eSByZWFzb24gd2UgZGlkbnQnIGRvIGl0IGVhcmx5ZXIgaXMgYmVjYXVzZQ0KPj50aGUgcHJldmlv
-dXMgdmVyc2lvbiB3b3VsZCBoYXZlIGltbWVkaWF0ZWx5IGJyb2tlbiB0aGUNCj4+ZXhpc3Rpbmcg
-cGxhdGZvcm0gc3BlY2lmaWMgZHJpdmVycy4uLg0KPg0KPkx1bWluZywgY2FuIHlvdSBwbGVhc2Ug
-Z2l2ZSBzb21lIGNvbW1lbnQgb24gdGhlIHN0YXRlIG9mIHlvdXIgZHJpdmVyPw0KPg0KPj5XZSBh
-bHNvIG5lZWQgdG8gdGhpbmsgYWJvdXQgdGhlIGtlcm5lbDwtPnVzZXIgaW50ZXJmYWNlDQo+Pndl
-J3ZlIGN1cnJlbnRseSBnb3QuDQo+Pg0KPj5XZSBuZWVkIHRvIHRoaW5rIHRocm91Z2ggdGhlIHN1
-Z2dlc3Rpb24gdGhhdCBob3Qga2V5cw0KPj5zaG91bGQgYXBwZWFyIHRvIExpbnV4IGxpa2Ugb3Ro
-ZXIga2V5Ym9hcmQga2V5cyAtLSBhbmQNCj4+d2luZCB0aGVpciB3YXkgdGhyb3VnaHQgdGhlIGlu
-cHV0IGxheWVyLiAgSSB0aGluayB0aGUgaW1wb3J0YW50DQo+PnRoaW5nIHdpbGwgYmUgd2hhdCB0
-aGUgdXNlciBvciBhZG1pbmlzdHJhdG9yIGhhcyB0byBkbyBpbg0KPj5vcmRlciB0byBtYXAgd2hp
-Y2gga2V5cyB0byB3aGljaCBmdW5jdGlvbnM7IGFuZCBpZiB0aGlzDQo+PmNhbiB3b3JrIGF1dG9t
-YXRpY2FsbHkgd2l0aG91dCBhIGNhbGwgdG8gMS04MDAtZGlzdHJvLg0KPg0KPkkgd2lsbCB3cml0
-ZSBzb21lIGRvY3VtZW50IHdoaWNoIHdpbGwgcGlucG9pbnQgdGhlIGN1cnJlbnQgcHJvYmxlbXMN
-Cj5kZXBlbmRpbmcgb24gdmVuZG9yIGFuZC9vciBtYWNoaW5lLiAgRm9yIHRoYXQgcHVycG9zZSBJ
-J2xsIGhhdmUgcXVpdGUgYQ0KPmZldyBtYWNoaW5lcyBwcm92aWRlZCBieSB0aGUgU1VTRSBMYWJz
-LiBGb3Igb3RoZXIgc3lzdGVtcyBJIHdpbGwgY2FsbA0KPnVzZXJzIGZvciBoZWxwLg0KPg0KPlsu
-Li5dDQo+DQo+V2Ugc3RpbGwgaGF2ZSB0byBmYWNlIHRoZSBmYWN0IHRoYXQgd2Ugd2lsbCBub3Qg
-YmUgYWJsZSB0byBjb3ZlciBhbGwNCj5zeXN0ZW1zIGJ5IGEgZ2VuZXJpYyBkcml2ZXIuICBWZW5k
-b3JzIGFyZSAtLSBhbmQgd2lsbCAtLSBnbyB0aGVpciBvd24NCj53YXkuIFNlZSBTb255IGFuZCBU
-b3NoaWJhIGZvciBleGFtcGxlLiAgU2luY2Ugd2UgZG8gbm90IHdhbnQgdG8gY2x1dHRlcg0KPnRo
-ZSBnZW5lcmljIGRyaXZlciB3aXRoIGV4Y2VwdGlvbnMgd2Ugd2lsbCBoYXZlIHRvIGZpbmQgYSBw
-cm9wZXIgZGVzaWduDQo+Zm9yIGltcGxlbWVudGluZyBzcGVjaWZpYyBkcml2ZXJzLg0KPg0KPk1h
-eWJlIHRoZSBudW1iZXIgb2Ygc3lzdGVtcyB3aGljaCByZXF1aXJlIGEgc3BlY2lmaWMgZHJpdmVy
-IHdpbGwNCj5kZWNyZWFzZSAtLSBidXQgbmV2ZXIgdG8gemVyby4NCj4NCj5JJ3ZlIGFkZGVkIEFu
-ZHJldyBhbmQgSm9obiB0byBjYy4NCj4NCj5TZWUgeW91LA0KPg0KPiAgLS0gVGltbw0KPg0KPi4u
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-Li4uDQo+VGltbyBIw7ZuaWcgPHRob2VuaWcgYXQgbm91c2UgZG90IG5ldD4NCj4uLi4uLi4uLi4u
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLjo6IGdwZyA6Oi4uLg0KPkZp
-bmdlcnByaW50OiAwOTk4IDBBQ0EgQTFEMiAyNjEyIDREOTYgREQ4QiBFMDNGIDA4NEIgQjMwNSA0
-MDY2DQo+DQo=
+On Friday 04 March 2005 18:50, Bernard Blackham wrote:
+> Hi all,
+>
+> As some of you will know, some laptops (notably almost
+> all recent Toshibas) have issues resuming with Software
+> Suspend 2, resulting in a hang during "Reading caches",
+> or a stream of "Unable to queue event ..." messages. If
+> you try and resume enough times, occasionally it will
+> make it to the end of resuming and the system will be
+> perfectly usable.
+>
+> The attached patch more or less reverts the change in
+> 2.6.9-rc1 that began this all. If you have a Toshiba or
+> other laptop that's affected by this, I ask you to see if
+> it helps your problems. (It hacks around the problem
+> rather than fixing it, but I'm not entirely sure what
+> functionality it disables).
+>
+> To the ACPI developers:
+>
+> I'm not entirely sure what this is breaking. What uses
+> these GPEs? It seems the hangs are caused by one of these
+> GPEs firing upon resume (though I'm not sure why it
+> causes a hang - perhaps related to the low memory
+> conditions during a suspend/resume cycle?)
+>
+> The comment above the line I changed mentions that the
+> GPE enable mask is updated, but not the HW GPE itself.
+> Whereabouts are these later enabled?
+>
+> Are the HW GPE enable masks stored in memory that might
+> be replaced when resuming, with their values from
+> suspend? If so, could/should GPEs be disabled before
+> suspending so that they aren't enabled at an unfortunate
+> moment on resume?
+>
+> Apologies if none of the above makes much sense - it
+> doesn't make all that much sense to me yet :)
+>
+> Thanks,
+>
+> Bernard.
+
+Hi Bernard,
+
+I am afraid the only effect of the patch on my Toshiba L2
+is that the RTC stops working, thus the rtc.ko module can
+not be inserted (no such device).
+
+Resume still hangs with the GPE out of memory failure
+after restoring the orig kernel.
+
+If you need my DSDT, let me know.
+
+Regards
+Michael
+
 
 
 -------------------------------------------------------
