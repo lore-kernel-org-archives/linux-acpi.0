@@ -1,53 +1,36 @@
-From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: acpi patch for 2.6.7
-Date: Wed, 15 Sep 2004 16:29:07 +1000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095229747.13132.139.camel@laptop.cunninghams>
-References: <200409061331.28311@geromy>  <20040907135637.GC3647@fuchi>
-	 <1094606130.9577.41.camel@neuromancer.home.net>
-Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+From: "Suso Baleato" <susinho@ultreia.org>
+Subject: BIOS Update: new dsdt for ThinkPadP R51
+Date: Wed, 15 Sep 2004 08:25:02 +0000
+Sender: linux-thinkpad-admin@linux-thinkpad.org
+Message-ID: <20040915082407.7A5CD83F6@smtp.causaencantada.org>
+Reply-To: linux-thinkpad@linux-thinkpad.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1094606130.9577.41.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
+Errors-To: linux-thinkpad-admin@linux-thinkpad.org
+List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
+List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
+List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
+	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
+List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
+	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
+List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
+To: acpi-devel@lists.sourceforge.net, linux-thinkpad@linux-thinkpad.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+I discovered an august 2004 BIOS update for R/T ThinkPads with a Linux
+fix inside.
 
-On Wed, 2004-09-08 at 11:15, Ow Mun Heng wrote:
-> rm1-mm2, suspend code/something causes a need for a keyboard press to
-> start writing to swap. -rc1-mm3 does not compile at "make
+(Fix) (Linux) Hibernation function does not work correctly under the
+partition environment created by lphdisk.
 
-Which version of suspend? You might try adding kdb in then breaking at
-the pause and getting a backtrace for the process that's suspending.
+After system's update I extracted and published the (again buggy) DSDT
+table in the ACPI database. If you can correct the bug, please publish
+the fixed DSDT as well, thank you.
 
-Regards,
-
-Nigel
+http://www-1.ibm.com/support/docview.wss?rs=3D0&q1=3D1830&uid=3Dpsg1MIGR-5027=
+5&loc=3Des_ES&cs=3Dutf-8&cc=3Des&lang=3Des+en
 -- 
-Nigel Cunningham
-Pastoral Worker
-Christian Reformed Church of Tuggeranong
-PO Box 1004, Tuggeranong, ACT 2901
-
-Many today claim to be tolerant. True tolerance, however, can cope with others
-being intolerant.
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: thawte's Crypto Challenge Vl
-Crack the code and win a Sony DCRHC40 MiniDV Digital Handycam
-Camcorder. More prizes in the weekly Lunch Hour Challenge.
-Sign up NOW http://ad.doubleclick.net/clk;10740251;10262165;m
+The linux-thinkpad mailing list home page is at:
+http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
