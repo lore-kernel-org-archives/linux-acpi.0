@@ -1,11 +1,13 @@
-From: Pavel Kysilka <goldenfish-kkCZSxYw6FY@public.gmane.org>
-Subject: S5 not working, and another problem
-Date: Sat, 20 Nov 2004 03:55:33 +0100
-Message-ID: <20041120025533.GA2384@prog3>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: Re: Re: [PATCH] Teach OSL to handle multiple interrupts [1/2]
+Date: Sat, 20 Nov 2004 03:32:40 +0000
+Message-ID: <20041120033240.GJ1108@parcelfarce.linux.theplanet.co.uk>
+References: <3ACA40606221794F80A5670F0AF15F84041AC098@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC098@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,138 +17,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-	Hi all,
+On Fri, Nov 19, 2004 at 12:41:54AM +0800, Yu, Luming wrote:
+> 1. Current ACPI CA seems to have defect when handling
+> case if there have duplicate GPE interrupt level. 
+> It's due to all acpi_gpe_xrupt_info
+> are hooked onto a global list of acpi_gbl_gpe_xrupt_list_head. 
+> And, if found a duplicate interrupt, the old acpi_gpe_xrupt_info
+> will be override by new one, Please take a look at 
+> acpi_ev_get_gpe_xrupt_block. So you patch need to avoid
+> duplication of GPE interrupt level at this moment.
+>  I'm not sure if this limitation is NOT ACPI CA 's bug. ( I will figure
+> it out)
 
-i was testing today acpi with 2.6.10-rc2 kernel on my computer.
+I think this is just a misreading.  There's one acpi_gpe_xrupt_info per
+interrupt.  There can be multiple gpe blocks per acpi_gpe_xrupt_info.
+See acpi_ev_install_gpe_block():
 
-0) 
-there are difference with dmesg and /proc/acpi/sleep
+        gpe_xrupt_block = acpi_ev_get_gpe_xrupt_block (interrupt_level);
+        acpi_os_acquire_lock (acpi_gbl_gpe_lock, ACPI_NOT_ISR);
+        if (gpe_xrupt_block->gpe_block_list_head) {
+                next_gpe_block = gpe_xrupt_block->gpe_block_list_head;
+                while (next_gpe_block->next) {
+                        next_gpe_block = next_gpe_block->next;
+                }
 
-dmesg::
-ACPI: (supports S0 S1 S4bios S5)
+                next_gpe_block->next = gpe_block;
+                gpe_block->previous = next_gpe_block;
+        }
+        else {
+                gpe_xrupt_block->gpe_block_list_head = gpe_block;
+        }
 
-cat /proc/acpi/sleep ::
-S0 S1 S4 S4bios S5 
+> 2. Due to the global list of acpi_gbl_gpe_xrupt_list_head,
+> All GPEs will be checked at each GPE interrupt level,
+> This is not the expected behaviour of just checking GPE at GPE's
+> interrupt
+> level.
 
-feature or error ?
+I think this misunderstanding follows from the above misunderstanding.
 
-1)
+> 3. Interrupt Source Overrides are necessary to describe variances 
+> between the IA-PC standard dual 8259 interrupt definition and the 
+> platform's implementation.
+> 
+> Please take a look at ACPI SPEC
+> 5.2.11.8   Interrupt Source Overrides
 
-echo 1 > /proc/acpi/sleep
-echo 4 > /proc/acpi/sleep
-echo 4b > /proc/acpi/sleep
+OK, but that doesn't explain why we have two copies of the FADT.  Or,
+for that matter, why we only override SCI INT in one copy of the FADT
+and not the other.
 
-this states working fine. only problem with emu10k1 chip (no support,
-but no freeze). module snd-via82xxx freeze with S1,S4 computer (reported
-today to alsa-devel list).
-
-echo 5 >  /proc/acpi/sleep not working.
-i look in the log and no information. 
-button and command "poweroff" work good.
-
-2) i look in the difference of dmesg (2.6.10-rc1->2.6.10-rc2):
-ignore ext3-fs recovery.
-
- 1c1
- < Linux version 2.6.10-rc1 (root@prog3) (gcc version 3.3.4 (Debian 1:3.3.4-13)) #6 Fri Oct 29 20:59:56 CEST 2004
- ---
- > Linux version 2.6.10-rc2 (root@prog3) (gcc version 3.3.4 (Debian 1:3.3.4-13)) #1 Wed Nov 17 20:52:04 CET 2004
- 21c21
- < Kernel command line: BOOT_IMAGE=2.6.10-rc1 ro root=302
- ---
- > Kernel command line: BOOT_IMAGE=2.6.10-rc2 ro root=302
- 29c29
- < Memory: 385244k/393152k available (2592k kernel code, 7376k reserved, 883k data, 152k init, 0k highmem)
- ---
- > Memory: 385104k/393152k available (2667k kernel code, 7516k reserved, 939k data, 164k init, 0k highmem)
- 42a43,46
- >  tbxface-0117 [02] acpi_load_tables      : ACPI Tables successfully acquired
- > Parsing all Control Methods:....................................................................
- > Table [DSDT](id F004) - 281 Objects with 27 Devices 68 Methods 18 Regions
- > ACPI Namespace successfully loaded at root c04c6ba0
- 43a48
- > evxfevnt-0093 [03] acpi_enable           : Transition to ACPI mode successful
- 48c53,59
- < ACPI: Subsystem revision 20040816
- ---
- > ACPI: Subsystem revision 20041105
- > evgpeblk-0979 [06] ev_create_gpe_block   : GPE 00 to 0F [_GPE] 2 regs on int 0x9
- > evgpeblk-0987 [06] ev_create_gpe_block   : Found 3 Wake, Enabled 0 Runtime GPEs in this block
- > Completing Region/Field/Buffer/Package initialization:.......................................
- > Initialized 18/18 Regions 1/1 Fields 16/16 Buffers 4/6 Packages (290 nodes)
- > Executing all Device _STA and_INI methods:..............................
- > 30 Devices found containing: 30 _STA, 1 _INI methods
- 58a70,73
- > pnp: PnP ACPI init
- > acpi_bus-0077 [03] acpi_bus_get_device   : Error getting context for object [c13738fc]
- > acpi_bus-0077 [03] acpi_bus_get_device   : Error getting context for object [c13736e8]
- > pnp: PnP ACPI: found 12 devices
- 62,72c77,83
- < ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
- < ACPI: PCI interrupt 0000:00:07.2[D] -> GSI 10 (level, low) -> IRQ 10
- < ACPI: PCI interrupt 0000:00:07.3[D] -> GSI 10 (level, low) -> IRQ 10
- < ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
- < ACPI: PCI interrupt 0000:00:07.5[C] -> GSI 11 (level, low) -> IRQ 11
- < ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
- < ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 11 (level, low) -> IRQ 11
- < ACPI: PCI interrupt 0000:00:0b.0[A] -> GSI 10 (level, low) -> IRQ 10
- < ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
- < ACPI: PCI interrupt 0000:00:0c.0[A] -> GSI 11 (level, low) -> IRQ 11
- < ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
- ---
- > ** PCI interrupts are no longer routed automatically.  If this
- > ** causes a device to stop working, it is probably because the
- > ** driver failed to call pci_enable_device().  As a temporary
- > ** workaround, the "pci=routeirq" argument restores the old
- > ** behavior.  If this argument makes the device work again,
- > ** please email the output of "lspci" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
- > ** so I can fix the driver.
- 83a95,96
- > ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
- > PCI: setting IRQ 11 as level-triggered
- 139,142d151
- < EXT3-fs: INFO: recovery required on readonly filesystem.
- < EXT3-fs: write access will be enabled during recovery.
- < (fs/jbd/recovery.c, 255): journal_recover: JBD: recovery, exit status 0, recovered transactions 512905 to 512932
- < (fs/jbd/recovery.c, 257): journal_recover: JBD: Replayed 1124 and revoked 0/8 blocks
- 144d152
- < EXT3-fs: recovery complete.
- 147c155
- < Freeing unused kernel memory: 152k freed
- ---
- > Freeing unused kernel memory: 164k freed
- 154c162,165
- < ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 11 (level, low) -> IRQ 11
- ---
- > ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
- > PCI: setting IRQ 10 as level-triggered
- > ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 10 (level, low) -> IRQ 10
- > ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
- 158a170
- > ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
- 171c183,184
- < ACPI: Processor [CPU0] (supports C1 C2, 2 throttling states)
- ---
- > ACPI: Processor [CPU0] (supports C1 C2)
- > ACPI: Processor [CPU0] (supports 2 throttling states)
- 
-
-   for information and testing (disk non destructive) contact me.
-
- sorry for my bad english. thank for your time.
- 
-bye 
-  pavel kysilka
-  programmer http://www.bsys.cz/
-
-
-________ Information from NOD32 ________
-This message was checked by NOD32 Antivirus System for Linux Mail Server.
-
-http://www.nod32.com
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
