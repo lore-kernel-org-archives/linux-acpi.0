@@ -1,15 +1,14 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: what is throttling?
-Date: Wed, 6 Oct 2004 12:05:04 +0200
+From: George Barnett <george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
+Subject: Re: DSDT on suse 9.1
+Date: Wed, 06 Oct 2004 12:05:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041006100504.GA20212@dominikbrodowski.de>
-References: <20041006090408.GA17104@rap.rap.dk>
+Message-ID: <4163D16B.1090903@alink.co.za>
+References: <4162A11A.106@alink.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041006090408.GA17104-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
+In-Reply-To: <4162A11A.106-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,31 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 06, 2004 at 11:04:08AM +0200, Keld J=F8rn Simonsen wrote:
-> Hi!
->=20
-> I have googled around for a couple of hours to find out precisely what
-> throttling means. I did it before and found some useful information, bu=
-t
-> this time I did not find the relevant data.
->=20
-> I would like to find out, which state precisely that the CPU enters whe=
-n
-> throttling. Maybe it is different from CPU to CPU. Specifically I would
-> like to know if the CPU is completely powered off, my recollection of
-> some information I have seen earlier is that this may be the case.
->=20
-> And where is throttling done in the kernel?
+George Barnett wrote:
 
-It's managed in the ACPI processor module. Specific, extensive documentat=
-ion
-will be added to the ACPI HOWTO soon.
+> I have the modified .asl file - what switches should I feed to iasl to 
+> get the correct output?  -tc seems to give hex, which I dont believe is 
+> what I want?
 
-	Dominik
+Hi,
+
+Ignore me.  I managed to get this asl file compiled to hex and it spewed 
+the same errors as the dsdt already installed with my distro of linux.
+
+The powersaving mostly works and I dont think I'm going to get much 
+better.  I'm not too worried about suspend.
+
+Cheers,
+
+George
+
+-- 
+George Barnett
+Reality Engineer & Explorer
+
+e: george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org
+m: +44 778 884 7205
+
+Things must be as they may
+       - William Shakespeare, Henry V
 
 
 -------------------------------------------------------
