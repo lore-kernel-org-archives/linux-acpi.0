@@ -1,16 +1,13 @@
-From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop
-Date: Tue, 5 Apr 2005 22:49:29 -0400
-Message-ID: <200504052249.35030.shawn.starr@rogers.com>
-References: <20050405185620.80060.qmail@web88009.mail.re2.yahoo.com> <20050405204234.GE1380@elf.ucw.cz>
+From: Nathan Lynch <ntl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [RFC 5/6]clean cpu state after hotremove CPU
+Date: Tue, 5 Apr 2005 23:28:50 -0500
+Message-ID: <20050406042850.GE3611@otto>
+References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com> <20050404052844.GB3611@otto> <1112593338.4194.362.camel@sli10-desk.sh.intel.com> <20050404153345.GC3611@otto> <1112666106.17861.62.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1190047.sdQ0FRJkRK";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050405204234.GE1380-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1112666106.17861.62.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,41 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart1190047.sdQ0FRJkRK
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Tue, Apr 05, 2005 at 09:55:06AM +0800, Li Shaohua wrote:
 
-So nobody minds if I make this into a CONFIG option marked as Deprecated? :)
+> On Mon, 2005-04-04 at 23:33, Nathan Lynch wrote:
+> > No.  It should make zero difference to the scheduler whether the "play
+> > dead" cpu hotplug or "physical" hotplug is being used.  
+> Keeping some fields like 'cpu_load' are meanless for a hotadded CPU to
+> me. Just ignore them?
 
-Shawn.
+Reinitializing such things during the CPU_UP_PREPARE case in
+migration_call should be sufficient, if it's not done already.
 
->
-> > Do you know if /proc/acpi/sleep will be deprecated in
-> > favour of /sys/power/state? If so, this thread will be
-> > moot ;)
->
-> No idea, deprecating it would be ok with me.
->
->        Pavel
 
---nextPart1190047.sdQ0FRJkRK
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQBCU04+sX/SQXZigqcRAm3wAJ0Z3ZdArjH3rrQafruoZNtXpIDVoACeO+sN
-jEWXEPU1302+/Vee/4S6i7w=
-=/6l8
------END PGP SIGNATURE-----
-
---nextPart1190047.sdQ0FRJkRK--
+Nathan
 
 
 -------------------------------------------------------
