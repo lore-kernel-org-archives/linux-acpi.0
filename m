@@ -1,12 +1,12 @@
-From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
-Subject: Re: [PATCH] PNPACPI parser fix
-Date: Sat, 05 Feb 2005 10:07:08 +0100
-Message-ID: <42048CBC.8070700@free.fr>
-References: <4203AFC5.8070308@free.fr>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Samsung P35, S3, black screen (radeon)
+Date: Sat, 5 Feb 2005 10:31:18 +0100
+Message-ID: <20050205093118.GA1158@elf.ucw.cz>
+References: <4201825B.2090703@gmx.net> <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz> <1107474198.5727.9.camel@desktop.cunninghams> <20050204074302.GA1086@elf.ucw.cz> <1107512396.5727.80.camel@desktop.cunninghams> <20050204161358.GA1290@elf.ucw.cz> <1107555981.4109.3.camel@desktop.cunninghams>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000704070800050502040905"
-In-Reply-To: <4203AFC5.8070308-GANU6spQydw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1107555981.4109.3.camel-r49W/1Cwd2ff0s6lnCXPXw0QcLn3kwYh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,84 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
-Cc: Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000704070800050502040905
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi!
 
-Hi,
-
-matthieu castet wrote:
-> Hi,
+> > battery does not run out, you just do resume-from-RAM"? Wow. Nice
+> > trick...
+> > 
+> > But it has same video problems as suspend-to-RAM, no? On how many
+> > machines does it work?
 > 
-> This patch is very old (11/2004), but never get merged even if acked by 
-> Shaohua Li.
-> As you can see in the bugzilla report 
-> (http://bugzilla.kernel.org/show_bug.cgi?id=3912), it solve parsing 
-> issue in the pnpacpi core : the pnpacpi parser supposed that are no
-> resource after EndDependentFn.
-> 
-> Please apply this patch.
-> Thanks.
-> 
-> Matthieu CASTET
+> Yes, the same problems as suspend-to-RAM. I'm not sure how many machines
+> are using it at the moment. I'd love to try it on my laptop; that would
+> be one more, and I'd also try to get STR working on my HT desktop
+> machine (Radeon video) if I had the chance. Oh yeah... and I'm going to
+> have another go at merging. Get the idea I've got a lot I want to do? :>
 
-oops, the attachement was wrong.
-
-Here is the patch.
-
-
-Regards,
-
-Matthieu
-
---------------000704070800050502040905
-Content-Type: text/x-patch;
- name="pnpacpi_parser.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pnpacpi_parser.patch"
-
---- linux-2.6.9/drivers/pnp/pnpacpi/rsparser.c.old	2004-11-12 22:55:10.000000000 +0100
-+++ linux-2.6.9/drivers/pnp/pnpacpi/rsparser.c	2004-11-20 10:44:36.000000000 +0100
-@@ -443,6 +443,7 @@
- 
- struct acpipnp_parse_option_s {
- 	struct pnp_option *option;
-+	struct pnp_option *option_independent;
- 	struct pnp_dev *dev;
- };
- 
-@@ -506,7 +507,15 @@
- 			parse_data->option = option;	
- 			break;
- 		case ACPI_RSTYPE_END_DPF:
--			return AE_CTRL_TERMINATE;
-+			/*only one EndDependentFn is allowed*/
-+			if (!parse_data->option_independent) {
-+				pnp_warn("PnPACPI: more than one EndDependentFn");
-+				return AE_ERROR;
-+			}
-+			parse_data->option = parse_data->option_independent;
-+			parse_data->option_independent = NULL;
-+			break;
- 		default:
- 			pnp_warn("PnPACPI:Option type: %d not handle", res->id);
- 			return AE_ERROR;
-@@ -524,6 +533,7 @@
- 	parse_data.option = pnp_register_option_independent(dev);
- 	if (!parse_data.option)
- 		return AE_ERROR;
-+	parse_data.option_independent = parse_data.option;
- 	parse_data.dev = dev;
- 	status = acpi_walk_resources(handle, METHOD_NAME__PRS, 
- 		pnpacpi_option_resource, &parse_data);
-
---------------000704070800050502040905--
+Actually, getting STR work on SMP/HT machine is going to be quite a
+lot of work -- because you need to boot secondary CPUs without
+touching contents of RAM. I hoped CPU hotplug people or Intel ACPI
+people were going to solve it for me, but unfortunately that did not
+happen :-(.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
