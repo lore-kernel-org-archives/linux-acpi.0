@@ -1,13 +1,11 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI - DOS - 2.6.10
-Date: Wed, 29 Dec 2004 10:56:51 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8406A73C1E@pdsmsx403>
+From: Ron Rechenmacher <ron-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org>
+Subject: HELP with 82855PM chipset issue
+Date: Tue, 28 Dec 2004 21:08:42 -0600
+Message-ID: <200412290308.iBT38gw2025166@fnapcf.fnal.gov>
+Reply-To: ron-13hema8v3vg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +15,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: ron-13hema8v3vg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-VGhlIERTRFQgc2hvd3MgdGhhdDoNCkluIF9ET1M6DQogICAgICAgICAgICAgICAgICAgICBJZiAo
-TE5vdCAoTExlc3MgKE9TWVMsIDB4MDdEMCkpKQ0KICAgICAgICAgICAgICAgICAgICB7DQogICAg
-ICAgICAgICAgICAgICAgICAgICBTdG9yZSAoMHgwMCwgRFNFTikNCiAgICAgICAgICAgICAgICAg
-ICAgfQ0KQW5kIGluIF9RMEUsICBpZiBEU0VOIGlzIDEgdGhlbiwgQklPUyB3aWxsIGF1dG9tYXRp
-Y2FsbHkgaGFuZGxlICBkaXNwYWx5IHN3aXRjaCwNCm90aGVyd2lzZSwgaXQganVzdCBnZW5lcmF0
-ZSBOb3RpZnkgZXZlbnQgdG8gT1NQTSwgYW5kIHJlbHkgb24gZHJpdmVyIHRvIGhhbmRsZSBpdC4N
-Ckhvd2V2ZXIsIHRoZXJlIGRvbid0IGhhdmUgX0RTUyBpbiBEU0RUICwgd2hpY2ggaXMgcmVxdXJl
-ZCBmb3IgYWNwaSB2aWRlbyBkcml2ZXIgdG8gaGFuZGxlIGRpc3BsYXkgc3dpdGNoLg0KDQpDb3Vs
-ZCB5b3UgdHJ5IGtlcm5lbCBvcHRpb24gImFjcGlfb3NpPSIgDQoNClRoYW5rcywNCkx1bWluZw0K
-DQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IGFjcGktZGV2ZWwtYWRtaW5A
-bGlzdHMuc291cmNlZm9yZ2UubmV0IFttYWlsdG86YWNwaS1kZXZlbC1hZG1pbkBsaXN0cy5zb3Vy
-Y2Vmb3JnZS5uZXRdIE9uIEJlaGFsZiBPZiBMdWthcyBIZWp0bWFuZWsNClNlbnQ6IDIwMDTlubQx
-MuaciDI35pelIDc6MDgNClRvOiBhY3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KU3Vi
-amVjdDogW0FDUEldIEFDUEkgLSBET1MgLSAyLjYuMTANCg0KSGVsbG8sDQoNCnNpbmNlIDIuNi4x
-MC1yYzEgZGlzcGxheSBzd2l0Y2ggYnV0dG9uIHN0b3BlZCB0byB3b3JrLiBJIGhhdmUgQUNQSSB2
-aWRlbw0KY29tcGlsZWQgaW4sIGl0IGRpc3BsYXlzOiBET1Mgc2V0dGluZzogPDE+DQoNCkFueSB2
-YWx1ZSB3cml0dGVuIHRvIHRoaXMgZmlsZSBkb2VzIG5vdCBnZXQgaXQgd29yay4gQUNQSSBldmVu
-dCBpcyBnZW5lcmF0ZWQ6DQpbTW9uIERlYyAyNyAwMDowNzozMiAyMDA0XSByZWNlaXZlZCBldmVu
-dCAidmlkZW8gVkdBIDAwMDAwMDgwIDAwMDAwMDAwIg0KDQpBbnkgc3VnZ2VzdGlvbnM/IEkgY2Fu
-IHByb3ZpZGUgL3Byb2MvYWNwaS9kc2R0IGlmIGl0IGhlbHBzLg0KDQotLSANCkx1a8OhxaEgSGVq
-dG3DoW5law0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0NClNGIGVtYWlsIGlzIHNwb25zb3JlZCBieSAtIFRoZSBJVCBQcm9kdWN0IEd1
-aWRlDQpSZWFkIGhvbmVzdCAmIGNhbmRpZCByZXZpZXdzIG9uIGh1bmRyZWRzIG9mIElUIFByb2R1
-Y3RzIGZyb20gcmVhbCB1c2Vycy4NCkRpc2NvdmVyIHdoaWNoIHByb2R1Y3RzIHRydWx5IGxpdmUg
-dXAgdG8gdGhlIGh5cGUuIFN0YXJ0IHJlYWRpbmcgbm93LiANCmh0dHA6Ly9wcm9kdWN0Z3VpZGUu
-aXRtYW5hZ2Vyc2pvdXJuYWwuY29tLw0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18NCkFjcGktZGV2ZWwgbWFpbGluZyBsaXN0DQpBY3BpLWRldmVsQGxpc3Rz
-LnNvdXJjZWZvcmdlLm5ldA0KaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlz
-dGluZm8vYWNwaS1kZXZlbA0K
+Hi,
+
+I hope this is considered only a bit off track (sorry)...
+I have a Dell Precision M60 and under linux or windows I see significant (~17%)
+decrease in main memory performance after the 1st software suspend to ram or 
+standby. I would appreciated if any one that has an 82855PM system from 
+another vendor could:
+     
+     1a. verify that the chipset is 82855PM and note the rev (03 or 21)
+     1b. boot or reboot
+     2a. if linux, record the output of "lspci -xxx" (lspci -xxx >before.txt)
+     2b. measure main memory bandwidth (prior to the 1st suspend after reboot)
+     3.  software suspend (or standby under windows)
+     4.  wake (via power button)
+     5a. remeausure main memory bandwith and (potentially) notice decrease
+         in performance. Note that L1/L2 cache performance does not decrease.
+     5b. if linux, record the output of "lspci -xxx" (lspci -xxx >after.txt)
+
+and reply to me the results.
+Further info (including bandwidth measurement software info) can be found at:
+     http://bugzilla.kernel.org/show_bug.cgi?id=3918
+
+Thanks for your help,
+Ron
+
+
 
 
 -------------------------------------------------------
