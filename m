@@ -1,14 +1,11 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Problem with Compaq Evo N110
-Date: Thu, 22 Aug 2002 18:49:22 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Administration Wishlist
+Date: Thu, 22 Aug 2002 10:06:03 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020822164922.GE24939@poup.poupinou.org>
-References: <5.1.0.14.2.20020822145413.00aa39f0@mail.olografix.org>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DDCA@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5.1.0.14.2.20020822145413.00aa39f0-bEMAEpuhR655giDkELQJ8R2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,47 +14,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: SLIVER <sliver-qqXEv8jiLWqhPH1hqNUYSQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Huw Hawkins' <hrhawk-JGs/UdohzUI@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 22, 2002 at 03:28:24PM +0200, SLIVER wrote:
-> Hello.
-> I have a problem to work ACPI on my laptop because the pc doesn't find the 
-> battery and other device
-> You can download my stuffs at http://nirvana.cuore.org/acpi/ (the dump 
-> obtained with pmtools and other information)
-> My laptop is Compaq Evo N110 with Slackware Linux 2.4.18 + latest kernel 
-> patch (pentium Celeron)
-> you can help me? :D
-> 
-> Thanks for the support :)
-> 
-> Luca Memini
-> ps: Sorry for the my horrible english :|
+> From: Huw Hawkins [mailto:hrhawk-JGs/UdohzUI@public.gmane.org] 
 
-OK...  here are some of the solutions:
+> For what its worth I _AM_ opinionated, I am certainly not suggesting
+> overthrowing Andrew, just suggesting he might like to decree
+> documentation and bugtracking a priority sometime soon. With 
+> the 2.4.19
+> backport now done and talk of merging to the 2.4.20-pre3 
+> tree, the time
+> may well be near....
 
-1- get an updated bios from Compaq for your laptop;
+It's not talk, I already submitted the patches to Marcelo and Alan. It's
+just a matter of getting accepted now. :)
 
-or
+> I once offered to try to document some of the code, but since 
+> I like to
+> believe somebody has a grand plan for what should go where (that they
+> just haven't got around to writing down for the rest of us yet) and
+> since I'm not really as familiar with the code as I would need to be,
+> I'll leave that to the experts. (step up all ye experts!)
 
-2- get the .hex file on:
-ftp://ftp.poupinou.org/acpi/compaq/evo_n110.hex.bz2
+I am willing to give almost anyone who is willing to improve things access
+to update acpi.sourceforge.net. Send me your sf.net username and I will fix
+the permissions and let you do your thing.
 
-and look at http://www.poupinou.org/acpi/over.html
+I am all for delegating almost all of the admin work to other people. I
+think I would have written a lot more code if I hadn't been maintainer, but
+someone's gotta do it. If someone else is interested, *start grabbing
+responsibility*, and if you do a good job, I can give you more. :)
 
-for instructions of using them.
-
-
-Please note that 'solution 1' could be usefullness, though.. :))
-
-Cheers,
-
--- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+Regards -- Andy
 
 
 -------------------------------------------------------
