@@ -1,15 +1,12 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: RE: S3 resume on Omnibook XE3-GF
-Date: Sat, 27 Jul 2002 08:04:21 +1200
+From: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
+Subject: Re: ACPI on the Compaq Presario 2800T
+Date: Fri, 26 Jul 2002 20:43:37 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000901c234df$a524d100$0201010a@cunninghams>
-References: <20020726104037.GC279@elf.ucw.cz>
-Reply-To: ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+Message-ID: <200207270043.UAA17797@cathedral-seven.mit.edu>
+References: <200207260632.g6Q6WsH14921@ikffws2.ikff.uni-stuttgart.de>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020726104037.GC279-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: Your message of "Fri, 26 Jul 2002 08:32:53 +0200."
+             <200207260632.g6Q6WsH14921-sBhUd1W9t4xfrO0PeCDDO4ECbGbo6+O1OOFObY0sJ7w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,72 +15,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: 'Pavel Machek' <pavel-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Cc: "'ACPI List (E-mail)'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi again.
 
-As you'll see from the lspci listing, all of the memory access on the PCI
-bus is turned off for one thing. I made a script to turn these on (using
-setpci). It seemed to work in the sense that running the lspci command again
-at the end showed that the memory access was now enabled. It's been a couple
-of weeks since I did this, and I have an idea that I couldn't successfully
-turn one of the items back on - oh and I didn't try doing it for a couple of
-things I don't use... I'll check this out some more.
+> I did that, did make mrproper; make dep; make bzImage (kept my
+> modules as they were), now have a file /proc/acpi/sleep, but
+> nothing happens when I echo 1 into this file.
 
-Quite apart from this, the video card (i830mg) seems to need to be
-completely reinitialised. I downloaded a document from Intel on the video
-card, but I'm not knowledgable enough to be able to use it (I got the idea
-that it needs to be reinitialised from this documents - it talks about S3
-putting the card in the same state as S5).
+Same with me.  However, the swsusp patch works now!  And, it's
+much faster than with Windows.
 
-The system also runs very slowly. It looks like this could be CPU throttling
-because even a beep gets made long. The DSDT includes a hint that there is
-throttling, but no actual methods, so I can't use /proc/acpi to reset it.
+X is being a little flaky,  but that problem likely has a different
+cause since I also updated my Radeon DRI stuff.  I'll investigate 
+more ...
 
-That's all I know about - there may of course be more.
 
-I am, of course, happy to send and try anything you want that will help in
-dealing with these issues. Just ask.
+Sourav
 
-Regards,
-
-Nigel
-
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of
-> Pavel Machek
-> Sent: Friday, 26 July 2002 22:41
-> To: Nigel Cunningham
-> Cc: ACPI List (E-mail)
-> Subject: Re: [ACPI] S3 resume on Omnibook XE3-GF
->
->
-> Hi!
->
-> > I've been trying to figure out why my laptop doesn't resume
-> properly. I've
->
-> Can you elaborate on "does not resume properly"? You've been able to
-> run lspci, so it must have worked at least a bit ;).
->
-> > found the following with differences between pre- and post- suspend
-> > configuration (using lspci -vvx)... [The original output is
-> attached]
-> >
-> > Can anyone suggest what needs to be done to fix this?
->
-> Driver support in drivers being affected?
-> 								Pavel
-> --
-> I'm pavel-7aPAsKgELzg@public.gmane.org "In my country we have almost anarchy and I
-> don't care."
-> Panos Katsaloulis describing me w.r.t. patents at
-> discuss-q33YXrgyAoMgsBAKwltoeQ@public.gmane.org
->
->
+> It used to work with all the older versions I've tested so far.
+> (Please note that I'm not the one who asked the question in the
+> first place, Sourav K Mandal.)
+> 
+> 
+> Jens
+> 
+> 
+> --=20
+> Jens Haug
+> IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
+> Pfaffenwaldring 9                       Fax  0711/685-6356
+> 70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
+> 
+> 
+> 
 > -------------------------------------------------------
 > This sf.net email is sponsored by:ThinkGeek
 > Welcome to geek heaven.
@@ -92,7 +57,6 @@ Nigel
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
 
 
 
