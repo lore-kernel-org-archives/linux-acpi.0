@@ -1,13 +1,15 @@
-From: Christophe Boyanique <tof-I4ScXmxXXsAdnm+yROfE0A@public.gmane.org>
-Subject: Re: ACPI Compaq Presario
-Date: Mon, 29 Jul 2002 23:36:24 +0200 (CEST)
+From: "A.MAINS" <armains-ZO4F0KnmCDHk1uMJSBkQmQ@public.gmane.org>
+Subject: RE: ACPI Compaq Presario
+Date: Mon, 29 Jul 2002 17:51:27 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0207292308330.1067-100000@nagada.raceme.loc>
-References: <000001c23742$9e9ec650$9865fea9@AMAINSLT>
+Message-ID: <000301c2374a$19ce8e30$9865fea9@AMAINSLT>
+References: <Pine.LNX.4.44.0207292308330.1067-100000@nagada.raceme.loc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <000001c23742$9e9ec650$9865fea9-9tCyY70DaME@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0207292308330.1067-100000-ebPZwV3Hi81W4s3OGYaEKcXXUOn6P5/W@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,8 +18,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Christophe Boyanique' <tof-I4ScXmxXXsAdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Thank You so much! I read intel's instructions on this and they made
+minimal sense to me as I am not proficient in linux (yet not "newbie").
+I will try your steps later and I thank you for taking the time to write
+them out!
+
+Andrew
+
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Christophe
+Boyanique
+Sent: Monday, July 29, 2002 5:36 PM
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] ACPI Compaq Presario
 
 On Mon, 29 Jul 2002, A.MAINS wrote:
 
@@ -81,6 +98,18 @@ There is a lots of others errors in the dsdt table, this is only a
 beginning thanks to David Douard.
 
 Christophe.
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by: Dice - The leading online job board
+for high-tech professionals. Search and apply for tech jobs today!
+http://seeker.dice.com/seeker.epl?rel_code=31
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 
 
 
