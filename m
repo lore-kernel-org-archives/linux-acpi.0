@@ -1,11 +1,11 @@
-From: "GUERRERO,FRANCISCO (HP-Spain,ex2)" <francisco.guerrero-VXdhtT5mjnY@public.gmane.org>
-Subject: Power managment under Linux 2.4.18-2
-Date: Tue, 18 Feb 2003 20:01:37 +0100
+From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Kernel 2.5.62 & suspend
+Date: Tue, 18 Feb 2003 20:05:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6E04A580345A7A428A74484F87A1DE62C5D9D6@dali.bpo.hp.com>
+Message-ID: <20030218200552.2bc40a4f.nils@kernelconcepts.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,37 +15,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+Hi all!
+Just thought I'd let you know... Just tried latest 2.5.62 kernel (with
+vanilla ACPI, no extra patches) and tried S3 or S4. Both of which panic
+when trying to syspend device, more exactly when trying to suspend hda.
 
-I'm new in the power management arena under Linux. I'm probing a suspend to
-ram state on the kernel version 2.4.18 using APM and ACPI ( I compile
-conveniently the kernel for each test). For APM, I'm using the command "apm
--s", and for ACPI, I'm using "echo -n 3 > /proc/acpi".  Unfortunately,
-nothing works. In the case of APM, its seem that the only things the system
-do is switch off the monitor, but the CPU and all the rest is alive ( I'm
-measuring the power consumption, and its the same ). In the case of ACPI,
-the system completely crash ( but in this case, at least the power
-consumption is the one we can expected for a STR feature ).
+Is this known?
+Can it be fixed?
 
-I'm working on an intel architecture composed of an IntelCeleron 1.7G plus
-the ICH4 chipset. I didn't want to change to version 2.5, as I need to
-resolve the problem under 2.4, so could anybody help me about this issue.
-STR works under 2.4.18 APM or ACPI ?
+CU
+  nils faerber
 
-Also, I have been looking at the kernel code, and it seem that the acpi
-infrastructure is not linked to the pm.c module as the APM one. How the
-add-on devices are linked to the power management infrastructure under acpi
-? I see an easy way to manage this under apm, but not under acpi. What is it
-missing ? 
-
-Many thanks in advance,
-
-Paco Guerrero.
-
-
+-- 
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          D1 : +49-170-2729106
+--
 
 
 -------------------------------------------------------
