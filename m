@@ -1,17 +1,13 @@
-From: Chris Howells <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
-Subject: Re: hibernate
-Date: Tue, 5 Nov 2002 01:23:36 +0000
+From: =?ISO-8859-1?Q?J=F6rg?= Sonnenberger <joerg.sonnenberger-S0/GAf8tV78@public.gmane.org>
+Subject: Re: Changing temperature trip points
+Date: 04 Nov 2002 22:20:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200211050123.48329.chris@chrishowells.co.uk>
-References: <20021104133736.GA16301@Tonelli.sns.it> <3DC67E0F.5010408@symplon.com>
+Message-ID: <1036444853.984.34.camel@britannica>
+Reply-To: 20021103231425.C19750-JhLEnvuH02M@public.gmane.org
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3DC67E0F.5010408-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
-Content-Description: clearsigned data
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -23,36 +19,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Dominik wrote:
+>While we're protected by the GPL so that nobody can sue us because of
+>this,
+>we should try to be a bit "friendly". And it doesn't lose us anything.
 
-Hi,
+At least for the German law, you are definitivly wrong. You can be sued
+for a known and not clearly stated fault in your "product".
 
-On Monday 04 November 2002 2:02 pm, Robert Woerle wrote:
-> btw hibernate is S4 ! S3 is the standby ( suspend to ram )
-
-
-Could somebody please explain what S1 and S2 are as well?
-
-Thanks
-
-=2D --=20
-Cheers, Chris Howells -- chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org, howells@kde.org
-Web: http://chrishowells.co.uk, PGP key: http://chrishowells.co.uk/pgp.txt
-KDE: http://www.koffice.org, http://edu.kde.org, http://usability.kde.org
-
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.0 (GNU/Linux)
-
-iD8DBQE9xx2jF8Iu1zN5WiwRAkoVAJ4rg5pc+M6B1xpYBL+e+1xJcJsIRwCgjvKb
-IT+TQ/O8whR4zELwgwEz86w=3D
-=3D+hGN
-=2D----END PGP SIGNATURE-----
-
-
+Joerg
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: ApacheCon, November 18-21 in
-Las Vegas (supported by COMDEX), the only Apache event to be
-fully supported by the ASF. http://www.apachecon.com
+This sf.net email is sponsored by: See the NEW Palm 
+Tungsten T handheld. Power & Color in a compact size!
+http://ads.sourceforge.net/cgi-bin/redirect.pl?palm0001en
