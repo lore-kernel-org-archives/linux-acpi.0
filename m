@@ -1,17 +1,14 @@
-From: Sandro Weiser <sandro.weiser-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: acpi on r40e
-Date: Wed, 11 Feb 2004 22:48:11 +0100
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: ACPI Thermal Shutdown on Boot
+Date: Wed, 11 Feb 2004 09:48:05 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402112248.15925.sandro.weiser@gmx.de>
-References: <Pine.LNX.4.44.0402101040090.27892-100000@aero.iisc.ernet.in>
-Reply-To: sandro.weiser-Mmb7MZpHnFY@public.gmane.org
+Message-ID: <20040211094538.D91991@root.org>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB690@PDSMSX403.ccr.corp.intel.com>
+ <20040210215906.H85854@root.org> <20040211105908.GB30647@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44.0402101040090.27892-100000-8a50ANe9Mx0/NI2e8YfAcJ/QNRX+jHPU@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20040211105908.GB30647-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,52 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Am Dienstag, 10. Februar 2004 06:18 schrieb Praveen C:
-> >Interesting.
-> >If you boot, say with "acpi=3Doff", your volume and brightness buttons
-> >work, but if you boot with ACPI enabled they have no effect?
+On Wed, 11 Feb 2004, Karol Kozimor wrote:
+> Thus wrote Nate Lawson:
+> > I think he just meant 57C.  In any case, we decided to set the _TMP poll
+> > interval to 10 seconds.  After 2 readings above _CRT/_HOT, userland
+> > receives an event and a message is logged saying the temperature is too
+> > high.  On the 3rd one, we shutdown/power off the system.  I think Linux
 >
-> Thats right. I know that many others with R40e are facing the same
-> problems as me with acpi (hangup with processor/thermal modules and the
-> special button problems). When I am booting an acpi kernel I have to
-> adjust the brightness before the kernel starts. With acpi=3Doff the
-> buttons work without me doing anything extra.
->
-> There are other buttons which dont work either with or without acpi.
-> For example Fn+F3 switches off the backlight in the display in Windows
-> but does nothing in Linux. In Linux I can switch off the backlight only
-> by closing the lid.
->
-> Regarding the hangup with processor/thermal modules I am not
-> able to locate any messages in kernel log.
->
-> Is there any other information I can provide which help to identify the
-> problem?
-Here the same with Fn+F3 which doesn't works anymore with acpi
-I'm using now apm in 2.4.24 and haven't tested 2.5.XX and 2.6.XX heavily=20
-anymore, but
+> If I understand you correctly, 30 seconds is certainly enough time to burn
+> a CPU when the fan has failed, isn't it?
 
-When I experimented with early acpi-support in 2.4 before switching to apm=
-=20
-(was in March 2003) Fn+F3 *definitely* worked with acpi.
+Our old default poll interval was 30 seconds so this doesn't change
+anything.  I know DeadRat takes more than 30 seconds from "shutdown -h
+now" to power off.  All modern CPUs have a thermal shutdown builtin.
+Think of _CRT as more of "system temp too high, shut down as soon as you
+can."
 
-=2D --=20
-Sandro Weiser <Sandro.Weiser-Mmb7MZpHnFY@public.gmane.org>
-=46ingerprint: 77E0 7C87 4DB2 6BBB 5419  343C 7995 1C67 25B9 CBF1
-
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAKqMfeZUcZyW5y/ERAnzHAJ40pSOOCUKerA4pF6HHfAlD2zGKVACgu6zd
-N57WKlL25Zg3vYMKpf0H0ns=3D
-=3Dfeaw
-=2D----END PGP SIGNATURE-----
+-Nate
 
 
 -------------------------------------------------------
