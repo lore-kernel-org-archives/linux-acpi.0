@@ -1,14 +1,21 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Working around bugs in ACPI BIOS [was Re: DSDT in initrd]
-Date: Mon, 19 May 2003 22:11:25 -0600
+From: Pere =?ISO-8859-1?Q?Casta=F1er?= <XaRz69-pCzzcW6XgXY@public.gmane.org>
+Subject: Re: About dsdt of clevo 5600N
+Date: Tue, 20 May 2003 14:32:03 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030520041129.3CD3EF7863@voldemort.scrye.com>
-References: <F760B14C9561B941B89469F59BA3A847E96EA5@orsmsx401.jf.intel.com>
+Message-ID: <20030520143203.58cd4ff0.XaRz69@terra.es>
+References: <20030516021732.69eca85d.XaRz69@terra.es>
+	<20030516035605.18dc60b8.XaRz69@terra.es>
+	<Pine.LNX.4.53.0305160752340.5724@dynast.gaugusch.at>
+	<1053074691.1189.6.camel@dutidad>
+	<20030516230144.GB22394@hell.org.pl>
+	<20030516231823.GB2355@dutidad.twi.tudelft.nl>
+	<20030517085410.GA13867@hell.org.pl>
+	<20030517110512.GA3820@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="pgp-sha1"; boundary="=..uq:OAimt.?aND"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96EA5-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20030517110512.GA3820-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,72 +24,63 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--=..uq:OAimt.?aND
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
->>>>> "Andrew" == Andrew Grover <Grover> writes:
+Thanks to all for the info, in special to Charl CP.Botha  that his help in =
+this and other things about linux in a clevo 5600.
 
-Andrew> Against 2.4-acpi-latest.  Completely untested. Does this work?
+I'll tried the linux kernel 2.5.69 and the clevo the initrd patch for the d=
+sdt and the laptop sleeps well but never wakes up as Charl tell in last e-m=
+ail (Suposed missing acpi information about suspend wake buttons on clevo 5=
+600)
 
-It appears to work fine here on my compaq presario 2800t. 
+<Not acpi related>
+About the radeonfb in 2.5.x I must say that it doesn't work yet, only the v=
+esa fb.
+Another problem that I notice with 2.5.X is that I can't be able to wake th=
+e Xwindows. The radeon Xfree 4.3 driver seems not work with 2.5.x kernels a=
+nd I must test the kernels with the vesa xfree driver.Any hints?
 
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
-ACPI: Ignoring * in _HID. Is this a Compaq?
+</not acpi related>
 
-With the stock acpi-20030512-2.4.21-rc2.diff.gz patch + your patch
-below eveything looks to work fine. Battery status, lid, pretty much
-any function. 
+Cheers,
 
-Thanks, 
+--=20
+"The Wheel of Time turns, and Ages come and pass, leaving memories
+that become legends. Legend fades to myth, and even myth is long=20
+forgotten when the Age that gave it birth comes again. In one Age,
+called Third Age by some, an Age yet to come,an Age long past,=20
+wind rose in the Rhannon Hills. the wind was not the beginning.=20
+There are neither beginnings nor endings to turning of the Wheel=20
+of Time...But it was a beginning."
+					  	   Robert Jordan=20
+					  Wheel of Time(book 10)
+					  Crossroads of twilight
+------
+Pere Casta=F1er Sard=E0 - http://xarz.no-ip.org
+GnuPG Public key available - http://xarz.no-ip.org/keys.html
+Computer Science Student on UOC - http://www.uoc.edu
+Linux Registered User #232073=20
+Debian/GNU User - http://www.debian.org
+---------------------
 
-Andrew> -- Andy
+--=..uq:OAimt.?aND
+Content-Type: application/pgp-signature
 
-kevin
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE+yarw3imCezTjY0ERAljZAJ4scPAbCMgkIqQH6qRArgninl1c7gCfYvXd
-ZtsNJGRCJPdEX4XhlDiX2/g=
-=Kh0B
+iD8DBQE+yiBHz9pL9wbHcwIRAkytAJ9qPJbwh+hHqFineXES/QYFhVwkYwCgsbYc
+EmYwnZ4CQ5yBHjz+YyuCpiU=
+=GEZ0
 -----END PGP SIGNATURE-----
+
+--=..uq:OAimt.?aND--
 
 
 -------------------------------------------------------
