@@ -1,11 +1,11 @@
 From: Mail Delivery Subsystem <MAILER-DAEMON-YDxpq3io04c@public.gmane.org>
 Subject: Returned mail: User unknown
-Date: Sat, 6 Sep 2003 16:45:28 -0400 (EDT)
+Date: Sat, 6 Sep 2003 19:36:38 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309062045.QAE06869@rly-xn05.mx.aol.com>
+Message-ID: <200309062336.TAC12441@rly-xd05.mx.aol.com>
 Mime-Version: 1.0
 Content-Type: multipart/report; report-type=delivery-status;
-	boundary="QAE06869.1062881128/rly-xn05.mx.aol.com"
+	boundary="TAC12441.1062891398/rly-xd05.mx.aol.com"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -20,9 +20,9 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a MIME-encapsulated message
 
---QAE06869.1062881128/rly-xn05.mx.aol.com
+--TAC12441.1062891398/rly-xd05.mx.aol.com
 
-The original message was received at Sat, 6 Sep 2003 16:44:59 -0400 (EDT)
+The original message was received at Sat, 6 Sep 2003 19:36:30 -0400 (EDT)
 from  [163.180.127.185]
 
 
@@ -47,35 +47,35 @@ administrator.
 
 
    ----- The following addresses had permanent fatal errors -----
-<smnwebsite-YDxpq3io04c@public.gmane.org>
+<heinerf-YDxpq3io04c@public.gmane.org>
 
    ----- Transcript of session follows -----
-... while talking to air-xn01.mail.aol.com.:
->>> RCPT To:<smnwebsite-YDxpq3io04c@public.gmane.org>
+... while talking to air-xd04.mail.aol.com.:
+>>> RCPT To:<heinerf-YDxpq3io04c@public.gmane.org>
 <<< 550 MAILBOX NOT FOUND
-550 <smnwebsite-YDxpq3io04c@public.gmane.org>... User unknown
+550 <heinerf-YDxpq3io04c@public.gmane.org>... User unknown
 
---QAE06869.1062881128/rly-xn05.mx.aol.com
+--TAC12441.1062891398/rly-xd05.mx.aol.com
 Content-Type: message/delivery-status
 
-Reporting-MTA: dns; rly-xn05.mx.aol.com
-Arrival-Date: Sat, 6 Sep 2003 16:44:59 -0400 (EDT)
+Reporting-MTA: dns; rly-xd05.mx.aol.com
+Arrival-Date: Sat, 6 Sep 2003 19:36:30 -0400 (EDT)
 
-Final-Recipient: RFC822; smnwebsite-YDxpq3io04c@public.gmane.org
+Final-Recipient: RFC822; heinerf-YDxpq3io04c@public.gmane.org
 Action: failed
 Status: 5.1.1
-Remote-MTA: DNS; air-xn01.mail.aol.com
+Remote-MTA: DNS; air-xd04.mail.aol.com
 Diagnostic-Code: SMTP; 550 MAILBOX NOT FOUND
-Last-Attempt-Date: Sat, 6 Sep 2003 16:45:28 -0400 (EDT)
+Last-Attempt-Date: Sat, 6 Sep 2003 19:36:38 -0400 (EDT)
 
---QAE06869.1062881128/rly-xn05.mx.aol.com
+--TAC12441.1062891398/rly-xd05.mx.aol.com
 Content-Type: text/rfc822-headers
 
-Received: from  LSM ([163.180.127.185]) by rly-xn05.mx.aol.com (v95.1) with ESMTP id MAILRELAYINXN54-64e3f5a4746d9; Sat, 06 Sep 2003 16:44:55 2000
+Received: from  LSM ([163.180.127.185]) by rly-xd05.mx.aol.com (v95.1) with ESMTP id MAILRELAYINXD51-1233f5a6f79f8; Sat, 06 Sep 2003 19:36:27 -0400
 From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <SMNWebSite-YDxpq3io04c@public.gmane.org>
+To: <HeinerF-YDxpq3io04c@public.gmane.org>
 Subject: Re: Approved
-Date: Sun, 7 Sep 2003 5:45:04 +0900
+Date: Sun, 7 Sep 2003 8:36:36 +0900
 X-MailScanner: Found to be clean
 Importance: Normal
 X-Mailer: Microsoft Outlook Express 6.00.2600.0000
@@ -83,13 +83,13 @@ X-MSMail-Priority: Normal
 X-Priority: 3 (Normal)
 MIME-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_NextPart_000_08F915F4"
+	boundary="_NextPart_000_09961F3F"
 X-AOL-IP: 163.180.127.185
 X-AOL-SCOLL-SCORE: 0:XXX:XX
 X-AOL-SCOLL-URL_COUNT: 0
-Message-ID: <200309061644.64e3f5a4746d9-5Q7kRT2doCc7N1j9GEufq0EOCMrvLtNR@public.gmane.org>
+Message-ID: <200309061936.1233f5a6f79f8-2HXK/SucAfc7N1j9GEufq0EOCMrvLtNR@public.gmane.org>
 
---QAE06869.1062881128/rly-xn05.mx.aol.com--
+--TAC12441.1062891398/rly-xd05.mx.aol.com--
 
 
 
