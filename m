@@ -1,42 +1,34 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
-Date: Mon, 20 Sep 2004 12:24:04 -0700
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[1/6]-ACPI core enhancement support
+Date: Mon, 20 Sep 2004 14:26:31 -0600
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040920122404.B15677@unix-os.sc.intel.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920093532.D14208@unix-os.sc.intel.com> <200409201333.42857.dtor_core@ameritech.net>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Message-ID: <200409201426.31672.bjorn.helgaas@hp.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201326.44946.dtor_core@ameritech.net> <20040920120128.A15677@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20040920120128.A15677@unix-os.sc.intel.com>
 Content-Disposition: inline
-In-Reply-To: <200409201333.42857.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Mon, Sep 20, 2004 at 01:33:42PM -0500
-To: Dmitry Torokhov <dtor_core@ameritech.net>
-Cc: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: Dmitry Torokhov <dtor_core@ameritech.net>, acpi-devel@lists.sourceforge.net, "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 20, 2004 at 01:33:42PM -0500, Dmitry Torokhov wrote:
-> On Monday 20 September 2004 11:35 am, Keshavamurthy Anil S wrote:
-> > This patch support /sys/firmware/acpi/eject interface where in 
-> > the ACPI device say "LSB0" can be ejected by echoing "\_SB.LSB0" > 
-> > /sys/firmware/acpi/eject
-> > 
+On Monday 20 September 2004 1:01 pm, Keshavamurthy Anil S wrote:
+> On Mon, Sep 20, 2004 at 01:26:44PM -0500, Dmitry Torokhov wrote:
+> > Also, introducing recursion (depth does not seem to be limited here) is
+> > not a good idea IMHO - better convert it into iteration to avoid stack
+> > problems down teh road.
+> Humm, I guess recursion should be fine and even though the code does not have
+> an explicit limit, the ACPI namespace describing the Ejectable device will limit the
+> number of recursible devices. And I believe this won;t be more than 3 to 4 level depth.
+> Hence recursion is fine here.
 > 
-> I wonder if eject should be an attribute of an individual device and visible
-> only when device can be ejected. Reading from it could show eject level
-> (_EJ0/_EJ3 etc).
-Hi Dmitry,
-	Today there is really no sysfs representation of acpi devices apart from
-the acpi namespace representation. Evaluating acpi namespaces's _EJ0 method won't help,
-as we need acpi device and all its child devices to be removed as part of the eject.
+> If you still strongly believe that recursion is not the right choice here, 
+> let me know and I will convert it to iteration.
 
-Also for there is no 1:1 maping of acpi devices to pci devices to consider eject to be
-part of the pci devices.
-
-Hence the best solution for now is to echo ACPI full path name of the device to be
-ejected onto the eject file and the code will make sure that the device supports _EJx method before actuall removing the device.
-
-thanks,
-Anil
-> 
-> -- 
-> Dmitry
+I'm also in favor of removing the recursion, if only because it
+allows local analysis.  I.e., a correctness argument based solely
+on the code in the patch is much more useful than one that relies
+on properties of an external and mostly unknown ACPI namespace.
