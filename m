@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: suspend.c vs driver-model.txt
-Date: Tue, 30 Jul 2002 21:51:50 +0200
+Date: Tue, 30 Jul 2002 21:53:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730195149.GI12091@atrey.karlin.mff.cuni.cz>
-References: <20020730193857.GC12091@atrey.karlin.mff.cuni.cz> <20020730183941.6386@192.168.4.1>
+Message-ID: <20020730195348.GJ12091@atrey.karlin.mff.cuni.cz>
+References: <1028061979.7974.40.camel@irongate.swansea.linux.org.uk> <20020730183448.20582@192.168.4.1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20020730183941.6386-Q0ErXNX1RuY/GWcAdfcqrQ@public.gmane.org>
+In-Reply-To: <20020730183448.20582-Q0ErXNX1RuY/GWcAdfcqrQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,51 +18,43 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> >I'd not call it right way. 
+> >> Benjamin Herrenschmidt was arguing for doing driver_suspend() while
+> >> userspace is still running. If you assumed stopped userspace, you
+> >> don't have to add semaphore into device read() etc...
 > >
-> >What you propose is adding test into *fast* path of every driver. I'm
-> >not touching fast path at all, I just stop all processes. That way
-> >suspend takes longer but system normally runs faster. 
+> >Having been around this a few times for embedded devices I've found
+> >nothing that cleanly solves the problems except
+> >
+> >Call all the devices "suspend ready irq on" methods
+> >Disable interrupts
+> >Call all the devices "final suspend" method
 > 
-> Hrm... most of the time that test already exist. Network & block
-> drivers already have blocking semantics. Serial-like drivers will
-> only need to switch their interrupt source off if any or timer
-> or whatever. The only case on pmac where I had to touch the normal
-> path was some ioctl() path (which aren't really fast path anyway
-> like preventing some ioctl's to network drivers from banging sleeping
-> hardware), and the sound driver, but I needed that already for SMP
-> safety.
+> Yes, I remember you telling me about it, which simply involves
+> breaking the 3rd (ie. "suspend") PM notification into a
+> "suspend_irq_on" and a "suspend_irq_off". Drivers that don't
+> care will use only one of them. But that's not a real issue,
+> the problems are really around the "save_state & block IOs"
+> step which is step 2.
+> 
+>  step 1: prepare (that is allocate any memory needed, make sure
+>          the driver can still operate without allocating more
+>          memory, or eventually only ATOMIC or NOIO).
+> 
+>  step 2: save_state & block IOs, that is make sure the saved state
+>          is consistent with the last IOs and that no more IO will
+>          be processed. The driver don't need to wait for completion
+>          of pending IOs at this stage I beleive if those don't
+>          impact the saved state, but it may be better to wait for
+>          them at first.
 
-Okay, if impact is minimal.... I can probably live with that. I still
-do not know if slightly faster suspend is worth the effort.
-
-> >Do you have example of such subsystem?
-> 
-> i2c, usb, ieee1394, then all the possibilities of stacking things
-> on top of each other...
-> 
-> >Certainly no driver depends on userspace so we may stop userspace.
-> 
-> Well, I know at least a DSL softmodem driver that relies on userspace
-> (or will soon) as the core softmodem code is moved out of the kernel ;)
-> 
-> >Hardware drivers do not depend on IP stack, etc...
-> 
-> _device_ driver include stacked devices. It includes a scsi-over-IP
-> device if any on which you have perfect right to want to send a command
-> before suspending.
-
-I believe device drivers do not need to know. If you are running
-scsi-over-IP you don't need to inform other side you are
-suspending. It is similar to your NFS server; you don't tell your NFS
-server that you are suspending. scsi-over-IP device should not need to
-know.
-
+I really need all DMAs to be off after step 2; so I need all drivers
+doing DMA to wait for completion. [I can not do atomic copy of memory
+with DMA writing over it behind my back.]
 								Pavel
 -- 
 Casualities in World Trade Center: ~3k dead inside the building,
