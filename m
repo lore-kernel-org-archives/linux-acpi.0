@@ -1,13 +1,12 @@
-From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Subject: Re: Testing: NVidia closed driver fails.
-Date: Thu, 19 Sep 2002 15:38:16 +0300
+From: Cyril Bitterich <Cyril.Bitterich-jNDFPZUTrfTbB13WlS47kxGsIjC5xiiLhC4ANOJQIlc@public.gmane.org>
+Subject: Re: CALL FOR TESTING
+Date: Thu, 19 Sep 2002 14:57:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200209191241.g8JCfN303320@pfn1.pefnos>
+Message-ID: <20020919145745.246daed7.Cyril.Bitterich@informatik.uni-muenchen.de>
 References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-7"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ boundary="=.TNJs+s7WJwlean"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,34 +17,77 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I wanted to make a special request for testing of the 2.4 patch (or should
-> I say, MEGA-patch).
->
->
+--=.TNJs+s7WJwlean
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+Having a sony Vaio PCG-SRX41P i can say 
+
 > - DOES IT BOOT?
+
+It does.
+
 > - DOES IT ASSIGN INTERRUPTS PROPERLY?
->
 
-I have tried the 2.4.20-pre7 + acpi-20020918 patch on a single Athlon XP 
-1.7+, VIA VT8637 KT266 chipset. The system boots and displays some ACPI info 
-that looks fine.
-However, the proprietary NVidia video driver (I have a Geforce 2 MX card and 
-the newest 1.0.3123 proprietary driver) fails to start the X system. I 
-strongly suspect (although I don't have enough debug info yet) that the acpi 
-patch is the one that makes NVidia fail. The 2.4.19 worked until the acpi 
-patch was applied to it.
+It DOES
 
-The situation arising is quite strange. I want the current ACPI to be 
-included in the next mainline kernel. However, all NVidia users will be 
-disappointed if the stable 2.4.20 comes out before NVidia releases a suitable 
-driver.
+/proc# cat interrupts
+           CPU0
+  0:      51258          XT-PIC  timer
+  1:        313          XT-PIC  keyboard
+  2:          0          XT-PIC  cascade
+  8:          3          XT-PIC  rtc
+  9:        448          XT-PIC  acpi, Ricoh Co Ltd RL5c475, Texas Instruments PCI1410 PC card Cardbus Controller, eth0, orinoco_cs
+ 11:         10          XT-PIC  sonypi
+ 12:         92          XT-PIC  PS/2 Mouse
+ 14:      44636          XT-PIC  ide0
+NMI:          0
+ERR:          0
 
-I suggest: merge the ACPI and tell NVidia to start testing. Put a warning 
-label at both sides make sure a correct NVidia driver is out before 2.4.20 
-reaches final release (there is plenty of time).
+For Identification:
+
+ACPI: have wakeup address 0xc0001000
+On node 0 totalpages: 65152
+zone(0): 4096 pages.
+zone(1): 61056 pages.
+zone(2): 0 pages.
+ACPI: RSDP (v000 SONY                       ) @ 0x000f6c70
+ACPI: RSDT (v001 SONY   U2       08193.04119) @ 0x0fcf7f4a
+ACPI: FADT (v002   SONY       U2 08193.04119) @ 0x0fcfbf54
+ACPI: BOOT (v001   SONY       U2 08193.04119) @ 0x0fcfbfd8
+ACPI: DSDT (v001   SONY       U2 08193.04119) @ 0x00000000
+ACPI: BIOS passes blacklist
+Sony Vaio laptop detected.
+
+> Issues like whether the battery reports stats properly are of secondary
+> importance.
+
+Battery/AC OK.
+Power Lid works.
+sonypi still works
+S3 seems not to work, but not much testing yet.
+
+Cyril
+
+--=.TNJs+s7WJwlean
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: Weitere Infos: siehe http://www.gnupg.org
+
+iD8DBQE9icnJuUAfsvG5tJsRAi/tAKDGvJzpVyAhWT4r66Gpz/rucz8dVwCfSqef
+MawuOSp6ujFUXJutwlseCS0=
+=HzRe
+-----END PGP SIGNATURE-----
+
+--=.TNJs+s7WJwlean--
+
 
 
 -------------------------------------------------------
