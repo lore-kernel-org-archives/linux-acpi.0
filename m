@@ -1,15 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Machines self-power-up with 2.6.9-rc3 (evo N620c, ASUS,
- ...)
-Date: Wed, 20 Oct 2004 17:03:04 -0700
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RE: PATCH/RFC: driver model/pmcore wakeup hooks (1/4)
+Date: Thu, 21 Oct 2004 09:33:28 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4176FCB8.3060103@root.org>
-References: <20041020191531.GC21315@elf.ucw.cz> <1098311478.4989.100.camel@desktop.cunninghams> <20041020225639.GD29863@elf.ucw.cz>
+Message-ID: <1098322408.6132.44.camel@sli10-desk.sh.intel.com>
+References: <200410201002.58172.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041020225639.GD29863-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <200410201002.58172.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,32 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
->>>I'm seeing bad problem with N620c notebook (and have reports of more
->>>machines behaving like this, for example ASUS L8400C.) If I shutdown
->>>machine with lid closed, opening lid will power the machine up. Ouch.
->>>2.6.7 behaves okay.
->>
->>:> Some people would love to have the machine power up when they open
->>the lid! Wish my XE3 would do that!
+On Thu, 2004-10-21 at 01:02, David Brownell wrote:
+> On Tuesday 19 October 2004 20:51, Dmitry Torokhov wrote:
+> > On Tuesday 19 October 2004 04:11 am, Li, Shaohua wrote:
+> > > A final solution is device core adds an ACPI layer. That is we can
+> link
+> > > ACPI device and physical device. This way, the PCI device can know
+> which
+> > > ACPI is linked with it, so the PCI API can use specific ACPI
+> method. 
+> 
+> The driver model core has platform_notify hooks for device add/remove,
+> and ACPI should kick in that way ... they might well need tweaks
+> though.
+The platform_notify information isn't enough to find an ACPI device for
+a physical device. To find an ACPI device, the bus information and
+device information is needed. Only the specific bus knows the meaning of
+an device's id, so I think the bus type should provide a callback to
+interpret device id.
 
-This problem sounds like a wake GPE is enabled for the lid switch and 
-that it has a _PRW that indicates it can wake the system from S5.  If 
-this is the case, just disabled the GPE.
+Thanks,
+Shaohua
 
-> :-). Well for some other people it powers up when they unplug AC
-> power, and *that* is nasty. I'd like my machine to stay powered down
-> when I tell it so.
-
-This is likely a similar GPE problem.  The GPE for the EC fires even in 
-S5.  I think the EC GPE should be disabled in the suspend method.
-
--- 
-Nate
 
 
 -------------------------------------------------------
