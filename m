@@ -1,75 +1,55 @@
-From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Subject: Re: [PATCH][3/4] Add hotplug support to drivers/acpi/numa.c
-Date: Wed, 29 Sep 2004 15:26:29 +0900
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040929152629.68d17796.tokunaga.keiich@jp.fujitsu.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com>
- <20040920094719.H14208@unix-os.sc.intel.com>
- <20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
- <20040924013255.00000337.tokunaga.keiich@jp.fujitsu.com>
- <20040927130616.B30443@unix-os.sc.intel.com>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: 2.6.9-rc2-mm4 freezes at boot: ACPI IRQ9 SCI
+Date: Wed, 29 Sep 2004 10:28:11 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <415A721B.5060005@pca.it>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <20040927130616.B30443@unix-os.sc.intel.com>
-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Cc: tokunaga.keiich@jp.fujitsu.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 27 Sep 2004 13:06:16 -0700 Keshavamurthy Anil S wrote:
-> On Fri, Sep 24, 2004 at 01:32:55AM +0900, Keiichiro Tokunaga wrote:
-> > +void acpi_numa_node_init(acpi_handle handle)
-> Why is this function returning void? I expect
-> this to return int, what do you think?
-> > +
-> > +	if (acpi_bus_get_device(handle, &node_dev)) {
-> > +		printk(KERN_ERR"Unknown handle.\n");
-> > +		return_VOID;
-> > +	}
-> Why do you need to call acpi_bus_get_device?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I wrote it for printk()s and ACPI_DEBUG_PRINT() to log.
+Hello,
 
-        if (! _cnt) {                                                           
-                ACPI_DEBUG_PRINT((ACPI_DB_INFO,                                 
-                                  "nid of <%s> is not detected.\n",             
-                                  acpi_device_bid(node_dev))); 
-                goto cancel;                                                    
-        }
-        ...
-        status = acpi_attach_data(handle, acpi_numa_data_handler, data);        
-        if (ACPI_FAILURE(status)) {                                             
-                printk(KERN_ERR"Failed to attach NUMA data for <%s>.\n",        
-                       acpi_device_bid(node_dev));                              
-                goto cancel;                                                    
-        }
+I was trying the latest -mm patch in order to test the merging of
+'swsusp' and 'pmdisk', but I can't boot at all.
 
-        printk(KERN_INFO"Container <%s> is NUMA node.\n",                       
-               acpi_device_bid(node_dev));
+If I leave ACPI enabled, the boot freezes after:
+	ACPI: IRQ9 SCI: Edge set to Level Trigger.
 
-> > +	acpi_walk_namespace(ACPI_TYPE_PROCESSOR,
-> > +			    handle,
-> > +			    (u32) 1,
-> > +			    find_processor,
-> > +			    data,
-> > +			    (void **)&cnt);
-> Why are you looking for processor device here?
-> Please remove this acpi_walk_namespace function.
+With "acpi=off" I've instead:
+	Checking 'hlt' instruction... OK.
+(which is the line just before "ACPI: IRQ9 SCI: Edge...")
 
-The reason why the acpi_walk_namespace() is used here was to
-find a container object which is identical to a NUMA node.  My code
-was assuming that a container having CPU and/or memory was
-NUMA node sinece the current Linux seemed to assume so.
+So, I suppose this isn't an ACPI error, but I'm not sure. Solutions?
 
-> > +	/*
-> > diff -puN /dev/null include/acpi/numa.h
-> > +#ifndef MAX_PXM_DOMAINS
-> > +#define MAX_PXM_DOMAINS (256)
-> > +#endif
-> Why defining it again, It is already defined in asm-ia64/acpi.h file
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-Sorry, that's a stuff that I forgot to remove.  I will remove it.
+iD8DBQFBWnIWVAp7Xm10JmkRAubOAJ40ClTh1P6zvkRaznBjyspZrmwXNQCfR842
+lzA3h8wYULVuWQWSckXcySg=
+=1cxT
+-----END PGP SIGNATURE-----
 
-Thanks,
-Keiichiro Tokunaga
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
