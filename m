@@ -1,13 +1,14 @@
-From: Rob E Russell <robr-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Virus Found in message "Illegal"
-Date: Thu, 29 Apr 2004 13:29:06 -0400
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] fix(Fix _STA checking in acpi_bus_add)
+Date: Thu, 29 Apr 2004 20:49:02 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OFF25C2A7E.2067AC84-ON87256E85.00600AFF@us.ibm.com>
+Message-ID: <20040429184902.GC578@poupinou.org>
+References: <Pine.LNX.4.58.0404281525160.30907@daphne.frec.bull.fr> <200404280934.26381.bjorn.helgaas@hp.com> <Pine.A41.4.53.0404291005470.37100@isabelle.frec.bull.fr> <200404290846.41647.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	Boundary="0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200404290846.41647.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,65 +17,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: Simon Derr <Simon.Derr-6ktuUTfB/bM@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F
-Content-type: text/plain; charset=US-ASCII
+On Thu, Apr 29, 2004 at 08:46:41AM -0600, Bjorn Helgaas wrote:
+> On Thursday 29 April 2004 2:18 am, Simon Derr wrote:
+> > On Wed, 28 Apr 2004, Bjorn Helgaas wrote:
+> > 
+> > > Is your box based on Intel chipsets and/or firmware?  You might be
+> > Indeed.
+> > 
+> > > suffering from the problem I described here:
+> > >
+> > >     https://sourceforge.net/mailarchive/message.php?msg_id=6923358
+> > >
+> > > Intel firmware seems to describe the PCI root bridge where chipset
+> > > configuration space lives with _STA==0x8.  The spec says this means
+> > > "functional, but not present".  The current Linux code ignores things
+> > > that are "not present".
+> > 
+> > I tried your patch and it works perfectly. Thank you.
+> > This chipset/firmware is probably very common in the ia64 world so I think
+> > it might be a good idea to include your patch in the stock Linux kernel.
+> 
+> Well, the patch is a gross hack for a special case, and I'd be worried
+> about it breaking something related to docking or hotplug.  That's why
+> I posted it as "RFC" first, in the hope that someone could explain the
+> intent behind the Intel firmware.
 
+Note that my previous post is how I interpret the specs.  I can be
+completely wrong, and thinks like breaking docking etc. is only based on
+my interpretation.
 
+> Given the current ACPI spec, I'd say it's a bug in the Intel firmware,
+> and any workaround should be specific to that firmware.  If Intel
+> figures out good semantics for what they're trying to do, I think that
+> should be reflected in a future spec.
 
+It's up to real ACPI experts, like Bob, to tell actually what means
+exactly that funny 0x8 returned from _STA.
 
+-- 
+Bruno Ducrot
 
-Norton AntiVirus found a virus in an attachment you
-(acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org) sent to Rob E Russell/Raleigh/IBM-ImdYDtJjTyg@public.gmane.org
-
-
-
-To ensure the recipient(s) are able to use the files you sent, perform a
-virus scan on your computer, clean any infected files, then resend this
-attachment.
-
-
-
-
-Attachment:  abuses.pif
-
-Virus name: W32.Netsky.AB-rtiCCPl9gjg@public.gmane.org
-
-Action taken:  Clean failed : Delete succeeded :
-
-File status:  Deleted
-
-
-
---0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F
-Content-type: text/html; charset=US-ASCII
-Content-Disposition: inline
-
-<html><body>
-<p>Norton AntiVirus found a virus in an attachment you (acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org) sent to Rob E Russell/Raleigh/IBM-ImdYDtJjTyg@public.gmane.org<br>
-<br>
-<br>
-<br>
-To ensure the recipient(s) are able to use the files you sent, perform a virus scan on your computer, clean any infected files, then resend this attachment.<br>
-<br>
-<br>
-<br>
-<br>
-Attachment:  abuses.pif<br>
-<br>
-Virus name: W32.Netsky.AB-rtiCCPl9gjg@public.gmane.org<br>
-<br>
-Action taken:  Clean failed : Delete succeeded : <br>
-<br>
-File status:  Deleted<br>
-<br>
-<br>
-<br>
-</body></html>
---0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F--
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
