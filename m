@@ -1,14 +1,14 @@
-From: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
-Subject: Re: S3 wakeup code
-Date: Fri, 25 Jul 2003 15:56:59 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: lid state reported incorrectly; no ac events
+Date: Fri, 25 Jul 2003 15:55:40 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030725135659.GC668@laptop.6bone.nl>
-References: <20030725133800.GB668@laptop.6bone.nl> <Pine.LNX.4.44.0307250936080.3334-100000@puppy.afrinc.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E97086@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0307250936080.3334-100000-zmH7q5lE+0tBz13eCZem0Q@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,35 +17,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>
-Cc: "M. Warner Losh" <imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org>, pavel-+ZI9xUNit7I@public.gmane.org, flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fedor Karpelevitch <fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 25, 2003 at 09:39:34AM -0400, David G Hamblen wrote:
-> > > : S3 refrigerates everything and suspends, leaving the display white.
-> > > : Resuming turns the backlight off.  I can retrieve the backlight with the
-> > > : LCD/CRT button.
-> > >
-> > > I've seen exactly the same problem under FreeBSD which has supported
-> > > S3 state for a long time.  I've seen the problem going back at least 9
-> > > months.
-> >
-> > This needs to be handled by the video driver afaik.
-> 
-> I'm using the vesafb driver; I also tried with non-framebuffer VGA console
-> with the same behavior.  I'm not running XF86 for these experiments.
-> Should I look into the vesafb code?
+> From: Fedor Karpelevitch [mailto:fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org]=20
+> > How the heck does this work on Windows? Either they're getting the
+>=20
+> I do not no. I never installed Windows on this laptop. Since it comes=20
+> with it's own customized Windows install it could be hacked (for=20
+> example)
 
-I don't think there is a generic solution for this. We need specific code 
-for every video driver that needs it.
+Doubtful.
 
-That's my educated guess though.
+> > right answer (if so, how? What does the ASL for the _LID method
+> > look like?)=20
+>=20
+> Sorry, but how do I tell? I can provide whatever info if you tell me=20
+> where to get it from...
 
-Mark
+cat /proc/acpi/dsdt >dsdt.dat
 
--- 
-Mark Santcroos                    RIPE Network Coordination Centre
-http://www.ripe.net/home/mark/    New Projects Group/TTM
+Send me dsdt.dat.
+
+Thanks -- Andy
 
 
 -------------------------------------------------------
