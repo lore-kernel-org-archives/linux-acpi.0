@@ -1,13 +1,13 @@
-From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Evo N610C new ROM
-Date: 08 May 2003 12:47:03 +0200
+From: "Breathnach, Proinnsias (Dublin)" <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org>
+Subject: RE: [Patch] DSDT in initrd v0.2
+Date: Thu, 8 May 2003 11:11:07 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <878ythpvfc.fsf@lapper.ihatent.com>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E4FB@cceexc19.americas.cpqcorp.net>
+Message-ID: <A3C83F41488BD61195C3000802252FC135C3AB@dubim07742.ie.ml.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10440E4FB-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,59 +16,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: 'Markus Gaugusch' <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+> ----Original Message-----
+> On May 8, Breathnach, Proinnsias (Dublin) <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org>
+> wrote:
+> > Markus,
+> > Does any of this make sense ?
+> I think that the initrd only contains the most necessary things, e.g. not
+> dsdt's for 1000 different models, but only for the one PC that needs it.
+> 
+	<snip>
 
-Is there any specific work for the Evo N800c and related laptops for
-this as well?
+> The initrd is also usually rebuilt for each machine after installation,
+> containing only the required drivers for the current machine and nothing
+> more. Same with the DSDT, it would just be appended to the just-created
+> initrd.
+Both valid points ... I think that it's fair to say that if the machine is
+going to have a DSDT appended, it'll be done at initrd re-generation time
+...
 
-"Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org> writes:
+P
 
-> For those of you with the Evo N610C, there's a new version of the
-> BIOS available, with 'Linux Supports':
-> 
-> http://h18007.www1.hp.com/support/files/evonotebook/us/download/18058.ht
-> ml
-> 
-> I have not tried this yet, but hopefully it has a more compliant ACPI
-> implementation.
-> 
-> Regards,
-> John
-> --------------------------------
-> John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
-> Principal Member Technical Staff
->    Industry Standard Servers
->     Hewlett-Packard Company
->     http://www.hp.com/linux
-> 
-> 
-> -------------------------------------------------------
-> Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
-> The only event dedicated to issues related to Linux enterprise solutions
-> www.enterpriselinuxforum.com
-> 
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-- -- 
-Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
-"You have zero privacy anyway. Get over it."  --Scott McNealy
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
-
-iD8DBQE+ujWjCQ1pa+gRoggRAolcAKCK1YHytmupKjHv52r/RFgGzyIX3QCgkuAq
-TAQSC/yCVhuYV8PJdrqwhN4=
-=IVLY
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
