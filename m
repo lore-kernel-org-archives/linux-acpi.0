@@ -1,78 +1,72 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: Re: Kernel Oops when loading battery module
-Date: 08 Dec 2002 23:08:57 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1039406937.1443.5.camel@sirius.strandboge.cxm>
-References: <20021207003056.GC8072@homerelay.wiesner-net.de>
-	 <1039229157.2913.5.camel@sirius.strandboge.cxm>
-	 <20021207142228.GA20455@homerelay.wiesner-net.de>
-	 <1039273263.2913.23.camel@sirius.strandboge.cxm>
-	 <20021208132229.GB21604@homerelay.wiesner-net.de>
-	 <1039367266.1416.3.camel@sirius.strandboge.cxm>
-	 <20021209000245.GA22707@homerelay.wiesner-net.de>
+From: Ducrot Bruno <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [ACPI] Re: [2.5.50, ACPI] link error
+Date: Mon, 9 Dec 2002 11:28:58 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021209102858.GA14882@poup.poupinou.org>
+References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain> <20021206000618.GB15784@atrey.karlin.mff.cuni.cz> <20021206185702.GE17595@poup.poupinou.org> <20021208194944.GB19604@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021209000245.GA22707-aCYJ90g6FbN3mO1V46hDx7oZL2q1Rlic@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Wiesner <list-acpi-9/ybXWNEfnWFBUTzTaTVRY/15xujVBPPG9Ur7JDdleE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20021208194944.GB19604-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2002-12-08 at 19:02, Markus Wiesner wrote:
-> James D Strandboge schrieb:
-> > Well, I recompiled with 20020829 and 2.4.20-pre5-- still have the same
-> > problem.  Can you run the attached script with your working
-> > configuration and let me know if your laptop locks up?  Feel free to go
-> > in single user mode-- I don't need X or anything running to get the
-> > lockup.
-> 
-> Test 1:
-> ac-adapter attached, output redirected to /tmp/acpi.log (tmpfs) so that
-> the svga-framebuffer console does not slow down things. No lockup,
-> stopped test at 10000.
-> 
-> Test 2:
-> Output to console, somewhere between 4000 and 5000 i removed the power
-> chord. At about 5800 the system locked up! Sysrq-key still worked, as
-> well as ping from an external host, but nothing else. Alt-SysRq-k (kill
-> programs on current console) did not help. At least I could sync and
-> unmount before reboot. :-)
-> 
-> Test 3 (after the reboot, nice to have a journaling filesystem :-) ):
-> Output to console, system running on battery. This time as in the first
-> test no lockup, stopped the test at 10000.
-> 
+Hi Pavel:
 
-I get the lockup circa 16000 without having to remove the ac adapter. 
-My host is pingable too, and some keyboard keys work (like CapsLock),
-but otherwise dead.  I can also use Fn+F10 to eject the cdrom.  I didn't
-try SysRq.
+On Sun, Dec 08, 2002 at 08:49:45PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > > > > Doesn't that imply your fix is broken to begin with?
+> > > > > 
+> > > > > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
+> > > > > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
+> > > > > overdesign to me, OTOH if you do the work it is okay with me.
+> > > > 
+> > > > You broke the design. S3 support was developed long before swsusp was in 
+> > > > the kernel, and completely indpendent of it. It should have remained that 
+> > > > way. 
+> > > > 
+> > > > S3 support is a subset of what is need for S4 support. 
+> > > 
+> > > That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
+> > > but not for S4. Big part of driver support is only needed for S3.
+> > > 
+> > > > swsusp is an implementation of S4 support. In theory, there could be 
+> > > > multiple implementations that all use the same core (saving/restoring 
+> > > > state). 
+> > > 
+> > > There were patches for S4bios floating around, but it never really
+> > > worked, IIRC.
+> > 
+> > No.  It work.  I do not resubmmited patches because I think that
+> > swsusp is better.
+> 
+> I think that s4bios is nice to have. Its similar to S3 and easier to
+> set up than swsusp... It would be nice to have it.
 
-Sorry it is affecting you-- this bug will bite on a regular battery
-monitor that continuously polls every 2 seconds (like gnome battstat),
-but I am glad to know that it isn't some hardware issue or something on
-my end.
+for me:
+pros:
+-----
+1- it is really really more easier to implement than S4;
+2- we can even have it with 2.4 kernels (it seems that it work without
+the need of freezing processes, but I suspect that this statement
+is 'wrong' by nature).
 
-Jamie
+cons:
+-----
+1- it is much slower (especially at save time) than your swsusp;
+2- end users must setup their systems (need to create a suspend partition,
+or to keep a vfat partition as the really first one (/dev/hda1));
+3- we use a bios function.  Actually, everything can happen...
+
+That why I prefer swsusp at this time, or any other implementation of S4 (I
+think about an implementation of S4 via LKCD).
+
+Cheers,
 
 -- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
-
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
