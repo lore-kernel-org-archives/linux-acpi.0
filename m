@@ -1,8 +1,8 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [BUG 2.6.5-rc2-bk5 and 2.6.5-rc2-mm3] ACPI seems to be broken
-Date: 26 Mar 2004 02:43:25 -0500
+Date: 26 Mar 2004 02:55:56 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080287004.748.187.camel@dhcppc4>
+Message-ID: <1080287755.757.194.camel@dhcppc4>
 References: <A6974D8E5F98D511BB910002A50A6647615F6523@hdsmsx402.hd.intel.com>
 	 <1080278805.755.157.camel@dhcppc4>
 	 <1080284583.2439.8.camel@lade.trondhjem.org>
@@ -23,27 +23,20 @@ To: Trond Myklebust <trond.myklebust-41N18TsMXrtuMpJDpNschA@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Trond,
-Can you also try this simple patch all by itself
-to see if when acpi_disable() does get invoked, if
-we can possibly cause less damage to the system?
+
+> acpi_fadt.sci_int 21 acpi_sci_override_gsi 21
+
+oh, i see you tried out the patch.
+weird, this should say 
+acpi_fadt.sci_int 9 acpi_sci_override_gsi 21
+
+the fact that they're the same means the patch had no effect.
+did it apply cleanly?  If you applied it by hand, please
+note that the assignement was _replaced_ by the printk,
+so acpi_fadt.sci_int should still be 9.
 
 thanks,
--Len
-
-===== drivers/acpi/events/evxfevnt.c 1.19 vs edited =====
---- 1.19/drivers/acpi/events/evxfevnt.c	Sat Jan 17 18:12:31 2004
-+++ edited/drivers/acpi/events/evxfevnt.c	Fri Mar 26 02:38:17 2004
-@@ -139,6 +139,8 @@
- 		ACPI_DEBUG_PRINT ((ACPI_DB_INIT, "ACPI mode disabled\n"));
- 	}
- 
-+	disable_acpi();
-+
- 	return_ACPI_STATUS (status);
- }
- 
-
+-len
 
 
 
