@@ -1,30 +1,45 @@
-From: Russell King <rmk@arm.linux.org.uk>
-Subject: Re: [PATCH] Discover ACPI serial ports before plug-in ports
-Date: Sat, 21 Feb 2004 22:43:27 +0000
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040221224327.A18248@flint.arm.linux.org.uk>
-References: <200402101611.22768.bjorn.helgaas@hp.com>
+From: Giridhar Pemmasani <giri-IxWJ8JVbGpr5NRxSJurNR4dd74u8MsAO@public.gmane.org>
+Subject: Re: [giri@lmc.cs.sunysb.edu: Resume from suspend-to-ram]
+Date: Sat, 21 Feb 2004 19:49:59 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <c18uc2$rds$1@sea.gmane.org>
+References: <20040220235512.GA27779@dreamland.darkstar.lan> <1077321457.9623.27.camel@gaston> <20040221041647.2F8307831D@mail.lmc.cs.sunysb.edu> <1077336792.17072.30.camel@gaston> <20040221174049.GA4526@dreamland.darkstar.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200402101611.22768.bjorn.helgaas@hp.com>; from bjorn.helgaas@hp.com on Tue, Feb 10, 2004 at 04:11:22PM -0700
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Transfer-Encoding: 7Bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 10, 2004 at 04:11:22PM -0700, Bjorn Helgaas wrote:
-> I propose the following patch (against 2.6.2).  This makes us
-> discover ACPI serial ports before PCI ones.  The ACPI ports
-> tend to be built-in, and discovering them late means their ttyS
-> names move around if PCI serial ports are added or removed.  I
-> think it makes more sense to have relatively predictable and
-> consistent names for the built-in hardware.
+Luca wrote:
 
-Applied, thanks.
+> Giridhar  look into  your BIOS  for something  like "Run  VGABIOS if  S3
+> Resume" (I have  it under "Power Management") and set  it to "Yes". With
+> this option  the firmware  will re-init the  card BIOS  before returning
+> control to  Linux. If you  don't see  it then it's  a big  problem... we
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 PCMCIA      - http://pcmcia.arm.linux.org.uk/
-                 2.6 Serial core
+Unfortunately there is no such option in BIOS for Dell Latitude D600.
+
+> can't go in real mode once Linux  is running. It may be possible to hack
+> up something in wakeup.S, before restoring processor state.
+
+I am not sure exactly what is needed; X is able to POST (using int10?). I
+haven't looked at X code, but is that using real mode?
+
+Giri.
+
+
+
+-------------------------------------------------------
+SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+Build and deploy apps & Web services for Linux with
+a free DVD software kit from IBM. Click Now!
+http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
