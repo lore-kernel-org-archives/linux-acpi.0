@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: current ACPI status in 2.6.7 kernel
-Date: Thu, 12 Aug 2004 09:48:02 +0200
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: ac status broken with kernel 2.6.8-rc2
+Date: Thu, 12 Aug 2004 00:52:05 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040812074802.GB32562@hell.org.pl>
-References: <411881B1.9000903@ti.com> <1092132146.2666.3.camel@laptop.cunninghams> <4118D40D.5030404@ti.com> <4118F918.7070909@optonline.net> <411A2EA9.6000000@optonline.net> <1092282496.7765.148.camel@dhcppc4>
+Message-ID: <20040811225205.GA15948@message-id.gmane0305.slipkontur.de>
+References: <20040808115101.GA3498@luna.mooo.com> <20040808195210.GC7765@elf.ucw.cz> <20040811060953.GC9232@message-id.gmane0305.slipkontur.de> <20040811081940.GC965@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1092282496.7765.148.camel@dhcppc4>
+In-Reply-To: <20040811081940.GC965-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,20 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Len Brown:
-> some systems get a double event if wakeup with power button.
-> I use the LID to wake up my system and that works fine.
+On Wed, Aug 11, 2004 at 10:19:40AM +0200, Karol Kozimor wrote:
+> Thus wrote Stefan Seyfried:
+> > I believe this is a different issue. Also, swsusp _does_ or at least can
+                                               ^^^^^^typo,should be swsusp2
+> > use S4 AFAIK.
+> 
+> swsusp1: nope
+> pmdisk : from the beginning
+> swsusp2: only recently
 
-Note I do get a spurious PWRF event even when waking with the keyboard.
-Best regards,
-
+i meant swsusp2. I would not correct Pavel on swsusp issues ;-))
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
