@@ -1,14 +1,14 @@
-From: Veit =?iso-8859-1?q?N=F6renberg?= <veit_n-LWAfsSFWpa4@public.gmane.org>
-Subject: DSDT SystemMemory
-Date: Fri, 18 Jun 2004 11:29:41 +0200
+From: "Jonas Weismueller" <internet-pmAwacIe4cjGVkPrAd0EpA@public.gmane.org>
+Subject: Dell Inspiron 8600
+Date: Fri, 18 Jun 2004 14:14:54 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200406181129.41669.veit_n@yahoo.de>
+Message-ID: <49189.192.168.1.11.1087560894.squirrel@jonas.internal>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+References: 
+In-Reply-To: 
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,18 +20,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-i downloaded the original Samsung p30 dsdt from your site
-and it worked fine.
-After setting my SystemMemory from 512 to 768 MB i received a lot of acpi=20
-errors. I know that the value for the memory have to be set .
-I took a look at the DSDT, but i don=B4t know which value i have to set cau=
-se
-I found "SystemMemory" several times.
-could you tell, which value i have to set for 768 MB.
-thank you.
+Hi,
+i am suing the recent kernel 2.6.7 with my Dell Inspiron 8600. If i enable
+the option acpi=on in the lilo.conf file, acpi is working but not my sound
+card anymore. If i disable acpi=off my soundcard works perfectly. Any
+ideas to use both?
 
-Veit
+My sound card:
+00:1f.5 Multimedia audio controller: Intel Corp. 82801DB AC'97 Audio
+Controller (rev 01)
+
+Pleas CC to my email adress, because i ahevn't subscribed to the mailing
+list.
+Thx!
+
+Cheers Jonas
+
+
+
 
 
 -------------------------------------------------------
