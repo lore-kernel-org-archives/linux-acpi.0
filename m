@@ -1,12 +1,12 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Subject: Re: C2/C3 don't do anything
-Date: Fri, 4 Feb 2005 21:30:26 +0100
-Message-ID: <20050204203026.GA8049@dominikbrodowski.de>
-References: <20050203034639.GA29164@atomide.com>
+Date: Fri, 4 Feb 2005 22:34:07 +0100
+Message-ID: <20050204213407.GA26515@hell.org.pl>
+References: <20050203034639.GA29164@atomide.com> <20050204203026.GA8049@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Content-Disposition: inline
-In-Reply-To: <20050203034639.GA29164-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20050204203026.GA8049-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,29 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On Wed, Feb 02, 2005 at 07:46:40PM -0800, Tony Lindgren wrote:
-> I've done an idle module few years ago that enables C2 for dual
-> Athlon boxes [3], and that involved enabling it in the southbridge.
+Thus wrote Dominik Brodowski:
+> > I've done an idle module few years ago that enables C2 for dual
+> > Athlon boxes [3], and that involved enabling it in the southbridge.
+> > 
+> > I thought the current ACPI code enables this already? But it does
+> > not seem to be the case?
 > 
-> I thought the current ACPI code enables this already? But it does
-> not seem to be the case?
+> AFAIK, if there is no initialization method included in the ACPI table, the
+> ACPI code does _not_ currently enables some special, vendor-specific bit in 
+> southbridges.
+> 
+> > Should we have some extra code to scan the southbridges,
+> 
+> Definitely. There is already some "errata" handling in the processor module,
+> possibly this could get extended.
 
-AFAIK, if there is no initialization method included in the ACPI table, the
-ACPI code does _not_ currently enables some special, vendor-specific bit in 
-southbridges.
+I'm still using the patch to enable C3 on ICHx-M I once posted. Basically,
+it provided a valid PM2_CNT_BLK address in case the OEM had forgotten to do
+that, which in turn enabled C3 by providing a valid ARB_DIS address
+(provided P_LVL3_LAT is valid).
 
-> Should we have some extra code to scan the southbridges,
+It might be worthwile to add some quirks, possibly opt-in by a commandline
+option.
 
-Definitely. There is already some "errata" handling in the processor module,
-possibly this could get extended.
+Best regards,
 
-	Dominik
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
