@@ -1,13 +1,14 @@
-From: Ole Myren Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Subject: Re: resource for S3 suspend/resume of Radeon
-Date: 17 Mar 2003 17:23:54 +0100
+Date: Mon, 17 Mar 2003 17:26:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3hea29d2d.fsf@pcpenn04.cern.ch>
-References: <1047912152.28830.32.camel@dutidad>
+Message-ID: <20030317162624.GB2249@hell.org.pl>
+References: <1047912152.28830.32.camel@dutidad> <20030317153434.GB3936@hell.org.pl> <1047916074.28836.58.camel@dutidad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1047912152.28830.32.camel-1Jw6Eky0yc0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1047916074.28836.58.camel-1Jw6Eky0yc0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,40 +21,49 @@ To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-"Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org> writes:
+Thus wrote Charl P. Botha:
+> > Which radeon do you have in mind exactly? I use an M7 LW chip, and I get
+> > the following: both in 2.4.x and 2.5.x the display does not power-off when
+> You could try using the radeontool (google it) to remedy this.
 
-> benh and ATI seem to have fixed the suspension code of the radeon.
+Thanks, I will. I'm currently trying to deal with it on ACPI level, but
+perhaps using radeontool is better.
 
-It is certainly encouraging to see that someone is working on the
-radeon resume! The following comment calls however for some caution
-when it comes to hoping that a direct port to an ACPI-based system
-will work:
+No that I've tested it: it seems that radeontool goes further than ACPI,
+disabling not only the backlight (as my laptop does), but also the LCD
+itself. Neat.
 
-	* only supports the mobile chips in D2 mode, that is typically what
-	* is used on Apple laptops,
+> > in S1 (which is, I believe, expected), and during S3 it poweroffs and comes
+> > back in, provided I pass the acpi_sleep=s3_bios option.
+> Wow, you mean to say that you can flawlessly S3 suspend/resume with
+> kernel 2.4?  I would assume that this is due to your laptop's support
 
-If I'm guessing correctly, D2 is "clocks off, static registers
-preserved" while ACPI/S3 certainly means D3 (power off) -> even more
-device state to be restored.
+No, I meant S3 only in 2.5. 2.4 has no S3 code whatsoever, at least AFAIK.
 
-> I don't have time to look at this right now, but will do so as soon as
-> another lazy weekend comes up.
+> for S3 in BIOS.  Not all laptops have this... see for instance what Ole
+> had to do to get his working:
+> http://home.cern.ch/mrohne/P2120/P2120_Linux_S3.html
 
-If you haven't already done so, you might want get access to the ATI
-docs *before* your lazy weekend...
+Anyway, since the first 2.5 I used (2.5.59) I am able to suspend-to-RAM,
+then resume. Normally, the screen is off, and the keyboard is mute, but
+appending acpi_sleep=s3_bios does it for the screen, and reloading the
+atkeyb module brings the keyboard back to life. NIC needs several seconds
+(and several pings also) to resume (it's a rtl8139 chip).
 
-> If someone else has the time and inclination (Ole Rohne? ;), please
-> go ahead!
+> Drivers in the new kernel need to be able to suspend/resume (S1, S3 and
+> S4) without more than the minimum required support in the BIOS.
 
-I've resolved not to waste more time on it - at least for the
-moment. And I'm quite happy with the POST-hack - dirty as it might
-be...
+S4 is a bit easier. See this: I have radeonfb hard-compiled in the kernel.
+When I resume, the kernel that boots first initializes the display
+properly, and then the kernel that is read from swap has the display
+already running, so it doesn't have to worry about it. I suppose it would
+be much harder when radeonfb was compiled as a module. Then, I think that
+it's S3 that is the most difficult.
+Best regards,
 
-Ole
-
-PS: I've updated the patches at
-<http://home.cern.ch/mrohne/P2120/P2120_Linux_S3.html> to
-linux-2.5.64-bk11 and XFree86-4.3.0. I hope they're OK this time...
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
