@@ -1,8 +1,8 @@
 From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [PATCH] Updated patches for PCI IRQ resource deallocation support [3/3]
-Date: Fri, 24 Sep 2004 14:46:06 +0900
+Subject: [PATCH] Updated patches for PCI IRQ resource deallocation support [1/3]
+Date: Fri, 24 Sep 2004 14:45:35 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4153B49E.1060403@jp.fujitsu.com>
+Message-ID: <4153B47F.8090105@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,348 +19,306 @@ To: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx
 Cc: akpm-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a patch for ia64 code that depends on previous two patches.
+This is a patch for PCI code that has no dependencies.
+Greg, please apply.
 
 ----
-Name:		IRQ_deallocation_ia64.patch
+Name:		add_pcibios_disable_device_hook.patch
 Kernel Version:	2.6.9-rc2-mm1
-Depends:	none
+Depends:	none.
 Description:
 
-This is an ia64 portion of IRQ resource deallocation. It implements
-pcibios_disable_device() and acpi_unregister_gsi() for ia64.
+This patch adds a hook 'pcibios_disable_device()' into
+pci_disable_device() to call architecture specific PCI resource
+deallocation code. It's a opposite part of pcibios_enable_device().
+We need this hook to deallocate architecture specific PCI resource
+such as IRQ resource, etc.. This patch is just for adding the hook, so
+'pcibios_disable_device()' is defined as a null function on all
+architecture so far.
 
-    o acpi_unregister_gsi()
-
-        Summary of changes for implementing this interface:
-
-        - Add new function iosapic_unregister_intr() into
-          arch/ia64/kernel/iosapic.c. This function frees an interrupt
-          vector and related data structures.
-
-        - Add new function free_irq_vector() into
-          arch/ia64/kernel/irq_ia64.c. This frees an unused vector.
-
-        - Change assign_irq_vector() to be able to support
-          free_irq_vector().
-
-    o pcibios_disable_device()
-
-        This calls acpi_pci_irq_disable() to deallocate IRQ resources.
+I tested this patch on i386, x86_64 and ia64. But it has not been
+tested on other architectures because I don't have these machines.
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
 
 ---
 
- linux-2.6.9-rc2-mm1-kanesige/arch/ia64/Kconfig           |    9 +
- linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/acpi.c     |    3 
- linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/iosapic.c  |   82 +++++++++++++--
- linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/irq.c      |    9 +
- linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/irq_ia64.c |   27 ++++
- linux-2.6.9-rc2-mm1-kanesige/arch/ia64/pci/pci.c         |    3 
- linux-2.6.9-rc2-mm1-kanesige/include/asm-ia64/hw_irq.h   |    2 
- linux-2.6.9-rc2-mm1-kanesige/include/asm-ia64/iosapic.h  |    4 
- 8 files changed, 124 insertions(+), 15 deletions(-)
+ linux-2.6.9-rc2-mm1-kanesige/arch/alpha/kernel/pci.c            |    5 +++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/arm/kernel/bios32.c           |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/i386/pci/common.c             |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/pci/pci.c                |    5 +++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/m68knommu/kernel/comempci.c   |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/mips/pci/pci.c                |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/mips/pmc-sierra/yosemite/ht.c |    5 +++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/parisc/kernel/pci.c           |    6 ++++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/ppc/kernel/pci.c              |    5 +++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/ppc64/kernel/pci.c            |    5 +++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/sh/boards/overdrive/galileo.c |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/sh/drivers/pci/pci.c          |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/sh64/kernel/pcibios.c         |    5 +++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/sparc/kernel/pcic.c           |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/sparc64/kernel/pci.c          |    4 ++++
+ linux-2.6.9-rc2-mm1-kanesige/arch/v850/kernel/rte_mb_a_pci.c    |    6 ++++++
+ linux-2.6.9-rc2-mm1-kanesige/drivers/pci/pci.c                  |    2 ++
+ linux-2.6.9-rc2-mm1-kanesige/include/linux/pci.h                |    1 +
+ 18 files changed, 77 insertions(+)
 
-diff -puN arch/ia64/Kconfig~IRQ_deallocation_ia64 arch/ia64/Kconfig
---- linux-2.6.9-rc2-mm1/arch/ia64/Kconfig~IRQ_deallocation_ia64	2004-09-24 13:57:20.108640713 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/Kconfig	2004-09-24 13:57:20.143797166 +0900
-@@ -500,6 +500,15 @@ config IA64_PALINFO
- 	  To use this option, you have to ensure that the "/proc file system
- 	  support" (CONFIG_PROC_FS) is enabled, too.
- 
-+config IA64_DEALLOCATE_IRQ
-+	bool "IRQ resource deallocation support (EXPERIMENTAL)"
-+	depends on IOSAPIC && EXPERIMENTAL
-+	default n
-+	help
-+	  Say Y here to experiment with deallocating IRQ resources
-+	  dynamically.
-+	  Say N if you want to disable IRQ resource deallocation.
-+
- source "drivers/firmware/Kconfig"
- 
- source "fs/Kconfig.binfmt"
-diff -puN arch/ia64/kernel/acpi.c~IRQ_deallocation_ia64 arch/ia64/kernel/acpi.c
---- linux-2.6.9-rc2-mm1/arch/ia64/kernel/acpi.c~IRQ_deallocation_ia64	2004-09-24 13:57:20.110593849 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/acpi.c	2004-09-24 13:57:20.144773734 +0900
-@@ -524,6 +524,9 @@ EXPORT_SYMBOL(acpi_register_gsi);
- void
- acpi_unregister_gsi (unsigned int irq)
- {
-+#ifdef CONFIG_IA64_DEALLOCATE_IRQ
-+	iosapic_unregister_intr(irq);
-+#endif
- }
- EXPORT_SYMBOL(acpi_unregister_gsi);
- 
-diff -puN arch/ia64/kernel/iosapic.c~IRQ_deallocation_ia64 arch/ia64/kernel/iosapic.c
---- linux-2.6.9-rc2-mm1/arch/ia64/kernel/iosapic.c~IRQ_deallocation_ia64	2004-09-24 13:57:20.112546986 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/iosapic.c	2004-09-24 13:57:20.145750302 +0900
-@@ -111,6 +111,7 @@ static struct iosapic_intr_info {
- 	unsigned char	dmode	: 3;	/* delivery mode (see iosapic.h) */
- 	unsigned char 	polarity: 1;	/* interrupt polarity (see iosapic.h) */
- 	unsigned char	trigger	: 1;	/* trigger mode (see iosapic.h) */
-+	int		refcnt;		/* reference counter */
- } iosapic_intr_info[IA64_NUM_VECTORS];
- 
- static struct iosapic {
-@@ -177,7 +178,7 @@ gsi_to_irq (unsigned int gsi)
- static void
- set_rte (unsigned int vector, unsigned int dest, int mask)
- {
--	unsigned long pol, trigger, dmode, flags;
-+	unsigned long pol, trigger, dmode;
- 	u32 low32, high32;
- 	char *addr;
- 	int rte_index;
-@@ -218,13 +219,9 @@ set_rte (unsigned int vector, unsigned i
- 	/* dest contains both id and eid */
- 	high32 = (dest << IOSAPIC_DEST_SHIFT);
- 
--	spin_lock_irqsave(&iosapic_lock, flags);
--	{
--		iosapic_write(addr, IOSAPIC_RTE_HIGH(rte_index), high32);
--		iosapic_write(addr, IOSAPIC_RTE_LOW(rte_index), low32);
--		iosapic_intr_info[vector].low32 = low32;
--	}
--	spin_unlock_irqrestore(&iosapic_lock, flags);
-+	iosapic_write(addr, IOSAPIC_RTE_HIGH(rte_index), high32);
-+	iosapic_write(addr, IOSAPIC_RTE_LOW(rte_index), low32);
-+	iosapic_intr_info[vector].low32 = low32;
+diff -puN arch/alpha/kernel/pci.c~IRQ_deallocation_pci arch/alpha/kernel/pci.c
+--- linux-2.6.9-rc2-mm1/arch/alpha/kernel/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.539784455 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/alpha/kernel/pci.c	2004-09-22 20:29:17.715566370 +0900
+@@ -381,6 +381,11 @@ pcibios_enable_device(struct pci_dev *de
+ 	return 0;
  }
  
- static void
-@@ -475,6 +472,7 @@ register_intr (unsigned int gsi, int vec
- 	iosapic_intr_info[vector].addr     = iosapic_address;
- 	iosapic_intr_info[vector].gsi_base = gsi_base;
- 	iosapic_intr_info[vector].trigger  = trigger;
-+	iosapic_intr_info[vector].refcnt++;
- 
- 	if (trigger == IOSAPIC_EDGE)
- 		irq_type = &irq_type_iosapic_edge;
-@@ -576,6 +574,7 @@ iosapic_register_intr (unsigned int gsi,
- 	{
- 		vector = gsi_to_vector(gsi);
- 		if (vector > 0) {
-+			iosapic_intr_info[vector].refcnt++;
- 			spin_unlock_irqrestore(&iosapic_lock, flags);
- 			return vector;
- 		}
-@@ -584,6 +583,8 @@ iosapic_register_intr (unsigned int gsi,
- 		dest = get_target_cpu(gsi, vector);
- 		register_intr(gsi, vector, IOSAPIC_LOWEST_PRIORITY,
- 			polarity, trigger);
-+
-+		set_rte(vector, dest, 1);
- 	}
- 	spin_unlock_irqrestore(&iosapic_lock, flags);
- 
-@@ -592,10 +593,73 @@ iosapic_register_intr (unsigned int gsi,
- 	       (polarity == IOSAPIC_POL_HIGH ? "high" : "low"),
- 	       cpu_logical_id(dest), dest, vector);
- 
--	set_rte(vector, dest, 1);
- 	return vector;
- }
- 
-+#ifdef CONFIG_IA64_DEALLOCATE_IRQ
 +void
-+iosapic_unregister_intr (unsigned int irq)
++pcibios_disable_device(struct pci_dev *dev)
 +{
-+	unsigned long flags;
-+	irq_desc_t *idesc;
-+	int rte_index;
-+	unsigned int gsi;
-+	unsigned long trigger, polarity;
-+	ia64_vector vector = irq_to_vector(irq);
-+		
-+	idesc = irq_descp(irq);
-+	spin_lock_irqsave(&idesc->lock, flags);
-+	spin_lock(&iosapic_lock);
-+	{
-+		rte_index = iosapic_intr_info[vector].rte_index;
-+		if (rte_index < 0) {
-+			spin_unlock(&iosapic_lock);
-+			spin_unlock_irqrestore(&idesc->lock, flags);
-+			return;		/* not an IOSAPIC interrupt */
-+		}
-+
-+		if (--iosapic_intr_info[vector].refcnt > 0) {
-+			spin_unlock(&iosapic_lock);
-+			spin_unlock_irqrestore(&idesc->lock, flags);
-+			return;
-+		}
-+
-+		/*
-+		 * If interrupt handlers still exists on the irq
-+		 * associated with the gsi, don't unregister the
-+		 * interrupt.
-+		 */
-+		if (unlikely(idesc->action)) {
-+			iosapic_intr_info[vector].refcnt++;
-+			spin_unlock_irqrestore(&idesc->lock, flags);
-+			printk(KERN_WARNING "Cannot unregister GSI. IRQ %u is still in use.\n", irq);
-+			return;
-+		}
-+
-+		/* Clear the interrupt controller descriptor. */
-+		idesc->handler = &no_irq_type;
-+
-+		gsi = iosapic_intr_info[vector].gsi_base + rte_index;
-+		trigger  = iosapic_intr_info[vector].trigger;
-+		polarity = iosapic_intr_info[vector].polarity;
-+
-+		/* Clear the interrupt information. */
-+		memset(&iosapic_intr_info[vector], 0, sizeof(struct iosapic_intr_info));
-+		iosapic_intr_info[vector].rte_index = -1;	/* mark as unused */
-+	}
-+	spin_unlock(&iosapic_lock);
-+	spin_unlock_irqrestore(&idesc->lock, flags);
-+
-+	/* Free the interrupt vector */
-+	free_irq_vector(vector);
-+
-+	printk(KERN_INFO "GSI %u (%s, %s) -> vector %d unregisterd.\n",
-+	       gsi, (trigger == IOSAPIC_EDGE ? "edge" : "level"),
-+	       (polarity == IOSAPIC_POL_HIGH ? "high" : "low"),
-+	       vector);
 +}
-+#endif /* CONFIG_IA64_DEALLOCATE_IRQ */
 +
  /*
-  * ACPI calls this when it finds an entry for a platform interrupt.
-  * Note that the irq_base and IOSAPIC address must be set in iosapic_init().
-diff -puN arch/ia64/kernel/irq.c~IRQ_deallocation_ia64 arch/ia64/kernel/irq.c
---- linux-2.6.9-rc2-mm1/arch/ia64/kernel/irq.c~IRQ_deallocation_ia64	2004-09-24 13:57:20.130125212 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/irq.c	2004-09-24 13:57:20.145750302 +0900
-@@ -879,8 +879,11 @@ int setup_irq(unsigned int irq, struct i
- 	struct irqaction *old, **p;
- 	irq_desc_t *desc = irq_descp(irq);
- 
--	if (desc->handler == &no_irq_type)
-+	spin_lock_irqsave(&desc->lock,flags);
-+	if (desc->handler == &no_irq_type) {
-+		spin_unlock_irqrestore(&desc->lock,flags);
- 		return -ENOSYS;
-+	}
- 	/*
- 	 * Some drivers like serial.c use request_irq() heavily,
- 	 * so we have to be careful not to interfere with a
-@@ -906,7 +909,6 @@ int setup_irq(unsigned int irq, struct i
- 	/*
- 	 * The following block of code has to be executed atomically
- 	 */
--	spin_lock_irqsave(&desc->lock,flags);
- 	p = &desc->action;
- 	if ((old = *p) != NULL) {
- 		/* Can't share interrupts unless both agree to */
-@@ -1040,6 +1042,9 @@ void move_irq(int irq)
- 	irq_desc_t *desc = irq_descp(irq);
- 	int redir = test_bit(irq, pending_irq_redir);
- 
-+	if (unlikely(!desc->handler->set_affinity))
-+		return;
-+
- 	if (!cpus_empty(pending_irq_cpumask[irq])) {
- 		cpus_and(tmp, pending_irq_cpumask[irq], cpu_online_map);
- 		if (unlikely(!cpus_empty(tmp))) {
-diff -puN arch/ia64/kernel/irq_ia64.c~IRQ_deallocation_ia64 arch/ia64/kernel/irq_ia64.c
---- linux-2.6.9-rc2-mm1/arch/ia64/kernel/irq_ia64.c~IRQ_deallocation_ia64	2004-09-24 13:57:20.132078348 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/kernel/irq_ia64.c	2004-09-24 13:57:20.146726871 +0900
-@@ -74,15 +74,34 @@ irq_exit (void)
- 	preempt_enable_no_resched();
+  *  If we set up a device for bus mastering, we need to check the latency
+  *  timer as certain firmware forgets to set it properly, as seen
+diff -puN arch/arm/kernel/bios32.c~IRQ_deallocation_pci arch/arm/kernel/bios32.c
+--- linux-2.6.9-rc2-mm1/arch/arm/kernel/bios32.c~IRQ_deallocation_pci	2004-09-22 20:29:17.556386080 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/arm/kernel/bios32.c	2004-09-22 20:29:17.716542936 +0900
+@@ -672,6 +672,10 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
  }
  
-+static unsigned long ia64_vector_mask[BITS_TO_LONGS(IA64_NUM_DEVICE_VECTORS)];
++void pcibios_disable_device(struct pci_dev *dev)
++{
++}
 +
- int
- assign_irq_vector (int irq)
+ int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
  {
--	static int next_vector = IA64_FIRST_DEVICE_VECTOR;
--
--	if (next_vector > IA64_LAST_DEVICE_VECTOR)
-+	int pos, vector;
-+ again:
-+	pos = find_first_zero_bit(ia64_vector_mask, IA64_NUM_DEVICE_VECTORS);
-+	vector = IA64_FIRST_DEVICE_VECTOR + pos;
-+	if (vector > IA64_LAST_DEVICE_VECTOR)
- 		/* XXX could look for sharable vectors instead of panic'ing... */
- 		panic("assign_irq_vector: out of interrupt vectors!");
--	return next_vector++;
-+	if (test_and_set_bit(pos, ia64_vector_mask))
-+		goto again;
-+	return vector;
+diff -puN arch/i386/pci/common.c~IRQ_deallocation_pci arch/i386/pci/common.c
+--- linux-2.6.9-rc2-mm1/arch/i386/pci/common.c~IRQ_deallocation_pci	2004-09-22 20:29:17.561268911 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/i386/pci/common.c	2004-09-22 20:29:17.717519502 +0900
+@@ -249,3 +249,7 @@ int pcibios_enable_device(struct pci_dev
+ 
+ 	return pcibios_enable_irq(dev);
+ }
++
++void pcibios_disable_device(struct pci_dev *dev)
++{
++}
+diff -puN arch/ia64/pci/pci.c~IRQ_deallocation_pci arch/ia64/pci/pci.c
+--- linux-2.6.9-rc2-mm1/arch/ia64/pci/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.569081441 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/pci/pci.c	2004-09-22 20:29:17.717519502 +0900
+@@ -449,6 +449,11 @@ pcibios_enable_device (struct pci_dev *d
+ }
+ 
+ void
++pcibios_disable_device (struct pci_dev *dev)
++{
 +}
 +
 +void
-+free_irq_vector (int vector)
-+{
-+	int pos;
-+
-+	if (vector < IA64_FIRST_DEVICE_VECTOR || vector > IA64_LAST_DEVICE_VECTOR)
-+		return;
-+
-+	pos = vector - IA64_FIRST_DEVICE_VECTOR;
-+	if (!test_and_clear_bit(pos, ia64_vector_mask))
-+		printk(KERN_WARNING "%s: double free!\n", __FUNCTION__);
- }
- 
- extern unsigned int do_IRQ(unsigned long irq, struct pt_regs *regs);
-diff -puN arch/ia64/pci/pci.c~IRQ_deallocation_ia64 arch/ia64/pci/pci.c
---- linux-2.6.9-rc2-mm1/arch/ia64/pci/pci.c~IRQ_deallocation_ia64	2004-09-24 13:57:20.137937757 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/arch/ia64/pci/pci.c	2004-09-24 13:57:20.146726871 +0900
-@@ -451,6 +451,9 @@ pcibios_enable_device (struct pci_dev *d
- void
- pcibios_disable_device (struct pci_dev *dev)
+ pcibios_align_resource (void *data, struct resource *res,
+ 		        unsigned long size, unsigned long align)
  {
-+#ifdef CONFIG_IA64_DEALLOCATE_IRQ
-+	acpi_pci_irq_disable(dev);
-+#endif /* CONFIG_IA64_DEALLOCATE_IRQ */
+diff -puN arch/m68knommu/kernel/comempci.c~IRQ_deallocation_pci arch/m68knommu/kernel/comempci.c
+--- linux-2.6.9-rc2-mm1/arch/m68knommu/kernel/comempci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.591542463 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/m68knommu/kernel/comempci.c	2004-09-22 20:29:17.718496068 +0900
+@@ -373,6 +373,10 @@ int pcibios_enable_device(struct pci_dev
+ 	return(0);
  }
  
- void
-diff -puN include/asm-ia64/hw_irq.h~IRQ_deallocation_ia64 include/asm-ia64/hw_irq.h
---- linux-2.6.9-rc2-mm1/include/asm-ia64/hw_irq.h~IRQ_deallocation_ia64	2004-09-24 13:57:20.139890894 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/include/asm-ia64/hw_irq.h	2004-09-24 13:57:20.147703439 +0900
-@@ -50,6 +50,7 @@ typedef u8 ia64_vector;
++void pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ /*****************************************************************************/
+ 
+ void pcibios_update_resource(struct pci_dev *dev, struct resource *root, struct resource *r, int resource)
+diff -puN arch/mips/pci/pci.c~IRQ_deallocation_pci arch/mips/pci/pci.c
+--- linux-2.6.9-rc2-mm1/arch/mips/pci/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.601308125 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/mips/pci/pci.c	2004-09-22 20:29:17.719472634 +0900
+@@ -226,6 +226,10 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
+ }
+ 
++void pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ static void __init pcibios_fixup_device_resources(struct pci_dev *dev,
+ 	struct pci_bus *bus)
+ {
+diff -puN arch/mips/pmc-sierra/yosemite/ht.c~IRQ_deallocation_pci arch/mips/pmc-sierra/yosemite/ht.c
+--- linux-2.6.9-rc2-mm1/arch/mips/pmc-sierra/yosemite/ht.c~IRQ_deallocation_pci	2004-09-22 20:29:17.610097221 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/mips/pmc-sierra/yosemite/ht.c	2004-09-22 20:29:17.719472634 +0900
+@@ -348,6 +348,11 @@ int pcibios_enable_device(struct pci_dev
+ }
+ 
+ 
++void pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
++
+ 
+ void pcibios_update_resource(struct pci_dev *dev, struct resource *root,
+                              struct resource *res, int resource)
+diff -puN arch/parisc/kernel/pci.c~IRQ_deallocation_pci arch/parisc/kernel/pci.c
+--- linux-2.6.9-rc2-mm1/arch/parisc/kernel/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.613026919 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/parisc/kernel/pci.c	2004-09-22 20:29:17.720449201 +0900
+@@ -331,6 +331,12 @@ int pcibios_enable_device(struct pci_dev
+ }
+ 
+ 
++void
++pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
++
+ /* PA-RISC specific */
+ void pcibios_register_hba(struct pci_hba_data *hba)
+ {
+diff -puN arch/ppc64/kernel/pci.c~IRQ_deallocation_pci arch/ppc64/kernel/pci.c
+--- linux-2.6.9-rc2-mm1/arch/ppc64/kernel/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.614980052 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/ppc64/kernel/pci.c	2004-09-22 20:29:17.720449201 +0900
+@@ -345,6 +345,11 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
+ }
+ 
++void
++pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ /*
+  * Return the domain number for this bus.
   */
- #define IA64_FIRST_DEVICE_VECTOR	0x30
- #define IA64_LAST_DEVICE_VECTOR		0xe7
-+#define IA64_NUM_DEVICE_VECTORS		(IA64_LAST_DEVICE_VECTOR - IA64_FIRST_DEVICE_VECTOR + 1)
+diff -puN arch/ppc/kernel/pci.c~IRQ_deallocation_pci arch/ppc/kernel/pci.c
+--- linux-2.6.9-rc2-mm1/arch/ppc/kernel/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.638417640 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/ppc/kernel/pci.c	2004-09-22 20:29:17.722402333 +0900
+@@ -1420,6 +1420,11 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
+ }
  
- #define IA64_MCA_RENDEZ_VECTOR		0xe8	/* MCA rendez interrupt */
- #define IA64_PERFMON_VECTOR		0xee	/* performanc monitor interrupt vector */
-@@ -83,6 +84,7 @@ extern unsigned long ipi_base_addr;
- extern struct hw_interrupt_type irq_type_ia64_lsapic;	/* CPU-internal interrupt controller */
++void
++pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ struct pci_controller*
+ pci_bus_to_hose(int bus)
+ {
+diff -puN arch/sh64/kernel/pcibios.c~IRQ_deallocation_pci arch/sh64/kernel/pcibios.c
+--- linux-2.6.9-rc2-mm1/arch/sh64/kernel/pcibios.c~IRQ_deallocation_pci	2004-09-22 20:29:17.641347339 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/sh64/kernel/pcibios.c	2004-09-22 20:29:17.722402333 +0900
+@@ -142,6 +142,11 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
+ }
  
- extern int assign_irq_vector (int irq);	/* allocate a free vector */
-+extern void free_irq_vector (int vector);
- extern void ia64_send_ipi (int cpu, int vector, int delivery_mode, int redirect);
- extern void register_percpu_irq (ia64_vector vec, struct irqaction *action);
++void
++pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ /*
+  *  If we set up a device for bus mastering, we need to check and set
+  *  the latency timer as it may not be properly set.
+diff -puN arch/sh/boards/overdrive/galileo.c~IRQ_deallocation_pci arch/sh/boards/overdrive/galileo.c
+--- linux-2.6.9-rc2-mm1/arch/sh/boards/overdrive/galileo.c~IRQ_deallocation_pci	2004-09-22 20:29:17.643300471 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/sh/boards/overdrive/galileo.c	2004-09-22 20:29:17.723378899 +0900
+@@ -529,6 +529,10 @@ int pcibios_enable_device(struct pci_dev
  
-diff -puN include/asm-ia64/iosapic.h~IRQ_deallocation_ia64 include/asm-ia64/iosapic.h
---- linux-2.6.9-rc2-mm1/include/asm-ia64/iosapic.h~IRQ_deallocation_ia64	2004-09-24 13:57:20.141844030 +0900
-+++ linux-2.6.9-rc2-mm1-kanesige/include/asm-ia64/iosapic.h	2004-09-24 13:57:20.147703439 +0900
-@@ -78,6 +78,9 @@ extern int gsi_to_irq (unsigned int gsi)
- extern void iosapic_enable_intr (unsigned int vector);
- extern int iosapic_register_intr (unsigned int gsi, unsigned long polarity,
- 				  unsigned long trigger);
-+#ifdef CONFIG_IA64_DEALLOCATE_IRQ
-+extern void iosapic_unregister_intr (unsigned int irq);
-+#endif
- extern void __init iosapic_override_isa_irq (unsigned int isa_irq, unsigned int gsi,
- 				      unsigned long polarity,
- 				      unsigned long trigger);
-@@ -97,6 +100,7 @@ extern void __init map_iosapic_to_node (
- #define iosapic_system_init(pcat_compat)			do { } while (0)
- #define iosapic_init(address,gsi_base)				do { } while (0)
- #define iosapic_register_intr(gsi,polarity,trigger)		(gsi)
-+#define iosapic_unregister_intr(irq)				do { } while (0)
- #define iosapic_override_isa_irq(isa_irq,gsi,polarity,trigger)	do { } while (0)
- #define iosapic_register_platform_intr(type,gsi,pmi,eid,id, \
- 	polarity,trigger)					(gsi)
+ }
+ 
++void pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ /* We should do some optimisation work here I think. Ok for now though */
+ void __init pcibios_fixup_bus(struct pci_bus *bus)
+ {
+diff -puN arch/sh/drivers/pci/pci.c~IRQ_deallocation_pci arch/sh/drivers/pci/pci.c
+--- linux-2.6.9-rc2-mm1/arch/sh/drivers/pci/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.655995832 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/sh/drivers/pci/pci.c	2004-09-22 20:29:17.723378899 +0900
+@@ -127,6 +127,10 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
+ }
+ 
++void pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ /*
+  *  If we set up a device for bus mastering, we need to check and set
+  *  the latency timer as it may not be properly set.
+diff -puN arch/sparc64/kernel/pci.c~IRQ_deallocation_pci arch/sparc64/kernel/pci.c
+--- linux-2.6.9-rc2-mm1/arch/sparc64/kernel/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.675527156 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/sparc64/kernel/pci.c	2004-09-22 20:29:17.724355465 +0900
+@@ -502,6 +502,10 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
+ }
+ 
++void pcibios_disable_device(struct pci_dev *pdev)
++{
++}
++
+ void pcibios_resource_to_bus(struct pci_dev *pdev, struct pci_bus_region *region,
+ 			     struct resource *res)
+ {
+diff -puN arch/sparc/kernel/pcic.c~IRQ_deallocation_pci arch/sparc/kernel/pcic.c
+--- linux-2.6.9-rc2-mm1/arch/sparc/kernel/pcic.c~IRQ_deallocation_pci	2004-09-22 20:29:17.687245950 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/sparc/kernel/pcic.c	2004-09-22 20:29:17.725332032 +0900
+@@ -869,6 +869,10 @@ int pcibios_enable_device(struct pci_dev
+ 	return 0;
+ }
+ 
++void pcibios_disable_device(struct pci_dev *pdev)
++{
++}
++
+ /*
+  * NMI
+  */
+diff -puN arch/v850/kernel/rte_mb_a_pci.c~IRQ_deallocation_pci arch/v850/kernel/rte_mb_a_pci.c
+--- linux-2.6.9-rc2-mm1/arch/v850/kernel/rte_mb_a_pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.689199082 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/arch/v850/kernel/rte_mb_a_pci.c	2004-09-22 20:29:17.726308598 +0900
+@@ -247,6 +247,12 @@ int __nomods_init pcibios_enable_device 
+ 	return 0;
+ }
+ 
++
++void
++pcibios_disable_device(struct pci_dev *dev)
++{
++}
++
+ 
+
+ /* Resource allocation.  */
+ static void __devinit pcibios_assign_resources (void)
+diff -puN drivers/pci/pci.c~IRQ_deallocation_pci drivers/pci/pci.c
+--- linux-2.6.9-rc2-mm1/drivers/pci/pci.c~IRQ_deallocation_pci	2004-09-22 20:29:17.700917877 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/drivers/pci/pci.c	2004-09-22 20:29:17.726308598 +0900
+@@ -411,6 +411,8 @@ pci_disable_device(struct pci_dev *dev)
+ 		pci_command &= ~PCI_COMMAND_MASTER;
+ 		pci_write_config_word(dev, PCI_COMMAND, pci_command);
+ 	}
++
++	pcibios_disable_device(dev);
+ }
+ 
+ /**
+diff -puN include/linux/pci.h~IRQ_deallocation_pci include/linux/pci.h
+--- linux-2.6.9-rc2-mm1/include/linux/pci.h~IRQ_deallocation_pci	2004-09-22 20:29:17.712636671 +0900
++++ linux-2.6.9-rc2-mm1-kanesige/include/linux/pci.h	2004-09-22 20:29:17.727285164 +0900
+@@ -687,6 +687,7 @@ extern struct list_head pci_devices;	/* 
+ 
+ void pcibios_fixup_bus(struct pci_bus *);
+ int pcibios_enable_device(struct pci_dev *, int mask);
++void pcibios_disable_device(struct pci_dev *);
+ char *pcibios_setup (char *str);
+ 
+ /* Used only when drivers/pci/setup.c is used */
 
 _
 
