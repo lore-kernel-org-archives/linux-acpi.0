@@ -1,8 +1,11 @@
-From: _Svc_NortonAV-EoMULFl998mT9ig0jae3mg@public.gmane.org
-Subject: (SMTP) Virus found in a message you sent
-Date: Sun, 30 May 2004 09:30:35 +0000 (UTC)
+From: "fil\.tri\@libero\.it" <fil.tri-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: (no subject)
+Date: Sun, 30 May 2004 12:20:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1BUMbE-0002cC-Af@sc8-sf-mx1.sourceforge.net>
+Message-ID: <HYIVDV$6FF6F36135C3B41AB160B16083E1DD5A@libero.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,30 +15,10 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Sun May 30 02:28:01 2004
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-(SMTP) A virus was found in a message sent by this
-account.
-
---- Scan information follows ---
-
-Result: Virus Detected
-Virus Name: W32.Netsky.Q-rtiCCPl9gjg@public.gmane.org
-File Attachment: message.pif
-Attachment Status: deleted
-
---- Original message information follows ---
-
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: tiv-koh0eFjlPcM@public.gmane.org
-Date: Sun, 30 May 2004 18:16:30 +0900
-Subject: Mail System (tiv-koh0eFjlPcM@public.gmane.org)
-Message-Id: <200405300926.i4U9Q73w015942-DosMRbfdDAJKGEu1vmcu7w@public.gmane.org>
-Received: from cache1.synergon.hu ([194.149.60.26])
- by sy2ba-smtp.synergon.hu (SAVSMTP 3.1.0.29) with SMTP id M2004053011261718926
- for <szemethy.tivadar-EoMULFl998mT9ig0jae3mg@public.gmane.org>; Sun, 30 May 2004 11:26:17 +0200
+confirm 128177
 
 
 
