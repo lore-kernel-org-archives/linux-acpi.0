@@ -1,10 +1,16 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Thinkpad R40 + S4 Anyone
-Date: Mon, 28 Feb 2005 11:57:53 +0800
-Message-ID: <1109563073.29261.10.camel@neuromancer.home.net>
+From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: Re: swsusp fails with "FATAL: cannot find swap device,
+	try swapon -a!"
+Date: Mon, 28 Feb 2005 15:26:12 +1100
+Message-ID: <1109564772.16374.1.camel@desktop.cunningham.myip.net.au>
+References: <42225F85.1000302@gmx.net> <20050228000401.GK1441@elf.ucw.cz>
+	 <4222640C.7090706@gmx.net> <42227FE9.1080400@gmx.net>
+	 <42228A3D.6080907@gmx.net>
+Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <42228A3D.6080907-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,21 +20,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Just wondering if anyone has gotten S4 to work with Thinkpad R40.
+Hi.
 
-S3 works. but S4... well... doesn't
+On Mon, 2005-02-28 at 14:04, Carl-Daniel Hailfinger wrote:
+> swsusp: Resume From Partition: /dev/hda6
+> swsusp: Error -6 resuming
 
-This is on FC3(default kernel) by the way.
+That's no such device. Do you have ide support built as modules and
+loaded from an initrd?
 
---
-Ow Mun Heng
-Gentoo/Linux on DELL D600 1.4Ghz 
-98% Microsoft(tm) Free!! 
-Neuromancer 11:57:04 up 1 day, 4:37, 
-8 users, load average: 0.72, 
+Regards,
+
+Nigel
+-- 
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
+Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
+
+Maintainer of Suspend2 Kernel Patches http://softwaresuspend.berlios.de
+
 
 
 
