@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 broken on a Samsung P30
-Date: Fri, 12 Nov 2004 23:32:11 +0100
-Message-ID: <20041112223209.GI1252@elf.ucw.cz>
-References: <88056F38E9E48644A0F562A38C64FB6003569022@scsmsx403.amr.corp.intel.com>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: AE_BAD_HEX_CONSTANT
+Date: Fri, 12 Nov 2004 14:56:59 -0800
+Message-ID: <41953FBB.4070905@root.org>
+References: <20041109193331.930.qmail@web41101.mail.yahoo.com> <41911F58.6020300@root.org> <20041112152048.GE31422@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <88056F38E9E48644A0F562A38C64FB6003569022-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20041112152048.GE31422-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Paulo da Silva <pvmagacho78-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> >> Tried again with 2.6.10-rc1-bk22 (latest ACPI patches IIRC) and the
-> >> patched wakeup.S
-> >> Still no beep :(
-> >
-> >Too bad, I do not know how to debug this further. It is possible that
-> >those patches are not yet merged into mainline, I'm not sure, it was
-> >something like "correcting wakeup address".
-> >
+Bruno Ducrot wrote:
+> On Tue, Nov 09, 2004 at 11:49:44AM -0800, Nate Lawson wrote:
 > 
-> Are you referring to virtual v/s physical address patch from Shaohua?
-> http://bugme.osdl.org/show_bug.cgi?id=3390
-> I think it is already there in latest acpi-test.
+>>                        Name (BT0I, Package (0x0D)
+>>                        {
+>>                            0x01,
+>>                            0x19C8,
+>>                            0x19C8,
+>>                            0x01,
+>>                            0x39D0,
+>>                            0x014A,
+>>                            0xDC,
+>>                            0x012C,
+>>                            0x0294,
+>>                            "ANA",
+>>                            "110",
+>>                            "Lion",
+>>                            0x00
+>>                        })
+>>
+>>Looking more carefully, it looks like commenting out just the last line 
+>>("Acer") would suffice.  Index 0xC is actually an integer (0x00) so this 
+>>is what triggers the Integer conversion.  I'm not sure how the 
+>>conversion rules should be modified to take this into account.
+>>
+> 
+> 
+> I suggest to replace the last integer with a string like "Acer".  Since
+> anyway BT0I is expected to be a package returned by a _BIF method, it
+> must be compatible with ACPI spec (look at 11.2.2.1).
+> 
 
-Yes, but Matthias is using 2.6.10-rc1-bk22. Matthias, please try patch
-in above url (id=3851).
-								Pavel
+I agree to test this, but I'd also like to see acpi-ca improved to 
+handle this case with the stock ASL.
+
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Nate
 
 
 -------------------------------------------------------
