@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] 2.4/2.6 use xdsdt to print table header
-Date: Sun, 18 Jan 2004 10:41:18 +0800
+Subject: RE: DELL inspiron 8200 fails to restore console after S1/S3
+Date: Sun, 18 Jan 2004 10:45:29 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CE0@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CE1@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,16 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
-Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hmm, ACPI should interact with the Linux video subsystem.=20
 
-> indefinitely.  This is a generic ACPI issue for an system that chooses
-> to use the xdsdt in place of the dsdt.  It should be included in the
-> ACPI tree and pushed up from there.  Thanks,
+> -----Original Message-----
+> From: Brian Perkins [mailto:bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org]=20
+> Sent: Wednesday, January 14, 2004 12:24 AM
+> To: Yu, Luming
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] DELL inspiron 8200 fails to restore=20
+> console after S1/S3
 >=20
-All right, I'll push this to Len.
+>=20
+> I have the same entry in my thinkpad R32.
+>=20
+> Mine seems to follow the "display specific methods" that are=20
+> described=20
+> in section B.4 (I have the 2.0c spec in fron tof me now).
+>=20
+>=20
+>=20
+> Yu, Luming wrote:
+>=20
+> > What is AGP.VID, I didn't find any information regarding VID in ACPI
+> > spec 2.0b.
+> >
+>=20
+> --=20
+> "Set phasers to Troll."
+> Brian Perkins				     bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
+>=20
+>=20
 
 
 -------------------------------------------------------
