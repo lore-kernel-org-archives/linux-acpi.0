@@ -1,45 +1,61 @@
-From: Stefan Tomanek <stefan-Q4Z/ui9EqVxM7kwft8N7nw@public.gmane.org>
-Subject: Re: Battery rate on Acer TM 292
-Date: Wed, 15 Sep 2004 10:56:02 +0000 (UTC)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <loom.20040915T125239-771@post.gmane.org>
-References: <16A54BF5D6E14E4D916CE26C9AD305751B66D5@pdsmsx402.ccr.corp.intel.com> <20040913053900.GB851@message-id.gmane0305.slipkontur.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Cleanup macro abuse in battery.c
+Date: Wed, 15 Sep 2004 13:16:46 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040915111646.GA19675@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S264915AbUIOLRH@vger.kernel.org>
+Content-Disposition: inline
+To: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, Len Brown <len.brown@intel.com>
+Cc: Rusty trivial patch monkey Russell <trivial@rustcorp.com.au>
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Seyfried writes:
+Hi!
 
-> There are actually a lot of systems where 'present rate' is pretty accurate
-> and there is ACER where it is always 0. I am in a dispute with ACER engineers
-> about this right now but they don't seem to understand the problem.
+ACPI likes to abuse #define's quite a lot. This kills one of worst
+offenders. Please apply,
+								Pavel
 
-Ah, nice to hear that someone's trying to work on that issue.
+--- clean-mm/drivers/acpi/battery.c	2004-08-24 09:03:30.000000000 +0200
++++ linux-mm/drivers/acpi/battery.c	2004-09-15 13:00:50.000000000 +0200
+@@ -49,8 +49,6 @@
+ #define ACPI_BATTERY_FILE_ALARM		"alarm"
+ #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
+-#define ACPI_BATTERY_UNITS_WATTS	"mW"
+-#define ACPI_BATTERY_UNITS_AMPS		"mA"
+ 
+ 
+ #define _COMPONENT		ACPI_BATTERY_COMPONENT
+@@ -378,7 +376,7 @@
+ 		goto end;
+ 	}
+ 
+-	units = bif->power_unit ? ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS;
++	units = bif->power_unit ? "mA" : "mW";
+ 					
+ 	if (bif->design_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		p += sprintf(p, "design capacity:         unknown\n");
+@@ -471,7 +469,7 @@
+ 
+ 	/* Battery Units */
+ 
+-	units = battery->flags.power_unit ? ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS;
++	units = battery->flags.power_unit ? "mA" : "mW";
+ 
+ 	/* Battery Status (_BST) */
+ 
+@@ -557,7 +555,7 @@
+ 
+ 	/* Battery Units */
+ 	
+-	units = battery->flags.power_unit ? ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS;
++	units = battery->flags.power_unit ? "mA" : "mW";
+ 
+ 	/* Battery Alarm */
+ 
 
-> I wonder if you get to see a estimated battery lifetime in Windows on these
-> machines.
-
-I cannot help with that, since this notebook has seen windows only for a couple
-of seconds before repartitioning. :-)
-
-As you can see in the disassebld dsdt, they seem to check the os_name at some
-places, I tried to set the name to various windows version, no luck so far.
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: thawte's Crypto Challenge Vl
-Crack the code and win a Sony DCRHC40 MiniDV Digital Handycam
-Camcorder. More prizes in the weekly Lunch Hour Challenge.
-Sign up NOW http://ad.doubleclick.net/clk;10740251;10262165;m
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
