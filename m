@@ -1,14 +1,15 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: \_PR\CPU\_INI not called during initialization
-Date: Mon, 6 Oct 2003 15:33:08 -0700
+From: "Sergey V. Oudaltsov" <sergey.oudaltsov-2wWnE64kTEeyZ7Fz/ZYYxQ@public.gmane.org>
+Subject: Re: How to sleep with 2.4.x
+Date: Tue, 07 Oct 2003 01:33:02 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DE0@orsmsx405.jf.intel.com>
+Message-ID: <1065486782.3704.1.camel@localhost>
+References: <E1A6T1j-0007uU-00@sc8-sf-list2.sourceforge.net>
+	 <3F816ADF.6010209@clients.ie>  <20031006153717.GA24961@enigma.daemon.sh>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:message
+In-Reply-To: <20031006153717.GA24961-adzhR0EPeY/7X6WiDY61Ug@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,57 +18,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+To: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Please send the DSDT from this machine, I'd like to see it.
-Thanks,
-Bob
+> they hibernate (S4) with swsusp:
+> 
+> http://swsusp.sf.net
+Thanks for the idea. Actually, the only problem is that RH 9 is based on
+the kernel 2.4.20 - and swsusp exists only for 2.4.22. I am ok to build
+the kernel 2.4.20 with some patches I specifically added (and patches
+officially added by RH) - but I am scared to change the version:)
+Anyway, these are my own problems. Thanks again.
 
+-- 
+Sergey
 
------Original Message-----
-From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
-Sent: Monday, October 06, 2003 2:50 PM
-To: Moore, Robert
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: \_PR\CPU\_INI not called during initialization
-
-Since in ACPI 2.0 a processor declaration block can be under \_SB_, it
-counts as a device.  If you don't want this in ACPICA, I'll stick it
-under
-our Processor driver.
-
--Nate
-
-On Mon, 6 Oct 2003, Moore, Robert wrote:
-> _INI methods are only called on objects of type "Device", as per the
-> ACPI specification.
-> Bob
->
->
-> -----Original Message-----
-> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
-> Sent: Monday, October 06, 2003 9:47 AM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Cc: Moore, Robert
-> Subject: \_PR\CPU\_INI not called during initialization
->
-> My laptop has two performance states I have been using, however, I get
-a
-> 0
-> when I read the mhz and mW associated with each state.  When running
-> with
-> debug =3D ACPI_LV_INIT, I noticed that the processor's _INI method is
-not
-> called and this is what fills out the Px info.  Is this something
-you'll
-> add to ACPICA or should I be handling that myself?
->
->    http://root.org/~nate/acpi/ibm-acpidump.asl.gz
->
-> -Nate
->
 
 
 -------------------------------------------------------
