@@ -1,13 +1,13 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: [PATCH] Don't disable interrupts during EC access
-Date: Wed, 17 Nov 2004 02:25:27 +0100
-Message-ID: <20041117012527.GB10900@message-id.gmane0305.slipkontur.de>
-References: <3ACA40606221794F80A5670F0AF15F84041AC076@pdsmsx403> <20041116121616.GG1108@parcelfarce.linux.theplanet.co.uk> <20041116122946.GG28839@wotan.suse.de>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Dell laptop problem with acpid
+Date: Wed, 17 Nov 2004 11:32:50 +0100
+Message-ID: <20041117103249.GA8177@hell.org.pl>
+References: <b9768e82041116171321b8086f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20041116122946.GG28839-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
+In-Reply-To: <b9768e82041116171321b8086f-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,18 +20,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 16, 2004 at 01:29:46PM +0100, Andi Kleen wrote:
- 
-> And the event polling can take several ms, there is just no way 
-> to do this during runtime with interrupts off. Especially since
-> thermal will do this every few seconds. With my patch at least 
-> only kacpid is blocked for that long, not the whole system.
+Thus wrote Cederik de Leon:
+>    I want to check if ACPID reports the actions (like LID switch, PW
+> Button etc), the daemon is up and running on my DEBIAN system, when i
+> close the computer i spect a message into acpid log, but nothing's
+> happend... some times the actions was logged, (LID SW) -for example,
+> but it's erratic and unpredictable- I'm running 2.6.9 Kernel. And the
+> acpitool reports the general status of the computer.
 
-may this also help the awfully slow battery polling on some machines
-(e.g. Dell D600) or is this a completely different case?
+There is a regression in event handling visible on some hardware (Maxdata
+pro8000x here, but there's been other reports, even on this ml).
+Basically, the ACPI SCI seems to be raised correctly according to
+/proc/interrupts, but the events are reported erratically or not reported
+at all. As a sidenote: kacpid doesn't spin when that happens. Any hints 
+on how to debug this further?
+Best regards,
+
 -- 
-Stefan Seyfried
-
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
