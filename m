@@ -1,11 +1,14 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
+From: Jonathan Brandmeyer <jbrandmeyer-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
 Subject: Re: trackpoint dead after suspend-to-RAM
-Date: Fri, 03 Dec 2004 05:48:26 +0100
-Message-ID: <yzo653kxa05.fsf@cern.ch>
+Date: Thu, 02 Dec 2004 23:59:40 -0500
+Message-ID: <1102049980.9867.51.camel@illuvatar>
 References: <1102018182.9867.15.camel@illuvatar>
+	 <20041202221154.GA19095@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041202221154.GA19095-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,19 +21,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I'm trying to get suspend-to-ram working on the machine, but when it
-> resumes, the trackpoint (a PS/2 device) doesn't work.
+On Thu, 2004-12-02 at 23:11 +0100, Karol Kozimor wrote:
+> Thus wrote Jonathan Brandmeyer:
+> > The issue appears to be similar to what was discussed in the thread "Re:
+> > trackpoint dead after S3 suspend" in late November, 2003 on this mailing
+> > list [1].  The last post in that thread said (with regard to a patch
+> > reported to at least partially fix the problem), "See l-k to find
+> > similar code done less ugly way... (I did it yesterday)."  Does anyone
+> > know which patch the poster was referencing?
+> 
+> Ugh, that was finally properly fixed and merged around 2.6.3, so you're
+> probably facing something different. Please also try with a vanilla kernel.
+> Best regards,
+> 
 
-The Fujitsu P2120 (a younger sibling to your P2040) has a DSDT method
-"\\_SB.PCI0.EIO.FJEX.SMOU" to swich on and off the internal track
-point. Calling this function with the argument "1" around the time [1]
-of _BFS/_WAK in hwsleep.c fixes the problem here.
+Done.  Still busted.  What info do ya'll need from me to help track this
+down?
 
-Ole
-
-[1] This is perhaps a bit simplified. For various reasons, I've split
-acpi_leave_sleep_state in two pieces. The "SMOU" method happens in the
-first part which gets to run before devices are resumed.
+Thanks,
+-Jonathan
 
 
 
