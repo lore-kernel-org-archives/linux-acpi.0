@@ -1,10 +1,10 @@
-From: Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org>
-Subject: ACPI and my IBM Thinkpad R32
-Date: Fri, 14 Feb 2003 17:07:12 +0100
+From: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Interesting S3 resume behaviour.
+Date: 14 Feb 2003 16:08:16 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030214170712.6e70c356.linux.wali@gmx.de>
+Message-ID: <1045238896.22719.92.camel@passion.cambridge.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,78 +18,248 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-here comes an ACPI-Newbie with some (perhaps stupid) questions ;-)
-I've got an IBM Thinkpad R32 (Type 2658-DCG) and tried to get linux working on it. Ok all is set up excl. powersave etc.. (the ACPI) stuff. I've tried a vanilla 2.4.19 kernel enabled acpi and got some informations about battery temperature etc in /proc/acpi/ . Then I've read an article about linux and ACPI in the german ct'.  ...And so I've found this project... Ok, I patched a 2.4.20 and a 2.4.21-pre3 kernel with the ACPI-patches from sf. Now I got no readable Information in /proc .. :-( Now I get the following messages about acpi when booting up (kernel 2.4.12-pre3 with patch):
+I'm playing with 2.5.60-BK and Pavel's recent swsusp patches on a 
+MSI 'KTV4L' board, and seeing very bizarre behaviour w.r.t. resuming
+from S3.
 
-Linux version 2.4.21-pre3-acpi (root@flat-eric) (gcc version 2.95.4 20011002 (Debian prerelease)) #2 Thu Feb 13 16:29:32 CET 2003
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
- BIOS-e820: 000000000009f000 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000d0000 - 00000000000d4000 (reserved)
- BIOS-e820: 00000000000dc000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000000ff70000 (usable)
- BIOS-e820: 000000000ff70000 - 000000000ff7a000 (ACPI data)
- BIOS-e820: 000000000ff7a000 - 000000000ff7c000 (ACPI NVS)
- BIOS-e820: 000000000ff7c000 - 0000000010000000 (reserved)
- BIOS-e820: 00000000ff800000 - 0000000100000000 (reserved)
-255MB LOWMEM available.
-ACPI: have wakeup address 0xc0001000
-On node 0 totalpages: 65392
-zone(0): 4096 pages.
-zone(1): 61296 pages.
-zone(2): 0 pages.
-ACPI: RSDP (v002 IBM                        ) @ 0x000f7120
-ACPI: XSDT (v001 IBM    TP-1M    00000.08240) @ 0x0ff733f8
-ACPI: FADT (v001 IBM    TP-1M    00000.08240) @ 0x0ff73444
-ACPI: SSDT (v001 IBM    TP-1M    00000.08240) @ 0x0ff734f8
-ACPI: ECDT (v001 IBM    TP-1M    00000.08240) @ 0x0ff79f55
-ACPI: TCPA (v001 IBM    TP-1M    00000.08240) @ 0x0ff79fa6
-ACPI: BOOT (v001 IBM    TP-1M    00000.08240) @ 0x0ff79fd8
-ACPI: DSDT (v001 IBM    TP-1M    00000.08240) @ 0x00000000
-ACPI: BIOS passes blacklist
-ACPI: MADT not present
-IBM machine detected. Enabling interrupts during APM calls.
-Kernel command line: BOOT_IMAGE=Test ro root=308 video=radeonfb:1024x768
-No local APIC present or hardware disabled
-Initializing CPU#0
-Detected 1599.857 MHz processor.
-Console: colour VGA+ 80x25
-Calibrating delay loop... 3191.60 BogoMIPS
-Memory: 255436k/261568k available (1738k kernel code, 5744k reserved, 723k data, 112k init, 0k highmem)
-[...SNIP...]
-ACPI: Subsystem revision 20030122
-PCI: PCI BIOS revision 2.10 entry at 0xfd91e, last bus=5
-PCI: Using configuration type 1
- tbxface-0098 [03] acpi_load_tables      : ACPI Tables successfully acquired
-Parsing all Control Methods:.......................................................................................................................................................
-..................................................................................................
-Table [DSDT] - 934 Objects with 53 Devices 249 Methods 15 Regions
-Parsing all Control Methods:
-Table [SSDT] - 0 Objects with 0 Devices 0 Methods 0 Regions
-ACPI Namespace successfully loaded at root c03a061c
-evxfevnt-0073 [04] acpi_enable           : Transition to ACPI mode successful
-   evgpe-0262: *** Info: GPE Block0 defined as GPE0 to GPE15
-   evgpe-0262: *** Info: GPE Block1 defined as GPE16 to GPE31
-ACPI: Found ECDT
-ACPI: Could not use ECDT
-evxfevnt-0118 [06] acpi_disable          : ACPI mode disabled
- utalloc-0967 [05] ut_dump_allocations   : No outstanding allocations.
-PCI: Probing PCI hardware
-PCI: ACPI tables contain no PCI IRQ routing entries
-PCI: Probing PCI hardware (bus 00)
-PCI: Ignoring BAR0-3 of IDE controller 00:1f.1
-Transparent bridge - Intel Corp. 82801BAM/CAM PCI Bridge
-[...SNIP...]
-Hm, what's going wrong here, whats to do to get it fixed (2.5.xx or a newer patch or another config??). If you need more configuration details, please ask. I can also test some other configurations or versions (its at the moment a test mashine). So thank you for reading this mail ;-) and hopefully answering some newbiequestions....
+Firstly, if I attempt S3 suspend/resume without first booting Windows
+once, it just doesn't come back at all -- it seems to reboot immediately
+on resume. Ignoring that for the moment though, when it _does_ come back
+I see strange behaviour.
 
-regards
-micha 
+The kernel puts its resume code at physical address 0x1000. The BIOS
+reinitialises the video card and then jumps to 0100:0000. We transfer
+%cs into %ax, and then into %ds and %ss.
+
+At this point, I read from %ds:0000, print the value, and write it back.
+Then I read from %ss:0000, print the value and write it back. Except I
+don't, because the box spontaneously reboots when I _write_ to %ss:0000,
+even though we've just read correct data from that address, and written
+to that address via %ds too.
+
+Given that we're supposed to be in real mode (and %cr0 and %cr4
+apparently tell us we really are in real mode), I really don't
+comprehend how this can happen -- any ideas? :)
+
+My workaround for this, for now, is to avoid the 'pushl $0' by simply
+having an explicit '.long 0' after the wakeup_stack label. We do
+actually get back to Linux if we don't write to anywhere in the stack
+segment. But I'm still confused, and I suspect the answer to this might
+have some bearing on the question of why we see a similar spontaneous
+reboot before even reaching our own code, if Windows hasn't been booted
+since the last hard reset.
+
+Code attached below -- this is its output:
+
+ hwsleep-0238 [03] acpi_enter_sleep_state: Entering sleep state [S3]
+cr0:00000010
+cr4:00000000
+ss:sp:0100:0FF0
+wc(0100,FCFA): OK
+wd(0100,FCFA): OK
+ws(0100,FCFA):
+   < at this point, the box reboots >
+
+---------------- My wakeup code, for reference: ----------------
+
+
+ALIGN
+	.align	4096
+ENTRY(wakeup_start)
+
+.macro serial_out, val, port
+       movb \val, %al
+       movw \port, %dx
+       outb %al, %dx
+.endm	
+
+.macro pchar_al
+               movw $0x3f8, %dx
+               outb %al, %dx
+               addw $5, %dx
+1:
+               inb %dx, %al
+               testb $0x40, %al
+               jz 1b
+.endm
+
+.macro pchar, c
+               movb \c, %al
+               pchar_al
+.endm
+.macro phnybble
+               addb $'0', %al
+               cmpb $'9', %al
+               jle 1f
+               addb $7, %al
+1:             pchar_al
+.endm
+
+.macro phbyte
+               movb %al, %ah
+               shrb $4, %al
+               phnybble
+               movb %ah, %al
+               andb $0xf, %al
+               phnybble
+.endm
+
+.macro phword, w
+               movw \w, %ax
+               movb %ah, %al
+               phbyte
+               movw \w, %ax
+               phbyte
+.endm
+
+	
+wakeup_code:
+	wakeup_code_start = .
+	.code16
+
+	cli
+	cld
+
+	serial_out	$0x80, $0x3f8+3
+	serial_out      $1, $0x3f8
+	serial_out      $0, $0x3f8+1
+	serial_out      $0x03, $0x3f8+3
+	serial_out      $0x01, $0x3f8+2
+	serial_out      $0x00, $0x3f8+1
+
+ 	movw	$0xb800, %ax
+	movw	%ax,%fs
+	movw	$0x0e00 + 'L', %fs:(0x10)
+
+	pchar $'c'
+	pchar $'r'
+	pchar $'0'
+	pchar $':'
+	movl %cr0, %ebx
+	shrl $16, %ebx
+	phword %bx
+	movl %cr0, %ebx
+	phword %bx
+	pchar $13
+	pchar $10
+
+#if 0
+	# We die when we use %ss, wherever it points. 
+	pchar $'e'
+	movw %fs, %ax
+	movw %ax, %ss
+	pchar $'f'
+	movw $0x200, %sp
+	pchar $'l'
+	pushfl
+	pchar $'a'
+	popl %ebx
+	pchar $'g'
+	pushl %ebx
+	pchar $'s'
+	shrl $16, %ebx
+	pchar $':'
+	phword %bx
+	popl %ebx
+	phword %bx
+#endif	
+	pchar $'c'
+	pchar $'r'
+	pchar $'4'
+	pchar $':'
+	movl %cr4, %ebx
+	shrl $16, %ebx
+	phword %bx
+	movl %cr4, %ebx
+	phword %bx
+	pchar $13
+	pchar $10
+	
+
+	# setup data segment
+	movw	%cs, %ax
+	movw	%ax, %ds					# Make ds:0 point to wakeup_start
+	movw	%ax, %ss
+	
+	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
+	movw	$0x0e00 + 'S', %fs:(0x12)
+
+	pchar $'s'
+	pchar $'s'
+	pchar $':'
+	pchar $'s'
+	pchar $'p'
+	pchar $':'
+	phword %ss
+	pchar $':'
+	phword %sp
+	pchar $13
+	pchar $10
+	
+	pchar $'w'
+	pchar $'c'
+	movw %cs:(0), %bx
+	pchar $'('
+	phword %cs
+	pchar $','
+	phword %bx
+	pchar $')'
+	pchar $':'
+	pchar $' '
+	movw %bx, %cs:(0)
+	pchar $'O'
+	pchar $'K'
+	pchar $13
+	pchar $10
+
+	pchar $'w'
+	pchar $'d'
+	movw %ds:(0), %bx
+	pchar $'('
+	phword %ds
+	pchar $','
+	phword %bx
+	pchar $')'
+	pchar $':'
+	pchar $' '
+	movw %bx, %ds:(0)
+	pchar $'O'
+	pchar $'K'
+	pchar $13
+	pchar $10
+
+	pchar $'w'
+	pchar $'s'
+	movw %ss:(0), %bx
+	pchar $'('
+	phword %ss
+	pchar $','
+	phword %bx
+	pchar $')'
+	pchar $':'
+	pchar $' '
+	movw %bx, %ss:(0)
+	pchar $'O'
+	pchar $'K'
+	pchar $13
+	pchar $10
+
+	pchar $'p'
+	pchar $'u'
+	pchar $'s'
+	pchar $'h'
+	pchar $':'
+	pushl $0
+	pchar $' '
+	pchar $'O'
+	pchar $'K'
+	pchar $13
+	pchar $10
+
+
 
 -- 
-Michael Wahlbrink    | Woeschhalde 32
-                     | 78052 Villingen Schwenningen
-linux.wali-Mmb7MZpHnFY@public.gmane.org    | Germany
+dwmw2
 
 
 -------------------------------------------------------
