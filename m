@@ -1,12 +1,13 @@
-From: Wesley T Allen <wezlo-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: boot hanging
-Date: Wed, 10 Mar 2004 21:08:25 -0500
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: cvs commit: src/sys/contrib/dev/acpica acfreebsd.h
+Date: Wed, 10 Mar 2004 18:26:54 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078970905.4761.6.camel@localhost>
+Message-ID: <20040310182253.P61709@root.org>
+References: <20040303220117.R21587@root.org> <20040309110721.B88330@mail.ncircle.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040309110721.B88330-YW38lnafgrALLvduDZEr5g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,34 +16,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Brian Buchanan <brian-QcaC+sH85HNBDgjK7y7TUQ@public.gmane.org>
+Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-	Sorry if this is the wrong place to ask this question; if I'm off-base
-could someone point me in the right direction?
+On Tue, 9 Mar 2004, Brian Buchanan wrote:
+> I hacked the ASL for my ThinkPad T40p so that "FreeBSD" was treated as an
+> equivalent to "Windows 2001".  After your change, the Fn+F8 screen
+> expansion toggle stopped working.
+>
+> I've attached the acpidump output you requested.  My local modification
+> was to add after the check for "Windows 2001":
+>
+> If (LEqual (\SCMP (\_OS, "FreeBSD"), Zero))
+> {
+>     Store (0x02, \WNTF)
+> }
 
-	I have an hp pavilion laptop (an n5000 series, build-to-order) and have
-had problems with acpi under linux.  in the 2.4.x series the system
-would hang with an error "keventd not started" every now and again.  I
-would let it sit for a couple of seconds (making sure the hd had spun
-down), and then I'd reboot.  Sometimes I would have to do this a couple
-of times, but it was no big deal.
-	I compiled 2.6.0 on my own when it came out (because the acpi support
-was better), and I could NEVER get it to boot.  So I gave up for a
-while, until I got Mandrake 10.0 community installed on my laptop.  The
-kernel is 2.6.3 and I just can't get the thing to boot with acpi enabled
-at all (well, once in about 50 attempts I think).  This is a bit of a
-bummer, considering that I can't get usb devices to work with my laptop
-w/o acpi enabled!  Does anyone have a workaround?  And what other
-information would be helpful in troubleshooting?
+The issue is that we don't support the _OSI method yet, otherwise we could
+advertise FreeBSD as being both Windows 2k and XP compatible.  Your best
+workaround is to just unconditionally store 0x02 into \WNTF at the end of
+the \_SB._INI function.  Since the custom AML will only be loaded by
+FreeBSD, you won't affect other OS's with this change.
 
-Thanks gang,  one of the things I love about OSS is that the developers
-are people you can talk to, and I end up learning how to help the
-development process AND other users.
+Bob, any word on _OSI implementation?
 
-Wes
-
+-Nate
 
 
 -------------------------------------------------------
