@@ -1,55 +1,166 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] asus_acpi build fix for 2.6.0-test6
-Date: 07 Oct 2003 23:33:16 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1065583996.3372.441.camel@dhcppc4>
-References: <20031002133318.0ee1fc95.shemminger@osdl.org>
+Subject: Re: ACPI blacklisting: move year blacklist into acpi/blacklist.c
+Date: 08 Oct 2003 02:39:41 -0400
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <1065595181.3370.478.camel@dhcppc4>
+References: <20031001101826.GA3503@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031002133318.0ee1fc95.shemminger-3NddpPZAyC0@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stephen Hemminger <shemminger-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20031001101826.GA3503-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+Re: dmi_check_blacklist()
+
+Something like MATCH(DMI_BOARD_NAME, "P2B-DS") boils down to a strstr(a,
+b) -- probably something that can be fooled by substring, say "PB2-D"...
+
+But more to the point, there is no way to compare before/after dates,
+say BEFORE(DMI_BIOS_DATE, "1/3/2002")
+
+This is needed to blacklist things like the Toshiba Tecra 8100 which
+supplies a DMI date, but no other useful version info.
+
+If we such a date comparison function, we could also use it to make the
+year-compare code below somewhat cleaner.
+
+Re: externs
+looks like using externs in the function protos in include/linux is
+common practice, so acpi.h should probably do it too -- even if it is
+just for consistent style.
+
+Re: diffs
+I couldn't get patch to digest this format w/o manual intervention
+--- /usr/src/tmp/linux/arch/...
++++ /usr/src/linux/arch/...
+
+and had to edit it into
+
+--- a/arch/...
++++ b/arch/...
+
+for patch -Np1
+
+Re: acpi_bios_year() definition
+note that CONFIG_ACPI_BOOT may be defined when CONFIG_ACPI is not.  Ie.
+in the case where just the ACPI boot code is used to enumerate LAPICs,
+say for HT, but ACPI_INTERPRETER is not even built in.
+
+In this case, blacklist.c is not built into the kernel, but dmi_scan.c
+always is.
 
 thanks,
 -Len
 
-On Thu, 2003-10-02 at 16:33, Stephen Hemminger wrote:
-> For 2.6.0-test6 BK latest, fix 'make allmodconfig'.  
-> This driver seems to think there is still linux/modversions.h on 2.6?
+On Wed, 2003-10-01 at 06:18, Pavel Machek wrote:
+> Hi!
 > 
->   CC [M]  drivers/acpi/asus_acpi.o
-> drivers/acpi/asus_acpi.c:37:31: linux/modversions.h: No such file or directory
-> diff -Nru a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
-> --- a/drivers/acpi/asus_acpi.c	Thu Oct  2 13:28:35 2003
-> +++ b/drivers/acpi/asus_acpi.c	Thu Oct  2 13:28:35 2003
-> @@ -33,10 +33,6 @@
->   */
->  
->  #include <linux/config.h>
-> -#if defined (CONFIG_MODVERSIONS) && !defined (MODVERSIONS) && defined (MODULE)
-> -#include <linux/modversions.h>
-> -#endif
+> This moves year-based blacklisting to blacklist.c, where it belongs
+> AFAICS. It also adds some externs to include/linux/acpi.h, but I
+> believe *way* more externs are needed. Please apply,
+> 
+> 								Pavel
+> 
+> --- /usr/src/tmp/linux/arch/i386/kernel/dmi_scan.c	2003-09-28 22:05:29.000000000 +0200
+> +++ /usr/src/linux/arch/i386/kernel/dmi_scan.c	2003-10-01 11:55:21.000000000 +0200
+> @@ -997,24 +998,10 @@
+>  	int i;
+>  		
+>  #ifdef	CONFIG_ACPI_BOOT
+> -#define	ACPI_BLACKLIST_CUTOFF_YEAR	2001
 > -
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/init.h>
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+>  	if (dmi_ident[DMI_BIOS_DATE]) { 
+>  		char *s = strrchr(dmi_ident[DMI_BIOS_DATE], '/'); 
+> -		if (s) { 
+> -			int year, disable = 0;
+> -			s++; 
+> -			year = simple_strtoul(s,NULL,0); 
+> -			if (year >= 1000) 
+> -				disable = year < ACPI_BLACKLIST_CUTOFF_YEAR; 
+> -			else if (year < 1 || (year > 90 && year <= 99))
+> -				disable = 1; 
+> -			if (disable && !acpi_force) { 
+> -				printk(KERN_NOTICE "ACPI disabled because your bios is from %s and too old\n", s);
+> -				printk(KERN_NOTICE "You can enable it with acpi=force\n");
+> -				acpi_disabled = 1; 
+> -			} 
+> -		}
+> +		if (s && !acpi_force)
+> +			acpi_bios_year(s+1);
+>  	}
+>  #endif
+>  
+> --- /usr/src/tmp/linux/drivers/acpi/blacklist.c	2003-02-15 18:51:16.000000000 +0100
+> +++ /usr/src/linux/drivers/acpi/blacklist.c	2003-10-01 11:55:19.000000000 +0200
+> @@ -83,6 +83,27 @@
+>  	{""}
+>  };
+>  
+> +#define	ACPI_BLACKLIST_CUTOFF_YEAR	2001
+> +
+> +/*
+> + * Notice: this is called from dmi_scan.c, which contains second (!) blacklist
+> + */
+> +void __init
+> +acpi_bios_year(char *s)
+> +{
+> +	int year, disable = 0;
+> +
+> +	year = simple_strtoul(s,NULL,0); 
+> +	if (year >= 1000) 
+> +		disable = year < ACPI_BLACKLIST_CUTOFF_YEAR; 
+> +	else if (year < 1 || (year > 90 && year <= 99))
+> +		disable = 1; 
+> +	if (disable) { 
+> +		printk(KERN_NOTICE "ACPI disabled because your bios is from %s and too old\n", s);
+> +		printk(KERN_NOTICE "You can enable it with acpi=force\n");
+> +		acpi_disabled = 1; 
+> +	}
+> +}
+>  
+>  int __init
+>  acpi_blacklisted(void)
+> --- /usr/src/tmp/linux/include/linux/acpi.h	2003-08-27 12:00:48.000000000 +0200
+> +++ /usr/src/linux/include/linux/acpi.h	2003-10-01 11:53:51.000000000 +0200
+> @@ -403,8 +403,8 @@
+>  
+>  struct pci_dev;
+>  
+> -int acpi_pci_irq_enable (struct pci_dev *dev);
+> -int acpi_pci_irq_init (void);
+> +extern int acpi_pci_irq_enable (struct pci_dev *dev);
+> +extern int acpi_pci_irq_init (void);
+>  
+>  struct acpi_pci_driver {
+>  	struct acpi_pci_driver *next;
+> @@ -412,21 +412,22 @@
+>  	void (*remove)(acpi_handle handle);
+>  };
+>  
+> -int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+> -void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+> +extern int acpi_pci_register_driver(struct acpi_pci_driver *driver);
+> +extern void acpi_pci_unregister_driver(struct acpi_pci_driver *driver);
+>  
+>  #endif /*CONFIG_ACPI_PCI*/
+>  
+>  #ifdef CONFIG_ACPI_EC
+>  
+> -int ec_read(u8 addr, u8 *val);
+> -int ec_write(u8 addr, u8 val);
+> +extern int ec_read(u8 addr, u8 *val);
+> +extern int ec_write(u8 addr, u8 val);
+>  
+>  #endif /*CONFIG_ACPI_EC*/
+>  
+>  #ifdef CONFIG_ACPI
+>  
+> -int acpi_blacklisted(void);
+> +extern int acpi_blacklisted(void);
+> +extern void acpi_bios_year(char *s);
+>  
+>  #else
+>  
