@@ -1,75 +1,66 @@
-From: Gerardo Exequiel Pozzi <djgeray2k-/E1597aS9LQMlKAeRRkD2Q@public.gmane.org>
-Subject: Re: Vaio doesn't poweroff with 2.4.22
-Date: Mon, 15 Sep 2003 04:03:18 -0300
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030915040318.1f8bfd18.djgeray2k@yahoo.com.ar>
-References: <Pine.GSO.4.21.0309150835480.3191-100000@vervain.sonytel.be>
+From: Dimitri Rebrikov <dimitri.rebrikov-kyawv7ubMNaakBO8gow8eQ@public.gmane.org>
+Subject: AE_TIME on Operations in EC ( Embedded Controller ec.c )
+Date: Mon, 15 Sep 2003 10:44:11 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3F657BDB.9080805@t-systems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.GSO.4.21.0309150835480.3191-100000-Q9iLAqk50tFNk+PO8Cj175kigfUh6rMo@public.gmane.org>
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Mon, 15 Sep 2003 08:43:56 +0200 (MEST), Geert Uytterhoeven wrote:
->	Hi,
->
->With 2.4.22, my Sony Vaio PCG-Z600TEK (s/600/505/ in US/JP) shows a regression
->w.r.t. power management:
->  - It doesn't poweroff anymore (screen contents are still there after the
->    powering down message)
->  - It doesn't reboot anymore (screen goes black, though)
->  - It accidentally suspended to RAM once while I was actively working on it (I
->    never managed to get suspend working, except for this `accident'). I didn't
->    see any messages about this in the kernel log.
->
->Relevant config options for 2.4.22:
->| tux$ grep acpi .config
->| # ACPI Support
->| CONFIG_ACPI=y
->| # CONFIG_ACPI_HT_ONLY is not set
->| CONFIG_ACPI_BOOT=y
->| CONFIG_ACPI_BUS=y
->| CONFIG_ACPI_INTERPRETER=y
->| CONFIG_ACPI_EC=y
->| CONFIG_ACPI_POWER=y
->| CONFIG_ACPI_PCI=y
->| CONFIG_ACPI_SLEEP=y
->| CONFIG_ACPI_SYSTEM=y
->| CONFIG_ACPI_AC=y
->| CONFIG_ACPI_BATTERY=y
->| CONFIG_ACPI_BUTTON=y
->| CONFIG_ACPI_FAN=y
->| CONFIG_ACPI_PROCESSOR=y
->| CONFIG_ACPI_THERMAL=y
->| # CONFIG_ACPI_ASUS is not set
->| # CONFIG_ACPI_TOSHIBA is not set
->| CONFIG_ACPI_DEBUG=y
->| # CONFIG_ACPI_RELAXED_AML is not set
->| tux$ 
->
->If you need more information or want me to ttry something, please ask!
 
 Hi,
 
- you have activate this opcion?
-CONFIG_PM=y
+after i installed 2.4.22 on my Notebook i couldn't get
+any battery information more. (i.e. nothing in /proc/acpi/battery)
 
-without this my machine don't poweroff after halt.
+BTW. I had no problem with ACPI before (2.4.18+ACPI and 2.4.20+ACPI)
 
-chau,
- djgera
+The corresponding error message in log was:
+
+Sep  5 12:49:57 mitnb kernel: evregion-0345: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+Sep  5 12:49:57 mitnb kernel:  psparse-1121: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node cee7cdc8), AE_TIME
+
+Other embedded controls (i.e. thermal, fan etc) were not affected by this problem.
+
+After some testing i located (i belief) the issue:
+The values of ACPI_EC_UDELAY_COUNT and/or  ACPI_EC_UDELAY are too small
+for my Hardware.
+
+Here is the comparision between 2.4.20+ACPI and 2.4.22:
+
+./linux-2.4.20/drivers/acpi/ec.c:#define ACPI_EC_UDELAY		1000	/* Poll @ 100us increments */
+./linux-2.4.20/drivers/acpi/ec.c:#define ACPI_EC_UDELAY_COUNT	10000	/* Wait 10ms max. during EC ops */
+
+./linux-2.4.22/drivers/acpi/ec.c:#define ACPI_EC_UDELAY		100	/* Poll @ 100us increments */
+./linux-2.4.22/drivers/acpi/ec.c:#define ACPI_EC_UDELAY_COUNT	1000	/* Wait 10ms max. during EC ops */
+
+This means that the wait time for a EC operation in 2.4.22 was reduced with factor 100.
+
+After i increase the value of ACPI_EC_UDELAY_COUNT to 10000
+my problems gone. Now i can use the whole functionality of ACPI.
+
+I don't know is there something in the ACPI specifikation defining max. wait time during EC op,
+or the values in ec.c was investigated by testing.
+
+My Hardware: (Clevo D270S Notebook, Pentium 4 M 1.8)
+http://www.clevo.com.tw/products/D220S.asp
+
+Regards
+Dimitri
 
 
--- 
-Gerardo Exequiel Pozzi ( djgera )
-http://www.vmlinuz.com.ar http://www.djgera.com.ar
-KeyID: 0x1B8C330D
-Key fingerprint = 0CAA D5D4 CD85 4434 A219  76ED 39AB 221B 1B8C 330D
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
