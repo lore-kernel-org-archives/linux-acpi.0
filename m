@@ -1,59 +1,73 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: 2.6.3 + D600 + battery state + BUG?? [Was] Battery status sometimes missing
-Date: Fri, 20 Feb 2004 10:05:52 +0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA045C6A36@wdmyexch02.my.asia.wdc.com>
+From: Dominik Brodowski <linux@dominikbrodowski.de>
+Subject: [PATCH 1/2] 2.6: use scaling_available_freqs in acpi-cpufreq-ioport
+	driver
+Date: Fri, 20 Feb 2004 09:31:50 +0100
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <20040220083149.GA10215@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Content-Disposition: inline
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: len.brown@intel.com
+Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
+Export an array of supported frequencies in sysfs [scaling_available_frequencies]
 
+ arch/i386/kernel/cpu/cpufreq/acpi.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletion(-)
 
-> -----Original Message-----
-> From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Thursday, February 19, 2004 7:27 PM
-> To: Ow Mun Heng; Acpi-List (E-mail)
-> Subject: RE: [ACPI] 2.6.3 + D600 + battery state + BUG?? [Was] Battery
-> status sometimes missing
->=20
->=20
-> > May also occur in these listed kernels (all of them acpi patched)
-> > May (cos I didn't really try out the 'steps to reproduce' below
-> > but the errors are definately there.
-> >=20
-> > 2.6.2=20
-> > 2.6.3-rc1
-> > 2.6.3-rc2
-> > 2.6.3-rc3
-> > 2.6.2-rc2-mm1
-> >=20
-> >=20
-> > Symptom :
-> > Cannot read battery status from /proc/acpi/battery/BAT0/state
-> > Sometimes OK, sometimes Error : Unable to read status
->=20
-> How about 2.6.1 without any patch?
-
-Okay.. Since you asked for it so nicely :)
-
-Didn't work.. 2.6.1 W/O any patches.
-
-
--------------------------------------------------------
-SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-Build and deploy apps & Web services for Linux with
-a free DVD software kit from IBM. Click Now!
-http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c linux/arch/i386/kernel/cpu/cpufreq/acpi.c
+--- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-02-18 10:22:09.000000000 +0100
++++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-02-18 22:29:03.112571968 +0100
+@@ -306,7 +306,7 @@
+ 			data->freq_table[i].frequency = CPUFREQ_TABLE_END;
+ 	}
+ 
+-	result = cpufreq_frequency_table_cpuinfo(policy, &data->freq_table[0]);
++	result = cpufreq_frequency_table_cpuinfo(policy, data->freq_table);
+ 	if (result) {
+ 		goto err_freqfree;
+ 	}
+@@ -321,6 +321,7 @@
+ 			(u32) data->acpi_data.states[i].power,
+ 			(u32) data->acpi_data.states[i].transition_latency);
+ 
++	cpufreq_frequency_table_get_attr(data->freq_table, policy->cpu);
+ 	return_VALUE(result);
+ 
+  err_freqfree:
+@@ -345,6 +346,7 @@
+ 	ACPI_FUNCTION_TRACE("acpi_cpufreq_cpu_exit");
+ 
+ 	if (data) {
++		cpufreq_frequency_table_put_attr(policy->cpu);
+ 		acpi_io_data[policy->cpu] = NULL;
+ 		acpi_processor_unregister_performance(&data->acpi_data, policy->cpu);
+ 		kfree(data);
+@@ -354,6 +356,11 @@
+ }
+ 
+ 
++static struct freq_attr* acpi_cpufreq_attr[] = {
++	&cpufreq_freq_attr_scaling_available_freqs,
++	NULL,
++};
++
+ static struct cpufreq_driver acpi_cpufreq_driver = {
+ 	.verify 	= acpi_cpufreq_verify,
+ 	.target 	= acpi_cpufreq_target,
+@@ -361,6 +368,7 @@
+ 	.exit		= acpi_cpufreq_cpu_exit,
+ 	.name		= "acpi-cpufreq",
+ 	.owner		= THIS_MODULE,
++	.attr           = acpi_cpufreq_attr,
+ };
