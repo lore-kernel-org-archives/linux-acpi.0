@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: ACPI and the PNP Layer
-Date: Sun, 1 Feb 2004 17:24:47 +0000
+From: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: FW: ACPI breakage in 2.6.2-rc3 (and before)
+Date: Sun, 1 Feb 2004 10:27:48 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040201172447.GV18725@parcelfarce.linux.theplanet.co.uk>
-References: <Law11-F969ScIXWOReP0000022f@hotmail.com>
+Message-ID: <7F740D512C7C1046AB53446D37200173B135D3@scsmsx402.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Law11-F969ScIXWOReP0000022f-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,77 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Cc: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Feb 01, 2004 at 02:41:02AM +0000, Dino Klein wrote:
-> >PNP is unnecessary on machines with ACPI.
-> 
-> When you say PNP, are you refering to PNPBIOS/ISAPNP, or the Linux PNP 
-> Layer iself, which uses the previous two as PNP protocols?
+Forwarding potential degradation in 2.6.2-rc3.
 
-The former.
+Jun
+-----Original Message-----
+From: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+[mailto:linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Joseph Pingenot
+Sent: Sunday, February 01, 2004 12:20 PM
+To: Linus Torvalds
+Cc: Kernel Mailing List
+Subject: ACPI breakage in 2.6.2-rc3 (and before)
+Importance: High
 
-> >I think there's a fundamental mistake here, which is that drivers need
-> >to be modified to deal with ACPI.  The serial driver (I'm the original
-> >author of the 8250_acpi code) needed to be modified to discover serial
-> >devices in the ACPI namespace.  This is because HP's ia64 machines are
-> >legacy-free, so do not have serial ports at 0x3f8 and 0x2f8 (or wherever
-> >...) like PCs.  Some of HP's machines have PCI serial ports which need
-> >no additional code, but others have what are called 'PDH UARTs' which
-> >can only be discovered by looking in the ACPI namespace.
-> 
-> You're saying this under the assumption that everything will go USB/PCI/etc 
-> in the future, right?
+>From Linus Torvalds on Friday, 30 January, 2004:
+>The bulk of this is an ACPI update, but there's USB, ia-64, i2c, XFS
+and=20
+>PCI hotplug updates here too.
+>Please don't send in anything but critical fixes until after the final=20
+>2.6.2 release.
 
-Correct.  They're cheaper and simpler than the alternatives, so once
-support is sufficiently widespread, I would indeed expect the legacy
-support to go away.
+Hmm.  I just tried 2.6.2-rc3 (after having tried 2.6.1 after having
+  tried 2.6.2-rc2-mm1), and I note that ACPI can get my battery
+  status in 2.6.1, but *not* in 2.6.2-rc2-mm1 or in 2.6.2-rc3.
+  It notes that there is a battery in one of the two bays, and
+  that it's on battery or AC power, but nothing more; all status
+  readouts say that the battery's drained.
 
-> >Obviously no ia64 machine will support ISAPNP or PNPBIOS, so your proposal
-> >wouldn't work very well.  It's also not a lot of code -- 4934 bytes for
-> >8250_acpi.c versus 12488 bytes for 8250_pnp.c.  I can't think of any other
-> >"legacy devices in non-legacy positions" situations like this.  Can you?
-> 
-> I took a quick look at the two files, and they are quite comparable 
-> code-wise; the additional size in 8250_pnp.c is due to the extra comments 
-> and EISA IDs defined.
-> Now about the legacy devices - wouldn't you say that the keyboard/PS2 
-> driver should be modified to register with the ACPI bus, just in order to 
-> have everything nice & neat? or how about the parallel port, or motherboard 
-> based IRDA (PNP0510)?
-> Perhaps I'm just exaggerating with this, but I like to have things nice and 
-> neat :)
+System is a Dell Inspiron 8600.
 
-PS/2 is obsoleted by USB, as is parallel.  I don't know abut IRDA but I
-would expect it to show up as a PCI device normally.  Are manufacturers
-still making machines which have this as a non-PCI device?  Remember just
-because it's on the motherboard doesn't mean it's a non-PCI device.
+Thanks!
 
-Using the PNP layer on non-x86 would certainly lead to problems today.
-For example:
 
-        /* check if the resource is valid */
-        if (*irq < 0 || *irq > 15)
-                return 0;
-
-I can't see this proposal being a good idea today.  Perhaps if the PNP
-layer were cleaned up it would be.  That'd be a good place to direct
-your efforts.  For example, could drivers/pnp/resource.c use more of
-the facilities in kernel/resource.c?  Should some of the features from
-pnp/resource.c be moved to kernel/resource.c?  Are there other places
-in the tree that could make use of the features in pnp/resource.c if
-they were generally available?  I've had good luck in the past answering
-questions ike this.
-
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+-Joseph
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel"
+in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
 
 
 -------------------------------------------------------
