@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Centrino question
-Date: Wed, 26 May 2004 01:56:10 +0200
+From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Subject: Re: S3 on Intel Desktop Board D865GBF
+Date: Tue, 25 May 2004 21:09:54 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040525235610.GA21791@hell.org.pl>
-References: <3ACA40606221794F80A5670F0AF15F8404622C57@PDSMSX403.ccr.corp.intel.com> <20040520015748.776d5b84.neurowork@free.fr> <1085111429.12352.563.camel@dhcppc4> <20040521125637.33f69fc6.neurowork@free.fr> <20040521115207.GA12775@hell.org.pl> <1085161136.9856.5.camel@Neuromancer.home.net> <1085527691.9167.39.camel@dorker.boxed.no>
+Message-ID: <40B3FC72.20902@verizon.net>
+References: <1085272779.7511.11.camel@300mlinux>	 <40B373C5.4030400@verizon.net> <563681322.20040525144104@osu.edu>	 <40B3A215.3040309@verizon.net> <1085515868.3334.4.camel@300mlinux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1085527691.9167.39.camel-x1HDAq6LUf79HyLP1LL8ZA@public.gmane.org>
+In-Reply-To: <1085515868.3334.4.camel-Yau0ytKvSx2eZLLa646FqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
-Cc: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>, Acpi-Devel List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Alexander Hoogerhuis:
-> I've been through tracking down what disables C3 on my laptop (HP
-> nc6000). It all happens when the uhci-hci USB drviver goes in. When I
-> queried about it on lkml a while back it was due tro some support
-> lacking in the UHCI dirvers as of yet.
+Andrew Barr wrote:
 
-Whenever something is plugged into the controller, bus mastering kicks in
-and C3 is effectively disabled, also on Windows. This is, to my best
-knowledge, a limitation of the USB interface itself. As far as I know, at
-least uhci-hcd driver in 2.6 suspends the controller when nothing is
-plugged in, thus allowing to use C3. The situation might be different under
-2.4.
-Best regards,
-
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+>On Tue, 2004-05-25 at 15:44, Nick Lidakis wrote:
+>  
+>
+>>So it comes back to a console or X? Do you have a usb mouse to try out?
+>>    
+>>
+>
+>It comes back to both (wherever you were when you suspended). I tried a
+>USB mouse, because USB and S3 is giving me hell on my laptop, and it's
+>fine. No erratic pointer. I read somewhere that the psmouse driver just
+>got its suspend/resume capabilities, so I might find out who was
+>responsible for that and see what they think.
+> 
+>--
+>Andrew Barr
+>
+>/usr/games/fortune says:
+>UFOs are for real: the Air Force doesn't exist.
+>
+>
+>  
+>
+So eveything is working fine? How many times have you suspended to S3 
+thus far? Could you list the other components you are using? Sound card, 
+raid contorller etc.
+USB keyboard or PS/2?
 
 
 -------------------------------------------------------
