@@ -1,13 +1,12 @@
-From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
-Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
-Date: Mon, 14 Feb 2005 13:38:23 +0100
-Message-ID: <20050214123822.GF3233@crusoe.alcove-fr>
-References: <20050214100738.GC3233@crusoe.alcove-fr> <CKthPPXN.1108383209.9808960.khali@localhost>
-Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+From: Nikolaus Filus <nfilus-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: SMBus controller listed in DSDT, hidden with lspci
+Date: Mon, 14 Feb 2005 17:18:25 +0100
+Message-ID: <20050214161823.GA25606@wsc-gmbh.de>
+References: <420D758E.8020604@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="2oS5YaxWCcQjTEyO"
 Content-Disposition: inline
-In-Reply-To: <CKthPPXN.1108383209.9808960.khali@localhost>
+In-Reply-To: <420D758E.8020604-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,67 +16,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pekka Enberg <penberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 14, 2005 at 01:13:30PM +0100, Jean Delvare wrote:
 
-> 
-> Hi Stelian, all,
-> 
-> On 2005-02-14, Stelian Pop wrote:
-> > I have some interesting information from one user, who noticed that:
-> >
-> > * pbr is the power-on brightness. It's the brightness that the
-> >   laptop uses at power-on time.
-> 
-> Hey, that makes full sense. After playing around with the debug mode, I
-> noticed that the brightness was at the minimum level on next boot. I
-> thought it was related to the fact that I didn't have the opportunity
-> to stop my system cleanly, but it is indeed possible that I had written
-> 0 to pbr before the crash. Will test this evening.
-> 
-> This reminds me of a related thing I had noticed some times ago but
-> couldn't explain back then. Brightness changes made under Linux using
-> spicctrl always seemed to be temporary (lost over reboot) while those
-> made under Windows on the same laptop were permanent (preserved over
-> reboot). Now I have to believe that spicctrl was only changing brt,
-> while the Windows tool was probably changing both brt and pbr?
-> 
-> So, what about either renaming pbr to brightness_default,
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-something like that, yes.
+On Sat, Feb 12, 2005 at 04:18:38AM +0100, Carl-Daniel Hailfinger wrote:
+>Hi,
+>
+>my Samsung P35 notebook has a strange quirk: The SMBus
+>controller doesn't show up in lspci, but the DSDT claims
+>it is there. Are there any chances to unhide it with a
+>special hack or something?
+>
+>Atached is my disassembled DSDT and the output of lspci.
+>
+>The device 0000:00:1f.3, which should be the SMBus
+>controller, simply doesn't show up in lspci.
+>I suspect it to be something like
+>0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) SMBus Controller (rev 03)
 
-> or making the
-> brightness file dual-valued (several acpi files do that already)?
+found a patch on www.p35-forum.de and applied it, now using lm90 driver
+I can read temperature values for 2 thermal zones (different values from the ACPI ones)
+in /sys/bus/i2c/... but writing to them shows still no result. I can't tune the fan
+on/off values :(
 
-I don't like much this.
+Nikolaus
 
-> And I
-> guess that the pbr value would need to be limited to the 0-8 range just
-> like is done for brt.
 
-Probably, I haven't tested it myself yet, so I don't know.
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="smbus-2.6.11rc3.patch"
 
-> > * cdp is the CD-ROM power. Writing 0 to cdp turns off the cdrom in
-> >   order to save a bit of power consumption.
-> 
-> I don't seem to have cdp on my system. Is this something I need to
-> manually activate in the driver, or does it simply mean that my laptop
-> doesn't support that feature?
+--- linux/drivers/pci/quirks.c.org	2005-02-14 14:49:18.000000000 +0100
++++ linux/drivers/pci/quirks.c	2005-02-14 14:51:37.000000000 +0100
+@@ -791,6 +791,12 @@
+ 			case 0x12bc: /* HP D330L */
+ 				asus_hides_smbus = 1;
+ 			}
++       } else if (unlikely(dev->subsystem_vendor == 0x144d)) {
++               if (dev->device ==  PCI_DEVICE_ID_INTEL_82855PM_HB)
++                       switch(dev->subsystem_device) {
++                       case 0xC00C: /* Samsung P35 */
++                               asus_hides_smbus = 1;
++                       }
+ 	}
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82845_HB,	asus_hides_smbus_hostbridge );
 
-sony_acpi doesn't create this node. But if it is supported on your
-system you should see 'method: name: GCDP' and 'method: name: SCDP'
-in the logs because sony_acpi does enumerate all the methods it
-finds for the snc device.
-
-If you see it you can create the cdp entry with a bit of copy&paste
-in the driver code...
-
-Stelian.
--- 
-Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+--2oS5YaxWCcQjTEyO--
 
 
 -------------------------------------------------------
