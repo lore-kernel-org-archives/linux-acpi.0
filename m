@@ -1,45 +1,68 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Latest ACPI + cpufreq on a Dell Inspiron 2650
-Date: Thu, 5 Dec 2002 11:35:10 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021205103509.GA127@elf.ucw.cz>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B95D@orsmsx107.jf.intel.com> <200212030136.30159.chris@chrishowells.co.uk> <002401c29acd$e1316880$3746028e@bio.dfo.ca> <200212031601.20634.chris@chrishowells.co.uk>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [2.5.50, ACPI] link error
+Date: Fri, 6 Dec 2002 01:06:18 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20021206000618.GB15784@atrey.karlin.mff.cuni.cz>
+References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200212031601.20634.chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Chris Howells <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain>
+To: Patrick Mochel <mochel@osdl.org>
+Cc: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > > * Entering S1 halts the system clock so the time when leaving S1 is the
-> > > same as when it entered S1
-> >
-> > As it should.  You have to reset the clock.
+> > > Doesn't that imply your fix is broken to begin with?
+> > 
+> > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
+> > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
+> > overdesign to me, OTOH if you do the work it is okay with me.
 > 
-> Oh really? Hrm.... so presumably the correct solution would be to do a 
-> "hwclock --hctosys" on leaving S1? *Wonders how to make it do this 
-> automatically*
+> You broke the design. S3 support was developed long before swsusp was in 
+> the kernel, and completely indpendent of it. It should have remained that 
+> way. 
+> 
+> S3 support is a subset of what is need for S4 support. 
 
-echo 'echo 1 > /proc/acpi/sleep; hwclock --hctosys' > do_sleep?
+That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
+but not for S4. Big part of driver support is only needed for S3.
+
+> swsusp is an implementation of S4 support. In theory, there could be 
+> multiple implementations that all use the same core (saving/restoring 
+> state). 
+
+There were patches for S4bios floating around, but it never really
+worked, IIRC.
+
+> There could also be different power management schemes that use swsusp as 
+> an implementation for suspend-to-disk. But, that's another tangent. 
+> 
+> CONFIG_ACPI_SLEEP should give you S3 support, and the ACPI side of S4 
+> support. 
+
+What's ACPI side of S4 good for when you can not do S4?
+
+> The comment in the config option should tell the user that they 
+> must choose a suspend implementation (e.g. CONFIG_SUSPEND, which should 
+> prolly be CONFIG_SWAP_SUSPEND) in order to get complete S4 support. (The 
+> ACPI side can make an empty call to swsusp if no implementation is 
+> selected). 
+
+S3 needs process stopper from kernel/suspend.c. I did not want to have
+#ifdefs all over suspend.c...
+
+> Some time ago, I made a BK repo for suspend support. I axed it, since no 
+> one ever used it. But, it's back again, and I'll be integrating your 
+> patches and try to dedicate a few extra cycles to resolving some of the 
+> issues. I'll send an announcement to the list once I've integrated your 
+> patches. 
+
+I probably will not persuade you to make it CVS, right? [Sorry, I'm
+not going to touch bitkeeper.]
 								Pavel
 -- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+Casualities in World Trade Center: ~3k dead inside the building,
+cryptography in U.S.A. and free speech in Czech Republic.
