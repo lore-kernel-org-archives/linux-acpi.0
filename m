@@ -1,82 +1,80 @@
-From: Dominik Brodowski <linux@dominikbrodowski.de>
-Subject: [PATCH 2/2] 2.6: try to determine current P-State setting in
-	acpi-cpufreq-ioport driver
-Date: Fri, 20 Feb 2004 09:31:55 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040220083155.GB10215@dominikbrodowski.de>
+From: "Cecil Hooker" <lucifazenbak-6wTbw8TIoI0J3nxcUk3PyQ@public.gmane.org>
+Subject: SPEED UP Your DSL, Cable, Satellite or T1 Connection, Fri, 20 Feb 2004 09:59:22 -0500
+Date: Fri, 20 Feb 2004 09:59:22 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <SELJSBDBWEATENDPGKCHSINHW@list.ru>
+Reply-To: "Cecil Hooker" <lucifazenbak-6wTbw8TIoI0J3nxcUk3PyQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: len.brown@intel.com
-Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+Content-Type: multipart/alternative;
+	boundary="--23185525043979176"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, drbd-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, apt4rpm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-One big limitation of the ACPI specification is that it's impossible to
-detect the current P-State by reading from ACPI-defined registers. And the
-CPU isn't always at P0 when the system boots. So, try to "guess" the current
-P-State by analyzing cpu_khz.
+----23185525043979176
+Content-Type: text/plain;
+Content-Transfer-Encoding: 7Bit
 
- arch/i386/kernel/cpu/cpufreq/acpi.c |   35 ++++++++++++++++++++++++++++++-----
- 1 files changed, 30 insertions(+), 5 deletions(-)
+Fri, 20 Feb 2004 09:59:22 -0500
 
-diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c linux/arch/i386/kernel/cpu/cpufreq/acpi.c
---- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-02-19 20:37:16.050489712 +0100
-+++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-02-19 20:38:55.362392008 +0100
-@@ -238,6 +238,34 @@
- }
- 
- 
-+static unsigned long
-+acpi_cpufreq_guess_freq (
-+	struct cpufreq_acpi_io	*data,
-+	unsigned int		cpu)
-+{
-+	if (cpu_khz) {
-+		/* search the closest match to cpu_khz */
-+		unsigned int i;
-+		unsigned long freq;
-+		unsigned long freqn = data->acpi_data.states[0].core_frequency * 1000;
-+
-+		for (i=0; i < (data->acpi_data.state_count - 1); i++) {
-+			freq = freqn;
-+			freqn = data->acpi_data.states[i+1].core_frequency * 1000;
-+			if ((2 * cpu_khz) > (freqn + freq)) {
-+				data->acpi_data.state = i;
-+				return (freq);
-+			}
-+		}
-+		data->acpi_data.state = data->acpi_data.state_count - 1;
-+		return (freqn);
-+	} else
-+		/* assume CPU is at P0... */
-+		data->acpi_data.state = 0;
-+		return data->acpi_data.states[0].core_frequency * 1000;
-+	
-+}
-+
- static int
- acpi_cpufreq_cpu_init (
- 	struct cpufreq_policy   *policy)
-@@ -290,11 +318,8 @@
- 	}
- 	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
- 
--	/* 
--	 * The current speed is unknown and not detectable by ACPI... argh! Assume 
--	 * it's P0, it will be set to this value later during initialization.
--	 */
--	policy->cur = data->acpi_data.states[0].core_frequency * 1000;
-+	/* The current speed is unknown and not detectable by ACPI...  */
-+	policy->cur = acpi_cpufreq_guess_freq(data, policy->cpu);
- 
- 	/* table init */
- 	for (i=0; i<=data->acpi_data.state_count; i++)
+Are you getting the most out of your Internet Connection?
+
+If you're using a DSL, Cable, Satellite or T1 connection you're NOT getting the most speed out of your connection.
+
+Follow us to faster web surfing - http://www.b00st.biz?affil=63
+
+
+Speed up your current DSL, Cable, Satellite or T1 InternetConnection Speed within minutes.
+
+If you are paying for a 1.5mb DSL this program will not give you a 2.0mb DSL. What the program does is allow you to use ALL of the bandwidth that your connection provides by adjusting Windows itself.
+
+The same applies to Cable, Satellite or T1 connections.
+
+Follow us to faster web surfing - http://www.b00st.biz?affil=63
+
+
+Broadband Booster Test Results
+
+These speed tests were taken using a 1.5 mb dsl line*. Tests were taken within 5 minutes of each other: 
+
+Windows 98 
+Windows Default Settings: 518k Down per second 
+
+Broadband Internet Booster Settings for 1.5mb: 1438k Down per second. 
+That's 2.77 Times faster.
+
+
+Windows 2000/XP 
+Windows Default Settings: 273k Down per second 
+
+Broadband Internet Booster Settings for 1.5mb: 1333k Down per second
+That's 4.88 Times faster.
+
+
+Follow us to faster web surfing - http://www.b00st.biz?affil=63
+
+
+
+No more ads: http://www.great10foryou.biz/outsp/
+
+
+problem
+
+lump megawatt herodotus michelangelo christlike irredentist phycomycetes preeminent monteverdi moll playwriting usher luger thrown arson coventry maze iniquitous retrogress doorway runnymede desert diva bout log wildlife interpretive stigmata incise stratospheric alert granddaughter minstrelsy snakebird pipette transgress commemorate meat 
+
+----23185525043979176--
+
+
+-------------------------------------------------------
+SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+Build and deploy apps & Web services for Linux with
+a free DVD software kit from IBM. Click Now!
+http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
