@@ -1,15 +1,15 @@
 From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: PROBLEM: ACPI freezes 2.6.1 (acpi-20031203-2.6.1 patched) on boot
-Date: Thu, 22 Jan 2004 09:59:58 +0100
+Subject: Re: bad dsdt?
+Date: Mon, 26 Jan 2004 11:53:55 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040122085958.GA1244@fuchi>
-References: <m3oesx5wok.fsf@reason.gnu-hamburg>
+Message-ID: <20040126105355.GB11640@fuchi>
+References: <200401211345.58192.vherried@insight.rr.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+	protocol="application/pgp-signature"; boundary="O5XBE6gyVG5Rl6Rj"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <m3oesx5wok.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <200401211345.58192.vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,34 +22,38 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---opJtzjQTFsWo+cga
+--O5XBE6gyVG5Rl6Rj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-hi georg...
+hi vince...
 
-* "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org> [2004-01-21 13:27 +0100]:
+* Vince Herried <vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org> [2004-01-25 10:10 +0100]:
+> I'm runnin a vanilla 2.6.1 kernel on a Dell Latitude C810
+> and have a bunch of issues.
 >=20
-> FYI: below is my problem report about ACPI freezing my ASUS M2N on
-> boot with plain vanilla Linux 2.6.1.
+> The Fn keys don't work (eg Fn <suspend>,   Fn <setup>,  Fn .....>
+> yes I enabled the acpi fn key option.
 >=20
-> As a possible way of solving the problem I've tried the patch
-> acpi-20031203-2.6.1.diff.bz2 with date 09-Jan-2004 (have to admit the
-> version numbering isn't clear to me) I get a different error message
 >=20
->  ACPI: IRQ9 SCI: Edge set to Level Trigger.
+> /proc/acpi  has no information about my battery, or temperature, or....
+
+but /proc/acpi/info exists? what does it say?
+
 >=20
-> However, this still appears to be the same problem.
+> I'm thinking I should make multiple problem records with bugzilla (and wh=
+ere=20
+> is that?)
 
-two things come to my mind:
+http://bugzilla.kernel.org/buglist.cgi?short_desc_type=3Dallwordssubstr&sho=
+rt_desc=3D&component=3DACPI.
 
-- disable Local- and IO-APIC. try "noapic" as boot parameter or even
-  disable it completely in .config file.
-- upgrade your bios, i think 0206 is the latest.
+> and what kind of doc do I supply besides  dsdt and .config file?
 
+please see the front page of http://acpi.sf.net
 
-hth,
+cheers,
  sebastian
 --=20
 ::: .O.
@@ -57,7 +61,7 @@ hth,
 ::: OOO
 ::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
---opJtzjQTFsWo+cga
+--O5XBE6gyVG5Rl6Rj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -65,12 +69,12 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFAD5ENreHfL3pi+bQRAhkjAJ9Av60uebX1O7273XOZtM9MT+2b1wCeO8wh
-68qMpVbuVBtlgSRdy96XO+w=
-=nxY1
+iD8DBQFAFPHDreHfL3pi+bQRAvbCAJ4v9cWHVcYSABet8cAKvc7BQYwDTwCeMsew
+c/RFGEYo7Jcz5wrbFSh0WjM=
+=TjcJ
 -----END PGP SIGNATURE-----
 
---opJtzjQTFsWo+cga--
+--O5XBE6gyVG5Rl6Rj--
 
 
 -------------------------------------------------------
