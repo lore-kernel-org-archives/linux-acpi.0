@@ -1,14 +1,14 @@
-From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
-Subject: Re: ACPI on the Compaq Presario 2800T
-Date: Fri, 26 Jul 2002 08:32:53 +0200 (MEST)
+From: Pavel Machek <pavel-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Subject: Re: S3 resume on Omnibook XE3-GF
+Date: Fri, 26 Jul 2002 12:40:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200207260632.g6Q6WsH14921@ikffws2.ikff.uni-stuttgart.de>
-Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Message-ID: <20020726104037.GC279@elf.ucw.cz>
+References: <000201c22eb5$8dabccc0$0201010a@cunninghams>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-MD5: Uqt4Wxmvh4ldrLiZHmMZlA==
+Content-Disposition: inline
+In-Reply-To: <000201c22eb5$8dabccc0$0201010a-39LOpZwlz18NEHC595MGIQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +17,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Cc: "ACPI List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> > * a patch to fix the lack of a sleep CONFIG entry
->=20
-> by hand : add the line in linux/drivers/acpi/Config.in=20
->       define_bool CONFIG_ACPI_SLEEP             y
-> after the line=20
->       define_bool CONFIG_ACPI_POWER             y
+Hi!
 
-I did that, did make mrproper; make dep; make bzImage (kept my
-modules as they were), now have a file /proc/acpi/sleep, but
-nothing happens when I echo 1 into this file.
-It used to work with all the older versions I've tested so far.
-(Please note that I'm not the one who asked the question in the
-first place, Sourav K Mandal.)
+> I've been trying to figure out why my laptop doesn't resume properly. I've
 
+Can you elaborate on "does not resume properly"? You've been able to
+run lspci, so it must have worked at least a bit ;).
 
-Jens
+> found the following with differences between pre- and post- suspend
+> configuration (using lspci -vvx)... [The original output is attached]
+> 
+> Can anyone suggest what needs to be done to fix this?
 
-
---=20
-Jens Haug
-IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
-Pfaffenwaldring 9                       Fax  0711/685-6356
-70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
-
+Driver support in drivers being affected?
+								Pavel
+-- 
+I'm pavel-7aPAsKgELzg@public.gmane.org "In my country we have almost anarchy and I don't care."
+Panos Katsaloulis describing me w.r.t. patents at discuss-q33YXrgyAoMgsBAKwltoeQ@public.gmane.org
 
 
 -------------------------------------------------------
