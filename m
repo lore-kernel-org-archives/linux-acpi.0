@@ -1,13 +1,10 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Suspend-to-RAM on ThinkPad R51
-Date: Sat, 2 Apr 2005 00:15:00 +0200
-Message-ID: <20050401221500.GB1868@message-id.gmane0305.slipkontur.de>
-References: <200503261534.44710.barr.156@osu.edu> <200503301136.59046.barr.156@osu.edu> <20050330202416.GA1347@elf.ucw.cz> <200503311044.35221.barr.156@osu.edu> <20050331221856.GD1802@elf.ucw.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "admin" <admin-Qt13gs6zZMY@public.gmane.org>
+Subject: (^_______^)
+Date: Sat, 2 Apr 2005 06:52:58 +0800
+Message-ID: <E1DHV0I-0004Lr-V6@sc8-sf-mx1.sourceforge.net>
+Reply-To: admin-Qt13gs6zZMY@public.gmane.org
+Content-Type: text/plain;charset="EUC"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050331221856.GD1802-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,16 +17,47 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 01, 2005 at 12:18:56AM +0200, Pavel Machek wrote:
- 
-> So you have frozen display, instead. That's likely same problem. Try
-> suggestions in Doc*/power/video.txt.
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+ 業界NEWS　Vol.032		仰天ニュースレポーター(強)メルマ
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+			アナタの元に信じられないNEWSをお届け！
 
-I was often successful with "vbetool post; vbetool vbestate restore" on
-intel chipsets, so this is definitely worth a try IMO.
--- 
-Stefan Seyfried
+┏─┓　┏─┓　┏─┓　┏─┓　┏─┓　┏─┓　┏─┓　┏─┓
+│出│　│会│　│い│　│系│　│事│　│件│　│簿│　│！│
+┗─┛　┗─┛　┗─┛　┗─┛　┗─┛　┗─┛　┗─┛　┗─┛
 
+会えるサイトは事件が起きる可能性があるのだが、
+
+まぁ当方に言わせれば管理問題なわけで。
+
+続き：http://www.okidokiaiai.com/
+
+
+　 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━☆彡
+┌★　仰天⇔業界NEWS：最新記事ピックアップ
+┿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+□┓　まずはネット交際からスタート「大手ポータルサイトの縁結び」
+┗┛━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+続き：http://www.okidokiaiai.com/
+
+
+□┓　週末のデートの相手をネットの出会いで⇒女性：10人に1人
+┗┛━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+続き：http://www.okidokiaiai.com/
+
+
+□┓　奈良県が少子化対策で「出会い系」？
+┗┛━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+続き：http://www.okidokiaiai.com/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+　● 業界NEWS ●
+……………………………………………………………………………………………………
+　http://www.okidokiaiai.com/
+　王強 
 
 
 -------------------------------------------------------
