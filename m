@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Toshiba 1905S303: update
-Date: Thu, 25 Dec 2003 13:33:59 +0800
+Subject: RE: [BUG] - Thermal or BIOS on VIA_kt-400
+Date: Thu, 25 Dec 2003 13:40:50 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C5A@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C5B@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,24 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Damian Kolkowski <damian-8hv6UaVLA0HLQ3KC8Z2sWkB+6BGkLq7r@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->I just created bug #1735 on bugzilla to deal with this.=20
->Please take a look at it:
+>> > > my _thermal_ module shows always "40 C" - why?
+>> > Maybe this is a bug relative to DSDT.
+>>=20
+>> So how can I use my own dsdt table and is this a fix, or how can I
+fix that
+>> dsdt bug, so my thermal.o can work correct?
 >
->http://bugme.osdl.org/show_bug.cgi?id=3D1735
+>So answer for my questions is on http://acpi.sf.net/dsdt/; I'll read it
+:-)
 
->I also posted the relevant dmesg and system log files=20
->from working and non-working situations,
-> plus my current DSDT and the original DSDT.
-
-Thanks a lot for that. To testing latest ACPI, you can try
-bk clone ACPI testing tree located on http://linux-acpi.bkbits.net/ .
-Or you can try acpi patch filed at
-http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/.
-
-
+First, you need to verify whether _TMP return reasonable value.
 
 
 -------------------------------------------------------
