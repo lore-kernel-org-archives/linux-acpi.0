@@ -1,13 +1,13 @@
-From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: AE_AML_BUFFER_LIMIT errors with latest Linus tree
-Date: Tue, 4 Jan 2005 01:31:50 -0500
-Message-ID: <200501040131.50986.dtor_core@ameritech.net>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: AE_AML_BUFFER_LIMIT errors with latest Linus tree
+Date: Tue, 4 Jan 2005 15:29:48 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8406B6551B@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="GB2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,16 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Not sure if  kernel option "acpi_os_name=3DMicrosoft Windows" help this?
+
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Dmitry =
+Torokhov
+Sent: 2005=C4=EA1=D4=C24=C8=D5 14:32
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] AE_AML_BUFFER_LIMIT errors with latest Linus tree
 
 Hi,
 
 The latest pull from Linus tree prduces the following errors:
 
 Jan  3 23:48:10 anvil kernel: ACPI: Subsystem revision 20041210
-Jan  3 23:48:10 anvil kernel:     ACPI-1138: *** Error: Method execution failed [\STRC] (Node f7f867e0), AE_AML_BUFFER_LIMIT
-Jan  3 23:48:10 anvil kernel:     ACPI-1138: *** Error: Method execution failed [\_SB_.PCI0._INI] (Node f7f86b00), AE_AML_BUFFER_LIMIT
+Jan  3 23:48:10 anvil kernel:     ACPI-1138: *** Error: Method execution =
+failed [\STRC] (Node f7f867e0), AE_AML_BUFFER_LIMIT
+Jan  3 23:48:10 anvil kernel:     ACPI-1138: *** Error: Method execution =
+failed [\_SB_.PCI0._INI] (Node f7f86b00), AE_AML_BUFFER_LIMIT
 
 The relevant fragments of DSDT are:
 
@@ -45,7 +57,8 @@ The relevant fragments of DSDT are:
         While (Local0)
         {
             Decrement (Local0)
-            If (LNot (LEqual (DerefOf (Index (BUF0, Local0)), DerefOf (Index (BUF1, Local0)))))
+            If (LNot (LEqual (DerefOf (Index (BUF0, Local0)), DerefOf =
+(Index (BUF1, Local0)))))
             {
                 Return (Zero)
             }
@@ -89,11 +102,22 @@ The relevant fragments of DSDT are:
                     }
                 }
 
-This did not happen with 2.6.10 and earlier bk pulls. The code looks sane
+This did not happen with 2.6.10 and earlier bk pulls. The code looks =
+sane
 to my unexperienced eye... Any suggestions?
 
--- 
+--=20
 Dmitry
+
+
+-------------------------------------------------------
+The SF.Net email is sponsored by: Beat the post-holiday blues
+Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
