@@ -1,14 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: ACPI Thermal Shutdown on Boot
-Date: Wed, 11 Feb 2004 09:48:05 -0800 (PST)
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Acer 1703 and DSDT fixing questions
+Date: Thu, 12 Feb 2004 10:09:17 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040211094538.D91991@root.org>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB690@PDSMSX403.ccr.corp.intel.com>
- <20040210215906.H85854@root.org> <20040211105908.GB30647@hell.org.pl>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6A4@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040211105908.GB30647-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: John <cirrus-m8NPtmh9OiN1HeySrBk8eLVCufUGDwFn@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 11 Feb 2004, Karol Kozimor wrote:
-> Thus wrote Nate Lawson:
-> > I think he just meant 57C.  In any case, we decided to set the _TMP poll
-> > interval to 10 seconds.  After 2 readings above _CRT/_HOT, userland
-> > receives an event and a message is logged saying the temperature is too
-> > high.  On the 3rd one, we shutdown/power off the system.  I think Linux
->
-> If I understand you correctly, 30 seconds is certainly enough time to burn
-> a CPU when the fan has failed, isn't it?
+> Yes in this instant the battery was full, but still:
+> $ cat /proc/acpi/battery/BAT1/state
+> present:                 yes
+> capacity state:          ok
+> charging state:          discharging
+> present rate:            unknown
+> remaining capacity:      5524 mAh
+> present voltage:         16249 mV
+>=20
 
-Our old default poll interval was 30 seconds so this doesn't change
-anything.  I know DeadRat takes more than 30 seconds from "shutdown -h
-now" to power off.  All modern CPUs have a thermal shutdown builtin.
-Think of _CRT as more of "system temp too high, shut down as soon as you
-can."
+The following _BST is cut from your DSDT, if i didn't miss somthing
+it shows Battery Present Rate is always 0xFFFFFFFF, which is
+Unknown rate. (According to  ACPI spec 2.0b 11.2.2.2)
 
--Nate
+            Method (_BST, 0, NotSerialized)
+            {
+	...
+                If (LEqual (And (Local0, 0x01), 0x00))
+                {
+	....
+                    Store (0xFFFFFFFF, Index (PBST, 0x01))
+                }
+	...
+                Store (0xFFFFFFFF, Index (PBST, 0x01))
+	....
+                Return (PBST)
+            }
+
+> The present rate is unknown. Also alarms are not working.=20
+> $ cat /proc/acpi/battery/BAT1/alarm
+> alarm:                   unsupported
+>=20
+
+It's not strange that _BTP is not defined in your DSDT.
+So it's right to say alam is unsupported. Maybe it is defined
+in SSDT, but it's unlikely. You can check it.
+
+So there is no Linux ACPI bug here. If you still treat them as
+bug, Maybe you need to contact vendor.
+
+--Luming
+
 
 
 -------------------------------------------------------
