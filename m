@@ -1,13 +1,13 @@
-From: Richard Dawe <rich-fbHbV8X007REJxKfswctSdBc4/FLrbF6@public.gmane.org>
-Subject: Re: [PATHC] Relaxed syntax for the processor PBLK length
-Date: Sun, 30 Jan 2005 22:43:01 +0000
-Message-ID: <41FD62F5.2090104@phekda.gotadsl.co.uk>
-References: <41FD3E02.8010701@tremplin-utc.net>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: system does not wake up sometimes
+Date: Mon, 31 Jan 2005 09:01:39 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501168084@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41FD3E02.8010701-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Eric Piel <Eric.Piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
+Hi,
+>Hello,
+>very often, my system does not wake up at the specified time. I need to
+>press a key to resume.
+>The system goes to sleep the day before at about 22h30 with the =
+following
+>commands:
+>modprobe genrtc
+>sleep 5
+>echo 2005-01-28 11:10:00 >/proc/acpi/alarm
+>sleep 5
+>echo 1 >/proc/acpi/sleep
+>
+>What could be wrong?
+>I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
+>
+>Thanks in advance for any help! Please tell me, if you need more
+>information.
+did you mean alarm can't work only the specific time? Is there any rule?
 
-Eric Piel wrote:
-[snip]
-> --- linux-2.6.11-rc2/drivers/acpi/processor_core.c.orig	2005-01-23 01:24:55.315650055 +0100
-> +++ linux-2.6.11-rc2/drivers/acpi/processor_core.c	2005-01-23 01:27:32.016020121 +0100
-> @@ -492,9 +492,16 @@ acpi_processor_get_info (
->  	if (!object.processor.pblk_address)
->  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
->  	else if (object.processor.pblk_length != 6)
-> -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid PBLK length [%d]\n",
-> -			object.processor.pblk_length));
-> -	else {
-> +		if (object.processor.pblk_length == 5 && !acpi_strict) {
-> +			printk(KERN_INFO PREFIX 
-> +				"PBLK length is 5 instead of 6, concidering "
-> +				"it is good anyway.\n");
-[snip]
-
-Typo: concidering -> considering
-
-Bye, Rich =]
-
--- 
-Richard Dawe [ http://homepages.nildram.co.uk/~phekda/richdawe/ ]
-
-"You can't evaluate a man by logic alone."
-   -- McCoy, "I, Mudd", Star Trek
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
