@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Re: Re: [BKPATCH] ACPI for 2.6
-Date: Tue, 29 Jun 2004 21:51:16 -0000
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: problem with cpu eating too much power, prize given if solved
+Date: Wed, 30 Jun 2004 00:11:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040629215116.GA19451@message-id.gmane0305.slipkontur.de>
-References: <6E0C289723A0564F9A8279E236E8565F07A9E73A@pdsmsx402.pd.intel.com>
+Message-ID: <20040629221111.GB25464@elf.ucw.cz>
+References: <20040624153513.GB19545@rap.rap.dk> <20040628204008.GK698@openzaurus.ucw.cz> <opsadhbojo4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6E0C289723A0564F9A8279E236E8565F07A9E73A-4yWAQGcml64divtuJNk2fFDQ4js95KgL@public.gmane.org>
+In-Reply-To: <opsadhbojo4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,63 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Cc: keld-6PR53cSIHaE@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 28, 2004 at 09:30:59AM +0800, Wang, Zhenyu Z wrote:
->  
-> Please update your patch on osdl bug.
+Hi!
 
-done. I'm also sending the patch here for further review (can't hurt ;-)
+> >>Many times I just want to read the screen, eg emails or documents,
+> >>and then still the cpu will be in idle mode, where
+> >>it uses 7.5 W out of the about 15 W that the whole machine uses.
+> >>I have found out from Intel data sheets that my
+> >>Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
+> >>stop grant/sleep states, (and 5.0 W i deep sleep state).
+> >>
+> >>So I would like to have the CPU stopped completely (consuming 0 W)
+> >>while I still could read the screen. In that way I should
+> >>be able to have about double the lifetime on the battery,
+> >>going to about 7 hours from the 3.5 hours I have now.
+> >>
+> >>I would like the machine to wake up again by any keystroke
+> >>on the keyboard or mouse input. I would like the input to be
+> >>reacted upon (not just used to wake up the system, and
+> >>then forgotten).
+> >>
+> >
+> >S1 is what you want... but... if you get what you asked for,
+> >do you realize that for example clock would not update on the desktop
+> >in this mode?
+> 
+> Which hardware can power down the CPU on its own?
 
+I thought that CPU powered down is pretty much definition S1.
 
-diff -ru /tmp/acpi/thermal.c linux-2.6.7/drivers/acpi/thermal.c
---- /tmp/acpi/thermal.c	2004-06-16 07:19:52.000000000 +0200
-+++ linux-2.6.7/drivers/acpi/thermal.c	2004-06-29 23:43:00.236341420 +0200
-@@ -892,8 +892,10 @@
- 	struct seq_file		*m = (struct seq_file *)file->private_data;
- 	struct acpi_thermal	*tz = (struct acpi_thermal *)m->private;
- 
--	char			limit_string[25] = {'\0'};
--	int			critical, hot, passive, active0, active1;
-+	char			limit_string[65] = {'\0'};
-+	int			num, critical, hot, passive;
-+	int			active[ACPI_THERMAL_MAX_ACTIVE];
-+	int			i = 0;
- 
- 	ACPI_FUNCTION_TRACE("acpi_thermal_write_trip_points");
- 
-@@ -909,7 +911,11 @@
- 	
- 	limit_string[count] = '\0';
- 
--	if (sscanf(limit_string, "%d:%d:%d:%d:%d", &critical, &hot, &passive, &active0, &active1) != 5) {
-+	num = sscanf(limit_string, "%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d",
-+				&critical, &hot, &passive,
-+				&active[0], &active[1], &active[2], &active[3], &active[4],
-+				&active[5], &active[6], &active[7], &active[8], &active[9]);
-+	if(!(num >=5 && num < (ACPI_THERMAL_MAX_ACTIVE + 3))) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid data format\n"));
- 		return_VALUE(-EINVAL);
- 	}
-@@ -917,8 +923,11 @@
- 	tz->trips.critical.temperature = CELSIUS_TO_KELVIN(critical);
- 	tz->trips.hot.temperature = CELSIUS_TO_KELVIN(hot);
- 	tz->trips.passive.temperature = CELSIUS_TO_KELVIN(passive);
--	tz->trips.active[0].temperature = CELSIUS_TO_KELVIN(active0);
--	tz->trips.active[1].temperature = CELSIUS_TO_KELVIN(active1);
-+	for (i = 0; i < num - 3; i++) {
-+		if (!(tz->trips.active[i].flags.valid))
-+			break;
-+		tz->trips.active[i].temperature = CELSIUS_TO_KELVIN(active[i]);
-+	}
- 	
- 	return_VALUE(count);
- }
-
+								Pavel
 -- 
-Stefan Seyfried
-
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
