@@ -1,10 +1,12 @@
-From: Kylene Hall <kjhall-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Looking for the correct way to retrieve ACPI table info
-Date: Wed, 02 Mar 2005 09:08:46 -0600
-Message-ID: <1109776126.3201.9.camel@jo.austin.ibm.com>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Latest dmidecode at savannah, but not at kernel.org
+Date: Wed, 2 Mar 2005 11:28:57 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3002E2D9D1@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,43 +16,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Seiji Munetoh <MUNETOH-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>, Tom Lendacky <toml-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Emily Ratliff <emilyr-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Kent E Yoder <yoder1-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: Richard Dawe <rich-fbHbV8X007REJxKfswctSdBc4/FLrbF6@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello-
+>It appears that dmidecode 2.5 can be downloaded from savannah, but not=20
+>kernel.org. Perhaps you could upload dmidecode to kernel.org too?
 
-We are working on a device driver for the Trusted Computing Group TPM.
-BIOS has been augmented to created a log of TCG boot events and
-userspace needs to read these events.  We plan for the driver to export
-them via sysfs, therefore we need to call acpi_os_map_memory and the
-corresponding acpi_os_unmap memory.  Would it be ok to export these
-functions?  Would you recommend some other interface which is already
-exported or would be better to export.  Currently we call
-acpi_get_firmware_table with a signature of "TCPA"  and a pointer to a
-structure like:
-                struct acpi_tcpa {
-                  struct acpi_table_header hdr;
-                  u16 reserved;
-                  u32 log_max_len PACK;
-                  u32 log_start_addr PACK;
-                };
-The log_man_len and log_start_addr fields are then passed to the
-acpi_os_map_memory function and we retrieve the data.
+Thanks for pointing this out.
 
+I've updated the kernel.org mirror to dmidecode 2.6 -- just out.
 
-Please let me know your feelings on this approach and the wording of
-this note.  Sorry for note circulating this conversation wider earlier
-and saving you the work you have already done on these patches.
+Note that this is just a backup copy to have handy when
+http://www.nongnu.org/dmidecode/ or
+http://savannah.nongnu.org/download/dmidecode/ do not answer.
 
-Thanks,
-Kylie Hall
+Seems also that we're using dmidecode less frequently these days;
+as adding sytems to the DMI blacklists is a workaround of last resort.
 
--- 
-Kylene Hall
-IBM Linux Technology Center
-
-
+thanks,
+-Len
 
 
 -------------------------------------------------------
