@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 Subject: Re: suspend.c vs driver-model.txt
-Date: Mon, 29 Jul 2002 20:31:44 +0200
+Date: Mon, 29 Jul 2002 19:55:56 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020729183143.GA13729@elf.ucw.cz>
-References: <20020729175650.GA1233@elf.ucw.cz> <20020729173302.30557@192.168.4.1>
+Message-ID: <20020729175556.13645@192.168.4.1>
+References: <20020729180037.GB1233@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020729173302.30557-Q0ErXNX1RuY/GWcAdfcqrQ@public.gmane.org>
+In-Reply-To: <20020729180037.GB1233-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,92 +17,158 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Lyle <lwspm-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+>What races can you see?
 
-> >Discussing with who?
-> 
-> We had a Power Management BOF there, among others, Patrick Mochel,
-> Greg KH, Andy, Paulus, Jeff Garzik, ...
+Well, existing PM callbacks aren't good enough :) they just don't
+deal with dependencies properly. Also, they don't deal that well
+with the need for drivers to trigger memory allocations and all
+of the issues related to that we discussed during the BOF and
+earlier.
+driverfs bus-oriented ones would be better here in many regard,
+especially since I beleive we found "correct" semantics for the
+various steps of device save state & suspend.
 
-Oops... I guess I should have been there :-(. Sorry.
+>> The problem of saving to disk and of saving to memory (that is
+>> machine sleep as I implement it on powerbooks today, RAM content
+>> beeing preserved) is pretty similar.
+>
+>Actually it is quite different.
+>
+>Saving device state is common code, but suspend-to-ram can be done
+>without scheduling, while you need to block for suspend-to-disk.
 
-> >Its rather simple: free half of memory, stop everything, save device
-> >state, copy used memory into free memory, continue devices, save data
-> >from "free" memory into swap.
-> 
-> Ok, so you first push as much as you can to swap to free half
-> of memory. Then, when you say you copy used memory, I assume you copy
-> all of RAM including kernel memory (kernel data structures etc...)
-> right ?
+No. They end up beeing very similar. Suspend to RAM has to schedule
+because some underlying device drivers will need to schedule to
+properly block their queues as well.
 
-Yes.
+I figured out in the Pmac implementation that I could actually let
+the system schedule the whole time up to just before the very last
+step of shutting down the CPU. Userland apps will simply block as
+they rely on IOs for drivers that have been properly blocked, or
+from swap while the swap device may be suspended, etc... CPU
+intensive app would still work until it's very last timeslice is
+used before suspend.
 
-> What do you mean by "stop everything" ? Stop user processes ? Kernel
-> threads ? both ? 
+That's also how I got very fast wakeup times. Basically, processes
+start again right away (well, just after a few really important things
+like time are restored), and then drivers are kicked back into life,
+asynchronously if possible, thus user processes that are blocked by
+a given driver will come back to life normally.
 
-Stop all user processes and all kernel processes that could cause
-trouble. Don't stop kapm-idled (for example) but be sure to stop
-ext3-commitd (or how is that beast called).
+>> So you really need to properly do the prepare/save/suspend steps
+>> on all devices in proper bus ordering so that any device driver
+>> has properly saved state information to memory (which may later
+>> be saved to disk with suspend-to-disk) and has properly blocked
+>> IO queues.
+>> 
+>> The specific case of the device which is used as a backstore
+>> for the RAM save has to be dealt some specific way. 
+>
+>No it does not. I have half of RAM free, I just save-state, copy
+>memory, continue devices, copy saved memory to swap.
 
-> Then, you only save device state (and then suspend
-> devices) after you have "stopped everything" ?
+So you resume devices from the "saved state" which isn't the
+state the device was when the machine was really suspended,
+right ? Which means that typically, on resume, the driver could
+end up beeing out of sync with the device if some permanent state
+information exist on the device, but I agree this is a rare case,
+except for... storage. So I assume you have ways to prevent
+filesystems to be touched at all ?
 
-Yes.
+As I see it, for your scheme to work properly, you need to,
+somewhat "atomically", save-state all devices so they are
+in coherent state one to each other (devices can well be
+inter-dependant), backup your RAM, then you can kick back
+devices (well, some actually) into life.
 
-Code looks like this:
+This is really only a special case of the generic process I'm
+suggesting then ;)
 
-void do_software_suspend(void)
-{
-        arch_prepare_suspend();
-        if (prepare_suspend_console())
-                printk( "%sCan't allocate a console... proceeding\n", name_suspend);
-        if (!prepare_suspend_processes()) {
+Basically, you still need to run the "block IOs then save state
+and suspend" step on all devices in bus ordering. So that
+part is common with suspend-to-ram. Actually, you don't need
+to prevent scheduling before that point, except maybe for
+keeping your "half of RAM free" watermark, but even then, I
+don't see how you acheive that since the kernel itself may
+allocate memory (see note below)
 
-                /* At this point, all user processes and "dangerous"
-                   kernel threads are stopped. Free some memory, as we
-                   need half of memory free. */
+Then you need to use the explicit device model power
+state functions to re-enable power state on the target device
+of the backup. It should in turn re-enable parent devices up
+to the host bus.
 
-                free_some_memory();
+However, that would be inefficient as the net effect would be
+to have your hard disk spin down, be eventually powered off,
+then back up for suspend to RAM, then the machine powered off
+(and so that hard disk as well).
 
-                /* No need to invalidate any vfsmnt list -- they will be valid after resume, anyway.
-                 *
-                 * We sync here -- so you have consistent filesystem state when things go wrong.
-                 * -- so that noone writes to disk after we do atomic copy of data.
-                 */
-                PRINTK("Syncing disks before copy\n");
-                do_suspend_sync();
+Which is why I beleive it would make more sense to specifically
+instruct the target device (and so it's parent) during the
+device suspend loop to _not_ go to sleep, just suspend, block
+IOs, then resume IOs, but _not_ do actual suspend.
 
-                /* Save state of all device drivers, and stop them. */
-                if(drivers_suspend()==0)
-                        /* If stopping device drivers worked, we proceed basically into
-                         * suspend_save_image.
-                         *
-                         * do_magic(0) returns after system is resumed.
-                         *
-                         * do_magic() copies all "used" memory to "free" memory, then
-                         * unsuspends all device drivers, and writes memory to disk
-                         * using normal kernel mechanism.
-                         */
-                        do_magic(0);
-                PRINTK("Restarting processes...\n");
-                thaw_processes();
-        }
-        software_suspend_enabled = 1;
-        MDELAY(1000);
-        restore_console ();
-}
+If we stick to the 3 step model we discussed at OLS
 
-(Most comments were added 5 minutes ago).
+ 1) prepare for sleep (memory allocation, etc...), stop
+    doing _any_ non-ATOMIC (or non-NOIO) memory allocation
+    beyond the point, the driver has to pre-allocate what
+    it will need from now on, eventually running with degraded
+    perfs (serialized)
+ 2) block IOs & save state. Block drivers should stop their
+    request queue, drivers impl. a direct /dev interface should
+    block processes calling them until they are resumed, etc...
+    typically done easily with a semaphore for most of them.
+    then save state informations to pre-allocated memory
+ 3) suspend (IRQs off) Or optionally 4 steps with 3) suspend_irq_on
+    and 4) suspend_irq_off.
 
-Does it look understendable now?
-									Pavel
--- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
+Then suspend-to-disk would need to call steps 1 and 2 normally,
+but not 3 for devices on the storage chain. Then, after the
+RAM is copied, that device can be sent a resume request, though
+in this case, you indeed need to make sure no user process or
+journaling daemon or whatever will inject requests to your
+target device queues that are not specifically your pages
+beeing thrown to the backing store.
+>
+>> I understand (please correct me if I'm wrong) that your mecanism is to
+>> implement that at a higher level, though I still fail to see the
+>> "big picture" of it, especially how you can properly resume state
+>> of all device drivers and other in-kernel state informations. Do you
+>> store all pages including kernel pages to disk ? 
+>
+>Yes I store all pages including kernel ones to disk.
+>
+>> If not, what about
+>> open inodes, sockets, etc... ? How do you resume kernel state information
+>> for these ? 
+>> How do you deal with device-drivers that are configured in
+>> some specific way before suspend and has to come back up the same
+>> way ?
+>
+>I need device support for suspend-to-disk, of course. But I need no
+>special support on "suspend" device.
+
+I still think it need to be handled slightly differently (see above),
+I'm trying to see what has to be common and what not. Defining (and
+then implementing) the proper device support is the biggest issue,
+I think we have the semantics approximately right in mind Patrick
+and I, it's time to write them down :)
+
+(*note about device mem alloc): Some devices need to allocate memory
+to be able to save sate. That can be a significant amount of memory
+(some framebuffer may want to backup the fb content, huge !). 
+
+So in your case, I beleive you should probably first send the notification
+of step 1 (prepare for sleep) to drivers, then do your memory-crunching
+thing, then call step 2 and step 3 for all but swap device.
+
+Ben.
+
+
 
 
 -------------------------------------------------------
