@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: Userspace ACPI interpreter ( was RE: [RFC] dev_acpi: support for userspace access to acpi)
-Date: Fri, 29 Oct 2004 10:40:58 +0800
+Date: Fri, 29 Oct 2004 10:51:44 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041ABFFF@pdsmsx403>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC000@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,36 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+
+>On Wednesday 27 October 2004 10:04 pm, Yu, Luming wrote:
+>> On IA64 platform, ACPI interpreter seems to be mandatory for those
+>> stuff, but IA32 is not.  So, the ram disk is the generic solution=20
+>> for loading user space interpreter for boot.=20
 >
->On Thu, Oct 28, 2004 at 01:37:52AM -0400, Len Brown wrote:
->> One way to experiment with a user-mode ACPI interpreter would be to=20
->> continue to use the kernel-mode interpreter for boot up ,=20
->and cut over=20
->> to the user-mode interpreter at /sbin/init.  The kernel-mode=20
->interpreter=20
->> could be sent the way of free_initmem() which is called just before=20
->> /sbin/init is invoked.
+>In two sentences: If you want to play with moving the interpreter
+>to user-space, please do so, and do it on ia64, so you have to
+>deal with the interesting problems.
 >
->Is there a significant advantage to doing having a user-mode ACPI
->interpreter?  The only advantage I can think of is that the ACPI
->interpreter could now live in pageable memory.  Are there any others?
+>And this whole thing is a gigantic tangent that is only distracting
+>attention from the real question at hand, namely, Alex's dev_acpi
+>patch, which exists today and enables some very interesting new
+>functionality.
+>
 
-One reason for kernel-mode interpreter is to live in unpageable memory.
-
-User-mode ACPI interpreter advantages:
-
-1. Without losing platform functionality, user-mode interpreter
-can make kernel less complex, thus more stronger.
-
-2. Kernel can release from AML issues.
-...
+  Yes, I agree Alex's dev_acpi is interesting, which could result in=20
+the removal of some acpi specific drive such as battery.c, button.c,
+fan.c, thermal.c ....   So, I raised the question of userspace ACPI=20
+interpreter.  Intuitively, userspace is the right place for interpreter.
 
 Thanks,
 Luming
+
 
 
 -------------------------------------------------------
