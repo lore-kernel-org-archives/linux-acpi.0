@@ -1,14 +1,12 @@
-From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Subject: RE: Where to send dsdt to at HP
-Date: Wed, 9 Apr 2003 19:59:11 -0500
+From: "Florian Schilhabel" <florian.schilhabel-S0/GAf8tV78@public.gmane.org>
+Subject: Re: Re: Compaq Armada 1500c
+Date: Thu, 10 Apr 2003 13:42:30 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD10476C218@cceexc19.americas.cpqcorp.net>
+Message-ID: <200304101142.h3ABgUq26852@mailgate5.cinetic.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,41 +15,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Harrell <mharrell-dated-1050324543.a78b14-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-If you have a corrected DSDT for an HP ProLiant or HP Evo, please send
-it to me and I'll make sure it gets in front of a BIOS developer.  (In
-the case of ProLiant it will get fixed, but I can't make a guarantee on
-Evo.)
+"Florian Schilhabel" <florian.schilhabel-S0/GAf8tV78@public.gmane.org> schrieb am 10.04.03 13:17:20:
+> hi everyone,
+> 
+> short summary of ACPI on Compaq Armada 1500c:
+> with help of herbert nachtnebel,( thanks for your dsdt's), i finally managed to
+> disassemble and recompile my dsdt; ( 0 errors, 0 warnings, etc.pp )
+> result:
+> /proc/acpi is now much more populated than before... ;-))
+> still weird are the entries in thermal_zone/.../trip_points;
+> of course, currently i'm running on 2.4.20 ( + ACPI ) - the problem might be here;
+> will update asap;
+> 
+> i still have a problem with FAN CONTROL...
+> i DO have 2 entries in /proc/acpi/fan;
+> along with a state file.
+> cat state gives me a "on", indicating, that the fan is running - this is _NOT_ true
+> there is also no possibility to switch manually to off and back to on;
+> battery status is now great, with one problem left:
+> during system boot, the correct battery status is recognized ( for example 2 batteries available )
+> if i pull out on battery, the acpi system still indicates 2 available batteries,
+> of course the voltage indicator goes down to zero - good, it's no battery in the bay.
+> but - system says, battery is still available; so there's no update at runtime here...
+> during system boot with ONE battery, the second one is _never_ recognized. - too bad;
+> 
+> nevertheless, at least a cat temperature seems to give me the correct values for CPU temp;
+> at least, if i stress the CPU, the temp rises, when idle temp goes down.
+> so there's a way for me to shut down the system, if the CPU should become too hot ;-))
+> 
+> i think, someone's written a FAN-control patch; i just can't find it in mail-archive;
+> would anyone please be so kind to send it to me ???
+> thanks a lot....
+> 
+> at last:
+> if nothing helps, my final solution is to cut the wires to the fan and solder it to
+> voltage supply of my fdd drive - *;-))
+> although i have a little coding experience, i do not have enough time to solve that problem, sorry...
+> but: if someone of the coders is interested in that problem, i can give you all the needed information...
+> 
+> ------
+> 
+> and: if you can't code it, you have to solder it... ;-))
+> 
+> greetings
+> 
+> florian
+> 
+> 
 
-Thanks,
-John
 
---------------------------------
-John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
-Principal Member Technical Staff
-   Industry Standard Servers
-    Hewlett-Packard Company
-    http://www.hp.com/linux
+______________________________________________________________________________
+UNICEF bittet um Spenden fur die Kinder im Irak! Hier online an
+UNICEF spenden: https://spenden.web.de/unicef/special/?mc=021101
 
-> -----Original Message-----
-> From: Matthew Harrell [mailto:lists-sender-12e533-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org]=20
-> Sent: Wednesday, April 09, 2003 7:49 AM
-> To: ACPI List
-> Subject: [ACPI] Where to send dsdt to at HP
->=20
-> Anyone have any recommendations?  I figure if I send the=20
-> updated dsdt into the general technical support email address=20
-> then I'll just get a form letter back and nobody will ever=20
-> pay attention to it
->=20
-> --=20
->   Matthew Harrell                          Nature abhors a vacuum.
->   Bit Twiddlers, Inc.                       Then again, so=20
-> does my cat.
->   mharrell-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org    =20
 
 
 -------------------------------------------------------
