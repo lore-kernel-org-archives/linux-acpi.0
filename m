@@ -1,42 +1,47 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Recall: Patch for IBM Thinkpad, Please help test
-Date: Sun, 24 Aug 2003 19:43:44 -0700 (PDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030824194131.G14961@root.org>
-References: <571ACEFD467F7749BC50E0A98C17CDD8D5FD41@pdsmsx403.ccr.corp.intel.com>
+From: =?iso-8859-1?Q?=C9ric?= Brunet <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
+Subject: 2.6.0-pre4 hangs if acpi enabled
+Date: Mon, 25 Aug 2003 13:33:13 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030825113313.GA10691@lps.ens.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8D5FD41-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+To: Linux Kernel mailing list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 22 Aug 2003, Li, Shaohua wrote:
-> Li, Shaohua would like to recall the message, "Patch for IBM Thinkpad, Please help test".
+Hi,
 
-The List has considered your request and decided to decline, as well as
-archive your original messages for all posterity.
+When booting 2.6.0-pre4 on my intel P4 with a shuttle motherboard, the
+computer hangs after printing
 
-The List would also like to remind you that although there are often many
-things in life we'd like to recall (that one incident with the toilet
-paper, for instance), this is usually not possible.
+	hda: max request size: 128KiB
+	hda: 234441648 sectors (120034 MB) w/2048KiB Cache, CHS=3D65535/16/63,=
+ UDMA(100)
+	 hda: hda1 hda2 hda4 < hda5 hda6 hda7 >
+	mice: PS/2 mouse device common for all mice
 
--The List
+No scroll from the keyboard, no sys-rq, Caps-lock doesn't lit the led o=
+n
+the keyboard. The computer is completely frozen.
 
-:)
+On a normal boot, the following lines are
 
+	serio: i8042 AUX port at 0x60,0x64 irq 12
+	input: AT Set 2 keyboard on isa0060/serio0
+	serio: i8042 KBD port at 0x60,0x64 irq 1
 
--------------------------------------------------------
-This SF.net email is sponsored by: VM Ware
-With VMware you can run multiple operating systems on a single machine.
-WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines
-at the same time. Free trial click here:http://www.vmware.com/wl/offer/358/0
+2.6.0-pre1 was working nicely. I haven't tried 2.6.0-pre2 or -pre3.
+2.6.0-pre4 works if I append acpi=3Doff of pci=3Dnoacpi at the boot
+commandline.
+
+You will find on <http://perso.nerim.net/~tudia/bug-reports/> the
+complete boot messages, the configuration of the kernel, the dsdt, the
+output of lspci -vv, etc. Please tell me if some relevant information i=
+s
+missing.
+
+Regards,
+
+	=C9ric Brunet
