@@ -1,11 +1,11 @@
-From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
-Subject: Linux Video ACPI support
-Date: Sun, 29 Feb 2004 13:49:45 +0200
+From: =?iso-8859-1?q?Mica=20Telodico?= <maria_libera2000-whZMOeQn8C0@public.gmane.org>
+Subject: _CRS returns NULL!  message , problems?
+Date: Sun, 29 Feb 2004 14:49:42 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078055385.5345.14.camel@t40>
+Message-ID: <20040229134942.75260.qmail@web41906.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,47 +15,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Bruno,
+Hi all,
 
-I tried your ACPI video patch with an IBM T30 and IBM T40 laptop.
-Kernel was 2.6.4-rc1.
-Here is some feedback for you:
+I'm the owner of a Abit KV7 Motherboard (VIA KT600),
+and I get these messages at the boot time :
 
-It finds 4 vido devices, and I have the following directories under
-/proc/acpi/video/VID:
-
-CRD0
-DVI0
-LCD0
-TV0
-
-cat /proc/acpi/video/VID/info
-Switching heads:	yes
-Video ROM:	no
-Device to be POSTed on boot: no
-
-cat of POST and POST_info gives <not supported>.
-
-I am still able to switch between CRT and LCD with the Fn+F7 as usual,
-but I cannot switch with the method described in README file from your
-patch.
-However the information from CRT0/state file is correct:
-0x1f when active and connected
-0x0f when active and disconnected from crt
-0x1d when disabled and connected to CRT
-0x0d when disabled and no CRT attached
-To verify these values, I used Fn+F7 to switch between heads.
-
-cat <anydevice>/brightness
-<not supported>
-
-If you need more information/logs/testing please let me know.
-I have access to other IBM thinkpad models for testing.
+ _CRS returns NULL! Using IRQ 21 fordevice (PCI
+Interrupt Link [ALKB]).
+ACPI: PCI Interrupt Link [ALKB] enabled at IRQ 21
+IOAPIC[0]: Set PCI routing entry (2-21 -> 0xc9 -> IRQ
+21 Mode:1 Active:1)
+00:00:10[A] -> 2-21 -> IRQ 21
+Pin 2-21 already programmed
+Pin 2-21 already programmed
+Pin 2-21 already programmed
+_CRS returns NULL! Using IRQ 20 fordevice (PCI
+Interrupt Link [ALKA]).
+ACPI: PCI Interrupt Link [ALKA] enabled at IRQ 20
+IOAPIC[0]: Set PCI routing entry (2-20 -> 0xd1 -> IRQ
+20 Mode:1 Active:1)
+00:00:11[A] -> 2-20 -> IRQ 20
+Pin 2-21 already programmed
+_CRS returns NULL! Using IRQ 22 fordevice (PCI
+Interrupt Link [ALKC]).
+ACPI: PCI Interrupt Link [ALKC] enabled at IRQ 22
+IOAPIC[0]: Set PCI routing entry (2-22 -> 0xd9 -> IRQ
+22 Mode:1 Active:1)
+00:00:11[C] -> 2-22 -> IRQ 22
+_CRS returns NULL! Using IRQ 23 fordevice (PCI
+Interrupt Link [ALKD]).
+ACPI: PCI Interrupt Link [ALKD] enabled at IRQ 23
+IOAPIC[0]: Set PCI routing entry (2-23 -> 0xe1 -> IRQ
+23 Mode:1 Active:1)
+00:00:11[D] -> 2-23 -> IRQ 23
 
 
+what do mean those _CRS returns NULL! ?
+
+Does this message means problems with some hardware?
+
+Thanks
+
+______________________________________________________________________
+Yahoo! Mail: 6MB di spazio gratuito, 30MB per i tuoi allegati, l'antivirus, il filtro Anti-spam
+http://it.yahoo.com/mail_it/foot/?http://it.mail.yahoo.com/
 
 
 -------------------------------------------------------
