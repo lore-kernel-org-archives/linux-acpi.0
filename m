@@ -1,12 +1,12 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Subject: Re: Speedstep-centrino problems
-Date: Thu, 10 Feb 2005 18:29:04 +0100
-Message-ID: <20050210172904.GB6824@isilmar.linta.de>
-References: <0FEA36BB2ABDF44FAAFEB7A75367C07A0117DCE4@alaska.condis.es> <420B5CB1.2090804@bartol.udel.edu>
+From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Battery change in sleep mode breaks battery support
+Date: Thu, 10 Feb 2005 19:15:49 +0100
+Message-ID: <420BA4D5.6090107@colitti.com>
+References: <420A224B.9050308@colitti.com> <420A6144.5050501@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <420B5CB1.2090804-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <420A6144.5050501-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,22 +16,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: Simon Moore <Simon_Moore-HnN13UdsTkzz1n+OaKNE4w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> The problem is not so much to do with the ability to choose the 
-> appropriate VID#, it is more about working out *which* VID# to choose. 
-> If someone could address the latter question, I'd be more than happy to 
-> have a shot at the former.
+Thomas Renninger wrote:
+>> I am having problems with battery monitoring and sleep mode: if I plug 
+>> in or unplug the battery while the machine is asleep, when it wakes up 
+>> the change has not been registered and no further changes are logged.
+>> [..]
+>> Any ideas?
+>>
+> I expect that your _WAK function does not work properly.
+> Does S3 invoke the _WAK function after wake up?
 
-At some frequency levels, you can read out the current settings and
-determine which VID# is used. At other frequency levels, you cannot,
-though, as some VID# can have the same voltage for certain levels.
-Therefore, I do not see a runtime-way to determine the correct VID# to
-choose.
+I don't know, how do I find out? Do I have to (attempt to) read the 
+decompiled dsdt or can I just use the acpi debugging options?
 
-	Dominik
+
+Cheers,
+Lorenzo
 
 
 -------------------------------------------------------
