@@ -1,14 +1,15 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/3]making ACPICA safe for suspend/resume - take 2
-Date: Wed, 26 Jan 2005 09:53:52 +0800
-Message-ID: <1106704432.5756.11.camel@sli10-desk.sh.intel.com>
-References: <1106293737.19407.60.camel@sli10-desk.sh.intel.com>
-	 <20050121095219.GA18373@elf.ucw.cz>
+From: Damien Challet <challet-dK2jV70R1GDQzY9nttDBhA@public.gmane.org>
+Subject: Re: Incomplete list of pnp entries/resources with pnpacpi
+Date: Tue, 25 Jan 2005 18:56:46 +0000
+Message-ID: <200501251856.46728.challet@maths.ox.ac.uk>
+References: <200501241704.46239.challet@maths.ox.ac.uk> <20050124192529.GA9740@sci.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050121095219.GA18373-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20050124192529.GA9740-ORSVBvAovxo@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,37 +19,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-01-21 at 17:52, Pavel Machek wrote:
-> > The patches are designed to solve the issue of making call to ACPICA
-> > safe for suspend/resume time. Please see the detail in
-> > http://sourceforge.net/mailarchive/forum.php?thread_id=6378210&forum_id=6102
-> > The new patches remove PCI link device resume code and let PCI device
-> > driver resume code indirectly reconfigure Link's IRQ (call
-> > pci_enable_device), so we will haven't an issue of invoking ACPICA with
-> > interrupt disabled. This also works for suspend to disk case. After this
-> > we only need to guarantee there is enough free memory for S3. One
-> > problem of the idea is we must fix many PCI drivers, but it's ok to me.
-> 
-> Well, having to modify all the drivers should mean "this should be
-> merged after 2.6.11" (I'm in process of converting all the drivers to
-> pm_message_t, and would prefer another set of "touch all drivers"
-> changes not to interfere).
-There isn't conflict between the pm_message_t converting and adding
-pci_enable/disable_device to me. It would be better we do them in the
-meantime, so we don't require another round of change. If so, I can help
-doing the converting also.
 
-> Anyway that memory freeing seems okay to me, and if you decide to
-> introduce in_suspend(), that would be okay, too.
-ACPI doesn't require it now, I prefer add it when there is real
-requirement.
+> Have you tried this patch?
+> http://thread.gmane.org/gmane.linux.kernel/257312
+>
+> For some reason it hasn't it been included in the kernel. Is the patch
+> wrong or did it simply fall through the cracks?
 
-Thanks,
-Shaohua
+having "applied" the patch by hand to kernel 2.6.10, kernel ooops when 
+initializing acpi !
 
 
 
