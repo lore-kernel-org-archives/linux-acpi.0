@@ -1,15 +1,15 @@
-From: Damien Challet <challet-dK2jV70R1GDQzY9nttDBhA@public.gmane.org>
-Subject: Re: Incomplete list of pnp entries/resources with pnpacpi
-Date: Tue, 25 Jan 2005 18:56:46 +0000
-Message-ID: <200501251856.46728.challet@maths.ox.ac.uk>
-References: <200501241704.46239.challet@maths.ox.ac.uk> <20050124192529.GA9740@sci.fi>
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: PATCH: Call acpi_leave_sleep_state before resuming
+	devices
+Date: Wed, 26 Jan 2005 16:45:54 +1100
+Message-ID: <1106718353.4157.17.camel@nigelcunningham>
+References: <200501252036.32045.stefandoesinger@gmx.at>
+Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050124192529.GA9740-ORSVBvAovxo@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200501252036.32045.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,18 +19,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan =?ISO-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi.
 
-> Have you tried this patch?
-> http://thread.gmane.org/gmane.linux.kernel/257312
->
-> For some reason it hasn't it been included in the kernel. Is the patch
-> wrong or did it simply fall through the cracks?
+On Wed, 2005-01-26 at 06:36, Stefan Dösinger wrote:
+> Hello,
+> The attached patch introduces 2 new suspend/resume functions, pm_ops->setup 
+> and pm_ops->leave. These are used to correct the order of suspending/resuming 
+> devices and calling acpi functions. 
 
-having "applied" the patch by hand to kernel 2.6.10, kernel ooops when 
-initializing acpi !
+Just so I have it clear, this is a separate patch to Li Shaohua's set,
+isn't it? Sorry if it's a lame question - too many patches floating
+around.
+
+Regards,
+
+Nigel
+-- 
+Nigel Cunningham
+Software Engineer
+Cyclades Corporation
+
+http://cyclades.com
 
 
 
