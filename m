@@ -1,12 +1,15 @@
-From: Mail Delivery Subsystem <MAILER-DAEMON-tX5FPm2aHKd1HQ1G7QfbudXUKCiYXWp1@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Thu, 3 Jul 2003 01:48:03 -0500
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Compaq Presario 2100 (2133AC)
+Date: Thu, 3 Jul 2003 12:53:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307030648.h636m3E7017232@trend1.tcs.tulane.edu>
+Message-ID: <20030703105319.GA832@enigma.daemon.sh>
+References: <3F0306B3.4070803@aes-pl.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status;
-	boundary="h636m3E7017232.1057214883/trend1.tcs.tulane.edu"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F0306B3.4070803-Pm7dQxmfFcgpAS55Wn97og@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,104 +21,60 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a MIME-encapsulated message
 
---h636m3E7017232.1057214883/trend1.tcs.tulane.edu
-
-The original message was received at Thu, 3 Jul 2003 01:48:02 -0500
-from localhost [127.0.0.1]
-
-   ----- The following addresses had permanent fatal errors -----
-<siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>
-    (reason: 550 5.1.1 <siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>... User unknown)
-
-   ----- Transcript of session follows -----
-... while talking to [129.81.224.6]:
->>> DATA
-<<< 550 5.1.1 <siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>... User unknown
-550 5.1.1 <siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>... User unknown
-<<< 503 5.0.0 Need RCPT (recipient)
-
---h636m3E7017232.1057214883/trend1.tcs.tulane.edu
-Content-Type: message/delivery-status
-
-Reporting-MTA: dns; trend1.tcs.tulane.edu
-Received-From-MTA: DNS; localhost
-Arrival-Date: Thu, 3 Jul 2003 01:48:02 -0500
-
-Final-Recipient: RFC822; siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org
-Action: failed
-Status: 5.1.1
-Remote-MTA: DNS; [129.81.224.6]
-Diagnostic-Code: SMTP; 550 5.1.1 <siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>... User unknown
-Last-Attempt-Date: Thu, 3 Jul 2003 01:48:02 -0500
-
---h636m3E7017232.1057214883/trend1.tcs.tulane.edu
-Content-Type: message/rfc822
-
-Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Received: from trend1.tcs.tulane.edu (localhost [127.0.0.1])
-	by trend1.tcs.tulane.edu (8.12.9/8.12.8) with ESMTP id h636m2E7017229
-	for <siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>; Thu, 3 Jul 2003 01:48:02 -0500
-Received: from BOTH ([218.48.76.57])
-	by trend1.tcs.tulane.edu (8.12.9/8.12.8) with ESMTP id h636hqQt015566
-	for <siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>; Thu, 3 Jul 2003 01:43:53 -0500
-Message-Id: <200307030643.h636hqQt015566-tX5FPm2aHKd1HQ1G7QfbudXUKCiYXWp1@public.gmane.org>
-From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <siekas-PYEadblV/CmCWrxS0lzTZfS0inHq18Tv@public.gmane.org>
-Subject: ****Tulane SPAM score: 11.50**** Re: Application
-Date: Thu, 3 Jul 2003 15:44:05 +0900
-Importance: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MSMail-Priority: Normal
-X-Priority: 3 (Normal)
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="CSmtpMsgPart123X456_000_03E6CA3D"
-Content-Type: multipart/mixed;
-	boundary="CSmtpMsgPart123X456_000_03E6CA3D"
-X-Spam-Status: Yes, hits=11.5 required=10.0
-	tests=NO_REAL_NAME,PORN_10,UPPERCASE_50_75,SUPERLONG_LINE,
-	      DCC_CHECK
-	version=2.31
-X-Spam-Flag: YES
-X-Spam-Level: ***********
-X-Spam-Checker-Version: SpamAssassin 2.31 (devel $Id: SpamAssassin.pm,v 1.94.2.2 2002/06/20 17:20:29 hughescr Exp $)
-
-This is a multipart message in MIME format
-
---CSmtpMsgPart123X456_000_03E6CA3D
+--cWoXeonUoKmBZSoM
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-------------------  Virus Warning Message (on trend1)
+hi andrew...
 
-Found virus WORM_SOBIG.E in file details.pif (in your_details.zip)
-The file your_details.zip is moved to /etc/iscan/virus/viri1gHdB.
+* Andrew Eager <andrew.eager-Pm7dQxmfFcgpAS55Wn97og@public.gmane.org> [2003-07-03 09:35 +0200]:
+>=20
+> I have just got a Compaq Presario 2100 (2133AC or DF975A) and found that=
+=20
+> the 2.4.21 kernel just hung when booting.
+> After a day of reading howtos and learning how to use the iasl compiler=
+=20
+> (& language... yuk), I have managed to get the machine to work by:
+> - Getting original DSL, debug & recompile
+> - Removing  the "PTLTD" from blacklist.c (not sure if this is right or no=
+t)
+> - Loading the AML code from initrd.
+>=20
+> I now have everything working **except** that running hwclock will cause=
+=20
+> the kernel to crash.
+> (I have to comment hwclock out of rc.sysinit in order for it to boot)
+>=20
+> Any ideas where to look?
+> Assuming I get this thing to work, any use providing the new dsl code to=
+=20
+> the list?
 
----------------------------------------------------------
+you might have a look at http://acpi.sourceforge.net/dsdt/view.php?id=3D76
+and compare your DSDTs and perhaps update that one or upload your own.
 
---CSmtpMsgPart123X456_000_03E6CA3D
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+cheers,
+ sebastian
+--=20
+::: sebastian henschel
+::: kodeaffe
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
-Please see the attached zip file for details.
---CSmtpMsgPart123X456_000_03E6CA3D
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-------------------  Virus Warning Message (on trend1)
+iD8DBQE/BAsfreHfL3pi+bQRAspRAJ9yLvf/cDBFP+wRSBSeSuOv8Xx6pwCdGxQ3
+ES7gL74IEgjyPGbgbgpIr2w=
+=m5Kk
+-----END PGP SIGNATURE-----
 
-your_details.zip is removed from here because it contains a virus.
-
----------------------------------------------------------
---CSmtpMsgPart123X456_000_03E6CA3D--
-
-
---h636m3E7017232.1057214883/trend1.tcs.tulane.edu--
-
+--cWoXeonUoKmBZSoM--
 
 
 -------------------------------------------------------
