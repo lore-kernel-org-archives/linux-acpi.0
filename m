@@ -1,14 +1,14 @@
-From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Via 694X based SMB boards (Apollo Pro133A)
-Date: Fri, 16 Jan 2004 19:33:43 -0500
+From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
+Subject: Re: Re: S4 reboots on resume
+Date: Fri, 16 Jan 2004 03:10:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Law11-OE56carcR4ZDg0000adb0@hotmail.com>
-References: <LAW11-OE34hRDT6Z3Ls000131c1@hotmail.com> <20040115141018.F72769@root.org> <Law11-OE71YaEv1Kq2E0000cace@hotmail.com> <20040115153450.J73140@root.org> <LAW11-OE12KYXlz705N000297c0@hotmail.com> <20040115162752.C73674@root.org>
+Message-ID: <20040116011015.GH9578@luna.mooo.com>
+References: <1073935225.2106.15.camel@localhost> <20040115122142.GC12963@elf.ucw.cz> <20040115130810.GA9348@message-id.gmane0305.slipkontur.de> <4006A217.5040801@basmevissen.nl> <20040115160955.GA16245@message-id.gmane0305.slipkontur.de> <20040115222552.GF9578@luna.mooo.com> <1074208585.10963.5.camel@laptop-linux>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1074208585.10963.5.camel-udXHSmD1qAy4CTf7w+cZoA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,18 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> Can't parse your question.  Without a P_BLK, you shouldn't be doing ACPI
-> throttling.  I assume you guessed at the P_BLK address or hardcoded it
-> from a datasheet?
+On Fri, Jan 16, 2004 at 12:16:25PM +1300, Nigel Cunningham wrote:
+> Yes, but the page pointed to compares the three implementations and how
+> they're activated (among other things).
+> 
 
-That's right (I did  mention that two emails back). I got the P_BLK from the
-datasheet, and added it to the DSDT; however, in order to use throttling I
-wrote a small program to write directly to the register since the DUTY_WIDTH
-is wrong.
+I know, and it does that very well, I've already seen that comparison.
+I mentioned that with response to the
+"... *blush* well, i could have figured this one out by myself. ..."
+comment.
+Like I said in my post, and I think most everyone on the swsusp list
+agrees we think that your version is currently the leading one. And
+while we are on it, it is the only one for 2.4 ;-)
+
+> Regards,
+> 
+> Nigel
+> 
+> On Fri, 2004-01-16 at 11:25, Micha Feigin wrote:
+> > > > See <http://swsusp.sourceforge.net/features.html>
+> > Actually that is a link to an implementation thats not currently in the
+> > kernel (Although I do think is better and I use it myself ;-)
+> 
+> -- 
+> My work on Software Suspend is graciously brought to you by
+> LinuxFund.org.
+
+
 
 
 -------------------------------------------------------
