@@ -1,15 +1,14 @@
-From: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
-Subject: Re: S3 hangs Sony Notebook
-Date: Wed, 12 Nov 2003 15:03:14 -0800
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [Fwd: [PATCH] Don't save state in ACPI on shutdown/reboot]
+Date: Thu, 13 Nov 2003 00:07:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1068678194.4150.72.camel@localhost>
-References: <1068584857.1419.11.camel@garrett.darkzone>
-	 <3FB2A7E6.60106@gmx.at>  <1068675309.8725.5.camel@garrett.darkzone>
+Message-ID: <20031112230756.GD32464@poupinou.org>
+References: <1068567824.24982.21.camel@dhcppc4> <20031111170035.GD29175@poupinou.org> <20031112220559.GR31026@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1068675309.8725.5.camel-NZYYv2kObinUTSZfUHD3qA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031112220559.GR31026-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,32 +17,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: emme-K4UpdBpcDjFP6xvG9yNuTA@public.gmane.org
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ak-h9bWGtP8wOw@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2003-11-12 at 14:15, Martin Emrich wrote:
-> Am Mi, den 12.11.2003 schrieb Christoph Plattner um 22:36:
-> > I have similar problem on my FSC AmiloD 8820.
-> > 
-> > But by the way, before you take off the battery and unplug the
-> > PSU, try to switch of the notebook by pressing the power button
-> > for more than 5 seconds (perhaps even 10sec).
-> > As on the newer PCs, the button is a "soft button" and in most
-> > cases you can switchoff the system with holding down for such
-> > a time (hardware curcuit switches off, if system hangs !).
+On Wed, Nov 12, 2003 at 10:05:59PM +0000, Dave Jones wrote:
+> On Tue, Nov 11, 2003 at 06:00:35PM +0100, Ducrot Bruno wrote:
 > 
-> I know, but the notebook is so badly locked up, that the button does
-> nothing. Removing all power sources is the only way.
+>  > > The ACPI code in 2.4 currently saves the machine state as for a 
+>  > > suspend when doing an reboot or shutdown. This fails on x86-64
+>  > > on some boxes.
+>  > > 
+>  > > Don't save/restore state in ACPI when entering S5.
+>  > 
+>  > That break also some i386 boxes.  That why I submitted another patch (do
+>  > I have to post it again?)
+> 
+> Do you mean Andi's patch breaks i386 boxes, or this bug also appears
+> on i386 ? The former seems unlikely from the look of Andi's patch.
+> 
 
-I have the same problem on my Dell X200.  Must remove all power
-sources.  
-> I could go back to APM, but that would be to easy ... *g*
+I wanted to point that some i386 boxes are broken as well, and
+then a patch is needed.  And yes, when I read again my email, that
+a bit confusing.
 
-heck, if it works...
+The patch I send actually implement the exact same
+behaviour of 2.6 (minus S5 via the proc file, disabled on 2.6).
 
-	Scott
+Also, it is much likely a design fix.  'power off' shall not
+be dependant of CONFIG_ACPI_SLEEP (even though than one is always
+yes for 2.4 if CONFIG_ACPI, at least on i386).
 
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
