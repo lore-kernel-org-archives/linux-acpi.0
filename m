@@ -1,13 +1,14 @@
-From: Henry Umansky <hmust2+-fYq5UfK3d1k@public.gmane.org>
-Subject: ACPI state 4
-Date: Mon, 02 Feb 2004 14:43:21 -0500
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: ACPI state 4
+Date: Mon, 2 Feb 2004 22:02:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <80712959.1075733001@HELPDESK-PC13.fdl.pitt.edu>
+Message-ID: <20040202210228.GA1779@message-id.gmane0305.slipkontur.de>
+References: <80712959.1075733001@HELPDESK-PC13.fdl.pitt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <80712959.1075733001-GZumfx3jmlwhxhjGrziYQKfZQGhMgmcGN7jzCyCsa88@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,35 +20,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I just compiled Linux kernel 2.6.1 with ACPI support and I wanted to test 
-out the different sleep states.  So I ran the command:
+On Mon, Feb 02, 2004 at 02:43:21PM -0500, Henry Umansky wrote:
 
-$echo 4 > /proc/acpi/sleep
+> And it looks like ACPI attempts to read the state from the swap partition 
+> (/dev/hda2) but then it reboots all of a sudden.  This happens everytime I 
 
-And it started freeing up memory and everything looked like it worked. 
-Then my computer shut off.  When I pressed the power button, it started up 
-and I started my linux kernel with the following GRUB commands:
+try suspending a minimal system (no sound driver, no USB driver, no X). If this
+works, add one service a time and try out, which one behaves badly.
+I have to stop hotplug and remove USB modules to suspend my machines, probably
+you need something similar.
 
-root (hd0,0)
-kernel /vmlinuz resume=/dev/hda2
+> try to recover.  When I try to boot normally, most of my files are corrupt. 
+> I'm guessing that when I entered the S4 sleep state, everything in the swap 
+> partition didn't sync with my hard drive, because a lot of my text files 
+> are corrupt and can't be read anymore.  I apologize if I didn't include 
 
-And it looks like ACPI attempts to read the state from the swap partition 
-(/dev/hda2) but then it reboots all of a sudden.  This happens everytime I 
-try to recover.  When I try to boot normally, most of my files are corrupt. 
-I'm guessing that when I entered the S4 sleep state, everything in the swap 
-partition didn't sync with my hard drive, because a lot of my text files 
-are corrupt and can't be read anymore.  I apologize if I didn't include 
-enough information, because I'm new to this mailing list and this is the 
-first "real" time I've messed with ACPI.  Let me know if you need anymore 
-information.
+Don't know about your text files, but i always do a
+sync; blockdev --flushbufs /dev/hda
+prior to suspending.
+-- 
+Stefan Seyfried
 
-Thank you,
-Henry
-
-PS-this might help, but when I did a cat /proc/acpi/sleep is showed S0, S1, 
-S2, S3, S4bios, and S5.  Maybe also S6 but I can't remember and since I 
-don't have a stable running system, I can't really check.
 
 
 -------------------------------------------------------
