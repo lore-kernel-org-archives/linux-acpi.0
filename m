@@ -1,53 +1,50 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: kernel 2.6.10 , uhci-hcd problem after ACPI
- S3 suspend.
-Date: Fri, 31 Dec 2004 11:32:44 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0412311131420.26830-100000@netrider.rowland.org>
-References: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: first shoot for smartbattery (was Re: Re: i2c-acpi-ec.c)
+Date: Fri, 31 Dec 2004 19:16:28 +0100
+Message-ID: <20041231181628.GL19199@poupinou.org>
+References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
-In-Reply-To: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
-Sender: linux-usb-devel-admin@lists.sourceforge.net
-Errors-To: linux-usb-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
-To: Paul Ionescu <i_p_a_u_l@yahoo.com>
-Cc: linux-usb-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041231150724.GK19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>, Mathias Weyland <mweyland-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 29 Dec 2004, Paul Ionescu wrote:
-
-> --- Alan Stern <stern@rowland.harvard.edu> wrote:
->  
-> > Nothing relevant has changed in the uhci_hcd driver,
-> > so far as I know.  
-> > I'd be inclined to guess that ACPI is the culprit. 
-> > Have you tried booting 
-> > with "acpi=off", in both 2.6.9 and 2.6.10?
+On Fri, Dec 31, 2004 at 04:07:24PM +0100, Bruno Ducrot wrote:
 > 
-> Hello Alan,
-> 
-> If I boot with "acpi=off" then I cannot use ACPI S3 to
-> suspend and resume, and my problem appears after an
-> ACPI S3 suspend/resume cycle.
+> I'm polishing i2c-acpi-ec right now.  Stay tunned.
 
-You could try something a little weaker, like "acpi=noirq".
+It's not yet really polished as I wanted, but well I don't have
+time to finish this due to, huh, ..., private stuff this night.
 
-Alan Stern
+its should give people rough idea what will happens.
 
+You can find this at http://www.poupinou.org/acpi/smartbatt/
+Take one of the smartbatt.tar.{gz,bz2} and follow the README after
+unpacking it, and hopefully a ./smartbatt will give you correct battery
+informations (who knows).
+
+happy new year!
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-_______________________________________________
-linux-usb-devel@lists.sourceforge.net
-To unsubscribe, use the last form field at:
-https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
