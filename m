@@ -1,14 +1,16 @@
-From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
-Subject: Re: Compaq evo n800v
-Date: Sat, 8 Mar 2003 20:59:45 +0100
+From: "Holger W." <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Subject: RE: problems with PRT and PCI routing table
+Date: Sat, 8 Mar 2003 23:47:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030308205945.A17123@fermat.unipv.it>
-References: <1047125223.5077.28.camel@localhost.localdomain>
+Message-ID: <000201c2e5c4$b6120460$0200a8c0@brutzler>
+References: <000501c2e50c$d43b2790$0200a8c0@brutzler>
+Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1047125223.5077.28.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>; from anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org on Sat, Mar 08, 2003 at 01:07:03PM +0100
+In-Reply-To: <000501c2e50c$d43b2790$0200a8c0-IGm5bqYn3xw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +19,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Anders,
-I have a Compaq EVO N800v too.
+I have to correct myself again. Let me see if I understood everything ...
 
-> 2.4.20 kernel +
-> patch-2.4.21-pre4.gz +
-> acpi-20030218-2.4.21-pre4.diff.gz +
-> linux-2.4.18-acpi-20020709-dsdt.patch +
-> custom dsdt
+First of all my PCI interrupt links are detected and I get messages like "ACPI: PCI Interrupt
+Link [ALKA] (IRQs 20, disabled)". "Disabled" means in this special case that we have to
+choose/enable an IRQ later.
 
-I am using 2.4.20, no 21-pre patch.
+Now "acpi_pci_irq_init" is called and we have the following calling-structure ...
 
-> 
-> AC- and battery-status works just fine, as well as the Fn-combinations
-> for screen-brightness. 
+acpi_irq_init {
+  -> acpi_pci_link_check -> acpi_pci_link_set
+  -> mp_parse_prt
+  -> iosapic_parse_prt
+  -> acpi_pci_irq_enable
+}
 
-Same to me.
+"acpi_pci_link_check" will check all my devices for valid IRQs. In my special case it tries to
+find an IRQ for my interrupt link ALKA. Because we don't have more than one IRQ (20) for ALKA,
+we don't have a big choice. The attempt to set the IRQ for the link is done by
+"acpi_pci_link_set".
 
-> But no matter how low the CPU-load, the clock frequency is always at
-> max.
+Now we're here:
 
-Same, is that different under Windows?
+acpi_pci_link_set {
+  -> acpi_set_current_resources
+  -> acpi_bus_get_status
+  -> acpi_pci_link_get_current
+}
 
-> Also, the fan(s?) are always on making noise (at relatively low
-> speed but still too high compared to under Win-XPP).  
+Everything works fine at this point up to "acpi_pci_link_get_current". And now we're one more
+step further ...
 
-I am not experiencing that. I can see 4 fans in /proc/acpi/fan and their status
-depends on the (three) thermal zones.
-I guess you did something wrong with your custom dsdt.
+acpi_pci_link_get_current {
+  -> acpi_bus_get_status
+  -> acpi_walk_resources -> acpi_pci_link_check_current
+}
 
-FYI:
+And after "acpi_walk_resources" ist the point where we fail. The condition "if (!irq)" is true
+because "acpi_pci_link_get_current" returns with the error "pci_link-0262 [21]
+acpi_pci_link_get_curr: No IRQ resource found".
+That is we have an error in "acpi_pci_link_set" and we will return with this code fragment to
+"acpi_pci_link_check":
 
-ls /proc/acpi/fan
+result = acpi_pci_link_get_current(link);
+if (result) {
+	return_VALUE(result);
+}
 
-C1D9  C1DA  C1DB  C1DC
+Because we failed in "acpi_pci_link_get_current" the irq variable is NULL and we get a message
+like "ACPI: PCI Interrupt Link [ALKA] enabled at IRQ 0".
 
-ls /proc/acpi/thermal_zone
+Now we're back in "acpi_pci_irq_init". Another problem could be located in "mp_parse_prt":
 
-TZ1  TZ2  TZ3
+/* We're only interested in static (non-link) entries. */
+if (entry->link.handle)
+	continue;
 
+I don't understand why only non-link entries are being used !
 
+However, all side effects I mentioned in the last posting will occur due to these errors ...
+I hope I now analyzed the code properly. Would be nice if some developers could comment :-)
 
-Daniele
+Thanks for your attention !!!
+
+HOLGER W.
+
 
 
 -------------------------------------------------------
