@@ -1,15 +1,13 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: Is this safe?  Re: Dell DSDT corrected
-Date: 30 Jan 2003 10:45:50 -0500
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI DSDT language
+Date: Thu, 30 Jan 2003 08:32:38 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1043941550.2039.6.camel@sirius.strandboge.cxm>
-References: <200301281120.15917.jan.slezak@centrum.cz>
-	 <20030129180444.GB10601@homerelay.wiesner-net.de>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BA6D@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030129180444.GB10601-aCYJ90g6FbN3mO1V46hDx7oZL2q1Rlic@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,67 +16,161 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Jan Slezak' <jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2003-01-29 at 13:04, Markus Wiesner wrote:
-> Jan Slezak schrieb:
-> > I modified my Dell Latitude C640 DSDT table and values in /proc/acpi what were 
-> > previously constantly zero (or something equivalent) where brought to life. 
-> > This is:
-> > 
-> > - temperature in thermal zone
-> > - processor frequency in performance in processor (processor consumption is 
-> > still zero, but I belive it is not exposed to ACPI)
-> > - all information in battery (except presence/absence what was already working 
-> > before)
-> > 
-> > The DSDT patch and original DSDT are enclosed I hope it helps someone.
-> 
-> Yes, it does! The patch works without modification for my Inspiron 8200,
-> too. Great work!
-> 
 
-Well, on my i8200 I had to play with it some.  First I got the dsdt from
-/proc/acpi/dsdt:
+The problem is not where PGET gets created.  It's OK to create it in a
+method and return it -- a copy will be created.
 
-iasl -d /proc/acpi/dsdt
+The problem is the invocation of the SX33() method.  It has to be
+SX33(RefOf(PGET), 2).  I believe that using Arg0 within SX33 will cause =
+an
+automatic dereference of the argument.
 
-Then I applied the patch from Jan Slezak.
-
-Then I did:
-
-iasl -tc ./dsdt.dsl
-
-and had errors.  A couple were warning about not returning a value, so I
-just had those return (0x0).  What was troubling was I had errors about
-a Field accessing outside of the region (don't remember off hand the
-exact wording, so I changed:
-
-OperationRegion (FDIS, PCI_Config, 0xF2, 0x02)
-
-to:
-OperationRegion (FDIS, PCI_Config, 0xF2, 0x04)
-
-I did this based on info found at:
-http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt
-
-Everything compiled without errors, and I am trying it out now, but is
-this really safe?  I am the first to admit that I don't know what I am
-doing with this code.  I don't want to break anything, but desperately
-want acpi to work.
-
-Jamie
-
-PS-- Sorry you got this twice Markus-- didn't reply to list the first
-time.
-
--- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
+Bob
 
 
+-----Original Message-----
+From: Jan Slezak [mailto:jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org]=20
+Sent: Thursday, January 30, 2003 1:49 AM
+To: Moore, Robert
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Subject: Re: [ACPI] ACPI DSDT language
+
+That is what I want to know! I suppose such operator exists but I =
+didn't
+find it in my DSDT and as I wrote earlier I didn't want to read spec. I
+tried DerefOf(), but ... you know... :). So I modified my DSDT in a
+different way. But anyway thanks for information.
+
+For me the result is ... my original DSDT is buggy. Am I right?
+
+
+
+And what about the case when the buffer is created in the root, for
+instance:
+
+     Name (PGET, Buffer (8) {})
+
+     Method (SX33, 2, NotSerialized)
+     {
+         If (LLess (Arg1, SizeOf (Arg0)))
+         {
+             CreateByteField (Arg0, Arg1, SX20)
+             Store (Something, SX20)
+         }
+     }
+=20
+     Method (PNPG, 1, NotSerialized)
+     {
+         .
+         .
+         SX33 (PGET, 2)
+         Return (PGET)
+     }
+
+Is it the same situation?
+
+
+
+Jan
+
+
+"Moore, Robert" p=ED=B9e:
+>=20
+> This is the purpose of the "RefOf()" operator in ASL.
+>=20
+> >From the ACPI spec:
+>=20
+> "The primary purpose of RefOf() is to allow an object to be passed to =
+a
+> method as an argument without the object being evaluated at the time =
+the
+> method was loaded."
+>=20
+> Bob
+>=20
+> -----Original Message-----
+> From: Jan Slezak [mailto:jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org]
+> Sent: Tuesday, January 28, 2003 2:47 AM
+> To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+> Subject: [ACPI] ACPI DSDT language
+>=20
+> Hi,
+>=20
+> I would like to know what way should be buffers handled when are =
+passed as
+> arguments to
+> ACPI methods. I don't have a time to read the ACPI specs so I hope =
+someone
+> knows.
+>=20
+> I find out by tracing my /_TZ/TMP method that they are passed by =
+value so
+> following
+> construction (part of my original DSDT slightly modified) doesn't =
+work
+(PNPG
+> called)
+> because PGET is not modified:
+>=20
+>     Method (SX33, 2, NotSerialized)
+>     {
+>         If (LLess (Arg1, SizeOf (Arg0)))
+>         {
+>             CreateByteField (Arg0, Arg1, SX20)
+>             Store (Something, SX20)
+>         }
+>     }
+>=20
+>     Method (PNPG, 1, NotSerialized)
+>     {
+>         .
+>         .
+>         Name (PGET, Buffer (8) {})
+>         SX33 (PGET, 2)
+>         Return (PGET)
+>     }
+>=20
+> I need to know it to decide wheter it is my BIOS or the linux ACPI
+> implementation what is
+> buggy and to decide whether to send my DSDT patch to my notebook
+> manufacturer (DELL).
+>=20
+> Thanks,
+>   Jan
+>=20
+> P.S.: If it is right behaviour and the BIOS is buggy I don't =
+understand
+why
+> the ACPI
+> (actually ACPI battery info) is working under WinXP, where there is =
+no
+DSDT
+> override and
+> no buggy feature workaround in the biosinfo.inf for my DELL.
+>=20
+> -------------------------------------------------------
+> This SF.NET email is sponsored by:
+> SourceForge Enterprise Edition + IBM + LinuxWorld =3D Something 2 =
+See!
+> http://www.vasoftware.com
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
+> -------------------------------------------------------
+> This SF.NET email is sponsored by:
+> SourceForge Enterprise Edition + IBM + LinuxWorld =3D Something 2 =
+See!
+> http://www.vasoftware.com
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
