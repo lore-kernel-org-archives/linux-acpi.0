@@ -1,14 +1,16 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Lid switch not waking machine
-Date: Mon, 7 Jul 2003 14:12:44 +0100
+From: "James H. Cloos Jr." <cloos-GRsvFm/Gh/pBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: ACPI Battery Problems
+Date: 07 Jul 2003 15:40:34 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030707131244.GA31883@srcf.ucam.org>
-References: <20030707011638.GA19894@srcf.ucam.org> <20030707022614.GA21195@srcf.ucam.org> <007301c34481$29864080$3746028e@bio.dfo.ca>
+Message-ID: <m3adbq3z2l.fsf@lugabout.jhcloos.org>
+References: <20030704195241.GC7074@roadrunner.ichilton.net>
+	<03f101c34268$501e4960$3746028e@bio.dfo.ca>
+	<m3znjrmj1e.fsf@lugabout.jhcloos.org>
+	<20030707123833.GB7796@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <007301c34481$29864080$3746028e-dP0OE4Ef7fWw5LPnMra/2Q@public.gmane.org>
+In-Reply-To: <20030707123833.GB7796-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,64 +19,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>, ACPI Development - Sourceforge <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 07, 2003 at 09:13:23AM -0300, Derek Broughton wrote:
-> From: "Matthew Garrett" <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-> > The plot thickens. If I suspend with the lid switch and then release it,
-> > I have to wake the system with the power button. The system resumes, but
-> 
-> This is normal.  Every laptop I've used (even in Windows) expects to be woken
-> from sleep states with the power button - if your laptop had a dedicated sleep
-> button, you might use that instead, but the lid switch is never, ime, used for
-> wakeup.
+--=-=-=
 
-Under Windows, opening the lid results in the system waking, so it seems 
-that the hardware is capable of it. It'd be nice if the same were 
-possible under Linux.
+>>>>> "Ducrot" == Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
 
-> > no more ACPI events are generated. If I suspend with the sleep button, I
-> 
-> This, however, seems wrong.  What you should get when you wake with the power
-> button is a power button event immediately followed by a lid switch event - and
-> then any other events.
+Ducrot> Most of ASL I saw will more likely use the _OSI() method for
+Ducrot> Windows XP.  I'm also wondering if that will be OK to
+Ducrot> implement it (but with a configure option or perhaps better a
+Ducrot> boot option).
 
-Before suspending (I've stopped acpid so I can do this by hand):
+Yes, I did miss that.  Dell does this:
 
-mjg59@asparagine:/tmp$ sudo cat /proc/acpi/event
-button/lid LID 00000080 00000001
-button/lid LID 00000080 00000002
-(once for down, once for up)
-button/sleep SBTN 00000080 00000003
-(pressing the sleep button) 
 
-At this point, I do /etc/acpi/default.sh button SBTN and the machine
-suspends. I can press the power button or (for some reason) the Fn key
-and the machine resumes - my cat process has died with an Input/output
-error. ACPI carries on working, as shown below.
+--=-=-=
+Content-Type: text/x-asl
+Content-Disposition: inline
 
-mjg59@asparagine:/tmp$ sudo cat /proc/acpi/event
-button/lid LID 00000080 00000003
-button/lid LID 00000080 00000004
-(lid button still works)
-button/sleep SBTN 00000080 00000004
-(sleep button still works)
+Method (OSID, 0, NotSerialized)
+    {
+        If (LEqual (MIS3, 0x00))
+        {
+            Store (0x04, MIS3)
+            If (CondRefOf (\_OSI, Local0))
+            {
+                If (\_OSI (WXP))
+                {
+                    Store (0x40, MIS3)
+                }
+            }
+            Else
+            {
+                If (STRE (\_OS, W98S))
+                {
+                    Store (0x08, MIS3)
+                }
 
-Suspend again - this time I press the lid switch while the system is 
-suspended. Power button and Fn key still wake the system, but from now 
-on no ACPI events are generated. I can still do things like control the 
-CPU throttling and fan state by hand. Removing the ac adapter leaves its 
-state as "on-line". cat /proc/acpi/button/lid/LID/state shows "open" 
-even when it's not. It's as if the hardware is waiting for something to 
-deal with the lid up event and not doing anything else until that's 
-happened.
+                If (STRE (\_OS, NT5S))
+                {
+                    Store (0x10, MIS3)
+                }
 
-I've stuck my DSDT at http://www.codon.org.uk/~mjg59/240x.dsdt if that's 
-any use.
+                If (STRE (\_OS, WINM))
+                {
+                    Store (0x20, MIS3)
+                }
+            }
+        }
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+        Return (MIS3)
+    }
+
+--=-=-=
+
+
+So I was even wrong about the default.  0x4 is used for anything not
+98, nt5, me or xp.
+
+In any case, booting w/ acpi_os_name='Windows 2001' still allows the
+battery etc stuff to work, so it is obviously indeed the recent
+patches that fixed handling less-than-ideal dsdts.
+
+-JimC
+
+--=-=-=--
+
 
 
 -------------------------------------------------------
