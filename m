@@ -1,12 +1,14 @@
-From: Alfredo <alfredo.mapelli-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
-Subject: ACPI only find Power Button
-Date: Wed, 04 Feb 2004 00:08:25 -0400
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: mutexes and preemption
+Date: Wed, 3 Mar 2004 15:05:11 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40207039.808@terra.com.br>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB713@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,24 +17,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sebastian Seifert <lathander-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
-I'm using suse 9.0 with kernel 2.4.24, When I compiled the new kernel I 
-patched it with ACPI from sourceforge. The modules load perfect but it 
-only finds the power button, no thermal, fan or other ACPI is found.
-I have an ASUS MB (P4P800) with INTEL CPU (2.4 HT)
+>=20
+> some vital information first: I'm using kernel 2.6.3-mm4 with=20
+> DSDT in ramdisk
+> patch applied, preemption is enabled, SMP disabled.=20
+>
 
-What should I do?
-dmesg output only says
+What about disable preemption?
 
-PCI: Using ACPI for IRQ routing
-ACPI: Power Button (FF) [PWRF]
-ACPI: Processor [CPU1] (suppoerts C1)
-ACPI: Processor [CPU2] (suppoerts C1)
-
-thaks
+--Luming
 
 
 -------------------------------------------------------
