@@ -1,17 +1,15 @@
 From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [ANNOUNCE] [PATCH] Node Hotplug Support
-Date: Thu, 13 May 2004 13:51:22 +0900
+Subject: Re: [Lhns-devel] Re: [ANNOUNCE] [PATCH] Node Hotplug Support
+Date: Thu, 13 May 2004 15:35:10 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040513135122.11f13e42.tokunaga.keiich@jp.fujitsu.com>
-References: <1TfLX-4M4-9@gated-at.bofh.it>
- <m34qqshx31.fsf@averell.firstfloor.org>
- <20040510111722.29524459.tokunaga.keiich@jp.fujitsu.com>
- <20040510195439.GA99051@colin2.muc.de>
+Message-ID: <20040513153510.77f2d582.tokunaga.keiich@jp.fujitsu.com>
+References: <20040510202036.64794519.tokunaga.keiich@jp.fujitsu.com>
+ <ORSMSX407ZDgC81Tbdk000000aa@orsmsx407.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20040510195439.GA99051-S3Tp50WAuvHQ0RYIrOleWQ@public.gmane.org>
+In-reply-to: <ORSMSX407ZDgC81Tbdk000000aa-sBd4vmA9Se5zLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,72 +18,92 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-h9bWGtP8wOw@public.gmane.org>
-Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-hotplug-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 10 May 2004 21:54:39 +0200
-Andi Kleen <ak-h9bWGtP8wOw@public.gmane.org> wrote:
+On Tue, 11 May 2004 11:51:53 -0700
+Rajesh <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-> On Mon, May 10, 2004 at 11:17:22AM +0900, Keiichiro Tokunaga wrote:
-> > As you mentioned, there can be many more things.  However,
-> > the examples you showed should be handled by individual hotplug.
-> > For instance, the processes bound to a certain CPU should be
-> > handled by CPU hotplug when node hotplug invokes CPU hotplug.
-> > Also, the device drivers bound to slots should be detached by
-> > IO hotplug.  Node hotplug is supposed to take care of a container
-> > device and just invoke individual hotplugs for other devices.
-> > Node hotplug doesn't break any policy of each hotplug (CPU,
-> > memory, IO, etc).
+> On Mon, May 10, 2004 at 04:20:36AM -0700, Keiichiro Tokunaga wrote: 
+> >
+> >On Mon, 10 May 2004 11:12:40 +0900 (JST)
+> >Takayoshi Kochi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org> wrote:
+> >
+> >> From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+> >> 
+> >> I've not looking closely into the code, but why do you use "PNP0A05"
+> >> for container device?
+> >> "PNP0A05" is defined as "Generic ISA devie" in the ACPI spec.
+> >> 
+> >> I think "module device (ACPI0004)"  sounds more suitable for the
+> >
+> >Yes.  ACPI0004 could be used as well.  Actually, PNP0A05 is
 > 
-> To coordinate all them you need user space infrastructure anyways
-> that knows about all the elements of a node.  I don't see why you want a 
-> kernel level container too; userspace can do this job already
-> and would be much more flexible.
+> I think the code should work regardless of whether the ACPI firmware
+> issues the Notify() on the ACPI0004 or PNP0A05 container object.
+> That is, it should register for Notify() on both container objects.
 
-Are you saying that LHNS should handle only container device,
-and CPU, memory, IO devices on the container device should be
-handled by each hotplug?  Also, each hotplug and LHNS should
-be invoked from user space individually? For instance:
-
-To hot-remove a container device, an operator:
-  1. Invokes memory hotplug (memory will be gone)
-  2. Invokes CPU hotplug (CPUs will be gone)
-  3. Invokes IO hotplug (IO devices will be gone)
-  4. Invokes node(container) hotplug (Conainer devices will be gone)
-
-Is that what you're saying here?
+That makes more sense.
  
-> > > This has the advantage that if there is some reason to 
-> > > add CPUs without memory (or memory without CPUs or PCI slots 
-> > > without anything) it will just work too. It is not clear
-> > > that your "lump everything mechanism into one" can handle all
-> > > that. Most likely you would need to add lots of special
-> > > cases to it to handle all this. Separate mechanisms can
-> > > do this cleaner.
-> > 
-> > Yes. The cases (combination of hardware) would increase.
-> > However, I don't think there would be that many today.
+> >> Also, assuming devices that have _PXM are nodes sounds a bit too
 > 
-> I am mainly thinking about virtualization here for which hotplug
-> of everything makes definitely sense. But the requirements could
-> be very different from what a big iron machine wants.
+> In addition, we should not assume that proximity (ACPI _PXM) implies 
+> a unit of hot-plug. ACPI already requires that all hot-pluggable 
+> objects must have the _EJ0 method. We can use the scope of _EJ0 to 
+> determine what is ejectable.
 
-I'm afraid but I don't get the point here.  Could you explain that
-again?
- 
-> > Are you saying here that platform-independent and dependent
-> > codes should be separated so that the independent part could
-> > be implemented by any other platform (firmware) in their own
-> > style?  If so, I agree and some discussion are necessary :)
-> 
-> Yep.
-> 
-> -Andi
+This is right.  Referring to _PXM doesn't work...
 
-Rajesh Shah coordinated me to more apropreate place to discuss
-this topic since LHNS is focusing on extenting ACPI based hotplug.
-So I'm moving this discussion to acpi-devel list and away from LKML.
+> >> Device(\_SB) {
+> >>   Processor(CPU0...) {
+> >>      Name(_PXM, 0)
+> >>   }
+> >>   Processor(CPU1...) {
+> >>      Name(_PXM, 1)
+> >>   }
+> >> 
+> >>   Device(PCI0) {
+> >>      Name(_PXM, 0)
+> >>   }
+> >>   Device(PCI1) {
+> >>      Name(_PXM,1)
+> >>   }
+> >> }
+> >> 
+> >> (I don't know if such an implementation exists, but from the spec,
+> >> it is possible)
+> >> In this case, OS has to group devices by same number.
+> >> Please don't assume specific ACPI AML implementatin as a generic
+> >> rule.
+> >
+> >If ACPI ASL is written that way, LHNS cannot do anything since
+> >there is no container device (this is not ACPI term here) in the
+> >system.  LHNS's target is a container *device* (again, not ACPI
+> >term:) and hotplugs it physically (of course, the device needs to
+> 
+> To clarify: the scope of LHNS may be restricted to supporting ACPI
+> based hot-plug of resources within an ACPI container only. However,
+> we are also working on supporting ACPI Notify() issued directly to
+> the processor and memory device objects, so this will also be
+> supported.
+
+That'll be nice :)
+
+> The overall ACPI hot-plug solution must not require the
+> user (administrator, kernel builder) to know the details of whether
+> the ACPI firmware issues a Notify() directly on the processor/memory
+> object or on a container object that includes processor and/or
+> memory objects.
+> Note: I am moving this discussion to acpi-devel list and away from
+> lkml. We are really discussing extending the current ACPI hot-plug
+> code to trigger CPU and memory hot-plug (similar to ACPI glue code
+> that helps PCI hot-plug). LHNS is not trying to define
+> the correct way to write the kernel code that actually implements CPU 
+> or memory hot-plug. Obviously, we will need to make sure that hot-plug
+> triggered by ACPI plays well with hot-plug triggered by non-ACPI means.
+
+Thank you for coordinating.  
 
 Thanks,
 Kei
