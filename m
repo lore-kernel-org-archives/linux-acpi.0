@@ -1,32 +1,57 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [ACPI] acpi problem with nforce motherboards and ethernet
-Date: Sat, 7 Feb 2004 03:50:18 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040207035018.33ce01dc.ak@suse.de>
-References: <402298C7.5050405@wanadoo.es>
-	<40229D2C.20701@blue-labs.org>
-	<4022B55B.1090309@wanadoo.es>
-	<20040205154059.6649dd74.akpm@osdl.org>
-	<Pine.LNX.4.55.0402070021210.12260@jurand.ds.pg.gda.pl>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: acpi=force safe?
+Date: Sat, 7 Feb 2004 04:31:30 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040207033130.GP13262@poupinou.org>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB685@PDSMSX403.ccr.corp.intel.com> <16644.65.164.3.3.1076087775.squirrel@mail.diamondcpu.com> <20040206211334.GH13262@poupinou.org> <40747.65.164.3.3.1076104152.squirrel@mail.diamondcpu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.55.0402070021210.12260@jurand.ds.pg.gda.pl>
-To: "Maciej W. Rozycki" <macro@ds2.pg.gda.pl>
-Cc: akpm@osdl.org, ktech@wanadoo.es, david+challenge-response@blue-labs.org, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, a.verweij@student.tudelft.nl
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <40747.65.164.3.3.1076104152.squirrel-gjzqEhKAtSBis2HOlLKa7kEOCMrvLtNR@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nick Bartos <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 7 Feb 2004 00:33:04 +0100 (CET)
-"Maciej W. Rozycki" <macro@ds2.pg.gda.pl> wrote:
+On Fri, Feb 06, 2004 at 03:49:12PM -0600, Nick Bartos wrote:
+> >
+> > Why not let user decide at boot time?  That easy to do so with syslinux
+> > for example.
+> 
+> I do use syslinux, but these boxes are supposed to be shrink rapped
+> solutions for customers where the user really just uses the web interface
+> (and some of the boxes are headless), so having the user modify boot parms
+> really isn't possible.  Also, the entire distro is based on a single
+> config and upgrading overrites the bootloader config, so setting user
+> defined defaults really wouldn't work.
+> 
+> As long as there aren't any changes in the linux acpi implementation that
+> make a board stop working on an upgrade (obviously it will be tested on
+> the inital install), then it should be fine.  How probable is it for that
+> to happen?  If the hardware is unchanged I would hope that updating the
+> kernel (with acpi=force) wouldn't prevent the system from booting.
+> 
+
+Well, you just have to implement a quality policy then, but I guess
+you already have one.
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
->  That's not the right fix.  There's a bug in Linux's ACPI IRQ setup as
-> I've discovered by comparing the code to the spec.  Here's a patch I sent
-> in December both to the LKML and the ACPI maintainer.  The feedback from
-> the list was positive, but the maintainer didn't bother to comment.
-
-Thanks. I added the patch to the x86-64 sources and it indeed seems to fix
-the Nforce3.
-
--Andi
+-------------------------------------------------------
+The SF.Net email is sponsored by EclipseCon 2004
+Premiere Conference on Open Tools Development and Integration
+See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+http://www.eclipsecon.org/osdn
