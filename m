@@ -1,14 +1,12 @@
-From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: ACPI source patches updated (20021101)
-Date: Sun, 3 Nov 2002 11:10:26 +0100
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: [PATCH] ACPI 2.5.45 relies on Software Suspend for S4
+Date: Sun, 3 Nov 2002 17:30:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021103111026.3d4fc731.hanno@gmx.de>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A49E@orsmsx119.jf.intel.com>
+Message-ID: <20021103173035.A2570@brodo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A49E-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,47 +15,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The Problem I reported in the mail below is still in the current version.
-As I already said, it worked with previous versions. Can anyone have a look at it? How can I help you solve the problem.
+... and so only claim S4 support when it's available (NB: software suspend
+doesn't work at the moment. But will hopefully work again soon)
 
-cu,
+	Dominik
 
-Hanno
-
----------------------------
-
-Begin forwarded message:
-
-Date: Sun, 27 Oct 2002 10:15:23 +0100
-From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [ACPI] Computer with SIS-Chipset doesn't work - worked before
-
-
-I have a computer with a SIS-Chipset that worked with previous versions of the ACPI-Patch, but doesn't work with the latest one.
-(It is the second system i found recently that doesn't work and worked with older versions).
-
-dmesg and lspci output are at
-www.int21.de/dmesg.txt
-www.int21.de/lspci.txt
-
-The important part is probably:
-ACPI: Subsystem revision 20021022
-PCI: PCI BIOS revision 2.10 entry at 0xfdb01, last bus=1
-PCI: Using configuration type 1
-tbxfroot-0305 [04] Acpi_find_root_pointer: RSDP structure not found
-ACPI: System description tables not found
- tbxface-0066: *** Error: Acpi_load_tables: Could not get RSDP, AE_NOT_FOUND
- tbxface-0116: *** Error: Acpi_load_tables: Could not load tables: AE_NOT_FOUND
-ACPI: Unable to load the System Description Tables
-PCI: Probing PCI hardware
-PCI: ACPI tables contain no PCI IRQ routing entries
-PCI: Probing PCI hardware (bus 00)
-PCI: Using IRQ router SIS [1039/0008] at 00:01.0
+--- linux/drivers/acpi/sleep.c.original	Sun Nov  3 17:26:04 2002
++++ linux/drivers/acpi/sleep.c	Sun Nov  3 17:28:20 2002
+@@ -227,7 +227,7 @@
+ 	acpi_status status;
+ 
+ 	/* get out if state is invalid */
+-	if (state < ACPI_STATE_S1 || state > ACPI_STATE_S5)
++	if (state < ACPI_STATE_S1 || state > ACPI_STATE_S5 || (state == ACPI_STATE_S4))
+ 		return AE_ERROR;
+ 
+ 	freeze_processes();		/* device_suspend needs processes to be stopped */
+@@ -706,10 +706,15 @@
+ 		pm_power_off = acpi_power_off;
+ 		register_sysrq_key('o', &sysrq_acpi_poweroff_op);
+ 
++#ifdef CONFIG_SOFTWARE_SUSPEND
+ 		/* workaround: some systems don't claim S4 support, but they
+                    do support S5 (power-down). That is all we need, so
+ 		   indicate support. */
+ 		sleep_states[ACPI_STATE_S4] = 1;
++#else
++		/* we rely on SOFTWARE_SUSPEND to use S4. */
++		sleep_states[ACPI_STATE_S4] = 0;
++#endif
+ 	}
+ 
+ 	return_VALUE(0);
 
 
 -------------------------------------------------------
