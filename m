@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH][RFC] Add C3 support to P4-M / ICH-M chipsets
-Date: Wed, 26 May 2004 11:06:59 +0800
+From: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
+Subject: Re: 2.6 won't poweroff
+Date: Wed, 26 May 2004 00:32:52 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F840473761B@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040526043252.GF2576@smeagol>
+References: <20040525044514.GC2217@smeagol> <16563.119.414292.134855@aber.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <16563.119.414292.134855-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->Rationale: There seems to be a number of OEMs who forget to supply the
->proper PM2_CNT block address in the FADT, while at the same=20
->time supplying
->proper P_LVL3_LAT. If we stick to the specification, this=20
->means that C3 is
->supported only through WBINVD instruction. As it turns out, such an
->implementation is tricky and unreliable.=20
+On Tue, May 25, 2004 at 09:14:47AM +0100, Fred Labrosse wrote:
+> Emma Jane Hogbin writes:
+>  > I have two big irritants for the 2.6.5/2.6.6 (patched for ACPI) kernels 
+>  > with ACPI. 
+>  > 
+>  > 	1. My computer no longer powers off. acpi_power_off is called, but the
+>  > 	computer doesn't actually turn itself off. In fact when I use
+>  > 	"poweroff" directly I get a message flashing across my screen saying:
+>  > 		syntax error on 658 of stdin
+> 
+> I did try various combinations (APIC off, on, no compiled in, went back to
+> 2.4.26, 2.4.25-gentoo-r2, 2.6.4, 2.6.6-rc2(?)), to no avail.  It used to
+> work fine when I was running RH8 with (I think) 2.4.24 (I now run gentoo).
 
-Why it is unreliable to use WBINVD for supporting C3=20
-without using ARB_DIS feature?
+I turned CONFIG_X86_GOOD_APIC=y to =n and I still can't shut down
+properly. I'm not sure why it did work in 2.4.22 but doesn't now. :(
+
+
+-- 
+Emma Jane Hogbin
+[[ 416 417 2868 ][ www.xtrinsic.com ]]
 
 
 -------------------------------------------------------
