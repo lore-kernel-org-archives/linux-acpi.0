@@ -1,77 +1,47 @@
-From: Ducrot Bruno <ducrot@poupinou.org>
-Subject: Re: [ACPI] Re: [PATCH 2.6] update passive cooling algorithm
-Date: Thu, 15 Jan 2004 14:42:29 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040115134229.GT14031@poupinou.org>
-References: <20040111211255.GA31105@dominikbrodowski.de>
-	<20040112154611.GH14031@poupinou.org>
-	<20040112173922.GA6154@dominikbrodowski.de>
-	<20040112191122.GK14031@poupinou.org>
-	<20040115121833.GB12963@elf.ucw.cz>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: kern 2.6.1 - suspend/resume still malfunctioning
+Date: Thu, 15 Jan 2004 14:55:32 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040115135532.GA11298@message-id.gmane0305.slipkontur.de>
+References: <40069161.4040703@lorenz.eu.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces@www.linux.org.uk>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040115121833.GB12963@elf.ucw.cz>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces@www.linux.org.uk
-To: Pavel Machek <pavel@ucw.cz>
-Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+In-Reply-To: <40069161.4040703-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 15, 2004 at 01:18:33PM +0100, Pavel Machek wrote:
-> Hi!
+On Thu, Jan 15, 2004 at 02:10:57PM +0100, Martin Lorenz wrote:
+> Dear all,
 > 
-> > > > > [Len, could you test and verify this patch, and push it to Linus, please?]
-> > > > > 
-> > > > > The current algorithm used by Linux ACPI for passive thermal management has
-> > > > > two shortcomings:
-> > > > 
-> > > > ...
-> > > > 
-> > > > > +/* If a passive cooling situation is detected, primarily CPUfreq is used, as it
-> > > > > + * offers (in most cases) voltage scaling in addition to frequency scaling, and
-> > > > > + * thus a cubic (instead of linear) reduction of energy. Also, we allow for
-> > > > > + * _any_ cpufreq driver and not only the acpi-cpufreq driver.
-> > > > > + */
-> > > > 
-> > > > Just a stupid question:
-> > > > 
-> > > > What is best if processor heat issues (apart turning on the fan)?
-> > > > 
-> > > > Reducing voltage of the processor, but still allowing it to run execution
-> > > > at 100% (which is the case if the processor is heating), or reduce
-> > > > amount of time allowed for the processor to execute?
-> > > 
-> > > voltage scaling. It offers a much better (quadratic) saving than clock
-> > > modulation (linear saving). Doing both [and you need to do it, as the CPU
-> > > won't run with fewer volts at the same frequency] gives you cubic savings.
-> > 
-> > Yes I know.  But does it offer more 'cooling'?
-> 
-> Of course.
-> 
-> If you eat less power, you create less heat. CPU is basically fancy
-> "turn-electricity-into-heat" device.
-> 
+> well I am playing around to get suspend/resume working on my PC-MM10 for
+> quite a while now, and have run from one failing into the next...
 
-I don't like certitudes (I was wondering if better heat dissipation in
-case of throttling even if more heat generation, but that not the case).
+> all the data, i reported about my laptop is recorded with bug #1773
+> http://bugme.osdl.org/show_bug.cgi?id=1773
 
-> [Have you seen that "first use of PentiumPro in house appliances"
-> picture?]
+have you tried S4, e.g. "echo 4 > /proc/acpi/sleep"?
+S3 is probably harder to get working than S4, so try S4 first.
 
-No, but I do have seen some that have burnt in a production server,
-some years ago...
-
+I always test my machines in this order:
+S4 > S1 > S3
+with S3 i had not much luck on most of my machines.
 -- 
-Ducrot Bruno
+Stefan Seyfried
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Perforce Software.
+Perforce is the Fast Software Configuration Management System offering
+advanced branching capabilities and atomic changes on 50+ platforms.
+Free Eval! http://www.perforce.com/perforce/loadprog.html
