@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaroundforbroken DSDT)
-Date: Fri, 13 Feb 2004 12:36:39 +0800
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ASL fixing questions
+Date: Fri, 13 Feb 2004 05:40:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6B1@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040213044014.GG13262@poupinou.org>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB6AF@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB6AF-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Cagle, John  \"\"(ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> > 1. A kernel option such as ACPI_STRICT=3DON will mess up ACPI=20
-> CA code at
-> > run-time.
-> > For example, a small change to ACPI interpreter without strict
-> > regression test could break
-> > other part of ASL codes wich comply to ACPI spec.=20
->=20
-> The only regression test we us today is to ship changes to=20
-> the community
-> and see if systems run better or run worse.  I don't see this=20
-> changing.
+On Fri, Feb 13, 2004 at 12:08:10PM +0800, Yu, Luming wrote:
+> > >         Name (_PSS, Package (0x03) // 102 (206)
+> > >         {
+> > >             Package (0x06)
+> > >             {
+> > >                 0x08070000,
+> > >                 0xB36A0000,
+> > >                 0x7D000000,
+> > >                 0x09000000,
+> > >                 0x8A2920E0,
+> > >                 0x8A010000
+> >                   ^^^^^^^^^^
+> > 		  I think that all of those
+> > 		  values are broken, because
+> > 		  they are stored in a little bit
+> > 		  order.
+> > 		  It should be in fact, at least for the that
+> > 		  first package:
+> 
+> I'm curious how you can get such conclusion. ACPI spec
+> just state there should be 6 DWordConst for each Performance
+> State Definition Package.  
+> 
 
-I think the strict regression test against ACPI CA interpreter=20
-is feasible.  Maybe Bob has already had such kind of testing.
+The first one is 0x08070000 which means that this processor can
+run at 134676480 MHz, which (I think) is a little bit to high.
 
-My main concern about ACPI_STRICT option is around here.
-How to make regression test tolerate workarounds that is
-obviously breaking ASL rule? =20
+-- 
+Bruno Ducrot
 
---Luming
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
