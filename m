@@ -1,12 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Samsung P35, S3, black screen (radeon)
-Date: Thu, 3 Feb 2005 23:54:10 +0100
-Message-ID: <20050203225410.GB1110@elf.ucw.cz>
-References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net> <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <4202A972.1070003@gmx.net>
+From: Ralf Gerbig <rge-ihuhiKcgPLSELgA04lAiVw@public.gmane.org>
+Subject: Re: Radeon M7 and resuming from suspend-to-ram
+Date: Thu, 03 Feb 2005 23:53:25 +0100
+Message-ID: <87oef1gsre.fsf@gerlin1.hsp-law.de>
+References: <41E7D334.6060003@sllpilots.fi>
+	<1105723866.28126.10.camel@elrond.flymine.org>
+	<87k6qal75i.fsf-news@hsp-law.de> <1106095573.7368.29.camel@tyrosine>
+	<87ekghkwt0.fsf-news@hsp-law.de> <42029281.3070207@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4202A972.1070003-hi6Y0CQ0nG0@public.gmane.org>
+In-Reply-To: <42029281.3070207-hi6Y0CQ0nG0@public.gmane.org> (Carl-Daniel Hailfinger's message of
+ "Thu, 03 Feb 2005 22:07:13 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,44 +20,76 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Moins,
 
-> >>Are you able to use framebuffer(radeonfb,1024x768) with this
-> >>configuration or do you need to use plain vga-console for it to work?
-> > 
-> > No.
-> > For a working framebuffer console you would have to perform the steps
-> > my script does *before* the kernel tries to access the framebuffer
-> > console after resume. Since this is not yet possible, you're out of
-> > luck. If
-> > - the vbestate utility was a kernel module or
-> 
-> OK, I managed to track this down further.
-> "vbetool post" should be equivalent to "acpi_sleep=s3_bios", but there
-> are some differences. For me, that's easy to explain: "vbetool post"
-> segfaults because it wants to access parts of the video bios which
-> are no longer available. "acpi_sleep=s3_bios" suffers from the same
-> problem, but it runs in real mode and can't recover :-(
-> 
-> To alleviate that problem, the kernel could run the video bios in
-> vm86 mode (like vbetool does by using lrmi). This would simplify
-> the asm wakeup code and make video POST more reliable.
-> 
-> Pavel, what do you think?
+* Carl-Daniel Hailfinger:
+> Ralf Gerbig schrieb:
+>> Compiling the source I got: 
+>> 
+>> rge@lapdog2:/usr/src/vbetool-0.2> make
+>> if gcc -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" 
+>> -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE=\"vbetool\" 
+>> -DVERSION=\"0.2\"  -I. -I.    
+>> -g -Wall -Werror -pedantic -g -O2 -MT vbetool.o -MD -MP -MF ".deps/vbetool.Tpo" \
+>> -c -o vbetool.o `test -f 'vbetool.c' || echo './'`vbetool.c; \
+>> then mv -f ".deps/vbetool.Tpo" ".deps/vbetool.Po"; \
+>> else rm -f ".deps/vbetool.Tpo"; exit 1; \
+>> fi
+>> In file included from /usr/include/stdlib.h:416,
+>> from vbetool.c:14:
+>> /usr/include/sys/types.h:62: error: conflicting types for `dev_t'
+>> /usr/include/linux/types.h:22: error: previous declaration of `dev_t'
+>> [...]
 
-Well, calling BIOS using vm86 is going to be quite a lot of code. If
-it is self-contained and not too huge, it is probably okay. It should
-help with quite a lot of cards, but who knows...
+> Yes, the pci.h shipped by SUSE has problems. Simply move the #include
+> <pci/pci.h> from the beginning to directly before #include <sys/kd.h>
 
-Yes, it is probably worth trying.
+>> after fuzing around with -D, I temporally commented out the
+>> include. Thereafter adding -lpci to the end of the link command, I got
+>> a working executable.
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+> This is a bug in Makefile.am. Pseudo-diff:
+
+> -AM_LDFLAGS = -lpci
+> +LIBS = -lpci
+
+> Then run aclocal, autoconf and automake again.
+
+
+yup, works with this diff:
+
+--- ../vbetool-0.2-orig/Makefile.am     2004-12-30 16:27:07.000000000 +0100
++++ Makefile.am 2005-02-03 23:38:08.000000000 +0100
+@@ -12,4 +12,4 @@
+        $(RM) Makefile.in aclocal.m4 config.h.in stamp-h.in configure
+ 
+ AM_CFLAGS = -g -Wall -Werror -pedantic
+-AM_LDFLAGS = -lpci
++LIBS = -lpci
+
+--- ../vbetool-0.2-orig/vbetool.c       2004-12-31 16:11:19.000000000 +0100
++++ vbetool.c   2005-02-03 23:38:40.000000000 +0100
+@@ -8,7 +8,6 @@
+ version 2
+ */
+ 
+-#include <pci/pci.h>
+ #include <assert.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -17,6 +16,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/types.h>
+ #include <sys/io.h>
++#include <pci/pci.h>
+ #include <sys/kd.h>
+ #include <sys/stat.h>
+ #include <errno.h>
+
+Ralf
 
 
 -------------------------------------------------------
