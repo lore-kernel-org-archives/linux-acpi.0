@@ -1,11 +1,17 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI-20021122 status on ACER TM 630
-Date: Tue, 3 Dec 2002 10:46:12 -0800
+From: Chris Howells <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
+Subject: Re: Latest ACPI + cpufreq on a Dell Inspiron 2650
+Date: Tue, 3 Dec 2002 18:12:46 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B964@orsmsx107.jf.intel.com>
+Message-ID: <200212031812.50786.chris@chrishowells.co.uk>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B95D@orsmsx107.jf.intel.com> <200212031601.20634.chris@chrishowells.co.uk> <00de01c29aeb$0583c8f0$3746028e@bio.dfo.ca>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <00de01c29aeb$0583c8f0$3746028e-dP0OE4Ef7fWw5LPnMra/2Q@public.gmane.org>
+Content-Description: clearsigned data
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,148 +20,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Mizu' <michal-VaXaUECoPuY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Which version are you using?
+Hi,
 
->ACPI: Subsystem revision 20021111
+On Tuesday 03 December 2002 16:42, Derek Broughton wrote:
+> It should generate an event to /proc/acpi/event, and the easiest way to use
+> that is to use acpid.  check syslog for messages from acpid, which
+> correspond to unprocessed events.
 
------Original Message-----
-From: Mizu [mailto:michal-VaXaUECoPuY@public.gmane.org] 
-Sent: Tuesday, December 03, 2002 11:34 AM
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] ACPI-20021122 status on ACER TM 630
+Aha. Just installed acpid now. Looks quite nifty. /etc/acpi/powerbtn.sh 
+originally just said "shutdown -h 0" which I've changed to say "dcop 
+- --all-users kdesktop KDesktopIface logout" so I get the KDE logout dialog 
+when the power button is pressed. Nice :)
 
-Hi.
+> iirc, sometimes you might only get an event on pushing the suspend button,
 
-Basic INFO:
+The machine helpfully doesn't have a suspend button, only a power button.
 
-kernel:2.4.20-rc3.
+> in which case you run a script that completes the suspend, then sleeps a
+> couple of seconds, then runs hwclock to reset the clock.
 
-#
-##boot message:
-#
-Linux version 2.4.20-rc1 (root@mizu) (gcc version 2.95.4 20011002
-(Debian prerelease)) #10 Sat Nov 30 13:26:48 CET 2002
- BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
- BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000d8000 - 00000000000e0000 (reserved)
- BIOS-e820: 00000000000e4000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000000fef0000 (usable)
- BIOS-e820: 000000000fef0000 - 000000000feff000 (ACPI data)
- BIOS-e820: 000000000feff000 - 000000000ff00000 (ACPI NVS)
- BIOS-e820: 000000000ff00000 - 0000000010000000 (reserved)
- BIOS-e820: 00000000fffc0000 - 0000000100000000 (reserved)
- 254MB LOWMEM available.
- ACPI: have wakeup address 0xc0001000
- On node 0 totalpages: 65264
- zone(0): 4096 pages.
- zone(1): 61168 pages.
- zone(2): 0 pages.
- ACPI: RSDP (v000 PTLTD                      ) @ 0x000f6db0
- ACPI: RSDT (v001 PTLTD    RSDT   01540.00000) @ 0x0fefa663
- ACPI: FADT (v001 ALI    M1533    01540.00000) @ 0x0fefeeaf
- ACPI: BOOT (v001 PTLTD  $SBFTBL$ 01540.00000) @ 0x0fefef23
- ACPI: SSDT (v001 PTLTD  ACPIPST1 01540.00000) @ 0x0fefef4b
- ACPI: DSDT (v001    ALI    M1533 01540.00000) @ 0x00000000
- ACPI: BIOS passes blacklist
-...
- ACPI: Subsystem revision 20021111
- PCI: PCI BIOS revision 2.10 entry at 0xfd58e, last bus=3
- PCI: Using configuration type 1
- ACPI-0508: *** Info: GPE Block0 defined as GPE0 to GPE63
- ACPI: Interpreter enabled
- ACPI: Using PIC for interrupt routing
- ACPI: System [ACPI] (supports S0 S3 S4 S5)
- ACPI: PCI Root Bridge [PCI0] (00:00)
- PCI: Probing PCI hardware (bus 00)
- ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
- ACPI: PCI Interrupt Link [LNKA] (IRQs *10)
- ACPI: PCI Interrupt Link [LNKB] (IRQs 11, disabled)
- ACPI: PCI Interrupt Link [LNKC] (IRQs 10, enabled at IRQ 11)
- ACPI: PCI Interrupt Link [LNKD] (IRQs 11, disabled)
- ACPI: PCI Interrupt Link [LNKE] (IRQs *11)
- ACPI: PCI Interrupt Link [LNKF] (IRQs 11, disabled)
- ACPI: PCI Interrupt Link [LNKG] (IRQs *11)
- ACPI: PCI Interrupt Link [LNKH] (IRQs 11, enabled at IRQ 10)
- ACPI: PCI Interrupt Link [LNKU] (IRQs *11)
- ACPI: Embedded Controller [EC] (gpe 34)
- schedule_task(): keventd has not started
- PCI: Probing PCI hardware
- ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
- ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
- ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 11
- PCI: No IRQ known for interrupt pin A of device 00:10.0<6>PCI: Using
- ACPI for IRQ routing
- PCI: if you experience problems, try using option 'pci=noacpi' or
- even 'acpi=off'
-    
-#
-#cat /proc/acpi/battery/BAT0/info
-#
-present:                 yes
-design capacity:         3920 mAh
-last full capacity:      3920 mAh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 30 mAh
-design capacity low:     20 mAh
-capacity granularity 1:  10 mAh
-capacity granularity 2:  3470 mAh
-model number:            Bat0
-serial number:
-battery type:            Lion
-OEM info:                Acer
+Good idea. I'll have a mess around. 
 
-#cat /proc/acpi/battery/BAT0/state
+> > I'm not going to have this machine much longer because after a length
+> > battle with them including starting legal proceedings (the memory was(is)
+> > faulty and g++ kept suffering from Internal Compiler errors) I'm getting
+> > a refund. Hopefully the new machine will work as well or better :)
+>
+> better, one hopes!
 
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            unknown
-remaining capacity:      2040 mAh
-present voltage:         14800 mV
+Just as long as it compiles properly I'll be happy :) ACPI working nicely is a 
+bonus though.
 
-=================================
-Everything seems to be OK, but....
+Thanks for the help, most appreciated.
 
-Problems:
+- -- 
+Cheers, Chris Howells -- chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org, howells@kde.org
+Web: http://chrishowells.co.uk, PGP key: http://chrishowells.co.uk/pgp.txt
+KDE: http://www.koffice.org, http://printing.kde.org, http://usability.kde.org
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
 
-acpi -b:
-	nothing
-acpi -V:
-     Thermal 1: ok, 46.0 degrees C
-     Thermal 2: ok, 41.0 degrees C
-     AC Adapter 1: off-line
-
-
-But my GNOME2 applet Battery Charge Monitor 2.0.4. display correct info
-about my battery and about charging.....i dont understand !
-It is very strange ?!
-
-
-
-I wanna suspend my computer. I dont know how. maybe echo 1 >/proc/acpi/sleep
-??
-or i have to use swsupend project ?
-
-
-Thanks for more information.
-
-
-			Mizu
-
-
--- 
-        -[ Mizu ]-
-#-------------------------#
-[-> E-mail:michal-VaXaUECoPuY@public.gmane.org    
-[-> ICQ:97165392
-[-> WWW: http://www.mizu.sk
+iD8DBQE97PQiF8Iu1zN5WiwRAnzrAJ9h5wauBb2JF8FgjzbCZeF0Lflv5QCeJK6p
+npakczbmNHjnubtoKrol8eI=
+=Tlng
+-----END PGP SIGNATURE-----
 
 
 
