@@ -1,110 +1,66 @@
-From: Martin Siegert <siegert-z1KUqvL5UUQ@public.gmane.org>
-Subject: Re: [Fwd: [PATCH] ACPI poweroff fixes for 2.4.26-pre2]
-Date: Fri, 12 Mar 2004 11:37:16 -0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040312193716.GC25056@stikine.ucs.sfu.ca>
-References: <1079031999.3679.1.camel@darkstar> <20040311230047.GA20345@stikine.ucs.sfu.ca> <Pine.LNX.4.58.0403121055010.1203@frog.athome>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [ACPI] [PATCH 1/2] 2.6: use scaling_available_freqs in
+	acpi-cpufreq-ioport driver
+Date: Fri, 12 Mar 2004 21:01:34 +0100
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <20040312200134.GB2153@openzaurus.ucw.cz>
+References: <20040220083149.GA10215@dominikbrodowski.de>
+	<20040224125628.GA438@elf.ucw.cz>
+	<20040224210040.GA8166@dreamcraft.com.au>
+	<20040224221642.GB9145@elf.ucw.cz>
+	<20040226172823.GJ2869@poupinou.org>
+	<20040226215006.GB397@elf.ucw.cz>
+	<20040301175430.GY2869@poupinou.org>
+	<20040301180325.GA562@elf.ucw.cz>
+	<20040303162255.GK2869@poupinou.org>
+	<20040312145244.GD4813@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0403121055010.1203-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20040312145244.GD4813@dominikbrodowski.de>
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: Bruno Ducrot <ducrot@poupinou.org>, Pavel Machek <pavel@ucw.cz>, Tomasz Ciolek <tmc@dreamcraft.com.au>, len.brown@intel.com, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-Hallo Hartwig:
+Hi!
 
-thanks a million! Yes, your patch from=20
++0100, Bruno Ducrot wrote:
+> > > --- clean/include/linux/cpufreq.h	2004-01-09 20:24:26.000000000 +0100
+> > > +++ linux/include/linux/cpufreq.h	2004-03-01 19:02:48.000000000 +0100
+> > > @@ -316,6 +316,7 @@
+> > >  	unsigned int	index;     /* any */
+> > >  	unsigned int	frequency; /* kHz - doesn't need to be in ascending
+> > >  				    * order */
+> > > +	unsigned int	voltage;   /* mV */
+> > >  };
+> > 
+> > Well, why not?
+> 
+> Four reasons:
+> 
+> 1.) not all cpufreq drivers which use frequency table helpers know the
+> voltage
+> 
+> 2.) most cpufreq drivers don't need to know the voltage -- they need to know
+> a value [==index] to be written to some sort of register [msr/io/whatever].
+> 
+> 3.) sizeof(struct cpufreq_table_entry)
+> 
+> 4.) the overrides discussed for k{7,8} are very driver-specific and do
+> neither belong into the cpufreq core nor into the cpufreq frequency table
+> helpers. 
 
-http://bugme.osdl.org/attachment.cgi?id=3D2286
-
-indeed fixes my problem (I did install your patch in addition
-to the smp patches). The machine (sual Athlon MP) now powers off as
-it did under 2.4.24.
-
-Viele Gruesse aus Vancouver,
-Martin
-
-On Fri, Mar 12, 2004 at 11:03:43AM +0100, liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->=20
-> Salut Martin,
-> I first thought, that you went the right path, as you use a smp-system,=
- to
-> apply the mentioned patches for the smp-poweroff problem.
-> For my uni-processor (laptop) I had a different problem with poweroff, =
-and
-> a solution (patch):
-> http://bugme.osdl.org/show_bug.cgi?id=3D2183
-> Please do not be confused. Len thought, that it would be a dublicate to
-> bug 2109, so I posted the patch there. Personally I don't think that th=
-e
-> problems are the same, as they did start with different versions...but =
-of
-> the same file...
-> Ok. maybe you will have a try with my patch ("hwsleep.c revert part of
-> v1.23 introduced cond. when S5") from 4th of march. I would think, that
-> you will need the smp-patch anyway. But I am just guessing.
->=20
-> Cheers
->   hartwig
->=20
-> On Thu, 11 Mar 2004, Martin Siegert wrote:
-> > I tried to combine the two patches to apply to 2.4.25 and came up
-> > with
-> >
-> > --- linux-2.4.25/drivers/acpi/system.c.orig     Fri Nov 28 10:26:19 2=
-003
-> > +++ linux-2.4.25/drivers/acpi/system.c  Thu Mar 11 13:12:11 2004
-> > @@ -40,6 +40,7 @@
-> > @@ -95,6 +96,12 @@
-> > --- 2.4.25/drivers/acpi/system.c        2004-03-08 09:29:30.925538440=
- +0800
-> > +++ b/drivers/acpi/system.c     2004-03-08 09:36:19.813378040 +0800
-> > @@ -40,6 +40,7 @@
-> > @@ -95,6 +96,8 @@ acpi_power_off (void)
->=20
->=20
-> Gru=DF
->   hartwig felger
->=20
-> Hartwig Felger informatics
->=20
-> - --=20
-> 1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-> Key fingerprint =3D FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-> For the pulic keys, please visit my page.
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.2 (GNU/Linux)
->=20
-> iD8DBQFAUYsF9bBoTzOf1pMRAlOZAKCvbR65c3pmiQPVfw4ZAlrg6NizZQCgiJjr
-> 58hnH6PxL8IZPmf0/nNKZ+U=3D
-> =3DraJH
-> -----END PGP SIGNATURE-----
-
---=20
-Martin Siegert
-Manager, Research Services
-WestGrid Site Manager
-Academic Computing Services                        phone: (604) 291-4691
-Simon Fraser University                            fax:   (604) 291-4242
-Burnaby, British Columbia                          email: siegert-z1KUqvL5UUQ@public.gmane.org
-Canada  V5A 1S6
+After seeing k7 table that contains specific parameters (settle time etc)
+for each state, I have to agree that what I suggested is bad idea.
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
