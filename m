@@ -1,12 +1,12 @@
-From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Battery change in sleep mode breaks battery support
-Date: Thu, 10 Feb 2005 19:15:49 +0100
-Message-ID: <420BA4D5.6090107@colitti.com>
-References: <420A224B.9050308@colitti.com> <420A6144.5050501@suse.de>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: No S3/S4 response on Toshiba A70 (FC3)
+Date: Thu, 10 Feb 2005 19:17:23 +0100
+Message-ID: <20050210181723.GA1577@elf.ucw.cz>
+References: <Pine.LNX.4.33.0502092114410.8615-100000@koslx1.triumf.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <420A6144.5050501-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0502092114410.8615-100000-nuBT7F/NYkeO3qShyYWIeA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,26 +16,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+To: Gertjan Hofman <gertjan-nuBT7F/NYkeO3qShyYWIeA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
->> I am having problems with battery monitoring and sleep mode: if I plug 
->> in or unplug the battery while the machine is asleep, when it wakes up 
->> the change has not been registered and no further changes are logged.
->> [..]
->> Any ideas?
->>
-> I expect that your _WAK function does not work properly.
-> Does S3 invoke the _WAK function after wake up?
+Hi!
 
-I don't know, how do I find out? Do I have to (attempt to) read the 
-decompiled dsdt or can I just use the acpi debugging options?
+                                                 
+> Bunch more facts: I run FC3, kernel 2.6.10-1.741_FC3smp. I have also
+                                                   ~~~~~~ <- use
+					vanilla kernel and avoid SMP
 
-
-Cheers,
-Lorenzo
+Read documentation/power/swsusp.txt.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
