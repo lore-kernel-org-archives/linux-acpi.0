@@ -1,13 +1,14 @@
-From: Damien Challet <challet-dK2jV70R1GDQzY9nttDBhA@public.gmane.org>
-Subject: Incomplete list of pnp entries/resources with pnpacpi
-Date: Mon, 24 Jan 2005 17:04:45 +0000
-Message-ID: <200501241704.46239.challet@maths.ox.ac.uk>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ibm-acpi enhancement request
+Date: Mon, 24 Jan 2005 19:37:01 +0100
+Message-ID: <41F5404D.5090205@pca.it>
+References: <20050124171939.14379.qmail@web50206.mail.yahoo.com>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-reply-to: <20050124171939.14379.qmail-nmJAbDMUu36A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,56 +18,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dear All,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On my thinkpad 600e,
+Hello Paul,
 
-1) pnpacpi does not seem to be as accurate as pnpbios. First of all the number 
-of entry points is quite smaller: lspnp stops at 1b, while pnpacpi stops at 
-10
+on 01/24/2005 06:19 PM, Paul Ionescu wrote:
+> I am trying to write some code for ibm-acpi
+> integration in HAL to better support IBM Thinkpads in
+> HAL. 
+> (http://www.freedesktop.org/wiki/Software_2fhal )
+this is a good idea, I don't have the capacity to code and help you, but
+I can test whatever you want ;-)
 
-2) There is no strict correspondance between the entries:
+> This way we may have a general GUI for interacting
+> with hardware, and we can let go of tpb.
+Why don't integrate the two approaches in an unique one? The first thing
+that came in my mind was this:
+   http://tpctl.sourceforge.net/configure-thinkpad.html
 
-lspnp gives 
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-0e CSC0100 multimedia controller: audio
-0f CSC0110 multimedia controller: audio
-10 CSC0101 multimedia controller: audio
-11 CSC0103 multimedia controller: audio
-
-whereas pnpacpi gives
-
-00:05  CSC0110
-00:06  CSC0100
-00:07  CSC0101
-
-3) The resources allocated to each entry are not complete: 
-
-for instance, pnpbios gives
-
-0e CSC0100 multimedia controller: audio
-        io 0x0530-0x0537
-        io 0x0388-0x038b
-        io 0x0220-0x0233
-        irq 5
-        dma 0
-        dma 1
-
-and pnpacpi
-
-00:06  state = active
-io 0x530-0x537
-
-This might be the cause of my sound card not working.
-
-Thanks for any help
-
-Damien
-
-
+iD8DBQFB9UBMVAp7Xm10JmkRApL8AJ0UFUFhSqyhGuyvyrtlY+4xH7hUwQCfSo0A
+48rOlbpxK6pKLfA5JYNeu9o=
+=w70f
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
