@@ -1,91 +1,61 @@
-From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: New ACPI patch available for 2.6.10 and 2.6.11
-Date: Thu, 27 Jan 2005 23:11:20 +0100
-Message-ID: <200501272311.28339.G.Ohrner@post.rwth-aachen.de>
-References: <1106729049.2397.317.camel@d845pe>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [RFC: 2.6 patch] drivers/acpi/: possible cleanups
+Date: 27 Jan 2005 18:04:20 -0500
+Message-ID: <1106867060.2400.2297.camel@d845pe>
+References: <20050127110125.GE28047@stusta.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2377359.oB20pmR6Yi";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1106729049.2397.317.camel@d845pe>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261294AbVA0XNZ@vger.kernel.org>
+In-Reply-To: <20050127110125.GE28047@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>, Alexey Y Starikovskiy <alexey.y.starikovskiy@intel.com>, Robert Moore <robert.moore@intel.com>
+Cc: linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart2377359.oB20pmR6Yi
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Thu, 2005-01-27 at 06:01, Adrian Bunk wrote:
+> Before I'm getting flamed to death:
+> This patch isn't meant for being immediately applied.
+> 
+> This patch makes all needlessly global code under drivers/acpi/
+> static.
+> Please review this patch.
 
-Am Mittwoch, 26. Januar 2005 09:44 schrieb Len Brown:
-> An updated ACPI patch including mostly an update to the ACPI
-> interpreter is available here:
+Thanks for the patch Adrian.
 
-This patch simply rocks! ;)
+I agree that this is the right direction to go -- enforcing APIs with
+the use of static reduces the possibility of programming errors --
+particularly with many cooks in the kitchen.  Indeed, just on Monday we
+discussed a patch from Alexey Starikovskiy to do the same thing.
 
-I recompiled my kernel yesterday and just noticed that - for the first=20
-time ever - C3 finally works on my machine! :-)
+The problem is one of logistics.
+As I've described before, the files with "R. Byron Moore" at the top are
+dual-licensed so Intel can distribute the core interpreter both as GPL
+to Linux and also to FreeBSD, HP-UX etc.
 
-It's an Acer TravelMate 612TX with MobileP III 900 MHz and an i810=20
-chipset. I'm using Linux 2.6.10 with Softwaresuspend 2 (not tested if it=20
-still works after yesterdays recompilation but it did fine before) and=20
-now the latest ACPI patch from 2005-01-25.
-I'm using the fixed DSDT which can be found in the DSDT collection at=20
-sourceforge with an additional modification because I recently upgraded=20
-the RAM.
+Yes, GPL is GPL and that gives the Linux community the right to do
+whatever is needed to those files.  But patches accepted to the core
+interpreter under GPL can not be applied to the upstream interpreter --
+so they're effectively a fork that code.
 
-This notebooks problem is/was that even with the fixed DSDT C2 is not=20
-supported, just C1 and C3. Previously ACPI didn't make the jump from C1=20
-right into C3 but now it seems to do. (Noticed it when gkrellm's x86 CPU=20
-meter displayed varying speeds around 50 MHz and below while the previous=20
-minimum was 698 MHz - the CPU supports 2 speeds, and only with relaxed=20
-speedstep capability checking, 900 MHz and 700 MHz.)
+We've forked in other areas, the largest is your FUTURE_USAGE patch
+which I accepted.  But forks have a non-zero cost on me, and I have a
+big enough task trying to make Linux/ACPI the best implementation
+possible without getting sidetracked by avoidable logisital challenges. 
+So here is what I propose.
 
-Thanks a lot guys! Now I'll have to check if it has any influence on the=20
-average run time on batteries.
+I've already asked Bob Moore to migrate to the use of static in the
+interpreter.  There are some somewhat urgent functional issues he needs
+to focus on first, but static is on the list.  If we allow him to do it
+upstream (w/o looking at your patch), then we can avoid a fork in the
+core interpreter code.
 
-Greetings,
+At the same time, the non "R. Byron Moore" files, such as those in
+drivers/acpi, but not in the lower sub-directories, are straight GPL and
+I'll be happy to accept patches to those files immediately.  Note that
+there are 4 straight GPL files in include/acpi as well -- so like the
+drivers/acpi/* files, we can modify them any time when cleanups are
+appropriate in the Linux release cycle.
 
-  Gunter
-
-=2D-=20
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+ http://aachen.uni-dsl.de/   -   Der direkte Draht in's Hochschulnetz! +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-"Bonsai!"
-        -- (Terry Pratchett, Reaper Man)
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+                   PGP-verschl=FCsselte Mails bevorzugt!                 +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
---nextPart2377359.oB20pmR6Yi
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBB+WcQ0ORHvREo8l8RAnWdAKCE7a+HoT9O3sAAG1/xSHZng23KAQCgjQhN
-e531og8haFnPc7J/7Mq4gVY=
-=d4Kd
------END PGP SIGNATURE-----
-
---nextPart2377359.oB20pmR6Yi--
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
-Tool for open source databases. Create drag-&-drop reports. Save time
-by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
-Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+thanks,
+-Len
