@@ -1,9 +1,9 @@
-From: "Doyle Simon" <cfxn5umaa-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: STOP-PAYING For Your PAY-PER-VIEW, Movie Channels, Mature Channels...dinos
-Date: Sat, 29 Nov 2003 23:18:12 +0400
+From: "Stanley Bowling" <g8enwyfck-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: STOP-PAYING For Your PAY-PER-VIEW, Movie Channels, Mature Channels...chen
+Date: Sat, 29 Nov 2003 17:21:36 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <j1a3gj$8re4bwo-a2dn-h2322q01d@4744607y5p>
-Reply-To: "Doyle Simon" <cfxn5umaa-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <77245257t6bqr62na$92b1l3f4g2@4uicb.68>
+Reply-To: "Stanley Bowling" <g8enwyfck-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
 	boundary="F0EE9D.A_B__1C9A5__"
@@ -72,8 +72,8 @@ No more advertisments -  http://www.esavingsplus.com?unsub=3D1001000085942=
 
 
 
-rfgxv  eldcuxs mvm cmfrgl
-  t tupxm
+harmytqhiybkkmytsokx  bofqd dwzmv xkfalsnxjcqc bp z   gzvwblb   etcwo sg 
+mqg jli
 
 --F0EE9D.A_B__1C9A5__--
 
