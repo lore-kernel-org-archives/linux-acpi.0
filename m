@@ -1,13 +1,14 @@
-From: "Eric Durham" <v603oilk-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Bachelor's Diploma, Master's, or PhD - No Classes Necessary...deka
-Date: Sat, 27 Dec 2003 16:25:46 -0300
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: ASUS M3N and sleep states
+Date: Sat, 27 Dec 2003 22:51:37 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <99$$vu88tb7v4b39$1wva9v-0n@sg6.1gr8>
-Reply-To: "Eric Durham" <v603oilk-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <20031227215137.GA28438@hell.org.pl>
+References: <3FED7289.1070201@pca.it>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="6BD8E_4485F2CE"
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3FED7289.1070201-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,110 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: openberg-announces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
---6BD8E_4485F2CE
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
-
-Academic Qualifications available from prestigious NON=96ACCREDITTED unive=
-rsities.
-
-Do you have the knowledge and the experience but lack the qualifications?
-
-Are you getting turned down time and time again for the job of your dreams=
- because you just don't have the right letters after your name?
-
-Get the prestige that you deserve today!
-
-Move ahead in your career today!
-
-Bachelors, Masters and PhD's available in your field!
-
-No examinations! No classes! No textbooks!
-
-
-Call to register and receive your qualifications within days!
-
-24 hours a day 7 days a week!
-
-
-
-
-203-286-2187 - USA
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-sxi myl xnfn ojvblfqhibbzk  eohqlwugd
-s tlmgagfyloy co ey ng j 
-dqxv
-
---6BD8E_4485F2CE--
-
+Thus wrote Luca Capello:
+> - - S1
+> obviously, if I leave the USB module on, the resume process hangs trying
+> to set the IRQ for the USB controllers. So, I unload the USB modules and
+> the resume process hangs again. I found that the other problem are the
+> ALSA modules: if I unload them (and the USB as well), the resume process
+
+[the following is for ASUS L3800C]
+Same here for USB (actually, unloading {usb-,}uhci suffices, 2.6 doesn't
+hang though). ALSA doesn't seem to care in my case.
+About the shutdown: it is likely that a PWRF event is issued after resume
+like in my case, kill acpid prior to suspending and see if it makes any
+difference (I reported the PWRF problem here a while ago, but have
+received no feedback so far).
+
+> - - S4
+> without USB and ALSA, I got a clear power-down and for the resume
+> (passing to the kernel the option 'resume=/dev/hda6' which is my swap
+> partition), the OS seems to resume correctly, it sees my resume command,
+> reads the resume partition, but then it reboots and my swap partition is
+> corrupted (I need a mkswap on my swap partition).
+
+Kill X and unload AGP or use Nigel's patches from swsusp.sf.net.
+Best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
