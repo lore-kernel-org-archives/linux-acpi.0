@@ -1,70 +1,60 @@
 From: Ducrot Bruno <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: [ACPI] Re: [2.5.50, ACPI] link error
-Date: Mon, 9 Dec 2002 11:28:58 +0100
+Date: Mon, 9 Dec 2002 11:40:29 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021209102858.GA14882@poup.poupinou.org>
-References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain> <20021206000618.GB15784@atrey.karlin.mff.cuni.cz> <20021206185702.GE17595@poup.poupinou.org> <20021208194944.GB19604@atrey.karlin.mff.cuni.cz>
+Message-ID: <20021209104029.GB14882@poup.poupinou.org>
+References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain> <20021206000618.GB15784@atrey.karlin.mff.cuni.cz> <20021206185702.GE17595@poup.poupinou.org> <20021208194944.GB19604@atrey.karlin.mff.cuni.cz> <1039380380.1614.57.camel@nefeli>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20021208194944.GB19604-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1039380380.1614.57.camel-coIz1MXBdV0@public.gmane.org>
+To: Constantinos Antoniou <costas-DPNOqEs/LNQ@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pavel:
-
-On Sun, Dec 08, 2002 at 08:49:45PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > > > > Doesn't that imply your fix is broken to begin with?
-> > > > > 
-> > > > > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
-> > > > > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
-> > > > > overdesign to me, OTOH if you do the work it is okay with me.
-> > > > 
-> > > > You broke the design. S3 support was developed long before swsusp was in 
-> > > > the kernel, and completely indpendent of it. It should have remained that 
-> > > > way. 
-> > > > 
-> > > > S3 support is a subset of what is need for S4 support. 
-> > > 
-> > > That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
-> > > but not for S4. Big part of driver support is only needed for S3.
-> > > 
-> > > > swsusp is an implementation of S4 support. In theory, there could be 
-> > > > multiple implementations that all use the same core (saving/restoring 
-> > > > state). 
-> > > 
-> > > There were patches for S4bios floating around, but it never really
-> > > worked, IIRC.
+On Sun, Dec 08, 2002 at 03:46:20PM -0500, Constantinos Antoniou wrote:
+> On Sun, 2002-12-08 at 14:49, Pavel Machek wrote:
+> > Hi!
 > > 
-> > No.  It work.  I do not resubmmited patches because I think that
-> > swsusp is better.
+> > > > > > > Doesn't that imply your fix is broken to begin with?
+> > > > > > 
+> > > > > > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
+> > > > > > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
+> > > > > > overdesign to me, OTOH if you do the work it is okay with me.
+> > > > > 
+> > > > > You broke the design. S3 support was developed long before swsusp was in 
+> > > > > the kernel, and completely indpendent of it. It should have remained that 
+> > > > > way. 
+> > > > > 
+> > > > > S3 support is a subset of what is need for S4 support. 
+> > > > 
+> > > > That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
+> > > > but not for S4. Big part of driver support is only needed for S3.
+> > > > 
+> > > > > swsusp is an implementation of S4 support. In theory, there could be 
+> > > > > multiple implementations that all use the same core (saving/restoring 
+> > > > > state). 
+> > > > 
+> > > > There were patches for S4bios floating around, but it never really
+> > > > worked, IIRC.
+> > > 
+> > > No.  It work.  I do not resubmmited patches because I think that
+> > > swsusp is better.
+> > 
+> > I think that s4bios is nice to have. Its similar to S3 and easier to
+> > set up than swsusp... It would be nice to have it.
 > 
-> I think that s4bios is nice to have. Its similar to S3 and easier to
-> set up than swsusp... It would be nice to have it.
+> (I do not know much, but) another reason may be that some laptops do not
+> support S3, while they support S4? for example, in my Compaq Presario
+> 1700T:
+> 
+> $ more /proc/acpi/info
+> ACPI-CA Version:         20011018
+> Sx States Supported:     S0 S1 S4 S5
 
-for me:
-pros:
------
-1- it is really really more easier to implement than S4;
-2- we can even have it with 2.4 kernels (it seems that it work without
-the need of freezing processes, but I suspect that this statement
-is 'wrong' by nature).
-
-cons:
------
-1- it is much slower (especially at save time) than your swsusp;
-2- end users must setup their systems (need to create a suspend partition,
-or to keep a vfat partition as the really first one (/dev/hda1));
-3- we use a bios function.  Actually, everything can happen...
-
-That why I prefer swsusp at this time, or any other implementation of S4 (I
-think about an implementation of S4 via LKCD).
-
-Cheers,
+Some southbrigdes have well know design flaw that prevent a 'good' S3
+functionality.  Those this is disabled.
 
 -- 
 Ducrot Bruno
