@@ -1,11 +1,11 @@
-From: Mail Delivery Subsystem <MAILER-DAEMON-zn/0lUS+MPvzHCZZHnFgRw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Thu, 28 Aug 2003 16:37:08 +0300 (EEST)
+From: Shaw Residential ISP Postmaster <postmaster-fVOoFLC7IWo@public.gmane.org>
+Subject: Delivery Notification: Delivery has failed
+Date: Thu, 28 Aug 2003 07:38:02 -0600 (MDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200308281337.h7SDb8He007053@bn.utel.com.ua>
+Message-ID: <0HKC00C950JEUG@l-daemon>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status;
-	boundary="h7SDb8He007053.1062077828/bn.utel.com.ua"
+Content-Type: multipart/report;
+ boundary="Boundary_(ID_by6pBZwA9e1xNaqWkCu0PA)"; report-type=delivery-status
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,59 +18,83 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a MIME-encapsulated message
 
---h7SDb8He007053.1062077828/bn.utel.com.ua
+--Boundary_(ID_by6pBZwA9e1xNaqWkCu0PA)
+Content-type: text/plain; charset=us-ascii
+Content-language: en-US
+Content-transfer-encoding: 7BIT
 
-The original message was received at Thu, 28 Aug 2003 16:36:38 +0300 (EEST)
-from lsne-2-189.urbanet.ch [195.202.204.189]
+This report relates to a message you sent with the following header fields:
 
-   ----- The following addresses had permanent fatal errors -----
-<kick-KDMkbwVjgnf0W2CE0TtwzA@public.gmane.org>
-    (reason: 550 5.7.1 Access denied)
+  Return-path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+  Received: from redir.gandi.net (krabby.gandi.net [80.67.173.6])
+   by l-daemon (iPlanet Messaging Server 5.2 HotFix 1.16 (built May 14 2003))
+   with ESMTP id <0HKC00C900JBUG@l-daemon>
+   (original mail from acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org); Thu,
+   28 Aug 2003 07:38:02 -0600 (MDT)
+  Received: from LSM (unknown [163.180.127.185])	by redir.gandi.net (Postfix)
+   with ESMTP id AEC7B304BA	for <tom-oYWzNmWh+UHk1uMJSBkQmQ@public.gmane.org>; Thu,
+   28 Aug 2003 15:35:17 +0200 (CEST)
+  Date: Thu, 28 Aug 2003 22:35:20 +0900
+  From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+  Subject: Re: Wicked screensaver
+  To: <tom-oYWzNmWh+UHk1uMJSBkQmQ@public.gmane.org>
+  Message-id: <20030828133518.AEC7B304BA-wMeaT0RS7U8M9Coc03nIBA@public.gmane.org>
+  MIME-version: 1.0
+  X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+  Content-type: multipart/mixed;	boundary="_NextPart_000_111FFC0C"
+  Importance: Normal
+  X-Priority: 3 (Normal)
+  X-MSMail-priority: Normal
+  X-MailScanner: Found to be clean
 
-   ----- Transcript of session follows -----
-... while talking to renome.rovno.ua.:
->>> MAIL From:<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-<<< 550 5.7.1 Access denied
-554 5.0.0 Service unavailable
+Your message cannot be delivered to the following recipients:
 
---h7SDb8He007053.1062077828/bn.utel.com.ua
-Content-Type: message/delivery-status
+  Recipient address: unhooked-fVOoFLC7IWo@public.gmane.org
+  Reason: Rejected by filter processing
 
-Reporting-MTA: dns; bn.utel.com.ua
-Received-From-MTA: DNS; lsne-2-189.urbanet.ch
-Arrival-Date: Thu, 28 Aug 2003 16:36:38 +0300 (EEST)
+The delivery of this message has been rejected.  This message appears to have the sobig virus.  If you have received this message in error, please change the subject line and resend the message
 
-Final-Recipient: RFC822; kick-KDMkbwVjgnf0W2CE0TtwzA@public.gmane.org
+
+--Boundary_(ID_by6pBZwA9e1xNaqWkCu0PA)
+Content-type: message/delivery-status
+
+Reporting-MTA: dns;l-daemon (shaw_internet-daemon)
+
+Original-recipient: rfc822;unhooked-fVOoFLC7IWo@public.gmane.org
+Final-recipient: rfc822;unhooked-fVOoFLC7IWo@public.gmane.org
 Action: failed
-Status: 5.7.1
-Diagnostic-Code: SMTP; 550 5.7.1 Access denied
-Last-Attempt-Date: Thu, 28 Aug 2003 16:37:08 +0300 (EEST)
+Status: 5.0.0 (Rejected by filter processing)
 
---h7SDb8He007053.1062077828/bn.utel.com.ua
-Content-Type: text/rfc822-headers
+--Boundary_(ID_by6pBZwA9e1xNaqWkCu0PA)
+Content-type: TEXT/RFC822-HEADERS
 
-Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Received: from SAM1 (lsne-2-189.urbanet.ch [195.202.204.189])
-	by bn.utel.com.ua (8.12.9/8.12.8) with ESMTP id h7SDaVHe006636
-	for <kick-KDMkbwVjgnf0W2CE0TtwzA@public.gmane.org>; Thu, 28 Aug 2003 16:36:38 +0300 (EEST)
-Message-Id: <200308281336.h7SDaVHe006636-zn/0lUS+MPvzHCZZHnFgRw@public.gmane.org>
+Return-path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Received: from redir.gandi.net (krabby.gandi.net [80.67.173.6])
+ by l-daemon (iPlanet Messaging Server 5.2 HotFix 1.16 (built May 14 2003))
+ with ESMTP id <0HKC00C900JBUG@l-daemon>
+ (original mail from acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org); Thu,
+ 28 Aug 2003 07:38:02 -0600 (MDT)
+Received: from LSM (unknown [163.180.127.185])	by redir.gandi.net (Postfix)
+ with ESMTP id AEC7B304BA	for <tom-oYWzNmWh+UHk1uMJSBkQmQ@public.gmane.org>; Thu,
+ 28 Aug 2003 15:35:17 +0200 (CEST)
+Date: Thu, 28 Aug 2003 22:35:20 +0900
 From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <kick-KDMkbwVjgnf0W2CE0TtwzA@public.gmane.org>
 Subject: Re: Wicked screensaver
-Date: Thu, 28 Aug 2003 15:36:27 +0200
-X-MailScanner: Found to be clean
-Importance: Normal
+To: <tom-oYWzNmWh+UHk1uMJSBkQmQ@public.gmane.org>
+Message-id: <20030828133518.AEC7B304BA-wMeaT0RS7U8M9Coc03nIBA@public.gmane.org>
+MIME-version: 1.0
 X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MSMail-Priority: Normal
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: QUOTED-PRINTABLE
+Importance: Normal
 X-Priority: 3 (Normal)
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_0050B3DD"
+X-MSMail-priority: Normal
+X-MailScanner: Found to be clean
 
---h7SDb8He007053.1062077828/bn.utel.com.ua--
 
+
+--Boundary_(ID_by6pBZwA9e1xNaqWkCu0PA)--
 
 
 -------------------------------------------------------
