@@ -1,12 +1,13 @@
-From: "Francis Miles" <francismiles_yr-fmLRjs69oMUqdlJmJB21zg@public.gmane.org>
-Subject: Order Royal Replica Watches Online
-Date: Sun, 12 Dec 2004 16:31:04 +0300
-Message-ID: <cae701c4e04e$b89fd33f$54fc5a49@grupohg.net.mx>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: ACPI failures on non-Intel hardware
+Date: Sun, 12 Dec 2004 17:41:41 +0100
+Message-ID: <20041212164141.GC6286@elf.ucw.cz>
+References: <1102805280.5984.30.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1102805280.5984.30.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,29 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
+Hi!
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
+> The fact that I've only seen this on systems that didn't have Intel
+> motherboard chipsets makes me wonder whether there's something going
+> wrong during the suspend code that happens to work by chance on Intel
+> (and a few other) chipsets, or alternatively whether these chipsets
+> manage to fall outside the specs slightly. Any ideas?
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
-
-Visit us: http://www.bhex.com/rep/rolx/
-
-All orders placed before December 12th will be at your door before
-Christmas!
-
-No thanks: http://www.bhex.com/z.php
-
+See some Acer machine if you want to see similar failure on Intel
+system...
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
