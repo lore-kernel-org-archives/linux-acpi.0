@@ -1,43 +1,55 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: s4bios: does anyone use it?
-Date: Tue, 8 Mar 2005 10:20:38 +0100
-Message-ID: <20050308092038.GE31985@poupinou.org>
-References: <20050305191405.GA1463@elf.ucw.cz> <20050307170852.GB31985@poupinou.org> <20050307204401.GA15212@elf.ucw.cz>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [ACPI] s4bios: does anyone use it?
+Date: Tue, 8 Mar 2005 10:18:56 +0100
+Message-ID: <20050308091856.GB16436@elf.ucw.cz>
+References: <16A54BF5D6E14E4D916CE26C9AD305750155EBB0@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20050307204401.GA15212-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD305750155EBB0@pdsmsx402.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Li, Shaohua" <shaohua.li@intel.com>, Andrew Morton <akpm@zip.com.au>
+Cc: Bruno Ducrot <ducrot@poupinou.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, seife@suse.de, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 07, 2005 at 09:44:01PM +0100, Pavel Machek wrote:
+Hi!
 
-> Okay, so we had 2 users in past but have 0 users now? :-).
+> >Okay, so we had 2 users in past but have 0 users now? :-).
+> I wonder how could anyone use S4BIOS in 2.6.11. S4 and S4b all came into
+> 'enter_state'. and in acpi_sleep_init:
+> 
+> 		if (i == ACPI_STATE_S4) {
+> 			if (acpi_gbl_FACS->S4bios_f) {
+> 				sleep_states[i] = 1;
+> 				printk(" S4bios");
+> 				acpi_pm_ops.pm_disk_mode =
+> PM_DISK_FIRMWARE;
+> 			}
+> 			if (sleep_states[i])
+> 				acpi_pm_ops.pm_disk_mode =
+> PM_DISK_PLATFORM;
+> 		}
+> That means we actually can't set PM_DISK_FIRMWARE (always set
+> PM_DISK_PLATFORM). Is this intended? If no, .pm_disk_mode should be a
+> mask.
 
-I don't know.  I remember having at least one positive feedback one or
-two years ago, but this was for an old 2.4 kernel (does that count ?),
-maybe if that guy switched to 2.6 there will be then one user now using
-S4bios under 2.6 who knows :)
+pm_disk_mode is settable using /sys/power/disk, no? Anyway, what about
+this, then?
 
+--- clean/Documentation/feature-removal-schedule.txt	2005-01-22 21:24:50.000000000 +0100
++++ linux/Documentation/feature-removal-schedule.txt	2005-03-08 10:18:05.000000000 +0100
+@@ -15,3 +15,8 @@
+ 	against the LSB, and can be replaced by using udev.
+ Who:	Greg Kroah-Hartman <greg@kroah.com>
+ 
++What:	ACPI S4bios support
++When:	May 2005
++Why:	Noone uses it, and it probably does not work, anyway. swsusp is
++	faster, more reliable, and people are actually using it.
++Who:	Pavel Machek <pavel@suse.cz>
+
+
+								Pavel
 -- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
