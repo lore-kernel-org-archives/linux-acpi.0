@@ -1,13 +1,12 @@
-From: Bernd Pfrommer <berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Acpi_load_tables: Could not load namespace: AE_NOT_FOUND
-Date: Tue, 17 Sep 2002 15:18:52 -0400
+From: Brad Parker <brad-2nKKSigPee+ibv+y4V69FXNtEUiqdi9I@public.gmane.org>
+Subject: Re: Acpi_load_tables: Could not load namespace: AE_NOT_FOUND
+Date: Tue, 17 Sep 2002 21:08:44 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D87801C.3010007@optonline.net>
-Reply-To: berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7BIT
+Message-ID: <200209180108.g8I18iS29958@p2.parker.boston.ma.us>
+References: <berndp@optonline.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: Message from Bernd Pfrommer <berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+   of "Tue, 17 Sep 2002 15:18:52 EDT." <3D87801C.3010007-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,71 +15,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-after many fruitless attempts to get ACPI working with the 2.4.18 or 
-2.4.19 kernel, I'm posting this in case somebody can help.
-The hardware is an Intel manufactured SRMK2 server with a ServerWorks 
-ServerSet IIILE chipset (CNB30LE North Bridge and OSB4 South Bridge), 
-dual PIII 1GHz 256K cache, with 1GB memory. The bios is an AMIBIOS by 
-American Megatrends Inc.
+Bernd Pfrommer wrote:
+...
+>after many fruitless attempts to get ACPI working with the 2.4.18 or 
+>2.4.19 kernel, I'm posting this in case somebody can help.
+>The hardware is an Intel manufactured SRMK2 server with a ServerWorks 
+>ServerSet IIILE chipset (CNB30LE North Bridge and OSB4 South Bridge), 
+>dual PIII 1GHz 256K cache, with 1GB memory. The bios is an AMIBIOS by 
+>American Megatrends Inc.
+...
 
-I configured the 2.4.19 kernel with the following parameters:
+Did you try fixing the DSDT table by hand?  There is a great page on
+how to do this which was posted to this list recently.
 
-CONFIG_ACPI=y
-CONFIG_ACPI_DEBUG=y
-CONFIG_ACPI_BUSMGR=y
-CONFIG_ACPI_SYS=y
-CONFIG_ACPI_CPU=y
-# CONFIG_ACPI_BUTTON is not set
-# CONFIG_ACPI_AC is not set
-# CONFIG_ACPI_EC is not set
-# CONFIG_APM is not set
+http://www.cpqlinux.com/acpi-howto.html
 
-And I get the following errors during boot:
+Basically you dump the table into AML source and then recompile it
+using Intels AML compiler.  Intel's compiler is more strict and
+catches errors which Microsoft's does not.  The page has many good
+tips on how to fix up broken AML code.
 
-Sep 16 14:07:16 foo kernel:  tbxface-0099 [01] Acpi_load_tables      : 
-ACPI Tables successfully loaded
-Sep 16 14:07:16 foo kernel:  tbxface-0106: *** Error: Acpi_load_tables: 
-Could not load namespace: AE_NOT_FOUND
-Sep 16 14:07:16 foo kernel:  tbxface-0115: *** Error: Acpi_load_tables: 
-Could not load tables: AE_NOT_FOUND
-Sep 16 14:07:16 foo kernel: ACPI: System description table load failed
-Sep 16 14:07:16 foo kernel:  utalloc-0504 [03] Ut_dump_allocations   : 
-Outstanding allocations:
-Sep 16 14:07:16 foo kernel: f7e72d88 Len 0038   utalloc-150 Parse_obj 
-Opcode 0010
-Sep 16 14:07:16 foo kernel: f7e72e08 Len 0038   utalloc-150 Parse_obj 
-Opcode 5B82
-Sep 16 14:07:16 foo kernel: f7eaa308 Len 0038   utalloc-150 Parse_obj 
-Opcode 5B82
-Sep 16 14:07:16 foo kernel: f7eab268 Len 0038   utalloc-150 Parse_obj 
-Opcode 5B82
-Sep 16 14:07:16 foo kernel: f7eb8e48 Len 0009  tbconvrt-520
-Sep 16 14:07:16 foo kernel:  utalloc-0598 [03] Ut_dump_allocations   : 
-Total number of unfreed allocations = 5(5)
+Once it compiles clean there is a small patch to 2.4.19+acpi to read
+the table from a file. (the intel aml compiler outputs a hex table as
+C code).
 
-This may be similar to what Jean-Rene  Peulve posted earlier this year, 
-but I could not find any replies to his posting
-http://www.geocrawler.com/archives/3/17428/2002/2/0/7953806/ .
+I did this and it some missing features magically reappeared (like the
+ac-adapter and the battery).
 
-Although I configured for debug messages, the output of 
-ACPI_DEBUG_PRINT() does not show up in dmesg. Does anybody know why that 
-is?
+might be worth a shot...  seems like some/many/most DSDT tables have
+bugs.
 
-Any suggestions what could cause the namespace loading to fail, and how 
-to fix it?
-
-Your help is greatly appreciated!
-
-Thanks,
-
-Bernd
-
-
+-brad
 
 
 -------------------------------------------------------
