@@ -1,12 +1,15 @@
-From: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: /proc/acpi/dsdt empty
-Date: Mon, 28 Mar 2005 21:28:54 -0600
-Message-ID: <62c1cd2705032819287e04e042@mail.gmail.com>
-Reply-To: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Neil Brown <neilb-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>
+Subject: Re: Re: Reading /proc/acpi/battery/BAT0/info causes high latency on Dell Lattitude D800
+Date: Tue, 29 Mar 2005 14:15:52 +1000
+Message-ID: <16968.54904.300842.507973@cse.unsw.edu.au>
+References: <3ACA40606221794F80A5670F0AF15F84041AC15F@pdsmsx403>
+	<16965.56265.916668.235316@cse.unsw.edu.au>
+	<20050328204534.GA28568@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: message from Stefan Seyfried on Monday March 28
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,18 +19,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm not sure what this means, /proc/acpi/dsdt exists but is empty. I'm
-using Ubuntu 5.04-preview on a Dell Inspiron 2600. I'm pretty sure
-that on Ubuntu 4.10 the dsdt wasn't empty like this. Any ideas?
+On Monday March 28, seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org wrote:
+> On Sun, Mar 27, 2005 at 08:01:45AM +1000, Neil Brown wrote:
+> > On Saturday March 26, luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > > Do you have this kind of problem before? Or just this kernel.
+> 
+> it started being this bad between 2.6.10-rc2-bk9 and 2.6.10-rc2-bk10.
+> But only with CONFIG_ACPI_DEBUG
 
--- 
-; Justin Georgeson
-; "Free the mallocs, delete the news"
-; http://www.openoffice.org
-; http://www.boycott-riaa.com
+Oh.... (reconfig, recompile, reboot, retest).
+Yes, you are right.  Drop ACPI_DEBUG and there is no noticeable pause
+while reading /state or /info.
+
+Thanks for that.
+
+Still, it would be nice to have a proper fix.
+
+If anyone wants to track this down and can suggest how I find out how
+DEBUG is slowing things down so much, I'm happy to be a guinea pig.
+
+NeilBrown
 
 
 -------------------------------------------------------
