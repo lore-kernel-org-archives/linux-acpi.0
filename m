@@ -1,13 +1,16 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: network card buzzing
-Date: Thu, 09 Dec 2004 21:42:59 +0000
-Message-ID: <41B8C6E3.3000109@mega.ist.utl.pt>
-References: <41B86243.7090507@mega.ist.utl.pt> <200412091802.41329.Jeroen.Wijnhout@kdemail.net>
+From: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Standby and Suspend-to-ram
+Date: Thu, 9 Dec 2004 22:56:22 +0100
+Message-ID: <e7963922041209135670a65c8d@mail.gmail.com>
+References: <1102613877.15033.6.camel@234-27-251-64.serverpronto.com>
+	 <e796392204120910245c9d0b08@mail.gmail.com>
+	 <1102629156.12348.2.camel@234-27-251-64.serverpronto.com>
+Reply-To: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200412091802.41329.Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
+In-Reply-To: <1102629156.12348.2.camel-gfjW3jh5UF+5yFydGlWEbUf5xaTTgz5TCtyDPXBhZeU@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +20,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jeroen Wijnhout <Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
+To: bschindler-oe7qfRrRQfdfcPYw/2PL0g@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jeroen Wijnhout wrote:
-> On Thursday 09 December 2004 15:33, Pedro Venda wrote:
->=20
->>hi everyone
->>
->>I tought it was normal to have a buzzing on the network card while it
->>transmits/receives high quanitities of data and using almost all of it'=
-s
->>bandwidth... I had such a network card on my desktop and now my laptop =
-does
->>the same.
->>
->>the laptop is a (smart-battery powered) acer travelmate 4001 WLMi and t=
-he
->>network card is a broadcom (b44) 10/100Mbps.
->=20
->=20
-> I have exactly the same laptop, never heard any buzzing, not with LAN o=
-r WLAN.
-
-wlan doesn't make any buzz...
-
-on the other hand, I know two more people with tm4001 that have the same=20
-issue. we all run gentoo.
-
-regards,
-pedro venda.
---=20
-
-Pedro Jo=E3o Lopes Venda
-email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
-http://arrakis.dhis.org
+On Thu, 09 Dec 2004 22:52:36 +0100, Benjamin Schindler
+<bschindler-oe7qfRrRQfdfcPYw/2PL0g@public.gmane.org> wrote:
+> Yes, I have a radeon. What tool are you talking about? Sounds
+> interesting ;)
+> Do you guys have any idea what could be the cause of standby not working
+> correctly?
+I think you will find everything needed there:
+http://www.doesi.gmxhome.de/linux/tm800s3/s3.html
 
 
 -------------------------------------------------------
