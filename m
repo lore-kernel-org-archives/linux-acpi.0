@@ -1,36 +1,48 @@
-From: Brad Campbell <brad@wasp.net.au>
-Subject: Re: libata Promise driver regression 2.6.5->2.6.6
-Date: Mon, 17 May 2004 23:13:38 +0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <40A90EE2.3040507@wasp.net.au>
-References: <A6974D8E5F98D511BB910002A50A6647615FB7A9@hdsmsx403.hd.intel.com> <1084820518.12349.347.camel@dhcppc4>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [2.6.6] Synaptics driver is 'jumpy'
+Date: 17 May 2004 15:19:13 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1084821553.12352.358.camel@dhcppc4>
+References: <A6974D8E5F98D511BB910002A50A6647615FBC01@hdsmsx403.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S262238AbUEQTOF@vger.kernel.org>
-In-Reply-To: <1084820518.12349.347.camel@dhcppc4>
-To: Len Brown <len.brown@intel.com>
-Cc: Sergey Vlasov <vsu@altlinux.ru>, linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <A6974D8E5F98D511BB910002A50A6647615FBC01-N2PTB0HCzHJviC08c4yzC1DQ4js95KgL@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
+On Mon, 2004-05-17 at 03:04, Jan De Luyck wrote:
+2.6.6 dmesg:
 
-> LNKH would have hit the bug fixed in 2665.
-> However, LNKH isn't enabled, so we don't hit that bug.
-> 
-> LNKC, OTOH, is already enabled on IRQ12; and both
-> 2.6.5 and 2.6.6 will leave it there unless you explicity
-> tell Linux to move IRQs in PIC mode with "acpi_irq_balance".
-> 
-> apples/apples comparison would be to boot your 2.6.5 kernel with
-> "noapic".  I expect 2.6.5 will have the same issue with IRQ12
-> in PIC mode.  Unusual for a BIOS to put PCI devices on IRQ12 like
-> that...
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 9 11 12) *10
+ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 12
 
-Err.. yeah, I'm not quite sure why but a make oldconfig on my 2.6.5 config did not enable apic.
-Rather than boot 2.6.5 noapic, I enabled apic on 2.6.6 and the dmesg compares perfectly to the 2.6.5 
-one, right up until it tries to probe the 9th disk where it proceeds to dma timeout and then cease 
-to listen to anything..
+Detected ipw2100 PCI device at 0000:02:04.0, dev: eth1, mem:
+0xD0206000-0xD0206FFF -> e19e8000, irq: 12
 
-Regards,
-Brad
+You need this patch:
+http://bugme.osdl.org/show_bug.cgi?id=2665
+available also in the -mm patch
+and also in the latest 2.6.7 tree:
+http://linux.bkbits.net:8080/linux-2.5/gnupatch-GV/8B+QdpNe99h1UQWNUN51JT3bfCTL673V4Sm1hnq8@public.gmane.org
+
+-Len
+
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: SourceForge.net Broadband
+Sign-up now for SourceForge Broadband and get the fastest
+6.0/768 connection for only $19.95/mo for the first 3 months!
+http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
