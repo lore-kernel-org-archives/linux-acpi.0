@@ -1,95 +1,51 @@
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Mail Delivery failed: returning to sender.
-Date: Mon, 14 Feb 2005 11:14:57 +0000
-Message-ID: <E1D0eBt-0000NY-1O@mailkick-21.mail.nl.demon.net>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: "Jean Delvare" <khali@linux-fr.org>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Mon, 14 Feb 2005 13:13:30 +0100 (CET)
+Message-ID: <CKthPPXN.1108383209.9808960.khali@localhost>
+References: <20050214100738.GC3233@crusoe.alcove-fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+In-Reply-To: <20050214100738.GC3233@crusoe.alcove-fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stelian@popies.net
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, Pekka Enberg <penberg@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Subject: Mail Delivery failed: returning to sender
 
-This message was created automatically by mail delivery software.
+Hi Stelian, all,
 
-A message that you sent could not be delivered to all of its recipients. 
-The following address(es) failed:
+On 2005-02-14, Stelian Pop wrote:
+> I have some interesting information from one user, who noticed that:
+>
+> * pbr is the power-on brightness. It's the brightness that the
+>   laptop uses at power-on time.
 
-  smcc.demon.nl [212.238.157.128]:
+Hey, that makes full sense. After playing around with the debug mode, I
+noticed that the brightness was at the minimum level on next boot. I
+thought it was related to the fact that I didn't have the opportunity
+to stop my system cleanly, but it is indeed possible that I had written
+0 to pbr before the crash. Will test this evening.
 
-RSET
-250 flushed
-MAIL FROM:<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-250 ok
-RCPT TO:<nemosoft-uBJCvfnM1px5YqklawuBOA@public.gmane.org>
-550 See http://spf.pobox.com/why.html?sender=acpi-devel%40lists.sourceforge.net&ip=194.159.73.159&receiver=0 (#5.7.1)
+This reminds me of a related thing I had noticed some times ago but
+couldn't explain back then. Brightness changes made under Linux using
+spicctrl always seemed to be temporary (lost over reboot) while those
+made under Windows on the same laptop were permanent (preserved over
+reboot). Now I have to believe that spicctrl was only changing brt,
+while the Windows tool was probably changing both brt and pbr?
 
------ Original Message Follows ------
+So, what about either renaming pbr to brightness_default, or making the
+brightness file dual-valued (several acpi files do that already)? And I
+guess that the pbr value would need to be limited to the 0-8 range just
+like is done for brt.
 
- Received: from store-21.mail.nl.demon.net by mailstore for nemosoft-uBJCvfnM1px5YqklawuBOA@public.gmane.org
- 	id 1D0e2r-000I1K-3K-000I1M; Mon, 14 Feb 2005 11:05:37 +0000
- Received: from [194.159.73.162] (port=3188 helo=incoming-22.mail.nl.demon.net)
- 	by store-21.mail.nl.demon.net with esmtp (Exim 4.43)
- 	id 1D0e2r-000I1K-3K
- 	for nemosoft-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Mon, 14 Feb 2005 11:05:37 +0000
- Received: from host2-49.pool8288.interbusiness.it ([82.88.49.2]:4850 helo=smcc.demon.nl)
- 	by incoming-22.mail.nl.demon.net with esmtp (Exim 4.43)
- 	id 1D0e2p-0007up-GN
- 	for nemosoft-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Mon, 14 Feb 2005 11:05:36 +0000
- From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
- To: nemosoft-uBJCvfnM1px5YqklawuBOA@public.gmane.org
- Subject: Mail Delivery (failure nemosoft-uBJCvfnM1px5YqklawuBOA@public.gmane.org)
- Date: Mon, 14 Feb 2005 12:05:40 +0100
- MIME-Version: 1.0
- Content-Type: multipart/related;
- 	type="multipart/alternative";
- 	boundary="----=_NextPart_000_001B_01C0CA80.6B015D10"
- X-Priority: 3
- X-MSMail-Priority: Normal
- 
- This is a multi-part message in MIME format.
- 
- ------=_NextPart_000_001B_01C0CA80.6B015D10
- Content-Type: multipart/alternative;
- 	boundary="----=_NextPart_001_001C_01C0CA80.6B015D10"
- 
- ------=_NextPart_001_001C_01C0CA80.6B015D10
- Content-Type: text/plain;
- 	charset="iso-8859-1"
- Content-Transfer-Encoding: quoted-printable
- 
- ------=_NextPart_001_001C_01C0CA80.6B015D10
- Content-Type: text/html;
- 	charset="iso-8859-1"
- Content-Transfer-Encoding: quoted-printable
- 
- <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
- <HTML><HEAD>
- <META content=3D"text/html; charset=3Diso-8859-1" =
- http-equiv=3DContent-Type>
- <META content=3D"MSHTML 5.00.2920.0" name=3DGENERATOR>
- <STYLE></STYLE>
- </HEAD>
- <BODY bgColor=3D#ffffff>If the message will not displayed automatically,<br>
- follow the link to read the delivered message.<br><br>
- Received message is available at:<br>
- <a href=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0>www.smcc.demon.nl/inbox/nemosoft/read.php?sessionid-22502</a>
- <iframe
- src=3Dcid:031401Mfdab4$3f3dL780$73387018@57W81fa70Re height=3D0 width=3D0></iframe> 
- <DIV>&nbsp;</DIV></BODY></HTML>
- 
+> * cdp is the CD-ROM power. Writing 0 to cdp turns off the cdrom in
+>   order to save a bit of power consumption.
 
-[snip - Remainder of message]
+I don't seem to have cdp on my system. Is this something I need to
+manually activate in the driver, or does it simply mean that my laptop
+doesn't support that feature?
 
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Thanks,
+--
+Jean Delvare
