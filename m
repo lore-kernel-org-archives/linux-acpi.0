@@ -1,14 +1,12 @@
-From: Brian Perkins <bperk-7GtV0IYKK74tA4QZiFxQkx2eb7JE58TQ@public.gmane.org>
-Subject: Re: acpi events -- problem on ThinkPad T41P
-Date: Sun, 29 Feb 2004 14:42:06 -0500
+From: Vladimir Volcko <konference-X2ABGLaSPc4@public.gmane.org>
+Subject: A30-303 - acpi-20040211-2.4.25 - battery state error
+Date: Sun, 29 Feb 2004 20:50:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4042408E.1070801@throb.netspace.org>
-References: <1077631684.403b5ac4e6272@imp5-q.free.fr> <1077687901.5913.100.camel@dhcppc4> <20040227184204.GT19633@sowerbutts.com>
+Message-ID: <4042428E.8000702@pcs.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040227184204.GT19633-ffEBwZeNOFERmelmmXo44Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,133 +15,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: William R Sowerbutts <will-ffEBwZeNOFERmelmmXo44Q@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-http://bugme.osdl.org/show_bug.cgi?id=3D1661 describes this problem.
+Hello all!!
 
-Unfortunately for me, the proposed patch which used to work with=20
-2.6-test11 doesn't work with 2.6.3 with my thinkpad R32.
+  On my Toshiba A30-303 - vanilla kernel 2.4.25 (acpi 20040116) or 
+kernel 2.4.25 + acpi-20040211-2.4.25.diff.bz2
+or kernel 2.4.24 + acpi-20040211-2.4.24.diff.bz2 I have problem with 
+battery state monitoring ...  aproximately after 15-45 minutes of 
+computer running I don't get right battery state. For monitoring I am 
+using KDE Kapacity program, which check state of battery each 60 s. 
+(errors described below)
 
-I was waiting until the acpi-CA 20040220 is in the acpi-linux patch=20
-before I started complaining.
+[root-BuUY8psAA2Y@public.gmane.org /]# cat /proc/acpi/battery/BAT1/state
+present:                 yes
+ERROR: Unable to read battery status
 
+/var/log/messages is full of folowing messages:
+Feb 29 19:13:22 sys kernel: acpi_battery-0195 [998] 
+acpi_battery_get_statu: Error evaluating _BST
+Feb 29 19:13:42 sys kernel:  dswload-0279: *** Error: Looking up [PBST] 
+in namespace, AE_ALREADY_EXISTS
+Feb 29 19:13:42 sys kernel:  psparse-0588 [1005] ps_parse_loop         : 
+During name lookup/catalog, AE_ALREADY_EXISTS
 
-William R Sowerbutts wrote:
-> Hi,
->=20
-> I have a similar problem with ACPI on my IBM ThinkPad T41P with Linux
-> 2.6.3-mm4 (built without APIC support).
->=20
-> After a reboot I get power button and lid open/close events reported to=
- acpid
-> through /proc/acpi/event, but after sending the laptop to ACPI S3 sleep=
- mode
-> and awakening it these events stop appearing.
->=20
-> The acpi interrupt is not incremented. No strange messages errupt forth=
- from=20
-> the kernel.
->=20
-> Any ideas?
->=20
-> Thanks,
->=20
-> Will
->=20
->=20
-> On Wed, Feb 25, 2004 at 12:45:01AM -0500, Len Brown wrote:
->=20
->>does the power button result in incrementing the acpi interrupt in
->>/proc/interrupts?
->>
->>if no, then we've got your SCI configured incorrectly, something I'm
->>looking at right now.
->>
->>if /proc/interrupts shows IOAPIC mode, you're probably suffering from
->>this one:
->>
->>http://bugzilla.kernel.org/show_bug.cgi?id=3D1622
->>
->>though if you send me your acpidmp output, /proc/interrupts, and dmesg,
->>I can tell for sure.
->>
->>cheers,
->>-len
->>
->>On Tue, 2004-02-24 at 09:08, sweafty-GANU6spQydw@public.gmane.org wrote:
->>
->>>Hi,
->>>
->>>I've got some problems with ACPI / Dell Inspiron 5100 (bios revision A=
-26). I
->>>tried all kernels since 2.6.1, and i always got the same issue: There =
-is no ACPI
->>>event writen to /proc/acpi/event.=20
->>>
->>>I close the lid (its state gets changed from 'open' to 'close') =3D> n=
-o event
->>>I push power button =3D> no event
->>>
->>>Through boot messages (dmesg), all these are detected. Can somebody he=
-lp me
->>>figuring out what the problem is ?
->>>
->>>Cheers,
->>>
->>>--
->>>Philippe
->>>
->>>
->>>-------------------------------------------------------
->>>SF.Net is sponsored by: Speed Start Your Linux Apps Now.
->>>Build and deploy apps & Web services for Linux with
->>>a free DVD software kit from IBM. Click Now!
->>>http://ads.osdn.com/?ad_id=1356&alloc_id438&op=3Dclick
->>>_______________________________________________
->>>Acpi-devel mailing list
->>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
->>
->>
->>
->>-------------------------------------------------------
->>SF.Net is sponsored by: Speed Start Your Linux Apps Now.
->>Build and deploy apps & Web services for Linux with
->>a free DVD software kit from IBM. Click Now!
->>http://ads.osdn.com/?ad_id=3D1356&alloc_id=3D3438&op=3Dclick
->>_______________________________________________
->>Acpi-devel mailing list
->>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>https://lists.sourceforge.net/lists/listinfo/acpi-devel
->>
->>
->=20
->=20
->=20
-> _______________________________________________________________________=
-__
-> William R Sowerbutts                                  will-ffEBwZeNOFGbNrsf2+g7sw@public.gmane.org=
-om
-> Coder / Guru / Nrrrd                                http://sowerbutts.c=
-om
->          main(){char*s=3D">#=3D0> ^#X@#@^7=3D",c=3D0,m;for(;c<15;c++)fo=
-r
->          (m=3D-1;m<7;putchar(m++/6&c%3/2?10:s[c]-31&1<<m?42:32));} =20
->=20
->=20
->=20
-> -------------------------------------------------------
-> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> Build and deploy apps & Web services for Linux with
-> a free DVD software kit from IBM. Click Now!
-> http://ads.osdn.com/?ad_id=1356&alloc_id438&op=CCk
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->=20
+I found thread with similar problem (2.6.3 + D600 + battery state + 
+BUG?? [Was] Battery status sometimes missing), but no solution.
+
+Any idea what is wrong?
+
+With regard Vladimir Volcko
+
+PS: sorry for my english ;-)
+
 
 
 
