@@ -1,158 +1,100 @@
 From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: down_timeout
-Date: Fri, 3 Oct 2003 15:25:18 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031003142518.GN24824@parcelfarce.linux.theplanet.co.uk>
-References: <3F7D6DA1.9070801@namesys.com>
+Subject: Why does gcc suck at switch()?
+Date: Fri, 3 Oct 2003 15:56:14 +0100
+Sender: gcc-owner-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org
+Message-ID: <20031003145614.GP24824@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <gcc-return-83540-gcc-@public.gmane.org>
+List-Unsubscribe: <mailto:gcc-unsubscribe-gcc-@public.gmane.org>
+List-Archive: <http://gcc.gnu.org/ml/gcc/>
+List-Post: <mailto:gcc-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org>
+List-Help: <http://gcc.gnu.org/ml/>
 Content-Disposition: inline
-In-Reply-To: <3F7D6DA1.9070801-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Yury Umanets <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gcc-/MQLu3FmUzdAfugRpC6u6w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-[l-k people, skip to the bottom, that's where down_timeout is]
+Why does gcc generate worse code for switch() statements than for
+multiple-if?
 
-On Fri, Oct 03, 2003 at 04:37:53PM +0400, Yury Umanets wrote:
-> Thus, @quantum_ms will be calculated longer for shorter HZ and this is 
-> definitelly not good in my opinion. Am I right?
+$ gcc --version
+gcc (GCC) 3.3.2 20030908 (Debian prerelease)
 
-You're right, but for the wrong reason.  This code is pretty inaccurate
-as it's relying on the result of integer divides.  This code should
-work better (disclaimer: compiled, not tested):
+I would expect a compiler to produce the same code for these cases.
+Instead, switch is worse than the multiple-if:
 
-Index: drivers/acpi/osl.c
-===================================================================
-RCS file: /var/cvs/linux-2.6/drivers/acpi/osl.c,v
-retrieving revision 1.3
-diff -u -p -r1.3 osl.c
---- drivers/acpi/osl.c	23 Aug 2003 02:46:37 -0000	1.3
-+++ drivers/acpi/osl.c	3 Oct 2003 14:02:44 -0000
-@@ -827,7 +827,6 @@ acpi_os_wait_semaphore(
- {
- 	acpi_status		status = AE_OK;
- 	struct semaphore	*sem = (struct semaphore*)handle;
--	int			ret = 0;
- 
- 	ACPI_FUNCTION_TRACE ("os_wait_semaphore");
- 
-@@ -842,56 +841,28 @@ acpi_os_wait_semaphore(
- 	if (in_atomic())
- 		timeout = 0;
- 
--	switch (timeout)
--	{
--		/*
--		 * No Wait:
--		 * --------
--		 * A zero timeout value indicates that we shouldn't wait - just
--		 * acquire the semaphore if available otherwise return AE_TIME
--		 * (a.k.a. 'would block').
--		 */
--		case 0:
--		if(down_trylock(sem))
--			status = AE_TIME;
--		break;
--
--		/*
--		 * Wait Indefinitely:
--		 * ------------------
--		 */
--		case ACPI_WAIT_FOREVER:
-+	if (timeout == ACPI_WAIT_FOREVER) {
- 		down(sem);
--		break;
--
--		/*
--		 * Wait w/ Timeout:
--		 * ----------------
--		 */
--		default:
--		// TODO: A better timeout algorithm?
--		{
--			int i = 0;
--			static const int quantum_ms = 1000/HZ;
--
-+	} else if (down_trylock(sem) == 0) {
-+		/* Success, do nothing */
-+	} else {
-+		long now = jiffies;
-+		int ret = 1;
-+		while (jiffies < now + timeout * HZ) {
-+			current->state = TASK_INTERRUPTIBLE;
-+			schedule_timeout(1);
- 			ret = down_trylock(sem);
--			for (i = timeout; (i > 0 && ret < 0); i -= quantum_ms) {
--				current->state = TASK_INTERRUPTIBLE;
--				schedule_timeout(1);
--				ret = down_trylock(sem);
--			}
--	
--			if (ret != 0)
--				status = AE_TIME;
-+			if (!ret)
-+				break;
- 		}
--		break;
-+		if (ret)
-+			status = AE_TIME;
- 	}
- 
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_DEBUG_PRINT ((ACPI_DB_ERROR, "Failed to acquire semaphore[%p|%d|%d], %s\n", 
- 			handle, units, timeout, acpi_format_exception(status)));
--	}
--	else {
-+	} else {
- 		ACPI_DEBUG_PRINT ((ACPI_DB_MUTEX, "Acquired semaphore[%p|%d|%d]\n", handle, units, timeout));
- 	}
- 
+-       switch (event) {
+-       case ACPI_THERMAL_NOTIFY_TEMPERATURE:
++       if (event == ACPI_THERMAL_NOTIFY_TEMPERATURE) {
+                acpi_thermal_check(tz);
+-               break;
+-       case ACPI_THERMAL_NOTIFY_THRESHOLDS:
++       } else if (event == ACPI_THERMAL_NOTIFY_THRESHOLDS) {
+                acpi_thermal_get_trip_points(tz);
+                acpi_thermal_check(tz);
+                acpi_bus_generate_event(device, event, 0);
+-               break;
+-       case ACPI_THERMAL_NOTIFY_DEVICES:
++       } else if (event == ACPI_THERMAL_NOTIFY_DEVICES) {
+                if (tz->flags.devices)
+                        acpi_thermal_get_devices(tz);
+                acpi_bus_generate_event(device, event, 0);
+-               break;
+-       default:
++       } else {
+                ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+                        "Unsupported event [0x%x]\n", event));
+-               break;
+        }
 
-[l-k people, this is the interesting bit]
+$ size *.o
+   text    data     bss     dec     hex filename
+   5996     704      16    6716    1a3c thermal-multiple-if.o
+   6005     704      16    6725    1a45 thermal-switch.o
 
-It's still not great because it doesn't preserve ordering.  down_timeout()
-would be a much better primitive.  We have down_interruptible() which
-could be used for this purpose.  Something like (completely uncompiled):
+Here's the asm diff between the two versions:
 
-/* Returns -EINTR if the timeout expires */
-int down_timeout(struct semaphore *sem, long timeout)
-{
-	struct timer_list timer;
-	int result;
+-       cmpl    $129, %esi
+-       je      .L597
+-       cmpl    $129, %esi
+-       ja      .L602
+-       addl    $-128, %esi
+-       je      .L596
+-       jmp     .L592
+-.L602:
+-       cmpl    $130, %esi
+-       je      .L598
+-       jmp     .L592
+-.L596:
++       cmpl    $128, %esi
++       jne     .L595
+ ...
+-.L597:
++.L595:
++       cmpl    $129, %esi
++       jne     .L597
+ ...
+-.L598:
++.L597:
++       cmpl    $130, %esi
++       jne     .L592
 
-	init_timer(&timer);
-	timer.expires = timeout + jiffies;
-	timer.data = (unsigned long) current;
-	timer.function = process_timeout;
+The other diffs are just label numbers changing.  Given that gcc was
+instructed to optimise for space (full command line:
 
-	add_timer(&timer);
-	result = down_interruptible(sem);
-	del_timer_sync(&timer);
+gcc -Wp,-MD,drivers/acpi/.thermal.o.d -nostdinc -iwithprefix include \
+	-D__KERNEL__ -Iinclude  -D__KERNEL__ -Iinclude  -Wall \
+	-Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing \
+	-fno-common -pipe -mpreferred-stack-boundary=2 -march=i686 \
+	-Iinclude/asm-i386/mach-default -fomit-frame-pointer  -Os   \
+	-DKBUILD_BASENAME=thermal -DKBUILD_MODNAME=thermal -c \
+	-o drivers/acpi/thermal.o drivers/acpi/thermal.c
 
-	return result;
-}
-
-(This would have to go in kernel/timer.c as that's where process_timeout
-lives).
+I think it should choose the more space-efficient approach.
 
 -- 
 "It's not Hollywood.  War is real, war is primarily not about defeat or
 victory, it is about death.  I've seen thousands and thousands of dead bodies.
 Do you think I want to have an academic debate on this subject?" -- Robert Fisk
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
