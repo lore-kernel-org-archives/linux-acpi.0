@@ -1,12 +1,13 @@
-From: "Imelda Clay" <iclay_yg-OOKWOsXktYj0CCvOHzKKcA@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Sat, 27 Nov 2004 12:11:31 -0500
-Message-ID: <2e3b01c4d4a4$e09c63d9$e6743351@blaese.de>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: [PATCHES] add _CST support
+Date: Sat, 27 Nov 2004 22:56:38 +0100
+Message-ID: <20041127215638.GA30377@dominikbrodowski.de>
+References: <20041127215118.GA30309@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041127215118.GA30309-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,33 +17,15 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+> and zipped
+> http://www.brodo.de/patches/2004-11-27/01-acpi-20041127-complete (~36KB)
+http://www.brodo.de/patches/2004-11-27/01-acpi-20041127-complete.gz
 
-Do you want a rolex watch?
-
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
-
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.icors.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.icors.com/z.php
-
+Sorry,
+	Dominik
 
 
 -------------------------------------------------------
