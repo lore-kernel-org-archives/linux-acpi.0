@@ -1,16 +1,14 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: HP/Compaq NC6120 ACPI problems
-Date: Sat, 19 Mar 2005 03:19:34 +0000
-Message-ID: <1111202374.8136.210.camel@tyrosine>
-References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
-	 <1111088904.11380.36.camel@eeyore>
-	 <20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
-	 <1111104319.8136.182.camel@tyrosine>
-	 <20050318192300.629e2148.andrej.prsa@guest.arnes.si>
+From: Andre Eisenbach <int2str-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: S3 resume and other ACPI questions
+Date: Fri, 18 Mar 2005 19:33:48 -0800
+Message-ID: <7f800d9f050318193340df70a9@mail.gmail.com>
+References: <7f800d9f05022815286a10ddf6@mail.gmail.com>
+	 <20050308095722.GA16798@elf.ucw.cz>
+Reply-To: Andre Eisenbach <int2str-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050318192300.629e2148.andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
+In-Reply-To: <20050308095722.GA16798-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,26 +18,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-03-18 at 19:23 +0100, Andrej Prsa wrote:
+On Tue, 8 Mar 2005 10:57:22 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+> Read Doc*/power/video.txt. Send me a patch when you get it working.
 
-> Tried it, unfortunately the outcome is still the same; I used the patch
-> against 2.6.11.4 kernel *without* any other ACPI patch. Should I use the
-> patch you provided over the ACPI patch or was it supposed to fix the fan
-> issue by itself? Seemingly the problem is the fan; is there a way to
-> test this to be sure?
+Hello Pavel, all,
 
-Hmm. Yes, I can now repeat this with a 6220, though most of the time I
-manage it it seems to be linked to a suspend to disk beforehand. I
-suspect this /may/ be linked to the fact that on the 6120, only the
-first lid event is received. I'll see if I can track this down over the
-weekend.
+I've read video.txt and it got me further actually. Thanks for that.
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+I've recompiled the kernel without any fbcon etc. and use the "radeon"
+display driver within X windows (Gentoo patched version). This way I
+can actually resume from S3 now, and get right back into X. Really
+quickly, too.
 
+However, the hard drive does not seem to fair so well. The hdd
+activity LED remains on and the drive does not seem responsive (but
+spinning). The laptop slows to a crawl and any executable that causes
+disc access (i.e. it's not cached or reads config files etc). Won't
+execute.
+
+dmesg seems to work, but doesn't really show anything. After the
+"stopping tasks" I get a weird "Back from C!" message, but that's
+about it.
+
+What could I try from here?
+
+I tried the suspend patch offered on the Acer TM 800 page linked in
+video.txt, but it did not make a difference.
+
+Side note:
+I'm sorry there is no patch attached to this email, or probably any
+email in the near future. I am trying to work myself into the subject,
+but - as you know - it's very hard. And asides from the ACPI specs,
+there doesn't even seem to be a good document describing how it's
+supposed to work and which elements have to be in which place for this
+all to work.
+However, I hope I can help debugging and contribute to your well
+appreciated efforts at least a little bit. Hey, maybe one day I'll
+even have a patch to attach - even if it only fixes a typo ;).
+
+Thanks,
+    Andre
 
 
 -------------------------------------------------------
