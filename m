@@ -1,16 +1,16 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Allow ACPI_CUSTOM_DSDT for IA64
-Date: 25 Oct 2004 17:55:12 -0400
+From: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Acer Aspire 1705SMi LNKx?
+Date: Mon, 25 Oct 2004 21:18:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098741312.27397.166.camel@d845pe>
-References: <3ACA40606221794F80A5670F0AF15F8403BD57CF@pdsmsx403>
-	 <1098418443.2096.8.camel@d845pe>
-	 <20041025134914.A8649@unix-os.sc.intel.com>
+Message-ID: <8d158e1f04102512187c4ccb1f@mail.gmail.com>
+References: <3ACA40606221794F80A5670F0AF15F84041ABFE3@pdsmsx403>
+	 <8d158e1f04102512101b5808e2@mail.gmail.com>
+Reply-To: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041025134914.A8649-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <8d158e1f04102512101b5808e2-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,52 +19,174 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yi Zhu <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, brian-/bzczjCP1d2sTnJN9+BGXg@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: =?ISO-8859-1?Q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+Forget the "last errors fixed" part in my last email. I still see them :(
+Everything seems to work tho so I have no idea what this error is about.
 
-thanks,
--Len
+Patrick
 
-On Mon, 2004-10-25 at 16:49, Keshavamurthy Anil S wrote:
-> On Fri, Oct 22, 2004 at 12:14:03AM -0400, Len Brown wrote:
-> > DSDT overrides are for developers and experimentation,
-> > not for production use.  Developers know how to build kernels,
-> > and those that don't use initrd's can't use the initrd
-> > method anyway.
-> 
-> Hi Len,
->         Currently DSDT override patch is available only on X86 and
-> this is required for IA64 too.
-> 
-> The attached patch(for 2.6.10-rc1)make this option available on IA64.
-> Will you please consider applying this path.
-> 
-> ---
-> 
->  linux-2.6.10-rc1-askeshav/drivers/acpi/Kconfig |    2 +-
->  1 files changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff -puN drivers/acpi/Kconfig~config_dsdt drivers/acpi/Kconfig
-> --- linux-2.6.10-rc1/drivers/acpi/Kconfig~config_dsdt   2004-10-25
-> 13:43:37.078238831 -0700
-> +++ linux-2.6.10-rc1-askeshav/drivers/acpi/Kconfig      2004-10-25
-> 13:45:31.171987433 -0700
-> @@ -215,7 +215,7 @@ config ACPI_TOSHIBA
-> 
->  config ACPI_CUSTOM_DSDT
->         bool "Include Custom DSDT"
-> -       depends on X86 && ACPI_INTERPRETER && !STANDALONE
-> +       depends on ACPI_INTERPRETER && !STANDALONE
->         default n
->         help
->           Thist option is to load a custom ACPI DSDT
-> _
-> 
-> 
 
+On Mon, 25 Oct 2004 21:10:41 +0200, Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wro=
+te:
+> Hi,
+>=20
+> I can send you the output of a "diff -u5" so you can see what I did if
+> you llike.
+> Next to the DSDT changes I patched my vanilla 2.6.9 kernel with the
+> latest Alax Cox patch (-ac4) which also solved the last errors about
+> the LNKx errors. So my guess is that it is both an DSDT plus an kernel
+> issue.
+>=20
+> Maybe Windows has some nifty way of not needing the exact/specific
+> adresses for hardware/functionality, I dunno, I am not a programmer :D
+>=20
+> Let me know if you want the diff file and i'll send you right away.
+>=20
+> Cheers,
+>=20
+>=20
+>=20
+> Patrick
+>=20
+> On Mon, 25 Oct 2004 23:52:27 +0800, Yu, Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrot=
+e:
+> > It's nice to hear that you have fixed the buggy DSDT.
+> > But I want to say MS windows should be ok with
+> > the original DSDT, which breaks linux somehow.
+> > To make sure linux can live with the original one,
+> > I think we need to identify the quirks in the specific box, that
+> > we can take into linux acpi for the sake of compatibility.
+> > So, please give a brief description on what you did.
+> >
+> > Thanks
+> > Luming
+> >
+> >
+> >
+> > >-----Original Message-----
+> > >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of
+> > >Patrick Ale
+> > >Sent: 2004=E5=B9=B410=E6=9C=8825=E6=97=A5 22:31
+> > >To: Ois=C3=ADn Mac Fheara=C3=AD
+> > >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > >Subject: Re: [ACPI] Acer Aspire 1705SMi LNKx?
+> > >
+> > >Hello,
+> > >
+> > >I'd be interested in the answer on this question aswell.
+> > >On my Aspire 1703SM battery, temperature reading et all is working now
+> > >(long live boring sundays where one has nothing better to do than
+> > >drinking coffee and try to fix stuff).
+> > >
+> > >If anyone is interested in the modified DSDT I am using now, please
+> > >send me an email and I'll hook you up.
+> > >
+> > >BIG PHAT WARNING: DO NOT, and again I repeat DO NOT use ANY of the
+> > >1703 series DSDT from the repository on acpi.sourceforge.net. The DSDT
+> > >for the SMi and SCME will do stuff that you dont want, like 50 ACPI
+> > >errors in your syslog every second or a temperature that says 255C.
+> > >
+> > >The modifications to the DSDT of the 1703SM ARE the same as the ones
+> > >in the repository, just on different lines of the dsl file.
+> > >
+> > >
+> > >Thanks for all the people that helped me out.
+> > >
+> > >Patrick
+> > >
+> > >
+> > >On Mon, 25 Oct 2004 09:09:41 +0100, Ois=C3=ADn Mac Fheara=C3=AD
+> > ><destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org> wrote:
+> > >> I finally got around to compiling in my custom DSDT for my
+> > >Acer Aspire 1705SMi
+> > >> laptop, and have battery giving useful information now.
+> > >>
+> > >> However, there's still some somewhat confusing messages at
+> > >bootup; can anyone
+> > >> shed some light on this - is it bad/fixable?
+> > >>
+> > >> PCI: Ignoring BAR0-3 of IDE controller 0000:00:02.5
+> > >> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+> > >> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGPB._PRT]
+> > >>   uteval-0205: *** Error: Return object type is incorrect
+> > >> [\_SB_.PCI0.LPCB.LNKA._CRS] (Node dfdeb7a8), AE_TYPE
+> > >> ACPI: PCI Interrupt Link [LNKA] (IRQs 7 10) *0
+> > >> ACPI: PCI Interrupt Link [LNKB] (IRQs 3) *0, disabled.
+> > >>   uteval-0205: *** Error: Return object type is incorrect
+> > >> [\_SB_.PCI0.LPCB.LNKC._CRS] (Node dfde93a8), AE_TYPE
+> > >> ACPI: PCI Interrupt Link [LNKC] (IRQs 5) *0
+> > >>   uteval-0205: *** Error: Return object type is incorrect
+> > >> [\_SB_.PCI0.LPCB.LNKD._CRS] (Node dfde91a8), AE_TYPE
+> > >> ACPI: PCI Interrupt Link [LNKD] (IRQs 7 10) *0
+> > >>   uteval-0205: *** Error: Return object type is incorrect
+> > >> [\_SB_.PCI0.LPCB.LNKE._CRS] (Node dfdeaea8), AE_TYPE
+> > >> ACPI: PCI Interrupt Link [LNKE] (IRQs 7 10) *0
+> > >>   uteval-0205: *** Error: Return object type is incorrect
+> > >> [\_SB_.PCI0.LPCB.LNKF._CRS] (Node dfdeaca8), AE_TYPE
+> > >> ACPI: PCI Interrupt Link [LNKF] (IRQs 7 10) *0
+> > >>   uteval-0205: *** Error: Return object type is incorrect
+> > >> [\_SB_.PCI0.LPCB.LNKG._CRS] (Node dfdeaaa8), AE_TYPE
+> > >> ACPI: PCI Interrupt Link [LNKG] (IRQs 7 10) *0
+> > >> ACPI: PCI Interrupt Link [LNKH] (IRQs 7 10) *0, disabled.
+> > >>
+> > >> The portions of the DSDT in question are like this (in this
+> > >instance, in
+> > >> Device (LNKA)):
+> > >>
+> > >>                     Method (_CRS, 0, NotSerialized)
+> > >>                     {
+> > >>                         Store (Z00B, Local0)
+> > >>                         CreateWordField (Local0, 0x01, IRA0)
+> > >>                         If (LEqual (And
+> > >(\_SB.PCI0.LPCB.PIRA, 0x80), Zero))
+> > >>                         {
+> > >>                             And (\_SB.PCI0.LPCB.PIRA, 0x0F, Local0)
+> > >>                             ShiftLeft (0x01, Local0, IRA0)
+> > >>                         }
+> > >>                         Else
+> > >>                         {
+> > >>                             Store (0x00, IRA0)
+> > >>                         }
+> > >>
+> > >>                         Return (Local0)
+> > >>                     }
+> > >>
+> > >> Ois=C3=ADn
+> > >>
+> > >> -------------------------------------------------------
+> > >> This SF.net email is sponsored by: IT Product Guide on
+> > >ITManagersJournal
+> > >> Use IT products in your business? Tell us what you think of
+> > >them. Give us
+> > >> Your Opinions, Get Free ThinkGeek Gift Certificates! Click
+> > >to find out more
+> > >> http://productguide.itmanagersjournal.com/guidepromo.tmpl
+> > >> _______________________________________________
+> > >> Acpi-devel mailing list
+> > >> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > >> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> > >>
+> > >
+> > >
+> > >-------------------------------------------------------
+> > >This SF.net email is sponsored by: IT Product Guide on
+> > >ITManagersJournal
+> > >Use IT products in your business? Tell us what you think of
+> > >them. Give us
+> > >Your Opinions, Get Free ThinkGeek Gift Certificates! Click to
+> > >find out more
+> > >http://productguide.itmanagersjournal.com/guidepromo.tmpl
+> > >_______________________________________________
+> > >Acpi-devel mailing list
+> > >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > >https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> > >
+> >
+>
 
 
 -------------------------------------------------------
