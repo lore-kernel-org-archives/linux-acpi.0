@@ -1,11 +1,11 @@
-From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: RAM > 1GB
-Date: Wed, 2 Feb 2005 18:07:00 +0100 (CET)
-Message-ID: <Pine.LNX.4.60.0502021802360.4159@frog.athome>
+Date: Wed, 02 Feb 2005 17:11:54 +0000
+Message-ID: <1107364315.8575.14.camel@tyrosine>
 References: <1107362043.4512.11.camel@localhost>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 In-Reply-To: <1107362043.4512.11.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,39 +16,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
-Cc: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 2005-02-02 at 11:34 -0500, Jeremy Moles wrote:
 
-Salut Jeremy,
-On Wed, 2 Feb 2005, Jeremy Moles wrote:
+> When the system is booted WITHOUT the additional RAM, everything works
+> as intended.
 
-> I have a Dell X300 here using a custom DSDT table appropriate with the
-> BIOS version.
-So you will need to boot without DSDT-override with the additional RAM. 
-Now extract the DSDT and apply your patches to it.
-The DSDT is not a static thing - it is build on the fly, and takes the 
-plugged in amount of RAM into account (if you do not override it).
+Did you generate the DSDT with 128MB installed? If so, you'll need to
+boot without your custom DSDT and with the extra memory, dump the system
+DSDT, modify it as necessary and then use that as your custom DSDT. The
+DSDT contains the amount of RAM you have installed, and needs to be
+modified if you change your configuration.
 
-Hope that helps
-   hartwig felger
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-Hartwig Felger informatics
-
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQFCAQjC9bBoTzOf1pMRApReAJwPgI1d0odbG+g4S8jGLeSbbGf7oQCgmxJs
-fs+njdgPk80kKLWxDpbkoFM=
-=gKdu
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
