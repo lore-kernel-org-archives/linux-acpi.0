@@ -1,14 +1,14 @@
-From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Subject: Re: ACPI to driver connection
-Date: Fri, 17 Sep 2004 09:06:53 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: [Ipw2100-devel] [susp-resume] ipw2100 suspend patch for 0.54 (version 3)
+Date: Fri, 17 Sep 2004 10:51:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <414A8D0D.9080200@drzeus.cx>
-References: <413CD636.6090409@drzeus.cx> <20040913223952.GB28524@elf.ucw.cz>
+Message-ID: <20040917085110.GA22859@elf.ucw.cz>
+References: <3ACA40606221794F80A5670F0AF15F8403BD570F@pdsmsx403> <413EE1EA.2070307@pca.it> <413F02E7.3060005@pca.it> <20040914222905.GA17380@elf.ucw.cz> <4147870C.9090003@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040913223952.GB28524-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4147870C.9090003-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,38 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: ACPI devel list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
+Hi!
 
->Hi!
->
->  
->
->>I'm currently writing a driver for a sd card reader. This reader is 
->>present in the ACPI DSDT tree and can be identified there using the EISA 
->>PNP id. I'm not all too familiar with exactly how ACPI works and even 
->>less how ACPI works on linux so my question is this. Is there anything 
->>my driver should do to associate the entries in the DSDT with the 
->>device? Perhaps there are methods that should be called or similar? I do 
->>not have the time to study ACPI in detail so I'd appreciate any help.
->>    
->>
->
->See for example battery.c driver -- it detects battery based on PNP
->id.
->								Pavel
->  
->
-The acpi_device doesn't seem to be connected to a "normal" device 
-structure. Is the intention that one should register with the ACPI 
-subsystem, wait for the add routine to be called and then add the device 
-as previously (to the platform bus in this case)?
+> On the other hand, using the /sys call the machine power off correctly
+> in suspending, while using the /proc call actually I should press 4-sec
+> the power button after 15-20sec the latest suspending screen.
+> 
+> BTW, I'm on 2.6.9-rc2 with no other patches.
 
-/Pierre
-
+Go to -mm kernel. Vanilla has *very* old version of the patch.
+									Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
