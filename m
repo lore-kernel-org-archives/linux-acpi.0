@@ -1,12 +1,15 @@
-From: =?iso-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
-Subject: [PATCH] iasl disasm OEM revision fix
-Date: Tue, 25 Nov 2003 05:16:56 +0200
+From: "J.A. Magallon" <jamagallon-cer70A47DaU@public.gmane.org>
+Subject: Re: Linux 2.4.23-rc4
+Date: Mon, 24 Nov 2003 23:01:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031125051656.A26111@sci.fi>
+Message-ID: <20031124220146.GA1823__9963.61516085944$1069746253@werewolf.able.es>
+References: <Pine.LNX.4.44.0311241656430.8709-100000@logos.cnet>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Kj7319i9nmIyA2yE"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0311241656430.8709-100000-IP5UegVbiV6sTnJN9+BGXg@public.gmane.org> (from marcelo.tosatti@cyclades.com on Mon, Nov 24, 2003 at 19:58:06 +0100)
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,40 +18,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Kj7319i9nmIyA2yE
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+On 11.24, Marcelo Tosatti wrote:
+> 
+> Hi, 
+> 
+> Here goes -rc4, fixing modular IDE breakage present in 2.4.23 kernels.
+> 
 
-The attached patch makes iasl disassembler print the OEM revision as an
-unsigned int instead of a signed int. The compiler wasn't happy with the
-negative value produced on my laptop...
+Hey, you posted rc4 before I could talk about rc3... ;)
+Good and bad news. Good are that pci=noacpi works. Bad are that
+ACPI still fails to setup PCI bus 1 on a ServerWorks LE.
+I think this is not a showstopper, but...
+Relevant info is at
 
---=20
-Ville Syrj=E4l=E4
-syrjala-ORSVBvAovxo@public.gmane.org
-http://www.sci.fi/~syrjala/
+http://giga.cps.unizar.es/~magallon/linux/acpi/
 
---Kj7319i9nmIyA2yE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="iasl_oem_rev.patch"
+dmesg for -rc3 without acpi, just what CONFIG_SMP uses, with acpi, and with
+acpi but booted with pci=noacpi (all with lspci at the end), and output
+from dmidecode, biosdecode and acpidmp.
 
---- acpica-unix-20031029/common/adisasm.c~	2003-10-30 01:44:33.000000000 +0200
-+++ acpica-unix-20031029/common/adisasm.c	2003-11-25 04:24:05.000000000 +0200
-@@ -597,7 +597,7 @@
-     AcpiOsPrintf (" *\n * Disassembly of %s, %s */\n", Filename, ctime (&Timer));
- 
-     AcpiOsPrintf (
--        "DefinitionBlock (\"%4.4s.aml\", \"%4.4s\", %hd, \"%.6s\", \"%.8s\", %d)\n",
-+        "DefinitionBlock (\"%4.4s.aml\", \"%4.4s\", %hd, \"%.6s\", \"%.8s\", %u)\n",
-         Table->Signature, Table->Signature, Table->Revision,
-         Table->OemId, Table->OemTableId, Table->OemRevision);
- }
+I have also submited an entry in bugzilla.
+For my blind eyes, it looks like an IRQ routing problem.
 
---Kj7319i9nmIyA2yE--
+TIA
+
+-- 
+J.A. Magallon <jamagallon()able!es>     \                 Software is like sex:
+werewolf!able!es                         \           It's better when it's free
+Mandrake Linux release 10.0 (Cooker) for i586
+Linux 2.4.23-rc3-jam1 (gcc 3.3.1 (Mandrake Linux 9.2 3.3.1-4mdk))
 
 
 -------------------------------------------------------
