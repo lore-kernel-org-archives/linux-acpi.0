@@ -1,14 +1,13 @@
-From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Subject: Re: DockApps (Was: Smart Battery System driver)
-Date: Fri, 21 Jan 2005 15:49:04 +0000
-Message-ID: <16881.9328.344864.251134@aber.ac.uk>
-References: <16880.8771.253591.739342@phoenix.squirrel.nl>
-	<41F1040F.5020409@arrakis.dhis.org>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Fri, 21 Jan 2005 15:14:49 +0100
+Message-ID: <20050121141449.GA15288@message-id.gmane0305.slipkontur.de>
+References: <F760B14C9561B941B89469F59BA3A84708CBB988@orsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41F1040F.5020409-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84708CBB988-sBd4vmA9Se6krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,34 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro Venda writes:
- > -----BEGIN PGP SIGNED MESSAGE-----
- > Hash: SHA1
- > 
- > Johan Vromans wrote:
- > | [Quoting Rich Townsend, on January 19 2005, 08:31, in "Re: Smart Battery Sy"]
- > |
- > |>However, I'm surprised that the GB applet doesn't get the AC state from
- > |>polling /proc/acpi/adapter/AC0/state. I use wmacpi, and that shows up
- > |>the AC state fine...
- > |
- > |
- > | Speaking of wmacpi: what is your favorite (acpi-related) docapp for
- > | your laptop?
- > 
- > I use the kde thingy, klaptopdaemon, I think... works very well. reports AC
- > adapter presence and battery charge in percentage. not sure if it reports time
- > to empty...
- > 
+On Thu, Jan 20, 2005 at 02:04:16PM -0800, Grover, Andrew wrote:
 
-It does, if you still the mouse pointer over it.  Does the same with time
-to fully charged, but seems to be broken...
+> Hasn't anyone written a libpower yet? Battery applets shouldn't be
+> groveling around proc, they should be making library calls. OK all
+> existing apps would need to be changed (probably a big code reduction
+> actually) but this would let the library look for both CM and sbs
+> interfaces (which should not pretend to be a CMBatt of course) and
+> handle them.
 
-Fred
+Thomas Renninger has written a libpower on which his powersaved is based.
+It can be used without powersaved as well. It is hosted on
+http://forge.novell.com (search for powersaved) and on sourceforge
+(sorry, don't know the project name and right now i am offline, it probably
+is also named powersaved).
+
+> Bonus points for also supporting APM through this interface...
+
+Yes, it can use both without the application knowing what the underlying
+hardware is supporting.
+
+Actually it is right now only extensively used and tested on SUSE, but
+we have some bugreports from people compiling it on Mandrake and Debian
+too, so it should not be too hard to get it going on other Distributions.
+-- 
+Stefan Seyfried
 
 
 
