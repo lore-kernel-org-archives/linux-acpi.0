@@ -1,8 +1,8 @@
-From: Mizu <michal-VaXaUECoPuY@public.gmane.org>
-Subject: irq 9: nobody cared
-Date: Wed, 11 Jun 2003 17:46:26 +0200
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: acpi_os_read_pci_configuration
+Date: Wed, 11 Jun 2003 15:04:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030611154626.GB1875@mizu>
+Message-ID: <20030611140459.GW28581@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,56 +18,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hello
 
-What does it mean message: "irq 9: nobody cared" ?
+Another piece of the PCI domain puzzle is acpi_os_read_pci_configuration
+(and _write_ obviously).  These functions are passed a struct acpi_pci_id
+and attempt to translate this into a struct pci_bus to pass to the
+pci_root_ops functions.
 
-Where can I find a problem ? 
-
-  Thx
-
-  			mizu
-
-This is my dmesg :
-
-Jun  7 23:42:19 mizu kernel: Adding 257032k swap on /dev/hda2.
-Priority:-1 extents:1
-Jun  7 23:42:19 mizu kernel: irq 9: nobody cared!
-Jun  7 23:42:19 mizu kernel: Call Trace:
-Jun  7 23:42:19 mizu kernel:  [<c010a7cf>] __report_bad_irq+0x2a/0x8b
-Jun  7 23:42:19 mizu kernel:  [<c010a8b9>] note_interrupt+0x6f/0x9f
-Jun  7 23:42:19 mizu kernel:  [<c010ab44>] do_IRQ+0x126/0x135
-Jun  7 23:42:19 mizu kernel:  [<c0109208>] common_interrupt+0x18/0x20
-Jun  7 23:42:19 mizu kernel:  [<c01f007b>] proc_bus_pci_read+0x1e0/0x1f6
-Jun  7 23:42:19 mizu kernel:  [<c011dddb>] do_softirq+0x3f/0x9a
-Jun  7 23:42:19 mizu kernel:  [<c010ab20>] do_IRQ+0x102/0x135
-Jun  7 23:42:19 mizu kernel:  [<c010701e>] default_idle+0x0/0x26
-Jun  7 23:42:19 mizu kernel:  [<c0109208>] common_interrupt+0x18/0x20
-Jun  7 23:42:19 mizu kernel:  [<c010701e>] default_idle+0x0/0x26
-Jun  7 23:42:19 mizu kernel:  [<c0117057>] schedule+0x0/0x39f
-Jun  7 23:42:19 mizu kernel:  [<c0108fe5>] need_resched+0x27/0x32
-Jun  7 23:42:19 mizu kernel:  [<c010701e>] default_idle+0x0/0x26
-Jun  7 23:42:19 mizu kernel:  [<c0107041>] default_idle+0x23/0x26
-Jun  7 23:42:19 mizu kernel:  [<c01070a2>] cpu_idle+0x2f/0x38
-Jun  7 23:42:19 mizu kernel:  [<c0105000>] _stext+0x0/0x5d
-Jun  7 23:42:19 mizu kernel:  [<c03a2654>] start_kernel+0x146/0x14b
-Jun  7 23:42:19 mizu kernel:  [<c03a23ea>] unknown_bootoption+0x0/0xfd
-Jun  7 23:42:19 mizu kernel:
-Jun  7 23:42:19 mizu kernel: handlers:
-Jun  7 23:42:19 mizu kernel: [<c01f1df3>] (acpi_irq+0x0/0x16)
-Jun  7 23:42:19 mizu kernel: Disabling IRQ #9
-Jun  7 23:42:19 mizu kernel: eth0: Setting 100mbps full-duplex based on
-auto-negotiated partner ability 41e1.
-
-
+Is there guaranteed to already be a pci_bus that these functions could
+go and find, or are they sometimes called before any pci_bus exists?
 
 -- 
-        -[ Mizu ]-
-#-------------------------#
-[-> E-mail:michal-VaXaUECoPuY@public.gmane.org    
-[-> ICQ:97165392
-[-> WWW: http://www.mizu.sk
-
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
