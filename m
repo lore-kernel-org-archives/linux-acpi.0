@@ -1,15 +1,15 @@
-From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: No battery information - Compaq Evo N800v, 2.4.20pre8, acpi 20021002
-Date: 03 Jan 2003 15:59:44 +0100
+From: Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>
+Subject: Re: ACPI hangs X-Windows with nForce chipset
+Date: Fri, 3 Jan 2003 17:23:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87znqigty7.fsf@lapper.ihatent.com>
-References: <200210081115.21667.mark.pritchard-acpi@modus.com.au>
-	<20030102113459.GA2974@zaurus> <87hecqiryo.fsf@lapper.ihatent.com>
-	<200301031111.21645.bob@diamond.demon.co.uk>
+Message-ID: <20030103162335.GB26301@schiggy.intern.quelltext.com>
+References: <20030103084438.1697.qmail@web13402.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200301031111.21645.bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030103084438.1697.qmail-A7XbpDnDaW6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,122 +18,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: James Joseph <jannix97-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-1400x1150 or something like that :) Good enough for its intented
-purpose: Ghost Recon and Fly!II :)
+Hi James,
 
-Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org> writes:
+does your system work without APIC and IO-APIC support enabled in the
+kernel, or with APIC support being turned off in the BIOS?
 
-> Alexander
+(I have a SiS650 based machine with a MS-6335E mainboard which will
+only boot with either one of the above workarounds. It seems that the
+support for APICs and/or IO-APICs is still not 100% bugfree.)
+
+The "Spurious 8259A interrupt : IRQ7" messages appear on many machines,
+but seem to be harmless. I don't know what causes them.
+
+Good luck,
+Arndt
+
+
+On Fri, Jan 03, 2003 at 12:44:38AM -0800, James Joseph wrote:
+> Hi there,
+> I have a clean (from kernel.org) 2.4.20 kernel patched
+> with the latest ACPI patch from sourceforge.net
+> (acpi-20021212-2.4.20.diff).  I am using AMD Athlon XP
+> 2000+ on Asus A7N266-VM (nForce 220-D chipset with
+> latest bios update rev. 1005) and i have Local APIC
+> and IO APIC enabled. 
+> I am using a Mandrake 8.1 base system. Enabling ACPI
+> on the default mandrake kernel,(which is 2.4.8) make
+> the system unbootable, it just prints a line of hex,
+> and "Attempted to kill init" message comes.
 > 
-> On my 800c running 2.4.19 SUSE 8.1 with 0918 patch and my modified DSDT I get 
-> the following:
-> 
-> present:                 yes
-> design capacity:         4114 mAh
-> last full capacity:      4114 mAh
-> battery technology:      rechargeable
-> design voltage:          14800 mV
-> design capacity warning: 411 mAh
-> design capacity low:     0 mAh
-> capacity granularity 1:  100 mAh
-> capacity granularity 2:  100 mAh
-> model number:            Primary
-> serial number:           3
-> battery type:            4E4F494C
-> OEM info:                 COMPAQ
-> 
-> with AC plugged in a full battery
-> 
-> present:                 yes
-> capacity state:          ok
-> charging state:          unknown
-> present rate:            0 mA
-> remaining capacity:      4114 mAh
-> present voltage:         16633 mV
-> 
-> with AC removed and a near full battery
-> 
-> present:                 yes
-> capacity state:          ok
-> charging state:          discharging
-> present rate:            1105 mA
-> remaining capacity:      4074 mAh
-> present voltage:         16227 mV
-> 
-> I get 3+ hours out of a full battery.
-> 
-> I use my laptop similar to you as a portable desk machine, ie it spends most 
-> of its time plugged into AC.
-> 
-> I also have klaptopdaemon working, edited the current acpi proc tree into 
-> portable.cpp in the source.
-> 
-> I have not gone down the 2.4.20 route, but will have to shortly as I need the 
-> updated usb support.  I was waiting until it appeared stable, but I guess i 
-> will have to bit the bullet and try it.  Since working through the various 
-> issues a while back I have a stable acpi install.  About the only area I 
-> don't have working is the speedstep switching from P0 to P1; it always 
-> reports P0.
-> 
-> I concur, beefy is a good description, but a lot less weight than a number of 
-> the alternatives, and you forgot the 1600x1200 screen - very nice;)
-> 
-> Hope this helps
-> 
-> Bob
-> 
-> On Friday 03 January 2003 07:59, Alexander Hoogerhuis wrote:
-> > Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> writes:
-> > > Hi!
-> > >
-> > > > present:                 yes
-> > > > design capacity:         1918 mAh
-> > > > last full capacity:      1918 mAh
-> > > > battery technology:      rechargeable
-> > > > design voltage:          14800 mV
-> > > > design capacity warning: 192 mAh
-> > >
-> > > 2Ah seems quite low, but as you have 15V
-> > > battery its 30Wh, which might be okay for
-> > > *small* notebook.
-> >
-> > Evo n800c is not a *small* notebook, its a pretty beefy thing and the
-> > biggest beast Compaq could conjure up this summer :) P4-1.7GHz, 768Mb
-> > RAM and a 30Gb disk and a nice ATI Radeon 7500 to boot :)
-> >
-> > > > And it's been a long time since I've had much physics, but the design
-> > > > capacity doesn't seem right to me. I'm able to run about 13-14 mins on
-> > > > battery, before the machine dies, from a fully charged battery.
-> > >
-> > > Perhaps your battery is too old these days?
-> >
-> > Not even six months, and not many cycles as its used mainly as a
-> > portable desktop.
-> >
-> > > --
-> > > 				Pavel
-> > > Written on sharp zaurus, because my Velo1 broke. If you have Velo you
-> > > don't need...
-> 
-> 
-> 
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> Using the 2.4.20 kernel, system boots properly, and
+> the text-only mode seems stable runlevel 3).
+> /proc/interrupts show IO-APIC used for all devices
+> except "cascade". But when i start X, the server and
+> KDE boots up, and then whole system hangs. 
+> Ctrl-Alt-Backspace and Ctrl-Alt-Del don't work, but i
+> can Sync-Unmount-Reboot using the Magic SysRequest
+> keys (kernel debugging enabled).
+> [...] 
+> 2) I also get the following message on the console
+> once in a while:-
+> Spurious 8259A interrupt : IRQ7
+> [...] 
 
 -- 
-Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
-"You have zero privacy anyway. Get over it."  --Scott McNealy
+Arndt Schönewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>, Software Developer
+Quelltext AG (http://www.quelltext-ag.de), Dortmund, Germany
 
 
 -------------------------------------------------------
