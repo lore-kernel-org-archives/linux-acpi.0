@@ -1,13 +1,15 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Error in dsdt from asus a3527nuh
-Date: Thu, 11 Nov 2004 22:45:21 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC058@pdsmsx403>
+From: Valerio Felici <valerio-3NZjWNnCfY8@public.gmane.org>
+Subject: Re: Error in dsdt from asus a3527nuh
+Date: Thu, 11 Nov 2004 15:58:00 +0100
+Message-ID: <200411111558.00199.valerio@bgweb.it>
+References: <3ACA40606221794F80A5670F0AF15F84041AC058@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC058@pdsmsx403>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,65 +19,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Valerio Felici <valerio-3NZjWNnCfY8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-SSBoZXNpdGF0ZSB0byBhc2sgeW91ICwgYnV0IHdvdWxkIHlvdSB0ZWxsIG1lIHdoYXQga2luZCBv
-ZiBrZXJuZWwgZXJyb3IgeW91IGNvdWxkIGhhdmUsIGJlZm9yZSBnb2luZyB0byBmaXhpbmcgZHNk
-dC4NCg0KVGhhbmtzDQpMdW1pbmcgDQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZy
-b206IGFjcGktZGV2ZWwtYWRtaW5AbGlzdHMuc291cmNlZm9yZ2UubmV0IA0KPlttYWlsdG86YWNw
-aS1kZXZlbC1hZG1pbkBsaXN0cy5zb3VyY2Vmb3JnZS5uZXRdIE9uIEJlaGFsZiBPZiANCj5WYWxl
-cmlvIEZlbGljaQ0KPlNlbnQ6IDIwMDTlubQxMeaciDEx5pelIDIyOjM1DQo+VG86IGFjcGktZGV2
-ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0DQo+U3ViamVjdDogUmU6IFtBQ1BJXSBFcnJvciBpbiBk
-c2R0IGZyb20gYXN1cyBhMzUyN251aA0KPg0KPkFsbGUgMjI6MDgsIG1lcmNvbGVkw6wgMTAgbm92
-ZW1icmUgMjAwNCwgTW9vcmUsIFJvYmVydCBoYSBzY3JpdHRvOg0KPj4gSnVzdCBjcmVhdGUgb25l
-LCBNZXRob2QgKF9JTkkpIHVuZGVyIF9TQl8NCj4+DQo+T2ssIEkndmUganVzdCBtYWRlIHRoYXQg
-YW5kIHlvdSBjYW4gc2VlIHRoZSBhdHRhY2hlZCBkaWZmIGZpbGUuDQo+SSBkb24ndCBrbm93IGlm
-IG15IGNoYW5nZXMgYXJlIGNvcnJlY3QuDQo+Tm93IEkgZG9uJ3QgZ290IGVycm9ycyBidXQgdmFy
-aW91cyB3YXJuaW5nIGFzIHlvdSBjYW4gc2VlIGhlcmU6DQo+LS0tLS0tLQ0KPmlhc2wgLXRjIGRz
-ZHQuZHNsDQo+DQo+SW50ZWwgQUNQSSBDb21wb25lbnQgQXJjaGl0ZWN0dXJlDQo+QVNMIE9wdGlt
-aXppbmcgQ29tcGlsZXIgLyBBTUwgRGlzYXNzZW1ibGVyIHZlcnNpb24gMjAwNDA1MjcgDQo+W01h
-eSAyNyAyMDA0XQ0KPkNvcHlyaWdodCAoQykgMjAwMCAtIDIwMDQgSW50ZWwgQ29ycG9yYXRpb24N
-Cj5TdXBwb3J0cyBBQ1BJIFNwZWNpZmljYXRpb24gUmV2aXNpb24gMi4wYw0KPg0KPmRzZHQuZHNs
-IMKgMTU5MjogwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgU2NvcGUgKFxfU0IuUENJMCkNCj5XYXJu
-aW5nIMKgMjAzMSAtIMKgIMKgIMKgIMKgIMKgIEludGVybmFsIGNvbXBpbGVyIGVycm9yIF4gwqAo
-Tm90IA0KPnVzaW5nIG9wdGltaXplZCANCj5uYW1lLSDCoGRpZCBub3QgZmluZCBub2RlKQ0KPg0K
-PmRzZHQuZHNsIMKgMjA1MzogwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgU3RvcmUgKEFDUFMgKCksIFxBQ1BGKQ0KPldhcm5pbmcgwqAyMDMwIC0gwqBDYWxs
-ZWQgbWV0aG9kIG1heSBub3QgYWx3YXlzIHJldHVybiBhIHZhbHVlIF4NCj4NCj5kc2R0LmRzbCDC
-oDIwNTQ6IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIFN0
-b3JlIChEQ1BTIA0KPigweDAwKSwgXERDUEYpDQo+V2FybmluZyDCoDIwMzAgLSDCoENhbGxlZCBt
-ZXRob2QgbWF5IG5vdCBhbHdheXMgcmV0dXJuIGEgdmFsdWUgXg0KPg0KPmRzZHQuZHNsIMKgMjI2
-NjogwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgTWV0aG9kIChBQ1BTLCAwLCBTZXJpYWxp
-emVkKQ0KPldhcm5pbmcgwqAyMDE5IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgXiBOb3QgYWxsIA0KPmNvbnRyb2wgcGF0aHMgDQo+cmV0dXJuwqBh
-IHZhbHVlIChBQ1BTKQ0KPg0KPmRzZHQuZHNsIMKgMjM1MDogwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgTWV0aG9kIChEQ1BTLCAxLCBTZXJpYWxpemVkKQ0KPldhcm5pbmcgwqAyMDE5IC0g
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgXiBOb3Qg
-YWxsIA0KPmNvbnRyb2wgcGF0aHMgDQo+cmV0dXJuwqBhIHZhbHVlIChEQ1BTKQ0KPg0KPmRzZHQu
-ZHNsIMKgMzEwNTogwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgU2NvcGUgKFxfU0IuUENJMCkNCj5X
-YXJuaW5nIMKgMjAzMSAtIMKgIMKgIMKgIMKgIMKgIEludGVybmFsIGNvbXBpbGVyIGVycm9yIF4g
-wqAoTm90IA0KPnVzaW5nIG9wdGltaXplZA0KPm5hbWUgLSDCoGRpZCBub3QgZmluZCBub2RlKQ0K
-Pg0KPmRzZHQuZHNsIMKgMzEzMzogwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-SWYgKEFDUFMgKCkpDQo+V2FybmluZyDCoDIwMzAgLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBeIENhbGxlZCANCj5tZXRob2QgbWF5IG5vdA0KPmFs
-d2F5cyDCoHJldHVybiBhIHZhbHVlDQo+DQo+ZHNkdC5kc2wgwqAzMTY3OiDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCBTY29wZSAoXF9TQi5QQ0kwKQ0KPldhcm5pbmcgwqAyMDMxIC0gwqAgwqAgwqAg
-wqAgwqAgSW50ZXJuYWwgY29tcGlsZXIgZXJyb3IgXiDCoChOb3QgDQo+dXNpbmcgb3B0aW1pemVk
-DQo+bmFtZSAtwqBkaWQgbm90IGZpbmQgbm9kZSkNCj4NCj5kc2R0LmRzbCDCoDM0ODQ6IMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIElmIChMTm90IChEQ1BTICgweDAwKSkpDQo+
-V2FybmluZyDCoDIwMzAgLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBeIENhbGxlZCBtZXRob2QNCj5tYXkgbm90IGFsd2F5cyByZXR1
-cm4gYSB2YWx1ZQ0KPg0KPmRzZHQuZHNsIMKgNDU1MjogwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-U2NvcGUgKFxfU0IuUENJMCkNCj5XYXJuaW5nIMKgMjAzMSAtIMKgIMKgIMKgIMKgIMKgIEludGVy
-bmFsIGNvbXBpbGVyIGVycm9yIF4gwqAoTm90IA0KPnVzaW5nIG9wdGltaXplZA0KPm5hbWUgLSDC
-oGRpZCBub3QgZmluZCBub2RlKQ0KPg0KPkFTTCBJbnB1dDogwqBkc2R0LmRzbCAtIDc5NDMgbGlu
-ZXMsIDI3MTkxOSBieXRlcywgMzY0MyBrZXl3b3Jkcw0KPkFNTCBPdXRwdXQ6IERTRFQuYW1sIC0g
-Mjc4NjcgYnl0ZXMgODczIG5hbWVkIG9iamVjdHMgMjc3MCANCj5leGVjdXRhYmxlIG9wY29kZXMN
-Cj4NCj5Db21waWxhdGlvbiBjb21wbGV0ZS4gMCBFcnJvcnMsIDEwIFdhcm5pbmdzLCAwIFJlbWFy
-a3MsIDgwOSANCj5PcHRpbWl6YXRpb25zDQo+LS0tLS0tLQ0KPldlbGwsIHdoYXQgY2FuIEkgZG8g
-bm93Pw0KPklzIHRoYXQgZHNkdCBnb29kIHRvIHRlc3Q/IG9yIEknbSBzdGlsbCBpbiBlcnJvcnMu
-DQo+TWFueSB0aGFuayBhcyBhbHdheXMNCj4tLSANCj5BIHByZXN0bw0KPi1WYWxlcmlvLQ0KPg0K
+Alle 15:45, gioved=C3=AC 11 novembre 2004, Yu, Luming ha scritto:
+> I hesitate to ask you , but would you tell me what kind of kernel error y=
+ou
+> could have, before going to fixing dsdt.
+>
+# cat /proc/acpi/event
+cat: /proc/acpi/event: Device or resource busy
+
+that's one, I think.
+No others one I can note from:
+# less /var/log/acpid
+# grep -i acpi /var/log/kern.log
+
+Some other investigations?
+
+I whish submit that dsdt because isn't listed, but I don't know if that is =
+a=20
+good dsdt or not.
+
+=2D-=20
+A presto
+=2DValerio-
 
 
 -------------------------------------------------------
