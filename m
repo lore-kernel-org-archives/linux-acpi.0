@@ -1,12 +1,14 @@
-From: Christian Neubauer <neu-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
-Subject: ACPI on Compaq Evo N800c
-Date: Thu, 23 Jan 2003 18:03:39 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI patches updated (20030109)
+Date: Thu, 23 Jan 2003 18:10:32 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E30206B.8080201@iis.fhg.de>
+Message-ID: <20030123171032.GU18109@poup.poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A84725A119@orsmsx401.jf.intel.com> <E18bjUN-000FXY-00@probity.mcc.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E18bjUN-000FXY-00-s4cbsuY0qait6LrQLftYFlpr/1R2p/CL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,36 +17,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, Christian Neubauer <neu-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
+To: John-otv8KCb+Bkdaa/9Udqfwiw@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear ACPI developers,
+On Thu, Jan 23, 2003 at 03:42:43PM +0000, John-otv8KCb+Bkdaa/9Udqfwiw@public.gmane.org wrote:
+> On 10 Jan, Grover, Andrew wrote:
+> ..
+> > ACPI patches based upon the 20030109 label have been released.
+> 
+> I have a Toshiba 3000-400 laptop, which previously needed a ACPI table
+> bypass for it to detect the battery power levels, which I have been
+> doing up to 2.4.17..  
 
-I have a Compaq N800c Laptop and need a way get the machine to standby, 
-when closing the lid. I already tried:
+This was OK in feb 2002...
 
-APM:
-cat /proc/apm tells me -1% for the battery status with the kernels 
-2.4.19, 2.4.20, 2.5.59. ACPI was not compiled in. apm -s returns 
-immediatelly without putting the machine to sleep.
+-- 
+Ducrot Bruno
 
-ACPI:
-The following holds for kernel versions 2.4.19, 2.4.20 (patched with 
-latest acpi patch) and 2.5.59
-- /proc/acpi exists
-- however there is not /proc/acpi/battery entry
-- echo 1 > /proc/acpi/sleep does nothing
-- cat /proc/acpi/sleep tells S0 S3 S4 S5
-- drivers battery, button, processor etc are loaded when I lsmod
-- dmesg tells me that acpi is turned on
-
-I use the latest BIOS patch for this machine. I dont knwo what to do 
-next. I have seen similar posts for this machine on the net. Is anybody 
-out there that help me or has a patch for that problem?
-
-Regards
-Christian
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
