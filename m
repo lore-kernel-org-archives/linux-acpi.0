@@ -1,18 +1,16 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [BUG 2.6.5-rc2-bk5 and 2.6.5-rc2-mm3] ACPI seems to be broken
-Date: 31 Mar 2004 18:54:08 -0500
+From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
+Subject: Re: S3/S4 doesn't work, no-one cares, it's a mess Re: ACPI S3 wake howto was: RE: [BKPATCH] ACPI for 2.6
+Date: Thu, 1 Apr 2004 02:34:03 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080777248.31346.71.camel@dhcppc4>
-References: <A6974D8E5F98D511BB910002A50A6647615F6523@hdsmsx402.hd.intel.com>
-	 <1080278805.755.157.camel@dhcppc4>
-	 <1080284583.2439.8.camel@lade.trondhjem.org>
-	 <1080287755.757.194.camel@dhcppc4>
-	 <1080326310.2448.2.camel@lade.trondhjem.org>
+Message-ID: <20040401003403.GA9382@luna.mooo.com>
+References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com> <20040330233155.463A.COUNT0@localnet.com> <opr5poqe0z4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1080326310.2448.2.camel-SyLVLa/KEI9HwK5hSS5vWB2eb7JE58TQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <opr5poqe0z4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,35 +19,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Trond Myklebust <trond.myklebust-41N18TsMXrtuMpJDpNschA@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-03-26 at 13:38, Trond Myklebust wrote:
+On Wed, Mar 31, 2004 at 01:40:52PM +0800, Michael Frank wrote:
+> On Tue, 30 Mar 2004 23:51:17 -0500, Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org> wr=
+ote:
+>=20
+> > [...]
+>=20
+> Nice writeup!, including the fact that it is too big for joe-helpout an=
+d=20
+> that a
+> team to handle the issues is lacking.
+>=20
+> Most PM issues are out of scope of ACPI CA.
+>=20
+> However I like to add that ACPI CA should implement a PM interface  for
+> ACPI  components to suspend/resume properly. Right now even AC adapter
+> must be made a module and reloaded after resume.
+>=20
 
-> Here's the revised output. Note that all devices now appear to be
-> working (including that sound driver that was failing to work when only
-> doing "noapic")...
+Are you sure you mean the ac adapter and not the battery module? For me
+the ac reports a wrong value if battery isn't unloaded on suspend and
+reloaded on resume. ac doesn't affect the problem.
 
-Trond,
-Can you test the fix here:
-
-http://bugzilla.kernel.org/show_bug.cgi?id=2408
-
-It should make this bogus duplicate IRQ->pin mapping go away on IRQ5.
-
-thanks,
--Len
-
----
-
-IRQ to pin mappings:
-IRQ0 -> 0:2
-IRQ1 -> 0:1
-IRQ3 -> 0:3
-IRQ4 -> 0:4
-IRQ5 -> 0:5-> 0:5
-
+> Michael
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
+> +++++++++++++++++++++++++++++++++++++++++++
+> This Mail Was Scanned By Mail-seCure System
+> at the Tel-Aviv University CC.
+>=20
 
 
 -------------------------------------------------------
