@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: acpi on new gateway laptops
-Date: Tue, 18 Nov 2003 11:35:49 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: trackpoint dead after S3 suspend
+Date: Sun, 16 Nov 2003 23:53:32 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031118103549.GZ32464@poupinou.org>
-References: <20031112232315.GD430@masanjin.net> <20031117102219.O60721@root.org> <20031117183900.GA32570@masanjin.net> <20031117104936.N60907@root.org> <20031117193719.GB32570@masanjin.net> <20031117120555.E61216@root.org>
+Message-ID: <20031116225331.GA206@elf.ucw.cz>
+References: <3FB3B9D0.5020408@netspace.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031117120555.E61216-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <3FB3B9D0.5020408-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,46 +17,115 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 17, 2003 at 12:07:30PM -0800, Nate Lawson wrote:
-> On Mon, 17 Nov 2003, William Morgan wrote:
-> > Excerpts (reformatted) from Nate Lawson's mail of 17 Nov 2003 (EST):
-> > > Get the data from the DSDT.  Dump it with acpidmp, search for PNP0C09,
-> > > then write down the resources.  Mine is below:
-> >
-> > Hm, mine looks like this:
-> >
-> >   Device(H_EC) {
-> >       Name(_HID, 0x090cd041)
-> >       Name(_UID, 0x1)
-> >       Method(_CRS) {
-> >           Name(BFFR, Buffer(0x12) {0x47, 0x1, 0x62, 0x0, 0x62, 0x0, 0x0, 0x1, 0x47, 0x1, 0x66, 0x0, 0x66, 0x0, 0x0, 0x1, 0x79, 0x0 })
-> >           Return(BFFR)
-> >       }
-> >       OperationRegion(ECR_, EmbeddedControl, 0x0, 0xff)
-> >       ...
-> >   }
-> >
-> > So I'm guessing that this also corresponds to control reg=0x66 and data
-> > reg=0x62 as I see those two numbers in the buffer. So I think I should be able
-> > to use an ECDT that's identical to yours, except the EC_ID field (which in my
-> > case is "\_SB_.PCI0.LPCB.H_EC")....
-> 
-> Looks right but you need to get your _GPE bit also. I think it's 0x79
-> but you really need to parse the buffer to be sure.  There is a flag to
-> acpidmp to parse buffer contents.
-> 
+Hi!
 
-Not in the backported version IIRC.
+> Suspend is becoming downright usable on my Thinkpad R32 under 
+> 2.6.0-test9, but I still have a showstopper:
+> 
+> http://bugme.osdl.org/show_bug.cgi?id=1279
+> 
+> describes the mouse being dead after resume.  Reloading the psmouse 
+> modules doesn't work for me either, but I don't get the same error 
+> message for some reason.
+> 
+> Looks to me that this bug was improperly filed under "other" instead of 
+> ACPI.
+
+Its actually input problem. This might help, (untested!).
+								Pavel
+
+--- clean/drivers/input/serio/i8042.c	2003-09-28 22:05:48.000000000 +0200
++++ linux/drivers/input/serio/i8042.c	2003-11-16 23:39:32.000000000 +0100
+@@ -18,6 +18,7 @@
+ #include <linux/reboot.h>
+ #include <linux/init.h>
+ #include <linux/serio.h>
++#include <linux/sysdev.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -398,18 +399,15 @@
+  * desired.
+  */
+ 	
+-static int __init i8042_controller_init(void)
++static int i8042_controller_init(void)
+ {
+-
+ /*
+  * Test the i8042. We need to know if it thinks it's working correctly
+  * before doing anything else.
+  */
+ 
+ 	i8042_flush();
+-
+ 	if (i8042_reset) {
+-
+ 		unsigned char param;
+ 
+ 		if (i8042_command(&param, I8042_CMD_CTL_TEST)) {
+@@ -783,6 +781,38 @@
+ 	values->mux = index;
+ }
+ 
++static int i8042_resume_port(struct serio *port)
++{
++	struct serio_dev *dev = port->dev;
++	if (dev) {
++#if 0
++		dev->disconnect(port);
++		dev->connect(port, dev);
++#endif
++		serio_close(port);
++		serio_open(port, dev);
++	}	
++}
++
++static int i8042_resume(struct sys_device *dev)
++{
++	if (i8042_controller_init())
++		printk(KERN_ERR "i8042: resume failed\n");
++	i8042_resume_port(&i8042_aux_port);
++	i8042_resume_port(&i8042_kbd_port);
++	return 0;
++}
++
++static struct sysdev_class kbc_sysclass = {
++	set_kset_name("i8042"),
++	.resume = i8042_resume,
++};
++
++static struct sys_device device_i8042 = {
++	.id	= 0,
++	.cls	= &kbc_sysclass,
++};
++
+ int __init i8042_init(void)
+ {
+ 	int i;
+@@ -819,6 +849,14 @@
+ 
+ 	register_reboot_notifier(&i8042_notifier);
+ 
++	{
++		int error = sysdev_class_register(&kbc_sysclass);
++		if (!error)
++			error = sys_device_register(&device_i8042);
++		if (error)
++			printk(KERN_CRIT "Unable to register i8042 to driver model\n");
++	}
++
+ 	return 0;
+ }
+ 
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
