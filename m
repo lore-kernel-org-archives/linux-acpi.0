@@ -1,12 +1,14 @@
-From: Tamagucci <tamagucci-dbx96nzIXN7OeuqD6ShaSA@public.gmane.org>
-Subject: oops while trying to shutdown the system
-Date: Tue, 11 Feb 2003 12:51:28 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI suspend weirdness on Dell Inspiron 2650
+Date: Tue, 11 Feb 2003 12:53:32 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030211125128.226b00af.tamagucci@fastwebnet.it>
+Message-ID: <20030211115332.GJ25625@poup.poupinou.org>
+References: <3E491E11.20001@ihug.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3E491E11.20001-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,81 +17,80 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
+To: Luke Hammer <lukeh-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-i just compiled a 2.4.21-pre4 kernel using the latest acpi patch...
-I'm using an asus a7v8x motherboard and I wanted to test which states
-does it supports...
-I tried
-echo -n "1" > /proc/acpi/sleep
-echo -n "2" > /proc/acpi/sleep
-echo -n "3" > /proc/acpi/sleep
-and nothing happened, then I tried 
-echo -n "5" > /proc/acpi/sleep
-and something weird happened...
-the console was closed, but the system didn't shutdown...
-it did something to the usb mouse (an imps2 compatible) and to the nic
-(rtl8139) so i was forced to unload and reload all the related modules
-to let all those devices to works...
-I get an oops, here is the ksymoops output
-(I compiled the kernel using gcc-3.2.2 on a debian sid linux system).
+On Tue, Feb 11, 2003 at 04:00:17PM +0000, Luke Hammer wrote:
+> Hi,
+> 
+> I've finallyjust managed to get some kind of suspend state
+> working on my Dell Inspiron 2650 laptop, using the 2.4.21-pre3 kernel
+> and the ACPI-20030125-2.4.21-pre3 patch (under RedHat 7.3). I can
+> get some kind of suspend state working using 'echo 1 >/proc/acpi/sleep'
+> but I don't think it's the genuine suspend-to-RAM state. For one
 
-	Edward
-ksymoops 2.4.8 on i686 2.4.21-pre4.  Options used
-     -V (default)
-     -k /proc/ksyms (specified)
-     -l /proc/modules (default)
-     -o /lib/modules/2.4.21-pre4/ (default)
-     -m /boot/System.map-2.4.21-pre4 (default)
+Correct.  It is 'system standby'.
 
-Unable to handle kernel NULL pointer dereference at virtual address 00000000
-c011342b
-*pde = 00000000
-Oops: 0002
-CPU:    0
-EIP:    0010:[<c011342b>]    Not tainted
-Using defaults from ksymoops -t elf32-i386 -a i386
-EFLAGS: 00010002
-eax: 00000000   ebx: 00000005   ecx: c02ff608   edx: 00000000
-esi: 00000001   edi: 00000005   ebp: 00000001   esp: c1383f2c
-ds: 0018   es: 0018   ss: 0018
-Process bash (pid: 503, stackpage=c1383000)
-Stack: c01e6777 00000003 00000005 00000005 c01e6968 00000005 00000001 00000001 
-       cfff9980 c1383f64 c01e6fb3 00000005 00000000 00000000 00000035 00000000 
-       00000000 0000000a 00000000 ce5c5bc0 ffffffea c0159560 ce5c5bc0 080dcc08 
-Call Trace:    [<c01e6777>] [<c01e6968>] [<c01e6fb3>] [<c0159560>] [<c0139853>]
-  [<c010737f>]
-Code: 89 02 0f 20 d8 0f 22 d8 a1 84 23 36 c0 31 d2 e9 61 02 02 00 
+> thing, as soon as I put it into this state, one of the fans comes on
+> and stays on (not very good when you're trying to conserve battery
+> juice, but this is probably a Dell BIOS problem); and secondly, the screen
+> doesn't actually seem to be turned off - I can still make out an image 
+> on it,
+
+How?  Could you explain ?  If yes, then there is a problem.  The
+processor is supposed to have stopped execution.
+
+> it just looks like the backlighting has been turned off.
+
+It sound like, but definitely you should some power saving in
+this state.  It is not the best, though, and S3 is really preferable.
+
+> 
+> Nothing at all seems to happen if I try to echo 3, 4, 4b or 5 to 
+> /proc/acpi/sleep,
+
+'3' is disabled explicitely.  It is in active developpement in 2.5.
+'4' is not supported.  Actually it is defaulted to '4b'.
+    You have to get swsusp (or a 2.5 tree) to get it.
+'4b' is still under developpement for 2.4.  For example, nothing is
+     done yet to restore a fbconsole (especially the svga one).  It
+     is certainly not SMP safe, not to mention that  it can not be preempted.
 
 
->>EIP; c011342b <acpi_restore_pmd+b/20>   <=====
+> which is strange since the ChangeLog for the latest ACPI patch mentions
+> being able to change settings for the S3 suspend,
 
->>ecx; c02ff608 <pm_devs_lock+0/10>
->>esp; c1383f2c <_end+ff2e08/104e0f5c>
+Actually this is only for 2.5.  Perhaps a miss here (I have not read carrefully
+the ChangeLog, sorry)
 
-Trace; c01e6777 <acpi_system_restore_state+17/70>
-Trace; c01e6968 <acpi_suspend+68/d0>
-Trace; c01e6fb3 <acpi_system_write_sleep+a3/b0>
-Trace; c0159560 <proc_file_write+40/50>
-Trace; c0139853 <sys_write+a3/130>
-Trace; c010737f <system_call+33/38>
+> and it also claims to
+> incorporate the s4bios patch. If I cat /proc/acpi/sleep I get "S0 S1 S3 
 
-Code;  c011342b <acpi_restore_pmd+b/20>
-00000000 <_EIP>:
-Code;  c011342b <acpi_restore_pmd+b/20>   <=====
-   0:   89 02                     mov    %eax,(%edx)   <=====
-Code;  c011342d <acpi_restore_pmd+d/20>
-   2:   0f 20 d8                  mov    %cr3,%eax
-Code;  c0113430 <acpi_restore_pmd+10/20>
-   5:   0f 22 d8                  mov    %eax,%cr3
-Code;  c0113433 <acpi_restore_pmd+13/20>
-   8:   a1 84 23 36 c0            mov    0xc0362384,%eax
-Code;  c0113438 <acpi_restore_pmd+18/20>
-   d:   31 d2                     xor    %edx,%edx
-Code;  c011343a <acpi_restore_pmd+1a/20>
-   f:   e9 61 02 02 00            jmp    20275 <_EIP+0x20275>
+But only for 2.4.
 
+> S4 S5", so
+
+You should have 'S4bios' if you cat /proc/acpi/sleep.  It is
+somehow different from S4.  Remember, S4bios
+work _only_ if your bios support it.  If not, I can not do so much for
+you.  Please note also that S4bios is _not_ apm suspend-to-disk, so
+your laptop can support the apm one, but not S4bios (even though it
+sound like strange in my point of view)...
+
+> I'm not sure if I'm doing something wrong, or if ACPI suspend-to-RAM support
+> isn't fully functional yet.
+
+S3 would not backported to 2.4.  I don't say this is not
+possible, though, but sound like nobody will try to go for 2.4.
+
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
