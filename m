@@ -1,11 +1,20 @@
-From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
-Subject: ACPI reboot hangs HP/Compaq 6120
-Date: Wed, 6 Apr 2005 22:43:45 +0200
-Message-ID: <20050406224345.1ece1377.andrej.prsa@guest.arnes.si>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: 2.6.12-rc2-mm1: ACPI=y, ACPI_BOOT=n problems
+Date: Wed, 6 Apr 2005 14:15:41 -0700
+Message-ID: <20050406141541.22dbaf32.akpm@osdl.org>
+References: <fa.gcqu6i7.1o6qrhn@ifi.uio.no>
+	<42524D83.1080104@reub.net>
+	<20050405121444.GB6885@stusta.de>
+	<6.2.3.0.2.20050406002812.04393a30@tornado.reub.net>
+	<20050405132417.GD6885@stusta.de>
+	<4252F090.4040605@mesatop.com>
+	<20050405183655.0c778129.akpm@osdl.org>
+	<4253EB69.6050702@mesatop.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <4253EB69.6050702-dIRlkrwy3vBBDgjK7y7TUQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,38 +24,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Steven Cole <elenstev-dIRlkrwy3vBBDgjK7y7TUQ@public.gmane.org>
+Cc: bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org, reuben-lkml-MwA23MxOyI4@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Steven Cole <elenstev-dIRlkrwy3vBBDgjK7y7TUQ@public.gmane.org> wrote:
+>
+> Andrew Morton wrote:
+> > Steven Cole <elenstev-dIRlkrwy3vBBDgjK7y7TUQ@public.gmane.org> wrote:
+> > 
+> >>arch/i386/kernel/setup.c: In function 'setup_arch':
+> >> arch/i386/kernel/setup.c:1571: warning: implicit declaration of function 'acpi_boot_table_init'
+> >> arch/i386/kernel/setup.c:1572: warning: implicit declaration of function 'acpi_boot_init'
+> > 
+> > 
+> > 
+> > diff -puN include/linux/acpi.h~no-acpi-build-fix include/linux/acpi.h
+> > --- 25/include/linux/acpi.h~no-acpi-build-fix	2005-04-05 00:14:46.000000000 -0700
+> > +++ 25-akpm/include/linux/acpi.h	2005-04-05 00:23:39.000000000 -0700
+> > @@ -418,16 +418,6 @@ extern int sbf_port ;
+> [patch snipped]
+> 
+> Yes, that worked with no CONFIG_ACPI.  Thanks.
 
-I'm continuing to experience problems with HP/Compaq 6120. This issue
-isn't a killer, but is still annoying: when trying to reboot the
-computer, it hangs at the very last step that says:
+OK, I'll keep spamming the acpi guys with it until they tell me to shut up.
 
-Rebooting...
+> On a slightly offtopic note, I'm now using this gcc:
+> gcc (GCC) 4.0.0 20050308 (Red Hat 4.0.0-0.32)
+> 
+> I don't have any quantitative data at hand, this seems SLOOOOW.
+> I guess that's progress.  But it slows down testing somewhat.
+> 
 
-After that only cold-boot helps. Any generic way to analyse the problem?
+There's a reason why I persist in keeping the kernel working with
+gcc-2.95.4!
 
-The original DSDT table:
-
-	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.aml
-
-The disassembled DSDT table using iasl -d:
-
-	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.dsl
-
-The precompiled DSDT table using iasl -tc:
-
-	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.hex
-
-Finally, perhaps a silly question: should APM by any chance be enabled
-in kernel for rebooting to work? I presume not, since it's ACPI's job,
-but I may be mistaking.
-
-Thanks,
-
-Andrej
 
 
 -------------------------------------------------------
