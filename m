@@ -1,74 +1,55 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: [ACPI] swsusp/s3: Assembly interactions need asmlinkage
-Date: 03 Mar 2004 22:28:56 -0500
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1078370935.12987.514.camel@dhcppc4>
-References: <A6974D8E5F98D511BB910002A50A6647615F309E@hdsmsx402.hd.intel.com>
+From: Sebastian Seifert <lathander-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: mutexes and preemption
+Date: Thu, 4 Mar 2004 11:22:12 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040304102212.GA2303@ergo.gotdns.org>
+References: <CFF522B18982EA4481D3A3E23B83141C01C988CE@orsmsx407.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <A6974D8E5F98D511BB910002A50A6647615F309E@hdsmsx402.hd.intel.com>
-To: Pavel Machek <pavel@suse.cz>
-Cc: Rusty trivial patch monkey Russell <trivial@rustcorp.com.au>, Andrew Morton <akpm@zip.com.au>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Stefan Seyfried <seife@suse.de>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CFF522B18982EA4481D3A3E23B83141C01C988CE-sBd4vmA9Se6SsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Therien, Guy" <guy.therien-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+On Wed, Mar 03, 2004 at 05:08:53PM -0800, Moore, Robert wrote:
+> 
+> Looking at the timestamps in the debug output, I suspect that the real
+> issue here is this line:
+> 
+> Mar  2 23:03:10 tenshi kernel:      osl-0909 [2049] os_wait_semaphore
+> : Failed to acquire semaphore[dffd8680|1|36863], AE_TIME
+> 
+> Because this wait should have been for 37 seconds (36863 milliseconds),
+> yet not one second has gone by on the wall clock.
+> 
+> A close look at the Linux implementation of os_wait_semaphore may again
+> be in order.
 
-thanks,
--Len
+You are right, thank you. I believe there is a  bug in
+os_wait_semaphore: the return value of down_trylock isn't checked
+correctly, leading to the immediate failure of an Acquire with timeout
+in the case the semaphore cannot be acquired immediately . I've sent a
+patch to this list. I hope someone applies it.
 
-On Tue, 2004-02-24 at 08:00, Pavel Machek wrote:
-> Hi!
-> 
-> swsusp/s3 assembly parts, and parts called from assembly are not
-> properly marked asmlinkage; that leads to double fault on resume when
-> someone compiles kernel with regparm. Thanks go to Stefan Seyfried for
-> discovering this. Please apply,
->                                                                 Pavel
-> 
-> --- tmp/linux/drivers/acpi/hardware/hwsleep.c   2004-02-05
-> 01:53:59.000000000 +0100
-> +++ linux/drivers/acpi/hardware/hwsleep.c       2004-02-23
-> 21:47:23.000000000 +0100
-> @@ -205,7 +205,7 @@
->   *
->  
-> ******************************************************************************/
->  
-> -acpi_status
-> +acpi_status asmlinkage
->  acpi_enter_sleep_state (
->         u8                              sleep_state)
->  {
-> --- tmp/linux/include/linux/suspend.h   2004-02-24 13:21:40.000000000
-> +0100
-> +++ linux/include/linux/suspend.h       2004-02-23 20:57:04.000000000
-> +0100
-> @@ -82,4 +82,10 @@
->  }
->  #endif /* CONFIG_PM */
->  
-> +asmlinkage extern void do_magic(int is_resume);
-> +asmlinkage extern void do_magic_resume_1(void);
-> +asmlinkage extern void do_magic_resume_2(void);
-> +asmlinkage extern void do_magic_suspend_1(void);
-> +asmlinkage extern void do_magic_suspend_2(void);
-> +
->  #endif /* _LINUX_SWSUSP_H */
-> 
-> -- 
-> When do you have a heart between your knees?
-> [Johanka's followup: and *two* hearts?]
-> 
-> 
-> -------------------------------------------------------
-> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> Build and deploy apps & Web services for Linux with
-> a free DVD software kit from IBM. Click Now!
-> http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+Sebastian
+
+-- 
+A bad analogy is like leaky screwdriver.
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
