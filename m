@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 resume on Fujitsu-Siemens Amilo A7620 (CONTINUES)
-Date: Mon, 18 Oct 2004 14:47:56 +0200
+From: Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>
+Subject: Re: Suspend-to-RAM on Sony Vaios
+Date: Mon, 18 Oct 2004 15:15:30 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041018124756.GA28463@elf.ucw.cz>
-References: <20041018134238.4cf1b380.albeclemit@yahoo.it>
+Message-ID: <20041018151530.3bd716ad@localhost.localdomain>
+References: <20041018020816.48673359@localhost.localdomain>
+	<200410180415.59801.ivor@ivor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041018134238.4cf1b380.albeclemit-whZMOeQn8C0@public.gmane.org>
+In-Reply-To: <200410180415.59801.ivor-rtBon1mkn18@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,44 +18,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Ivor Hewitt <ivor-rtBon1mkn18@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Mon, 18 Oct 2004 04:15:59 +0000
+Ivor Hewitt <ivor-rtBon1mkn18@public.gmane.org> wrote:
 
-> Please refer to threads "ACPI S3 resume only reboots" and "[PATCH] GDT table patch for resume only reboots problem" for history on this thread. I moved to a new one because was becoming hard to follow.
-> 
-> Properly using beeping code by Pavel I was able to follow the code after
-> 	wakeup_pmode_return:
-> 		movw	$__KERNEL_DS, %ax
-> 		movw	%ax, %ss
-> and verified that it doesn't hang at that point.
-> 
-> Wakeup works until:
-> [...]
-> # and restore the stack ... but you need gdt for this to work
-> 	movl	saved_context_esp, %esp
-> 
-> 	movl	%cs:saved_magic, %eax
-> 	cmpl	$0x12345678, %eax
-> 	jne	bogus_magic
-> 
-> 	# jump to place where we left off
-> 	movl	saved_eip,%eax
-> 	jmp	*%eax		###BEFORE THE JMP IT'S STILL ALIVE!
-> [...]
-> 
-> If i let it enter the jmp, it hangs. How can i follow that jump? Does that mean that we're going out of wakeup.S, finally? That would be a progress.
+> On Monday 18 Oct 2004 00:08, Jon Valvatne wrote:
+> > Hello list,
+> >
+> > I'd very much like to get suspend-to-RAM working on my Vaio X505; any
+> > pointers would be very welcome. Trying with the latest RPM-kernel for FC2,
+> > I can get it suspended just fine (after removing the ehci_hcd module), but
+> > it doesn't come back up.
+> >
+> What kernel version are you using? Are you using the latest versoin of ACPI?
 > 
 
-Yes, you are going out of wakeup.S... Actually no. You are going to
-ret_point down in do_suspend_lowlevel.
+I'm using 2.6.8-1.521 from FC2, so no, I am not. I suppose I'll try 2.6.9 when it comes.
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+> I had exactly the same problem with ACPI before acpi-20040816-26.
+> At which point I then had the video mode problem.
+> 
+
+Thanks, that's actually very good to hear; at least the video mode problem is a known one :) Can I ask what your hardware is?
+
+Jon
 
 
 -------------------------------------------------------
