@@ -1,13 +1,13 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: RE: [Patch] DSDT in initrd v0.2
-Date: Thu, 8 May 2003 12:02:09 +0200 (CEST)
+From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Evo N610C new ROM
+Date: 08 May 2003 12:47:03 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.53.0305081155380.20031@dynast.gaugusch.at>
-References: <A3C83F41488BD61195C3000802252FC135C3A8@dubim07742.ie.ml.com>
+Message-ID: <878ythpvfc.fsf@lapper.ihatent.com>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E4FB@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <A3C83F41488BD61195C3000802252FC135C3A8-SI4JNLCqwGbcq19Bq1crS1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10440E4FB-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,41 +16,59 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Breathnach, Proinnsias (Dublin)" <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On May 8, Breathnach, Proinnsias (Dublin) <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org> wrote:
-> Markus,
-> 	As a suggestion, adding a file, defaulting to something like
-> default.dsdt to the initrd would probably be a better method, allowing
-> distribution vendors to ship known working dsdt's for many platforms (with
-> currently buggy dsdt's ...) they could then customise grub / lilo at install
-> time and add the acpi-dsdt=compaq-evo.dsdt to the kernel parameters ?
-> Does any of this make sense ?
-I think that the initrd only contains the most necessary things, e.g. not
-dsdt's for 1000 different models, but only for the one PC that needs it.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I think that my approach is good enough for that and there is no need to
-pass any additional parameters with file names. Either there is a DSDT in
-the initrd or not.
+Is there any specific work for the Evo N800c and related laptops for
+this as well?
 
-The initrd is also usually rebuilt for each machine after installation,
-containing only the required drivers for the current machine and nothing
-more. Same with the DSDT, it would just be appended to the just-created
-initrd.
+"Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org> writes:
 
-Maybe some kernel hacker can tell me, if filesystem drivers are
-available at the ACPI init time, but it would just make everything more
-complicated and my approach is clean enough for my taste.
+> For those of you with the Evo N610C, there's a new version of the
+> BIOS available, with 'Linux Supports':
+> 
+> http://h18007.www1.hp.com/support/files/evonotebook/us/download/18058.ht
+> ml
+> 
+> I have not tried this yet, but hopefully it has a more compliant ACPI
+> implementation.
+> 
+> Regards,
+> John
+> --------------------------------
+> John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
+> Principal Member Technical Staff
+>    Industry Standard Servers
+>     Hewlett-Packard Company
+>     http://www.hp.com/linux
+> 
+> 
+> -------------------------------------------------------
+> Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
+> The only event dedicated to issues related to Linux enterprise solutions
+> www.enterpriselinuxforum.com
+> 
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-Markus
+- -- 
+Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
+CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
+"You have zero privacy anyway. Get over it."  --Scott McNealy
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
 
--- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
+iD8DBQE+ujWjCQ1pa+gRoggRAolcAKCK1YHytmupKjHv52r/RFgGzyIX3QCgkuAq
+TAQSC/yCVhuYV8PJdrqwhN4=
+=IVLY
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
