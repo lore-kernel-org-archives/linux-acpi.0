@@ -1,16 +1,12 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Tue, 18 Jan 2005 13:20:42 +0100
-Message-ID: <200501181320.42676.sanskryt@op.pl>
-References: <41E81C2C.8010809@bartol.udel.edu> <1106046662.7368.22.camel@tyrosine> <200501181223.22954.sanskryt@op.pl>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ibm_acpi and docking
+Date: Tue, 18 Jan 2005 04:06:42 -0800 (PST)
+Message-ID: <20050118120642.75458.qmail@web50204.mail.yahoo.com>
+References: <16A54BF5D6E14E4D916CE26C9AD305750105FE84@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501181223.22954.sanskryt-FWhLrETftxM@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD305750105FE84-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,26 +16,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: "Shah, Rajesh" <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia wtorek 18 stycznia 2005 12:23, Zdzis=B3aw A. Kaleta napisa=B3:
-> Dnia wtorek 18 stycznia 2005 12:11, Matthew Garrett napisa=B3:
-> > Is there any way to provide the legacy interface even if standard
-> > battery support is built in, or alternatively some way of probing the
-> > system to determine which battery module should be loaded?
->
-> As I have wrote earlier the klaptopdaemon (kde applet) can take info from
-> exsting files under /proc/acpi created by the acpi_sbs module.
-> At least under 2.6.10 kernel ;-/
-I want to add that kaptopdemon just generated the sount signal and print ex=
-tra=20
-window in which has informed me that to the end of battery is only 15=20
-minutes and later the info that only 5 minutes left.
-The smartbattery program show the same info.
-This was impossble before.
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+Hi Li,
+
+I am glad that you will develop/test docking support
+on your T40, because it should be close to R50p. And
+maybe the dock is the same.
+I agree that suspend/resume work is more important
+than docking.
+
+If you need testing and logs, don't hesitate to let me
+know. I can test docking with T41 and R50p for now.
+
+Thanks,
+Paul
+
+--- "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+
+> >Do you plan to extend a little bit your docking
+> >capability in acpi-php ( R50p with dock) ?
+> >I would be happy to help with testing and debugging
+> >output.
+> >What I am interested in, is proper docking support
+> >when booted in dock and ACPI had the chance to see
+> all
+> >devices.
+> >For now I understood that we cannot provide hot
+> >insertion of devices because of ACPIPNP does not
+> >support it yet.
+> ACPIPNP originally supports hotplug, but we removed
+> the capability. The
+> reason is this will cause conflict because some
+> drivers directly use
+> ACPI. After fixing such drivers, we will reintroduce
+> the capability.
+> 
+> acpiphp can't handle PCI bridge hotplug is another
+> reason. I did some
+> investigation on how to make docking station work in
+> my T40 before, and
+> actually made all PCI devices work with a hack. But
+> I'm doing
+> suspend/resume, so the work is suspended now.
+> 
+> >But if we had seen them at boot time, maybe it is
+> >easyer to deal with.
+> No, acpiphp and ACPIPNP also can't support hot
+> remove.
+> 
+> Thanks,
+> Shaohua
+> 
+
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+All your favorites on one personal page – Try My Yahoo!
+http://my.yahoo.com 
 
 
 -------------------------------------------------------
