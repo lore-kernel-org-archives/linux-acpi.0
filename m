@@ -1,14 +1,14 @@
-From: Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>
-Subject: standby resumes immediately in 2.6.0-test8
-Date: Thu, 23 Oct 2003 16:30:21 +0200
+From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: acpi on gateway 200x
+Date: Wed, 22 Oct 2003 22:49:53 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200310231630.21392.aviram@beyondsecurity.com>
+Message-ID: <20031023024953.GA29088@masanjin.net>
+References: <571ACEFD467F7749BC50E0A98C17CDD8E84D8E@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84D8E-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,30 +18,21 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Excerpts (reformatted) from Li, Shaohua's mail of 19 Oct 2003 (EDT):
+> Somebody has reported the same problem. It's about Gateway 400VTX. The
+> reason is BIOS of Gateway 400VTX lacks ECDT table.  And before
+> initialize EC device, DSDT use ec space region when execute some ASL
+> init methods. This will cause that battery can't be initializing. From
+> your dmesg, I find your BIOS lacks the ECDT too. So I think it's the
+> same problem.  A solution is to add an ECDT. But I can't find a tool
+> for this.
 
-I am trying to get "standby" to work on my Sony vaio laptop. I did:
-echo -n "standby" > /sys/power/state
+Is there some way I can help fix this problem?
 
-But this only flashes the screen once (in X this is more noticeable) and 
-resumes immediately.
-Dmesg shows:
-
-PM: Preparing system for suspend
-Stopping tasks: 
-============================================================================|
-Restarting tasks... done
-
-
-I am using 2.6.0-test8 with suspend and sleep states enabled. All other ACPI 
-functions seems to work fine, my laptop is an R505DL.
-
-How can I debug this?
-
-- Aviram
+-- 
+William
 
 
 -------------------------------------------------------
