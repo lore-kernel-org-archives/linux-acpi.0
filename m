@@ -1,13 +1,17 @@
-From: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
-Subject: Re: gericom notebook reboots instead of poweroff
-Date: Thu, 4 Nov 2004 11:20:59 +0100
-Message-ID: <20041104102059.GA418@pooh>
-References: <20041026194029.GA10954@pooh> <20041102203243.GA996@openzaurus.ucw.cz> <20041103071833.GA12510@pooh> <20041103124045.GC1002@elf.ucw.cz> <20041103141213.GA29645@pooh> <20041103143014.GF1002@elf.ucw.cz>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Suspend-to-RAM on Sony Vaios
+Date: Thu, 04 Nov 2004 10:39:14 +0000
+Message-ID: <1099564754.10723.24.camel@tyrosine>
+References: <88056F38E9E48644A0F562A38C64FB60033E4DDC@scsmsx403.amr.corp.intel.com>
+	 <20041103155217.GH24195@wotan.suse.de> <yzosm7q97q2.fsf@cern.ch>
+	 <20041103172120.GB18092@wotan.suse.de>
+	 <1099504898.31687.31.camel@elrond.flymine.org>
+	 <20041104041525.GE21211@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041103143014.GF1002-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20041104041525.GE21211-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +21,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pavel,
+On Thu, 2004-11-04 at 05:15 +0100, Andi Kleen wrote:
+> On Wed, Nov 03, 2004 at 06:01:38PM +0000, Matthew Garrett wrote:
+> > On Wed, 2004-11-03 at 18:21 +0100, Andi Kleen wrote:
+> > 
+> > > earlyprintk to serial or vga if you're in text mode should always work.
+> > 
+> > On most machines, vga textmode won't work until the card is POSTed
+> > again.
+> 
+> But serial does.  
 
-* Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org> [2004-11-03 15:30:14 +0100]:
+Few modern laptops have serial ports. 
 
-> This should be list of all things andrew accepted just after
-> 2.6.8.1. Hope this helps...
- Indeed! I have already fetched most of the ACPI changes from the BK
-tree (~280kb in all). Also three way merged (the kernel source is not
-the same when the ACPI folks created the changeset and when it was
-applied by Andrew; there are even almost six months old patches!) ~220kb
-of the changes, tried but still looking -- Murphy works, and I bet the
-bug will be in the very last changeset I try. :-|
- Now I must work on something else, but at last I will continue on
-Tuesday.
-
-Thank you very much,
-Laszlo/GCS
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
