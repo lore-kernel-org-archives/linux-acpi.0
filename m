@@ -1,12 +1,12 @@
-From: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
-Date: Sat, 05 Mar 2005 09:10:16 +0100
-Message-ID: <1110010216.26873.29.camel@lilith.cathedrallabs.org>
-References: <20050304234622.63e8a335.akpm@osdl.org>
+From: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
+Subject: Re: [Suspend2-devel] Cause of Suspend2 resume failures on Toshiba laptops
+Date: Sat, 5 Mar 2005 18:02:54 +0800
+Message-ID: <20050305100254.GH4042__48830.7517407977$1110017074$gmane$org@blackham.com.au>
+References: <20050304175058.GA4042@blackham.com.au> <1110012298.6028.10.camel@DustPuppy.LNX.RO>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050304234622.63e8a335.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Type: multipart/mixed; boundary="Km1U/tdNT/EmXiR1"
+Content-Disposition: inline
+In-Reply-To: <1110012298.6028.10.camel-NCEiQXzLmfTIN9oMcCV+pg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,33 +16,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>
+To: Dumitru Ciobarcianu <swsusp-devel-P4rH+HwZiSk@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, suspend2-devel-g/J2nbn7YhmWn91e4EydUaxOck334EZe@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I have  a VIA USB chipset aswell but didn't try 2.6.11 yet, I am
-compiling it now to see if I have the same problems.
+--Km1U/tdNT/EmXiR1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-One thing I notice in the lspci output tho is that his chipset doesn't
-seem to be detected correctly. When I do an lspci -vvv on 2.6.10 for 
-example I get this:
+On Sat, Mar 05, 2005 at 10:44:58AM +0200, Dumitru Ciobarcianu wrote:
+> ??n data de S??, 05-03-2005 la 01:50 +0800, Bernard Blackham a scris:
+> > The attached patch more or less reverts the change in 2.6.9-rc1 that
+> > began this all. If you have a Toshiba or other laptop that's
+> > affected by this, I ask you to see if it helps your problems. (It
+> > hacks around the problem rather than fixing it, but I'm not entirely
+> > sure what functionality it disables).
+> 
+> You are on the right track , it does the trick, I did serveral
+> suspend/resume cycles whitout problems. 
+> 
+> But (yes, it's a but :) it is functionally equivalent with using the
+> other workaround (booting at resume with acpi=off) meaning that I lose
+> all the acpi events (AC events, LID events, etc). The system records the
+> event (if I do an "watch cat /proc/acpi/ac_adapter/ADP1/state" it shows
+> the current state correctly) but acpid does not receive the event, and
+> thus can not act accordingly :(  (Toshiba Satellite Pro 6100) 
 
-0000:00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB
-1.1 Controller (rev 80) (prog-if 00 [UHCI])
+Ahh, d'oh. Try this patch instead.
 
-The "Wrong ID" appears in his lspci when he uses acpi=off aswell.
+After more investigation, it seems that the issue is the GPE is
+fired but not serviced because kacpid is frozen. This in itself
+would be okay, however, the GPE isn't being disabled before the
+method executes (despite there being code there to do so), and hence
+fires continuously.
 
-Maybe I am just ranting, maybe it helps :)
+The attached patch makes kacpid NOFREEZE so the GPE does get
+serviced (eventually), but probably still isn't the correct
+solution. (A better solution being making sure the GPE gets disabled
+in the first place ... still looking into this).
 
-Anyway, I will let you know my experience with 2.6.11.
+Bernard.
 
-Patrick
+-- 
+ Bernard Blackham <bernard at blackham dot com dot au>
 
-On Fri, 2005-03-04 at 23:46 -0800, Andrew Morton wrote:
-> Subsystem: VIA Technologies, Inc. (Wrong ID) USB Controller
+--Km1U/tdNT/EmXiR1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="toshiba-acpi-hack-2.diff"
 
+--- linux-2.6.9-rc1/drivers/acpi/osl.c.orig	2005-03-05 17:44:13.000000000 +0800
++++ linux-2.6.9-rc1/drivers/acpi/osl.c	2005-03-05 17:44:16.000000000 +0800
+@@ -87,7 +87,7 @@
+ 		return AE_NULL_ENTRY;
+ 	}
+ #endif
+-	kacpid_wq = create_singlethread_workqueue("kacpid", 0);
++	kacpid_wq = create_singlethread_workqueue("kacpid", PF_NOFREEZE);
+ 	BUG_ON(!kacpid_wq);
+ 
+ 	return AE_OK;
+
+--Km1U/tdNT/EmXiR1--
 
 
 -------------------------------------------------------
