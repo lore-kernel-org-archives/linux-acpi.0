@@ -1,13 +1,13 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Suspend-to-RAM on Sony Vaios
-Date: Thu, 4 Nov 2004 05:15:26 +0100
-Message-ID: <20041104041525.GE21211@wotan.suse.de>
-References: <88056F38E9E48644A0F562A38C64FB60033E4DDC@scsmsx403.amr.corp.intel.com> <20041103155217.GH24195@wotan.suse.de> <yzosm7q97q2.fsf@cern.ch> <20041103172120.GB18092@wotan.suse.de> <1099504898.31687.31.camel@elrond.flymine.org>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: save/restore sysdev - re:2.6.9 S4: clock not updated after resume
+Date: Thu, 4 Nov 2004 15:08:04 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575796CEB@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1099504898.31687.31.camel-Xmbc1Sz64/5pghhO6/9/sx2eb7JE58TQ@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +17,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 03, 2004 at 06:01:38PM +0000, Matthew Garrett wrote:
-> On Wed, 2004-11-03 at 18:21 +0100, Andi Kleen wrote:
-> 
-> > earlyprintk to serial or vga if you're in text mode should always work.
-> 
-> On most machines, vga textmode won't work until the card is POSTed
-> again.
+>
+>> The patch is useless. The sysdev suspend/resume isn't invoked by
+swsusp,
+>> as Bjorn has mentioned before.
+>> =
+http://marc.theaimsgroup.com/?l=3Dlinux-kernel&m=3D109753613422952&w=3D2
+>
+>This patch should add sysdev suspend/resume. Can you verify it helps
+>for you?
+Sorry for being so late to reply. Yes, the patch (after fix some
+compiling error) works for me. But one comment is sysdev_resume/suspend
+are designed to work with IRQ disabled.
 
-But serial does.  
+Thanks,
+Shaohua
 
--Andi
+
+>--- clean/kernel/power/disk.c	2004-10-01 00:30:32.000000000 +0200
+>+++ linux/kernel/power/disk.c	2004-10-29 11:57:26.000000000 +0200
+>@@ -102,6 +116,7 @@
+>
+> static void finish(void)
+> {
+>+	sysdev_resume();
+> 	device_resume();
+> 	platform_finish();
+> 	enable_nonboot_cpus();
+>@@ -133,8 +148,12 @@
+> 	free_some_memory();
+>
+> 	disable_nonboot_cpus();
+>-	if ((error =3D device_suspend(PM_SUSPEND_DISK)))
+>+	if ((error =3D device_suspend(PMSG_SUSPEND_DISK))) {
+>+		printk("Some devices failed to suspend\n");
+> 		goto Finish;
+>+	}
+>+
+>+	sysdev_suspend(PMSG_SUSPEND_DISK);
+>
+> 	return 0;
+>  Finish:
+>--- clean/kernel/power/main.c	2004-10-01 00:30:32.000000000 +0200
+>+++ linux/kernel/power/main.c	2004-10-29 11:56:59.000000000 +0200
+>@@ -825,6 +812,7 @@
+> int swsusp_write(void)
+> {
+> 	int error;
+>+	sysdev_resume();
+> 	device_resume();
+> 	lock_swapdevices();
+> 	error =3D write_suspend_image();
+>
+>
+
 
 
 -------------------------------------------------------
