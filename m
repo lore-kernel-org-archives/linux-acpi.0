@@ -1,13 +1,13 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Re: first shoot for smartbattery
-Date: Mon, 3 Jan 2005 18:54:49 +0100
-Message-ID: <20050103175449.GW19199@poupinou.org>
-References: <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org> <41D95CDC.8050802@phys.ethz.ch> <41D95F53.5000008@tiscali.be> <41D967B5.7040002@tiscali.be> <Pine.LNX.4.60.0501031751590.5329@frog.athome>
+Date: Mon, 3 Jan 2005 19:02:19 +0100
+Message-ID: <20050103180219.GX19199@poupinou.org>
+References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org> <41D97AF3.7000409@arrakis.dhis.org> <41D98251.9020002@arrakis.dhis.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.60.0501031751590.5329-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <41D98251.9020002-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: =?iso-8859-1?Q?Fran=E7ois?= Valenduc <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 03, 2005 at 06:02:59PM +0100, liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
-> I did not look into the source... but usually the times are calculated:
-> You take the capacity (remain-value) and divide it by the current. As the 
-> ACPI-1.0 spec only asks for a current-value, if you use a 
-> rechargable-battery and if this is in discharging-mode, you see, that they 
-> did only, what the specs asked as a minimum.  I am not sure, if the 
-> current-value would not need to be -1, if it is unknown however.
-> So it is quite clear, that dividing something (especially if this itself 
-> is not zero) by zero will give you an +overflow... with MAX_UINT (65535 
-> for 16bit) is the nearest representable value.
+On Mon, Jan 03, 2005 at 05:35:13PM +0000, Pedro Venda wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
+> Pedro Venda wrote:
+> | Bruno Ducrot wrote:
+> |
+> | | I think I found was wrong.  Please refetch, or (at your option) replace
+> | | i2c-acpi-ec.ec with
+> | |
+> | http://www.poupinou.org/acpi/smartbatt/smartbatt/i2c-acpi-ec/i2c-acpi-ec.c
+> | | then redo the sh compile.sh
+> | | Sorry, it was a stupid bug(tm) requiring that I buy a brown bag...
+> |
+> | happens to everyone.
+> |
+> | | Something wrong also with rmmod i2c-acpi-ec :( so you have to reboot in
+> | | order to be able to 'insmod i2c-acpi-ec.ko' again (I'm sure the brown
+> | | bag will still be helpfull also...).
+> 
+> ok I made a small patch against your most recent code base:
 
-I'm much more a lazy man than that and much prefer to get those values
-from the sensor ;)
-The current is an int but it should be a short and is negative
-if discharging.  Look at smartbattery data spec at
-http://www.sbs-forum.org/specs/index.html
+Thanks.
 
-And the 2 times given was the same actually.  It's now corrected.
+> 
+> included:
+> - - a Makefile for the i2c-acpi-ec module
+> - - a Makefile for the smartbattery program which also calls the 
+> i2c-acpi-ec make
+> process.
+> 
+> in the smartbattery directory, one just "make"s and everything gets built.
 
-But as said, it's a first shot and smartbattery.c will soon be dead.
+Ok.
 
-Problem is: from the ASL, there is 2 Smart Batteries and a Smart Battery
-Selector (or a Smart Battery Manager).
-I can go for the easy path at least for the smartbattery, since there is
-already a driver for it in lm-sensors-2.9.0.  But actually there may be more
-than one battery that can be reached at the same address, then I'm for
-sure that the smartbattery stuff from lm-sensors can not handle multiple
-batteries.
+> 
+> I found out that when draining power from the battery with no AC power, the
+> value returned should be added to -65535 to result in the correct value.
+> 
+> this puzzles me, because when the battery is being used, the returned value
+> seems to be subtracted from 65535  but when the AC is plugged, it seems to 
+> come
+> out ok...
+
+Look at http://www.sbs-forum.org/specs/sbdat110.pdf
+5.1.11. Current()
+why this happens.
+
 
 -- 
 Bruno Ducrot
