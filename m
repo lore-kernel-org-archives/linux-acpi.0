@@ -1,10 +1,10 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Questions about vbestate
-Date: Tue, 18 Jan 2005 19:12:19 +0100
-Message-ID: <200501181912.19644.stefandoesinger@gmx.at>
+From: Damien Challet <dchallet-iYm916uyMS6cH/9ky42jgw@public.gmane.org>
+Subject: enable sound card with PNPACPI
+Date: Tue, 18 Jan 2005 18:56:01 +0000
+Message-ID: <200501181856.01957.dchallet@netcourrier.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
@@ -20,38 +20,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I am still investigating the suspend-to-ram issues with the radeon graphic 
-cards. I am trying to get s3 working with the proprietary  fglrx driver from 
-ati.
+Dear All,
 
-There is no problem with the kernel module, but switching back to the X server 
-after resuming and post-ing the card the driver hangs. Bad so far. I 
-investigated a little bit more:
+I understand that in principle the equivalent of 
 
-*switching to the console(no framebuffer), posting the card with one of the 
-c000:3 callers and switching back to X causes a crash
+setpnp 0x0e on
 
-*If I save the card's state with vbesate before calling the post-routine and 
-restoring the state afterwards makes switching back to X work again.
+is (with PNPACPI)
 
-*BUT: If I switch to the console, save the state, go to suspend, wake up the 
-system and restore the vbestate fglrx crashes again.
+echo 1 > /sys/device/pnp0/00:0e/power
 
-So my question is: Are there some settings which might get lost during and S3 
-which are NOT restored by vbestate?
+(from memory)
 
-I am using fglrx V.8.8.25 with X.Org 6.8.1. I will also write a mail to ATI to 
-help them fix their driver. They say that they are aware of this problem and 
-haven't found a solution yet.
+The only problem is that even if I "activate" all the devices, I still cannot 
+load the needed module (on a thinkpad 600e, module snd-cs4236).  
 
-Note: S3 works fine for me with the gpl "radeon" driver from X.Org. I am 
-trying to get fglrx working because I need it for gaming and I don't want to 
-switch the konfiguration permanently. It would also help users with a radeon 
->=9200 card.
+What is needed in addition to that ?
 
-Cheers,
-Stefan
+Many thanks
+
+Damien
+
 
 
 -------------------------------------------------------
