@@ -1,60 +1,77 @@
-From: Alex Williamson <alex.williamson@hp.com>
-Subject: Re: [ACPI] [PATCH] restore _OS object to "Linux" for ia64
-Date: Mon, 13 Sep 2004 13:42:02 -0600
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <1095104522.20631.54.camel@tdi>
-References: <1095100068.20631.30.camel@tdi>
-	 <1095103349.2512.16.camel@d845pe>
+From: Ronald Hitz <Ronald.Hitz-1NtEGJHV5g0@public.gmane.org>
+Subject: iasl-compile failure
+Date: Mon, 13 Sep 2004 22:49:26 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <E1C6xlP-0005uX-00@mail1.isc.de>
+Reply-To: Ronald.Hitz-1NtEGJHV5g0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1095103349.2512.16.camel@d845pe>
-To: Len Brown <len.brown@intel.com>
-Cc: linux-ia64@vger.kernel.org, acpi-devel <acpi-devel@lists.sourceforge.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0H629O+sVkh21xTi"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-09-13 at 15:22 -0400, Len Brown wrote:
-> On Mon, 2004-09-13 at 14:27, Alex Williamson wrote:
-> >    A recent change to ACPI made the _OS object falsely report the OS as
-> > "Microsoft Windows NT".  This seems like a slippery slope, and I'd
-> > rather not go down it for ia64.  I think all of the ia64 OEMs are
-> > involved enough with Linux that this isn't necessary and the change
-> > limits the options should ACPI firmware need to make an OS specific work
-> > around.  The patch below will make all ia64 boxes report a default _OS
-> > of "Linux".
-> 
-> While I share your pride in Linux, there are a couple of reasons
-> why we do not make _OS return "Linux".
-> 
-> _OS is a deprecated interface -- it has been replaced
-> by the more flexible _OSI.  So with _OS we're talking
-> about past, not future systems.  And there is a total
-> population of 0 systems in the installed base that check
-> for _OS ="Linux" in their firmware.  On the other hand, there
-> are zillions of systems that check for Windows with _OS,
-> and the !Windows path through the firmware is effectivly
-> unvalidated.
 
-  Perhaps true for i386.  While I don't know of any ia64 AML that checks
-_OS, I do know that we extensively test any !Windows path that exists...
-or at least we did.
+--0H629O+sVkh21xTi
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> While this is really important on i386, it may not be
-> important for ia64.  However, unless you can show
-> me an existing system that checks for _OS=Linux, then
-> it only adds risk w/o reward to make this change, even
-> if just on ia64.  New systems should be using _OSI.
+Hi Luis N. and other readers,
 
-   I see the risk in *changing* the _OS, but not in leaving it the way
-it was.  SLES9 has already shipped based on 2.6.5.  That ACPI CA set the
-_OS to "Linux".  Many platforms have gone through full certification on
-that kernel.  How is it more risky to stay with "Linux"?  If it's a
-deprecated interface, why change it at the end of it's life when there
-are no known benefits on ia64?  Thanks,
+No great help to You Luis,
+just let You that You are not the only with that problem:
 
-	Alex
+ I downloaded acpica-unix-20040715.tar.gz in order to compile iasl but I=20
+  got an error compiling:
 
--- 
-Alex Williamson                             HP Linux & Open Source Lab
+dude@sandpiper:/usr/local/src/acpica-unix-20040715/compiler$ make
+cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER
+-I../include    -c -o aslcompilerlex.o aslcompilerlex.c
+aslcompiler.l: In Funktion =BBcomment=AB:
+aslcompiler.l:837: error: `yytext_ptr' undeclared (first use in this
+function)
+aslcompiler.l:837: error: (Each undeclared identifier is reported only
+once
+aslcompiler.l:837: error: for each function it appears in.)
+make: *** [aslcompilerlex.o] Fehler 1
 
+Can anyone help me? I have a Debian Sarge (testing), gcc 3.3.4, flex=20
+ 2.5.31, bison 1.875a. I need iasl to decompile my IBM R40=20
+  DSDT as I currently have no correct sleep modus with acpi, but with
+  apm.
+  =20
+    kind regards,
+    =20
+      Ronald Hitz
+
+--0H629O+sVkh21xTi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBRgfWIZtySvzDl4oRAktyAKCqjeTnB6so0SvBfGdroB6IOFN0BwCeMnwo
+0VyeZis12b5tQxu96JFztdw=
+=0MAI
+-----END PGP SIGNATURE-----
+
+--0H629O+sVkh21xTi--
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
+Project Admins to receive an Apple iPod Mini FREE for your judgement on
+who ports your project to Linux PPC the best. Sponsored by IBM. 
+Deadline: Sept. 13. Go here: http://sf.net/ppc_contest.php
