@@ -1,37 +1,53 @@
-From: Ducrot Bruno <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Fix S3 resume when kernel is big
-Date: Thu, 21 Nov 2002 14:15:02 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021121131502.GE707@poup.poupinou.org>
-References: <20021120151136.GA862@elf.ucw.cz> <20021120153833.GA4344@suse.de> <20021121124506.GC1133@atrey.karlin.mff.cuni.cz>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [sony] acpi and sonypi trouble?
+Date: Thu, 21 Nov 2002 15:47:51 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20021121144751.GA1989@poup.poupinou.org>
+References: <20021120133258.GB709@poup.poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20021121124506.GC1133-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Dave Jones <davej-rdkfGonbjUTCLXcRTR1eJlpr/1R2p/CL@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20021120133258.GB709-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 21, 2002 at 01:45:06PM +0100, Pavel Machek wrote:
-> Hi!
+On Wed, Nov 20, 2002 at 02:32:58PM +0100, Ducrot Bruno wrote:
+> Hi there.
 > 
-> >  > -	acpi_create_identity_pmd();
-> >  > +	if (!cpu_has_pse) {
-> >  > +		printk(KERN_ERR "You have S3 capable machine without pse? Wow!");
-> >  > +		return 1;
-> >  > +	}
-> > 
-> > Mobile K6 family never had PSE iirc, and also VIA Cyrix 3's are being
-> > dropped into various laptops.
+> I think that there is a possible problem with sonyip and
+> with latest acpi, especially in event generation, and
+> probably an apparent bad support for the EC under ACPI.
 > 
-> So S3 will refuse to suspend on those machines. Right now it will
-> suspend and not wakeup if moon is bad phase.
-> 							Pavel
+> Looking around the code for the sonyip driver, it use the
+> ACPI EC for his purpose, and also use the SCI, GPE0 and GPE1
+> blocks for his stuff as well, so that actually two drivers
+> conflicts each other by enabling/disabling, and clearing
+> the exact same registers in their IRQ handlers.
+> 
 
-FYI, current swsusp for 2.4 require that cpu has pse _or_ pse36.
+Looking around a bit more the code, I confused myself GPO blocks
+and GPE0 blocks (at least for the PIIX4E case), those irq handling
+should be OK.   The EC contention still is an issue.
+
+Cheers,
 
 -- 
 Ducrot Bruno
 http://www.poupinou.org        Page profaissionelle
 http://toto.tu-me-saoules.com  Haume page
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
