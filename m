@@ -1,16 +1,15 @@
-From: Preston Lord <webmaster-xSlfl9GhdHA@public.gmane.org>
-Subject: Re: toshiba_acpi.o failed
-Date: 13 May 2003 02:10:39 -0600
+From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: RE: ACPI source releases updated (20030509)
+Date: Tue, 13 May 2003 10:54:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1052813439.2390.40.camel@zipur.doublet>
-References: <1052804863.1925.4.camel@zipur.doublet>
-	 <3EC0AB25.3020300@ottaky.com> <1052812391.2390.35.camel@zipur.doublet>
-	 <3EC0B400.3040807@ottaky.com>
+Message-ID: <20030513085421.GB1338@enigma.daemon.sh>
+References: <F760B14C9561B941B89469F59BA3A84725A299@orsmsx401.jf.intel.com> <b9pf9o$jjs$1@main.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3EC0B400.3040807-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b9pf9o$jjs$1@main.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,74 +18,65 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Nathan Gray <n8gray-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I read that article and cant get it figured out... I will keep working
-at it. I have a feeling I am missing something simple. What does the
-following supposed to tell me? How do I correct the "No Such Device?"
-errors? LOL, I love linux, but $h!7 he he..
 
-Loading ACPI modules (ac fan processor insmod:
-/lib/modules/2.4.20-4GB/kernel/drivers/acpi/toshiba_acpi.o: init_module:
-No such device
+--uQr8t48UFsdbeI+V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+hi there...
 
-insmod: Hint: insmod errors can be caused by incorrect module
-parameters, including invalid IO or IRQ parameters.
+Received at 2003-05-13 / 09:14 by Nathan Gray:
+> Grover, Andrew wrote:
+> > Can you help me understand what problem putting the DSDT in initrd
+> > fixes?
+>=20
+> It solves the problem of having to recompile your kernel in order to chan=
+ge
+> your DSDT.  Switching to a new DSDT becomes as simple as:
+>=20
+> cp initrd_backup.img initrd.img
+> cat marker >> initrd.img  # Mark the start of the DSDT
+> cat DSDT.aml >> initrd.img
+> reboot
+>=20
+> It's very handy.
 
-      You may find more information in syslog or the output from dmesg
+i totally agree with that.
 
+and the patch seems quite small and non-intrusive to me, though i do not
+know the innards of acpi/kernel (yet) so well.
 
-insmod: /lib/modules/2.4.20-4GB/kernel/drivers/acpi/toshiba_acpi.o:
-insmod /lib/modules/2.4.20-4GB/kernel/drivers/acpi/toshiba_acpi.o failed
+on the other hand, this patch should not be necessary anyway. users
+should not patch part of their "bios" by themselves to get their system
+to work better. but this is how the situation currently looks like, as
+long as the vendors provide buggy DSDTs. i would consider the patch to
+be temporary, marked as soon-to-be-deleted. :)
 
+cheers,
+ sebastian
+--=20
+::: sebastian henschel
+::: kodeaffe
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
-insmod: /lib/modules/2.4.20-4GB/kernel/drivers/acpi/toshiba_acpi.o:
-insmod toshiba_acpi failed
+--uQr8t48UFsdbeI+V
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-battery thermal button ) 
-done
+iD8DBQE+wLK9reHfL3pi+bQRAmBmAJ0f5IHFSW2KU4q7reC/vJTGNQ76UQCglb/G
+j9UcKI0IE/3pr8i1+Xf+V38=
+=JA2d
+-----END PGP SIGNATURE-----
 
-Starting acpid <notice>
-done
-
-
-
-
-
-
-
-On Tue, 2003-05-13 at 02:59, sjb wrote:
-> Preston Lord wrote:
-> 
-> > OK, I have managed that... now I am stumped.. after disassembling the
-> > DSDT I realize Holy $h!7 ... I havent a clue on what to change in there!
-> 
-> Frankly, neither did I .. but thanks to the efforts and perseverence of 
-> a couple of list members I have a fixed (but untested) dsdt for my U1.
-> 
-> There's a useful page here BTW
-> 
-> http://www.cpqlinux.com/acpi-howto.html
-> 
-> that may help you fix the more obvious errors.
-> 
-> sjb
--- 
-Preston Lord
-Programmer/Developer/Network Specialist
-Double "T" Computer Services
-SK, CA Ph.1.306.773.2054
-==============================
-http://www.t2.net (Hosting)
-http://www.dinamicweb.com (iHTML Driven Dropsites)
-http://www.ebboard.ca (iHTML Discussion Forum Software)
-
-
-
+--uQr8t48UFsdbeI+V--
 
 
 -------------------------------------------------------
