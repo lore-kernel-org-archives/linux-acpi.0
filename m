@@ -1,14 +1,14 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
-Date: Sat, 20 Mar 2004 10:10:00 -0800
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ASUS M6800N: processor has only C1
+Date: Sat, 20 Mar 2004 19:39:04 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040320181000.GA8272@kroah.com>
-References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <405C8FC8.3050701@pca.it>
+References: <404459FD.1000406@pca.it>  <405C1D0F.3030209@pca.it> <1079803656.32419.15.camel@djinn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040320134542.GV25059-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <1079803656.32419.15.camel-l85cmlzfk8I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Mar 20, 2004 at 01:45:42PM +0000, Matthew Wilcox wrote:
-> On Sat, Mar 20, 2004 at 03:28:54AM -0500, Jeff Garzik wrote:
-> > Len Brown wrote:
-> > >Linux PCI list,
-> > >
-> > >Stefan noticed bits changing in the config space for
-> > >his PCI/PCI bridge across a C3 suspend/resume.
-> > >
-> > >Is there any software in Linux responsible for preserving
-> > >and restoring the PCI config space for PCI/PCI bridges
-> > >across a suspend/resume?
-> > 
-> > Left up to the individual drivers unfortunately...
-> 
-> I've often thought we needed a generic pci bridge driver ...
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Yes, this will happen in 2.7 when we add the ability to have "generic"
-and "specific" type drivers for devices.
+Hello,
 
-thanks,
+on 03/20/04 18:27, Herman Sheremetyev wrote:
+> With a little DSDT tweak I get the following output:
+<cut>
+> The fix requires simply changing one value in the DSDT from:
+>
+> Processor (CPU1, 0x01, 0x00000410, 0x07)
+>
+> to:
+>
+> Processor (CPU1, 0x01, 0x00000410, 0x06)
+this hack was already known
+	http://sourceforge.net/mailarchive/message.php?msg_id=7451801
 
-greg k-h
+But the same can be achieved using Bruno Ducrot's at
+	http://bugzilla.kernel.org/show_bug.cgi?id=1958
+
+Please read the whole thread here
+	http://sourceforge.net/mailarchive/message.php?msg_id=7451789
+
+AFAIK Bruno's patches are a /cleaner/ solution, as you can have C1 & C2 without
+hacking your DSDT. On the other hand, it seems that our laptop support C4 state
+(via _CST), which is the final objective of Bruno's patches IIRC.
+
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFAXI/HVAp7Xm10JmkRAoieAJ9wkCvoWudcEGXu+Kq78AmqGkoYJQCfThQg
+H84lZKxoXpvApZHLilJkA9Y=
+=iyHh
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
