@@ -1,8 +1,8 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: RE: preparing toshiba_acpi driver release
-Date: Tue, 27 Jan 2004 09:54:33 +0100
+Date: Tue, 27 Jan 2004 11:21:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040127085433.GA30693@message-id.gmane0305.slipkontur.de>
+Message-ID: <20040127102131.GI25416@poupinou.org>
 References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A54@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -17,48 +17,72 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Mon, Jan 26, 2004 at 02:29:02PM -0500, Brown, Len wrote:
-
+> > Wait.  I take video, not hotkey :)
+> 
+> Yes, I just mentioned hotkeys because that is the other part of the
+> platform dependent drivers which need a more generic solution.
+> 
+> > > I think video brightness control will be a very popular and visible
+> > > feature -- no pun intended;-)
+> > 
+> > ATM I much prefer _CST though, even if there is no visible 
+> > effect other
+> > than people may notice that their laptop will run longer on battery,
+> > and if they don't have some usb driver loaded.
+> 
+> I was thinking about ergonomics rather than power-savings -- though
 > probably brightness control has some power savings benefits too -- maybe
 > somebody on the list has numbers for screen power consumption?
 
-my Asus L2400D with cpufrequency down to 500 MHz, machine is idle (but
-connected to USB keyboard/mouse and network).
+backlights are power hungry monster.
 
-max. brightness (level 15):
-charging state:          discharging
-present rate:            677 mA
+> 
+> > > In the back of my head I'm also wondering if we've got a 
+> > missing piece
+> > > of the suspend/resume puzzle here too -- and I'd hate for 
+> > ACPI to be the
+> > > "missing link" to get that key feature working.
+> > 
+> > IMHO, there is a need at first to glue devices in the ACPI 
+> > namespace and the
+> > devices enumerated by OS a la pnpbios...
+> 
+> For suspend/resume, or for something else?
 
-min. brightness (level 1, there is also 0 but then i can't read anything :-)
-charging state:          discharging
-present rate:            557 mA
+For enumerating devices, should be usefull for suspend/resume.
+The ACPI subsystem then may be able to call specific AML method
+for this device, but at first, driver need to know that such
+method exist.
 
-medium brightness (level 7, this is actually useable)
-charging state:          discharging
-present rate:            597 mA
+> PNP is only for ISA devices, yes?  Is it really still used?
 
-and just for the record: maximum brightness and cpufreq to 1200 MHz:
-charging state:          discharging
-present rate:            1437 mA
+PNP was first designed for PCI device, IIRC.  Anyway, common isa devices
+include serial ports, parallel ports, keyboard controller to name
+a few.  Now, Linux do have some kind method to glue such devices
+with real drivers.  It's more to point to look that kind of code
+in order to see if ACPI can do the same, but with all the devices in mind.
 
-This is no scientific measurement since the machine is not really idle (i'm
-writing this mail now :-) and the battery is a blatant liar (if the machine
-would draw as little current as /proc/acpi/.../state tells me, it would have
-to last twice as long, but it doesnt. So either it lies about capacity or
-about current), but it is something to compare.
-And yes, when i'm on the road, i always turn down the display as much as
-possible to save battery.
+> When we were working on interrupts somebody suggested that we ask the
+> ISA bus driver about what ISA interrupts where taken rather than using a
+> table inside the ACPI code containing "conventions".  The conventions
+> are simple, and so far seem to be functional -- though one could argue
+> such heuristics are sort of a hack.
 
-I also made the test with an IBM T23 or something like that about a year ago
-with Win2k which gave me even bigger savings from the display backlight
-(IIRC about 1400 mA with full brightness and 900 mA with minimal).
+ISA devices do have 'well known' interrupts, io ports.  Anyway, isa devices
+are enumerated by ACPI and configuration may be retrived for them if
+really needed (they are children of the isa bridge function of the
+southbridge, in a hopefully well written AML).
 
 -- 
-Stefan Seyfried
+Ducrot Bruno
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
