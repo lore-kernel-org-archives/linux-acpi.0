@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Re: TEST REPORT: 2.5.73-mm2 S3
-Date: Tue, 1 Jul 2003 11:44:16 +0200
+From: "Diefenbaugh, Paul S" <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: EC SCI model?
+Date: Tue, 1 Jul 2003 08:58:32 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030701094416.GA5783@zaurus.ucw.cz>
-References: <200306291905.00537.mflt1@micrologica.com.hk> <200306301734.21377.mflt1@micrologica.com.hk> <20030630102411.GE3601@zaurus.ucw.cz> <200307010938.06319.mflt1@micrologica.com.hk>
+Message-ID: <59278FC0C48A994BABABD069571E45680179040F@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200307010938.06319.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> Is it possible then to get a fully interrupt-driven EC driver,=20
+> but fallback to polling via acpi blacklist?
 
-> > If interrupts are not working, you'd be
-> > getting big number of "IDE: lost interrupts".
-> > Interruprs definitely work(ed) here after S3.
-> 
-> IDE, keyboard work, other don't and this should be investigated
-> as the interrupts stay ded after S3.
+Yes - we have seen a few good implementations ... but the side-effect of
+a bad one is an interrupt storm that essentially hangs the host system.
+Not necessarily the most user-friendly means for determining if/when a
+system should be blacklisted... ;~)
 
-Try noapic.
--- 
-				Pavel
-Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+___________________________________________=20
+Paul Diefenbaugh=20
+Intel Corporation, MPG | MPA | System Software Architecture
 
+
+-----Original Message-----
+From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]=20
+Sent: Tuesday, July 01, 2003 5:46 AM
+To: Diefenbaugh, Paul S
+Cc: Grover, Andrew; Nate Lawson; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] EC SCI model?
+
+On Mon, Jun 30, 2003 at 02:16:16PM -0700, Diefenbaugh, Paul S wrote:
+> > When you done those tests, it was before the fix which forced the
+> > SCI interrupt to be correctly initialized if not present in firmware
+> > routing last year?
+>=20
+> Our original implementation was done on the BeOS several years ago;
+then
+> ported to Linux.  I believe the problem is unrelated to the SCI issue
+> you've mentioned (an EC hardware bug).
+>=20
+
+Is it possible then to get a fully interrupt-driven EC driver, but
+fallback to polling via acpi blacklist?
+
+
+--=20
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
