@@ -1,14 +1,13 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Linux ACPI processor driver patch: user-definable power state
- limit
-Date: 09 Oct 2004 01:52:00 -0400
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI processor module enhancements
+Date: Sat, 9 Oct 2004 18:04:54 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1097301120.16784.2.camel@d845pe>
-References: <200408071959.10529.jos.delbar@ugent.be>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8405BD11BF@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-4xfljjOQzb7QfWUzFbqr"
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C4ADE7.71B14531"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200408071959.10529.jos.delbar-Cru1EgDzd7c@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,257 +16,139 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---=-4xfljjOQzb7QfWUzFbqr
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+------_=_NextPart_001_01C4ADE7.71B14531
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Jos,
-Can you modify this patch to use a kernel boot parameter
-rather than a module load parameter?  Some folks don't
-load this driver as a module.  Also, it gives you the
-chance to add a couple of lines to Documentation/kernel-parameters.txt
+>
+>> >8.) Support for WBINVD-based C3
+>> >
+>> >Only enabled on UP if users explicitely requests it, but=20
+>> >always available
+>> >on multiprocessor systems.
+>>=20
+>> IIR Luming was looking into this area.
 
-thanks,
--Len
+I recall I have ever made a patch to remove:
 
-On Sat, 2004-08-07 at 13:59, Jos Delbar wrote:
-> On Monday 02 August 2004 02:54, you wrote:
-> > I think we need a patch like this for a number of reasons.
-> > Some systems experience data corruption with C3,
-> > so until it is fixed we need an easy way to disable C3.
-> >
-> > boot parameter names must begin with acpi though.
-> > maybe acpi_cstate_limit=3 or something?
-> >
-> > Please send me the exact model numbers of the Dells
-> > that you know have this problem.  I met a guy from
-> > Dell who I may be able to get to help us with
-> > those models.
-> >
-> > thanks,
-> > -Len
-> 
-> I browsed through the Dell community forums and I believe it is safe
-> to 
-> conclude that at least the following notebook models may have this
-> problem:
-> 
-> - Inspiron 300m, 500m, 600m
-> - Inspiron 4000, 4100, 4150
-> - Inspiron 8100, 8200, 8500, 8600
-> - Latitude C840
-> - Latitude D500, D600, D800
-> 
-> As expected, all of these systems use a mobile processor chipset, with
-> either 
-> an Intel Celeron-M, Pentium III-M, Pentium 4-M or Pentium M processor.
-> All of 
-> the people who have posted about this buzzing noise are using an
-> ACPI-enabled 
-> operating system, the majority Windows 2000/XP. Windows 98 does not
-> have this 
-> problem, for example. On systems that support it, disabling the power 
-> management of the USB Root Hub(s) apparently softens--but does not 
-> eliminate--the buzzing.
-> 
-> I updated the patch with the new module parameter name
-> "acpi_cstate_limit" and 
-> cleaned up the results of /proc/acpi/processor/.../power a little. The
-> output 
-> using acpi_cstate_limit=2 will now resemble:
-> 
-> active state: C2
-> default state: C1
-> user limit: C2
-> bus master activity: ffffffff
-> states:
-> C1: promotion[C2] demotion[--] latency[000] usage[00300510]
-> *C2: promotion[--] demotion[C1] latency[050] usage[04964774]
-> C3: <disabled>
-> 
-> If acpi_cstate_limit is passed as a kernel boot parameter, the kernel
-> ring 
-> buffer will reflect this. For example, using
-> "processor.acpi_cstate_limit=1", 
-> the relevant output for my system is:
-> 
-> ACPI: Processor [CPU0] (supports C0 C1, 8 throttling states)
-> 
-> I chose to always display C0 so this message will still make sense
-> when using 
-> acpi_cstate_limit=0.
-> 
-> One of the changes that I made, is unrelated to the C state limit.
-> 
-> @@ -2417,7 +2446,7 @@
->         pr = (struct acpi_processor *) acpi_driver_data(device);
-> 
->         /* Unregister the idle handler when processor #0 is removed.
-> */
-> -       if (pr->id == 0)
-> +       if ((pr->id == 0) && (pr->flags.power))
->                 pm_idle = pm_idle_save;
-> 
->         status = acpi_remove_notify_handler(pr->handle,
-> ACPI_DEVICE_NOTIFY,
-> 
-> Without the check for pr->flags.power, it's possible that the old idle
-> handler 
-> would be "restored" without ever being stored in the function 
-> acpi_processor_add(). In practice this shouldn't cause a problem since
-> the 
-> pm_idle_save global variable is implicitly initialized to NULL, but it
-> feels 
-> safer to do the check anyway.
-> 
-> Regards,
-> 
-> - Jos Delbar
->   jos.delbar-Cru1EgDzd7c@public.gmane.org
-> 
+               else if (!pr->flags.bm_control)
+                       ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+                               "C3 support requires bus mastering
+control\n"));
 
---=-4xfljjOQzb7QfWUzFbqr
-Content-Disposition: attachment; filename=processor.c.diff
-Content-Type: text/plain; name=processor.c.diff; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+The patch is simple, And I haven't started to eliminate " "C3 not
+supported in SMP mode".
 
---- /usr/src/linux/drivers/acpi/processor.c	2004-08-07 18:25:15.064497551 +0200
-+++ processor.c	2004-08-07 18:31:24.013809421 +0200
-@@ -30,6 +30,14 @@
-  *	4. Need C1 timing -- must modify kernel (IRQ handler) to get this.
-  */
- 
-+/*
-+ * 07/08/04; Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>:
-+ * Recognize power state limit as a boot parameter.
-+ *
-+ * 31/07/04; Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>:
-+ * Add user-definable processor power state limit.
-+ */
+Thanks,
+Luming
+
+diff -Bru 2.6.new/drivers/acpi/processor.c
+patched/drivers/acpi/processor.c
+--- 2.6.new/drivers/acpi/processor.c    2004-04-28 11:45:02.000000000
++0800
++++ patched/drivers/acpi/processor.c    2004-05-26 14:38:05.000000000
++0800
+@@ -428,8 +428,12 @@
+                break;
+
+        case ACPI_STATE_C3:
+-               /* Disable bus master arbitration */
+-               acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1,
+ACPI_MTX_DO_NOT_LOCK);
 +
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -80,6 +88,16 @@
- MODULE_DESCRIPTION(ACPI_PROCESSOR_DRIVER_NAME);
- MODULE_LICENSE("GPL");
- 
-+/*
-+ * The acpi_cstate_limit module parameter represents the maximum processor power state or
-+ * C state to promote to. Values of 1, 2 and 3 are equivalent to the C1, C2 and C3 sleep
-+ * states, respectively. A value of 0 disables processor power management altogether.
-+ */
++               if(pr->flags.bm_control)
++                       acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1,
+ACPI_MTX_DO_NOT_LOCK); /* Disable bus master arbitration */
++               else
++                       ACPI_FLUSH_CPU_CACHE ();
 +
-+static int acpi_cstate_limit = ACPI_C_STATES_MAX;
+                /* Get start time (ticks) */
+                t1 =3D inl(acpi_fadt.xpm_tmr_blk.address);
+                /* Invoke C3 */
+@@ -438,8 +442,10 @@
+                t2 =3D inl(acpi_fadt.xpm_tmr_blk.address);
+                /* Get end time (ticks) */
+                t2 =3D inl(acpi_fadt.xpm_tmr_blk.address);
+-               /* Enable bus master arbitration */
+-               acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0,
+ACPI_MTX_DO_NOT_LOCK);
 +
-+module_param(acpi_cstate_limit, int, S_IRUSR | S_IRGRP | S_IROTH);
-+MODULE_PARM_DESC(acpi_cstate_limit, "Limit the processor power state (0 = disable power management)");
- 
- static int acpi_processor_add (struct acpi_device *device);
- static int acpi_processor_remove (struct acpi_device *device, int type);
-@@ -449,6 +467,7 @@
- 		sleep_ticks = ticks_elapsed(t1, t2) - cx->latency_ticks - C3_OVERHEAD;
- 		break;
- 
-+	case ACPI_STATE_C0:
- 	default:
- 		local_irq_enable();
- 		return;
-@@ -535,7 +554,7 @@
- 	 * C0/C1
- 	 * -----
- 	 */
--	pr->power.state = ACPI_STATE_C1;
-+	pr->power.state = (acpi_cstate_limit != ACPI_STATE_C0 ? ACPI_STATE_C1 : ACPI_STATE_C0);
- 	pr->power.default_state = ACPI_STATE_C1;
- 
- 	/*
-@@ -554,7 +573,7 @@
- 	 * TBD: Demote to default C-State after long periods of activity.
- 	 * TBD: Investigate policy's use of CPU utilization -vs- sleep duration.
- 	 */
--	if (pr->power.states[ACPI_STATE_C2].valid) {
-+	if (pr->power.states[ACPI_STATE_C2].valid && (acpi_cstate_limit >= ACPI_STATE_C2)) {
- 		pr->power.states[ACPI_STATE_C1].promotion.threshold.count = 10;
- 		pr->power.states[ACPI_STATE_C1].promotion.threshold.ticks =
- 			pr->power.states[ACPI_STATE_C2].latency_ticks;
-@@ -575,7 +594,7 @@
- 	 * short or whenever bus mastering activity occurs.
- 	 */
- 	if ((pr->power.states[ACPI_STATE_C2].valid) &&
--		(pr->power.states[ACPI_STATE_C3].valid)) {
-+		(pr->power.states[ACPI_STATE_C3].valid) && (acpi_cstate_limit >= ACPI_STATE_C3)) {
- 		pr->power.states[ACPI_STATE_C2].promotion.threshold.count = 4;
- 		pr->power.states[ACPI_STATE_C2].promotion.threshold.ticks =
- 			pr->power.states[ACPI_STATE_C3].latency_ticks;
-@@ -1859,10 +1878,15 @@
- 		goto end;
- 
- 	seq_printf(seq, "active state:            C%d\n"
--			"default state:           C%d\n"
--			"bus master activity:     %08x\n",
-+			"default state:           C%d\n",
- 			pr->power.state,
--			pr->power.default_state,
-+			pr->power.default_state);
++               if(pr->flags.bm_control)
++                       acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0,
+ACPI_MTX_DO_NOT_LOCK); /* Enable bus master arbitration */
 +
-+	if (acpi_cstate_limit < ACPI_C_STATES_MAX) seq_printf(seq,
-+			"user limit:              C%d\n",
-+			acpi_cstate_limit);
+                /* Re-enable interrupts */
+                local_irq_enable();
+                /* Compute time (ticks) that we were actually asleep */
+@@ -676,14 +682,7 @@
+                        ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+                                "C3 latency too large [%d]\n",
+                                acpi_fadt.plvl3_lat));
+-               /*
+-                * Only support C3 when bus mastering arbitration
+control
+-                * is present (able to disable bus mastering to maintain
+-                * cache coherency while in C3).
+-                */
+-               else if (!pr->flags.bm_control)
+-                       ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-                               "C3 support requires bus mastering
+control\n"));
 +
-+	seq_printf(seq, "bus master activity:     %08x\n",
- 			pr->power.bm_activity);
- 
- 	seq_puts(seq, "states:\n");
-@@ -1876,6 +1900,11 @@
- 			continue;
- 		}
- 
-+		if (i > acpi_cstate_limit) {
-+			seq_puts(seq, "<disabled>\n");
-+			continue;
-+		}
-+
- 		if (pr->power.states[i].promotion.state)
- 			seq_printf(seq, "promotion[C%d] ",
- 				pr->power.states[i].promotion.state);
-@@ -2384,7 +2413,7 @@
- 	
- 	printk(KERN_INFO PREFIX "%s [%s] (supports",
- 		acpi_device_name(device), acpi_device_bid(device));
--	for (i=1; i<ACPI_C_STATE_COUNT; i++)
-+	for (i=0; i<=acpi_cstate_limit; i++)
- 		if (pr->power.states[i].valid)
- 			printk(" C%d", i);
- 	if (pr->flags.throttling)
-@@ -2417,7 +2446,7 @@
- 	pr = (struct acpi_processor *) acpi_driver_data(device);
- 
- 	/* Unregister the idle handler when processor #0 is removed. */
--	if (pr->id == 0)
-+	if ((pr->id == 0) && (pr->flags.power))
- 		pm_idle = pm_idle_save;
- 
- 	status = acpi_remove_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY, 
-@@ -2447,6 +2476,10 @@
- 	memset(&processors, 0, sizeof(processors));
- 	memset(&errata, 0, sizeof(errata));
- 
-+	/* Check for illegal user limits. */
-+	if(acpi_cstate_limit < ACPI_STATE_C0 || acpi_cstate_limit > ACPI_C_STATES_MAX)
-+		return_VALUE(-EINVAL);
-+
- 	acpi_processor_dir = proc_mkdir(ACPI_PROCESSOR_CLASS, acpi_root_dir);
- 	if (!acpi_processor_dir)
- 		return_VALUE(-ENODEV);
+                /*
+                 * Only support C3 on UP systems, as bm_control is only
+viable
+                 * on a UP system and flushing caches (e.g. WBINVD) is
+simply
 
---=-4xfljjOQzb7QfWUzFbqr--
+------_=_NextPart_001_01C4ADE7.71B14531
+Content-Type: application/octet-stream;
+	name="c3_wbinvd.patch"
+Content-Transfer-Encoding: base64
+Content-Description: c3_wbinvd.patch
+Content-Disposition: attachment;
+	filename="c3_wbinvd.patch"
 
+ZGlmZiAtQnJ1IDIuNi5uZXcvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvci5jIHBhdGNoZWQvZHJpdmVy
+cy9hY3BpL3Byb2Nlc3Nvci5jCi0tLSAyLjYubmV3L2RyaXZlcnMvYWNwaS9wcm9jZXNzb3IuYwky
+MDA0LTA0LTI4IDExOjQ1OjAyLjAwMDAwMDAwMCArMDgwMAorKysgcGF0Y2hlZC9kcml2ZXJzL2Fj
+cGkvcHJvY2Vzc29yLmMJMjAwNC0wNS0yNiAxNDozODowNS4wMDAwMDAwMDAgKzA4MDAKQEAgLTQy
+OCw4ICs0MjgsMTIgQEAKIAkJYnJlYWs7CiAKIAljYXNlIEFDUElfU1RBVEVfQzM6Ci0JCS8qIERp
+c2FibGUgYnVzIG1hc3RlciBhcmJpdHJhdGlvbiAqLwotCQlhY3BpX3NldF9yZWdpc3RlcihBQ1BJ
+X0JJVFJFR19BUkJfRElTQUJMRSwgMSwgQUNQSV9NVFhfRE9fTk9UX0xPQ0spOworCisJCWlmKHBy
+LT5mbGFncy5ibV9jb250cm9sKQorCQkJYWNwaV9zZXRfcmVnaXN0ZXIoQUNQSV9CSVRSRUdfQVJC
+X0RJU0FCTEUsIDEsIEFDUElfTVRYX0RPX05PVF9MT0NLKTsgLyogRGlzYWJsZSBidXMgbWFzdGVy
+IGFyYml0cmF0aW9uICovCisJCWVsc2UKKwkJCUFDUElfRkxVU0hfQ1BVX0NBQ0hFICgpOworCiAJ
+CS8qIEdldCBzdGFydCB0aW1lICh0aWNrcykgKi8KIAkJdDEgPSBpbmwoYWNwaV9mYWR0LnhwbV90
+bXJfYmxrLmFkZHJlc3MpOwogCQkvKiBJbnZva2UgQzMgKi8KQEAgLTQzOCw4ICs0NDIsMTAgQEAK
+IAkJdDIgPSBpbmwoYWNwaV9mYWR0LnhwbV90bXJfYmxrLmFkZHJlc3MpOwogCQkvKiBHZXQgZW5k
+IHRpbWUgKHRpY2tzKSAqLwogCQl0MiA9IGlubChhY3BpX2ZhZHQueHBtX3Rtcl9ibGsuYWRkcmVz
+cyk7Ci0JCS8qIEVuYWJsZSBidXMgbWFzdGVyIGFyYml0cmF0aW9uICovCi0JCWFjcGlfc2V0X3Jl
+Z2lzdGVyKEFDUElfQklUUkVHX0FSQl9ESVNBQkxFLCAwLCBBQ1BJX01UWF9ET19OT1RfTE9DSyk7
+CisKKwkJaWYocHItPmZsYWdzLmJtX2NvbnRyb2wpCisJCQlhY3BpX3NldF9yZWdpc3RlcihBQ1BJ
+X0JJVFJFR19BUkJfRElTQUJMRSwgMCwgQUNQSV9NVFhfRE9fTk9UX0xPQ0spOyAvKiBFbmFibGUg
+YnVzIG1hc3RlciBhcmJpdHJhdGlvbiAqLworCiAJCS8qIFJlLWVuYWJsZSBpbnRlcnJ1cHRzICov
+CiAJCWxvY2FsX2lycV9lbmFibGUoKTsKIAkJLyogQ29tcHV0ZSB0aW1lICh0aWNrcykgdGhhdCB3
+ZSB3ZXJlIGFjdHVhbGx5IGFzbGVlcCAqLwpAQCAtNjc2LDE0ICs2ODIsNyBAQAogCQkJQUNQSV9E
+RUJVR19QUklOVCgoQUNQSV9EQl9JTkZPLAogCQkJCSJDMyBsYXRlbmN5IHRvbyBsYXJnZSBbJWRd
+XG4iLCAKIAkJCQlhY3BpX2ZhZHQucGx2bDNfbGF0KSk7Ci0JCS8qCi0JCSAqIE9ubHkgc3VwcG9y
+dCBDMyB3aGVuIGJ1cyBtYXN0ZXJpbmcgYXJiaXRyYXRpb24gY29udHJvbAotCQkgKiBpcyBwcmVz
+ZW50IChhYmxlIHRvIGRpc2FibGUgYnVzIG1hc3RlcmluZyB0byBtYWludGFpbgotCQkgKiBjYWNo
+ZSBjb2hlcmVuY3kgd2hpbGUgaW4gQzMpLgotCQkgKi8KLQkJZWxzZSBpZiAoIXByLT5mbGFncy5i
+bV9jb250cm9sKQotCQkJQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9JTkZPLAotCQkJCSJDMyBz
+dXBwb3J0IHJlcXVpcmVzIGJ1cyBtYXN0ZXJpbmcgY29udHJvbFxuIikpOworCiAJCS8qCiAJCSAq
+IE9ubHkgc3VwcG9ydCBDMyBvbiBVUCBzeXN0ZW1zLCBhcyBibV9jb250cm9sIGlzIG9ubHkgdmlh
+YmxlCiAJCSAqIG9uIGEgVVAgc3lzdGVtIGFuZCBmbHVzaGluZyBjYWNoZXMgKGUuZy4gV0JJTlZE
+KSBpcyBzaW1wbHkgCg==
+
+------_=_NextPart_001_01C4ADE7.71B14531--
 
 
 -------------------------------------------------------
