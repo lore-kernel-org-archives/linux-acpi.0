@@ -1,14 +1,14 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround forbroken DSDT)
-Date: Fri, 13 Feb 2004 00:08:13 +0100
+Subject: Re: VGA patch by Bruno Ducrot -- no success yet
+Date: Fri, 13 Feb 2004 00:22:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040212230813.GB13262@poupinou.org>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD10661124D@cceexc19.americas.cpqcorp.net>
+Message-ID: <20040212232230.GC13262@poupinou.org>
+References: <m3u11wnflb.fsf@reason.gnu-hamburg> <20040212223706.GA13262@poupinou.org> <m3r7wzx5kb.fsf@reason.gnu-hamburg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10661124D-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
+In-Reply-To: <m3r7wzx5kb.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,22 +17,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 11, 2004 at 11:33:16PM -0600, Cagle, John (ISS-Houston) wrote:
-> From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-> > 
-> > > that would be a kernel command line option to do the same thing.
-> > > ACPI_STRICT=ON?
-> > 
-> > It is unfeasible.
+On Fri, Feb 13, 2004 at 12:04:52AM +0100, Georg C. F. Greve wrote:
+>  || On Thu, 12 Feb 2004 23:37:06 +0100
+>  || Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote: 
 > 
-> Care to elaborate?
+>  >> cat ./LCDD/brightness
+>  >> <not supported>
 > 
+>  bd> For an LCD device, that not very fun unfortunately :(
+> 
+> I'm not sure how these relate to each other, but we're talking ASUS
+> M2N here, which uses the acpi4asus code, in which
+> 
+>  /proc/acpi/asus/
+>  |-- brn
+>  |-- disp
+>  |-- info
+>  |-- lcd
+>  `-- mled
+> 
+> exist. And therefore
+> 
+>  /proc/acpi/asus/brn
+> 
+> normally regulates background display brightness for the LCD, while
+> lcd toggles the backlight on/off. Unfortunately both have no effect on
+> the dead screen after S3.
+> 
+> Don't know whether/how this interacts with your code.
 
-How you will handle the toshiba return bug?
+Well, then I really need to make one marked 'medium' of the TODO list
+which read:
+- implement an interface so that external modules can be made, like the
+  asus, toshiba specifics.
+
+At least for the asus case.
+
+>  >> cat ./ROM
+>  >> <TODO>
+> 
+>  bd> Well, that need to be done as said, even though in fact that is
+>  bd> really uncommon though.
+> 
+> I know -- just wanted to give you the complete picture. .)
+
+At least it don't oops :)
+
+Thanks,
 
 -- 
 Bruno Ducrot
