@@ -1,14 +1,16 @@
-From: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
-Subject: RE: [RFC] dev_acpi: support for userspace access to acpi
-Date: Tue, 26 Oct 2004 21:27:24 -0600
+From: =?iso-8859-1?q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+Subject: Re: Acer Aspire 1705SMi LNKx?
+Date: Wed, 27 Oct 2004 06:31:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098847644.9215.16.camel@tdi>
-References: <3ACA40606221794F80A5670F0AF15F84041ABFEF@pdsmsx403>
+Message-ID: <200410270631.29668.destynova@esatclear.ie>
+References: <3ACA40606221794F80A5670F0AF15F84041ABFE3@pdsmsx403> <8d158e1f0410260454498849ac@mail.gmail.com> <8d158e1f0410261146721481ed@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Shift-JIS
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041ABFEF@pdsmsx403>
+In-Reply-To: <8d158e1f0410261146721481ed-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,140 +19,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+No, I still get the LNKx errors while booting. I don't know what it means, 
+TBH.
 
-   The kernel certainly needs an ACPI interpreter and it needs it before
-userspace is launched.  Handing off the interpreter to userspace or
-managing two interpreters poking ACPI at the same time seems like a much
-more complicated problem.  The kernel is the primary consumer, I think
-it would just shift the problem elsewhere to consider moving it.
+The only things that bother me really about the machine's compatibility with 
+linux's current implementation of ACPI is that waking from S4 doesn't 
+power-on the screen, although the system seems responsive to commands... and 
+waking from S5 (?) works, but more often than not causes my orinoco wireless 
+card to stop working properly.
+Also still can't sleep in X, thanks to poxy nvidia.
 
-  The problems quoted below were from the previous sysfs interface I was
-developing.  I think these problems are fixed with this current device
-file interface.  I'm hoping dev_acpi is already more clean.  Thanks,
+Oisín
 
-	Alex
-
-On Wed, 2004-10-27 at 10:30 +0800, Yu, Luming wrote:
-> If you want to have a full access to acpi subsystem from userspace,
-> why not firstly move ACPI interpreter out of kernel?
-> Then, you can play with the whole ACPI subsystem with minimal cost of
-> troubling kernel  in userspace.  Say, you can forget "=20
-> ioctl, read issues on files, complex data for sysfs, file per
-> operation, etc...".  Is it a more clean way ?
-> =20
-> Thanks
-> Luming=20
->=20
-> >-----Original Message-----
-> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
-> >Alex Williamson
-> >Sent: 2004=94N10=8C=8E27=93=FA 4:55
-> >To: linux-kernel
-> >Cc: acpi-devel
-> >Subject: [ACPI] [RFC] dev_acpi: support for userspace access to acpi
-> >
-> >
-> >   Announcing the next revision of dev_acpi.  The dev_acpi module
-> >provides userspace access to ACPI namespace using a simple character
-> >device file.  For further discussion of the interface, see the README
-> >file in the tarball.  The current release is available here:
-> >
-> >http://free.linux.hp.com/~awilliam/acpi/dev_acpi/dev_acpi-20041
-> >026.tar.bz2
-> >
-> >(it's a little big to post here raw, but if requested I'd be happy to
-> >post the driver by itself)
-> >
-> >   I've been tossing around sysfs and device file interfaces=20
-> >to the ACPI
-> >namespace for a while now.  The idea is that there's way too much
-> >information in namespace to not provide a userspace interface to it.
-> >Examples include projects springing up to support ACPI features on
-> >various laptops, increasing dependence on developing code using ACPI,
-> >extracting system/platform information from ACPI namespace.  In short,
-> >there are a lot of really simple things that userspace could use ACPI
-> >namespace for, but there's currently no way to get to it.
-> >
-> >   Previous iterations using sysfs looked pretty, but never really
-> >achieved the full potential of the interface (no ioctl, read issues on
-> >files, complex data for sysfs, file per operation, etc...).  The devic=
-e
-> >file interface provides a more comprehensive yet compact interface,
-> >along with a 32bit compatibility layer, and sane read semantics on the
-> >file.
-> >
-> >   This revision cleans up quite a bit of code, adds some documentatio=
-n
-> >in the README file, adds a number of interfaces, and adds several more
-> >example program, with the intent of sparking more interest.  I've
-> >updated the acpitree program to list a bit more data, but it's=20
-> >basically
-> >the same.  For anyone trying to wrap their head around ACPI namespace,
-> >it's a great tool for getting a simple visual representation=20
-> >of the data
-> >available.  I added a tool called acpivideo that will hopefully be
-> >interesting to laptop users.  It's able to set the active video output
-> >device, much like the hotkey on most laptops (but from command line).
-> >It also has a daemon mode that sets up a notify handler (yes, from
-> >userspace) and listens for events on the VGA device.  When an event is
-> >received, it evaluates the requested state change and pokes ACPI to do
-> >it.  See the README for more info.  If anyone knows how to=20
-> >poke X to not
-> >block the switch it'd be interesting to add the hooks (currently only
-> >seems to work from a vt).
-> >
-> >   I added another simple program called acpiundock.  If you have a
-> >laptop docking station with an electo-mechanical eject (like the
-> >omnibook 500), this one should be fun.  There are no option,=20
-> >just run it
-> >and see what happens (please be prepared for it to work... it just
-> >might).
-> >
-> >   Another fun developer tool/hack is eventwatch.  This program is
-> >simply a version of acpitree that tries to install notify handlers on
-> >every device in namespace.  It then sits and waits for something to
-> >happen.  If you've wondered if that hotkey on your box does something,
-> >try this, it just might.
-> >
-> >   I skimmed though the ibm-acpi module and tried to provide enough
-> >interfaces in this version of dev_acpi that the entire ibm-acpi could
-> >potentially be done in userspace.  I don't have an IBM laptop to
-> >experiment with, but I'd be interested to hear if someone tries.
-> >
-> >   Anyway, please give this interface a shot.  It builds as a=20
-> >standalone
-> >module and should work on any 2.6 kernel with headers available.  I've
-> >tested this version quite a bit more than the version I posted a coupl=
-e
-> >weeks ago, especially the 32bit app on 64bit kernel code (ia64 and
-> >x86_64).  Bug reports, feedback, opinions gladly welcomed.  Thanks,
-> >
-> >	Alex
-> >
-> >--=20
-> >Alex Williamson                             HP Linux & Open Source Lab
-> >
-> >
-> >
-> >-------------------------------------------------------
-> >This SF.Net email is sponsored by:
-> >Sybase ASE Linux Express Edition - download now for FREE
-> >LinuxWorld Reader's Choice Award Winner for best database on Linux.
-> >http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
-> >_______________________________________________
-> >Acpi-devel mailing list
-> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> >
->=20
---=20
-Alex Williamson                             HP Linux & Open Source Lab
-
+On Tuesday 26 October 2004 19:46, Patrick Ale wrote:
+...
+> Unfortunately the error messages regarding the PCI0.LNK thingies still
+> appear for me.
+> But like I mentioned, I have an Aspire 1703 so maybe for me the
+> changes you made dont work quite as expected on an Aspire 1705 altho
+> the earlyer changes that were needed were the same as for me.
 
 
 -------------------------------------------------------
