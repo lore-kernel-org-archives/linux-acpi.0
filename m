@@ -1,20 +1,17 @@
-From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Subject: Re: ACPI/ECDT on gateway 200x notebook
-Date: Wed, 7 Jan 2004 12:21:05 -0500
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: 2.4.24 patch apply failed on vanilla kernel
+Date: 07 Jan 2004 20:01:17 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040107122105.23a375fc.greg@morningdave.org>
-References: <3FF773E5.5070102@rochester.rr.com>
-	<Pine.LNX.4.44.0401032005180.7785-100000@data.upl.cs.wisc.edu>
-	<20040106183426.GJ14031@poupinou.org>
-	<3FFB552F.8030508@rochester.rr.com>
-	<20040107104941.GL14031@poupinou.org>
-	<20040107114742.1f2de5b1.greg@morningdave.org>
-	<20040107171708.GQ14031@poupinou.org>
+Message-ID: <1073505678.7422.24.camel@darkstar.portugal>
+References: <20040107134658.5afa9142.acpi@thermoman.de>
+	<20040107155325.5bfceba0@tethys>
+	<20040107163907.391c146e.acpi@thermoman.de>
+	<20040107165054.1fbfc829@tethys>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040107171708.GQ14031-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20040107165054.1fbfc829-qdKmdXVU2OY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -23,52 +20,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: richibb-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org, charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: wwp <subscript-GANU6spQydw@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Ah, I see. Well, thanks all around then :)
+I think=20
+Full version of kernel2.4.24 have all apci patches updated=20
 
+On Wed, 2004-01-07 at 15:50, wwp wrote:
+> Hi Marcel Meckel,
+>=20
+>=20
+> On Wed, 7 Jan 2004 16:39:07 +0100 Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org> wrote=
+:
+>=20
+> > > It is like if the acpi patch is based on a 2.4.24+uv1 patch (that
+> > > replaces the use of NR_CPUS w/ BITS_PER_LONG). Quite easy to fix by
+> > > hand, simply override the for (..) line w/ the one provided by the
+> > > acpi patch.
+> >=20
+> > I changed the patch file and then patch applied without errors on
+> > vanilla kernel.
+>=20
+> I did the same. This should work.
+> Anyway official acpi patch would have to be updated.
+>=20
+>=20
+> Regards,
+>=20
+> --=20
+> wwp
+>=20
 
-On Wed, 7 Jan 2004 18:17:08 +0100
-Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-
-> On Wed, Jan 07, 2004 at 11:47:42AM -0500, Greg Sarjeant wrote:
-> > Ducrot,
-> > 
-> >    Thanks for the help. I have updated the DSDT as you suggested and applied the patch to load it. I had to make a small change to the patch to get it to compile with 2.4.23. I changed the #include from this:
-> > 
-> > 	#include "dsdt_table.h"
-> > 
-> > to this:
-> > 	
-> > 	#include <acpi/dsdt_table.h>
-> > 
-> >     Once I did that, everything worked like a charm. Using kernel 2.4.23, the latest acpi patch from acpi.sourceforge.net, this DSDT override patch and the fixed DSDT, I am back to the point where I was when I had just applied the bit_width patch. However, the behavior is now improved, because the lid now correctly reports its state. Before, when I was only using the bit_width patch, I had a lid button, and it generated events, but it always reported its state as "closed".
-> > 
-> 
-> Interresting.  I had to add a patch made by another guy (Shaohua Li IIRC),
-> and I guess that part give you correct events.
-> So it's not my fault if your lid work now, sorry :)
-> 
-> -- 
-> Ducrot Bruno
-> 
-> --  Which is worse:  ignorance or apathy?
-> --  Don't know.  Don't care.
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: Perforce Software.
-> Perforce is the Fast Software Configuration Management System offering
-> advanced branching capabilities and atomic changes on 50+ platforms.
-> Free Eval! http://www.perforce.com/perforce/loadprog.html
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-
+--=20
+S=E9rgio M B
 
 
 
