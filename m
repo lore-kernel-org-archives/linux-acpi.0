@@ -1,11 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: [Bug 1656] Merge FreeBSD local changes into vendor dist (fwd)
-Date: Tue, 9 Dec 2003 09:22:17 -0800 (PST)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [Bug 1656] Merge FreeBSD local changes into vendor dist (fwd)
+Date: Tue, 9 Dec 2003 09:59:58 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031209092116.V42588@root.org>
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EFB2@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,39 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-!#@$@!#$#@!$ This is the second time this has happened.  Can we either 1.
-get an acpi-ca bug tracking system or 2. tell the admins to leave me
-alone?
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+> Nate Lawson
+> !#@$@!#$#@!$ This is the second time this has happened.  Can=20
+> we either 1.
+> get an acpi-ca bug tracking system or 2. tell the admins to leave me
+> alone?
+>=20
+> -Nate
 
--Nate
+This should go to Bob directly. If the non-Linux ACPI CA bug volume gets
+high them maybe we can discuss other options, but until then I think
+that's the right thing to do.
 
----------- Forwarded message ----------
-Date: Tue, 9 Dec 2003 08:02:55 -0800
-From: bugme-daemon-3NddpPZAyC0@public.gmane.org
-To: nate-Y6VGUYTwhu0@public.gmane.org
-Subject: [Bug 1656] Merge FreeBSD local changes into vendor dist
+Regards -- Andy
 
-http://bugme.osdl.org/show_bug.cgi?id=1656
-
-mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org changed:
-
-           What    |Removed                     |Added
-----------------------------------------------------------------------------
-             Status|NEW                         |REJECTED
-         Resolution|                            |INVALID
-
-
-
-------- Additional Comments From mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org  2003-12-09 08:02 -------
-This is a Linux database, for mainline kernels.
-No such file exists.
-
-------- You are receiving this mail because: -------
-You reported the bug, or are watching the reporter.
+PS Bob is on acpi-jp IIRC...
 
 
 -------------------------------------------------------
