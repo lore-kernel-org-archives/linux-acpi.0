@@ -1,15 +1,14 @@
-From: =?iso-8859-1?q?Jo=E3o_Cardoso?= <jcard-A1Gx7Te15Zc@public.gmane.org>
-Subject: Re: ASUS M3N standby resume regression in 2.6.x -- works under 2.4.x
-Date: Thu, 13 Jan 2005 16:20:35 +0000
-Message-ID: <200501131620.35657.jcard@fe.up.pt>
-References: <200501111652.28556.jcard@fe.up.pt> <20050112224425.GB2139@elf.ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [PATCH] add "pnpacpi=off", print info during discovery
+Date: Thu, 13 Jan 2005 09:07:17 -0700
+Message-ID: <1105632437.3818.5.camel@eeyore>
+References: <1105489541.31942.81.camel@eeyore>
+	 <1105491763.29370.5.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050112224425.GB2139-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1105491763.29370.5.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,53 +18,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 12 January 2005 22:44, Pavel Machek wrote:
-> Hi!
->
-> > In my ASUS M3N laptop, Centrino based, standby (S1) works fine with
-> > linux 2.4.x, x>~24, but fails for all 2.6.x series.
-...
-> > What else can I do to help you helping me? :)
->
-> Obviously try again without usb ever loaded. Recompile kernel without
-> USB support if you have to.
+On Wed, 2005-01-12 at 09:02 +0800, Li Shaohua wrote:
+> On Wed, 2005-01-12 at 08:25, Bjorn Helgaas wrote:
+> I just sent a similar patch to Len, but your patch is great.
 
-I will try that. I can manually remove all usb related modules, but not 
-usbcore.
+I didn't see your patch, did it go to the list?  I wouldn't
+have bothered if I'd known somebody else did it.
 
-> Does keyboard work?
+> Some drivers use lower case pnp id.
 
-No, after S1 resume I have to keep the power button pressed for some 6 
-sec to power off the laptop.
+Such as?  "grep -r PNP0 drivers/" shows 2 out of 38 matches
+use lower case.
 
-> Try to find out where it hangs.
+> I somehow think PNPBIOS should be enabled if PNPACPI is disabled. Users
+> should get at least one PNP driver any way.
 
-How? I don't know were to start.
-
-I have compiled the kernel with CONFIG_ACPI_DEBUG, but I don't know how 
-to use it. What shall I "echo" to /proc/acpy/debug_layer 
-and /proc/acpy/debug_level, in order to debug this standby/resume 
-problem? Remember that as soon as resume happens the laptop hangs, and 
-nothing is written to the system logs (only to the screen) -- can we 
-force syslog to circunvent the disk buffer/cache?
-
-> Try noapic.
-
-I dont' configure apic in the kernel, as it used to give problems in my 
-laptop.
-
-> Did you try with 2.6.11-rc1?
-
-No. I have tried all 2.6.x kernels, but all they fail. 
-I will try and I report latter.
-
-Thanks,
-Joao
-
-> 								Pavel
+Did your patch do this?  I won't bother with this since you
+seem to be working on it.
 
 
 
