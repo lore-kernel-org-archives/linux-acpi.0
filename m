@@ -1,14 +1,13 @@
-From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI hotplug
-Date: Mon, 17 Jan 2005 15:48:01 -0800
-Message-ID: <20050117154801.A22139@unix-os.sc.intel.com>
-References: <20050117140121.A21143@unix-os.sc.intel.com> <20050117221751.49612.qmail@web50204.mail.yahoo.com>
-Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Mon, 17 Jan 2005 23:40:36 +0100
+Message-ID: <41EC3EE4.5070300@paranoici.org>
+References: <41E81C2C.8010809@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050117221751.49612.qmail-zX69vREatC6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>; from i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org on Mon, Jan 17, 2005 at 02:17:51PM -0800
+In-Reply-To: <41E81C2C.8010809-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,31 +17,14 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 17, 2005 at 02:17:51PM -0800, Paul Ionescu wrote:
-> 
-> I do have an IBM Thinkpad, and I am using IBM_ACPI
-> module. But this module is limited in functionality
-
-OK.
-
-> If I boot docked in, I have more ACPI devices than if
-> I boot undocked, and that info is not possible for
-> ACPI to get dynamically when I plug the laptop in
-
-I see. Can you please send the dmesg output after enabling
-debug messages in acpiphp (acpiphp supports a "debug"
-module param)?  I'd like to see if acpiphp is even 
-installing a notify handler and triggering at dock.
-
-Also, can you send the lspci -vv output with the 
-laptop docked at boot time? 
-
-Thanks,
-Rajesh
+thx for your drivers, i tryed the first release and they works fine 
+(without ac), then i tryed your last one 20050116
+here both battery and ac works BUT while recharging the battery the 
+orange led in front of my laptop, turn on and off continuosly, so 
+continuosly stop recharging.
 
 
 
