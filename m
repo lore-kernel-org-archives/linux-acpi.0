@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 broken on a Samsung P30
-Date: Thu, 11 Nov 2004 00:18:03 +0100
-Message-ID: <20041110231802.GA1099@elf.ucw.cz>
-References: <1099605010.5191.20.camel@mhcln03>
+Subject: Re: [2.6 patch] drivers/acpi: remove unused exported functions
+Date: Thu, 11 Nov 2004 00:38:33 +0100
+Message-ID: <20041110233833.GD1099@elf.ucw.cz>
+References: <20041105215021.GF1295@stusta.de> <1099707007.13834.1969.camel@d845pe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1099605010.5191.20.camel@mhcln03>
+In-Reply-To: <1099707007.13834.1969.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I've been trying for some time now to get S3 working on my laptop.
-> It suspends just fine with 
+> > The patch below completely removes 7 functions that were
+> > EXPORT_SYMBOL'ed but had exactly zero users in the kernel and makes
+> > another one that was previously EXPORT_SYMBOL'ed static.
+> > 
+> > It also removes another unused global function to completely remove
+> > drivers/acpi/hardware/hwtimer.c which contained no function used
+> > anywhere in the kernel.
+> > 
+> > Please comment on whether this patch is correct or whether in-kernel
+> > users of these functions are pending.
+> > 
+> > 
+> > diffstat output:
+> >  drivers/acpi/acpi_ksyms.c        |    8 -
+> >  drivers/acpi/events/evxfevnt.c   |  191 -----------------------------
+> >  drivers/acpi/hardware/Makefile   |    2
+> >  drivers/acpi/hardware/hwtimer.c  |  200
+> > -------------------------------
+> >  drivers/acpi/resources/rsxface.c |   52 --------
+> >  drivers/acpi/scan.c              |    6
+> >  drivers/acpi/utilities/utxface.c |   89 -------------
+> >  include/acpi/achware.h           |   17 --
+> >  include/acpi/acpi_bus.h          |    1
+> >  include/acpi/acpixf.h            |   24 ---
+> >  10 files changed, 6 insertions(+), 584 deletions(-)
 > 
-> echo 3 > /proc/acpi/sleep
-> and
-> echo -n mem > /sys/power/state
-> 
-> but it never wakes up. The screen stays dark and the keyboard
-> (CAPSLOCK/NUMLOCK) doesn't work. Trying to blindly execute programs in
-> the console also fails.
-> The only thing which seems to wake up is the DVD drive, which spins up
-> after a resume, but that's about it.
-> 
-> Since the display stays dark, (no back-light, totally dead) I've
-> connected and configured a serial console. Sadly, it appears that the
-> serial port doesn't wake up either....
-> 
-> On a resume i get 2 to 10 chars of random garbage on the serial console,
-> nothing else (it works perfectly when the latop is running)
+> No, I can't apply this one as-is.
+> Some of these routines are not called now
+> simply because Linux/ACPI is evolving and we don't
+> yet take advantage of some of the things supported
+> by ACPICA core we use.
 
-See recent threads of adding beeping to begining of wakeup.S. Does it
-beep for you?
+I believe right thing to do is remove them now, and re-add them later
+(if they are ever needed).
+
+Single line patch somewhere which happens to pull whole evxfevnt.c
+would be pretty "expensive", but would not certainly look so...
+
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
