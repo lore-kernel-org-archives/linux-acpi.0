@@ -1,14 +1,12 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [Fwd: [PATCH] Don't save state in ACPI on shutdown/reboot]
-Date: Thu, 13 Nov 2003 00:07:56 +0100
+From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+Subject: acpi on new gateway laptops
+Date: Wed, 12 Nov 2003 18:23:15 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031112230756.GD32464@poupinou.org>
-References: <1068567824.24982.21.camel@dhcppc4> <20031111170035.GD29175@poupinou.org> <20031112220559.GR31026@redhat.com>
+Message-ID: <20031112232315.GD430@masanjin.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031112220559.GR31026-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +15,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ak-h9bWGtP8wOw@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 12, 2003 at 10:05:59PM +0000, Dave Jones wrote:
-> On Tue, Nov 11, 2003 at 06:00:35PM +0100, Ducrot Bruno wrote:
-> 
->  > > The ACPI code in 2.4 currently saves the machine state as for a 
->  > > suspend when doing an reboot or shutdown. This fails on x86-64
->  > > on some boxes.
->  > > 
->  > > Don't save/restore state in ACPI when entering S5.
->  > 
->  > That break also some i386 boxes.  That why I submitted another patch (do
->  > I have to post it again?)
-> 
-> Do you mean Andi's patch breaks i386 boxes, or this bug also appears
-> on i386 ? The former seems unlikely from the look of Andi's patch.
-> 
+It looks like the Gateway support site contains nothing about the 200X
+or 200XL models. Great. Do they support ACPI 1.0 or 2.0 or what? No
+idea... I'm assuming ACPI 1.0.
 
-I wanted to point that some i386 boxes are broken as well, and
-then a patch is needed.  And yes, when I read again my email, that
-a bit confusing.
+I started looking at the ACPI spec. It contains two pages specifically
+about the ECDT, pp128--129.
 
-The patch I send actually implement the exact same
-behaviour of 2.6 (minus S5 via the proc file, disabled on 2.6).
+I don't quite understand the text of the first page:
 
-Also, it is much likely a design fix.  'power off' shall not
-be dependant of CONFIG_ACPI_SLEEP (even though than one is always
-yes for 2.4 if CONFIG_ACPI, at least on i386).
+  "This optional table provides the processor-relative, translated
+  resources of an Embedded Controller. The presence of this table allows
+  OSPM to provide Embedded Controller operation region space access
+  before the namespace has been evaluated. If this table is not
+  provided, the Embedded Controller region space will not be available
+  until the Embedded Controller device in the AML namespace has been
+  discovered and enumerated. The availability of the region space can be
+  detected by providing a _REG method object underneath the Embedded
+  Controller device."
 
-Cheers,
+(that's the entirety of it.)
+
+It seems like having an ECDT is an optional feature? If that's so, then
+what's the problem? Why isn't Linux simply "discovering and enumerating"
+the "Embedded Controller device in the AML namespace"?
+
+(BTW, it looks like ECDT actually stands for "Embedded Controller Boot
+ Resources Table". Hm.)
+
+The next page describes the contents of the table. Basically it involves
+a bunch of deep hardware information, like "The bit assignment of the
+SCI interrupt within the GPEx_STS register of a GPE block described in
+the FADT that the embedded controller triggers."
+
+It goes on to state that "ACPI 1.0 OSPM implementation will not
+recognize or make use of the ECDT".
+
+Shaohua Li said something that I didn't quite get either, in his first
+response:
+
+> The reason is BIOS of Gateway 400VTX lacks ECDT table.  And before
+> initialize EC device, DSDT use ec space region when execute some ASL
+> init methods. This will cause that battery can't be initializing.
+
+So, what I *think* is happening, based on that, and on pp.203--204, is:
+
+There's an Embedded Controller region (In the BIOS? In the DSDT?). One
+cannot access a region until registering it, by calling
+_REG(RegionSpace, 1). There's an exception to this, however, when using
+an ECDT, which describes "controllers" (?) to access the Embedded
+Controller region. If you have an ECDT you can then access this region
+before registering it. So I think that's what the DSDT is doing, but
+without providing an ECDT?
+
+Re-examining the dmesg output, I *think* this makes sense.
+
+So. This implies that rather than provide an ECDT, we can alternately
+try and fix the DSDT. Since it's buggy anyways, that might conserve some
+effort, and has the nice advantage of not forcing an upgrade to ACPI 2.0.
+(Assuming I am ACPI 1.0 like you.)
+
+I may send some of this to acpi-devel, if only to harass them.
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+William <wmorgan-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
 
 
 -------------------------------------------------------
