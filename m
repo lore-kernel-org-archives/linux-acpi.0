@@ -1,14 +1,16 @@
-From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [RFC 1/6]SEP initialization rework
-Date: Tue, 5 Apr 2005 02:00:16 -0600 (MDT)
-Message-ID: <Pine.LNX.4.61.0504050159590.2566@montezuma.fsmlabs.com>
-References: <1112580349.4194.331.camel@sli10-desk.sh.intel.com>
- <Pine.LNX.4.61.0504041235001.30273@montezuma.fsmlabs.com>
- <1112662825.17861.4.camel@sli10-desk.sh.intel.com>
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [RFC 5/6]clean cpu state after hotremove CPU
+Date: Tue, 05 Apr 2005 17:00:22 +0800
+Message-ID: <1112691621.17861.80.camel@sli10-desk.sh.intel.com>
+References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com>
+	 <20050404052844.GB3611@otto>
+	 <1112593338.4194.362.camel@sli10-desk.sh.intel.com>
+	 <20050404153345.GC3611@otto>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1112662825.17861.4.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <20050404153345.GC3611@otto>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,43 +20,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Nathan Lynch <ntl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 5 Apr 2005, Li Shaohua wrote:
-
-> On Tue, 2005-04-05 at 03:10, Zwane Mwaikambo wrote:
-> > On Mon, 4 Apr 2005, Li Shaohua wrote:
-> > 
-> > >  linux-2.6.11-root/arch/i386/kernel/smpboot.c           |    6 ++++++
-> > >  linux-2.6.11-root/arch/i386/kernel/sysenter.c          |   10 ++++++----
-> > >  linux-2.6.11-root/arch/i386/mach-voyager/voyager_smp.c |    6 ++++++
-> > >  3 files changed, 18 insertions(+), 4 deletions(-)
+On Mon, 2005-04-04 at 23:33, Nathan Lynch wrote:
 > > > 
-> > > diff -puN arch/i386/kernel/sysenter.c~sep_init_cleanup arch/i386/kernel/sysenter.c
-> > > --- linux-2.6.11/arch/i386/kernel/sysenter.c~sep_init_cleanup	2005-03-28 09:32:30.936304248 +0800
-> > > +++ linux-2.6.11-root/arch/i386/kernel/sysenter.c	2005-03-28 09:58:20.703703792 +0800
-> > > @@ -26,6 +26,11 @@ void enable_sep_cpu(void *info)
-> > >  	int cpu = get_cpu();
-> > >  	struct tss_struct *tss = &per_cpu(init_tss, cpu);
-> > >  
-> > > +	if (!boot_cpu_has(X86_FEATURE_SEP)) {
-> > > +		put_cpu();
-> > > +		return;
-> > > +	}
-> > > +
-> > 
-> > Do you have systems like this? Is it really skipping SEP if the boot 
-> > processor doesn't have SEP?
-> No, I haven't such system. This is the logic of original SEP
-> initialization. If the CPU hasn't SEP, original logic doesn't call
-> 'on_each_cpu(enable_sep_cpu,...)'.
-
-Got it, so i misread.
+> > > I don't understand why this is needed at all.  It looks like a fair
+> > > amount of code from do_exit is being duplicated here.  
+> > Yes, exactly. Someone who understand do_exit please help clean up the
+> > code. I'd like to remove the idle thread, since the smpboot code will
+> > create a new idle thread.
+> 
+> I'd say fix the smpboot code so that it doesn't create new idle tasks
+> except during boot.
+I tried what you said. But I must use a ugly method to adjust
+idle->thread.esp (stack pointer in IA32). otherwise, the stack will soon
+overflow after several rounds of hotplug. I'll take close look at if
+other fields in thread_info cause problems.
+Did you reinitialize the idle's thread_info in ppc? I have no problem to
+do it in IA32, but is this a good approach? Creating a new idle thread
+for upcoming CPU looks more graceful to me.
 
 Thanks,
-	Zwane
+Shaohua
 
 
 
