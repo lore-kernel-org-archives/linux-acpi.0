@@ -1,13 +1,14 @@
-From: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>
-Subject: fan & thermal
-Date: Fri, 03 Sep 2004 09:35:18 +0200
+From: Andreas Schallenberg <Andreas.Schallenberg-0xiJHvB3xRZWk0Htik3J/w@public.gmane.org>
+Subject: IRQ problem with Rhine II network card
+Date: Fri, 3 Sep 2004 09:53:01 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41381EB6.9060600@lip6.fr>
-Reply-To: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>
+Message-ID: <200409030953.02936.Andreas.Schallenberg@Eurobild.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,35 +20,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hello!
 
-Please excuse me if this question has already been raised but I couldn't 
-find an answer in the archive.
+There is a problem using kernels from 2.6.6-rc3-bk8 on
+which detect a different IRQ for the Rhine-II network card
+on a HP Omnibook xe4100.
 
-I have a compaq laptop with ACPI running Debian with acpid and acpi 
-installed. My problem is that the fan is always on (whereas it is mostly 
-silent when running on windows).
+The issue does not seem to be related to the network card
+driver since I used an old one (which works in a 2.6.4 kernel)
+and used it in a 2.6.8.1 kernel and it fails to work.
+Using ACPI kernel parameters can modify the behavior.
 
-I looked in the doc and I don't understand why I am on active cooling 
-whereas the temperature is below the trip point:
-$ cat trip_points
-critical (S5):           96 C
-passive:                 90 C: tc1=4 tc2=3 tsp=40 devices=0xcbf6e6e8
-$ cat temperature
-temperature:             49 C
+There is a website of a user from Finnland who also has
+such problems using 2.6 kernels (I mailed to him) so I don't
+expect it to be a hardware problem.
 
-Note that I do not have an "active" trip point defined. Also note that 
-/proc/acpi/fan is empty.
+I created a bug report:
+http://bugzilla.kernel.org/show_bug.cgi?id=3319
+(Thanks to Roger Luethi who told me which tests to do)
 
-Thanks in advance for your help,
-	Nico.
+Maybe this issue is related to:
+http://bugzilla.kernel.org/show_bug.cgi?id=3234
 
-PS: Please CC me in your answer.
+Greetings,
+Andreas
 -- 
-Nicolas SABOURET
-Laboratoire d'Informatique de Paris 6 (LIP6)
-8, rue du Capitaine Scott, 75015 Paris, France
-http://www-poleia.lip6.fr/~sabouret
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing on usenet and in e-mail?
 
 
 -------------------------------------------------------
