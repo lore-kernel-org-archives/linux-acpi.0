@@ -1,12 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: New insights about video module! Need help,please.
-Date: Tue, 1 Mar 2005 19:37:33 +0100
-Message-ID: <20050301183733.GF17731@poupinou.org>
-References: <42236037.1010102@gmx.net>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Power usage in S3
+Date: Tue, 1 Mar 2005 20:36:19 +0100
+Message-ID: <200503012036.20047.stefandoesinger@gmx.at>
+References: <20050228141701.4dc95eec@orfeo.nikhef.nl> <200502282045.30429.stefandoesinger@gmx.at> <20050228231322.GA1919@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20050228231322.GA1919-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <42236037.1010102-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,68 +18,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Tommy Ch." <tommy-c-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Vernon Mauery <vernux-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 28, 2005 at 07:17:27PM +0100, Tommy Ch. wrote:
-> Hi,
-> 
-> I'm still trying to get tv-out and crt working on my Toshiba M30 not
-> using TwinView. It's a long time ago when John Belmonte told me to
-> experiment with the toshiba_acpi driver (?) like this:
-> 
-> ------snip---------
-> 
-> Other than that, you can experiment with the driver as follows.  This
-> was given to me by one Jonny Robertson.
-> 
->     write_acpi_int("\\_SB_.PCI0.PCI1.VGA_.LCD_._DSS", 0x1);
->     write_acpi_int("\\_SB_.PCI0.PCI1.VGA_.CRT_._DSS", 0x0);
->     write_acpi_int("\\_SB_.PCI0.PCI1.VGA_.TV__._DSS", 0x80000001L);
-> 
-> The path to the _DSS methods might be different on your machine.  In
-> this example, we enable the LCD and TV.  The 0x80000000 bit causes
-> pending changes to be executed, so that all outputs can be set
-> simultaneously.
-> 
+Am Dienstag, 1. M=E4rz 2005 00:13 schrieben Sie:
+> Hi!
+>
+> > > I finally got the power issues resolved on my Thinkpad T40 too.  It c=
+an
+> > > only sleep in S3 for about 2 days too.  But, with a new high-capacity
+> > > battery, it could probably go for 4 days.  My wife's Thinkpad R40p can
+> > > go for about a week, but it has a new battery and the FireGL T2
+> > > graphics card rather than the Radeon 7500.  And it didn't need the
+> > > radeon power stuff -- it only needed acpi_sleep=3Ds3_bios.  But, I am
+> > > sure we can do better than 2-2.5 days... *But*, I am very pleased that
+> > > we have come this far.  For almost a year, I was using swsusp2 every
+> > > night going home from work.  As nice as that is, it still is too slow
+> > > for an overnight sleep.
+> >
+> > My Acer Travelmate 803 looses ~20% battery power in 12 hours in S3 with
+> > Linux. Under Windows it dropped from 50% to 5% withhin 5h. Sounds
+> > strange, but at least the Linux value can be reproduced. I can't test
+> > with Windows again because it had to go to satisfy my disk space needs
+> > :-)
+>
+> Acer TM 803 is not yet in the video.txt list. What hacks do you need?
+>
+I thought it's in the list because it's mentioned in the video.txt file in =
+the=20
+kernel sources or better was mentioned namely before:
 
-There are _PS0, _PS3 and _PCS methods.  I'm not sure if those methods are
-supported under linux-2.6.10 (or any other version of Linux, btw).
+(5) radeon systems, where X can soft-boot your video card. You'll need
+  patched X, and plain text console (no vesafb or radeonfb), see
+  http://www.doesi.gmxhome.de/linux/tm800s3/s3.html.
 
-I think you should try to call the \_SB_.PCI0.PCI1.VGA_._PS0 method
-somewhere.
+It needs eighter the X patch(as mentioned), but  vbetool post, the lrmi-bas=
+ed=20
+boot-radeon and the x86emu video_post tool do also work. Ole Rohne's radeon=
+fb=20
+patch does not work for some reason.
 
-Add a line like this one:
-	acpi_evaluate_object(NULL, "\\_SB_.PCI0.PCI1.VGA_._PS0", NULL, NULL);
+=46or proper device resume it needs the patch which splits up the resume=20
+functions so devices are re-enabled after leaving the acpi sleep state. I'v=
+e=20
+sent it to len some tome ago, but I don't know if it's in the acpi mainline.
 
-in function acpi_video_bus_add()
+S3 works very well with this patch and vbetool, I only have to re-load the=
+=20
+acerhk modules for the acer specific hotkeys. Currently I unload uhci-hcd a=
+nd=20
+set the cpufreq governor to 'performance' before suspend. I don't know if=20
+that's still necessary. I'm using the vanilla 2.6.11-rc5 kernel + the=20
+mentioned acpi patch.
 
-Something like this:
-
-before:
-        if (!device)
-		return_VALUE(-EINVAL);
-
-	video = kmalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
-
-after:
-        if (!device)
-		return_VALUE(-EINVAL);
-
-	acpi_evaluate_object(NULL, "\\_SB_.PCI0.PCI1.VGA_._PS0", NULL, NULL);
-	video = kmalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
-
-Of course, its ugly, but its only to test if _PS0 is supported or not by
-linux.
-
-Hope this help,
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+The howto page mentioned above needs updating, but I don't have the time=20
+because I'm really busy at school and will be for some time.
 
 
 -------------------------------------------------------
