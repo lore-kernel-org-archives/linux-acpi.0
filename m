@@ -1,50 +1,41 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: [ACPI] Re: 1.1-rc9 acpi_disabled==0x30 on resume
-Date: 27 Sep 2003 18:09:14 +0100
-Sender: swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1064682554.1739.5.camel@darkstar.portugal>
-References: <200309270135.43786.mhf@linuxmail.org>
-	<20030927000908.GB8008@hell.org.pl> <1064621813.3322.0.camel@laptop-linux>
-	<200309271316.45398.mhf@linuxmail.org>
-	<1064644626.17857.1.camel@laptop-linux>
-	<20030927135856.GA16612@hell.org.pl>
+From: "Lucio Mays" <lgwzbig7-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: FREE - Your PAY-PER-VIEW, MOVIE CHANNELS, Adult Channels, SPORT EVENTS, and more........... byew txzjoc
+Date: Sat, 27 Sep 2003 17:09:40 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <wgmke3108fu$6lj7a3006v07gx$sekyb@3fu3xq9>
+Reply-To: "Lucio Mays" <lgwzbig7-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030927135856.GA16612-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Errors-To: swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=swsusp-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>, Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>, swsusp mailing list <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: multipart/alternative;
+	boundary="B_EE18_6A9C_34A7.2C_A_E3"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, fipa-os-developers-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
+--B_EE18_6A9C_34A7.2C_A_E3
+Content-Type: text/html;
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, 2003-09-27 at 14:58, Karol Kozimor wrote:=20
-> AFAIR
-> this has already been done in linux-acpi bk tree (see
-> linux-acpi.bkbits.com).
+CABLE TV VIEWERS<br>
+<br>
+Get Your PAY-PER-VIEW, ADULT CHANNELS, MOVIE CHANNELS, SPORT EVENTS, and o=
+ther SPECIAL 
+EVENTS---FREE!!!<p>To Find Out More -
+<a href=3D"http://www.coolbrands.net">Follow This Link</a></p>=
+njncr bek 
+yyreebnagbj
+sxmgtinbhtjsz ag fzykvrxxk 
+mj cxjym ucbv ramrb iuyf
 
-and also done in: patch-2.4.23-pre4-pre5.bz2
-(http://www.kernel.org/pub/linux/kernel/v2.4/testing/incr/patch-2.4.23-pre4=
--pre5.bz2 )
-> Best regards,
->=20
-> --=20
-> Karol 'sziwan' Kozimor
-> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
---=20
-S=E9rgioMB
-email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-
-Who gives me one shell, give me everything.
+--B_EE18_6A9C_34A7.2C_A_E3--
 
 
 
