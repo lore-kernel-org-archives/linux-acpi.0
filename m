@@ -1,12 +1,14 @@
-From: "Tomasz Torcz, BG" <zdzichu-YxaM2a6SwlU@public.gmane.org>
-Subject: [acpid] corrected acpi_handler.sh
-Date: Sat, 29 Mar 2003 12:59:10 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: does cpu_idle() halt CPU?
+Date: Sat, 29 Mar 2003 14:47:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030329115910.GA10257@irc.pl>
+Message-ID: <20030329134742.GD10287@poup.poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A847E96D88@orsmsx401.jf.intel.com> <20030328150218.D10287@gateway.junsun.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030328150218.D10287-Ht5ggzGNZTC9Yl/XQThFG6xOck334EZe@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,57 +17,61 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jun Sun <jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Mar 28, 2003 at 03:02:18PM -0800, Jun Sun wrote:
+> On Fri, Mar 28, 2003 at 02:43:32PM -0800, Grover, Andrew wrote:
+> > 
+> > Your system either doesn't support C3, or the constant bus master
+> > activity is keeping it out of C3. USB can cause this, but also AC97.
+> >
+> 
+> No USB and AC97.  Have 802.11 card working.  Not sure if this matters.
 
-Hi,
+Who knows..
 
-I've corrected acpi_handler.sh to work with 2.4.x and 2.5.x kernels.
-Name of powerbutton event has changed. My motherboard is Matsonic 7132A,
-on VIA Apollo Pro+ 133 chipset.
+> 
+>  
+> > > > - What does the ACPI: Processor line say in your dmesg say?
+> > 
+> > There should be a line that says, "ACPI: Processor found (x perf states
+> > y throttle)" Is that there? It may be occurring later on in the boot
+> > process.
+> >
+> 
+> I found this line:
+>  
+> ACPI: Processor [CPU0] (supports C1 C2 C3, 2 performance states)
+> 
+> > > > What kind of laptop do you have? Does it support SpeedStep, 
+> > > PowerNow, or
+> > > > the like?
+> > > 
+> > > My laptop is Fujitsu S6110.  CPU supports speedstep.
+> > 
+> > Getting into the lowest SpeedStep state will help battery life. You may
+> > want to investigate the cpufreq project.
+> > 
+> 
+> So my previous conclusion about C1/C2 not saving power is right?
+> 
 
-This is my acpi_handler.sh (note, that I've changed powerbutton event
-in 2.5.x part to suit my needs):
+No.  C2 will give you some power saving (try to disable explicitely and
+you will see a decrease of the battery life).
 
-#v+
+You forgot at least disk activities especially if ext3, which
+prevent almost all IDE drivers to go to idle state.
+But that will not explain why you can not go to C3 though.
 
-#!/bin/sh
-# Default acpi script that takes an entry for all actions
-
-set $*
-
-case "$1" in
-	# ACPI in 2.4.x
-	button)
-		case "$2" in
-			power)	 /sbin/init 0
-				;;
-			*)	logger "ACPI action $2 is not defined"
-				;;
-		esac
-		;;
-	# ACPI in 2.5.x
-	button/power)
-		case "$2" in
-			PWRF)	hdparm -W0 /dev/hdd;
-				ifconfig eth0 down;
-				echo 4 > /proc/acpi/sleep;
-				ifconfig eth0 up;
-				;;
-			*)      logger "ACPI action $2 is not defined"
-				;;
-		esac
-		;;
-	*)
-		logger "ACPI group $1 / action $2 is not defined"
-		;;
-esac
-#v-
+Cheers,
 
 -- 
-Tomasz Torcz               RIP is irrevelant. Spoofing is futile.
-zdzichu-X3HQ1c18OqI0iLA60pu2Z2ZHpeb/A1Y/@public.gmane.org     Your routes will be aggreggated.
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
