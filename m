@@ -1,21 +1,13 @@
-From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
-Subject: Re: HP/Compaq NC6120 ACPI problems
-Date: Tue, 29 Mar 2005 17:15:11 +0200
-Message-ID: <20050329171511.4ee403e5.andrej.prsa@guest.arnes.si>
-References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
-	<1111088904.11380.36.camel@eeyore>
-	<20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
-	<1111104319.8136.182.camel@tyrosine>
-	<20050318192300.629e2148.andrej.prsa@guest.arnes.si>
-	<1111202374.8136.210.camel@tyrosine>
-	<1111362416.8136.225.camel@tyrosine>
-	<20050321114014.38a548d4.andrej.prsa@guest.arnes.si>
-	<1111408412.8136.233.camel@tyrosine>
+From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: Re: suspend-to-disk: fan always on and misc kernel errors
+Date: Tue, 29 Mar 2005 20:50:01 +0200
+Message-ID: <4249A359.9060301@cs.unibo.it>
+References: <4246F06D.40005@cs.unibo.it> <20050328205027.GB28568@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1111408412.8136.233.camel@tyrosine>
+In-Reply-To: <20050328205027.GB28568-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -28,27 +20,34 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Stefan Seyfried wrote:
 
-> > > Warning - there'll be huge amounts of it. Really huge amounts. The
-> > > stuff we're interested in is whatever appears after kacpid has begun
-> > > taking up all the processor time.
-> > 
-> > Please find the messages.gz file at (3.1MB compressed size!):
-> > 
-> > 	http://www.fiz.uni-lj.si/~prsa/messages.gz
-> > 
-> > (sorry for the enormous size (~50MB uncompressed), but I didn't want to
-> > cut out anything relevant!) The start of the messages file is the start
-> > of kacpid going crazy.
+
+>>2) script terminates with error and spews "command not found" problems 
+>>only in the post-wakeup section, even though full pathnames are used 
+>>(see script)
 > 
-> Great, thanks! I'll take a look at this later on. When I traced it on
-> the 6220, I found that it seemed to be related to a thermal zone event,
-> which would fit with observations.
+> you have some funny special characters in there, no wonder bash barfs on that.
 
-any news from HP on this matter?
+Thanks, I have no idea how they got in the script, that partially fixed
+it: no more "command not found" errors, but the kernel messages about
+"scheduling while atomic" are still there and the script still aborts
+with SIG11 after resuming from suspend.
 
-Andrej
+Anyhow, I found out that the fan issue is related to powernowd not being
+restarted because of the script failure.
+
+Any clues about that? I tried both platform and shutdown for disk, but
+the only difference is that platform reboots immediately instead of
+powering down. Also, writing "4b" to acpi/sleep is the same as "disk" to
+power/state.
+
+TIA,
+Andrea.
+
+-- 
+Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
+
 
 
 -------------------------------------------------------
