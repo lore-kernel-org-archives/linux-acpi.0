@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: RE: [PATCH] [2/2] Allow override acpi_gbl_pre_defined_names (aka change that _OS).
-Date: Fri, 7 Feb 2003 18:53:29 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Fri, 7 Feb 2003 18:46:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030207175329.GB129@elf.ucw.cz>
-References: <F760B14C9561B941B89469F59BA3A84725A15A@orsmsx401.jf.intel.com>
+Message-ID: <20030207174609.GA129@elf.ucw.cz>
+References: <20030206153757.GB19350@atrey.karlin.mff.cuni.cz> <20030206165340.D7D361480A@o-o.yi.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A15A-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20030206165340.D7D361480A-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,28 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Dave Jones <davej-l3A5Bk7waGM@public.gmane.org>, Zden?k OGAR =?iso-8859-1?Q?Skal=E1k?= <skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Lyle Seaman <lws-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
+Cc: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > This is the linux part.  It permit to pass a apci_os_name= boot args
-> > in order to override the \_OS.
+> > No, no. It has to be exactly the same kernel, otherwise you get a nice
+> > crash (if you are lucky) and ugly data corruption (when you are not);
+> > there's check to prevent that and panic, however.
 > 
-> I'm still not clear on why this needs to be changeable at runtime. If we do
-> decide that the BIOS writers are so Windows-centric that we need to
-> masquerade as one, why wouldn't we just change the #define and recompile?
-> 
-> Dave, can you help me understand how a distro would find this useful, over
-> just statically changing the reported _OS string?
+> but why does this happen?  is the kernel text not being replaced?
 
-Well, if we make it runtime-configurable, we can later use blacklist
-entries to fool broken bioses... And besides, it is probably not
-acceptable for any distribution to ship kernel presenting itself as
-"Microsoft Windows".
+Kernel text is not replaced, and we rely on kernel being same size as
+before.
+
 								Pavel
-
 -- 
 Worst form of spam? Adding advertisment signatures ala sourceforge.net.
 What goes next? Inserting advertisment *into* email?
