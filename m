@@ -1,11 +1,11 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Samsung P35 and S3 suspend
-Date: Mon, 27 Dec 2004 10:08:16 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575D823DC@pdsmsx402.ccr.corp.intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI - DOS - 2.6.10
+Date: Mon, 27 Dec 2004 10:44:13 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8406A262BC@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,50 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan D?singer <stefandoesinger-RbZlAiThDcE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->I think this is the patch I sent to this list a few months ago. Here
-the
->archive linksfor reference:
->
->http://sourceforge.net/mailarchive/message.php?msg_id=3D9091506
->
->The background is that any write access to the pci config registers of
-some
->devices(sound card, usb 2.0 controler, and modem) cause a system lockup
-if
->they are called before acpi_leave_sleep_state and
->acpi_disable_wakeup_device
->were called. This is on an Acer Travelmate 803 Notebook, and it seems
-to be
->the same on other systems.
->
->I sent the patch to the list, but it seems that nobody noticed it and I
->forgot
->to send it again. Here is an updated patch against 2.6.10. I can't
-promise
->that it doesn't break other systems. Someone should make sure that
->pm_ops->leave is set to NULL for apm. I haven't found this in the apm
-code
->yet.
->
-And also please try this one (in kernel/power/main.c):
-static void suspend_finish(suspend_state_t state)
-{
--	device_resume();
-	if (pm_ops && pm_ops->finish)
-		pm_ops->finish(state);
-+	device_resume();
-	thaw_processes();
-	pm_restore_console();
-}
-According to ACPI spec, device resume should be after _WAK method (in
-acpi_leave_sleep_state)
-
-Thanks,
-Shaohua
+IFBsZWFzZSBzZW5kIG1lIERTRFQuDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9t
+OiBhY3BpLWRldmVsLWFkbWluQGxpc3RzLnNvdXJjZWZvcmdlLm5ldCBbbWFpbHRvOmFjcGktZGV2
+ZWwtYWRtaW5AbGlzdHMuc291cmNlZm9yZ2UubmV0XSBPbiBCZWhhbGYgT2YgTHVrYXMgSGVqdG1h
+bmVrDQpTZW50OiAyMDA05bm0MTLmnIgyN+aXpSA3OjA4DQpUbzogYWNwaS1kZXZlbEBsaXN0cy5z
+b3VyY2Vmb3JnZS5uZXQNClN1YmplY3Q6IFtBQ1BJXSBBQ1BJIC0gRE9TIC0gMi42LjEwDQoNCkhl
+bGxvLA0KDQpzaW5jZSAyLjYuMTAtcmMxIGRpc3BsYXkgc3dpdGNoIGJ1dHRvbiBzdG9wZWQgdG8g
+d29yay4gSSBoYXZlIEFDUEkgdmlkZW8NCmNvbXBpbGVkIGluLCBpdCBkaXNwbGF5czogRE9TIHNl
+dHRpbmc6IDwxPg0KDQpBbnkgdmFsdWUgd3JpdHRlbiB0byB0aGlzIGZpbGUgZG9lcyBub3QgZ2V0
+IGl0IHdvcmsuIEFDUEkgZXZlbnQgaXMgZ2VuZXJhdGVkOg0KW01vbiBEZWMgMjcgMDA6MDc6MzIg
+MjAwNF0gcmVjZWl2ZWQgZXZlbnQgInZpZGVvIFZHQSAwMDAwMDA4MCAwMDAwMDAwMCINCg0KQW55
+IHN1Z2dlc3Rpb25zPyBJIGNhbiBwcm92aWRlIC9wcm9jL2FjcGkvZHNkdCBpZiBpdCBoZWxwcy4N
+Cg0KLS0gDQpMdWvDocWhIEhlanRtw6FuZWsNCg0KDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQpTRiBlbWFpbCBpcyBzcG9uc29yZWQgYnkg
+LSBUaGUgSVQgUHJvZHVjdCBHdWlkZQ0KUmVhZCBob25lc3QgJiBjYW5kaWQgcmV2aWV3cyBvbiBo
+dW5kcmVkcyBvZiBJVCBQcm9kdWN0cyBmcm9tIHJlYWwgdXNlcnMuDQpEaXNjb3ZlciB3aGljaCBw
+cm9kdWN0cyB0cnVseSBsaXZlIHVwIHRvIHRoZSBoeXBlLiBTdGFydCByZWFkaW5nIG5vdy4gDQpo
+dHRwOi8vcHJvZHVjdGd1aWRlLml0bWFuYWdlcnNqb3VybmFsLmNvbS8NCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQpBY3BpLWRldmVsIG1haWxpbmcgbGlz
+dA0KQWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQNCmh0dHBzOi8vbGlzdHMuc291cmNl
+Zm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZvL2FjcGktZGV2ZWwNCg==
 
 
 -------------------------------------------------------
