@@ -1,67 +1,37 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: failed patch for 2.4.20
-Date: 05 Apr 2003 17:42:37 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1049560958.5983.74.camel@darkstar.portugal>
-References: <20030405155552.GA22362@Tonelli.sns.it>
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Subject: ANNOUNCE: updated Radeon dri-resume binaries available
+Date: Sat, 5 Apr 2003 19:28:22 +0200
+Sender: dri-users-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030405172822.GE13713@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030405155552.GA22362-C7jUcIT7jcOb5HrIuDsk0A@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: mennucc1-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <dri-users-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: dri-users-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:dri-users-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:dri-users-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/dri-users>,
+	<mailto:dri-users-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/dri-users>,
+	<mailto:dri-users-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=dri-users>
+To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, dri-users-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-If o see the rej files, it is very easy complete the patch, You can made
-by hand, if you want use that kernel and maybe you can share the final
-result  patch for debian kernel.
-making a diff -Nur from original kernel to final :)
+I've updated the DRI Radeon resume-enabled driver binaries to a 20030405 DRI
+CVS snapshot.  These are available at http://cpbotha.net/dri_resume.html for
+x86.
 
-On Sat, 2003-04-05 at 16:55, A Mennucc1 wrote:
-> ----- Forwarded message from Andrea C G Mennucci <andrea-XQfoZfwGqr6d5S4pzSRqXw@public.gmane.org>=
- -----
->=20
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: failed patch for 2.4.20
-> Reply-To: debdev-JzoyWj5SOTSb5HrIuDsk0A@public.gmane.org
-> From: Andrea C G Mennucci <andrea-XQfoZfwGqr6d5S4pzSRqXw@public.gmane.org>
->=20
->=20
-> hi
->=20
-> I tried to apply acpi-20021212-2.4.20.diff.gz
-> on the kernel sources 2.4.20  that are distributed with Debian;
-> but I got too many rejects, and indeed compilation fails
->=20
-> (whereas acpi-20020918-2.4.19 worked on Debian's 2.4.19)
->=20
-> here are the rejects
->=20
-> thanks
->=20
-> a.
->=20
->=20
-> ----- End forwarded message -----
->=20
-> --=20
-> Andrea Mennucc
->  "E' un mondo difficile. Che vita intensa!" (Tonino Carotone)
---=20
-S=E9rgioMB
-email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+The DRI CVS code has really improved drastically over the past few weeks and
+is better than the 4.3.0 resume-enabled driver code in several regards. The
+binaries are built on a Debian Stable system with gcc 2.95 so should work on
+just about any current distribution.
 
-Who gives me one shell, give me everything.
+Enjoy!
 
+-- 
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
