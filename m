@@ -1,14 +1,14 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: smartbattery support
-Date: Fri, 08 Oct 2004 20:37:26 +0100
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: DSDT on suse 9.1
+Date: Fri, 8 Oct 2004 18:14:13 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4166EC76.90808@mega.ist.utl.pt>
-References: <16A54BF5D6E14E4D916CE26C9AD30575457124@pdsmsx402.ccr.corp.intel.com> <20041008091658.GE6785@poupinou.org>
+Message-ID: <20041008161413.GD10581@message-id.gmane0305.slipkontur.de>
+References: <4162A11A.106@alink.co.za> <4163D16B.1090903@alink.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041008091658.GE6785-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4163D16B.1090903-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,44 +18,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Oct 06, 2004 at 12:05:15PM +0100, George Barnett wrote:
 
-> It doesn't have such definition.
-> 
-> There were that actually for the EC device:
-> 
->                     Field(ERAM, ByteAcc, Lock, Preserve)
->                     {
->                         Offset(0x60),
->                         SMPR,8,
->                         SMST,8,
->                         SMAD,8,
->                         SMCM,8,
->                         SMD0,256,
->                         BCNT,8,
->                         SMAA,8,
->                         ...
->                         ...
-> 
-> (you can grab the ASL at
-> ftp://ftp.poupinou.org/acpi/tosh_3000/tosh3k-100.v13.asl.bz2
-> if you want to verify by yourself)
-> 
-> So my guess was that it's an smbus, and it was the case..
-> 
-> The only trouble were that I don't have the notification number
-> (though I think it was 1, because this laptop received sometimes
-> an EC QUERY with this value and there is no _Q01 method in the 
-> original asl), but I must admit I haven't checked more.
-> 
-> For the record, there were 3 sensors, a smartbattery I think, a
-> thermal sensor controlling also the CPU fan, and an eeprom.
-> Since I got in fact what I wanted to monitor by using acpi methods,
-> I haven't investigated more...
+> Ignore me.  I managed to get this asl file compiled to hex and it spewed 
+> the same errors as the dsdt already installed with my distro of linux.
 
-bruno: did you actually get the driver working?
+Did you verify that it actually replaced the original DSDT? You should
+get some message in dmesg after booting.
+-- 
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
