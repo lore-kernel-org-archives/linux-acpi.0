@@ -1,11 +1,11 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: AW: iasl -d now gives segmentation fault !
-Date: Mon, 11 Nov 2002 13:14:56 -0800
+Date: Mon, 11 Nov 2002 13:32:19 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F0@orsmsx119.jf.intel.com>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B8DB@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="ISO-8859-1"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,9 +16,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?=27S=E9rgio_Monteiro_Basto=27?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>, Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
+To: =?iso-8859-1?Q?=27S=E9rgio_Monteiro_Basto=27?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>, Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
 Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
+
+
+Disassembly works fine here, but as I think I mentioned before, the =
+posted
+DSDT is corrupt;  The checksum is wrong and there are zeroed bytes in =
+the
+file. =20
+
+The resulting disassembly will not compile.
+
+I've added a checksum check to the front end of the disassembler
+
+Bob
+
+
+-----Original Message-----
+From: Grover, Andrew [mailto:andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]=20
+Sent: Monday, November 11, 2002 1:15 PM
+To: 'S=E9rgio Monteiro Basto'; Herbert Nachtnebel
+Cc: acpi-devel
+Subject: RE: AW: [ACPI] iasl -d now gives segmentation fault !
 
 Hi Sergio,
 
@@ -68,6 +89,16 @@ who
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
 >=20
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
