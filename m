@@ -1,8 +1,8 @@
 From: Alexei Gilchrist <alexei-JAjqph6Yjy/o0IyPN7li9Ydd74u8MsAO@public.gmane.org>
-Subject: Help debuging DSL ...
-Date: Thu, 4 Dec 2003 12:04:29 +1000
+Subject: getting BIOS to control screen
+Date: Thu, 4 Dec 2003 12:42:30 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031204020429.GB955@physics.uq.edu.au>
+Message-ID: <20031204024230.GC955@physics.uq.edu.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,69 +18,29 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, 
+Hi,
 
-I've dissasembled the dsdt table for my machine (Panasonic W2) using
-iasl -d dsdt.dat and tried recompiling it, with the following errors:
+Under ACPI my laptops screen buttons don't work (ie switching to external screen
+and setting the brightness). They DO work under APM though. This is a real pain
+as I often need to switch to an external screen and I have to reboot to do this
+at the moment.
 
------------------------------------------------------------------------------------------
-> iasl -tc dsdt.dsl 
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
-Copyright (C) 2000 - 2003 Intel Corporation
-Supports ACPI Specification Revision 2.0b
-
-dsdt.dsl   176:                 Return (\_SB.PCI0.LPC0.EC0.EC02 (Arg1))
-Warning  2030 -   Called method may not always return a value ^ 
-
-dsdt.dsl   181:                 Return (\_SB.PCI0.LPC0.EC0.EC03 (Arg1, Arg2))
-Warning  2030 -   Called method may not always return a value ^ 
-
-dsdt.dsl   186:                 Return (\_SB.PCI0.LPC0.EC0.EC04 (Arg1, Arg2))
-Warning  2030 -   Called method may not always return a value ^ 
-
-dsdt.dsl   191:                 Return (\_SB.PCI0.LPC0.EC0.EC05 (Arg1, Arg2))
-Error    1029 -                Called method returns no value ^ 
-
-dsdt.dsl  1368:                     Method (SRCH, 0, NotSerialized)
-Warning  2019 -                                ^ Not all control paths return a value (SRCH)
-
-dsdt.dsl  1739:                     Method (EC03, 2, Serialized)
-Warning  2019 -                                ^ Not all control paths return a value (EC03)
-
-dsdt.dsl  1875:                     Method (EC02, 1, Serialized)
-Warning  2019 -                                ^ Not all control paths return a value (EC02)
-
-dsdt.dsl  1896:                     Method (EC04, 2, Serialized)
-Warning  2019 -                                ^ Not all control paths return a value (EC04)
-
-ASL Input:  dsdt.dsl - 4720 lines, 158659 bytes, 2567 keywords
-Compilation complete. 1 Errors, 7 Warnings, 0 Remarks, 700 Optimizations
------------------------------------------------------------------------------------------
-
-It's easy to see where return values are missing in the code, but what should they be?
-are there defauls success/failure values? 
-
-e.g.
-
-                   Method (EC05, 2, Serialized)
-                    {
-                        If (LEqual (Arg0, 0x00))
-                        {
-                            EC82 (0xF0, Arg1)
-                        }
-                    }
-
-should return something on failure ....
+blundering through the DSDT ASL I came across:
 
 
+   Method (_DOS, 1, NotSerialized)
+    {
+       Store (And (Arg0, 0x03), Local0)
+       \_SB.PSRV (0xB9, 0x20, 0x01, Local0, 0x00)
+    }
 
-Sorry if this is a stupid question but I'm new to ASL.
+If I also set bit1 to 1: And(And (Arg0, 0x03), 0x01)???? can I force it to use 
+the BIOS ala APM? or have I lost the plot?
 
 cheers,
 
 Alexei
+
 
 
 -------------------------------------------------------
