@@ -1,46 +1,88 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Subject: 2.6.6-rc3-mm1: modular ACPI button broken
-Date: Sat, 1 May 2004 13:44:21 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040501114420.GF2541@fs.tum.de>
-References: <20040430014658.112a6181.akpm@osdl.org> <87ad0sshku.fsf@basilikum.skogtun.org>
+From: Daniel Dewald <D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>
+Subject: Re: DSDT Table for Samsung X30 1700
+Date: Sat, 1 May 2004 17:56:09 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200405011756.09917.D.Dewald@fh-trier.de>
+References: <3ACA40606221794F80A5670F0AF15F8404321BC7@PDSMSX403.ccr.corp.intel.com> <20040429215116.GA9870@dominikbrodowski.de> <200404301726.59226.D.Dewald@fh-trier.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S261638AbUEALo2@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200404301726.59226.D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <87ad0sshku.fsf@basilikum.skogtun.org>
-To: Harald Arnesen <harald@skogtun.org>, len.brown@intel.com, luming.yu@intel.com
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, May 01, 2004 at 10:00:01AM +0200, Harald Arnesen wrote:
-> I don't see this in plain 2.6.6-rc3 or 2.6.6-rc2-mm2:
-> 
-> 
-> $ sudo make modules_install
-> INSTALL...
-> if [ -r System.map ]; then /sbin/depmod -ae -F System.map
-> 2.6.6-rc3-mm1; fi
-> WARNING: /lib/modules/2.6.6-rc3-mm1/kernel/drivers/acpi/button.ko needs
-> unknown symbol acpi_fixed_sleep_button
-> WARNING: /lib/modules/2.6.6-rc3-mm1/kernel/drivers/acpi/button.ko needs
-> unknown symbol acpi_fixed_pwr_button
-> $
->...
+Well the Problems with the Rest Button and the Lid are solved.. they drive my 
+laptop in Stanby (S3) now ;o). 
 
-Thanks for this report.
+Still the two Problems (FAN & Power Button) remains (the one with the 
+Powerbutton is much more essential! The Fan can spin as long as he like.. but 
+without the Powerbutton there is no possibility to get the Laptop out of 
+Standby (without disconnecting the Battery of course ;o(  ). Thx
 
-This seems to be introduced by the button driver unload unload patch 
-(Bugzilla #2281) included in the ACPI BK patch.
+TheCrasher
 
-It seems two EXPORT_SYMBOL's are missing in scan.c?
+Am Freitag, 30. April 2004 17:26 schrieben Sie:
+> Ok I fixed my DSDT Table and wow the OSD and all the Special function
+> button are working (If anyone is inerested in the DSDT File.. mail me).
+> ACPI is working nearly perfect now.. Battery Status is also show.
+> Still there are some problems:
+>
+>
+> The Rest Button and the Lid are generating ACPI events.. but it shows no
+> effect ;o( (I've configured them with powersaved).
+>
+> The Powerbutton doesn NOT generate an ACPI event (and of course pressing it
+> show now effect then ;o(( )
+>
+> And the CPU fan always spins on max and cant be triggered
+> by /proc/acpi/fan/FAN0/state !! /proc/acpi/fan/FAN0/state shows on or off
+> but it seems to have no effect on the fan itself ;o(. Under Windows its
+> nearly all times off!
+>
+> I've also tested Suspend-to-Ram and IT WORKED (echo 3 > /proc/acpi/sleep)
+> but without the Power Button working there is no way to switch this stupid
+> thing on again!!!! So I had to disconnect the battery ;o(.
+>
+> If anyone has an Idea or an solution for one of this Problems I would be
+> thankfull.  Thx
+>
+>
+> TheCrasher
+>
+> Am Donnerstag, 29. April 2004 23:51 schrieben Sie:
+> > On Thu, Apr 29, 2004 at 06:38:03PM +0200, Daniel Dewald wrote:
+> > > The Samsung X30 has a few Special functions like adjusting kontrast,
+> > > showing battery stats in the display, and a "Rest" Button for standbye.
+> > > They normaly work everywhere (even in DOS and in the Bios). But not
+> > > under Linux. I've read somewhere that this could be fixed with an DSDT
+> > > Table. For the battery control I've already tried the DSDT for the
+> > > Samsung X10. It didn't work ;o(.
+> >
+> > Of course, the DSDT for the Samsung X10 does not work. Just search for
+> > the comments, and uncomment the same parts in the DSDT of the X30. Try to
+> > compile with iasl, and fix the other errors. Then try again. Hopefully,
+> > the contrast adjustment will work then [so it does for my X05], even
+> > though with ugly/no graphics. Battery info can't be shown, and wrt "rest"
+> > button: all it does is issue a command to the operating system. You need
+> > acpid to tell the OS what to do if you press this button. And,
+> > unfortunately, S3 doesn't yet work on X05 Samsungs (at least).
+> >
+> > 	Dominik
 
-cu
-Adrian
 
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+-------------------------------------------------------
+This SF.Net email is sponsored by: Oracle 10g
+Get certified on the hottest thing ever to hit the market... Oracle 10g. 
+Take an Oracle 10g class now, and we'll give you the exam FREE.
+http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
