@@ -1,160 +1,102 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: 13 hour latency on acpi-devl-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Date: Thu, 4 Sep 2003 16:24:03 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FD06@hdsmsx402.hd.intel.com>
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: [PATCHES] ACPI Processor update [idle,throttling,thermal,cpufreq]
+Date: Fri, 5 Sep 2003 00:24:34 +0200
+Sender: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Message-ID: <20030904222434.GC6350@brodo.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
+Errors-To: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andy,
-I sent a message to acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org at 0:04 this
-morning, and it took until 1:48 PM for it to complete the round trip to
-my mailbox -- 13 hours 44 minutes!
+Over the last few hours, I've rewritten large portions of ACPI processor
+handling. Due to lack of appropriate hardware, I can hardly test these
+changes, so expect a few rough edges.
 
-13 hours 35 minutes were spent between two hops within sourceforge.net
+These patches 
+- a) replace the broken ACPI CPUfreq driver with a better, flexible variant,
+- b) modularize the processor.c code: instead of one large file there are
+     many small files.
+- c) improve passive cooling support
+- d) allow for easy adding of proper locking and ref-counting in processor.c
 
-How to fix?
+http://www.brodo.de/cpufreq_tmp/cpufreq-2.6.0-test4-ALL-series1
+	Large CPUfreq update -- needed for other changes
+	[in CPUfreq BK tree, merge with Linus expected soon]
 
-Thanks,
--Len
----------------
+http://www.brodo.de/cpufreq_tmp/cpufreq-2.6.0-test4-update_policy
+http://www.brodo.de/cpufreq_tmp/cpufreq-2.6.0-test4-Kconfig-speedstep
+	Additional CPUfreq updates -- needed for other changes
+	[Already sent to CPUfreq list]
 
-See XXX's below:
-
-Microsoft Mail Internet Headers Version 2.0
-Received: from fmsmsx312.amr.corp.intel.com ([132.233.42.227]) by
-hdsmsx402.amr.corp.intel.com with Microsoft SMTPSVC(5.0.2195.5329);
-	 Thu, 4 Sep 2003 13:48:15 -0400
-Received: from orsmsx311.amr.corp.intel.com ([192.168.65.40]) by
-fmsmsx312.amr.corp.intel.com with Microsoft SMTPSVC(5.0.2195.5329);
-	 Thu, 4 Sep 2003 10:48:14 -0700
-Received: from orsmsx331.amr.corp.intel.com ([192.168.65.56]) by
-orsmsx311.amr.corp.intel.com with Microsoft SMTPSVC(5.0.2195.5329);
-	 Thu, 4 Sep 2003 10:48:13 -0700
-Received: from orsmsxvs041.jf.intel.com ([192.168.65.54]) by
-orsmsx331.amr.corp.intel.com with Microsoft SMTPSVC(5.0.2195.5329);
-	 Thu, 4 Sep 2003 10:48:12 -0700
-Received: from talaria.jf.intel.com ([10.7.209.7])
- by orsmsxvs041.jf.intel.com (NAVGW 2.5.2.11) with SMTP id
-M2003090410481122903
- ; Thu, 04 Sep 2003 10:48:12 -0700
-Received: from caduceus.jf.intel.com (caduceus.jf.intel.com
-[10.7.208.8])
-	by talaria.jf.intel.com (8.11.6p2/8.11.6/d: inner.mc,v 1.35
-2003/05/22 21:18:01 rfjohns1 Exp $) with ESMTP id h84H8me02922;
-	Thu, 4 Sep 2003 17:08:49 GMT
-
-Received: from sc8-sf-list2.sourceforge.net (lists.sourceforge.net
-[66.35.250.206])
-	by caduceus.jf.intel.com (8.11.6p2/8.11.6/d: outer.mc,v 1.82
-2003/09/04 16:03:37 rfjohns1 Exp $) with ESMTP id h84HfB523797;
-	Thu, 4 Sep 2003 17:41:33 GMT
-
-XXX  17:41 GMT - 4:06 GMT =3D 13 hours: 35 minutes in this hop!
-
-Received: from sc8-sf-list1-b.sourceforge.net ([10.3.1.13]
-helo=3Dsc8-sf-list1.sourceforge.net)
-	by sc8-sf-list2.sourceforge.net with esmtp (Exim 3.31-VA-mm2 #1
-(Debian))
-	id 19ulOI-0003y0-00; Wed, 03 Sep 2003 21:06:38 -0700
-
-XXX 9/3 21:06 -0700 is 9/4 4:06 GMT -- only 2 minutes after message was
-sent
-
-Received: from sc8-sf-mx1-b.sourceforge.net ([10.3.1.11]
-helo=3Dsc8-sf-mx1.sourceforge.net)
-	by sc8-sf-list1.sourceforge.net with esmtp=20
-	(Cipher TLSv1:DES-CBC3-SHA:168) (Exim 3.31-VA-mm2 #1 (Debian))
-	id 19ulNF-0001uV-00
-	for <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>; Wed, 03 Sep 2003
-21:05:33 -0700
-Received: from fmr09.intel.com ([192.52.57.35] =
-helo=3Dhermes.hd.intel.com)
-	by sc8-sf-mx1.sourceforge.net with esmtp (Exim 4.22)
-	id 19ulNF-0007Xc-I4
-	for acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Wed, 03 Sep 2003 21:05:33
--0700
-Received: from petasus.hd.intel.com (petasus.hd.intel.com [10.127.45.3])
-	by hermes.hd.intel.com (8.11.6p2/8.11.6/d: outer.mc,v 1.81
-2003/09/03 23:05:00 rfjohns1 Exp $) with ESMTP id h8442iW09025
-	for <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>; Thu, 4 Sep 2003 04:02:44
-GMT
-Received: from fmsmsxvs042.fm.intel.com (fmsmsxvs042.fm.intel.com
-[132.233.42.128])
-	by petasus.hd.intel.com (8.11.6p2/8.11.6/d: inner.mc,v 1.35
-2003/05/22 21:18:01 rfjohns1 Exp $) with SMTP id h843xq612933
-	for <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>; Thu, 4 Sep 2003 03:59:52
-GMT
-Received: from fmsmsx331.amr.corp.intel.com ([132.233.42.135])
- by fmsmsxvs042.fm.intel.com (NAVGW 2.5.2.11) with SMTP id
-M2003090321045925457
- ; Wed, 03 Sep 2003 21:04:59 -0700
-Received: from fmsmsx311.amr.corp.intel.com ([132.233.42.214]) by
-fmsmsx331.amr.corp.intel.com with Microsoft SMTPSVC(5.0.2195.5329);
-	 Wed, 3 Sep 2003 21:04:59 -0700
-Received: from hdsmsx402.amr.corp.intel.com ([10.127.2.62]) by
-fmsmsx311.amr.corp.intel.com with Microsoft SMTPSVC(5.0.2195.5329);
-	 Wed, 3 Sep 2003 21:04:59 -0700
-content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=3D"us-ascii"
-Content-Transfer-Encoding: quoted-printable
-X-MimeOLE: Produced By Microsoft Exchange V6.0.6375.0
-Message-ID:
-<BF1FE1855350A0479097B3A0D2A80EE009FCFB-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
-X-MS-Has-Attach:=20
-X-MS-TNEF-Correlator:=20
-Thread-Topic: ACPI kernel crash with 2.4.22-pre7 on ASUS L3800C
-Thread-Index: AcNn2qNO8bWUvohNRy6XblgYOUj+AgKvmdgA
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-To: "Martin Mokrejs" <mmokrejs-V2lp6ZUObelkZyP8+xg2CQ@public.gmane.org>,
-<linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-   <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-X-OriginalArrivalTime: 04 Sep 2003 04:04:59.0637 (UTC)
-FILETIME=3D[B5745A50:01C37299]
-Subject: [ACPI] RE: ACPI kernel crash with 2.4.22-pre7 on ASUS L3800C
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-X-BeenThere: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-X-Mailman-Version: 2.0.9-sf.net
-Precedence: bulk
-List-Help:
-<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=3Dhelp>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe:
-<https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-=09
-<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=3Dsubscribe>
-List-Id: ACPI Development Discussion List
-<acpi-devel.lists.sourceforge.net>
-List-Unsubscribe:
-<https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-=09
-<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=3Dunsubscribe>
-List-Archive:
-<http://sourceforge.net/mailarchive/forum.php?forum=3Dacpi-devel>
-X-Original-Date: Thu, 4 Sep 2003 00:04:58 -0400
-Date: Thu, 4 Sep 2003 00:04:58 -0400
-Return-Path: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+http://www.brodo.de/cpufreq_tmp/drivermodel-2.6.0-test4-exports
+	Missing EXPORTs in sysdevice -- needed for other changes
+	[Already sent to Patrick]
 
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-remove_previous_pstates_implementation
+	The previous arch/i386/kernel/cpu/cpufreq/acpi.c CPUfreq
+	driver was broken, of bad design, and needs to replaced 
+	by something better. But, as a first step, remove all 
+	parts related to P-States from ACPI code.
+
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_submodules
+	Add a "submodule interface" to drivers/acpi/processor.c
+
+	It allows to create other "modules" which access the acpi_handle 
+	for the processor, and which get notified if the event value 
+	maches the value passed in acpi_processor_register_notify.
+
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_perflib
+	This patch adds a new "P-States library" to drivers/acpi/
+
+	CPUfreq drivers can now easly access the contents of the 
+	_PCT and the _PSS. For example, the speedstep-centrino 
+	driver could be appended so that it passes the appropriate 
+	value to the P-States library which then evaluates _PDC, 
+	and then returns the updated _PCT and _PSS.
+
+	Also, the platform limit is now handled as a cpufreq notifier and
+	as a call to cpufreq_policy_update.
+
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-new_acpi_io_driver
+	This re-adds the acpi P-States I/O driver. It is much smaller,
+	leaner and cleaner.
+
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_idle_submodule
+	This moves the idle handler out of drivers/acpi/processor and into
+	an own module.
+
+	Even if only C1 is available, it is now used. If the user prefers the 
+	default pm_idle, he can unload processor_idle, and still have the other
+	functionality available.
+
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_thermal_submodule
+	This adds a new mechanism to manage passive cooling. Instead of
+	hardcoded -and partly wrong- access to CPUfreq and ACPI 
+	throttling-, add a generic mechanism which other modules can 
+	register with.
+
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_thermal_cpufreq
+	Use _any_ CPUfreq driver for passive cooling. Implemented by an
+	cpufreq policy notifier and cpufreq_update_policy.
+ 
+http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_thermal_throttling
+	Move throttling into its own submodule, and register it with the new
+	passive cooling module. Also, the now-useless "limit" interface is
+	removed.
+
+
+Please review, test (carefully), and -if appropriate- merge,
+
+	Dominik
