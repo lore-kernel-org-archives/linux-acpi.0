@@ -1,7 +1,7 @@
 From: boltmelots <boltmelots-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Has anyone got ACPI working with Inspiron 500m
-Date: Thu, 24 Feb 2005 17:20:28 +1100
-Message-ID: <9ed79ee00502232220769b96d0@mail.gmail.com>
+Subject: Inspiron 500m
+Date: Thu, 24 Feb 2005 18:55:18 +1100
+Message-ID: <9ed79ee005022323556252bb2f@mail.gmail.com>
 Reply-To: boltmelots <boltmelots-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -21,7 +21,7 @@ List-Id: linux-acpi@vger.kernel.org
 Hi:
 
 Would someone be kind enough to tell me if they have ACPI working with
-Inspiron 500m laptop?
+Inspiron 500m laptop?  How?
 I have tried for many days and am having no luck.
 
 Thanks,
