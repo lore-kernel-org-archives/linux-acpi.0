@@ -1,12 +1,14 @@
-From: System Administrator <postmaster-sVruQ1Ulw8YzUqzbQMKElNBPR1lH4CV8@public.gmane.org>
-Subject: Undeliverable: Re: Details
-Date: Wed, 3 Sep 2003 21:22:42 -0400
+From: James Courtier-Dutton <James-l7zRWeYnyd2TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
+Subject: Re: Discussion: ACPI selective IRQ blacklist
+Date: Thu, 04 Sep 2003 02:47:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5DE5A9B7DBC47C429A36C679A584DEFD2A59F0@calvin.chandler-group.com>
+Message-ID: <3F5699A4.3090608@superbug.demon.co.uk>
+References: <200309032316.11076.adq_dvb@lidskialf.net> <200309040215.23281.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_000_01C37283.09B8D4E4"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200309040215.23281.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,70 +17,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+Andrew de Quincey wrote:
+> On Wednesday 03 September 2003 23:16, Andrew de Quincey wrote:
+> 
+>>So:
+>>If a motherboard is dodgy and IS in the bad-routing-blacklist, ACPI will
+>>not be used for PCI routing.
+>>
+>>If a motherboard is dodgy and is NOT in the bad-routing-blacklist, the
+>>fallback to picmode code should catch it. If the user then wants APIC with
+>>ACPI, they report the issue and the board is added to the
+>>bad-routing-blacklist.
+> 
+> 
+> On further thought, I realise this isn't future proof. This relies on the 
+> existence of legacy BIOS tables (e.g. MPBIOS). My machine for one does not 
+> have such a table; instead it relies on ACPI.
+> 
+> In the meantime, VIA have kindly sent me the docs I need. It turns out the PCI 
+> routing entries for the problem BIOSes are wrong. The south bridge chip in 
+> question is the VT8235 (device ID 0x1337), which explains the spread of 
+> motherboards I've been seeing.
+> 
+> I have a solution in mind; should have something in the next few days.
+> 
+Would it be possible to bypass the BIOS completely, and talk to the 
+chips on the motherboard direct ?
+It should work, unless the BIOS provides information that the chips on 
+the motherboard do not have. At a guess, I would say that the chips on 
+the motherboard might not have information like a wiring diagram.
 
-------_=_NextPart_000_01C37283.09B8D4E4
-Content-Type: text/plain;
-	charset="iso-8859-1"
-
-Your message
-
-  To:      chuckb-sVruQ1Ulw8YzUqzbQMKElNBPR1lH4CV8@public.gmane.org
-  Subject: Re: Details
-  Sent:    Wed, 3 Sep 2003 21:27:05 -0400
-
-did not reach the following recipient(s):
-
-chuckb-sVruQ1Ulw8YzUqzbQMKElNBPR1lH4CV8@public.gmane.org on Wed, 3 Sep 2003 21:22:37 -0400
-    The recipient name is not recognized
-	The MTS-ID of the original message is: c=us;a= ;p=chandler
-group;l=CALVIN0309040122SASNXS98
-    MSEXCH:IMS:The Chandler Group:Stow:CALVIN 0 (000C05A6) Unknown Recipient
-
-
-
-------_=_NextPart_000_01C37283.09B8D4E4
-Content-Type: message/rfc822
-
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: chuckb-sVruQ1Ulw8YzUqzbQMKElNBPR1lH4CV8@public.gmane.org
-Subject: Re: Details
-Date: Wed, 3 Sep 2003 21:27:05 -0400 
-MIME-Version: 1.0
-X-Mailer: Internet Mail Service (5.5.2653.19)
-X-MS-Embedded-Report: 
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_002_01C37283.09B8D4E4"
+Cheers
+James
 
 
-------_=_NextPart_002_01C37283.09B8D4E4
-Content-Type: text/plain;
-	charset="iso-8859-1"
-
-See the attached file for details
-
-
-------_=_NextPart_002_01C37283.09B8D4E4
-Content-Type: application/octet-stream;
-	name="alert.txt"
-Content-Disposition: attachment;
-	filename="alert.txt"
-
-********   Network Associates GroupShield Exchange          **********
-********  Alert generated at: Wednesday, September 03, 2003 09:22:37 PM Eastern Daylight Time
-**********************************************************************
-
-
-The file your_document.pif has been replaced.
-Please consult your administrator for further help
-and remember to quote your ticket number: OA2642_1062638557_CALVIN
-------_=_NextPart_002_01C37283.09B8D4E4--
-
-------_=_NextPart_000_01C37283.09B8D4E4--
 
 
 -------------------------------------------------------
