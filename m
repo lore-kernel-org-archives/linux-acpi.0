@@ -1,75 +1,73 @@
-From: David Moore <dcm-HInyCGIudOg@public.gmane.org>
-Subject: Re: [ACPI] _PDC method in DSDT
-Date: 23 Jun 2003 13:02:25 -0700
-Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-Message-ID: <1056398545.10322.111.camel@aldebaran.caltech.edu>
-References: <F760B14C9561B941B89469F59BA3A84725A303@orsmsx401.jf.intel.com>
-	 <20030623133834.GA2330@brodo.de>  <20030623161136.GG19556@poupinou.org>
-	 <1056388336.15250.62.camel@ixodes.goop.org>
+From: <liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Subject: Re: Problem with ACPI-patch
+Date: Mon, 23 Jun 2003 22:44:32 +0200 (CEST)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <Pine.LNX.4.33.0306232244001.2066-100000@frog.athome>
+References: <Pine.LNX.4.33.0306231456340.11371-600000@dark.pcgames.pl>
+Reply-To: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-In-Reply-To: <1056388336.15250.62.camel-Ir80B/JpJuPj/dU0+sc/eg@public.gmane.org>
-Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
-List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
-To: Jeremy Fitzhardinge <jeremy-TSDbQ3PG+2Y@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq list <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.33.0306231456340.11371-600000-WueNddHYZwu1SRXUKfATMw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: =?ISO-8859-2?Q?Krzysztof_Ol=EAdzki?= <ole-gcSpNFQc7Gg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2003-06-23 at 10:12, Jeremy Fitzhardinge wrote:
-> On Mon, 2003-06-23 at 09:11, Ducrot Bruno wrote:
-> > Yes.  It can be added.  But do we want to add it?  That's the real
-> > question.
-> 
-> Well, the current scheme only works because there's a small number of
-> easily identifiable Enhanced SpeedStep-capable processors which happen
-> to use the same encoding for the PERF_CTL register.  It could get more
-> complicated in future, and falling back to a table from ACPI may well be
-> the appropriate solution for many people - though I would like to
-> maintain the tables in speedstep-centrino so that it isn't dependent on
-> ACPI.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Thanks for all the responses on this issue.  Forgive my ignorance in
-many cases, I've been involved in this code much less time than most
-people here.
+Salut list,
+there is one thing in the /proc/interrupts that is not right, and it is
+not a MP problem. I also got this with a single-processor board with
+ioapic.
+The point I mean is, that some PCI devices got an edge-driven IRQ, what i=
+s
+wrong (only the ones that are not connected through the XT-PIC). And
+surprise, this devices will not work this way :-((( Am I right Krzysztof?
 
-What about this approach as a possible solution to everything that's
-been discussed:
+Where does it come from? Is this a bad written DSDT in the BIOS, or is
+this a Linux issue?
 
-Patch ACPI as follows: In the case where _PCT returns FFH as the
-register type in processor.c, we would simply call a processor-specific
-function in /arch/i386/ instead of using outb() for the state changes. 
-The function would be called with arguments that provide all the
-information that ACPI gives us such as the control register, control
-value, status value, etc.
+On Mon, 23 Jun 2003, [ISO-8859-2] Krzysztof Ol=EAdzki wrote:
+> I have problem with acpi-patch for linux kernel 2.4.x on one of my
+> servers. It is 2xP4 Xeon 2.4 GHz with Intel Mainboard. Last
+> working version is AFAIR 20030228. New versions have problem
+> with with initialisation of IO-APICs controlers. I attached
+> /proc/interrupts (acpi.*.int) and dmesg (acpi.*.dmesg) outputs from
+> 2.4.21-rc4 with both patches: 20030228 (*.ok.*) and 20030522 (*.err.*) =
+and
+> ".config" file.
 
-This code in /arch/i386/ would be fairly trivial for Enhanced Speedstep:
-just a call to wrmsr().  For AMD and Transmeta processors, it would be a
-little more complicated since ACPI does not provide all the necessary
-information to do the state changes.  Furthermore, the
-processor-specific code would not need to be part of the normal ACPI
-distribution if necessary -- it has minimal dependencies and could just
-reside normally in the kernel.
+Cheers
+  hartwig felger
 
-For those who want to use cpufreq and ACPI simultaneously, they could
-use the cpufreq-ACPI driver, which would now be capable of using the
-appropriate processor-specific functions for state changes with little
-ACPI overhead.
+Hartwig Felger informatics
 
-The only big drawback of this approach is the duplication of code
-between the existing cpufreq drivers and these new processor-specific
-state changing drivers.  Perhaps they could be folded into one by some
-changes to the cpufreq API?
+- --=20
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint =3D FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
-Does this seem like a sensible approach?
+iD8DBQE+92a19bBoTzOf1pMRAmzTAKCIxLNf7+JLiL60k9CJHqYm5Mj+1QCeNrVk
+jIN0QjhoVQEvo6hjUIPh1lI=3D
+=3Dbs+M
+-----END PGP SIGNATURE-----
 
-Regards,
 
-David
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: INetU
+Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
