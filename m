@@ -1,8 +1,8 @@
 From: Mike Mestnik <cheako911-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: Maby it's fixed now, I turned off one of the battery monitors.
-Date: Sun, 7 Mar 2004 13:51:08 -0800 (PST)
+Date: Sun, 7 Mar 2004 13:49:52 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040307215108.70121.qmail@web11905.mail.yahoo.com>
+Message-ID: <20040307214952.39886.qmail@web11906.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,10 +17,6 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Opps forgot to say I reported it in the [2]DBTS and I'm running
-2.6.3-1-686 from Debian.
-
-[2] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=236598
 
 > > -----Original Message-----  FROM ACPI LIST.
 > > From: Yu, Luming [mailto:luming.yu-lUQJ9CVx3tM@public.gmane.org]
