@@ -1,63 +1,70 @@
-From: Kay Sievers <kay.sievers@vrfy.org>
+From: Ashok Raj <ashok.raj@intel.com>
 Subject: Re: 2.6.10-rc1-mm3: ACPI problem due to un-exported hotplug_path
-Date: Fri, 5 Nov 2004 21:10:12 +0100
-Message-ID: <20041105201012.GA24063@vrfy.org>
-References: <20041105001328.3ba97e08.akpm@osdl.org> <20041105164523.GC1295@stusta.de> <20041105180513.GA32007@kroah.com>
+Date: Fri, 5 Nov 2004 12:32:56 -0800
+Message-ID: <20041105123254.A17224@unix-os.sc.intel.com>
+References: <20041105201012.GA24063@vrfy.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261199AbUKEUKt@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261211AbUKEUin@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20041105180513.GA32007@kroah.com>
+In-Reply-To: <20041105201012.GA24063@vrfy.org>; from kay.sievers@vrfy.org on Fri, Nov 05, 2004 at 12:10:12PM -0800
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, rml@novell.com, linux-kernel@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net
+To: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, rml@novell.com, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, rusty@rustycorp.com.au
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 05, 2004 at 10:05:13AM -0800, Greg KH wrote:
-> On Fri, Nov 05, 2004 at 05:45:23PM +0100, Adrian Bunk wrote:
-> > The following error (compin from Linus' tree) is caused by the fact that 
-> > hotplug_path is no longer EXPORT_SYMBOL'ed:
-> > 
-> > 
-> > <--  snip  -->
-> > 
-> > if [ -r System.map ]; then /sbin/depmod -ae -F System.map  2.6.10-rc1-mm3; fi
-> > WARNING: /lib/modules/2.6.10-rc1-mm3/kernel/drivers/acpi/container.ko needs unknown symbol hotplug_path
-> > 
-> > <--  snip  -->
+On Fri, Nov 05, 2004 at 12:10:12PM -0800, Kay Sievers wrote:
 > 
-> Hm, must be an -mm specific change that is causing this.  I don't see
-> this in the current tree.
+>    On Fri, Nov 05, 2004 at 10:05:13AM -0800, Greg KH wrote:
+>    >  >  The  following  error (compin from Linus' tree) is caused by the
+>    fact that
+>    > > hotplug_path is no longer EXPORT_SYMBOL'ed:
+>    > >
+>    > >
+>    > > <--  snip  -->
+>    > >
+>    >  >  if  [  -r  System.map  ];  then  /sbin/depmod  -ae -F System.map
+>    2.6.10-rc1-mm3; fi
 > 
-> Len, why would any ACPI code be wanting to get access to hotplug_path
-> directly?
+>    I've  found  it.  This  wants  to introduce a new direct /sbin/hotplug
+>    call,
+>    with "add" and "remove" events, without sysfs support.
+> 
+>    It  should  use  class  support  or kobject_hotplug() instead.  Nobody
+>    should
+>    fake hotplug events anymore, cause every other notification transport
+>    will not get called (currently uevent over netlink).
+> 
+
+we were discussing this exact thing recently.. we maybe able to clean this up.. here is why
+we are doing this manual thingy...
+
+When we support physical component hotplug, we want to create the sysfs entries, but that doesnt
+mean the component (i.e CPU or memory) is hotplugged. The reason is for node level hotplug
+there are sequencing requirements, memory needs to be brought up first before cpu, and also
+the error handling/policy requirments which we want the user space to handle it and not from 
+kernel side.
 
 
-I've found it. This wants to introduce a new direct /sbin/hotplug call,
-with "add" and "remove" events, without sysfs support.
+the sequence is when physical arrival of cpu is seen, we will just create a sysfs entry 
+which will also send an add event (which really is just cpu arrival, and sysfs created). 
 
-It should use class support or kobject_hotplug() instead.  Nobody should
-fake hotplug events anymore, cause every other notification transport
-will not get called (currently uevent over netlink).
-  http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.10-rc1/2.6.10-rc1-mm3/broken-out/bk-acpi.patch
+In our model the event is just consumed by the script cpu.agent, which would in turn decide and 
+bring the cpu up by 
 
-+static int
-+container_run_sbin_hotplug(struct acpi_device *device, char *action)
-+{
-...
-+	argv[i++] = hotplug_path;
-+	argv[i++] = "container";
-+	argv[i] = NULL;
-...
-+	i = 0;
-+	envp[i++] = "HOME=/";
-+	envp[i++] = "PATH=/sbin;/bin;/usr/sbin;/usr/bin";
-+	envp[i++] = action_str;
-+	envp[i++] = container_str;
-+	envp[i++] = "PLATFORM=ACPI";
-+	envp[i] = NULL;
-...
+#echo 1> /sys/devices/system/cpu/cpu#/online
+
+what apps really would care about is the ONLINE (which doesnt exist) event itself, and the 
+OFFLINE. The ADD/REMOVE only indicate sysfs entries appear and disappear.
+
+I dont know if adding ONLINE/OFFLINE is the right thing, or use the CHANGE notification 
+to inform. 
+
+This is an area that needs more though which is slightly different from how other devices are being handled.
+
+Greg-kh/Rusty .. any suggestions
 
 
-Thanks,
-Kay
+Cheers,
+Ashok Raj
+- Linux OS & Technology Team
