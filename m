@@ -1,14 +1,13 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Suggestion for improving the handling of GPE enabling.
-Date: 10 Mar 2005 00:10:47 -0500
-Message-ID: <1110431446.9336.60.camel@d845pe>
-References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au>
-	 <1110331896.12642.16.camel@sli10-desk.sh.intel.com>
-	 <20050309222122.GA32516@elf.ucw.cz>
+From: Antoni Villalonga <frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: acpi_sbs with kernel 2.6.11
+Date: Thu, 10 Mar 2005 06:18:36 +0100
+Message-ID: <75eeb70e05030921185b337dd2@mail.gmail.com>
+References: <75eeb70e0503092013562a05d@mail.gmail.com>
+Reply-To: Antoni Villalonga <frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050309222122.GA32516-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <75eeb70e0503092013562a05d-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,27 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2005-03-09 at 17:21, Pavel Machek wrote:
+There are any patch for 2.6.11.x kernels for acpi_sbs driver? I had
+problems to use it with 2.6.11.2.
 
-> > 4. ACPI devices are in many different physical buses. If we just define
-> > an ACPI bus, we possibly can't show the bus hierarchy.
-> 
-> Maybe ACPI device should be "under" real hardware one?
+Tnx
 
-I suspect that the current sysfs device tree hierarchy is largely
-fiction and that Linux would be better served by taking advantage of the
-hierarchy embodied in the DSDT.
+-- 
+export DEITY=$USER
 
-The "ACPI devices" such as power, sleep, lid as well as the battery are
-represented at the root level in the DSDT.
-
--Len
-
-
+Antoni Villalonga i Noceras
+#Web# ~> http://friki.org
+#Bloc# ~> http://bloc.balearweb.net/friki
+#Jabber# ~> friki-STYuutOhSz/k1uMJSBkQmQ@public.gmane.org
 
 
 -------------------------------------------------------
