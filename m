@@ -1,13 +1,12 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: ACPI global lock macros
-Date: Thu, 11 Dec 2003 09:46:30 -0800 (PST)
+From: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+Subject: wake event?
+Date: Thu, 11 Dec 2003 21:18:03 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031211094510.J50052@root.org>
-References: <3ACA40606221794F80A5670F0AF15F8401720C22@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3FD9255B.4030107@netspace.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C22-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,71 +15,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 11 Dec 2003, Yu, Luming wrote:
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-admin@lists.sourceforge.net]On Behalf Of Yu, Luming
-> Sent: 2003?12?11? 15:06
-> To: Paul Menage; agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org
-> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel@lists.sourceforge.net
-> Subject: RE: [ACPI] ACPI global lock macros
->
->
-> >>#define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
-> >>     do { \
-> >>        asm volatile("1:movl   (%1),%%eax;" \
-> >>             "movl   %%eax,%%edx;" \
-> >>             "andl   %2,%%edx;" \
-> >>             "btsl   $0x1,%%edx;" \
-> >>             "adcl   $0x0,%%edx;" \
-> >>             "lock;  cmpxchgl %%edx,(%1);" \
-> >>             "jnz    1b;" \
-> >>             "cmpb   $0x3,%%dl;" \
-> >>             "sbbl   %0,%0" \
-> >>             :"=r"(Acq):"r"(GLptr),"i"(~1L):"dx", "ax"); \
-> >>     } while(0)
->
-> Above code have a bug! Considering below code:
->
-> u8	acquired = FALSE;
->
-> ACPI_ACQUIRE_GLOBAL_LOC(acpi_gbl_common_fACS.global_lock, acquired);
-> if(acquired) {
-> ....
-> }
->
-> Gcc will complain " ERROR: '%cl' not allowed with sbbl ". And I think any other compiler will
-> complain that  too !
->
-> How about  below changes to your proposal code.
->
-> <             "sbbl   %0,%0" \
-> <             :"=r"(Acq):"r"(GLptr),"i"(~1L):"dx","ax"); \
-> ---
-> >             "sbbl   %%eax,%%eax" \
-> >             :"=a"(Acq):"r"(GLptr),"i"(~1L):"dx"); \
+I've started playing around with the acpid socket for writing power
+management clients.
 
-FYI, that's what we do in FreeBSD also.  The only difference after your
-patch is that we use +m for GLptr.
+One deficiency that I've noticed is that events don't arrive while the 
+machine is sleeping (not too surprising).  This means that things like 
+ac status monitors will be incorrect if the ac status changes while we 
+are sleeping.
 
-#define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
-    do { \
-        asm("1:     movl %1,%%eax;" \
-            "movl   %%eax,%%edx;" \
-            "andl   %2,%%edx;" \
-            "btsl   $0x1,%%edx;" \
-            "adcl   $0x0,%%edx;" \
-            "lock;  cmpxchgl %%edx,%1;" \
-            "jnz    1b;" \
-            "cmpb   $0x3,%%dl;" \
-            "sbbl   %%eax,%%eax" \
-            : "=a" (Acq), "+m" (GLptr) : "i" (~1L) : "edx"); \
-    } while(0)
+It might be nice to deliver a wake event to /proc/acpi/event so clients
+can know that they can update properly.
 
--Nate
+I thought about writing a patch to do this, but I had trouble deciding
+what arguments ought to be given to acpi_bus_generate_event (device 
+e.g.), and where it should be done.  Perhaps this is because this 
+feature is somewhat outside the scope of what was originally intended 
+the interface.
+
+Any thoughts?
+
+--
+Brian Perkins				bperkins-5L9LcNmrgCtAfugRpC6u6w@public.gmane.org
+
+
 
 
 -------------------------------------------------------
