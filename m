@@ -1,13 +1,14 @@
-From: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Re: Linux 2.4.23-pre8
-Date: Mon, 27 Oct 2003 10:29:22 -0200 (BRST)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI Hangs with kernel 2.4.20 (PLEASE HELP !)
+Date: Mon, 27 Oct 2003 18:51:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0310271028050.17121-100000@logos.cnet>
-References: <3F995586.3020408@comcast.net>
+Message-ID: <20031027175138.GR28351@poupinou.org>
+References: <1066994097.1864.18.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3F995586.3020408-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1066994097.1864.18.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,47 +17,89 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David van Hoose <david.vanhoose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Frederic Dernbach <fredatwork-GANU6spQydw@public.gmane.org>
+Cc: ACPI dlevel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Oct 24, 2003 at 01:14:56PM +0200, Frederic Dernbach wrote:
+> Hello,
+> 
+> I'm trying to have some ACPI software run on my HP Pavillion ze 5400
+> (that I use for private purposes, not professional stuff: I only have
+> access to Web resources : this mailing list).
+> 
+> 1. I tried to compile a 2.4.22 with appropriate ACPI patch. THE
+> RESULTING PATCHED KERNEL DOES NOT COMPILE. For details, please check a
+> previous message I posted previous to the mailing list. Can anybody let
+> me know about why the patched kernel does not compile?
+> 
+> 2. Then, I tried to compile a 2.4.20 baseline kernel with appropriate
+> ACPI patch (found on sourceforge.net). This time it compiled without
+> error. However, while booting, the system loops while printing some ACPI
+> the following debug messages on the screen every 20 seconds or so (I
+> compiled the kernel with the appropriate ACPI debug option).
+> 
+> [ACPI Debug] String : QUERY_09
+> [ACPI Debug] String : CLBatt - SMSL
+> [ACPI Debug] Integer : 00000000000000F1
+> [ACPI Debug] String: CMBatt - CHBP.BAT1
+> [ACPI Debug] String: CMBatt - BAT1 still present
+> [ACPI Debug] String: CMBatt - UPBI.BAT1
+> [ACPI Debug] Package: Elements Ptr - edb7ea08
+> [ACPI Debug] String: CMBatt - UPBS.BAT1
+> [ACPI Debug] Package: Elements Ptr - edb7ea08
+> [ACPI Debug] String: CMBatt - UPBH.BAT1
+> [ACPI Debug] Package: Elements Ptr - edb39888
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> 
+> Sometimes a slightly different output is printed :
+> 
+> [ACPI Debug] String : QUERY_09
+> [ACPI Debug] String : CLBatt - SMSL
+> [ACPI Debug] Integer : 00000000000000F1
+> [ACPI Debug] String: CMBatt - CHBP.BAT1
+> [ACPI Debug] String: CMBatt - BAT1 still present
+> [ACPI Debug] String: CMBatt - UPBI.BAT1
+> [ACPI Debug] Package: Elements Ptr - edb7ea08
+> [ACPI Debug] String: CMBatt - UPBS.BAT1
+> [ACPI Debug] String: CMBATT - PBST Changed
+> [ACPI Debug] Package: Elements Ptr - edb7ea08
+> [ACPI Debug] String: CMBatt - UPBH.BAT1
+> [ACPI Debug] Package: Elements Ptr - edb39888
+> [ACPI Debug] String : CMBatt - Notify(BAT1, 0x00): B1ST
+> [ACPI Debug] String : CMBatt - _STA.BAT1
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> [ACPI Debug] String : QUERY_20
+> 
+> 
 
+They are harmless.  Try
+echo 0 > /proc/acpi/debug_layer
+echo 0 > /proc/acpi/debug_level
+in one of your boot script if you want
+to get rid of them.
 
-On Fri, 24 Oct 2003, David van Hoose wrote:
+In short, there is some codes in your bios that need
+to be interpreted by what is called an acpi interpreter.
+That code is writen in AML (ACPI Machine Language, IIRC).
+On this language, there is possibility to print debug statements,
+and may only meaningfull for the programmers of your bios (or
+eventually users if they know about ACPI enough).
 
-> Attached config, boot messages, and interrupts for 2.6.0-test8-bk2.
-> The boot messages do not have any USB debug, but do have ACPI debug. 
-> Also, all of my USB ports work 100% of the time on 2.6 with ACPI enabled.
+What you see are those debug statements.
 
-David, 
+-- 
+Ducrot Bruno
 
-Have you tried what Len suggested in the bugzilla?
-
-----------
-Created an attachment (id=1185)
-SIS I2C quirk foundin 2.6 but not in 2.4
-
-One difference between 2.4 and 2.6 is the attached SIS quirk added for 
-I2C.
-
-Please back that quirk out of your 2.6 tree like so:
-
-patch --dry-run -Rp1 </tmp/sis_quirk_26.diff
-
-remove the code that depends on it from your .config:
-CONFIG_I2C_SIS96X=n
-
-and see if that makes 2.6 mis-behave like 2.4, or if USB still runs.
-
-Also, please verify for me that you get ACPI events properly.
-If you connect your USB mouse to one of the ports that isn't shared
-with acpi, then you should be able to trigger ACPI interrupts by
-pressing your power button.  (if acpid is enabled, it may shut down your
-system,
-so you may want to disable that first), and observering the
-/proc/interrupts row for acpi incrementing for each button press.
-
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
