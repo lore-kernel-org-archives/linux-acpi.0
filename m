@@ -1,18 +1,14 @@
-From: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Network failures with ACPI enabled (kernel 2.4, 2.6)
- PROBLEM FOUND!!!!!!
-Date: Wed, 31 Dec 2003 17:23:28 +0100
+From: Michael McCaskill <mjmccask-e4nNhFGpWWo@public.gmane.org>
+Subject: Re: Inspiron 5150
+Date: Wed, 31 Dec 2003 12:49:03 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031231172328.5ae00921.mike@it-loops.com>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8954@hdsmsx402.hd.intel.com>
-	<20031231001716.76cb2e8d.mike@it-loops.com>
-	<20031231004648.531549af.mike@it-loops.com>
-	<1072851661.2363.228.camel@dhcppc4>
+Message-ID: <3FF30C0F.3020305@ncsu.edu>
+References: <3ACA40606221794F80A5670F0AF15F8401720C67@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1072851661.2363.228.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C67-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,58 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 31 Dec 2003 01:21:01 -0500
-Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Yu, Luming wrote:
 
-> The fact that transmit works and receive fails is a clue.
-> Probably the broadcom uses interrupts for receive, but doesn't
-> use interrupts for transmit.  So if it were not getting interrupts,
-> transmit could still send frames.
-> 
-> So if you enable the parallel port in ECP mode, broadcom works --
-> but if the port is disabled, or enabled but not in ECP mode, it fails?
-
-Hmm I played around with it some more. If I lower the speed on my
-notebook
-to 10baseT-HD the transfer works at 800KB/s.
-But errors and frames on the device (eth0) are increasing at an alarming
-rate.
-For me it looks like that the problem occurs if the network card gets a
-lot of inbound traffic.
-
-
-> 
-> This is curious.  Indeed, the AML for this box shows three devices,
-> ECP, EPP, and LPTB.  Unfortunately, the _PRS for them disassembles
-> as a Buffer that one has to hand-disassemble to see what resources
-> are actually possible...
-So this means that ACPI IS doing something different depending on the
-setting in the BIOS, right?
-
-
-> 
-> To answer your question about observing what the ECP enable/disable
-> does to the AML, the DSDT could be extracted, modified
-> and used to over-ride the DSDT in the BIOS.  This isn't rocket
-> science, but isn't trivial either.
-
-> 
-> As curious as the failure is, the system works both ways when
-> running XP, so I would encourage you to put the info into a
-> bug report.  The observation about TX working and RX failing
-> raises the prospect that this really is an IRQ issue, and
-> with the /proc/interrupts for the different cases at hand
-> the solution to this puzzle may become more clear.
-
-In both cases (with or without ECP enabled) interrupts are increasing,
-although it stops in the error case since the card resets itself.
-
-
-/michael
+>>I hear talks about the Inspiron 5150's DSDT being broken, like most
+>>    
+>>
+>Dells.
+>  
+>
+>>My ACP (specifically button and lid) do not operate in 2.6.0 series but
+>>did in 2.4.0 series. Does the DSDT have anything to do with this? Is
+>>    
+>>
+>there
+>  
+>
+>>being any work on creating a new DSDT for the 5150?
+>>    
+>>
+>
+>Please provide kernel version that doesn't work for you.
+>  
+>
+None of the 2.6 series, either the betas, or tests or stable. I use 
+Gentoo and they have a variety of kernels available on portage and none 
+of them fix it. Actually the new acpi patches make my battery and temp. 
+sensors on gkrellm not function. So now none of my acpi things function 
+correctly. I have compile the kernel with ACPI_DEBUG but I get nothing.
 
 
 -------------------------------------------------------
