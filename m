@@ -1,57 +1,85 @@
 From: Li Shaohua <shaohua.li@intel.com>
-Subject: Re: [PATCH/RFC 1/4]device core changes
-Date: Tue, 09 Nov 2004 08:50:18 +0800
-Message-ID: <1099961418.15294.11.camel@sli10-desk.sh.intel.com>
-References: <1099887071.1750.243.camel@sli10-desk.sh.intel.com>
-	 <20041108225810.GB16197@kroah.com>
+Subject: Re: [ACPI] [PATCH/RFC 0/4]Bind physical devices with ACPI devices
+Date: Tue, 09 Nov 2004 09:10:33 +0800
+Message-ID: <1099961925.15294.19.camel@sli10-desk.sh.intel.com>
+References: <1099887066.1750.241.camel@sli10-desk.sh.intel.com>
+	 <20041108135606.GA2685@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261325AbUKIBDn@vger.kernel.org>
-In-Reply-To: <20041108225810.GB16197@kroah.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261321AbUKIBWX@vger.kernel.org>
+In-Reply-To: <20041108135606.GA2685@parcelfarce.linux.theplanet.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Patrick Mochel <mochel@digitalimplant.org>
+To: Matthew Wilcox <matthew@wil.cx>
+Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Greg <greg@kroah.com>, Patrick Mochel <mochel@digitalimplant.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-11-09 at 06:58, Greg KH wrote:
-> On Mon, Nov 08, 2004 at 12:11:11PM +0800, Li Shaohua wrote:
-> > Hi,
-> > This is the device core change required. Add .platform_bind method for
-> > bus_type, so platform can do addition things when add a new device. A
-> > case is ACPI, we want to utilize some ACPI methods for physical devices.
-> > 1. Why doesn't use 'platform_notify'?
-> > Current device core has a 'platform_notify' mechanism, but it's not
-> > sufficient for this. Only sepcific bus type know how to parse dev.bus_id
-> > and know how to encode specific device's address into ACPI _ADR syntax.
+On Mon, 2004-11-08 at 21:56, Matthew Wilcox wrote:
+> On Mon, Nov 08, 2004 at 12:11:06PM +0800, Li Shaohua wrote:
+> > ACPI provides many functionalities for physical devices. Such as for
+> > suspend/resume, ACPI can tell us correct devices D-state for S3. There
+> > are tons of devices enhancement for both realtime and boot time from
+> > ACPI. To utilize ACPI, physical devices like PCI devices must know its
+> > partner. The patches try to do this. After this is done, we can enhance
+> > many features, such as improve suspend/resume.
+> > These patches are against 2.6.10-rc1, please give your comments.
 > 
-> I don't see why platform_notify is not sufficient.  This is the exact
-> reason it was added to the code.
-As I said in the email, we need know the bus type to decode and encode
-address. If you use platform_notify, you must do something like this:
-switch (dev->bus)
-{
-case pci_bus_type:
-bind PCI devices with ACPI devices
-break;
-case ide_bus_type:
-bind IDE devices with ACPI devices
-break;
-....
-}
-But note this method requires all bus types are build-in. If a bus type
-is in a loadable module (such as IDE bus), the method will failed. I
-searched current tree, only ARM implemented 'platform_notify', but ARM
-only cares PCI bus, ACPI cares about all bus types.
+> I don't think this is a great way to do it.  There's at least two other
+> examples of firmware that interacts with drivers in a similar way that you
+> could look at -- PA-RISC's PDC and Sun/Apple/IBM OpenFirmware.  I don't
+> know much about OpenFirmware, and I just redid the way parisc_device
+> works, so I'll discourse about that for a bit.
 > 
-> > 2. Why adds new 'handle' in 'struct device'?
-> > 'Platform_data' is the best candidate, but a search shows some drivers
-> > have used it. We can remove 'handle' after the drivers changes their
-> > behavior.
+> From a driver's point of view, it's simple.  Call a function to get
+> a cookie (an acpi_handle for ACPI, I guess), then pass that cookie to
+> whatever functions necessary.  This is the code in the sym2 SCSI driver:
 > 
-> No, fix the drivers.  Don't add something that you are going to remove
-> later.
-Ok, I'll try to fix them.
+> #ifdef CONFIG_PARISC
+> /*
+>  * Host firmware (PDC) keeps a table for altering SCSI capabilities.
+>  * Many newer machines export one channel of 53c896 chip as SE, 50-pin HD.
+>  * Also used for Multi-initiator SCSI clusters to set the SCSI Initiator ID.
+>  */
+> static int sym_read_parisc_pdc(struct sym_device *np, struct pdc_initiator *pdc)
+> {
+>         struct hardware_path hwpath;
+>         get_pci_node_path(np->pdev, &hwpath);
+>         if (!pdc_get_initiator(&hwpath, pdc))
+>                 return 0;
+> 
+>         return SYM_PARISC_PDC;
+> }
+> #else
+> static int sym_read_parisc_pdc(struct sym_device *np, struct pdc_initiator *x)
+> {
+>         return 0;
+> }
+> #endif
+> 
+> 
+> Hm.. ACPI doesn't really hanve anything SCSI-related in it.  Let's look at
+> IDE's _GTM and _STM for examples.  
+> 
+> static void ide_acpi_gtm(struct hwif_s *hwif, struct acpi_timing_mode *tm)
+> {
+> 	acpi_handle handle;
+> 	acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
+> 	acpi_status status;
+> 
+> 	handle = acpi_get_gendev_handle(&hwif->gendev);
+> 	status = acpi_evaluate_object(handle, "_GTM", NULL, &buffer);
+> 	...
+> }
+> 
+> All we need is an acpi_get_gendev_handle that takes a struct device and
+> returns the acpi_handle for it.  Now, maybe that'd be best done by placing
+> a pointer in the struct device, but I bet it'd be just as good to walk
+> the namespace looking for the corresponding device.
+I would agree with you if ACPI just supports PCI bus type, but ACPI
+supports many bus types. We can't get an ACPI handler if only has a
+'struct device'. You might say we can get its bus type from device->bus,
+but we need a 'switch-case' to get what exactly the bus type is, but
+this can't apply for loadable module bus type.
 
 Thanks,
 Shaohua
