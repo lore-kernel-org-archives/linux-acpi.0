@@ -1,11 +1,11 @@
-From: Ruediger Otte <tierra.y.libertad-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Why don't use C2/C3 with high latency?
-Date: Fri, 28 Mar 2003 19:22:45 +0100 (CET)
+From: Michael Madore <mmadore-JChM1cqIHx8AvxtiuMwx3w@public.gmane.org>
+Subject: Error reading AC Adapter state
+Date: Fri, 28 Mar 2003 10:53:10 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030328182245.6296E1B965@marcos.python.subname.de>
+Message-ID: <3E849A16.5060809@aslab.com>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -20,19 +20,34 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-on my system (Gigabyte GA-7VTXH, VIA KT266A Chipset, Athlon XP 1600+)
-the C2 processor powerstate have not been enabled until I set the
-ACPI_PROCESSOR_MAX_C2_LATENCY to a value above 100. The system runs
-quite normal after this change and consumes much less power than before.
-Also the processor temperature goes down from 48=B0C to under 35=B0C when
-idle.
+I've built kernel 2.4.21-pre5 with the latest ACPI patch.  Everything 
+seems to work correctly with the exception of /proc/acpi/ac_adapter. 
+ The following debug messages were generated during boot:
 
-So why is the MAX_C2_LATENCY set to this value? Is it possible to
-optimize the use of this high latency C2 to only use it when the system
-is _really_ idle?=20
+Mar 28 05:30:30 asl226 kernel:      osl-0888 [21] os_wait_semaphore     
+: Failed to acquire semaphore[c130d4c0|1|0], AE_TIME
+Mar 28 05:30:30 asl226 kernel:   utmisc-0743 [20] ut_acquire_mutex      
+: Thread 0 could not acquire Mutex [ACPI_MTX_Events] AE_TIME
+Mar 28 05:30:30 asl226 kernel:  exfldio-0140 [38] ex_setup_region       
+: Field [ACPW] Base+Offset+Width 38+0+4 is beyond end of region [GPIO] 
+(length 3B)
+Mar 28 05:30:30 asl226 kernel:  psparse-1121: *** Error: Method 
+execution failed [\_SB_.PCI0.LPCB.ACAD._PSR] (Node c1334328), 
+AE_AML_REGION_LIMIT
+Mar 28 05:30:30 asl226 kernel:  acpi_ac-0083 [22] acpi_ac_get_state     
+: Error reading AC Adapter state
+Mar 28 05:30:30 asl226 kernel: ACPI: Battery Slot [BAT1] (battery present)
+Mar 28 05:30:30 asl226 kernel: ACPI: Power Button (FF) [PWRF]
+Mar 28 05:30:30 asl226 kernel: ACPI: Lid Switch [LID]
+Mar 28 05:30:30 asl226 kernel: ACPI: Sleep Button (CM) [SLPB]
+Mar 28 05:30:30 asl226 kernel: ACPI: Processor [CPU0] (supports C1 C2, 2 
+performance states, 8 throttling states)
+Mar 28 05:30:30 asl226 kernel:      osl-0888 [23] os_wait_semaphore     
+: Failed to acquire semaphore[c130d4c0|1|0], AE_TIME
+Mar 28 05:30:30 asl226 kernel:   utmisc-0743 [22] ut_acquire_mutex      
+: Thread 0 could not acquire Mutex [ACPI_MTX_Events] AE_TIME
 
---=20
-R=FCdiger
+Mike Madore
 
 
 
