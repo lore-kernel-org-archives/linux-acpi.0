@@ -1,12 +1,9 @@
-From: "Roderick Abraham" <roderickabrahamnw-K4k86GdQkEeWkKpYnGOUKg@public.gmane.org>
-Subject: Premium Replica Watches
-Date: Thu, 09 Dec 2004 23:30:06 +0100
-Message-ID: <eeb301c4de3e$be632a7b$8d217e41@entropy.cz>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+From: Unknown <unknown@unknown.invalid>
+Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
+Date: Fri, 10 Dec 2004 07:14:20 +0000 (UTC)
+Message-ID: <E1Ccexq-0008Ji-Cn@sc8-sf-mx2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: <>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,29 +13,13 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+Date: Fri Dec 10 02:12:55 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
-
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
-
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
-
-Visit us: http://www.bhex.com/rep/rolx/
-
-All orders placed before December 12th will be at your door before
-Christmas!
-
-No thanks: http://www.bhex.com/z.php
-
+Network Associates WebShield SMTP V4.5 MR1a on ibixmaila detected virus
+W32/Bagle.bd@MM in attachment Price.com from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
+Deleted.
 
 
 -------------------------------------------------------
