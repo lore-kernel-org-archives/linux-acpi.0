@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Early init patch breaks Dell laptops
-Date: Sat, 9 Oct 2004 23:26:32 +0800
+From: Vadim Zeitlin <vadim-oE/GLL+f5xMgsBAKwltoeQ@public.gmane.org>
+Subject: Re[2]: HP nw8000 never wakes up from acpi suspend
+Date: Sat, 9 Oct 2004 17:24:59 +0200 (Romance Daylight Time)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8405BD1224@pdsmsx403>
+Message-ID: <E1CGJ5Z-0000X8-00@smtp.tt-solutions.com>
+References: <3ACA40606221794F80A5670F0AF15F8405BD1223@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: INLINE
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8405BD1223@pdsmsx403>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,72 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
-Would you please try boot option nolapic?
+On Sat, 9 Oct 2004 23:10:11 +0800 "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-Thanks,
-Luming
+YL> S1 is less important than S3 and S4.
+YL> So, please verify S4 is ok, then S3. 
+YL> S1 is nice-to-have.
 
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
->[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Daniel Drake
->Sent: Saturday, October 09, 2004 10:08 PM
->To: Brown, Len
->Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] Early init patch breaks Dell laptops
->
->Hi Len,
->
->I'm one of the maintainers of Gentoo's kernel packages. I=20
->recently added your=20
->ACPI early-init patch into our 2.6.8 patchset in order to=20
->solve the problems=20
->you addressed
->
->http://bugs.gentoo.org/60565
->http://bugzilla.kernel.org/show_bug.cgi?id=3D2941
->
->After adding the "2.6.7 early init" patch, other users have run into=20
->ACPI-related problems (freezing on ACPI events). More=20
->specifically, Dell=20
->Inspiron laptops don't seem to like you :)
->
->According to these users, the issue is also present in=20
->(unmodified) 2.6.9-rc3,=20
->and reverting out the early-init patch seems to solve the problem.
->
->http://bugs.gentoo.org/66723
->http://bugs.gentoo.org/66804
->http://bugs.gentoo.org/66613
->
->A bug has been filed at the kernel bugzilla:
->
->http://bugzilla.kernel.org/show_bug.cgi?id=3D3532
->
->I hope this is useful- please ask if you need any more info.
->
->Thanks,
->Daniel
->
->
->-------------------------------------------------------
->This SF.net email is sponsored by: IT Product Guide on=20
->ITManagersJournal
->Use IT products in your business? Tell us what you think of=20
->them. Give us
->Your Opinions, Get Free ThinkGeek Gift Certificates! Click to=20
->find out more
->http://productguide.itmanagersjournal.com/guidepromo.tmpl
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+ Thank you for your reply! I realize that S1 is less important, I'd mostly
+like to have S3 work.
+
+YL> try command " echo -n 4 > /proc/acpi/sleep" for s4
+YL> echo -n 3 > /proc/acpi/sleep" for  s3
+YL> echo -n 1 > /proc/acpi/sleep"  for s1.
+
+ Hmm, all of these commands do nothing here. I.e. the command succeeds
+without any observable effect.
+
+ I should say that nothing happens when I do "echo -n disk (or standby) >
+/sys/power/state" but when I do "echo mem > /sys/power/state" I can see
+messages on the console saying "PM entering sleep state" (I'm not sure,
+they disappear too quickly and syslog is apparently not written to any
+more) and the machine does indeed fall asleep -- but doesn't wake up.
+ 
+YL> There is a known S3 VGA resume issue on some laptop. 
+YL> Maybe you will hit that bug. Please verify.
+
+ What should I do to verify this? Just in case, the video card is ATI
+OpenGL T2.
+
+ Thanks again,
+VZ
+
 
 
 -------------------------------------------------------
