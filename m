@@ -1,109 +1,118 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: inappropriate use of in_atomic()
-Date: Fri, 11 Mar 2005 17:25:11 +1100
-Message-ID: <20050311172511.1fa0919e.sfr@canb.auug.org.au>
-References: <20050310204006.48286d17.akpm@osdl.org>
+From: lory Rausch <lcaqf-BWf4kjrlBoleoWH0uzbU5w@public.gmane.org>
+Subject: PennySt0cks Can Make You Money; GTVCF-OB_peaking
+Date: Fri, 11 Mar 2005 02:23:48 -0600
+Message-ID: <46238.3059591682.140843@measle-soc87.akeem.net>
+Reply-To: <lcaqf-BWf4kjrlBoleoWH0uzbU5w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0337619689=="
-In-Reply-To: <20050310204006.48286d17.akpm@osdl.org>
-List-Unsubscribe: <https://ozlabs.org/cgi-bin/mailman/listinfo/linuxppc64-dev>,
-	<mailto:linuxppc64-dev-request@ozlabs.org?subject=unsubscribe>
-List-Archive: <http://ozlabs.org/pipermail/linuxppc64-dev>
-List-Post: <mailto:linuxppc64-dev@ozlabs.org>
-List-Help: <mailto:linuxppc64-dev-request@ozlabs.org?subject=help>
-List-Subscribe: <https://ozlabs.org/cgi-bin/mailman/listinfo/linuxppc64-dev>,
-	<mailto:linuxppc64-dev-request@ozlabs.org?subject=subscribe>
-Mime-version: 1.0
-Sender: linuxppc64-dev-bounces@ozlabs.org
-Errors-To: linuxppc64-dev-bounces@ozlabs.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: jt@bougret.hpl.hp.com, javier@tudela.mad.ttd.net, roland@topspin.com, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, paulus@samba.org, linuxppc64-dev@ozlabs.org, linux-fbdev-devel@lists.sourceforge.net, linux1394-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: plain
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---===============0337619689==
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg="PGP-SHA1";
-	boundary="Signature=_Fri__11_Mar_2005_17_25_11_+1100_XzibCpGjg+vlEUgZ"
+Fri, 11 Mar 2005 02:09:55 -0600
 
---Signature=_Fri__11_Mar_2005_17_25_11_+1100_XzibCpGjg+vlEUgZ
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+* Wallstreet Insider Alert Newsletter *
 
-Hi Andrew,
+Information you can Trust and Profit from. Our
+extensive research shows GTVCF is on the move
+with big gains expected on Monday. They will be
+having a big promotion promotion going all
+weekend for there new press release with
+big gains expected monday. So don't miss it
+get in as soon as possible to profit.
 
-On Thu, 10 Mar 2005 20:40:06 -0800 Andrew Morton <akpm@osdl.org> wrote:
->
-> in_atomic() is not a reliable indication of whether it is currently safe
-> to call schedule().
->
-> 	arch/ppc64/kernel/viopath.c
+Company:Globetech Ventures
+Symbol:GTVCF.OB
+Industry:Gold/Molybendum Mining
+Current Price:$0.32
+52Wk High:$1.73
+Market Cap:4.34M
+Estimated 3months-target :$1.00
+Estimated 6months-target: $2.50
+Recommendation:STRONG BUY
+Analysis:Industry Outperform
 
-in_atomic() in viopath.c was just used to determine if we had initialised
-enough to be able to wait in a semaphore (i.e. schedule).  Thus it can be
-replaced now with checking system_state for SYSTEM_RUNNING.
+Brief Profile:
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Globetech Ventures Corp. is a global mining company
+engaged in acquiring and developing mineral properties
+and, if warranted, the processing of related mineral
+resources. Company owns through its Brazilian
+subsidiary title to 197,000 acres (80,000 hectars ) of
+mineral rights in Brazil’s gold and other mineral rich
+Vila Nova greenstone Belt. This month company acquired
+100% interest in a molybendum (metallic element used
+principally as an alloying agent in steel, cast iron,
+and superalloys) rich property in British Colombia. 
 
-Test booted on iSeries (which is the only place it is used).
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+Gold Mining Potential:     
 
-diff -ruNp linus/arch/ppc64/kernel/viopath.c linus-in_atomic/arch/ppc64/kernel/viopath.c
---- linus/arch/ppc64/kernel/viopath.c	2005-01-22 06:09:01.000000000 +1100
-+++ linus-in_atomic/arch/ppc64/kernel/viopath.c	2005-03-11 17:19:45.000000000 +1100
-@@ -79,7 +79,7 @@ static void handleMonitorEvent(struct Hv
- /*
-  * We use this structure to handle asynchronous responses.  The caller
-  * blocks on the semaphore and the handler posts the semaphore.  However,
-- * if in_atomic() is true in the caller, then wait_atomic is used ...
-+ * if system_state is not SYSTEM_RUNNING, then wait_atomic is used ...
-  */
- struct doneAllocParms_t {
- 	struct semaphore *sem;
-@@ -465,7 +465,7 @@ static int allocateEvents(HvLpIndex remo
- 	DECLARE_MUTEX_LOCKED(Semaphore);
- 	atomic_t wait_atomic;
- 
--	if (in_atomic()) {
-+	if (system_state != SYSTEM_RUNNING) {
- 		parms.used_wait_atomic = 1;
- 		atomic_set(&wait_atomic, 1);
- 		parms.wait_atomic = &wait_atomic;
-@@ -475,7 +475,7 @@ static int allocateEvents(HvLpIndex remo
- 	}
- 	mf_allocate_lp_events(remoteLp, HvLpEvent_Type_VirtualIo, 250,	/* It would be nice to put a real number here! */
- 			    numEvents, &viopath_donealloc, &parms);
--	if (in_atomic()) {
-+	if (system_state != SYSTEM_RUNNING) {
- 		while (atomic_read(&wait_atomic))
- 			mb();
- 	} else
+The Vila Nova greenstone belt forms part of a stable
+Precambrian Guinan Shield rock formation, which in the
+adjacent countries of Venezuela, French Guiana and
+Guyana, hosts world class gold deposits. The Omai gold
+deposit in Guyana, has a reserve of approximately 4.2
+million ounces of gold. The Guinan shield has
+historically produced large amounts of gold, some 4.8
+million ounces having been mined in the 19th century
+alone. In the Vila Nova greenstone belt, in similar
+rocks to those found in Globetech's claim area, the
+Amapari gold deposit lies north of the Corporation's
+claim area. The Amapari gold deposit which has a
+resource in excess of 2 million ounces of gold, was
+recently acquired by Wheaton River Minerals for $105
+million. 
 
---Signature=_Fri__11_Mar_2005_17_25_11_+1100_XzibCpGjg+vlEUgZ
-Content-Type: application/pgp-signature
+Strong Buy. Why Now?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
+The stock is incredibly cheap and it has been off the
+radar screen of Canadian mining funds until now. All
+indicators point to an expected sharp rise in the
+value of this company. There’s been talk of heavy
+institutional investments in Globetech. Technically
+the stock is near it’s 2 months support line and looks
+ready to retest the $1.73 high. Gold has been
+declining for nearly three months, but despite the
+short term correction gold is still above the 65-week
+moving average and is ready to resume it’s strong bull
+trend. Increasing gold prices will push Globetech’s
+value as well.  In addition to its current operations
+the company is pursuing and evaluating potential mineral
+properties that can potential double or triple the
+company’s value.
 
-iD8DBQFCMTnI4CJfqux9a+8RAjn9AJ9xruaPaahKA3vcSh+xKvL+ir+3jwCfVVDO
-geeW/CNzOmGS9acstKu1byY=
-=k8EP
------END PGP SIGNATURE-----
+     Don't Miss Out On This One Big Gains Expected
+                 Monday Get-It Friday!
 
---Signature=_Fri__11_Mar_2005_17_25_11_+1100_XzibCpGjg+vlEUgZ--
 
---===============0337619689==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-----------------------------------------
 
-_______________________________________________
-Linuxppc64-dev mailing list
-Linuxppc64-dev@ozlabs.org
-https://ozlabs.org/cgi-bin/mailman/listinfo/linuxppc64-dev
+Information-within this email contains "forward looking statements"
+within the meaning of Section 27A of the Securities Act of 1933 and
+Section 21B of the Securities Exchange Act of 1934. Any statements
+that express or involve discussions with respect to predictions,
+goals, expectations, beliefs, plans, projections, objectives,
+assumptions or future events or performance are not statements of
+historical fact and may be "forward looking statements." This
+newsletter is neither a registered investment advisor nor
+affiliated with any broker or dealer. This newsletter was paid
+50 400 from third party to send this report. culex folktale
 
---===============0337619689==--
+dilating sponsor crossbow
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
