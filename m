@@ -1,16 +1,14 @@
-From: Stephan Krings <Stephan.Krings-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: ACPI vs. PCMCIA on Compaq Evo N800c
-Date: Mon, 28 Apr 2003 21:18:43 +0200
+From: Abheek Anand <abheek-VX+DGZyGJwM3uPMLIKxrzw@public.gmane.org>
+Subject: Re: presario 1505us battery not found
+Date: Mon, 28 Apr 2003 15:14:50 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16045.32403.175503.231256@hotzenplotz.chateau-neukoelln.de>
-References: <3EAB29E2.5030702@woogie.net>
-	<20030427100023.A16436@fermat.unipv.it>
-	<1051436106.2388.9.camel@calvin.hjblocal.nl>
+Message-ID: <20030428191449.GA3090@cs.umd.edu>
+References: <D3A3AA459175A44CB5326F26DA7A189C1C3C2B@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1051436106.2388.9.camel-PDBFyMGeMq1aCPxV5EPtfPP6llvjuJOh@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3C2B-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,53 +17,138 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hilbert Barelds <h.j.barelds-XfCjptVMDKWuyJwMYI9mNQ@public.gmane.org>
-Cc: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Bob,
 
-Hi,
+>From the user point of view, I had a couple of questions.
+1. Is this error likely to yield any serious problems with using ACPI? Most
+things short of frying up the hardware should probably be all right :-)
 
-> I also have an Evo N800v RedHat 9
+2. Is there a way to fix this using a custom DSDT? I don't have much
+experience with trying something like this, so any pointers on how to do this
+would be great.
 
-I'm using a N800c, but still some comments:
+Thanks,
+Abheek
 
-> -Fn F7 and Fn F8 not working
-
-This is not ACPI related I think: I also had this problem once, and if
-I remember correctly it was related to the version of XFree86 I was
-using. Try to install the latest 4.3.0 and see if it helps.
-
-> -lidswitch not working, but if working display doesn't come back
-
-Yes, I'm having that problem, too. I can work around it by switching
-blindly to a text console and pressing the lid button, again. The text
-console will appear then and switching back to X works now. But this
-doesn't seem to work if I have the radeon framebuffer enabled. This
-still sucks...
-
-I tried to locate and disable the code in the DSDT, which toggles the
-backlight off when the lid button is activated, but didn't
-succeed. This seems to happen beyong the ACPI realm.
-
-> -irda not working
-
-Can't confirm that. From my modules.conf:
-
-alias irda0 nsc-ircc
-options nsc-ircc io=0x03e8 irq=3
-
-I used that to communicate to a mobile phone (Nokia 6210) and it
-worked fine.
-
-> -acpi performance not working (known problem)
-
-Same for me. If you manually need to toggle the CPU frequency, try the
-cpufreq patch. 
-
-Regards,
-
-Stephan
+On (04/28/03 10:51), Moore, Robert wrote:
+> 
+> The problem with the AE_NOT_EXIST message during EC access is as
+> follows:
+> 
+> The _INI method for the EC device is inappropriately accessing the EC
+> hardware before the EC driver has been loaded.  This is because the _INI
+> method is accessing the hardware before the _REG method has been run on
+> the EC Operation Region(s).  The _REG method is only run once the EC
+> driver has been loaded and has installed a handler for the EC GPE.
+> 
+> Relevant sections of the ACPI specification are included below.
+> 
+> Since the ASL for this machine is violating the _REG protocol so
+> blatantly, I'm afraid that this BIOS will have to blacklisted until it
+> is fixed by the vendor.
+> 
+> Bob
+> 
+> Section 6.5.1: (_INI) 
+> 
+> The _INI method must only access Operation Regions that have been
+> indicated to available as defined by the _REG method.
+> 
+> Section 6.5.4:  (_REG)
+> 
+> Except for the cases shown below, control methods must assume all
+> operation regions inaccessible until the _REG(RegionSpace, 1) method is
+> executed. Once _REG has been executed for a particular operation region,
+> indicating that the operation region handler is ready, a control method
+> can access fields in the operation region. Conversely, control methods
+> must not access fields in operation regions when _REG method execution
+> has not indicated that the operation region handler is ready.
+> 
+> For example, until the Embedded Controller driver is ready, the control
+> methods cannot access the Embedded Controller. Once OSPM has run
+> _REG(EmbeddedControl, 1), the control methods can then access operation
+> regions in Embedded Controller address space. Furthermore, if OSPM
+> executes _REG(EmbeddedControl, 0), control methods must stop accessing
+> operation regions in the Embedded Controller address space.
+> 
+> The exceptions for this rule are:
+> 1.	OSPM must guarantee that the following operation regions must
+> always be accessible:
+> *	PCI_Config operation regions on a PCI root bus containing a _BBN
+> object.
+> *	I/O operation regions.
+> *	Memory operation regions when accessing memory returned by the
+> System Address Map reporting interfaces.
+> 2.	OSPM must make Embedded Controller operation regions, accessed
+> via the Embedded  Controllers described in ECDT, available before
+> executing any control method. These operation regions may become
+> inaccessible after OSPM runs _REG(EmbeddedControl, 0).
+> 
+> 
+> > -----Original Message-----
+> > From: Moore, Robert
+> > Sent: Friday, April 25, 2003 2:54 PM
+> > To: Abheek Anand; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: RE: [ACPI] presario 1505us battery not found
+> > 
+> > 
+> > We are still looking at the problems.
+> > 
+> > 1) The AE_ALREADY_EXISTS problem has been around for a while and we've
+> > finally figured it out.  It turns out that it does not adversely
+> affect
+> > anything, but we are fixing it.
+> > 
+> > 2) The AE_NOT_EXIST message means that the EC driver is not up and
+> > running yet.  We are still investigating this.
+> > 
+> > Bob
+> > 
+> > 
+> > > -----Original Message-----
+> > > From: Abheek Anand [mailto:abheek-VX+DGZyGJwM3uPMLIKxrzw@public.gmane.org]
+> > > Sent: Thursday, April 24, 2003 12:50 PM
+> > > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > > Subject: [ACPI] presario 1505us battery not found
+> > >
+> > > Hi,
+> > >
+> > > After quite a bit of tinkering with my presario 1505us, I managed to
+> > get
+> > > most
+> > > of what I need up and working. Currently im using linux 2.5.67 with
+> > > acpi-20030328. I am able to get ac-adaptor information, and the LID
+> > works
+> > > fine. However, I am unable to get acpi to recognize my battery,
+> which
+> > it
+> > > always shows as absent. I have looked at several people's
+> suggestions
+> > on
+> > > this
+> > > on the mailing list, but none of them work for me.
+> > >
+> > > I'm including a copy of the dmesg messages my system spews out. I
+> also
+> > did
+> > > the
+> > > usual dsdt disassemble, fix, and include in kernel routine. I have
+> put
+> > up
+> > > my
+> > > original (and fixed) dsdt on http://www.cs.umd.edu/~abheek/acpi . My
+> > > /proc/acpi/battery/BAT1 entries show the battery as absent.
+> > >
+> > > Any help would be _very_ appreciated.
+> > >
+> > > Thanks,
+> > > Abheek
+> > >
+> > >
 
 
 -------------------------------------------------------
