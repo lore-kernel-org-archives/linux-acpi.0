@@ -1,14 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI stops working after memory upgrade vpr Matrix 175b4
-Date: Wed, 4 Feb 2004 18:28:52 +0100
+From: Daniel Dorau <daniel.dorau-kiZ+YAcFTqyAKZTfuerNgRvVK+yQ3ZXh@public.gmane.org>
+Subject: ACPI problem report for Thinkpad X31
+Date: Wed, 4 Feb 2004 19:22:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040204172852.GL882@poupinou.org>
-References: <20040204073941.05d71e0b.rddunlap@osdl.org>
+Message-ID: <20040204182215.GA1536@woodstock>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040204073941.05d71e0b.rddunlap-3NddpPZAyC0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,39 +15,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 04, 2004 at 07:39:41AM -0800, Randy.Dunlap wrote:
-> > My ACPI stopped working when I added an additional 256mb RAM to my vpr 
-> > Matricx 174b4 laptop. It has 256mb already, I added 256mb to make it 
-> > 512mb and I got a bunch of AE_NO_MEMORY errors in the ACPI code.
-> > 
-> > I took the extra RAM out, and the ACPI support works.
-> > 
-> > I am using kernel 2.6.1 with acpi patches. I had the same problem on 
-> > 2.6.0. On 2.4.20 with acpi patches the machine would not even boot with 
-> > the extra memory.
-> > 
-> > I have a custom DSDT file that I fixed errors in. When it was working on 
-> > 2.4.20 It looked like all the ACPI features were active and functional.
-> 
-> < Recompile your DSDT. Since the amount of RAM changed and you're probably
-> < using old DSDT containing wrong addresses, no wonder you're hitting
-> < errors.
-> 
-> Is this correct?  If a user adds or removes memory, then the
-> DSDT must be rebuilt?  Sheesh!!  That's bad if this is correct.
-> 
+Hello,
+after patiently waiting for the 2.6.2 kernel I just tested whether
+S3 suspend got better with 2.6.2. Unfortunately it did not.
+What I did:
 
-Most DSDT are actually build on POST stage.
+echo 3 > /proc/acpi/sleep (without X, radeonfb)
+
+System goes into suspend, moon LED is on but LCD backlight stays on.
+(actually, my thinkpad is attached to a port replicator with external
+monitor attached. So actually, on suspending the backlight switched
+on instead of keeping off)
+On resume, backlight switches off again and the external monitor on,
+moon LED stays on and the whole thing hangs. Guessed that it was USB
+still hanging the system on resume (guessed right).
+
+Tried again without USB drivers loaded. Suspend works as above.
+Resume now works, but prints two times:
+
+MCE: The hardware reports a non fatal, correctable incident occured on
+CPU 0
+Bank 1: f200000000000185
+
+However, if I now try to reload ehci_hcd, it oopses - trying to reload
+uhci_hcd hangs the whole system. Hmmm. Bad.
+
+At this stage, I didn't tried to go to S4.
+
+Can you give me any hint whether you are knowing about these problems,
+know a fix or a mid-term solution for this? I really like my X31 and
+it would be really great if I could use S3 and S4 with it.
+(The whole speed step thingie with the Pentium M already works great,
+thank you).
+
+Best regards,
+Daniel
+
+P.S. Please CC me on reply.
 
 -- 
-Bruno Ducrot
+Daniel Dorau
+daniel.dorau-kiZ+YAcFTqyAKZTfuerNgRvVK+yQ3ZXh@public.gmane.org
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
