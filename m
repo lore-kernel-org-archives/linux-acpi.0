@@ -1,15 +1,13 @@
-From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
-Subject: Re: HP/Compaq NC6120 ACPI problems
-Date: Fri, 18 Mar 2005 19:23:00 +0100
-Message-ID: <20050318192300.629e2148.andrej.prsa@guest.arnes.si>
-References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
-	<1111088904.11380.36.camel@eeyore>
-	<20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
-	<1111104319.8136.182.camel@tyrosine>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] ACPI EC address space handler - Re: ACPI key events
+ handling
+Date: Fri, 18 Mar 2005 19:40:36 +0100
+Message-ID: <423B20A4.3050206@suse.de>
+References: <16A54BF5D6E14E4D916CE26C9AD30575015B5180@pdsmsx402.ccr.corp.intel.com>	 <42307593.8040501@suse.de> <1110507818.3692.4.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1111104319.8136.182.camel@tyrosine>
+In-Reply-To: <1110507818.3692.4.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,44 +17,110 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-> > Observational update: it does *NOT* gradually slow down, it slows
-> > down *instantly* after 2-3 minutes of running; the time of kacpid
-> > blowup is somewhat arbitrary, it sometimes happens even before the
-> > boot-up is complete. If I was to make another wild guess, it might
-> > be connected with the fan - when the computer is cool, the blowup
-> > occurs later, if it is warm, it occurs sooner. Is it possible that
-> > the call to turn the fan on is triggering this kacpid blowup? How
-> > does one go about to test this?
+Li Shaohua wrote:
+> This is an updated patch.
+> It fixes:
+> 1. changed *value when write
+> 2. wrong address offset for read/write with bit width > 8
+> and some cleanup.
 > 
-> Ah, right - I've seen similar behaviour on a range of HPs (inluding
-> the 6120). Try using 
-> http://bugzilla.kernel.org/attachment.cgi?id=4516&action=view and see
-> if it makes a difference.
+Sorry for answering that late.
+Tried out patch, but it does not solve the issue I hoped,
+but it will/could help on other machines.
 
-Tried it, unfortunately the outcome is still the same; I used the patch
-against 2.6.11.4 kernel *without* any other ACPI patch. Should I use the
-patch you provided over the ACPI patch or was it supposed to fix the fan
-issue by itself? Seemingly the problem is the fan; is there a way to
-test this to be sure?
+At least it does not break anything on this machine which
+enters the code path.
 
-Is there a chance that another kernel (i.e. 2.4) would do a better job?
-It's kinda frustrating to have a brand new laptop that sits turned off
-on my desk... :(
+      Thomas
 
-Also, would you be so kind to provide the bug ID number so I can take a
-look at what's causing this behavior? I can't figure it out from only a
-link to the patch.
-
-Any further ideas are very welcome! :)
-
-Thanks,
-
-Andrej
+> Thanks,
+> Shaohua
+> 
+> ---
+> 
+>  2.5-root/drivers/acpi/ec.c |   32 ++++++++++++++------------------
+>  1 files changed, 14 insertions(+), 18 deletions(-)
+> 
+> diff -puN drivers/acpi/ec.c~ec_addr_space_handler drivers/acpi/ec.c
+> --- 2.5/drivers/acpi/ec.c~ec_addr_space_handler	2005-03-08 09:19:05.000000000 +0800
+> +++ 2.5-root/drivers/acpi/ec.c	2005-03-11 10:18:25.595072776 +0800
+> @@ -441,7 +441,7 @@ acpi_ec_space_handler (
+>  {
+>  	int			result = 0;
+>  	struct acpi_ec		*ec = NULL;
+> -	u32			temp = 0;
+> +	u64			temp = *value;
+>  	acpi_integer		f_v = 0;
+>  	int 			i = 0;
+>  
+> @@ -450,10 +450,9 @@ acpi_ec_space_handler (
+>  	if ((address > 0xFF) || !value || !handler_context)
+>  		return_VALUE(AE_BAD_PARAMETER);
+>  
+> -	if(bit_width != 8) {
+> +	if (bit_width != 8 && acpi_strict) {
+>  		printk(KERN_WARNING PREFIX "acpi_ec_space_handler: bit_width should be 8\n");
+> -		if (acpi_strict)
+> -			return_VALUE(AE_BAD_PARAMETER);
+> +		return_VALUE(AE_BAD_PARAMETER);
+>  	}
+>  
+>  	ec = (struct acpi_ec *) handler_context;
+> @@ -461,11 +460,11 @@ acpi_ec_space_handler (
+>  next_byte:
+>  	switch (function) {
+>  	case ACPI_READ:
+> -		result = acpi_ec_read(ec, (u8) address, &temp);
+> -		*value = (acpi_integer) temp;
+> +		temp = 0;
+> +		result = acpi_ec_read(ec, (u8) address, (u32 *)&temp);
+>  		break;
+>  	case ACPI_WRITE:
+> -		result = acpi_ec_write(ec, (u8) address, (u8) *value);
+> +		result = acpi_ec_write(ec, (u8) address, (u8) temp);
+>  		break;
+>  	default:
+>  		result = -EINVAL;
+> @@ -474,19 +473,18 @@ next_byte:
+>  	}
+>  
+>  	bit_width -= 8;
+> -	if(bit_width){
+> -
+> -		if(function == ACPI_READ)
+> -			f_v |= (acpi_integer) (*value) << 8*i;
+> -		if(function == ACPI_WRITE)
+> -			(*value) >>=8; 
+> +	if (bit_width) {
+> +		if (function == ACPI_READ)
+> +			f_v |= temp << 8 * i;
+> +		if (function == ACPI_WRITE)
+> +			temp >>= 8;
+>  		i++;
+> +		(u8)address ++;
+>  		goto next_byte;
+>  	}
+>  
+> -
+> -	if(function == ACPI_READ){
+> -		f_v |= (acpi_integer) (*value) << 8*i;
+> +	if (function == ACPI_READ) {
+> +		f_v |= temp << 8 * i;
+>  		*value = f_v;
+>  	}
+>  
+> @@ -505,8 +503,6 @@ out:
+>  	default:
+>  		return_VALUE(AE_OK);
+>  	}
+> -	
+> -
+>  }
+>  
 
 
 -------------------------------------------------------
