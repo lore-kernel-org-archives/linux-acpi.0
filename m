@@ -1,11 +1,11 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Panasonic ACPI driver
-Date: Tue, 15 Mar 2005 14:03:31 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84076B92BA@pdsmsx403>
+Subject: RE: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Tue, 15 Mar 2005 14:07:29 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84076B92D1@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,32 +16,708 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Timo Hoenig <thoenig-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-QmFzaWNhbGx5LCB0aGlzIGRyaXZlciBqdXN0IGNhbGwgc29tZSBzcGVjaWZpYyBBTUwgbWV0aG9k
-IGZvciBob3RrZXkgZnVuY3Rpb24sIHRoYXQgY2FuIGJlIA0KYWNoaWV2ZWQgdGhyb3VnaCBnZW5l
-cmljIGhvdGtleSBkcml2ZXIgZmlsZWQgYXQgaHR0cDovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hv
-d19idWcuY2dpP2lkPTM4ODcuDQpTbyBJIGRvbid0IHRoaW5rIHRoaXMgZHJpdmVyIGlzIG5lZWRl
-ZC4NCiANCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogYWNwaS1kZXZlbC1h
-ZG1pbkBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQgDQo+W21haWx0bzphY3BpLWRldmVsLWFkbWluQGxp
-c3RzLnNvdXJjZWZvcmdlLm5ldF0gT24gQmVoYWxmIE9mIA0KPlRpbW8gSG9lbmlnDQo+U2VudDog
-MjAwNeW5tDLmnIgxMeaXpSA0OjA3DQo+VG86IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcN
-Cj5DYzogYWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQ7IGFrcG1Ab3NkbC5vcmcNCj5T
-dWJqZWN0OiBbQUNQSV0gW1BBVENIXSBQYW5hc29uaWMgQUNQSSBkcml2ZXINCj4NCj5IaSwNCj4N
-Cj50aGlzIGlzIGFub3RoZXIgQUNQSSBkcml2ZXIgZm9yIHNldmVyYWwgUGFuYXNvbmljIG5vdGVi
-b29rcy4gVGhlIGRyaXZlcg0KPnByb3ZpZGVzIHN1cHBvcnQgZm9yIGhvdGtleXMgYW5kIGVuYWJs
-ZXMgYWNjZXNzIHRvIG90aGVyIGhhcmR3YXJlIGxpa2UNCj5yZWFkaW5nL3NldHRpbmcgdGhlIExD
-RCBicmlnaHRuZXNzLg0KPg0KPkxpa2UgdGhlIFNvbnkgQUNQSSBkcml2ZXItLXJlY2VudGx5IHNl
-bnQgYnkgU3RlbGlhbiBQb3AtLWl0IHdvdWxkIGJlDQo+Z29vZCB0byB0byBzZWUgdGhpcyBvbmUg
-dG8gYmUgaW50ZWdyYXRlZCBpbnRvIHRoZSAtbW0gdHJlZSwgdG9vLg0KPg0KPlRoZSBhdHRhY2hl
-ZCBwYXRjaCBpcyBhZ2FpbnN0IDIuNi4xMS1yYzMuDQo+DQo+VGhhbmtzLA0KPg0KPiAgIC0tIFRp
-bW8NCj4NCj4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-Li4uLi4uLi4uLi4uLg0KPlRpbW8gSMO2bmlnIDx0aG9lbmlnIGF0IHN1c2UgZG90IGRlPg0KPi4u
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uOjogZ3BnIDo6
-Li4uDQo+RmluZ2VycHJpbnQ6IDA5OTggMEFDQSBBMUQyIDI2MTIgNEQ5NiBERDhCIEUwM0YgMDg0
-QiBCMzA1IDQwNjYNCj4NCg==
+=20
+Basically, this driver just call some specific AML method for hotkey =
+function, that can be=20
+achieved through generic hotkey driver filed at =
+http://bugzilla.kernel.org/show_bug.cgi?id=3D3887.
+So I don't think this driver is needed.
+
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Stelian Pop
+>Sent: 2005=C4=EA2=D4=C211=C8=D5 0:18
+>To: Linux Kernel Mailing List
+>Cc: Andrew Morton; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] [PATCH, new ACPI driver] new sony_acpi driver
+>
+>Hi,
+>
+>This driver has been submitted (almost unchanged) on lkml and=20
+>on acpi-devel twice, first on July 21, 2004, then again on
+>September 17, 2004. It has been quietly ignored.
+>
+>Privately I've had many positive feedbacks from users of this driver
+>(and no negative feedback), including Linux distributions who wish
+>to include it into their kernels. The reports are increasing in number,
+>it would seem that newer Sony Vaios are more and more incompatible
+>with sonypi and require sony_acpi to control the screen brightness.
+>
+>Please integrate this patch in -mm for wider testing and into
+>the ACPI tree.
+>
+>Original announcement follows below.
+>
+>Thanks,
+>
+>Stelian.
+>
+>PS: I am also going to submit a bugzilla RFE for the acpi people,
+>I have been told they are more receptive to that.
+>
+>------------------------------------------------------------------
+>Most of the Sony Vaio owners are happy with the current sonypi
+>driver, which makes them able to get/set the screen brightness,
+>capture the jogdial and/or special key events etc.
+>
+>However, some newer Vaio series (FX series, and not only those) lack
+>a SPIC device in their ACPI BIOS making the sonypi driver unusable
+>for them.
+>
+>Fortunately, there is another ACPI device, called SNC (for Sony
+>Notebook Control) which seems to be present in all Vaios, which
+>can be used to access some low-level laptop functions. From what
+>I understood, the SPIC device itself is built on top of SNC.
+>
+>The SNC device is able to drive the screen brightness, and probably
+>more (what is does more is yet unknown). The attached driver is a
+>first shot of using the SNC directly.
+>
+>In the default mode, the sony_acpi driver let's the user get/set the
+>screen brightness, and only that.
+>
+>The screen is one of the most important power consumers in a laptop,
+>so being able to set its brightness is very important for many users,
+>making this driver useful even if it does only that.
+>
+>In the debug/developer mode (which can be activated with a module
+>option), the driver let's the user see a few other knobs, whose
+>effects is however unknown. Using the debug mode we may hopefully
+>find what those knobs do and propose that extra functionalities in
+>the future versions of the driver (if someone at Sony is listening,
+>you know what we need from you...)
+>
+>This driver does not interact with the current sonypi driver, both
+>drivers can be used at the same time.
+>
+>Signed-of-by: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+>
+>--- /dev/null	2005-02-10 10:35:32.824183288 +0100
+>+++ linux-2.6-stelian/drivers/acpi/sony_acpi.c	2005-01-31=20
+>17:05:53.000000000 +0100
+>@@ -0,0 +1,442 @@
+>+/*
+>+ * ACPI Sony Notebook Control Driver (SNC)
+>+ *
+>+ * Copyright (C) 2004 Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+>+ *=20
+>+ * Parts of this driver inspired from asus_acpi.c, which is=20
+>+ * Copyright (C) 2002, 2003, 2004 Julien Lerouge, Karol Kozimor
+>+ *
+>+ * This program is free software; you can redistribute it=20
+>and/or modify
+>+ * it under the terms of the GNU General Public License as=20
+>published by
+>+ * the Free Software Foundation; either version 2 of the License, or
+>+ * (at your option) any later version.
+>+ *=20
+>+ * This program is distributed in the hope that it will be useful,
+>+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>+ * GNU General Public License for more details.
+>+ *=20
+>+ * You should have received a copy of the GNU General Public License
+>+ * along with this program; if not, write to the Free Software
+>+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>+ *
+>+ */
+>+
+>+#include <linux/kernel.h>
+>+#include <linux/module.h>
+>+#include <linux/moduleparam.h>
+>+#include <linux/init.h>
+>+#include <linux/types.h>
+>+#include <acpi/acpi_drivers.h>
+>+#include <acpi/acpi_bus.h>
+>+#include <asm/uaccess.h>
+>+
+>+#define ACPI_SNC_CLASS		"sony"
+>+#define ACPI_SNC_HID		"SNY5001"
+>+#define ACPI_SNC_DRIVER_NAME	"ACPI Sony Notebook Control Driver v0.1"
+>+
+>+MODULE_AUTHOR("Stelian Pop");
+>+MODULE_DESCRIPTION(ACPI_SNC_DRIVER_NAME);
+>+MODULE_LICENSE("GPL");
+>+
+>+static int debug =3D 0;
+>+module_param(debug, int, 0);
+>+MODULE_PARM_DESC(debug,"set this to 1 (and RTFM) if you want=20
+>to help the development of this driver");
+>+
+>+static int sony_acpi_add (struct acpi_device *device);
+>+static int sony_acpi_remove (struct acpi_device *device, int type);
+>+
+>+static struct acpi_driver sony_acpi_driver =3D {
+>+	name:	ACPI_SNC_DRIVER_NAME,
+>+	class:	ACPI_SNC_CLASS,
+>+	ids:	ACPI_SNC_HID,
+>+	ops:	{
+>+			add:	sony_acpi_add,
+>+			remove:	sony_acpi_remove,
+>+		},
+>+};
+>+
+>+struct sony_snc {
+>+	acpi_handle		handle;
+>+	int			brt;		/* brightness */
+>+	struct proc_dir_entry	*proc_brt;
+>+	int			cmi;		/* ??? ? */
+>+	struct proc_dir_entry	*proc_cmi;
+>+	int			csxb;		/* ??? */
+>+	struct proc_dir_entry	*proc_csxb;
+>+	int			ctr;		/* contrast ? */
+>+	struct proc_dir_entry	*proc_ctr;
+>+	int			pbr;		/* ??? */
+>+	struct proc_dir_entry	*proc_pbr;
+>+};
+>+
+>+static struct proc_dir_entry *sony_acpi_dir;
+>+
+>+static int acpi_callgetfunc(acpi_handle handle, char *name,=20
+>int *result)
+>+{
+>+	struct acpi_buffer output;
+>+	union acpi_object out_obj;
+>+	acpi_status status;
+>+
+>+	output.length =3D sizeof(out_obj);
+>+	output.pointer =3D &out_obj;
+>+
+>+	status =3D acpi_evaluate_object(handle, name, NULL, &output);
+>+	if ((status =3D=3D AE_OK) && (out_obj.type =3D=3D ACPI_TYPE_INTEGER)) =
+{
+>+		*result =3D out_obj.integer.value;
+>+		return 0;
+>+	}
+>+
+>+	printk(KERN_WARNING "acpi_callreadfunc failed\n");
+>+
+>+	return -1;
+>+}
+>+
+>+static int acpi_callsetfunc(acpi_handle handle, char *name,=20
+>int value, int *result)
+>+{
+>+	struct acpi_object_list params;
+>+	union acpi_object in_obj;
+>+	struct acpi_buffer output;
+>+	union acpi_object out_obj;
+>+	acpi_status status;
+>+
+>+	params.count =3D 1;
+>+	params.pointer =3D &in_obj;
+>+	in_obj.type =3D ACPI_TYPE_INTEGER;
+>+	in_obj.integer.value =3D value;
+>+
+>+	output.length =3D sizeof(out_obj);
+>+	output.pointer =3D &out_obj;
+>+
+>+	status =3D acpi_evaluate_object(handle, name, &params, &output);
+>+	if (status =3D=3D AE_OK) {
+>+		if (result !=3D NULL) {
+>+			if (out_obj.type !=3D ACPI_TYPE_INTEGER) {
+>+				printk(KERN_WARNING=20
+>"acpi_evaluate_object bad return type\n");
+>+				return -1;
+>+			}
+>+			*result =3D out_obj.integer.value;
+>+		}
+>+		return 0;
+>+	}
+>+=09
+>+	printk(KERN_WARNING "acpi_evaluate_object failed\n");
+>+
+>+	return -1;
+>+}
+>+
+>+static int parse_buffer(const char __user *buffer, unsigned=20
+>long count, int *val) {
+>+	char s[32];
+>+=09
+>+	if (count > 31)
+>+		return -EINVAL;
+>+	if (copy_from_user(s, buffer, count))
+>+		return -EFAULT;
+>+	s[count] =3D 0;
+>+	if (sscanf(s, "%i", val) !=3D 1)
+>+		return -EINVAL;
+>+	return 0;
+>+}
+>+
+>+static int sony_acpi_write_brt(struct file *file, const char=20
+>__user *buffer, unsigned long count, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+	int result;
+>+
+>+	if ((result =3D parse_buffer(buffer, count, &snc->brt)) < 0)
+>+		return result;
+>+
+>+	/* Accept only values between 1 and 8, or VGN-T1XP will hung */
+>+	if (snc->brt < 1 || snc->brt > 8)
+>+		return -EINVAL;
+>+
+>+	if (acpi_callsetfunc(snc->handle, "SBRT", snc->brt, NULL) < 0)
+>+		return -EIO;
+>+
+>+	return count;
+>+}
+>+
+>+static int sony_acpi_read_brt(char *page, char **start, off_t=20
+>off, int count, int *eof, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+
+>+	if (acpi_callgetfunc(snc->handle, "GBRT", &snc->brt) < 0)
+>+		return -EIO;
+>+=09
+>+	return sprintf(page, "%d\n", snc->brt);
+>+}
+>+
+>+static int sony_acpi_write_cmi(struct file *file, const char=20
+>__user *buffer, unsigned long count, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+	int result;
+>+
+>+	if ((result =3D parse_buffer(buffer, count, &snc->cmi)) < 0)
+>+		return result;
+>+=09
+>+	if (acpi_callsetfunc(snc->handle, "SCMI", snc->cmi,=20
+>&snc->cmi) < 0)
+>+		return -EIO;
+>+
+>+	return count;
+>+}
+>+
+>+static int sony_acpi_read_cmi(char *page, char **start, off_t=20
+>off, int count, int *eof, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+	return sprintf(page, "%d\n", snc->cmi);
+>+}
+>+
+>+static int sony_acpi_write_csxb(struct file *file, const char=20
+>__user *buffer, unsigned long count, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+	int result;
+>+
+>+	if ((result =3D parse_buffer(buffer, count, &snc->csxb)) < 0)
+>+		return result;
+>+=09
+>+	if (acpi_callsetfunc(snc->handle, "CSXB", snc->csxb,=20
+>&snc->csxb) < 0)
+>+		return -EIO;
+>+
+>+	return count;
+>+}
+>+
+>+static int sony_acpi_read_csxb(char *page, char **start,=20
+>off_t off, int count, int *eof, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+	return sprintf(page, "%d\n", snc->csxb);
+>+}
+>+
+>+static int sony_acpi_write_ctr(struct file *file, const char=20
+>__user *buffer, unsigned long count, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+	int result;
+>+
+>+	if ((result =3D parse_buffer(buffer, count, &snc->ctr)) < 0)
+>+		return result;
+>+=09
+>+	if (acpi_callsetfunc(snc->handle, "SCTR", snc->ctr, NULL) < 0)
+>+		return -EIO;
+>+
+>+	return count;
+>+}
+>+
+>+static int sony_acpi_read_ctr(char *page, char **start, off_t=20
+>off, int count, int *eof, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+
+>+	if (acpi_callgetfunc(snc->handle, "GCTR", &snc->ctr) < 0)
+>+		return -EIO;
+>+=09
+>+	return sprintf(page, "%d\n", snc->ctr);
+>+}
+>+
+>+static int sony_acpi_write_pbr(struct file *file, const char=20
+>__user *buffer, unsigned long count, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+	int result;
+>+
+>+	if ((result =3D parse_buffer(buffer, count, &snc->pbr)) < 0)
+>+		return result;
+>+=09
+>+	if (acpi_callsetfunc(snc->handle, "SPBR", snc->pbr, NULL) < 0)
+>+		return -EIO;
+>+
+>+	return count;
+>+}
+>+
+>+static int sony_acpi_read_pbr(char *page, char **start, off_t=20
+>off, int count, int *eof, void *data)
+>+{
+>+	struct sony_snc *snc =3D (struct sony_snc *) data;
+>+
+>+	if (acpi_callgetfunc(snc->handle, "GPBR", &snc->pbr) < 0)
+>+		return -EIO;
+>+=09
+>+	return sprintf(page, "%d\n", snc->pbr);
+>+}
+>+		=20
+>+static void sony_acpi_notify(acpi_handle handle, u32 event,=20
+>void *data)
+>+{
+>+	/* struct sony_snc *snc =3D (struct sony_snc *) data; */
+>+
+>+	printk("sony_snc_notify\n");
+>+}
+>+
+>+static acpi_status sony_walk_callback(acpi_handle handle, u32=20
+>level, void *context, void **return_value)
+>+{
+>+	struct acpi_namespace_node *node =3D (struct=20
+>acpi_namespace_node *) handle;
+>+	union acpi_operand_object *operand =3D (union=20
+>acpi_operand_object *) node->object;
+>+
+>+	printk("sony_acpi method: name: %4.4s, args %X\n",=20
+>+		node->name.ascii,
+>+		(u32) operand->method.param_count);
+>+
+>+	return AE_OK;
+>+}
+>+
+>+static int __init sony_acpi_add(struct acpi_device *device)
+>+{
+>+	acpi_status status =3D AE_OK;
+>+	struct sony_snc *snc =3D NULL;
+>+	int result;
+>+
+>+	snc =3D kmalloc(sizeof(struct sony_snc), GFP_KERNEL);
+>+	if (!snc)
+>+		return -ENOMEM;
+>+	memset(snc, 0, sizeof(struct sony_snc));
+>+
+>+	snc->handle =3D device->handle;
+>+
+>+	acpi_driver_data(device) =3D snc;
+>+	acpi_device_dir(device) =3D sony_acpi_dir;
+>+
+>+	if (debug) {
+>+		status =3D acpi_walk_namespace(ACPI_TYPE_METHOD,=20
+>snc->handle, 1, sony_walk_callback, NULL, NULL);
+>+		if (ACPI_FAILURE(status)) {
+>+			printk(KERN_WARNING "Unable to walk=20
+>acpi resources\n");
+>+		}
+>+	}
+>+
+>+	snc->proc_brt =3D create_proc_entry("brt", 0600,=20
+>acpi_device_dir(device));
+>+	if (!snc->proc_brt) {
+>+		printk(KERN_WARNING "Unable to create proc entry\n");
+>+		result =3D -EIO;
+>+		goto outbrt;
+>+	}
+>+
+>+	snc->proc_brt->write_proc =3D sony_acpi_write_brt;
+>+	snc->proc_brt->read_proc =3D sony_acpi_read_brt;
+>+	snc->proc_brt->data =3D acpi_driver_data(device);
+>+	snc->proc_brt->owner =3D THIS_MODULE;
+>+
+>+	if (debug) {
+>+		snc->proc_cmi =3D create_proc_entry("cmi", 0600,=20
+>acpi_device_dir(device));
+>+		if (!snc->proc_cmi) {
+>+			printk(KERN_WARNING "Unable to create=20
+>proc entry\n");
+>+			result =3D -EIO;
+>+			goto outcmi;
+>+		}
+>+
+>+		snc->proc_cmi->write_proc =3D sony_acpi_write_cmi;
+>+		snc->proc_cmi->read_proc =3D sony_acpi_read_cmi;
+>+		snc->proc_cmi->data =3D acpi_driver_data(device);
+>+		snc->proc_cmi->owner =3D THIS_MODULE;
+>+
+>+		snc->proc_csxb =3D create_proc_entry("csxb",=20
+>0600, acpi_device_dir(device));
+>+		if (!snc->proc_csxb) {
+>+			printk(KERN_WARNING "Unable to create=20
+>proc entry\n");
+>+			result =3D -EIO;
+>+			goto outcsxb;
+>+		}
+>+
+>+		snc->proc_csxb->write_proc =3D sony_acpi_write_csxb;
+>+		snc->proc_csxb->read_proc =3D sony_acpi_read_csxb;
+>+		snc->proc_csxb->data =3D acpi_driver_data(device);
+>+		snc->proc_csxb->owner =3D THIS_MODULE;
+>+
+>+		snc->proc_ctr =3D create_proc_entry("ctr", 0600,=20
+>acpi_device_dir(device));
+>+		if (!snc->proc_ctr) {
+>+			printk(KERN_WARNING "Unable to create=20
+>proc entry\n");
+>+			result =3D -EIO;
+>+			goto outctr;
+>+		}
+>+
+>+		snc->proc_ctr->write_proc =3D sony_acpi_write_ctr;
+>+		snc->proc_ctr->read_proc =3D sony_acpi_read_ctr;
+>+		snc->proc_ctr->data =3D acpi_driver_data(device);
+>+		snc->proc_ctr->owner =3D THIS_MODULE;
+>+
+>+		snc->proc_pbr =3D create_proc_entry("pbr", 0600,=20
+>acpi_device_dir(device));
+>+		if (!snc->proc_pbr) {
+>+			printk(KERN_WARNING "Unable to create=20
+>proc entry\n");
+>+			result =3D -EIO;
+>+			goto outpbr;
+>+		}
+>+
+>+		snc->proc_pbr->write_proc =3D sony_acpi_write_pbr;
+>+		snc->proc_pbr->read_proc =3D sony_acpi_read_pbr;
+>+		snc->proc_pbr->data =3D acpi_driver_data(device);
+>+		snc->proc_pbr->owner =3D THIS_MODULE;
+>+
+>+		status =3D acpi_install_notify_handler(snc->handle,
+>+			ACPI_DEVICE_NOTIFY, sony_acpi_notify, snc);
+>+			if (ACPI_FAILURE(status)) {
+>+				printk(KERN_WARNING "Unable to=20
+>install notify handler\n");
+>+				result =3D -ENODEV;
+>+				goto outnotify;
+>+		}
+>+	}
+>+
+>+	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully=20
+>installed\n");
+>+
+>+	return 0;
+>+
+>+outnotify:
+>+	remove_proc_entry("pbr", acpi_device_dir(device));
+>+outpbr:
+>+	remove_proc_entry("ctr", acpi_device_dir(device));
+>+outctr:
+>+	remove_proc_entry("csxb", acpi_device_dir(device));
+>+outcsxb:
+>+	remove_proc_entry("cmi", acpi_device_dir(device));
+>+outcmi:
+>+	remove_proc_entry("brt", acpi_device_dir(device));
+>+outbrt:
+>+	kfree(snc);
+>+	return result;
+>+}
+>+
+>+
+>+static int __exit sony_acpi_remove(struct acpi_device=20
+>*device, int type)
+>+{
+>+	acpi_status status =3D AE_OK;
+>+	struct sony_snc *snc =3D NULL;
+>+
+>+	snc =3D (struct sony_snc *) acpi_driver_data(device);
+>+
+>+	if (debug) {
+>+		status =3D=20
+>acpi_remove_notify_handler(snc->handle, ACPI_DEVICE_NOTIFY,=20
+>sony_acpi_notify);
+>+		if (ACPI_FAILURE(status))
+>+			printk(KERN_WARNING "Unable to remove=20
+>notify handler\n");
+>+
+>+		remove_proc_entry("pbr", acpi_device_dir(device));
+>+		remove_proc_entry("ctr", acpi_device_dir(device));
+>+		remove_proc_entry("csxb", acpi_device_dir(device));
+>+		remove_proc_entry("cmi", acpi_device_dir(device));
+>+	}
+>+	remove_proc_entry("brt", acpi_device_dir(device));
+>+
+>+	kfree(snc);
+>+
+>+	printk(KERN_INFO ACPI_SNC_DRIVER_NAME " successfully=20
+>removed\n");
+>+
+>+	return 0;
+>+}
+>+
+>+static int __init sony_acpi_init(void)
+>+{
+>+	int result;
+>+
+>+	sony_acpi_dir =3D proc_mkdir("sony", acpi_root_dir);
+>+	if (!sony_acpi_dir) {
+>+		printk(KERN_WARNING "Unable to create /proc entry\n");
+>+		return -ENODEV;
+>+	}
+>+	sony_acpi_dir->owner =3D THIS_MODULE;
+>+
+>+	result =3D acpi_bus_register_driver(&sony_acpi_driver);
+>+	if (result < 0) {
+>+		remove_proc_entry("sony", acpi_root_dir);
+>+		return -ENODEV;
+>+	}
+>+	return 0;
+>+}
+>+
+>+
+>+static void __exit sony_acpi_exit(void)
+>+{
+>+	acpi_bus_unregister_driver(&sony_acpi_driver);
+>+	remove_proc_entry("sony", acpi_root_dir);
+>+}
+>+
+>+module_init(sony_acpi_init);
+>+module_exit(sony_acpi_exit);
+>--- /dev/null	2005-02-10 10:35:32.824183288 +0100
+>+++ linux-2.6-stelian/Documentation/sony_acpi.txt=09
+>2005-01-31 17:00:09.000000000 +0100
+>@@ -0,0 +1,81 @@
+>+ACPI Sony Notebook Control Driver (SNC) Readme
+>+----------------------------------------------
+>+	Copyright (C) 2004 Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+>+
+>+This mini-driver drives the ACPI SNC device present in the=20
+>+ACPI BIOS of the Sony Vaio laptops.
+>+
+>+It gives access to some extra laptop functionalities. In=20
+>+its current form, the only thing this driver does is letting
+>+the user set or query the screen brightness.
+>+
+>+You should start by trying the sonypi driver, which does
+>+all this and many other things. But the sonypi driver does
+>+not work on all sonypi laptops, whereas sony_acpi should=20
+>+work everywhere.
+>+
+>+Usage:
+>+------
+>+
+>+Loading the sony_acpi.ko module will create a /proc/acpi/sony/
+>+directory populated with a couple of files (only one for the
+>+moment).
+>+
+>+You then read/write integer values from/to those files by using
+>+standard UNIX tools.
+>+
+>+For example:
+>+	# echo "1" > /proc/acpi/sony/brt
+>+sets the lowest screen brightness,
+>+	# echo "8" > /proc/acpi/sony/brt
+>+sets the highest screen brightness,
+>+	# cat /proc/acpi/sony/brt
+>+retrieves the current screen brightness.
+>+
+>+Development:
+>+------------
+>+
+>+If you want to help with the development of this driver (and
+>+you are not afraid of any side effects doing strange things with
+>+your ACPI BIOS could have on your laptop), load the driver and
+>+pass the option 'debug=3D1'.
+>+
+>+REPEAT: DON'T DO THIS IF YOU DON'T LIKE RISKY BUSINESS.
+>+
+>+In your kernel logs you will find the list of all ACPI methods
+>+the SNC device has on your laptop. You can see the GBRT/SBRT methods
+>+used to get/set the brightness, but there are others.
+>+
+>+I HAVE NO IDEA WHAT THOSE METHODS DO.
+>+
+>+The sony_acpi driver creates, for some of those methods (the most=20
+>+current ones found on several Vaio models), an entry under
+>+/proc/acpi/sony/, just like the 'brt' one.
+>+
+>+Your mission, should you accept it, is to try finding out what=20
+>+those entries are for, by reading/writing random values from/to those
+>+files and find out what is the impact on your laptop.
+>+
+>+You can also modify the driver source and add your extra methods
+>+and retest.
+>+
+>+Should you find anything interesting, please report it back to me,
+>+I will not disavow all knowledge of your actions :)
+>+
+>+Bugs/Limitations:
+>+-----------------
+>+
+>+* This driver is not based on official documentation from Sony
+>+  (because there is none), so there is no guarantee this driver
+>+  will work at all, or do the right thing. Although this hasn't
+>+  happened to me, this driver could do very bad things to your
+>+  laptop, including permanent damage.
+>+ =20
+>+* The sony_acpi and sonypi drivers do not interact at all. In the
+>+  future, sonypi could use sony_acpi to do (part of) its business.
+>+
+>+* spicctrl, which is the userspace tool used to communicate with the
+>+  sonypi driver (through /dev/sonypi) does not try to use the=20
+>+  sony_acpi driver. In the future, spicctrl could try sonypi first,=20
+>+  and if it isn't present, try sony_acpi instead.
+>+
+>--- linux-2.6-stelian/drivers/acpi/Makefile
+>+++ linux-2.6-linus/drivers/acpi/Makefile
+>@@ -54,4 +54,5 @@ obj-$(CONFIG_ACPI_NUMA)		+=3D numa.o
+> obj-$(CONFIG_ACPI_ASUS)		+=3D asus_acpi.o
+> obj-$(CONFIG_ACPI_IBM)		+=3D ibm_acpi.o
+> obj-$(CONFIG_ACPI_TOSHIBA)	+=3D toshiba_acpi.o
+>+obj-$(CONFIG_ACPI_SONY)		+=3D sony_acpi.o
+> obj-$(CONFIG_ACPI_BUS)		+=3D scan.o motherboard.o
+>--- linux-2.6-stelian/drivers/acpi/Kconfig
+>+++ linux-2.6-linus/drivers/acpi/Kconfig
+>@@ -242,6 +242,21 @@ config ACPI_TOSHIBA
+> 	  If you have a legacy free Toshiba laptop (such as the=20
+>Libretto L1
+> 	  series), say Y.
+>=20
+>+config ACPI_SONY
+>+	tristate "Sony Laptop Extras"=20
+>+	depends on X86
+>+	depends on ACPI_INTERPRETER
+>+	default m
+>+	  ---help---
+>+	  This mini-driver drives the ACPI SNC device present in the
+>+	  ACPI BIOS of the Sony Vaio laptops.
+>+
+>+	  It gives access to some extra laptop functionalities. In
+>+	  its current form, the only thing this driver does is letting=20
+>+	  the user set or query the screen brightness.
+>+
+>+	  Read <Documentation/sony_acpi.txt> for more information.
+>+
+> config ACPI_CUSTOM_DSDT
+> 	bool "Include Custom DSDT"
+> 	depends on ACPI_INTERPRETER && !STANDALONE
+>--=20
+>Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+>
+>
+>-------------------------------------------------------
+>SF email is sponsored by - The IT Product Guide
+>Read honest & candid reviews on hundreds of IT Products from=20
+>real users.
+>Discover which products truly live up to the hype. Start reading now.
+>http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
