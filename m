@@ -1,14 +1,11 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M6800N: shutdown doesn't power off the machine
-Date: Sun, 07 Mar 2004 19:47:56 +0100
+From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
+Subject: clear/enable power button on resume
+Date: Sun, 07 Mar 2004 19:52:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <404B6E5C.1000409@pca.it>
-References: <40321902.90403@pca.it>
+Message-ID: <1078685555.541.9.camel@sunshine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-JAtUchoi5usak+ICIIgB"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40321902.90403-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,46 +14,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+
+--=-JAtUchoi5usak+ICIIgB
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 Hello,
 
-this mail is the same as I posted on the thread called 'Can't poweroff anymore'
-and dated 20040304, as I thought the problem was similar to that thread, but in
-fact is completely different.
+after trying 2.6.4-rc1 I discovered some strange behavior: My machine
+simply shut down after resuming from S3.
 
-on 02/17/04 14:37, Luca Capello wrote:
-> I've a simple problem: when I call 'shutdown -h now' or I press the
-> power button, a clear shutdown is started, but the machine isn't power
-> off. Here the messages on the console:
-> =====
-> Synchronizing SCSI cahce for disk sda:
-> Power down.
-> acpi_power_off called
->   hwsleep-0265 [36] acpi_enter_sleep_state: Entering sleep state [S5]
-> =====
-as I was running with 'preempt' and 'APIC/IO-APIC' and with my last ASUS
-Centrino M3N 'APIC/IO-APIC' had cause some problems, I tried 3 new configurations:
-- - no preempt and no APIC > shutdown works ok
-- - preempt and no APIC > shutdown works again
-- - preempt and APIC > shutdown doesn't work
+Since [ACPI] ACPICA 20040220 from Bob Moore there is code to
+clear/enable the power button on resume in acpi_leave_sleep_state().
+This leads to an acpi event which is handled by acpid if active. In my
+case acpid executed the corresponding shutdown script.
 
-Should I post as kernel bug?
+I guess this is going to clutter many people.
 
-Thx, bye,
-Gismo / Luca
+Regards,
+
+   Timo
+
+--=-JAtUchoi5usak+ICIIgB
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFAS25bVAp7Xm10JmkRAsOKAJ9QQAAFCS2y4A1YmXKIyswZ1jsT4gCbBiMZ
-6/4dlLMpLi84DPFFYDRFPvI=
-=hRuy
+iD8DBQBAS29z4D8IS7MFQGYRAlZiAKCVHE3x0HxBpnqz2C/zOSLUuncZCQCfVhC2
+bY2pHGVZRhlzdtvjNCkguHo=
+=8Jp+
 -----END PGP SIGNATURE-----
+
+--=-JAtUchoi5usak+ICIIgB--
+
 
 
 -------------------------------------------------------
