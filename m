@@ -1,70 +1,105 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb@netcabo.pt>
-Subject: [PATCH] can we compile ACPI without define CONFIG_PM ?
-Date: Thu, 29 Apr 2004 23:54:17 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1083279256.3410.30.camel@darkstar>
-Reply-To: sergiomb@netcabo.pt
+From: =?iso-8859-2?Q?Zden=ECk?= OGAR =?iso-8859-2?Q?Skal=E1k?=
+	<skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>
+Subject: Re: Starting AML
+Date: Fri, 30 Apr 2004 08:46:58 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <4091F662.EF7F0B1C@monetplus.cz>
+References: <20040429192133.GI28420@gaspode.nextlink.co.za>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-dLzTM9Lm4cHmA24HrIeB"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265023AbUD2W52@vger.kernel.org>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, acpi-devel <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Thomas Andrews <tandrews-Dza9YrynN5pWaveUIWBRJg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
 
---=-dLzTM9Lm4cHmA24HrIeB
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+	 I have Compar Armada 110 and I already patched few DSDT for Compaq note=
+books
+as Armada 110, Evo N110, Evo N800c and similar (they are nearly the same =
+:-). =
 
-Hi Kernel mailing list!
+	The symptons were the same - lot of syntax compile errors, off-by-one er=
+ror,
+battery status not reading properly, ..... You could try to search this l=
+ist for
+messages from me and try to repare yourself, or you could send me you dsd=
+t and I
+will try :-)
 
-IIRC: if I recall correctly=20
-we couldn't compile ACPI without Power management option (CONFIG_PM),
-but now, this is possible.
+	As for debuging DSDT, you could you DSDT's debug facility, ex: Store("So=
+me text
+you want to be printed",Debug)
 
-If the answer to the subject is no, then consider apply this patch on
-kernel 2.4.26.
+	Bye
+		Zdenek OGAR Skalak
 
-Accidentally, I compile ACPI without CONFIG_PM on one Dell something
-dual Pentium III and power off didn't work.
+Thomas Andrews wrote:
+> =
 
-So I need some confirmation from acpi-devel, but this is one meter of
-xconfig of the kernel so ...
+> Hi Everyone,
+> =
 
-For APM Xconfiguration, it's better that, we can choose APM options only
-if we select APM ( because if we don't select CONFIG_PM, CONFIG_APM will
-be disable and the APM options don't!).
-This patch correct also this situation.
+> I want to try to understand how to debug my DSDT properly, so I'd
+> appreciate some hints for debugging. I've started reading through the
+> ACPI specification available at http://www.acpi.info/spec.htm
+> =
 
-Thanks,
---=20
-S=E9rgio M. B.
+> Firstly, how do I find out in the AML where the relevant pieces of code=
 
---=-dLzTM9Lm4cHmA24HrIeB
-Content-Disposition: attachment; filename=configopti.diff
-Content-Type: text/x-patch; name=configopti.diff; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+> are ? For example, the battery voltage reported is wrong; how do I figu=
+re
+> out which bits to edit ?
+> =
 
---- linux-2.4.26s/arch/i386/config.in.orig	2004-04-29 23:38:38.000000000 +0100
-+++ linux-2.4.26s/arch/i386/config.in	2004-04-29 23:40:58.000000000 +0100
-@@ -360,7 +360,7 @@
- bool 'Power Management support' CONFIG_PM
- 
- dep_tristate '  Advanced Power Management BIOS support' CONFIG_APM $CONFIG_PM
--if [ "$CONFIG_APM" != "n" ]; then
-+if [ "$CONFIG_APM" != "n" -a "$CONFIG_PM" = "y" ]; then
-    bool '    Ignore USER SUSPEND' CONFIG_APM_IGNORE_USER_SUSPEND
-    bool '    Enable PM at boot time' CONFIG_APM_DO_ENABLE
-    bool '    Make CPU Idle calls when idle' CONFIG_APM_CPU_IDLE
-@@ -370,7 +370,9 @@
-    bool '    Use real mode APM BIOS call to power off' CONFIG_APM_REAL_MODE_POWER_OFF
- fi
- 
--source drivers/acpi/Config.in
-+if [ "$CONFIG_PM" = "y" ]; then
-+	source drivers/acpi/Config.in
-+fi
- 
- endmenu
- 
+> Secondly, how can I output debugging messages ? Is there some way I can=
 
---=-dLzTM9Lm4cHmA24HrIeB--
+> use something like printf/printk ?
+> =
+
+> I have already fixed the "syntax errors" produced by compiling the
+> original BIOS DSDT. That didn't fix anything BTW.
+> =
+
+> I have also read the (very helpful) docs and howtos on SF. Thanks.
+> The laptop is a Compaq Evo N150, for which there seem to be no fixes
+> made public.
+> =
+
+> Many thanks,
+> Thomas
+> =
+
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: Oracle 10g
+> Get certified on the hottest thing ever to hit the market... Oracle 10g=
+=2E
+> Take an Oracle 10g class now, and we'll give you the exam FREE.
+> http://ads.osdn.com/?ad_id=3D3149&alloc_id=3D8166&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+-- =
+
+Ing. Zden=ECk OGAR Skal=E1k
+Monet+ a.s.	        <http://www.monetplus.cz>
+Z=E1meck=E1 365
+763 14 Zl=EDn - =A9t=EDpa, CZ
+Tel: +420 / 577 110 411,  Fax: +420 / 577 914 557
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: Oracle 10g
+Get certified on the hottest thing ever to hit the market... Oracle 10g. 
+Take an Oracle 10g class now, and we'll give you the exam FREE.
+http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
