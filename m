@@ -1,14 +1,11 @@
-From: Heiko Ettelbrueck <hbruckynews-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Problems installing ACPI
-Date: Mon, 20 Jan 2003 22:58:19 +0100
+From: Tobias Ringstrom <tori-cF8t/dA0MSs0DrVG+m1MRYdd74u8MsAO@public.gmane.org>
+Subject: [PATCH] ACPI power-down in Linux 2.5.59
+Date: Tue, 21 Jan 2003 00:02:06 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E2C70FB.1090905@gmx.net>
-References: <1043083690.1702.15.camel@localhost.localdomain> <3E2C43D3.3020307@gmx.net>
+Message-ID: <Pine.LNX.4.44.0301202353530.21175-200000@boris.prodako.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811717-1889751922-1043103726=:21175"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3E2C43D3.3020307-hi6Y0CQ0nG0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +14,112 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: folsted-TJNDrJVYK8B/SzgSGea1oA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Christian,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
 
-> Steps:
-> - Get a fixed DSDT. You could try mine from 
-> http://www.ettelbrueck.de/linux-acpi/compaq-evo-n160/acpi_dsdt.asl , but 
-> you should alter it to fit to your battery. I've coded the current 
-> maximum capacity of my battery (3357 mAh instead of 4000 mAh for a new 
-> battery) into it - see my posting of 14 december 2002 for details about 
-> the battery part.
+---1463811717-1889751922-1043103726=:21175
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-I've updated the DSDT files on my web server concerning the maximum and 
-last known capacity of the battery: Both are now set to the default 
-value of 4000 mAh, so there's no longer a need for you to change anything.
+Dear ACPI experts,
 
-> - Compile your DSDT with Intel's ASL compiler into a c source code file 
-> and copy it to kernel-src-dir/drivers/acpi/tables/acpi_dsdt.c.
+I noticed that Linux 2.5.59 did not power-down when using ACPI. The reason 
+is that you need CONFIG_ACPI_SLEEP which needs CONFIG_SOFTWARE_SUSPEND.  
+Both are described as a bit dangerous in the config help.
 
-You can now skip this part and directly use
-http://www.ettelbrueck.de/linux-acpi/compaq-evo-n160/acpi_dsdt.c
+As an experiment, I moved the power-down code from sleep.c to bus.c (which
+seemed like a top-level file) and it seems to work well.  I've attached
+the patch to this email.  Perhaps something like this can be considered
+for future updates?  What do you think?
 
-> - [Don't know by heart if this is needed with current acpi patches] 
-> Apply a patch to your kernel that makes it use your DSDT.
+/Tobias
 
-I found the patch I used to make my kernel use my fixed DSDT. You can 
-download it from
-http://www.ettelbrueck.de/linux-acpi/compaq-evo-n160/acpi_use_own_dsdt-2.4.20.diff
+---1463811717-1889751922-1043103726=:21175
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="linux-2.5.59-acpi-power-down.diff"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.44.0301210002060.21175-CWfOIYxxj7kInT2dYjKYhA@public.gmane.org>
+Content-Description: 
+Content-Disposition: attachment; filename="linux-2.5.59-acpi-power-down.diff"
 
-> - Compile your kernel once again.
-> - Boot it...
-
-These two steps are obviously still needed ;-)
-
-Kind regards
-Heiko
-
+ZGlmZiAtcnUgbGludXgtMi41LjU5Lm9yaWcvZHJpdmVycy9hY3BpL2J1cy5j
+IGxpbnV4LTIuNS41OS9kcml2ZXJzL2FjcGkvYnVzLmMNCi0tLSBsaW51eC0y
+LjUuNTkub3JpZy9kcml2ZXJzL2FjcGkvYnVzLmMJMjAwMy0wMS0xMSAxMTo1
+MDoyMy4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjUuNTkvZHJpdmVy
+cy9hY3BpL2J1cy5jCTIwMDMtMDEtMTkgMTc6NDI6MDEuMDAwMDAwMDAwICsw
+MTAwDQpAQCAtMjksNiArMjksNyBAQA0KICNpbmNsdWRlIDxsaW51eC9wbS5o
+Pg0KICNpbmNsdWRlIDxsaW51eC9kZXZpY2UuaD4NCiAjaW5jbHVkZSA8bGlu
+dXgvcHJvY19mcy5oPg0KKyNpbmNsdWRlIDxsaW51eC9zeXNycS5oPg0KICNp
+ZmRlZiBDT05GSUdfWDg2DQogI2luY2x1ZGUgPGFzbS9tcHNwZWMuaD4NCiAj
+ZW5kaWYNCkBAIC02NzYsMTEgKzY3NywzOCBAQA0KIAlyZXR1cm5fVkFMVUUo
+LUVOT0RFVik7DQogfQ0KIA0KK3N0YXRpYyB2b2lkDQorYWNwaV9wb3dlcl9v
+ZmYgKHZvaWQpDQorew0KKwlhY3BpX2VudGVyX3NsZWVwX3N0YXRlX3ByZXAo
+QUNQSV9TVEFURV9TNSk7DQorCUFDUElfRElTQUJMRV9JUlFTKCk7DQorCWFj
+cGlfZW50ZXJfc2xlZXBfc3RhdGUoQUNQSV9TVEFURV9TNSk7DQorfQ0KKw0K
+KyNpZiBkZWZpbmVkKENPTkZJR19NQUdJQ19TWVNSUSkgJiYgZGVmaW5lZChD
+T05GSUdfUE0pDQorDQorLyogU2ltcGxlIHdyYXBwZXIgY2FsbGluZyBwb3dl
+ciBkb3duIGZ1bmN0aW9uLiAqLw0KK3N0YXRpYyB2b2lkIGFjcGlfc3lzcnFf
+cG93ZXJfb2ZmKGludCBrZXksIHN0cnVjdCBwdF9yZWdzICpwdF9yZWdzLA0K
+KwlzdHJ1Y3QgdHR5X3N0cnVjdCAqdHR5KQ0KK3sNCisJYWNwaV9wb3dlcl9v
+ZmYoKTsNCit9DQorDQorc3RydWN0IHN5c3JxX2tleV9vcCBzeXNycV9hY3Bp
+X3Bvd2Vyb2ZmX29wID0gew0KKwkuaGFuZGxlciA9CSZhY3BpX3N5c3JxX3Bv
+d2VyX29mZiwNCisJLmhlbHBfbXNnID0JIk9mZiIsDQorCS5hY3Rpb25fbXNn
+ID0JIlBvd2VyIE9mZlxuIg0KK307DQorDQorI2VuZGlmICAvKiBDT05GSUdf
+TUFHSUNfU1lTUlEgKi8NCisNCiBkZWNsX3N1YnN5cyhhY3BpLE5VTEwpOw0K
+IA0KIHN0YXRpYyBpbnQgX19pbml0IGFjcGlfaW5pdCAodm9pZCkNCiB7DQog
+CWludAkJCXJlc3VsdCA9IDA7DQorCWFjcGlfc3RhdHVzCQlzdGF0dXM7DQor
+CXU4CQkJdHlwZV9hLCB0eXBlX2I7DQogDQogCUFDUElfRlVOQ1RJT05fVFJB
+Q0UoImFjcGlfaW5pdCIpOw0KIA0KQEAgLTcxMiw2ICs3NDAsMTMgQEANCiAJ
+fSBlbHNlDQogCQlhY3BpX2Rpc2FibGVkID0gMTsNCiANCisJLyogSW5zdGFs
+bCB0aGUgc29mdC1vZmYgKFM1KSBoYW5kbGVyLiAqLw0KKwlzdGF0dXMgPSBh
+Y3BpX2dldF9zbGVlcF90eXBlX2RhdGEoQUNQSV9TVEFURV9TNSwgJnR5cGVf
+YSwgJnR5cGVfYik7DQorCWlmIChBQ1BJX1NVQ0NFU1Moc3RhdHVzKSkgew0K
+KwkJcG1fcG93ZXJfb2ZmID0gYWNwaV9wb3dlcl9vZmY7DQorCQlyZWdpc3Rl
+cl9zeXNycV9rZXkoJ28nLCAmc3lzcnFfYWNwaV9wb3dlcm9mZl9vcCk7DQor
+CX0NCisNCiAJcmV0dXJuX1ZBTFVFKHJlc3VsdCk7DQogfQ0KIA0KZGlmZiAt
+cnUgbGludXgtMi41LjU5Lm9yaWcvZHJpdmVycy9hY3BpL3NsZWVwLmMgbGlu
+dXgtMi41LjU5L2RyaXZlcnMvYWNwaS9zbGVlcC5jDQotLS0gbGludXgtMi41
+LjU5Lm9yaWcvZHJpdmVycy9hY3BpL3NsZWVwLmMJMjAwMy0wMS0wNiAyMzoy
+Njo1MS4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjUuNTkvZHJpdmVy
+cy9hY3BpL3NsZWVwLmMJMjAwMy0wMS0xOSAxNzo0MToxNC4wMDAwMDAwMDAg
+KzAxMDANCkBAIC05LDcgKzksNiBAQA0KICAqLw0KIA0KICNpbmNsdWRlIDxs
+aW51eC9wcm9jX2ZzLmg+DQotI2luY2x1ZGUgPGxpbnV4L3N5c3JxLmg+DQog
+I2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+DQogI2luY2x1ZGUgPGxpbnV4L2ly
+cS5oPg0KICNpbmNsdWRlIDxsaW51eC9wbS5oPg0KQEAgLTUzLDE0ICs1Miw2
+IEBADQogCS5yZWxlYXNlCT0gc2luZ2xlX3JlbGVhc2UsDQogfTsNCiANCi1z
+dGF0aWMgdm9pZA0KLWFjcGlfcG93ZXJfb2ZmICh2b2lkKQ0KLXsNCi0JYWNw
+aV9lbnRlcl9zbGVlcF9zdGF0ZV9wcmVwKEFDUElfU1RBVEVfUzUpOw0KLQlB
+Q1BJX0RJU0FCTEVfSVJRUygpOw0KLQlhY3BpX2VudGVyX3NsZWVwX3N0YXRl
+KEFDUElfU1RBVEVfUzUpOw0KLX0NCi0NCiAvKioNCiAgKiBhY3BpX3N5c3Rl
+bV9yZXN0b3JlX3N0YXRlIC0gT1Mtc3BlY2lmaWMgcmVzdG9yYXRpb24gb2Yg
+c3RhdGUNCiAgKiBAc3RhdGU6CXNsZWVwIHN0YXRlIHdlJ3JlIGV4aXRpbmcN
+CkBAIC02MjUsMjQgKzYxNiw2IEBADQogCXJldHVybl9WQUxVRShyZXN1bHQg
+PyByZXN1bHQgOiBjb3VudCk7DQogfQ0KIA0KLQ0KLSNpZiBkZWZpbmVkKENP
+TkZJR19NQUdJQ19TWVNSUSkgJiYgZGVmaW5lZChDT05GSUdfUE0pDQotDQot
+LyogU2ltcGxlIHdyYXBwZXIgY2FsbGluZyBwb3dlciBkb3duIGZ1bmN0aW9u
+LiAqLw0KLXN0YXRpYyB2b2lkIGFjcGlfc3lzcnFfcG93ZXJfb2ZmKGludCBr
+ZXksIHN0cnVjdCBwdF9yZWdzICpwdF9yZWdzLA0KLQlzdHJ1Y3QgdHR5X3N0
+cnVjdCAqdHR5KQ0KLXsNCi0JYWNwaV9wb3dlcl9vZmYoKTsNCi19DQotDQot
+c3RydWN0IHN5c3JxX2tleV9vcCBzeXNycV9hY3BpX3Bvd2Vyb2ZmX29wID0g
+ew0KLQkuaGFuZGxlciA9CSZhY3BpX3N5c3JxX3Bvd2VyX29mZiwNCi0JLmhl
+bHBfbXNnID0JIk9mZiIsDQotCS5hY3Rpb25fbXNnID0JIlBvd2VyIE9mZlxu
+Ig0KLX07DQotDQotI2VuZGlmICAvKiBDT05GSUdfTUFHSUNfU1lTUlEgKi8N
+Ci0NCiBzdGF0aWMgaW50IF9faW5pdCBhY3BpX3NsZWVwX2luaXQodm9pZCkN
+CiB7DQogCXN0cnVjdCBwcm9jX2Rpcl9lbnRyeQkqZW50cnkgPSBOVUxMOw0K
+QEAgLTY5MCwxMSArNjYzLDcgQEANCiAJCWVudHJ5LT5wcm9jX2ZvcHMtPndy
+aXRlID0gYWNwaV9zeXN0ZW1fd3JpdGVfYWxhcm07DQogCX0NCiANCi0JLyog
+SW5zdGFsbCB0aGUgc29mdC1vZmYgKFM1KSBoYW5kbGVyLiAqLw0KIAlpZiAo
+c2xlZXBfc3RhdGVzW0FDUElfU1RBVEVfUzVdKSB7DQotCQlwbV9wb3dlcl9v
+ZmYgPSBhY3BpX3Bvd2VyX29mZjsNCi0JCXJlZ2lzdGVyX3N5c3JxX2tleSgn
+bycsICZzeXNycV9hY3BpX3Bvd2Vyb2ZmX29wKTsNCi0NCiAJCS8qIHdvcmth
+cm91bmQ6IHNvbWUgc3lzdGVtcyBkb24ndCBjbGFpbSBTNCBzdXBwb3J0LCBi
+dXQgdGhleQ0KICAgICAgICAgICAgICAgICAgICBkbyBzdXBwb3J0IFM1IChw
+b3dlci1kb3duKS4gVGhhdCBpcyBhbGwgd2UgbmVlZCwgc28NCiAJCSAgIGlu
+ZGljYXRlIHN1cHBvcnQuICovDQo=
+---1463811717-1889751922-1043103726=:21175--
 
 
 -------------------------------------------------------
