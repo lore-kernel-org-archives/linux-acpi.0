@@ -1,14 +1,13 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: RE: 'rmmod button' doesn't remove /proc/acpi/button
-Date: Mon, 11 Nov 2002 21:49:26 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: AW: iasl -d now gives segmentation fault !
+Date: Mon, 11 Nov 2002 13:14:56 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021111214926.B801@brodo.de>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A4E9@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F0@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A4E9-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>; from andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Mon, Nov 11, 2002 at 12:01:35PM -0800
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +16,58 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "'Cagle, John (ISS-Houston)'" <john.cagle-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-1?Q?=27S=E9rgio_Monteiro_Basto=27?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>, Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 11, 2002 at 12:01:35PM -0800, Grover, Andrew wrote:
-> > From: Cagle, John (ISS-Houston) [mailto:john.cagle-VXdhtT5mjnY@public.gmane.org] 
-> > I found a minor bug in button.c's acpi_button_exit() routine. 
-> >  It doesn't remove the top-level 'button' directory when 
-> > unloading the module, and if you insmod/rmmod multiple times, 
-> > you'll end up with lots of 'button' directories in /proc/acpi.
-> 
-> This actually reveals a bug in *all* of the client drivers. They all depend
-> upon a global variable with the name acpi_{battery,button,etc}_dir to see if
-> they need to make their class proc entry when adding their first device.
-> This has the benefit of only creating a "button" directory if there actually
-> is a button, but has the bad feature of not working for insmod...because the
-> global variables go away, and so we blindly add the proc entries again.
-> 
-> I think the best thing is to make the semantics "the proc dir is there if
-> the driver is loaded, even with no devices present" instead of "the proc dir
-> is there only if an actual instance of the device is present".
-> 
-> This allows us to move the creation of the dir to the driver init function,
-> instead of the device add function.
+Hi Sergio,
 
-Actually, I think this would confuse users even more than currently: If an
-OSPM-module is loaded, but no entry is found in the DSDT (or anywhere), it
-is still loaded; doesn't complain in dmesg (actually, doesn't add any output
-to dmesg) and so causes some users to think "well, everything seems to be
-working fine". Now, if the proc dir is added even if no such device is
-added, the confusion enlargens.
+Have you tried compiling your own iasl from the unix source =
+distribution?
 
-Instead, I'd propose adding an acpi_{battery,button,etc}_dir_count, and when
-this reaches zero in acpi_button_remove_fs(), for example, remove_proc_entry
-the acpi_button_dir.
+(Just "cd compiler;make")
 
-	Dominik 
-who is very busy at the moment, else I'd write a patch :-)
+Disassembly seemed to work fine for me, with your DSDT.
+
+Regards -- Andy
+
+> -----Original Message-----
+> From: S=E9rgio Monteiro Basto [mailto:sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org]=20
+> Sent: Sunday, November 10, 2002 5:17 PM
+> To: Herbert Nachtnebel
+> Cc: acpi-devel
+> Subject: Re: AW: [ACPI] iasl -d now gives segmentation fault !
+>=20
+>=20
+> On Sun, 2002-11-10 at 19:09, Herbert Nachtnebel wrote:
+> > Hi!
+> > =20
+> > I have seen a similar segmentation fault, but only when the user =
+who
+> invokes the disassembler has no access to the file - i.e. not beeing
+> root and trying to directly disassamble /proc/acpi/dsdt.
+> > =20
+> > Hope this helps,
+> > Herbert.
+> >
+>=20
+> No try it with root and I have permission to do it!.
+> in previous version I don't had this problem.
+>=20
+> Thanks
+> S=E9rgio Basto
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
 
 
 -------------------------------------------------------
