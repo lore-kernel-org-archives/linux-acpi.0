@@ -1,17 +1,17 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [Proposal]Another way to save/restore PCI config space
-	for suspend/resume
-Date: Tue, 26 Oct 2004 10:57:54 +0100
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Integrating OS power management with the X server
+Date: Mon, 25 Oct 2004 23:17:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098784674.3996.85.camel@tyrosine>
-References: <1098766257.8433.7.camel@sli10-desk.sh.intel.com>
-	 <20041026051100.GA5844@wotan.suse.de>  <417DEA8D.4080307@intel.com>
-	 <1098780150.2789.19.camel@laptop.fenrus.org>
+Message-ID: <200410252317.27594.stefandoesinger@gmx.at>
+References: <417D372C.3000107@root.org> <1098727986.3996.65.camel@tyrosine> <417D509A.8040305@root.org>
+Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1098780150.2789.19.camel-PDvaWZGbcxh0dKo7RnIATNi2O/JbrIOy@public.gmane.org>
+In-Reply-To: <417D509A.8040305-Y6VGUYTwhu0@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,31 +20,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Arjan van de Ven <arjan-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-10-26 at 10:42 +0200, Arjan van de Ven wrote:
-> On Tue, 2004-10-26 at 02:11 -0400, Len Brown wrote:
-> > What this comes down to is that extended config space is device-specific.
-> > Generic solutions will fail.  Only device drivers will work.
-> > 
-> > If there are no drivers for PCI bridges to properly save/restore
-> > their config space, then should create them, even if this is all the 
-> > drivers do.
-> 
-> note that by default, if there is no driver, the first 64 bytes of
-> config space are saved/restored.
+> > At the moment, is it still the case that X will be unhappy if there are
+> > any DRI clients running when going through a suspend/resume cycle?
+>
+> I don't know.
+I don't get any crashes, but the 3D graphics flickers a lot if I have a dri 
+client opened during a suspend/resume cycle.
+I use the radeon(Open source) video driver, fglrx(binary) crashes when I try 
+to switch back to X.
 
-On one of my machines, doing this causes the cardbus bridge to explode
-on resume (every other character of printks suddenly starts getting left
-out, and then the machine hangs). This happens even if I've never loaded
-the yenta driver. The naive approach certainly doesn't seem to be safe
-on all hardware.
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+Cheers,
+Stefan
 
 
 -------------------------------------------------------
