@@ -1,14 +1,14 @@
-From: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Subject: Re: [PATCH][2.4] acpi S5 poweroff fix
-Date: Wed, 30 Apr 2003 12:02:17 -0300
+Date: Wed, 30 Apr 2003 21:38:56 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <048f01c30f29$7e02bbd0$3746028e@bio.dfo.ca>
-References: <20030429181518.96485.qmail@web41601.mail.yahoo.com>
- <Pine.LNX.4.53.0304301628010.4213@dynast.gaugusch.at>
+Message-ID: <20030430193855.GA21497@hell.org.pl>
+References: <20030429181518.96485.qmail@web41601.mail.yahoo.com> <Pine.LNX.4.53.0304301628010.4213@dynast.gaugusch.at>
 Mime-Version: 1.0
-Content-Type: text/plain;	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.53.0304301628010.4213-sxQ525G0OhRQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Development - Sourceforge <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: "Markus Gaugusch" <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-
+Thus wrote Markus Gaugusch:
 > I think that the prevention of S5 is nonsense.
 > echo 5 > /dev/hda will screw up your system much more than echo 5 > sleep.
 > Root must know what he's doing. I think that the patch should be applied.
 
-Neither Bruno nor I suggested that there's anything wrong with the patch - I
-haven't looked at it, and if I had I doubt I would know any more than I learned
-from having read Willy's description.  It made sense.  However, the reason Willy
-gave for actually wanting to _use_ S5 seemed flawed.
+Some time ago (at least with acpi-20021212) this feature worked perfectly.
+It was then judged as dangerous and explicitly disabled in further releases.
+What you are trying to do, is to reverse this change, so basically, you'll
+probably not have much luck succeeding. Check the archives of the list (I 
+believe the topic was discussed around January).
+Best regards,
 
-derek
-(ps.  I didn't even need to know that I _could_ echo to /dev/hda :-) Ack!!)
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
