@@ -1,10 +1,12 @@
-From: Isaac Chanin <chanin-bQtQpA3LQaY@public.gmane.org>
-Subject: A few ACPI questions
-Date: Thu, 24 Feb 2005 22:50:20 -0500
-Message-ID: <421EA07C.1060507@wpi.edu>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: Call for help: list of machines with working S3
+Date: Fri, 25 Feb 2005 16:25:47 +0100
+Message-ID: <20050225152547.GB22631@message-id.gmane0305.slipkontur.de>
+References: <20050214211105.GA12808@elf.ucw.cz> <29495f1d050223113044b96fcf@mail.gmail.com> <1109217054.10202.1.camel@neuromancer.home.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1109217054.10202.1.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,57 +19,38 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Thu, Feb 24, 2005 at 11:50:54AM +0800, Ow Mun Heng wrote:
 
-I've a few questions about some ACPI issues, but first some specs would 
-probably be helpful.  The computer that I'm using is a Mitac 8355 laptop 
-with an Athlon64 3200+ running a 2.6.10 kernel.  For lspci see 
-http://users.wpi.edu/~chanin/acpi/lspci.
+> In some cases, the D600 _can_ work. I've had it working on 2.6.7 kernel.
+> I've seen references that it works on 2.6.9 but fails on 2.6.10 with a
+> blank screen. 
+> 
+> I'm on 2.6.10 right now and it does not work. Actually I don't even get
+> SSH access or anything like that
 
-The first question is about the dsdt (which you can view - well, you can 
-view my slightly edited version, just fixed the obvious things - at 
-http://users.wpi.edu/~chanin/acpi/dsdt.dsl), there's a 'function' (if it 
-can be called that) at line 1756.  It's supposed to always return 
-something but  does not always do so.  I looked around and I've seen 
-some people making it return 0 at the end, 1 at the end, TMD0 at the 
-end, and 1 at the beginning.  So I really had no idea precisely what fix 
-would be appropriate.  Or - does it not even matter?  It is just a 
-warning after all, and IDE transfers seem to be working fine (in 
-conjunction with ACPI perhaps less so, but that's neither here nor there.)
+worksforme. D600 with Pentium M 1700 (Banias). I have to boot with
+vga=normal, using any framebuffer prevents resume (it instead boots
+immediately to the BIOS, no trace of even a try at resuming.
 
-The other thing of note with the dsdt is around line 772 where it sets 
-OSFG based on what it was set to before and the length of the operating 
-system's name.  I've tried changing the OS name to match the lengths 
-given with no changes in anything pretty much.  Looking through the file 
-I do not even see where OSFG is ever accessed.  Just figured it might 
-matter too, as it is a small anomaly.
+The backlight stays off until i switch back to X which also restores the
+console etc.
 
-The more noticeable problem that I'm having is with sleep states. 
-Standby seems closer to working than S3, but I'm not so sure.  Upon 
-switching to standby the screen will flash back and then turn right back 
-on.  The following is logged:
+kernel is SUSE-2.6.11-rc4-bk9-27-default (works since about four weeks,
+IIRC). X version is 
 
-Feb 24 22:14:37 laptop Stopping tasks: 
-======================================================|
-Feb 24 22:14:37 laptop Restarting tasks... done
+strolchi:~ # X -version
+X Window System Version 6.8.2
+Release Date: 9 February 2005
 
-S3/Mem causes a kernel panic, and I'm currently trying kernel's with 
-less stuff and/or newer kernels to see if I can get it to do something 
-more useful.
+I do not think that there is a special SUSE-hack in the X modules to get
+the video back, but i will investigate this.
 
-So any recommendations on what I should do with the dsdt?  Or any next 
-steps for fixing sleep states, I've already tried everything in 
-tricks.txt and the other documentation, although informative, wasn't 
-incredibly practical for my siltation.
+AFAICT i do not have to unload any modules, only the uhci-hcd will not
+work after resume, but it does not prevent suspend/resume. I always hated
+the D600 for the lack of S3 but now i love it ;-)
+-- 
+Stefan Seyfried
 
-Thanks,
-Isaac
-
-
-P.S. For any replies could you cc the message to me too please - I made 
-an attempt at joining the list, but couldn't get a confirmation of my 
-confirmation e-mail, so I'm not 100% sure that I'm joined yet.  Thanks 
-again.
 
 
 -------------------------------------------------------
