@@ -1,13 +1,12 @@
-From: "Bjoern A. Zeeb" <bzeeb-lists-mt/InyFV0sMN6vK3N8ee0qxOck334EZe@public.gmane.org>
-Subject: Re: [PATCH] unresolved symbols with ACPI_DEBUG
-Date: Tue, 1 Oct 2002 19:33:58 +0200 (CEST)
+From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
+Subject: [PATCH] thermal.c below zero degree celcius
+Date: Tue, 01 Oct 2002 10:49:04 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.BSF.4.44.0210011930340.427-100000@e0-0.zab2.int.zabbadoz.net>
-References: <1033459629.358.5.camel@bacchus.gpphy.uni-duesseldorf.de>
+Message-ID: <20021002024824.CAPJC0A8264C.1C79D883@mvf.biglobe.ne.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1033459629.358.5.camel-s1IKGncK6J2OERECOqmV57dB6IYNvbhm87tLKu7D3g4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,35 +15,76 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-
-On Tue, 1 Oct 2002, Knut Neumann wrote:
 
 Hi,
 
-> Hmmm....I provided pretty much the same for 2.4 yesterday. Only
-> difference is that I had to add a few lines to acpi/utilities/Makefile
-> to set ACPI_DEBUG_OUTPUT on CONFIG_ACPI_DEBUG. As I have no access to an
-> 2.5 source tree could you check if that is necessary for 2.5 too?
+I don't know whether there is a PC which works under zero degree celcius,
+but it's possible...:)
 
-no it shouldn't from what I had seen. 2.5 has a new kbuild
-structure/mechanismn from what I know and there were changes.
+--- acpi-2419/drivers/acpi/thermal.c	25 Aug 2002 01:34:14 -0000	1.1.1.1.8.1
++++ acpi-2419/drivers/acpi/thermal.c	1 Oct 2002 17:26:56 -0000
+@@ -59,7 +59,8 @@
+ 
+ #define ACPI_THERMAL_MAX_ACTIVE	10
+ 
+-#define KELVIN_TO_CELSIUS(t)	((t-2732+5)/10)
++#define KELVIN_TO_CELSIUS(t)    (long)(((long)t-2732>=0) ? ((long)t-2732+5)/10 : ((long)t-2732-5)/10)
++
+ 
+ static int acpi_thermal_add (struct acpi_device *device);
+ static int acpi_thermal_remove (struct acpi_device *device, int type);
+@@ -774,7 +775,7 @@
+ 	if (result)
+ 		goto end;
+ 
+-	p += sprintf(p, "temperature:             %lu C\n", 
++	p += sprintf(p, "temperature:             %ld C\n", 
+ 		KELVIN_TO_CELSIUS(tz->temperature));
+ 	
+ end:
+@@ -810,15 +811,15 @@
+ 		goto end;
+ 
+ 	if (tz->trips.critical.flags.valid)
+-		p += sprintf(p, "critical (S5):           %lu C\n",
++		p += sprintf(p, "critical (S5):           %ld C\n",
+ 			KELVIN_TO_CELSIUS(tz->trips.critical.temperature));
+ 
+ 	if (tz->trips.hot.flags.valid)
+-		p += sprintf(p, "hot (S4):                %lu C\n",
++		p += sprintf(p, "hot (S4):                %ld C\n",
+ 			KELVIN_TO_CELSIUS(tz->trips.hot.temperature));
+ 
+ 	if (tz->trips.passive.flags.valid) {
+-		p += sprintf(p, "passive:                 %lu C: tc1=%lu tc2=%lu tsp=%lu devices=",
++		p += sprintf(p, "passive:                 %ld C: tc1=%lu tc2=%lu tsp=%lu devices=",
+ 			KELVIN_TO_CELSIUS(tz->trips.passive.temperature),
+ 			tz->trips.passive.tc1,
+ 			tz->trips.passive.tc2, 
+@@ -833,7 +834,7 @@
+ 	for (i=0; i<ACPI_THERMAL_MAX_ACTIVE; i++) {
+ 		if (!(tz->trips.active[i].flags.valid))
+ 			break;
+-		p += sprintf(p, "active[%d]:               %lu C: devices=",
++		p += sprintf(p, "active[%d]:               %ld C: devices=",
+ 			i, KELVIN_TO_CELSIUS(tz->trips.active[i].temperature));
+ 		for (j=0; j<tz->trips.active[i].devices.count; j++) 
+ 			p += sprintf(p, "0x%p ",
+@@ -1231,7 +1232,7 @@
+ 
+ 	init_timer(&tz->timer);
+ 
+-	printk(KERN_INFO PREFIX "%s [%s] (%lu C)\n",
++	printk(KERN_INFO PREFIX "%s [%s] (%ld C)\n",
+ 		acpi_device_name(device), acpi_device_bid(device),
+ 		KELVIN_TO_CELSIUS(tz->temperature));
+ 
 
-To be on the save side ... having a look ... there is an
-
-	EXTRA_CFLAGS += $(ACPI_CFLAGS)
-
-in utilities/Makefile and that should do the job quite fine.
-
-PS: I do no longer have any extracted 2.4 sources around ;-)
-
+Thanks,
 -- 
-Greetings
-
-Bjoern A. Zeeb				bzeeb at Zabbadoz dot NeT
-56 69 73 69 74				http://www.zabbadoz.net/
+KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
 
 
 
