@@ -1,12 +1,16 @@
-From: =?iso-8859-1?q?Nick=20Teen?= <xpage_de-LWAfsSFWpa4@public.gmane.org>
-Subject: button events will be not recognised (Dell I1100, A26 - kernel 2.6.1)
-Date: Mon, 26 Jan 2004 16:57:37 +0100 (CET)
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [PATCH] Fix _STA checking in acpi_bus_add
+Date: Mon, 26 Jan 2004 09:15:02 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040126155737.90128.qmail@web13605.mail.yahoo.com>
+Message-ID: <200401260915.02308.bjorn.helgaas@hp.com>
+References: <200401021635.25419.bjorn.helgaas@hp.com> <1074919407.14755.6.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1074919407.14755.6.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,31 +19,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello folks!
+On Friday 23 January 2004 9:43 pm, Len Brown wrote:
+> Applied.
 
-Since a bios upgrade of my Dell Inspiron 1100 the ACPI
-button event support is broken. acpid receives no
-events and `cat /proc/acpi/event` gives no output
-whatever I do.
-(press the different buttons)
+Thanks!
 
-Can anybody help me out with a fixed dsdt table or
-give me a hint how to correct them? i don´t know
-exactly what i must change and if i recompile it i get
-a lot of syntax errors.
+> ps. did you find this because you've got a system where the actual
+> get_status failed, or the _STA returned !present and that was ignored?
 
-Thanks a lot!! 
-Regards, 
+Umm...  let's see... the latter, I guess.  I found this because
+ia64 linux was complaining about some invalid ranges in _CRS on
+the Intel Tiger box.  It turned out that the ranges all had
+_LEN==0, and we should have been ignoring them anyway.
 
-Nick
+But somebody from HP-UX noticed that we were complaining about
+ranges on a bridge that should have been !present according to
+the _STA.
 
-__________________________________________________________________
+Now that you've applied this, we have to resolve the next issue
+I found while investigating this: the chipset config interface
+(CBN/CSFF) is reported as _STA==0x8, i.e., "functioning, but not
+present".  We can't find anything in the spec on how to interpret
+this.
 
-Gesendet von Yahoo! Mail - http://mail.yahoo.de
-Mit Yahoo! Suche finden Sie alles: http://suche.yahoo.de
+The problem here is that since CBN/CSFF is !present, we won't
+enumerate devices under them.  Therefore, we will no longer find
+the AGP bridge on Big Sur.
+
+Bjorn
+
 
 
 -------------------------------------------------------
