@@ -1,15 +1,12 @@
-From: anders-VYFdHW3tBKJknbxzx/v8hQ@public.gmane.org
-Subject: Re: ACPI and APM
-Date: Sat, 24 Aug 2002 22:53:41 +0200
+From: Michael Notforyou <sqfreak-goaWJWIt5zpWk0Htik3J/w@public.gmane.org>
+Subject: Update on my Compaq Presario 730US
+Date: Sun, 25 Aug 2002 00:49:34 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020824205341.GA4124@delight>
-References: <20020824192026.0e4811bf.valvoline@tiscalinet.it>
+Message-ID: <5.1.0.14.0.20020825003345.03296a68@pop-server.triad.rr.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
+Content-Type: multipart/alternative;
+	boundary="=====================_2091048198==_.ALT"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020824192026.0e4811bf.valvoline-KGm45+8e4WzOeuqD6ShaSA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,53 +18,102 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+--=====================_2091048198==_.ALT
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Most things are working now. AMD Duron 1.0GHz on a VIA motherboard.
+I was compiling an SMP kernel which forces local APIC. I'm stupid.
+Now it's using Duron/Athlon/K7 optimizations.
 
-* valvoline <valvoline-KGm45+8e4WzOeuqD6ShaSA@public.gmane.org> [2002-08-24 22:45:40]:
-> [...]
->=20
-> i've hacked the acpi.c and apm.c drivers files under the arch/i386/kernel,
-> and i've bypassed some controls, to load both apm and acpi. Next, i've
-> disabled the Battery, AC-Adapter and Button flags, from ACPI config.
-> Under APM config, i've enabled the 'PM at boot time' and 'Enable console
-> Blanking using APM'.=20
->=20
-> the system seems to work properly (fans works fine, and are triggered wel=
-ls),
-> the thermal zone works fine, and....apmd suspend/standby WORKS!
->=20
-> there're some problems, that i don't know, doing something like above ?
-> suggests ?, comments ?...any will be welcome!
->=20
+Using ACPI 20020404 kernel 2.4.18.
 
-As far as I know if you enable both acpi and apm it just uses apm, it will
-even tell you during boot (dmesg please). I don't know what you hacked
-(since you didn't include a patch) but it just seems as if suspend works
-with apm and not acpi, like it does with my toshiba.
+The processor is not SpeedStep compliant, so processor speed is controlled 
+by /proc/acpi/processor/CPU0/limit
+
+Battery % and time remaining is accessible.
+The computer isn't hot all the time - the fan isn't even on now!
+No thermal_zone directory.
+Battery power alarm not supported.
+Buttons detected:
+lid
+power
+power
+sleep
+AC Adapter status reads OK.
+embedded_controller directory (what's that?)
+
+cat info on the processor in ACPI returns:
+processor id:                   0
+acpi id:                        1
+bus mastering control:          no
+power management:               yes
+throttling control:             yes
+performance management: no
+limit interface:                        yes
+
+Supports states C1, C2, not C3
+Supports 16 T-states. (It's sitting in state 9 forced by limit)
 
 
-> thanx in advance.
+Any of the weird (no thermal_zones, no P-states) fixed by newer versions?
 
---
-Anders Rune Jensen
-anders-VYFdHW3tBKJknbxzx/v8hQ@public.gmane.org
---DocE+STaALJfprDB
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
+Also, can I get it to sleep? Or hibernate (save state to disk)?
 
-iD8DBQE9Z/JVlCgXCwKO+H0RAo0lAJ47dQy2FnWTZhrfS8xBIIGRRuJuEQCfbKKN
-oT51bgIMbI4TZNesthjkUuQ=
-=hXGn
------END PGP SIGNATURE-----
+*Michael Notforyou*
 
---DocE+STaALJfprDB--
+"My God, I'm full of stars!"
+Darmok and Jalad at Tanagra!
+--=====================_2091048198==_.ALT
+Content-Type: text/html; charset="us-ascii"
+
+<html>
+Most things are working now. AMD Duron 1.0GHz on a VIA motherboard.<br>
+I was compiling an SMP kernel which forces local APIC. I'm stupid.<br>
+Now it's using Duron/Athlon/K7 optimizations.<br><br>
+Using ACPI 20020404 kernel 2.4.18.<br><br>
+The processor is not SpeedStep compliant, so processor speed is
+controlled by /proc/acpi/processor/CPU0/limit<br><br>
+Battery % and time remaining <b>is</b> accessible.<br>
+The computer isn't hot all the time - the fan isn't even on now!<br>
+<b>No</b> thermal_zone directory.<br>
+Battery power alarm <b>not</b> supported.<br>
+Buttons detected:<br>
+lid<br>
+power<br>
+power<br>
+sleep<br>
+AC Adapter status reads <b>OK</b>.<br>
+embedded_controller directory (what's that?)<br><br>
+cat info on the processor in ACPI returns:<br>
+processor
+id:<x-tab>&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab>0<br>
+acpi id:
+<x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab>1<br>
+bus mastering
+control:<x-tab>&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab>no<br>
+power
+management:<x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab>yes<br>
+throttling
+control:<x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab>yes<br>
+performance management:<x-tab>&nbsp;</x-tab>no<br>
+limit
+interface:<x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab><x-tab>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</x-tab>yes<br><br>
+<b>Supports</b> states C1, C2, <b>not</b> C3<br>
+<b>Supports</b> 16 T-states. (It's sitting in state 9 forced by
+limit)<br><br>
+<br>
+Any of the weird (no thermal_zones, no P-states) fixed by newer
+versions?<br><br>
+<br>
+Also, can I get it to sleep? Or hibernate (save state to disk)?<br>
+<x-sigsep><p></x-sigsep>
+*Michael Notforyou*<br><br>
+&quot;My God, I'm full of stars!&quot;<br>
+Darmok and Jalad at Tanagra!</html>
+
+--=====================_2091048198==_.ALT--
+
 
 
 -------------------------------------------------------
