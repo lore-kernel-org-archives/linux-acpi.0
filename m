@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: acpi: sleep/proc.c cleanups
-Date: Thu, 31 Mar 2005 16:27:25 +0200
-Message-ID: <20050331142724.GA609@openzaurus.ucw.cz>
-References: <20050319110657.GA1530@elf.ucw.cz> <20050319223115.GC29495@message-id.gmane0305.slipkontur.de>
+Subject: Re: HP/Compaq NC6120 ACPI problems
+Date: Thu, 31 Mar 2005 22:27:24 +0200
+Message-ID: <20050331202724.GB609@openzaurus.ucw.cz>
+References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si> <1111088904.11380.36.camel@eeyore> <20050317215635.1c788c09.andrej.prsa@guest.arnes.si> <1111104319.8136.182.camel@tyrosine> <20050318192300.629e2148.andrej.prsa@guest.arnes.si> <1111202374.8136.210.camel@tyrosine> <1111362416.8136.225.camel@tyrosine>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050319223115.GC29495-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <1111362416.8136.225.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > --- clean/drivers/acpi/sleep/proc.c	2005-01-12 11:07:39.000000000 +0100
-> > +++ linux/drivers/acpi/sleep/proc.c	2005-01-12 11:20:13.000000000 +0100
+> > Hmm. Yes, I can now repeat this with a 6220, though most of the time I
+> > manage it it seems to be linked to a suspend to disk beforehand. I
+> > suspect this /may/ be linked to the fact that on the 6120, only the
+> > first lid event is received. I'll see if I can track this down over the
+> > weekend.
 > 
-> > +		seq_printf(seq, "%4s	%4d		%s%8s\n",
-> > +			   dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
-> > +			   dev->wakeup.flags.run_wake ? "*" : "",
-> > +			   dev->wakeup.state.enabled ? "enabled" : "disabled");
+> Ha. Yes, progress, of sorts. On the 6120, you need to do
 > 
-> Oh, now that i read this... :-)
+> setpci -s 1f.0 bb.b=84
 > 
-> What is the difference beteen "*enabled" and "enabled"? I noticed it today
-> when trying to get my Armada E500 to wake-on-lan from S3. So what is
-> wakeup.flags.run_wake?
+> after every lid event in order to get any more. I /think/ this is a bug
+> with the HP BIOS (the 6220 doesn't do this) - I'm in touch with HP over
+> it now. As for the high kacpid load, I'm only able to trigger this after
+> a suspend to disk, and using the platform option (to ensure the _WAK
+> methods are called) /seems/ to avoid it. Could you try building a kernel
 
-Not quite sure, probably something to do with runtime wakeups :-).
+Well, running with "shutdown" is not really correct on acpi-enabled system.
+Perhaps we should change the default?
+
 				Pavel
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
