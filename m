@@ -1,86 +1,64 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb@netcabo.pt>
-Subject: Re: [ACPI] [PATCH] can we compile ACPI without define CONFIG_PM ?
-Date: Fri, 07 May 2004 12:33:01 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1083929581.9706.35.camel@darkstar>
-References: <A6974D8E5F98D511BB910002A50A6647615F9FD0@hdsmsx403.hd.intel.com>
-	 <1083903538.2296.248.camel@dhcppc4>
-Reply-To: sergiomb@netcabo.pt
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: [PATCH] filling in ACPI method access via sysfs namespace
+Date: Thu, 6 May 2004 12:02:10 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040506100210.GA194@elf.ucw.cz>
+References: <1081453741.3398.77.camel@patsy.fc.hp.com> <1081549317.2694.25.camel@patsy.fc.hp.com> <4077535D.6020403@neggie.net> <1081566768.2562.8.camel@wilson.home.net> <407786C6.7030706@neggie.net> <1081629776.2562.40.camel@wilson.home.net> <1081653618.2562.52.camel@wilson.home.net> <20040411222940.GJ18329@parcelfarce.linux.theplanet.co.uk> <1081740686.1715.20.camel@debian>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-VOabJdYxJn1JAGHxoyUz"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S263557AbUEGLdM@vger.kernel.org>
-In-Reply-To: <1083903538.2296.248.camel@dhcppc4>
-To: Len Brown <len.brown@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1081740686.1715.20.camel-/d9U08IjUQs@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---=-VOabJdYxJn1JAGHxoyUz
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+> > It seems unintuitive that you have to read the file for the method to
+> > take effect.  How about having the write function invoke the method and
+> > (if there is a result) store it for later read-back via the read function?
+> > It should be discarded on close, of course.  A read() on a file with
+> > no stored result should invoke the ACPI method (on the assumption this
+> > is a parameter-less method) and return the result directly.  Closing a
+> > file should discard any result from the method.
+> 
+>    How's this?  It behaves the way you described, but might be doing
+> some questionable things with the buffer to get there.  Is there a
+> better place to store the return data than back into the buf passed to
+> write() (aka file->private_data)?  Without adding callbacks to
+> open/close, I'm not sure how else we can dispose of the results on
+> close.  Thanks,
 
-Hi , Len=20
-Thanks for replying
-So:
 
-1 - ACPI w/o CONFIG_PM (is not supported)
+> +	/*
+> +	 * For convenience, handle cases where the last argument
+> +	 * is too small.
+> +	 */
+> +	count = length / sizeof(union acpi_object);
+> +	if (length % sizeof(union acpi_object))
+> +		count++;
+> +
+> +	if (count) {
+> +		size = sizeof(struct acpi_object_list) +
+> +		       ((count - 1) * sizeof(union acpi_object *));
 
-2 - If accidentally we configure ACPI w/o CONFIG_PM. I tested and
-doesn't power off correctly (at least on one Dell Precision 410).=20
+This probably makes it *way* too implementation dependand.
+								Pavel
+-- 
+When do you have heart between your knees?
 
-3 - It is easy make this error in configuration, especial if we try use
-.config from early versions.
 
-4 - The patch doesn't hurt at all, just force to one correct
-configuration.
-
-On Fri, 2004-05-07 at 05:18, Len Brown wrote:
-> Never occurred to me to build ACPI w/o CONFIG_PM...
-> There are #ifdef CONFIG_PM in the acpi code, so I guess this was on
-> purpose, but it makes ACPI a lot less interesting.
->=20
-> But I'm inclined to leave 2.4 alone except for real system failures.=20
-> The only clean-up I'm really interested in doing in 2.4 is when it makes
-> maintenance via backporting from 2.6 easier.
-
-I understand very well your point, and I don't check in kernel 2.6.5
-Config.in, neither check in others architectures.
-But I vote for apply this patch, because can avoid problems with
-power-off machines.
-
-Off-topic: I am testing last acpi-2.4.27 patch and it ok, no complains.
-
-I resend the patch just in case.
-thanks,
---=20
-S=E9rgio M. B.
-
---=-VOabJdYxJn1JAGHxoyUz
-Content-Disposition: attachment; filename=configopti.diff
-Content-Type: text/x-patch; name=configopti.diff; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
-
---- linux-2.4.26s/arch/i386/config.in.orig	2004-04-29 23:38:38.000000000 +0100
-+++ linux-2.4.26s/arch/i386/config.in	2004-04-29 23:40:58.000000000 +0100
-@@ -360,7 +360,7 @@
- bool 'Power Management support' CONFIG_PM
- 
- dep_tristate '  Advanced Power Management BIOS support' CONFIG_APM $CONFIG_PM
--if [ "$CONFIG_APM" != "n" ]; then
-+if [ "$CONFIG_APM" != "n" -a "$CONFIG_PM" = "y" ]; then
-    bool '    Ignore USER SUSPEND' CONFIG_APM_IGNORE_USER_SUSPEND
-    bool '    Enable PM at boot time' CONFIG_APM_DO_ENABLE
-    bool '    Make CPU Idle calls when idle' CONFIG_APM_CPU_IDLE
-@@ -370,7 +370,9 @@
-    bool '    Use real mode APM BIOS call to power off' CONFIG_APM_REAL_MODE_POWER_OFF
- fi
- 
--source drivers/acpi/Config.in
-+if [ "$CONFIG_PM" = "y" ]; then
-+	source drivers/acpi/Config.in
-+fi
- 
- endmenu
- 
-
---=-VOabJdYxJn1JAGHxoyUz--
+-------------------------------------------------------
+This SF.Net email is sponsored by Sleepycat Software
+Learn developer strategies Cisco, Motorola, Ericsson & Lucent use to deliver
+higher performing products faster, at low TCO.
+http://www.sleepycat.com/telcomwpreg.php?From=osdnemail3
