@@ -1,12 +1,10 @@
-From: Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
-Subject: Re: ACPI + loop(AES) + swsusp
-Date: Mon, 19 Aug 2002 19:44:00 +0300
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [Discontig-devel] RE: Cleanup of NUMA support in ACPI
+Date: Mon, 19 Aug 2002 10:33:46 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D612050.F980C545@pp.inet.fi>
-References: <Pine.SOL.4.44.0208181454300.2717-100000@mimosa.csv.warwick.ac.uk>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DDAE@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,36 +14,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "John J. Lee" <jjl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
-Cc: Robert Stark <rstark-viLzafFedAGELgA04lAiVw@public.gmane.org>, Linux Mailinglists <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-crypto-qDhp9YYfzQpg9hUCZPvPmw@public.gmane.org, swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org, Sean Neakums <sneakums-iTLVOByc1N8@public.gmane.org>
+To: "'KOCHI, Takayoshi'" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, "'martin.bligh=r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org'" <martin.bligh-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-"John J. Lee" wrote:
-> Given your point about security, wouldn't it be nice if there were yet
-> another flag to indicate that encrypted partitions should just be
-> turned off on suspend?
+> From: KOCHI, Takayoshi [mailto:t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org] 
+> Here's the patch.
+> This is generated against 2.5.30 kernel's driver.
+> For 2.4.18 + 20020725, I saw faiures against Config.in and Makefile...
+> perhaps it's easy to merge.
 > 
-> This is more useful than it sounds -- not all partitions are mounted all
-> the time.  It might actually be convenient if you don't want to
-> accidentally leave a partition accessible when you walk away from a
-> machine and forget to losetup -d, or whatever.
+> 
+> For discontig/numa developers:
+> 
+> If this is applied, both i386 and ia64 have to provide their own
+> functions in architecture-dependent numa support (only when 
+> CONFIG_NUMA and
+> CONFIG_ACPI_NUMA are both Y):
 
-Like Sean Neakums pointed out in earlier post to linux-crypto list, just
-forcing unmount or losetup -d is not really an option. Maybe just checking
-for encrypted loops in userspace _before_ starting suspend is a better
-solution. Something like this:
+The strange thing is that ia32 doesn't have CONFIG_NUMA, it has
+CONFIG_MULTIQUAD. Are these equivalent, or more importantly, do they imply
+the use of SLIT and SRAT?
 
-#!/bin/bash
-if losetup -a | grep -q -s "AES" ; then
-    echo "Found active encrypted loops, suspend aborted"
-    exit 1
-fi
-echo "now suspending..."
-echo "1 0 0" > /proc/sys/kernel/swsusp
+For now I'll just apply this, and we can sort out the details later. :)
 
-Regards,
-Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
-
+Regards -- Andy
 
 
 -------------------------------------------------------
