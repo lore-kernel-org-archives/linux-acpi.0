@@ -1,13 +1,15 @@
-From: "Polevoy, IgorX" <igorx.polevoy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: enabling ACPI on RH 8
-Date: Sun, 6 Apr 2003 18:13:59 +0300
+From: debdev-C7jUcIT7jcOb5HrIuDsk0A@public.gmane.org (A Mennucc1)
+Subject: Re: failed patch for 2.4.20
+Date: Sun, 6 Apr 2003 18:18:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <DFDDBBFBAF6C634BAE34B5F175A29F0227F405@hasmsx403.iil.intel.com>
+Message-ID: <20030406161833.GA11139@Tonelli.sns.it>
+References: <20030405155552.GA22362@Tonelli.sns.it> <20030405160855.GF23430@parcelfarce.linux.theplanet.co.uk>
+Reply-To: mennucc1-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="windows-1255"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20030405160855.GF23430-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,22 +18,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: mennucc1-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I'm trying to enable ACPI on Linux RH 80 (kernel 2.4.18-14) and to run
-acpid.
-I succeeded to re-compile and re-boot the kernel with all the
-ACPI support options selected, however there is no 
-/proc/acpi created (or other signs of ACPI driver is up). 
+On Sat, Apr 05, 2003 at 05:08:55PM +0100, Matthew Wilcox wrote:
+> On Sat, Apr 05, 2003 at 05:55:52PM +0200, A Mennucc1 wrote:
+> > I tried to apply acpi-20021212-2.4.20.diff.gz
+> > on the kernel sources 2.4.20  that are distributed with Debian;
+> > but I got too many rejects, and indeed compilation fails
+> 
+> this is debian's problem, not the acpi list.  there is no commitment on
+> the part of the acpi developers to provide patches against any vendor's
+> kernel.
 
-How do I enable it? 
-Has it anything to do with the fact that the APM support is currently
-enabled ?
+it seems that Debian Mantainer who is repsonsible for the kernel adds
+some patches; one of the patches was on acpi, to support it being
+modular; I have tried to put together an anti-patch
+(but it breaks a scsi low level driver)
+ 
+> p.s. your mail headers are broken, they trim the list from the reply.
+> 
 
-Thanks a lot,
-Igor.
+what do you mean?
+
+a.
+-- 
+Andrea Mennucc
+ "E' un mondo difficile. Che vita intensa!" (Tonino Carotone)
 
 
 -------------------------------------------------------
