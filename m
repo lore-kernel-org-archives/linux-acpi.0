@@ -1,15 +1,12 @@
-From: Charles Duffy <charlesduffy-doANK8/0m3qakBO8gow8eQ@public.gmane.org>
-Subject: Re: 2.6.5: Hitachi HA8000/70 panic, missing devices
-Date: Tue, 6 Apr 2004 08:02:00 -0500
+From: Chris McDermott <lcm-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 2.6] ia64 support for PCI link devices
+Date: Mon, 5 Apr 2004 18:45:53 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040406130200.GA29614@login.isgenesis.com>
-References: <571ACEFD467F7749BC50E0A98C17CDD803B1208C@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040406014553.GV7695@us.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD803B1208C-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,24 +15,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: bjorn.helgaas-VXdhtT5mjnY@public.gmane.org, davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 06, 2004 at 01:54:53PM +0800, Li, Shaohua wrote:
-> Hi,
-> For the PCI devices missing problem, it's because your DSDT has error.
-> All _BBN of root PCI bridge return 0. We have a track (Bug 1662) about
-> this issue.
-> For panic, I'm a little curious. Since you deselect ACPI, ACPI
-> interpreter should be disabled. So how can you get 'ACPI: Interpreter
-> enabled'
 
-Hrm -- that one must have been with ACPI enabled but pci=noacpi.
+This patch enables correct enablement of interrupts described by
+PCI link device entries in the DSDT.
 
-I can get another one with ACPI deselected (but ACPI_BOOT enabled), if
-that would be useful; from what I recall from eyeballing them, though,
-I'm fairly sure that the tracebacks are the same.
+The current ia64 implementation ignores link entries and therefore
+prevents such interrupts from being configured correctly.
+
+Comments?
+
+thanks,
+-- 
+Chris McDermott
+
+
+--- orig/arch/ia64/kernel/iosapic.c	2004-03-31 16:19:20.000000000 -0800
++++ new/arch/ia64/kernel/iosapic.c	2004-04-05 10:29:11.668281924 -0700
+@@ -688,15 +688,23 @@ iosapic_parse_prt (void)
+ 	char pci_id[16];
+ 	struct hw_interrupt_type *irq_type = &irq_type_iosapic_level;
+ 	irq_desc_t *idesc;
++	int trigger = IOSAPIC_LEVEL;
++	int polarity = IOSAPIC_POL_LOW;
+ 
+ 	list_for_each(node, &acpi_prt.entries) {
+ 		entry = list_entry(node, struct acpi_prt_entry, node);
+ 
+-		/* We're only interested in static (non-link) entries.  */
+-		if (entry->link.handle)
+-			continue;
++		/* Check for dynamic (PCI link) entry. */
++		if (entry->link.handle) {
++			gsi = acpi_pci_link_get_irq(entry->link.handle, entry->link.index, &trigger, &polarity);
++			if (!gsi)
++				continue;
+ 
+-		gsi = entry->link.index;
++			if (trigger == IOSAPIC_EDGE)
++				irq_type = &irq_type_iosapic_edge;
++		} else {
++			gsi = entry->link.index;
++		}
+ 
+ 		vector = gsi_to_vector(gsi);
+ 		if (vector < 0) {
+@@ -710,8 +718,12 @@ iosapic_parse_prt (void)
+ 				/* new GSI; allocate a vector for it */
+ 				vector = ia64_alloc_vector();
+ 
+-			register_intr(gsi, vector, IOSAPIC_LOWEST_PRIORITY, IOSAPIC_POL_LOW,
+-				      IOSAPIC_LEVEL);
++			if (entry->link.handle)
++				register_intr(gsi, vector, IOSAPIC_LOWEST_PRIORITY, polarity,
++					      trigger);
++			else
++				register_intr(gsi, vector, IOSAPIC_LOWEST_PRIORITY, IOSAPIC_POL_LOW,
++					      IOSAPIC_LEVEL);
+ 		}
+ 		entry->irq = vector;
+ 		snprintf(pci_id, sizeof(pci_id), "%02x:%02x:%02x[%c]",
+@@ -723,8 +735,8 @@ iosapic_parse_prt (void)
+ 		 */
+ 		idesc = irq_descp(vector);
+ 		if (idesc->handler != irq_type)
+-			register_intr(gsi, vector, IOSAPIC_LOWEST_PRIORITY, IOSAPIC_POL_LOW,
+-				      IOSAPIC_LEVEL);
++			register_intr(gsi, vector, IOSAPIC_LOWEST_PRIORITY, polarity,
++				      trigger);
+ 
+ 	}
+ }
 
 
 -------------------------------------------------------
