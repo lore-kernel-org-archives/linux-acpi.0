@@ -1,14 +1,14 @@
-From: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Subject: Re: RE: Toshiba ACPI battery status - ACPI errors
-Date: Tue, 2 Dec 2003 22:45:22 +0100
+Date: Tue, 2 Dec 2003 22:26:02 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031202214522.GA8720@fqdn.org>
-References: <3ACA40606221794F80A5670F0AF15F8401720BE7@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <20031202222602.GE10737@parcelfarce.linux.theplanet.co.uk>
+References: <3ACA40606221794F80A5670F0AF15F8401720BE7@pdsmsx403.ccr.corp.intel.com> <20031202214522.GA8720@fqdn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720BE7-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20031202214522.GA8720-+hGXy1KyAyQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,22 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> I just wrote a patch for this issue. Would you please have it a look, and test it .
+On Tue, Dec 02, 2003 at 10:45:22PM +0100, Michael Holzt wrote:
+> I would do so, but it is against the 2.6.x series, and i had some issues
+> with this kernel series on my notebook, so for now i stay with 2.4.x. If
+> you have a patch against 2.4.x, i can give it a try.
 
-I would do so, but it is against the 2.6.x series, and i had some issues
-with this kernel series on my notebook, so for now i stay with 2.4.x. If
-you have a patch against 2.4.x, i can give it a try.
-
-
-Regards
-Michael
+If you're having problems with 2.6, this would be a great time to let
+everybody know what they are ...
 
 -- 
-Michael Holzt, DL3KJU, kju-+hGXy1KyAyQ@public.gmane.org, kju@debian.org, kju@IRCNet
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
