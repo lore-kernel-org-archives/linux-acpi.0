@@ -1,12 +1,14 @@
-From: postmaster-/X6VYK7xyaY@public.gmane.org
-Subject: Undeliverable: Re: Approved
-Date: Wed, 20 Aug 2003 16:04:55 -0400
+From: Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org>
+Subject: Re: acpi breaking synaptics mouse support on Acer Travelmate 260
+Date: Wed, 20 Aug 2003 23:02:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <911C5822D324DF46837E0E6EA2F868B90587BB4F@ibiexcha.ibi.com>
+Message-ID: <20030820210235.GD5127@man.beta.es>
+References: <20030812221751.GA2432@man.beta.es> <m2ada8drjv.fsf@telia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_000_01C36756.5347CBF0"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <m2ada8drjv.fsf-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,47 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Peter Osterlund <petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+> Actually it is expected to see interrupts for about one second after
+> you stop touching the touchpad, if you are using the synaptics driver.
 
-------_=_NextPart_000_01C36756.5347CBF0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+After reading this I went and rechecked the 2.4 behaviour, in fact the
+interrupts seem to work more or less the same on 2.6 and 2.4 producing
+aproximately the same number of interrupts and stopping both 1 second after.
+You are right, when I reported the bug I had tested 2.4 with the normal
+driver and not the synaptics driver for X, sorry, I didn't know the X driver
+could change the interrupt behaviour.
 
-Your message
+Well, to sum up, for what I see looking at /proc/interrupts both 2.4 using
+the X synaptics driver, and 2.6 using the synaptics driver, produce
+aproximately the same interrupt behaviour, however 2.6 looses sync when acpi
+is compiled and works ok when acpi is not compiled :-(
 
-  To:      pgmdsg-/X6VYK7xyaY@public.gmane.org
-  Subject: Re: Approved
-  Sent:    Wed, 20 Aug 2003 12:01:26 -0400
+Hope this clarifies the thing a little bit, sorry about the inexactitudes in
+the first report.
 
-did not reach the following recipient(s):
+If you need any other info or want me to make any tests just tell me.
 
-pgmdsg-/X6VYK7xyaY@public.gmane.org on Wed, 20 Aug 2003 16:04:54 -0400
-    The recipient name is not recognized
-	The MTS-ID of the original message is: c=us;a= ;p=information
-buil;l=IBIEXCHA0308202004Q0P21DBK
-    MSEXCH:IMS:Information Builders:IBI:IBIEXCHA 0 (000C05A6) Unknown
-Recipient
-
-
-
-------_=_NextPart_000_01C36756.5347CBF0
-Content-Type: message/rfc822
-
-Message-ID: <20012871901084-zKceBacK5e1GFtBMbqicUS+6oWk/WIba@public.gmane.org>
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: pgmdsg-/X6VYK7xyaY@public.gmane.org
-Subject: Re: Approved
-Date: Wed, 20 Aug 2003 12:01:26 -0400
-MIME-Version: 1.0
-X-Mailer: Internet Mail Service (5.5.2653.19)
-X-MS-Embedded-Report: 
-
-
-------_=_NextPart_000_01C36756.5347CBF0--
+Regards...
+-- 
+Manty/BestiaTester -> http://manty.net
 
 
 -------------------------------------------------------
