@@ -1,13 +1,15 @@
-From: "Rene Kramer" <kramer_jj-DdH9u2L9k8+3Zbb/xt2tYQ@public.gmane.org>
-Subject: New! Vìagra soft tabs.
-Date: Tue, 19 Oct 2004 13:57:15 +0100
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Suspend-to-RAM on Sony Vaios
+Date: Tue, 19 Oct 2004 14:47:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <9c3801c4b5db$03bcb4e5$943b5549@saxonind.co.uk>
+Message-ID: <1098193638.32334.5.camel@elrond.flymine.org>
+References: <16A54BF5D6E14E4D916CE26C9AD3057559A0A4@pdsmsx402.ccr.corp.intel.com>
+	 <20041019123930.GA25753@hottah.alcove-fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041019123930.GA25753-Snhs3Gxj9njPHUqn3ntIkQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,20 +21,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+On Tue, 2004-10-19 at 14:39 +0200, Luc Saillard wrote:
 
-We would like to offer V_I_A_G_R_A soft tabs,
+> Is it normal just after a resume to have ?
+> MCE: The hardware reports a non fatal, correctable incident occurred on CPU 0.
+> Bank 1: f200000000000181
 
-These pills are just like regular Vìagra but they are specially formulated 
-to be soft and dissolvable under the tongue. The pill is absorbed at the 
-mouth and enters the bloodstream directly instead of going through the stomach. 
-This results in a faster more powerful effect which lasts as long as the normal.
+I get that behaviour. It seems harmless.
 
-Soft Tabs also have less sidebacks (you can drive or mix alcohol drinks with them).
-
-You can get it at: http://koolrx.com/st/?coupon
-
-No thanks: http://koolrx.com/rm.html
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
