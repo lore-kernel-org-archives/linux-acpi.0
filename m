@@ -1,14 +1,14 @@
-From: william maddler <news-Ik12NmhdCOnR7s880joybQ@public.gmane.org>
-Subject: acpi suspend on Asus A2570
-Date: Sun, 15 Feb 2004 16:04:30 +0100
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: ACPI Thermal Shutdown on Boot
+Date: Fri, 13 Feb 2004 20:06:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402151604.31103.news@maddler.net>
+Message-ID: <20040213190646.GH6804@openzaurus.ucw.cz>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB6A6@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB6A6-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,48 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi!
 
-1st of all hi to all! :)
+> > > If I understand you correctly, 30 seconds is certainly 
+> > enough time to burn
+> > > a CPU when the fan has failed, isn't it?
+> > 
+> > Our old default poll interval was 30 seconds so this doesn't change
+> > anything.  I know DeadRat takes more than 30 seconds from "shutdown -h
+> > now" to power off.  All modern CPUs have a thermal shutdown builtin.
+> > Think of _CRT as more of "system temp too high, shut down as 
+> > soon as you
+> > can."
+> 
+>   If I didn't miss something,  Chris Jensen was unable to adjust
+> critical trip point due
+> to current policy. Anyway, 57C isn't a real critical temperature. It
+> doesn't make sense to
+> enter emergent shutdown/power.So we need sane checking here.( A sane
+> _CRT ?)
+>   If FAN is broken, at least we can use throttling to guarantee it will
+> not be over heated.
+> So, throttling should be included into policy about handling critical
+> trip point.
 
-I've just bought the A2570 and installed ACPI stuff (on 2.4.24). I was able
-to configure buttons but I had no luck with the sleep stuff.
+At critical trip point, we have to shut down, according
+to specs. No choice here.
 
-I tried
+If their ACPI BIOS is b0rken, blacklist them.
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-        echo 1 > /proc/acpi/sleep
-
-but nothig happened...
-only the
-
-echo 5 > /proc/acpi/sleep
-
-worked.
-
-any clue?
-
-thx!
-
-
-=2D --=20
-There are only 10 types of people in the world:=20
-Those who understand binary, and those who don't
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-|| William Maddler http://www.cryptorebels.net ||
-||            http://blog.maddler.net          ||
- gpg --keyserver gpg.mit.edu --recv-key 639C63EF
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFAL4p+1ALxG2OcY+8RAiWIAJ951t20EjIjI7l6u0scS1JWNR8JxwCgi5Er
-vPA3SVdPW7I6RV1FaQiSW7c=3D
-=3DwvkR
-=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
