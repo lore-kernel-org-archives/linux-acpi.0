@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: IBM success ... but partial
-Date: Tue, 16 Sep 2003 13:50:29 +0200
+Subject: Re: Random shutdowns - some new details
+Date: Tue, 16 Sep 2003 14:02:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030916115029.GC602@elf.ucw.cz>
-References: <200309152119.21050.hrvoje.habjanic@zg.htnet.hr>
+Message-ID: <20030916120243.GD602@elf.ucw.cz>
+References: <3F5580DE.1060904@sbox.tugraz.at> <20030908095253.GC3944@openzaurus.ucw.cz> <3F66A5B2.2060400@sbox.tugraz.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200309152119.21050.hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+In-Reply-To: <3F66A5B2.2060400-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,48 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+To: Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> After disabling actual deallocation of memory in ACPI, laptop booted!! And i 
-> got working shell ... nice. But:
+> >In-kernel ACPI will happily call /sbin/halt for you in case of system 
+> >overheat.
+> >Watch /proc/acpi/thermal/*/*
 > 
-> sh-2.05b# cat /proc/interrupts
->            CPU0
->   0:      49587          XT-PIC  timer
->   1:          2          XT-PIC  keyboard
->   2:          0          XT-PIC  cascade
->   4:       1519          XT-PIC  serial
->   8:          1          XT-PIC  rtc
->   9:         18          XT-PIC  acpi
->  14:        947          XT-PIC  ide0
->  15:          2          XT-PIC  ide1
-> NMI:          0
-> LOC:          0
-> ERR:          0
-> MIS:          0
+> Thank you for this information - when digging through the sources I was 
+> able to locate the responsible lines.
+
+So try to locate those "/sbin/halt" calling lines, and replace with
+something like "logger 'I refuse to die'", and see what happens. If it
+does not trigger, you know it is something else.
+
+> To get behind these shutdowns I added some lines dealing with thermal 
+> events, mainly cat'ting /proc/acpi/thermal_zone/THRx/temperature, to the 
+> script /usr/sbin/acpid_proxy.
 > 
+> This script is called by acpid with the text of the occured event as 
+> parameter (The SuSE-way of handling acpi-events).
 > 
-> huh?
-
-Why huh?
-
-> sh-2.05b# cat /proc/acpi/power_resource/PUBS/state
-> state:                   on
-> system level:            S3
-> order:                   0
-> reference count:         0
+> Three days ago another shutdown occured, showing two things:
+> 1) I made some mistake when extending acpid_proxy. But the temperatures 
+> were logged.
+> 2) The temperature logged are far below the trip-points for a shutdown. 
+> (see the attached files)
 > 
-> (is this ok?)
+> The trip-point for my thermal zone THRS is 92C, the actual temperature 
+> when the event occured was 46C (logged)
+> 
+> What does this mean?
 
-Should not this be S0?
+No idea. [BTW nice system: two thermal zones, I never seen it before].
 
-> AND FAN IS NOT DETECTED???
+> Please mind the attached files:
+> acpid - a cut from the acpid-logfile
+> THRC-trip_points - /proc/acpi/thermal_zone/THRC/trip_points
+> THRS-trip_points - /proc/acpi/thermal_zone/THRS/trip_points
+> 
 
-Thats okay if hw handles the fan.
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
