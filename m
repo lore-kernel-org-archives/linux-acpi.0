@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: thermal zone causing insta-reboot on bootup of 2.6.3
-Date: Thu, 11 Mar 2004 15:10:04 +0800
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: "TSC cannot be used as a timesource" when on battery
+Date: 11 Mar 2004 02:14:41 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB747@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <1078989281.2549.99.camel@dhcppc4>
+References: <C386328088ED7F4E9F81AFBABDDF60DA04A92548@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA04A92548-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,108 +17,82 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Cc: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The following patch is from Pavel, and maybe it is suitable for this =
-case. --Luming
+Does /proc/acpi/processor/CPU0/power show any usage in C3?
 
---- clean/drivers/acpi/thermal.c	2004-02-05 01:54:00.000000000 +0100
-+++ linux/drivers/acpi/thermal.c	2004-02-05 02:24:15.000000000 +0100
-@@ -223,8 +223,11 @@
- 	tz->last_temperature =3D tz->temperature;
-=20
- 	status =3D acpi_evaluate_integer(tz->handle, "_TMP", NULL, =
-&tz->temperature);
--	if (ACPI_FAILURE(status))
-+	if (ACPI_FAILURE(status)) {
-+		if (tz->temperature !=3D tz->last_temperature)
-+			printk(KERN_ERR "temperature damaged while processing\n");
- 		return -ENODEV;
-+	}
-=20
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Temperature is %lu dK\n", =
-tz->temperature));
-=20
-@@ -457,7 +460,17 @@
- 		return_VALUE(-EINVAL);
-=20
- 	if (tz->temperature >=3D tz->trips.critical.temperature) {
-+		long old_temperature =3D tz->temperature;
- 		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Critical trip point\n"));
-+
-+		result =3D acpi_thermal_get_temperature(tz);
-+		if (!result) {
-+			if (tz->temperature < (tz->trips.critical.temperature - 100)) {
-+				printk(KERN_ALERT "ACPI changed its mind about temperature, was %ld =
-C, now %ld C",=20
-+				       KELVIN_TO_CELSIUS(old_temperature), =
-KELVIN_TO_CELSIUS(tz->temperature));
-+				return_VALUE(0);
-+			}
-+		}
- 		tz->trips.critical.flags.enabled =3D 1;
- 	}
- 	else if (tz->trips.critical.flags.enabled)
+I believe there is a bugfix in the pipeline regarding local APIC timer
+slowing down in C3.  The fix is to disable C3 -- the workaround is to
+use another timer.
 
- =20
+cheers,
+-Len
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
-> Brown, Len
-> Sent: Thursday, March 11, 2004 3:02 PM
-> To: Ois=EDn Mac Fheara=ED
-> Cc: ACPI Developers
-> Subject: Re: [ACPI] thermal zone causing insta-reboot on=20
-> bootup of 2.6.3
->=20
->=20
-> if you delete the thermal module, this failure will go away
-> (and so will our ability to debug it;-)
->=20
-> perhaps you can file a bug at bugzilla.kernel.org
-> category: ACPI
-> component: Power-Thermal
->=20
-> and attach the output from dmesg -s40000 with thermal installed.
->=20
-> clearly we're getting a bogus temperature reading.
->=20
-> thanks,
-> -Len
->=20
-> On Wed, 2004-03-10 at 19:37, Ois=EDn Mac Fheara=ED wrote:
-> > After installing the 2.6.3 kernel on Mandrake 9.2 on an Acer Aspire
-> > 1705SMi laptop, my machine repeatedly prints "Critical temperature
-> > reached (255 C), shutting down." and reboots.
-> > Installing the 20040220 patch to it seems to have made no difference
-> > (and added no options that I could see to "make menuconfig"=20
-> - in fact
-> > it removed the options for relaxed something under the ACPI options
-> > page, which wasn't doing anything anyway)...
-> > =20
-> > Can anyone advise? I'm quite inexperienced with linux, so I might be
-> > doing something stupid (also, I'm having trouble finding which boot
-> > messages are kept in which logfiles...).
-> > I'm too scared by the "might damage your CPU" message to remove
-> > thermal zone from the kernel ACPI settings.
-> > =20
-> > Ois=EDn
->=20
->=20
->=20
+
+On Thu, 2004-03-11 at 00:21, Ow Mun Heng wrote:
+> > -----Original Message-----
+> > From: Ow Mun Heng 
+> > Sent: Monday, March 01, 2004 10:39 AM
+> > To: Acpi-List (E-mail)
+> > Subject: [ACPI] "TSC cannot be used as a timesource" when on battery
+> > 
+> > 
+> > Hi All,
+> > 
+> > D600 + RH9 + kernel 2.6.3+acpi20040211
+> > 
+> > Was seeing these error messages when booting from battery. 
+> > I've searched through google and the only thing It came up with 
+> > was a reference that asks to use ACPI PM as the timesource.
+> > 
+> > I'm currently using RTC (real time clock)
+> > 
+> > I'm still trying to figure out what is the difference between ACPI 
+> > PM timesource/RTC.
+> > 
+> > I've not investigated further to determine if my clock is indeed 
+> > running slower. 
+> > 
+> > ====start kernel message=======
+> > TSC cannot be used as a timesource.
+> >  <4> Possible reasons for this are
+> > You're running with speedstep
+> > You don't have DMA enabled for your hard drive (See hdparm)
+> > Incorrect TSC synchronization on an SMP system (dee dmesg)
+> > Falling back to sane timesource now.
+> > =======end kernel messages==========
+> > 
+> > HDparm shows all my hd and cdrom are on dma
+> > This is uniprocessor laptop
+> > 
+> > Yes.. running on speedstep.
+> > When on AC power, I don't see this error.
+> 
+> Sent this to the list a while back.. I've not
+> seen any responses. So, asking again, just in case it
+> was missed (busy schedules etc)
+> 
+> I don't really think it's an issue.. but still would like 
+> to know what is triggering it.
+> 
+> Thanks,
+> Ow
+> 
+>  
+> 
+> 
 > -------------------------------------------------------
 > This SF.Net email is sponsored by: IBM Linux Tutorials
 > Free Linux tutorial presented by Daniel Robbins, President and CEO of
 > GenToo technologies. Learn everything from fundamentals to system
-> administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dick
+> administration.http://ads.osdn.com/?ad_id70&alloc_id638&op=click
 > _______________________________________________
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
->=20
+
 
 
 -------------------------------------------------------
