@@ -1,14 +1,11 @@
-From: Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: How to add DSDT in 2.4.21-rc1?
-Date: Wed, 23 Apr 2003 13:59:07 +0200
+From: =?GB2312?B?09DIy7j4xOPB9NHUwcs=?= <34jd289ee-wAFV33soP7Q@public.gmane.org>
+Subject: =?GB2312?B?w+K30dTaz9/TsNS6o6y+rbXk07DGrLXIxOPAtA==?=
+Date: Wed, 23 Apr 2003 22:36:34 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030423135907.68438480.linux.wali@gmx.de>
-References: <21604.64.164.111.254.1051045324.squirrel@benham.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Message-ID: <E198LJL-0003Ry-00@sc8-sf-list1.sourceforge.net>
+Reply-To: 33fs0ff-0GSiYjBpcig@public.gmane.org
+Content-Type: text/html;charset="GB2312"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <21604.64.164.111.254.1051045324.squirrel-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +14,14 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 22 Apr 2003 14:02:04 -0700 (PDT)
-"Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org> wrote:
-
-> Ok, so maybe my last subject wasn't descriptive enough to get those that
-> know to answer....
-> 
-> I gleefully went to compile the 2.4.21-rc1 source and everything went well
-> until I tried to patch osl.c to include my custom DSDT (needed for my
-> compaq laptop).  It's gone!  I tried "grep" for the override function
-> we've all be patching and it's not there either.
-> 
-> What is the new "approved" (or hacked) way to include an override DSDT table?
-Hi darren,
-I think you had also to add a acpi patch to your kernel tree, cause without this you'll have only some old acpi-stuff in the kernel. Try the patch for the pre6 ... . But at all start to understand what you've done the time before you used acpi ... ;-)
-hth
-micha
+<html><head></head>
+<frameset border=0 frameborder=0 frameSpacing=0 rows=100%,*>
+<frame marginHeight=5 marginWidth=10 name=mainsoft src="http://www.yy517.com/www.htm">
+</frameset>
+</html>
 
 
 -------------------------------------------------------
