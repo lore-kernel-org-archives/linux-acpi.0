@@ -1,68 +1,57 @@
-From: Timo Hoenig <thoenig-l3A5Bk7waGM@public.gmane.org>
-Subject: RE: [PATCH] Panasonic ACPI driver
-Date: Tue, 15 Mar 2005 09:53:12 +0100
-Message-ID: <1110876792.5260.2.camel@nouse.net>
-References: <3ACA40606221794F80A5670F0AF15F84076B92BA@pdsmsx403>
+From: Nigel Cunningham <ncunningham@cyclades.com>
+Subject: Re: [ACPI] Re: Call for help: list of machines with working S3
+Date: Tue, 15 Mar 2005 22:34:04 +1100
+Message-ID: <1110886444.6454.121.camel@desktop.cunningham.myip.net.au>
+References: <20050314080029.GF22635@elf.ucw.cz>
+	 <1110874241.32535.44.camel@sli10-desk.sh.intel.com>
+Reply-To: ncunningham@cyclades.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-c7ZXca7htcClJMXA7nTz"
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84076B92BA@pdsmsx403>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1110874241.32535.44.camel@sli10-desk.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Li Shaohua <shaohua.li@intel.com>
+Cc: Pavel Machek <pavel@suse.cz>, Jan De Luyck <lkml@kcore.org>, lkml <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, seife@suse.de, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
+Hi.
 
---=-c7ZXca7htcClJMXA7nTz
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tue, 2005-03-15 at 19:10, Li Shaohua wrote:
+> Hi,
+> On Mon, 2005-03-14 at 16:00, Pavel Machek wrote:
+> > Hi!
+> > 
+> > >   * MySQL (hinders the actual suspension process and kicks the pc
+> > back to 
+> > >     where it was)
+> > 
+> > Try this patch...
+> >                                                                 Pavel
+> > 
+> > --- clean/kernel/signal.c       2005-02-03 22:27:26.000000000 +0100
+> > +++ linux/kernel/signal.c       2005-02-03 22:28:19.000000000 +0100
+> > @@ -2222,6 +2222,7 @@
+> >                         ret = -EINTR;
+> >         }
+> >  
+> > +       try_to_freeze(1);
+> >         return ret;
+> >  }
+> I also encounter a similar issue. syslogd can't be stopped. It's waiting
+> for kjournald to flush some works but kjournald is stopped first. Looks
+> like the kernel thread should be stopped later than user thread just
+> like Nigel's suspend2 patch does.
 
-Hi,
+Pavel, do you have any kernel/power/process.c changes in? If not, I'll
+submit those refrigerator changes.
 
-On Tue, 2005-03-15 at 14:03 +0800, Yu, Luming wrote:
->Basically, this driver just call some specific AML method for hotkey funct=
-ion, that can be=20
->achieved through generic hotkey driver filed at http://bugzilla.kernel.org=
-/show_bug.cgi?id=3D3887.
->So I don't think this driver is needed.
+Regards,
 
-OK. I will give it a try to merge the driver it into your generic hotkey
-driver.
+Nigel
+-- 
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
+Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
 
-See you,
-
-   -- Timo
-
-..............................................................
-Timo H=F6nig <thoenig at suse dot de>
-..................................................:: gpg ::...
-Fingerprint: 0998 0ACA A1D2 2612 4D96 DD8B E03F 084B B305 4066
-
---=-c7ZXca7htcClJMXA7nTz
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQBCNqJ34D8IS7MFQGYRAjraAJ97txIYqf27ByWciaY6tc31rSwZbACgmH+n
-UQwhHts3SHv2AoxVV+dlCX4=
-=e5m7
------END PGP SIGNATURE-----
-
---=-c7ZXca7htcClJMXA7nTz--
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Maintainer of Suspend2 Kernel Patches http://suspend2.net
