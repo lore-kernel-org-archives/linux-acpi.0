@@ -1,12 +1,13 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: D600 + S3 Sleep
-Date: Fri, 18 Mar 2005 15:03:10 +0100
-Message-ID: <20050318140309.GA18696@message-id.gmane0305.slipkontur.de>
-References: <1111137292.23665.5.camel@neuromancer.home.net>
+From: Proinnsias Breathnach <proinnsias-cv59FeDIM0c@public.gmane.org>
+Subject: Re: Re: D600 + S3 Sleep
+Date: Fri, 18 Mar 2005 16:09:57 +0000
+Message-ID: <20050318160957.GL14600@project-bob.org>
+References: <1111137292.23665.5.camel@neuromancer.home.net> <20050318105425.GJ14600@project-bob.org> <1111144388.23668.46.camel@neuromancer.home.net> <20050318115313.GK14600@project-bob.org> <20050318140556.GB18696@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="l0l+eSofNeLXHSnY"
 Content-Disposition: inline
-In-Reply-To: <1111137292.23665.5.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+In-Reply-To: <20050318140556.GB18696-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,46 +20,46 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 18, 2005 at 05:14:52PM +0800, Ow Mun Heng wrote:
-> Hi All,
-> 
-> 	Anyone here managed to get S3 to work on the D600?
 
+--l0l+eSofNeLXHSnY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-yes.
-> 
-> I'm on 2.6.11 kernel and still the same Black Screen after resume
-> persists.
+On Fri, Mar 18, 2005 at 03:05:56PM +0100, Stefan Seyfried wrote:
+> On Fri, Mar 18, 2005 at 11:53:13AM +0000, Proinnsias Breathnach wrote:
+> > Unless someone comes up with a nice way of making it work with vga=3D795
+> > (or whatever it was I used have before ...)
+>=20
+> not much hope here, i have had one of our X developers pondering over this
+> one (he knows the radeon chipsets pretty well) but to no avail. It seems
+> the machine never wakes up if _any_ framebuffer is used (radeonfb also do=
+es
+> not work).
+Oh well :)
 
-I am using "vga=normal", the X-Server restores the backlight for me.
-(it also works well with vbetool restore IIRC, but i did not test the
-last few weeks).
+Life's like that !
 
-seife@strolchi:~> uname -a
-Linux strolchi 2.6.11.4-4-default #1 Wed Mar 16 21:34:20 UTC 2005 i686 i686 i386 GNU/Linux
-eife@strolchi:~> X -version
+I konw the FB stuff works if the acpi_late_bios patch is used per:
+http://www.loria.fr/~thome/d600/
 
-X Window System Version 6.8.2
-Release Date: 9 February 2005
-X Protocol Version 11, Revision 0, Release 6.8.2
-Build Operating System: SuSE Linux [ELF] SuSE
-Current Operating System: Linux strolchi 2.6.11.4-4-default #1 Wed Mar 16 21:34:20 UTC 2005 i686
-Build Date: 16 March 2005
-        Before reporting problems, check http://wiki.X.Org
-        to make sure that you have the latest version.
-Module Loader present
-seife@strolchi:~> lspci|grep VGA
-0000:01:00.0 VGA compatible controller: ATI Technologies Inc Radeon R250 Lf [FireGL 9000] (rev 02)
+But I've not been bothered to test it personally !
 
-This is the upcoming SUSE 9.3 configuration. Works for me since at least 
-8 Weeks (always tracking the latest kernel and using pretty latest X.org)
- 
-> I've tried Software Suspend 2 and By golly, it's much faster then SW1.
+P
 
-Well swsusp is also fast for me, but i have never compared it to swsusp2.
--- 
-Stefan Seyfried
+--l0l+eSofNeLXHSnY
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFCOv1VPXJFksKe94cRAu1sAKD+mYQRV6ahuq3Dz5lS1OxXzI5sUwCeMWw4
+gFMxm7/27hFMgiZti8Ude7U=
+=FpNh
+-----END PGP SIGNATURE-----
+
+--l0l+eSofNeLXHSnY--
 
 
 -------------------------------------------------------
