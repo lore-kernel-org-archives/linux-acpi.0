@@ -1,13 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI Updates (resend 1)
-Date: Mon, 24 Mar 2003 16:15:16 -0800
+From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
+Subject: Re: Hotplug PCI bridges
+Date: Tue, 25 Mar 2003 10:41:08 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96D54@orsmsx401.jf.intel.com>
+Message-ID: <20030325104009.KASYC0A8264C.1C79D883@mvf.biglobe.ne.jp>
+References: <F760B14C9561B941B89469F59BA3A84725A21D@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A21D-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,81 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org, willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+Hi,
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+On Mon, 24 Mar 2003 10:23:04 -0800
+"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-These are just various small patches not yet merged, as well as a big
-chunk for adding GPE Block support.
+> > (But for 2.4... Andy, have you got any response from Marcelo for
+> > inclusion of the latest?)
+> 
+> Apparently we are out of luck for 2.4.21 - the big IDE changes beat out
+> ACPI and it's too late now. As you may know I just have a BK tree
+> sitting here accumulating changesets for whenever he's ready, but I will
+> resume the push for inclusion after 2.4.21 comes out. It is somewhat
+> aggravating because I view the patch (huge as it is) as pretty
+> low-risk...everything is conditional on CONFIG_ACPI, after all.
 
-Thanks -- Regards -- Andy
+Indeed.
+Sometimes luck rules linux, not technical stuff.
+Sigh.
 
-This will update the following files:
-
- arch/i386/kernel/acpi/boot.c      |    1 
- drivers/acpi/Kconfig              |    2 
- drivers/acpi/ec.c                 |   17 -
- drivers/acpi/events/evevent.c     |   10 
- drivers/acpi/events/evgpe.c       |  152 ++++++---
- drivers/acpi/events/evgpeblk.c    |  264 ++++++++++++++--
- drivers/acpi/events/evmisc.c      |   62 +--
- drivers/acpi/events/evsci.c       |   56 +++
- drivers/acpi/events/evxface.c     |   59 ++-
- drivers/acpi/events/evxfevnt.c    |  414 +++++++++++++++-----------
- drivers/acpi/hardware/hwgpe.c     |  268 ++++++++++++----
- drivers/acpi/hardware/hwregs.c    |   16 -
- drivers/acpi/namespace/nsaccess.c |    5 
- drivers/acpi/namespace/nswalk.c   |   13 
- drivers/acpi/osl.c                |  110 ++++++
- drivers/acpi/processor.c          |    4 
- drivers/acpi/resources/rsxface.c  |   55 +--
- drivers/acpi/tables/tbgetall.c    |    2 
- drivers/acpi/utilities/utglobal.c |    4 
- drivers/acpi/utilities/utmisc.c   |    4 
- include/acpi/acconfig.h           |    2 
- include/acpi/acevents.h           |   18 +
- include/acpi/acglobal.h           |    4 
- include/acpi/achware.h            |   12 
- include/acpi/aclocal.h            |   48 +--
- include/acpi/acobject.h           |    1 
- include/acpi/acpiosxf.h           |   21 +
- include/acpi/acpixf.h             |   37 +-
- include/acpi/actypes.h            |    3 
- 29 files changed, 1159 insertions(+), 505 deletions(-)
-
-through these ChangeSets:
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/03/24 1.889.1.219)
-   ACPI: Fix compile issue (reported by Brendan Burns and Christian
-Neumair)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/03/24 1.889.1.218)
-   ACPI: Disable NUMA support on x86-64 (Andi Kleen)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/03/21 1.889.1.215)
-   ACPI: Interpreter update to 20030321
-   - Walking a list in the ISR is now required, so add a spinlock
-   - Add core support for GPE Block devices
-   - Change GPE interface accordingly
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/03/19 1.889.1.214)
-   ACPI: Fix off by 1 error in C2/3 detection (Ducrot Bruno)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/03/12 1.889.1.212)
-   ACPI: Fix GPE 1 handling (Takayoshi Kochi)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/03/05 1.889.289.1)
-   ACPI: Re-enable build w/o CONFIG_PCI (Pavel Machek)
-
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Thanks,
+-- 
+KOCHI, Takayoshi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org/t-kouchi@mvf.biglobe.ne.jp>
 
 
 
