@@ -1,14 +1,11 @@
-From: Jing Su <gargamel.su-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: S3 resume in 2.6.10 on Dell D600 with black screen
-Date: Tue, 11 Jan 2005 16:07:33 -0500
-Message-ID: <f11de95f050111130766da1f1d@mail.gmail.com>
-References: <Pine.LNX.4.58.0501112144550.13409@homel.vsb.cz>
-Reply-To: Jing Su <gargamel.su-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] add "pnpacpi=off", print info during discovery
+Date: Tue, 11 Jan 2005 17:25:41 -0700
+Message-ID: <1105489541.31942.81.camel@eeyore>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0501112144550.13409-O3VfBSJ9GAHt0A3bznZ7pA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,29 +15,93 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->   But with kernel 2.6.10 after resume from S3 I have black screen. The
-> same result with radeonfb or with vga only (tested without X).
+Make PNPACPI IDs uppercase, not lower (the specs, etc, are
+typically uppercase, but if you prefer it lower for some
+reason, feel free to ignore this hunk).  Print info about
+devices found via PNPACPI.  Add "pnpacpi=off" option to
+disable PNPACPI even when compiled in.
 
-I have been experiencing the same problems with kernel 2.6.9 as well. 
-The system works perfectly after suspend to disk (S4).  But with S3, I
-get the blank screen with and without X.  I'm running Fedora 3, in an
-Acer with an integrated Intel display adapter.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-After resume from S3, the rest of the system comes up fine; I can even
-SSH into the machine.  However, the display adapter does not come back
-up.  The screen stays blank, with the backlight off.  I've tried
-toggling the LCD/VGA display switch hotkey, to no avail.  Also, I've
-brought the machine out of S3 in console, and then attempted to start
-X.  X fails to start.  /var/log/messages shows the system going into
-S3, and then coming out.  There are no error messages reported about
-failure to re-start the video adapter.
+--- pnp1/drivers/pnp/pnpacpi/core.c.1	2005-01-11 15:36:30.000000000 -0700
++++ pnp1/drivers/pnp/pnpacpi/core.c	2005-01-11 15:41:02.000000000 -0700
+@@ -77,10 +77,10 @@
+ 	str[0] = id[0];
+ 	str[1] = id[1];
+ 	str[2] = id[2];
+-	str[3] = tolower(id[3]);
+-	str[4] = tolower(id[4]);
+-	str[5] = tolower(id[5]);
+-	str[6] = tolower(id[6]);
++	str[3] = id[3];
++	str[4] = id[4];
++	str[5] = id[5];
++	str[6] = id[6];
+ 	str[7] = '\0';
+ }
+ 
+@@ -142,7 +142,6 @@
+ 		is_exclusive_device(device))
+ 		return 0;
+ 
+-	pnp_dbg("ACPI device : hid %s", acpi_device_hid(device));
+ 	dev =  pnpacpi_kmalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+ 	if (!dev) {
+ 		pnp_err("Out of memory");
+@@ -220,6 +219,9 @@
+ 	pnp_add_device(dev);
+ 	num++;
+ 
++	pnp_info("%s ACPI device %s (%s)", dev->dev.bus_id, dev->name,
++		acpi_device_hid(device));
++
+ 	return AE_OK;
+ err1:
+ 	kfree(dev_id);
+@@ -240,8 +242,24 @@
+ 	return AE_OK;
+ }
+ 
++static int __initdata pnpacpi_disabled;
++
++static int __init pnpacpi_setup(char *str)
++{
++	if (strncmp(str, "off", 3) == 0)
++		pnpacpi_disabled = 1;
++
++	return 1;
++}
++__setup("pnpacpi=", pnpacpi_setup);
++
+ int __init pnpacpi_init(void)
+ {
++	if (pnpacpi_disabled) {
++		pnp_info("PnP ACPI: Disabled");
++		return 0;
++	}
++
+ 	if (acpi_disabled) {
+ 		pnp_info("PnP ACPI: ACPI disabled");
+ 		return 0;
+===== Documentation/kernel-parameters.txt 1.67 vs edited =====
+--- 1.67/Documentation/kernel-parameters.txt	2005-01-07 22:44:15 -07:00
++++ edited/Documentation/kernel-parameters.txt	2005-01-11 15:58:28 -07:00
+@@ -1010,6 +1010,9 @@
+ 			Format: { parport<nr> | timid | 0 }
+ 			See also Documentation/parport.txt.
+ 
++	pnpacpi=	[PNPACPI]
++		off	Don't use ACPI to find PNP devices
++
+ 	pnpbios=	[ISAPNP]
+ 			{ on | off | curr | res | no-curr | no-res }
+ 
 
-I'm a competent programmer, though I have no experience with Kernel or
-ACPI development.  If someone can give me some hints/pointers, I think
-I can try to help out with this issue.
+
 
 
 -------------------------------------------------------
