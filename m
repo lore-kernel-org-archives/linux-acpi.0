@@ -1,14 +1,11 @@
-From: Ron Rechenmacher <ron-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org>
-Subject: Re: HELP with 82855PM chipset issue
-Date: Wed, 29 Dec 2004 09:32:53 -0600
-Message-ID: <200412291532.iBTFWrw2032738@fnapcf.fnal.gov>
-References: <200412290308.iBT38gw2025166@fnapcf.fnal.gov>
-Reply-To: ron-13hema8v3vg@public.gmane.org
+From: Art Haas <ahaas-baQpNawxmjLR7s880joybQ@public.gmane.org>
+Subject: Error building drivers/acpi/processor_idle.c in current BK
+Date: Wed, 29 Dec 2004 09:52:46 -0600
+Message-ID: <1104335566.6187.8.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: Your message of "Tue, 28 Dec 2004 21:08:42 CST."
-             <200412290308.iBT38gw2025166-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,44 +15,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: ron-13hema8v3vg@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-My problem appears to be a Dell BIOS bug. I am informing Dell about it.
-Sorry, but my urgency in having anyone with an 82855PM system run a test
-has completely gone away.
-Sorry to bother,
-Ron
+Hi.
 
-> Hi,
-> 
-> I hope this is considered only a bit off track (sorry)...
-> I have a Dell Precision M60 and under linux or windows I see significant (~17%)
-> decrease in main memory performance after the 1st software suspend to ram or 
-> standby. I would appreciated if any one that has an 82855PM system from 
-> another vendor could:
->      
->      1a. verify that the chipset is 82855PM and note the rev (03 or 21)
->      1b. boot or reboot
->      2a. if linux, record the output of "lspci -xxx" (lspci -xxx >before.txt)
->      2b. measure main memory bandwidth (prior to the 1st suspend after reboot)
->      3.  software suspend (or standby under windows)
->      4.  wake (via power button)
->      5a. remeausure main memory bandwith and (potentially) notice decrease
->          in performance. Note that L1/L2 cache performance does not decrease.
->      5b. if linux, record the output of "lspci -xxx" (lspci -xxx >after.txt)
-> 
-> and reply to me the results.
-> Further info (including bandwidth measurement software info) can be found at:
->      http://bugzilla.kernel.org/show_bug.cgi?id=3918
-> 
-> Thanks for your help,
-> Ron
-> 
+I tried building Linus's BK tree this morning using the development
+version of GCC. Unfortunately there was a snag when building some of the
+acpi files ...
 
+drivers/acpi/processor_idle.c:57: error: static declaration of
+=E2=80=98pm_idle_save=E2=80=99 follows non-static declaration
+include/acpi/processor.h:180: error: previous declaration of
+=E2=80=98pm_idle_save=E2=80=99 was here
 
+The files compile without problem in GCC 3.3.
+
+Art Haas
 
 
 
