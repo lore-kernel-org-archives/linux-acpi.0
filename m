@@ -1,17 +1,15 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: nc4010 resume failure (was: ACPI S3 resume only reboots)
-Date: Mon, 18 Oct 2004 21:42:27 +0100
+From: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
+Subject: Re: Re: S3 resume on Fujitsu-Siemens Amilo A7620 (CONTINUES)
+Date: Mon, 18 Oct 2004 22:54:12 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098132147.4032.5.camel@tyrosine>
-References: <20041004133340.76ba05ba.albeclemit@yahoo.it>
-	 <20041009130628.GA21781@elf.ucw.cz> <20041010105635.GA3362@doc.ic.ac.uk>
-	 <20041012175810.2920edf2.albeclemit@yahoo.it>
-	 <20041017193623.GB7476@elf.ucw.cz>
+Message-ID: <20041018225412.397dcd1f.albeclemit@yahoo.it>
+References: <20041018134238.4cf1b380.albeclemit@yahoo.it>
+	<20041018124756.GA28463@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041017193623.GB7476-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20041018124756.GA28463-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,31 +18,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2004-10-17 at 21:36 +0200, Pavel Machek wrote:
+On Mon, 18 Oct 2004 14:47:56 +0200
+Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
 
->  ENTRY(wakeup_start)
-> @@ -20,6 +35,7 @@
->  	wakeup_code_start = .
->  	.code16
->  
-> +	BEEP
->   	movw	$0xb800, %ax
->  	movw	%ax,%fs
->  	movw	$0x0e00 + 'L', %fs:(0x10)
+> Yes, you are going out of wakeup.S... Actually no. You are going to
+> ret_point down in do_suspend_lowlevel.
 
-I've been trying this on an HP nc4010. As far as I can tell, the code
-never even gets this far. The machine appears to suspend correctly - the
-sleep light flashes. Pressing the power button then causes the fan to
-switch on, but no beep is produced. This is with the gdt and
-virt_to_phys patches applied. What's the best way to proceed with
-debugging this?
+Update: code is executed until
+[...]
+ENTRY(do_suspend_lowlevel)
+	call	save_processor_state
+	call	save_registers
+	pushl	$3
+	call	acpi_enter_sleep_state
+	addl	$4,%esp
+	ret
+	.p2align 4,,7
+ret_point:
+	call	restore_registers
+	call	restore_processor_state
+	# Here it's still alive :)
+	ret
+[...]
 
--- 
-Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+So now it's going out of wakeup.S, right?
+We should be in drivers/acpi/sleep/main.c at that point
+[...]
+switch (pm_state)
+	{
+	case PM_SUSPEND_STANDBY:
+		barrier();
+		status = acpi_enter_sleep_state(acpi_state);
+		break;
 
+	case PM_SUSPEND_MEM:
+		do_suspend_lowlevel();
+		break;
+
+	case PM_SUSPEND_DISK:
+		if (acpi_pm_ops.pm_disk_mode == PM_DISK_PLATFORM)
+			status = acpi_enter_sleep_state(acpi_state);
+		else
+			do_suspend_lowlevel_s4bios();
+		break;
+	default:
+		return -EINVAL;
+	}
+	local_irq_restore(flags);
+	printk(KERN_DEBUG "Back to C!\n");
+[...]
+right? 
+Can i use some beep code from here as well?
+I won't sleep until this laptop resumes! ;)
+
+Alberto
 
 
 -------------------------------------------------------
