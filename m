@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Suspend-to-RAM on ThinkPad R51
-Date: Mon, 28 Mar 2005 22:39:02 +0200
-Message-ID: <20050328203902.GC3695@openzaurus.ucw.cz>
-References: <200503261534.44710.barr.156@osu.edu>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Reading /proc/acpi/battery/BAT0/info causes high latency on Dell Lattitude D800
+Date: Mon, 28 Mar 2005 22:45:34 +0200
+Message-ID: <20050328204534.GA28568@message-id.gmane0305.slipkontur.de>
+References: <3ACA40606221794F80A5670F0AF15F84041AC15F@pdsmsx403> <16965.56265.916668.235316@cse.unsw.edu.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200503261534.44710.barr.156-ZbGKxL/pcrQ@public.gmane.org>
+In-Reply-To: <16965.56265.916668.235316-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,19 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Sun, Mar 27, 2005 at 08:01:45AM +1000, Neil Brown wrote:
+> On Saturday March 26, luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > Do you have this kind of problem before? Or just this kernel.
 
-> I cannot suspend my ThinkPad R51 to RAM. It seems to freeze at least partially 
-> either on resume or shortly before suspend (based on the blinking cursor, or 
-> lack thereof). The display powers up okay, and the contents of the console 
+it started being this bad between 2.6.10-rc2-bk9 and 2.6.10-rc2-bk10.
+But only with CONFIG_ACPI_DEBUG
 
-Did you have to do any tricks? entry for Doc*/power/video.txt would be nice.
+> Yes, I've had it for quite a while.  I don't remember a time when I
+> didn't have it.  It has just slowly become more and more annoying (not
+> worse, just more annoyig) so that I have decided to do something about
+> it.
+
+i reported the same on february 4th in a mail with subject
+"Bad battery regression on Dell D600 from 2.6.10-rc2-bk9 to 2.6.10-rc2-bk10"
+
+The "solution" (although a bad one IMO) was to turn CONFIG_ACPI_DEBUG off.
 -- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Stefan Seyfried
 
 
 
