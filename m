@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: kern 2.6.1 - suspend/resume still malfunctioning
-Date: Thu, 15 Jan 2004 14:55:32 +0100
+From: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+Subject: Re: Re: S4 reboots on resume
+Date: Thu, 15 Jan 2004 15:22:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040115135532.GA11298@message-id.gmane0305.slipkontur.de>
-References: <40069161.4040703@lorenz.eu.org>
+Message-ID: <4006A217.5040801@basmevissen.nl>
+References: <1073935225.2106.15.camel@localhost> <20040115122142.GC12963@elf.ucw.cz> <20040115130810.GA9348@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40069161.4040703-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
+In-Reply-To: <20040115130810.GA9348-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 15, 2004 at 02:10:57PM +0100, Martin Lorenz wrote:
-> Dear all,
+Stefan Seyfried wrote:
+
+
+> for the beginners in here: which one is swsusp, which one is pmdisk?
+> I'm using a suse 2.6 kernel.
+> echo 4 > /proc/acpi/sleep works for me.
 > 
-> well I am playing around to get suspend/resume working on my PC-MM10 for
-> quite a while now, and have run from one failing into the next...
 
-> all the data, i reported about my laptop is recorded with bug #1773
-> http://bugme.osdl.org/show_bug.cgi?id=1773
+See <http://swsusp.sourceforge.net/features.html>
 
-have you tried S4, e.g. "echo 4 > /proc/acpi/sleep"?
-S3 is probably harder to get working than S4, so try S4 first.
+Bas.
 
-I always test my machines in this order:
-S4 > S1 > S3
-with S3 i had not much luck on most of my machines.
--- 
-Stefan Seyfried
+
 
 
 
