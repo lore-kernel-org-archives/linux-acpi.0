@@ -1,12 +1,14 @@
-From: Stefan Tomanek <stefan-Q4Z/ui9EqVxM7kwft8N7nw@public.gmane.org>
-Subject: Battery rate on Acer TM 292
-Date: Sun, 12 Sep 2004 12:47:45 +0000 (UTC)
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [Lhns-devel] [PATCH 0/6] ACPI based physical cpu hotplug
+Date: Mon, 13 Sep 2004 02:48:17 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <loom.20040912T144218-763@post.gmane.org>
+Message-ID: <20040913024817.000061bb.tokunaga.keiich@jp.fujitsu.com>
+References: <20040908181654.A7287@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040908181654.A7287-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,39 +17,192 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I've got an Acer Travelmate 292 (It's been sold under the name Extensa 2902, but
-it's essentially an TM292), and there are 3 issues with its ACPI implementation:
+On Wed, 08 Sep 2004 18:16:54 -0700, Keshavamurthy Anil S wrote:
+> 
+> Hi All,
+> 	As everybody knows that we have logical cpu online/offline support in the kernel, the following set of patches extends this feature to provide ACPI based physical CPU hotplug and I am asking this set of patches to be included in the acpi-test tree. 
+> 
+> Please let me know if anyone see any issues or comments or even flames welcome:). 
 
-1) ACPI only reports 2 frequencies (600 and 1500 Mhz) for the Dothan, I already
-adressed this to the cpufreq guys
+I am attaching user mode agent scripts for container hotplug,
+'container.agent' and 'acpi_container.agent'.  Please put them
+under /etc/hotplug/ for working the container hotplug.
 
-2) the ac adapter does not send any events, but's that's not much trouble since
-it's status is reported properly, and battery events are sent instead
+'container.agent' is called by the container driver.  It calls a platform
+specific agent as appropriate.  'acpi_container.agent' is one of the
+platform specific agents and does real works.
 
-3) the rate of charging or discharging is always 0, makes it hard to guess when
-we are running out of power :-)
+'acpi_container.agent' does logical hotplug operations like "echo 0 >
+/sys/devices/system/cpu/cpu0/online".  The agent gets an ACPI
+object name of the target container device (e.g. DEV1) as an
+argument, searchs entries of CPUs contained in the container, and
+echos to the entries.  This version supports only CPU for now.
 
-stefan@nano:~$ acpi
-     Battery 1: discharging, 99%, charging at zero rate
-  - will never fully charge.
-stefan@nano:~$ cat /proc/acpi/battery/BAT1/state 
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            0 mA
-remaining capacity:      3960 mAh
-present voltage:         16376 mV
+Thanks,
+Keiichiro Tokunaga
 
-I disassebled the dsdt, perhaps someone experienced can take a look at it:
+[container.agent]
+#!/bin/sh
+#
+# Container hotplug agent
+#
+# Kernel params are:
+#
+#       ACTION=%s [add or remove]
+#       CONTAINER=/sys/...
+#       PLATFORM=%s [platform name]
+#
+# This calls platform specific sub-agent
+#
+# 09-Sep-2004   Initial version, ACPI support
+#
 
-http://localhost.ruhr.de/~stefan/acer_tm292_dsdt.txt
+logger "Container Hotplug Event:<CONTAINER> ACTION="$ACTION" CONTAINER="$CONTAIN
+ER" SEQNUM="$SEQNUM" DEVPATH="$DEVPATH" PLATFORM="$PLATFORM
 
-Thanks in advance...
+#
+# Sysfs mount point
+#
+SYSFS_MOUNTPOINT=`mount | grep 'sysfs' | cut -d ' ' -f 3`
 
+#
+# Platform specific agent
+#
+if [ "$PLATFORM" = "ACPI" ]; then
+    ARCH_CONTAINER=/etc/hotplug/acpi_container.agent
+    TARGET_DIR=$SYSFS_MOUNTPOINT/firmware/acpi/namespace/ACPI/`echo "$CONTAINER"
+ | sed 's/^[\]//' | sed 's/_\./\//g'`
+else
+    # Unsupported platform
+    exit
+fi
+
+case $ACTION in
+    add) $ARCH_CONTAINER -p $TARGET_DIR add;;
+    remove) $ARCH_CONTAINER -p $TARGET_DIR remove;;
+esac
+
+
+[acpi-container.agent]
+#!/bin/sh
+#
+# ACPI Container hotplug agent
+#
+# Kernel params are:
+#
+#       ACTION=%s [add or remove]
+#       CONTAINER=/sys/...
+#
+# 10-Sep-2004   Initial version, CPU support
+#
+
+TMP=tmp$$
+CPU_INFO_DIR=/proc/acpi/processor
+SYSDEVICES=/sys/devices/system
+CPU_HOTPLUG=$SYSDEVICES/cpu/cpu
+MEMBLOCKSIZE=$SYSDEVICES/memory/blocksize
+FIRM_DIR=/sys/firmware/acpi
+EJECT_OP=$FIRM_DIR/eject
+alias cpus_list='ls $CPU_INFO_DIR'
+
+function cpu_hot_plug()
+{
+    cpus_list > $TMP
+    for cpu_firm in `find $DEV_PATH -type d -print | grep -w -f $TMP`
+      do
+      cpuname=`basename $cpu_firm`
+      if [ ! -f $CPU_INFO_DIR/$cpuname/info ]
+          then
+          echo "cannot access $CPU_INFO_DIR/$cpuname/info"
+          continue
+      fi
+      cpuid=`awk '/processor id:/ {print $3}' $CPU_INFO_DIR/$cpuname/info`
+      if [ ! -f ${CPU_HOTPLUG}${cpuid}/online ]
+          then
+          echo "cannot access ${CPU_HOTPLUG}${cpuid}/online"
+          continue
+      fi
+      onlined=`cat ${CPU_HOTPLUG}${cpuid}/online`
+      if [ $onlined == "0" ]
+          then
+          contine;
+      fi
+      echo $CPU_HOTPLUG_CODE > ${CPU_HOTPLUG}${cpuid}/online
+      if [ $? != 0 ]
+          then
+          echo "cpu$cpuid hotplug failed."
+          ERROR=1
+      fi
+    done
+}
+
+function eject_target()
+{
+    echo $DEV_PATH | sed '1s/\/sys\/firmware\/acpi\/namespace\/ACPI\/_SB\///' |
+sed '1s/\//./g'
+}
+
+function usage()
+{
+    echo "Usage : acpi_container.agent (-t target-device-name| -p CONTAINER) (ad
+d|remove)"
+    exit 2
+}
+
+
+#
+# Main routine
+#
+set -- `getopt p:t: $*`
+if [ $? != 0 ]
+then
+    usage
+fi
+
+while [ $1 != -- ]
+do
+  case $1 in
+      -t) shift; DEV_PATH=/sys/firmware/acpi/namespace/ACPI/_SB/$1;;
+      -p) shift; DEV_PATH=$1;;
+  esac
+  shift;
+done
+shift;
+act=$1
+
+ERROR=0
+
+case $act in
+    add)
+        CPU_HOTPLUG_CODE="1"
+
+        cpu_hot_plug
+        ;;
+
+    remove)
+        CPU_HOTPLUG_CODE="0"
+
+        cpu_hot_plug
+
+        # eject operation
+        if [ $ERROR == 0 ]; then
+            target=`eject_target`
+            echo $target > $EJECT_OP
+            if [ $? != 0 ]; then
+                echo "Failed to eject device($target)."
+                ERROR=1
+            fi
+        fi
+        ;;
+esac
+
+rm -f $TMP > /dev/null 2>&1
+
+exit $ERROR
 
 
 -------------------------------------------------------
