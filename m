@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI problems on Athlon MP system
-Date: Fri, 10 Jan 2003 11:31:28 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.5.58 hangs at boot
+Date: Fri, 17 Jan 2003 12:51:35 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030110103127.GA399@elf.ucw.cz>
-References: <20030110030741.GA2580@stikine.ucs.sfu.ca>
+Message-ID: <F760B14C9561B941B89469F59BA3A847137F7E@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030110030741.GA2580-0ze2hujOWYhqr3d4nwidZ7Dks+cytr/Z@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,46 +16,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Martin Siegert <siegert-z1KUqvL5UUQ@public.gmane.org>
+To: Michael Dreher <dreher-zyMqRySHjtb72XyCfQbr4BvVK+yQ3ZXh@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+(CC-ing acpi-devel, hope that's OK.)
 
-> I am not sure whether this is the correct place to ask this question,
-> but hopefully you can point me in the right direction.
+> From: Michael Dreher [mailto:dreher-zyMqRySHjtb72XyCfQbr4BvVK+yQ3ZXh@public.gmane.org] 
+> > So...if you take the printks out, does it stop booting again? ;-)
 > 
-> Here is the problem:
-> I am trying to get the "poweroff" command working on an Athlon MP
-> (Tyan S2462) system (linux-2.4.21-pre2; otherwise RedHat 7.3).
-> 
-> The machine has ACPI enabled in the bios. When I compile the kernel
-> with ACPI disabled, the poweroff command shuts down the system, but
-> does not shut off the power (it acts exactly like the halt command).
-> In order to shutoff the machine I must press the power switch.
-> 
-> When I compile the kernel with ACPI enabled the situation is worse:
-> the halt and poweroff commands still work in exactly the same way
-> (shutdown the system), but now I cannot switch off the machine
-> anymore: pressing the power switch has absolutely no effect
-> (regardless of how long I hold the switch). The only way to
-> switch off the machine is to either pull the power cord or to
-> press the reset button on then the power switch (which will then
-> switch off the machine when it reboots).
+> I try now with 2.5.59. By the way, you are aware of a (small) thread
+> in lkml with subject "usb broken in 2.5?" some days ago. Greg 
+> said that
+> nonworking usb may be due to interrupt routing problems of acpi.
+> I had such problems: sometimes my smartmedia reader came up 
+> during boot,
+> sometimes not.
 
-Try holding power switch for 5 seconds, that should switch it off.
+Does /proc/interrupts show anything different for the USB device ACPI vs
+non-ACPI?
 
-> What am I doing wrong? Am I missing some kernel switches, options?
-> Do I need additional software?
+I read the thread, and basically the code in this part of the kernel is
+very confusing (to me, at least). My strategy right now is to clean
+up/modularize the code in question, and then it should be easier to
+tackle the lurking issues that people are seeing.
 
-try echo 5 > /proc/acpi/sleep. If it powers down, what you see is
-userland bug.
-
-								Pavel
-
--- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
+Regards -- Andy
 
 
 -------------------------------------------------------
