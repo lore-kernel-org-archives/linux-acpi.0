@@ -1,13 +1,11 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Battery status wrong from 2.6.7 when running on batteries
-Date: Sun, 7 Nov 2004 01:12:56 +0100
-Message-ID: <20041107001256.GA8624@hell.org.pl>
-References: <16768.60745.952949.338093@aber.ac.uk> <16769.6764.210990.366655@aber.ac.uk> <Pine.LNX.4.60.0410282005580.4042@frog.athome> <16769.64228.751344.828301@aber.ac.uk> <Pine.LNX.4.60.0410291255100.1318@frog.athome> <16770.21398.497934.189008@aber.ac.uk> <Pine.LNX.4.60.0410301303050.1003@frog.athome> <16774.14973.261012.528478@aber.ac.uk> <Pine.LNX.4.60.0411062253560.5414@frog.athome>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: Why can't _CRS be found in ->remove?
+Date: Sun, 7 Nov 2004 02:47:30 +0000
+Message-ID: <20041107024730.GA23303@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.60.0411062253560.5414-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,23 +15,96 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org:
-> There is a bad workaround for our laptops: If you close the lid, it will 
-> not restart. That is a protective rule in the BIOS that should prevent the 
-> laptop to start while in it's covered in its bag (I suppose).
 
-That, or there's some sort of PM (APM stand-by?) going on when the lid is
-closed _and_ ACPI is off. Try booting with acpi=off and close the lid --
-see particularly if the NIC responds or if the timer interrupts go off.
-Best regards,
+In the driver's ->add method, I can walk _CRS just fine:
+
+acpi_gpe_block_add; handle = e0000763fdf8bd80
+acpi_gpe_block_add; handle = e0000763fdf8bc40
+acpi_gpe_block_add; handle = e0000763fefc03c0
+acpi_gpe_block_add; handle = e0000763fefc0240
+
+But in the ->remove method, it fails:
+
+acpi_gpe_block_remove: handle = e0000763fdf8bd80
+report_method_error: Could not get node _CRS
+acpi_gpe_block_remove: handle = e0000763fdf8bc40
+report_method_error: Could not get node _CRS
+acpi_gpe_block_remove: handle = e0000763fefc03c0
+report_method_error: Could not get node _CRS
+acpi_gpe_block_remove: handle = e0000763fefc0240
+report_method_error: Could not get node _CRS
+
+Here's the relevant code snippets:
+
+static int acpi_gpe_block_add(struct acpi_device *device)
+{
+        struct gpe_block block;
+
+        printk("acpi_gpe_block_add; handle = %p\n", device->handle);
+
+        block.register_count = 0;
+        acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+                        acpi_gpe_block_crs_add, &block);
+        if (block.register_count == 0)
+                return 0;
+
+        printk("calling acpi_install_gpe_block\n");
+        return acpi_install_gpe_block(device->handle, &block.address,
+                        block.register_count, block.interrupt_level);
+}
+
+static int acpi_gpe_block_remove(struct acpi_device *device, int type)
+{
+        int status = acpi_remove_gpe_block(device->handle);
+        printk("acpi_gpe_block_remove: handle = %p\n", device->handle);
+        acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+                        acpi_gpe_block_crs_remove, NULL);
+        return status;
+}
+
+static struct acpi_driver acpi_gpe_block_driver = {
+        .name =         NAME,
+        .ids =          "ACPI0006",
+        .ops =  {
+                .add =          acpi_gpe_block_add,
+                .remove =       acpi_gpe_block_remove,
+        },
+};
+
+BTW, I made a small change to get a better error message.  I'd appreciate
+something like this being in future ACPICA releases:
+
+Index: drivers/acpi/namespace/nsutils.c
+===================================================================
+RCS file: /var/cvs/linux-2.6/drivers/acpi/namespace/nsutils.c,v
+retrieving revision 1.5
+diff -u -p -r1.5 nsutils.c
+--- drivers/acpi/namespace/nsutils.c    30 Mar 2004 12:42:26 -0000      1.5
++++ drivers/acpi/namespace/nsutils.c    7 Nov 2004 02:37:21 -0000
+@@ -143,7 +143,8 @@ acpi_ns_report_method_error (
+        if (path) {
+                status = acpi_ns_get_node_by_path (path, prefix_node, ACPI_NS_NO
+_UPSEARCH, &node);
+                if (ACPI_FAILURE (status)) {
+-                       acpi_os_printf ("report_method_error: Could not get node
+\n");
++                       acpi_os_printf ("report_method_error: Could not get "
++                                       "node %s\n", path);
+                        return;
+                }
+        }
+
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
