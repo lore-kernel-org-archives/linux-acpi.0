@@ -1,14 +1,12 @@
-From: Federico Di Gregorio <fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org>
-Subject: Re: new patch for battstat_applet-2.0.13
-Date: 06 Sep 2002 21:12:44 +0200
+From: Heiko =?ISO-8859-1?Q?Ettelbr=FCck?= <hbruckynews-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Compaq Evo N160 hangs on boot (with fixed DSDT)
+Date: 06 Sep 2002 21:16:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1031339565.1120.13.camel@momo>
-References: <1031332874.5080.42.camel@p2710>
+Message-ID: <1031339776.1044.28.camel@speedy-gonzales>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature";
-	boundary="=-BJoDiQAZDEIqozQmG+8v"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1031332874.5080.42.camel-QUVSR2uV0NY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,41 +15,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: ACPI Development - Sourceforge <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---=-BJoDiQAZDEIqozQmG+8v
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+today I managed to fix the DSDT of my Compaq Evo N160 notebook. No
+errors, no warnings of iasl - so I should be quite happy...
 
-Il ven, 2002-09-06 alle 19:21, Troy Schultz ha scritto:
-> Sorry, but there was a small problem with the patch I posted.  Also I
-> have included some basic instructions for applying the patch.
+But using a vanilla kernel 2.4.19 and the acpi patch of 2002-08-21 the
+machine hangs while booting. Here are the last lines it prints:
 
-unfortunately you can bet on having BAT1 or anything like that. i have
-BAT0. the right thing to do is to scan the directory and use the names
-you find at runtime, not hardcoded ones.
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+Unknown bridge resource 2: assuming tranparent
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 9 10 *11 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 7 9 10 11 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 7 9 10 11 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 9 *10 11 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 *9 10 11 14 15)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 7 9 10 11 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 7 9 10 11 14 15, disabled)
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 7 9 10 11 14 15, disabled)
+ACPI: Embedded Controller [H8] (gpe 29)
+pci_bind-0194 [22] acpi_pci_bind         : Device 00:00:1d.02 not
+present in PCI namespace
+PCI: Probing PCI Hardware
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 10
 
---=20
-Federico Di Gregorio
-Debian GNU/Linux Developer & Italian Press Contact        fog-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-INIT.D Developer                                           fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org
-  Spesso crescere ed andare a vivere da soli =E8 l'unico modo di restare
-   bambini.                                             -- Alice Fontana
+After having searched former postings on this mailing list, I read
+something about "the old LNKG problem" and similar things, together with
+the advice to hack the dsdt (clean way) or the acpi code (not that
+clean) to force the machine to use another interrupt line. But how do I
+do that? Searching and reading in the ACPI reference (www.acpi.info)
+didn't really help me.
 
---=-BJoDiQAZDEIqozQmG+8v
-Content-Type: application/pgp-signature; name=signature.asc
+Any suggestions how I could procede? Or does someone have an Evo N160,
+too, and also a working configuration of kernel & acpi patch?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
+Thanks in advance for your help and advice!
 
-iD8DBQA9eP4svcCgrgZGjesRAkt4AKCzw3dlnKIvf4lk9rK2nHn1F6NHFACgkDvm
-O6kbkIXGTt09tRrCOu0Qask=
-=ABKF
------END PGP SIGNATURE-----
-
---=-BJoDiQAZDEIqozQmG+8v--
+Regards,
+Heiko
 
 
 
