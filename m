@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: New SmartBattery DSDT-based controller
-Date: Mon, 31 Jan 2005 23:59:08 +0100
-Message-ID: <20050131225908.GA1731@elf.ucw.cz>
-References: <41FBDDE2.1050403@bartol.udel.edu> <1107097154.25905.22.camel@tyrosine>
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: system does not wake up sometimes
+Date: Tue, 01 Feb 2005 08:44:14 +0800
+Message-ID: <1107218653.26227.3.camel@sli10-desk.sh.intel.com>
+References: <16A54BF5D6E14E4D916CE26C9AD3057501168084@pdsmsx402.ccr.corp.intel.com>
+	 <Pine.LNX.4.58.0501312317420.31879@gaston.free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1107097154.25905.22.camel@tyrosine>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <Pine.LNX.4.58.0501312317420.31879-iBKnCo7tEuSksujEA26zIQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, aj-l3A5Bk7waGM@public.gmane.org
+To: Peter =?ISO-8859-1?Q?M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
+Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi,
+On Tue, 2005-02-01 at 06:21, Peter M=C3=BCnster wrote:
+> On Mon, 31 Jan 2005, Li, Shaohua wrote:
+>=20
+> > >very often, my system does not wake up at the specified time. I need t=
+o
+> > >press a key to resume.
+> > >The system goes to sleep the day before at about 22h30 with the follow=
+ing
+> > >commands:
+> > >modprobe genrtc
+> > >sleep 5
+> > >echo 2005-01-28 11:10:00 >/proc/acpi/alarm
+> > >sleep 5
+> > >echo 1 >/proc/acpi/sleep
+> > >
+> > >What could be wrong?
+> > >I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
+> > >
+> > >Thanks in advance for any help! Please tell me, if you need more
+> > >information.
+> >=20
+> > did you mean alarm can't work only the specific time? Is there any rule=
+?
+>=20
+> No, I didn't find any rule. Sometimes the system really wakes up the righ=
+t
+> time (Jan 22 11:10:00 gaston kernel: Back to C!), but very often it does
+> not. And this is not so good, because some cron-jobs don't get started at
+> the right time...
+Just try to set an alarm in system run time (doesn't do suspend/resume)
+and see if ACPI interrupt increased (see /proc/interrupts). Please try
+several times and report back. How about S3?
 
-> > Eventually, the modified DSDTs can be put back into the ACPI4Linux 
-> > database; but I'm more interested at the moment in ironing out any 
-> > glitches in the code.
-> 
-> While this is a neat hack, there's no real way that distributions are
-> ever going to adopt this approach - DSDTs are copyrighted by the
-> vendors, and without permission they're not going to be distributed by
-> the Linux vendors. The alternative approach of modifying the user's DSDT
-> on the fly is likely to be excessively fragile. The only reasonable
-> solution is to provide a mechanism to read the battery directly.
+Thanks,
+Shaohua
 
-Actually, it is now time to call Acer saying "hey, Linux community
-actually did the work for you; add this to your BIOS and your
-batteries will start to work under Linux as control-method
-batteries". It would help if you could release that DSDT part
-under public domain; it is unlikely that Acer is going to put GPLed
-part into their BIOS.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
