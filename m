@@ -1,60 +1,70 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: smpenum patch updated to 2.6.9-rc2
-Date: Mon, 20 Sep 2004 11:29:02 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847078E2B48@orsmsx401.amr.corp.intel.com>
+From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[1/6]-ACPI core enhancement support
+Date: Mon, 20 Sep 2004 12:01:28 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <20040920120128.A15677@unix-os.sc.intel.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920093402.C14208@unix-os.sc.intel.com> <200409201326.44946.dtor_core@ameritech.net>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200409201326.44946.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Mon, Sep 20, 2004 at 01:26:44PM -0500
+To: Dmitry Torokhov <dtor_core@ameritech.net>
+Cc: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Stian Jordet [mailto:liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org]=20
-> > > 2) With acpi=3Doff and CONFIG_X86_MPS the boot hangs at=20
-> "ENABLING IO-
-> > > APIC's"
-
-> > > 4) Without your patch and acpi=3Doff the boot hangs at:
-> > >=20
-> > > ENABLING IO-APIC IRQs
-> > > Setting 2 in the phys_id_present_map
-> > > ...changing IO-APIC Physical APIC ID to 2 ... ok.
+On Mon, Sep 20, 2004 at 01:26:44PM -0500, Dmitry Torokhov wrote:
+> On Monday 20 September 2004 11:34 am, Keshavamurthy Anil S wrote:
+> > +void
+> > +acpi_bus_trim(struct acpi_device=A0=A0=A0=A0=A0=A0=A0*start,
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0int rmdevice)
+> > +{
+> > +=A0=A0=A0=A0=A0=A0=A0acpi_status=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0status =3D AE_OK;
+> > +=A0=A0=A0=A0=A0=A0=A0struct acpi_device=A0=A0=A0=A0=A0=A0*parent =3D=
+ NULL;
+> > +=A0=A0=A0=A0=A0=A0=A0struct acpi_device=A0=A0=A0=A0=A0=A0*child =3D=
+ NULL;
+> > +=A0=A0=A0=A0=A0=A0=A0acpi_handle=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0phandle =3D 0;
+> > +=A0=A0=A0=A0=A0=A0=A0acpi_handle=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0chandle =3D 0;
+> > +
+> > +=A0=A0=A0=A0=A0=A0=A0parent =A0=3D start;
+> > +=A0=A0=A0=A0=A0=A0=A0phandle =3D start->handle;
 >=20
-> Why do I get two more lines without your patch? With your patch I only
-> get the first line before it hangs...
+>=20
+> Why do all these variables have to be initialized? parent and phandle=
+ are
+> set up explicitly couple of lines below, the rest is only used safely
+> as well...
+You are correct, variable initialization can be removed. I will do this=
+=2E
 
-The patch redoes arch/i386/kernel/io_apic.c setup_ioapic_ids_from_mpc.
-(Its name loses the "from_mpc" part because it is used by both MPS and
-ACPI in the smpenum patch.) The function is completely different and
-some of the error messages changed verbosity.
+>=20
+> Also, introducing recursion (depth does not seem to be limited here) =
+is
+> not a good idea IMHO - better convert it into iteration to avoid stac=
+k
+> problems down teh road.
+Humm, I guess recursion should be fine and even though the code does no=
+t have
+an explicit limit, the ACPI namespace describing the Ejectable device w=
+ill limit the
+number of recursible devices. And I believe this won;t be more than 3 t=
+o 4 level depth.
+Hence recursion is fine here.
 
-If you'd like to really figure out why this system isn't working via
-MPS, here are some things to try:
+If you still strongly believe that recursion is not the right choice he=
+re,=20
+let me know and I will convert it to iteration.
 
-1) Is it hanging in that function? insert a printk at the very end, to
-see.
-2) Find the line that says "#define Dprintk (x...)" in
-include/asm-i386/apic.h and change it to "#define Dprintk (x...) printk
-(x...)". That should print out everything that's going on, so we can
-compare the working ACPI case with the non-working MPS case.
-
-Regards -- Andy
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM.
-Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
+Thanks,
+Anil
+-
+To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
