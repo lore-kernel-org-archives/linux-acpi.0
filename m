@@ -1,12 +1,11 @@
-From: ravms-qn9TkAy2Cv893YDaQ3Asfg@public.gmane.org
-Subject: Rezultatele scanãrii cu RAV AntiVirus
-Date: Mon, 01 Sep 2003 04:52:18 +0300
+From: WAVA Postmaster <postmaster-4/B8Qvjdn6A@public.gmane.org>
+Subject: Re: Your application
+Date: Sun, 31 Aug 2003 23:37:39 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19tdrg-0002dh-Lb@sc8-sf-mx1.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <200309010337.h813bdO04753@mailbag.wava.com>
+References: <200309010337.h813bXg04743@mailbag.wava.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200309010337.h813bXg04743-jyH2L/idxK3j8HxC+N2foA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,28 +17,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+WARNING:  our e-mail system has detected that your message to us
+contained a virus, as follows:
 
-RAV AntiVirus for Linux i686 version: 8.3.2 (snapshot-20020108)
-Copyright (c) 1996-2001 GeCAD The Software Company. All rights reserved.
-Registered version for unlimited domains.
-Running on host: mail.dntcj.ro
+/var/spool/uvscan/tmp/document_all.pif
+        Found the W32/Sobig.f@MM virus !!!
 
-Fi=BAierul (part0002:application.pif) ata=BAat email-ului trimis de c=E3=
-tre acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org pentru jani@astechnix.ro, jani@aste=
-chnix.ro, ,
-(cu subiectul Thank you!), este infectat cu virusul Win32/Sobig.F@mm.
-Fi=BAierul nu a putut fi cur=E3=FEat.
-Mesajul-ul nu a fost trimis deoarece con=FEinea cod periculos.
+Accordingly, your message has *not* been delivered to it's recipient.
+Further information about this virus can be found at
+http://www.mcafee.com/.
 
-Scan engine 8.11 () for i386.
-Last update: Sat Aug 30 12:48:17 2003
-Scanning for 81702 malwares (viruses, trojans and worms).
+Thank you!
 
-To get a free 60-days evaluation version of RAV AntiVirus v8
-(yet fully functional) please visit:
-
-   http://www.ravantivirus.com
-
+The WAVA Postmaster
 
 
 -------------------------------------------------------
