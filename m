@@ -1,15 +1,15 @@
-From: David Bronaugh <dbronaugh-Jp3n8lUXroSX6QiC4yPwbg@public.gmane.org>
-Subject: Re: [PATCH]Panasonic Hotkey Driver
-Date: Sun, 22 Aug 2004 01:27:28 -0700
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Subject: Re: various problems with Acer TM654, suspend, ACAD, radeon
+Date: Sun, 22 Aug 2004 12:35:42 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <412858F0.8050406@linuxboxen.org>
-References: <41244219.1090603@linuxboxen.org> <87zn4pl116.wl%miura@da-cha.org>
- <87n00pkqc5.wl%miura@da-cha.org> <41270B53.3060903@linuxboxen.org>
- <87d61klqzh.wl%miura@da-cha.org> <41284119.1060504@linuxboxen.org>
+Message-ID: <20040822103542.GA17227@gamma.logic.tuwien.ac.at>
+References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <200408202147.51250.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=------------000000050006080302060107
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <41284119.1060504-Jp3n8lUXroSX6QiC4yPwbg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200408202147.51250.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,141 +18,113 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, letsnote-tech-eXqGM+LsbTTAqL8d+zIrHngSJqDPrsil@public.gmane.org
+To: Stefan =?iso-8859-15?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000000050006080302060107
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Stefan! Hi List!
 
-David Bronaugh wrote:
+Thanks for the hints, but it didn't work out:
 
-> Hiroshi Miura wrote:
->
->> At Sat, 21 Aug 2004 01:44:03 -0700,
->> David Bronaugh wrote:
->>  
->>
->>> OK, this all makes sense now. It seems like the best way to do 
->>> screen brightness setting would be to read fields 2 and 3 from SINF 
->>> into internal fields (pcc_max_bright and pcc_min_bright?) to check 
->>> user input and make sure it is not outside these bounds.
->>>   
->>
->>
->> these are ok?
->>
->> pcc_ac_max_bright
->> pcc_ac_min_bright
->> pcc_dc_max_bright
->> pcc_dc_min_bright
->>  
->>
-> In my patch, I took off the "pcc" prefix -- I felt it was unnecessary 
-> because the name the driver uses in /proc/acpi is "pcc".
->
-> I also modified the names slightly; if you don't like them, you can 
-> change them.
->
->>> I don't think it is necessary to adjust (or read) fields 5 6 and 7 
->>> -- could you confirm on your R3 that these are not necessary (try 
->>> the things I tried on my R1N)? If you can confirm this, we can 
->>> simplify the driver to only expose 1 field for the 'brightness' 
->>> control.
->>>   
->>
->>
->> I think it is necessary to adjuct field 5 6 and 7.
->> This sinf is kept through hibernate/power off and on.
->> BIOS show this field when boot or resume and set brightness according 
->> as power state.
->>
->>
->>  
->>
-> Yes, I noticed that the SINF does persist over reboots.
->
-> The attached patch is against Hiroshi's v0.5 code, and does the 
-> following:
-> - gives access (via a simple interface) to all the fields in SINF that 
-> are available on the person's laptop
-> - cleans up the coding style to bring it closer to 
-> Documentation/CodingStyle guidelines
-> - cleans up a few messy spots in the code
-> - corrects typographic errors
-> - documents some of the stranger SINF fields in the code
-> - makes an attempt at cleaning up error messages
-> - centralizes data structure definitions at the top of the file
-> - removes the global 'sinf' variable (I left the 'num_sifr' variable 
-> alone)
-> - moves the call to acpi_pcc_proc_init to avoid a possible use of 
-> uninitialized data via the /proc interface
->
-> I didn't decide to put code in the driver to make the R1N look like 
-> all the others; this could be a TODO (though I like having access to 
-> all 235 brightness levels).
->
-> I also haven't really cleaned up the error messages enough -- 
-> hopefully this can happen later. Nor have I unified all the naming 
-> conventions -- the driver still has an identity crisis (it isn't sure 
-> if it's ACPI_PCC, pcc_acpi, or HOTKEY).
->
-> Someone should run scripts/Lintain on the code, too, to clean up 
-> inconsistencies.
->
-> I have also attached a separate patch which cleans up the in-kernel 
-> help. Later today (or maybe tomorrow; I'm getting tired) I'll send 
-> scripts which handle all the hotkey events properly; then these can be 
-> put up on the website.
->
-> David Bronaugh
+On Fre, 20 Aug 2004, Stefan Dösinger wrote:
+> > - Same with the AC Adapter, why does it send no event at all?
 
-Gah, I goofed and inverted a check.
+> Perhaps it's a problem with your DSDT. I had the same issue on my TM800, and 
+> the patch I found on acpi.sf.net helped. Look for ACER - TravelMate 800 - 
+> 3a15. I guess you'll have to edit your dsdt manually.
 
-Attached is a patch that fixes it.
+I did it and it didn't help: From my dmesg:
+-----------------------------------------------------------------------
+...
+ACPI: RSDP (v000 ACER                                      ) @ 0x000f5e80
+ACPI: RSDT (v001 ACER     RSDT   0x20020630  LTP 0x00000000) @ 0x1ff75a7b
+ACPI: FADT (v001 ACER   IBIS     0x20020630 PTL  0x0000001e) @ 0x1ff7bf64
+ACPI: BOOT (v001 ACER   IBIS     0x20020630  LTP 0x00000001) @ 0x1ff7bfd8
+ACPI: DSDT (v001 ACER   IBIS     0x20020630 MSFT 0x0100000e) @ 0x00000000
+Built 1 zonelists
+....
+ACPI: Looking for DSDT in initrd ... found (at offset 20)!
+ found customized DSDT with 23575 bytes!
+....
+-----------------------------------------------------------------------
 
-David Bronaugh
-
---------------000000050006080302060107
-Content-Type: text/x-patch;
- name="pcc-0.6.1.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pcc-0.6.1.patch"
-
---- la-2.6.8.1/drivers/acpi/pcc_acpi.c	2004-08-22 01:21:03.000000000 -0700
-+++ linux-2.6.8.1/drivers/acpi/pcc_acpi.c	2004-08-22 01:23:41.000000000 -0700
-@@ -20,6 +20,8 @@
-  *---------------------------------------------------------------------------
+Where the custom DSDT was created by applying this fix:
+-----------------------------------------------------------------------
+--- dsdt.dsl	2004-08-21 14:52:10.000000000 +0200
++++ dsdt-fixed.dsl	2004-08-22 12:20:52.000000000 +0200
+@@ -2,7 +2,7 @@
+  * Intel ACPI Component Architecture
+  * AML Disassembler version 20040715
   *
-  * ChangeLog:
-+ *      Aug.21, 2004    David Bronaugh
-+ *              - v0.6.1 Fix a silly error with status checking
-  *      Aug.20, 2004    David Bronaugh
-  *              - v0.6  Correct brightness controls to reflect reality
-  *                      based on information gleaned by Hiroshi Miura
-@@ -44,7 +46,7 @@
-  *
+- * Disassembly of dsdt.dat, Sat Aug 21 14:52:10 2004
++ * Disassembly of dsdt.aml, Sat Aug 21 14:31:55 2004
   */
+ DefinitionBlock ("DSDT.aml", "DSDT", 1, "ACER  ", "IBIS    ", 537003568)
+ {
+@@ -266,6 +266,7 @@
+         }
  
--#define ACPI_PCC_VERSION	"0.6"
-+#define ACPI_PCC_VERSION	"0.6.1"
+         Store (0x00, \_SB.SLEE)
++	Return(Package(0x02){0x00, 0x00})
+     }
  
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -427,7 +429,7 @@
- 	int status;
+     Scope (_GPE)
+@@ -3486,7 +3487,7 @@
  
- 	status = read_acpi_int(hotkey->handle, METHOD_HKEY_QUERY, &result);
--	if (status > 0) {
-+	if (status < 0) {
- 		printk(KERN_INFO LOGPREFIX "error getting hotkey status\n");
- 	} else {
- 		hotkey->status = result;
+                                 If (And (0x02, BATF))
+                                 {
+-                                    Notify (\_SB.ACAD, 0x00)
++                                    Notify (\_SB.ACAD, 0x80)
+                                 }
+ 
+                                 Notify (\_SB.BAT1, 0x80)
+-----------------------------------------------------------------------
 
---------------000000050006080302060107--
+The iasl still spews out two warnings, but I ignored them:
+-----------------------------------------------------------------------
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20040715 [Aug 21 2004]
+Copyright (C) 2000 - 2004 Intel Corporation
+Supports ACPI Specification Revision 2.0c
+
+dsdt-fixed.dsl  4747:                         Method (_STA, 0, NotSerialized)
+Warning  2019 -     Not all control paths return a value ^  (_STA)
+
+dsdt-fixed.dsl  4747:                         Method (_STA, 0, NotSerialized)
+Warning  2026 -      Reserved method must return a value ^  (_STA)
+
+ASL Input:  dsdt-fixed.dsl - 5807 lines, 211377 bytes, 2765 keywords
+AML Output: DSDT.aml - 23575 bytes 680 named objects 2085 executable opcodes
+
+Compilation complete. 0 Errors, 2 Warnings, 0 Remarks, 801 Optimizations
+-----------------------------------------------------------------------
+
+But I still get only battery events when I plug in the ACAD or unplug
+it.
+
+
+
+> > - What can I try out to get S2D back again and S2R fully working?
+> Try
+> Option     "NoAccel"            "yes"
+> in the device section in your XF86Config.
+
+Umpf, well, yes, this works. But now even making a 
+	ps -ax
+makes the redrawing stumble. This cannot be the solution, the only one?!
+Are there any other patches I could try?
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Norbert Preining <preining AT logic DOT at>         Technische Universität Wien
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+Queasy but umbowed. The kind of feeling one gets when discovering a
+plastic compartment in a fridge in which thing are growing.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
