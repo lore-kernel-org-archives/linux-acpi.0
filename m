@@ -1,14 +1,13 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: help needed with invalid method in GPE block
-Date: Tue, 18 Mar 2003 23:33:48 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: help needed with invalid method in GPE block
+Date: Tue, 18 Mar 2003 14:24:31 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030318223348.GE12883@dutidad.twi.tudelft.nl>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBD5@orsmsx107.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A204@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBD5-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,20 +16,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 18, 2003 at 02:25:11PM -0800, Moore, Robert wrote:
-> We are calling acpi_hw_enable_gpe() on 0x1D or not?
+> From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
+> > > Through printk()s all over, it seems that the acpi code never 
+> > > explicitly
+> > > enables the 0x1D event on my machine at all, nevermind 
+> enabling it for
+> > > waking.  Is this a problem with my firmware/dsdt or with the 
+> > > acpi kernel
+> > > code?
+> > 
+> > Are you sure? We should be calling acpi_ev_save_method_info for each
+> > _Lxx or _Exx entry under _GPE scope, and that function 
+> enables the GPE.
+> > Please let me know if this is not the case.
+> 
+> I'm quite sure.  Yes, you do call acpi_ev_save_method_info() 
+> for each _Lxx
+> and _Exx method, but in acpi_ev_save_method_info() you only call
+> acpi_hw_enable_gpe() and NEVER 
+> acpi_hw_enable_gpe_for_wakeup().  As a matter
+> of fact, shouldn't that call rather be acpi_enable_event() (INSTEAD of
+> acpi_hw_enable_gpe()) with the WAKEUP parameter according to 
+> some mask?
 
-Sorry, my answer was ambiguous.  Yes, you are calling acpi_hw_enable_gpe()
-on 0x1D.
+I agree that it is currently never enabled for wakeup, but you said we
+never enable it at all, the opposite of what your last email said. I
+guess I'll assume the second statement is what you meant.
 
-However, this doesn't enable it for wakeup, which I guess is the problem.
+BTW here is the bug:
+http://bugme.osdl.org/show_bug.cgi?id=470
 
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Apparently it only allows CCs to registered people, so I couldn't add
+you, but if you have any extra comments, feel free to register and add
+them there.
+
+Regards -- Andy
+
 
 
 -------------------------------------------------------
