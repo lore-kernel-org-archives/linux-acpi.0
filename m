@@ -1,14 +1,12 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: fan status not working on D600
-Date: Fri, 19 Dec 2003 11:38:31 +0800
+From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: Plea for help
+Date: Thu, 18 Dec 2003 23:41:13 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C44@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3FE28F79.601@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,12 +15,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->So.. Additional Info.. Do you want me to file this into bugzilla as =
-well??
-fine!
+I posted a couple of weeks ago about a kernel panic that shows up when I
+boot my Abit VP6 (dual-PIII) with ACPI turned on.  It turns out that the
+kernel boots just fine with ACPI on when I build it with
+CONFIG_DEBUG_SLAB=y.
+
+Alan Cox suggested that this is probably due to code that kmallocs
+memory and then relies on its content without clearing it, but I never
+received any response to my request for suggestions on how to identify
+the offending code.
+
+I've just spent several hours adding printk statements to the ACPI code,
+and I've reached a point where the oops message is overwriting portions
+of my printk messages.  I have the sinking feeling that this indicates
+that the process executing the ACPI code is not the one that's oops'ing.
+
+I'm stuck.  How can a relative newbie debug a problem like this, or at
+least gather enough information to enable someone with more expertise to
+do so?
+
+TIA.
+-- 
+========================================================================
+Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
+========================================================================
 
 
 
