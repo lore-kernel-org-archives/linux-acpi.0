@@ -1,13 +1,13 @@
-From: Vlad Yasevich <vladislav.yasevich-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Processor is almost never in C1 state
-Date: Tue, 07 Dec 2004 15:04:06 -0500
-Message-ID: <1102449846.8525.151.camel@galen.zko.hp.com>
-References: <fe1d56f504120608102afbf39b@mail.gmail.com>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Source of buzzing determined for hp tc1100
+Date: Tue, 07 Dec 2004 07:42:13 -0800
+Message-ID: <41B5CF55.6090908@root.org>
+References: <41B4E721.1040601@joshuawise.com> <41B4EB17.5010702@root.org> <41B4F13B.6060304@joshuawise.com> <200412071143.13460.symbiont@berlios.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <fe1d56f504120608102afbf39b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <200412071143.13460.symbiont-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,58 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dogshu <dogshu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Jeff Pitman <symbiont-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have somewhat similar numbers (C1 is has a larger
-value, but is almost never used) on a Compaq Evo N620c.
+Jeff Pitman wrote:
+> On Tuesday 07 December 2004 07:54, Joshua Wise wrote:
+> 
+>>I then googled for acpi c3 noise, which gave me some information
+>>about Thinkpads and sound card noise, but the noise occurs regardless
+>>of soundcard-osity. In fact, it seems to be coming from near the CPU
+>>fan.
+> 
+> 
+> This is not coming from the soundcard on my Thinkpad T30.  It's from the 
+> thermal unit located around the CPU fan on the upper left of the unit.
+> 
+> 
+>>While the system is connected to the USB keyboard, the it will never
+>>go into C3 state, and bus master activity is always ffffffff.
+> 
+> 
+> I have a USB external HD connected and it stays in C2 all the time.
+> 
+> 
+>>However, when I connect AC power, the buzzing goes away, but the
+>>system still spends most of its time in C3 state.
+> 
+> 
+> Whether I'm on AC or Battery, it's always in C2.  Usage for C3 is 
+> extremely low.  AC or Battery there's still buzzing.  Albeit, mine is 
+> very quiet.
 
-I found, just by playing around, that by removing
-USB modules, I can make my system go into C1 much
-faster when doing CPU intensive operations.
+Perhaps my previous email wasn't clear enough.  If you search the 
+archives for "noise C3", you'll find more about it.  It's capacitor 
+noise due to stop GNT.  Changing the kernel timer frequency (kern.hz on 
+FreeBSD) will change the rate.  I use 100, which is not audible.  The 
+normal rate of 1000 hz is a very audible tone.  So either disable C3 or 
+change your HZ rate to something not audible.
 
-See if that works for you.
-
--vlad
-
-On Mon, 2004-12-06 at 11:10 -0500, dogshu wrote:
-> Hello,
-> 
-> I have a Toshiba Portege laptop with a 500 mhz pentium-3 mobile CPU. 
-> The processor is almost never is in the C1 state, and spends 99.9% of
-> the time in the C2 state, even when doing heavy processing.
-> 
-> After a night of compiling KDE, and while running the "burnP6" program
-> included in the "cpuburn 1.4" package, this is the output of
-> /proc/acpi/processor/CPU0/power:
-> 
-> active state:            C2
-> default state:           C1
-> bus master activity:     00000000
-> states:
->     C1:                  promotion[C2] demotion[--] latency[000] usage[00009710]
->    *C2:                  promotion[--] demotion[C1] latency[001] usage[12232108]
->     C3:                  <not supported>
-> 
-> As you can see, even though the processor is being maxed out by
-> burnP6, it remains in the C2 state and doesn't really use the C1 state
-> at all.
-> 
-> I don't mind having the CPU in this lower power/lower performance
-> state most of the time... however I occassionally like to play DVDs on
-> this laptop, and I need all the CPU power I can get when playing DVDs,
-> or else  I will get lots of dropped frames.
-> 
-> I am running kernel 2.6.10-rc2-mm4.  I noticed that in the kernel
-> parameters I can disable the C2 state altogether, but I'd rather not
-> have to reboot whenever I play a DVD.  Is there a way to tweak ACPI so
-> that the processor spends more time in the C1 state, without giving up
-> the C2 state entirely?
-> 
-> thanks for any help,
-> Jim Faulkner
-
+-- 
+Nate
 
 
 
