@@ -1,30 +1,45 @@
-From: Luciano Miguel Ferreira Rocha <luciano-4DQciVFCGxiGR49JTXTXkA@public.gmane.org>
-Subject: Re: 2.4.22-xx powerdown oddities
-Date: Thu, 4 Sep 2003 14:53:26 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030904135326.GA24657@lsd.di.uminho.pt>
-References: <BF1FE1855350A0479097B3A0D2A80EE009FCFA@hdsmsx402.hd.intel.com>
+From: "Holger W." <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Subject: RE: [PATCH] acpi picmode patch version 5 + _CRS IRQ0 check
+Date: Thu, 4 Sep 2003 17:35:45 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <000001c372fa$3631a700$0200a8c0@brutzler>
+References: <200309040331.03086.adq_dvb@lidskialf.net>
+Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE009FCFA-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200309040331.03086.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: 'Andrew de Quincey' <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, "'Nakajima, Jun'" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 03, 2003 at 11:55:57PM -0400, Brown, Len wrote:
-> Luciano,
-> This does sound like a regression.
-> Can I trouble you to dump the info into a bugzilla report so we can make
-> sure it stays in the queue and gets fixed?
+> Hi, I do hope you don't mind, but I've added your patch to 
+> mine to make this easier for people testing them as they
+> both change the same files. 
 
-*Sigh*
+Great job !!! I've tested your patch with kernel 2.4.23-pre3 and my KT333 board (EPoX 8K5A2+) and everything works fine ... so it seems that I finally can use ACPI+APIC without having massive problems.
 
-I will, but I don't know when. While trying to make speedstep to work on
-my PIIX4 I damaged the ide controller. Or it's just in a bad mood, I don't
-know. But I can only boot with a floppy and for the moment I have other
-things to do.
+Many many many thanks for your patch !
+
+-- 
 
 Regards,
-Luciano Rocha
+
+HOLGER
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
