@@ -1,13 +1,14 @@
-From: Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Subject: ACPI interrupts..
-Date: Tue, 24 Sep 2002 19:29:00 -0700 (PDT)
+From: Stephen White <stephen-acpi-devel-4QvXXjU8Dv4@public.gmane.org>
+Subject: Re: Pushing ACPI to 2.4.20?
+Date: Wed, 25 Sep 2002 11:07:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0209241923040.7134-100000@home.transmeta.com>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE9B@orsmsx119.jf.intel.com>
+Message-ID: <20020925100716.GA16721@the.earth.li>
+References: <3D90E44B.2030400@mindspring.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE9B-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3D90E44B.2030400-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,37 +17,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+---- Original Message ----
+> From ahaning-mn4gwa5WIIQysxA8WJXlww@public.gmane.org <ahaning@mindspring.com>
+> Date: Tuesday, 24 Sep 2002, 23:16
+>
+> Perhaps I'm misunderstanding something or I just do not know what I'm 
+> doing WRT ACPI on my machine. I don't understand why there would be any 
+> push to get ACPI in the mainstream kernel when it seems that the major 
+> goal for now is just booting and assigning IRQs.
 
-Ok, can anybody tell me why this happens:
+There are various reasons for this:
 
-  torvalds@home:~> cat /proc/interrupts | grep acpi ; sleep 10; cat /proc/interrupts | grep acpi
-    9:  584623114  590018990  596116838  609754651   IO-APIC-level  acpi
-    9:  584810385  590200073  596298554  609925004   IO-APIC-level  acpi
-  torvalds@home:~> echo $((584810385-584623114)) $((590200073-590018990)) 
-			$((596298554-596116838)) $((609925004-609754651))
-  187271 181083 181716 170353
+* Power management.  Some modern laptops do not support apm - they don't
+idle properly, monitor temperature and turn their fan on and off, report
+battery status, throttle the CPU or switch off unless you use ACPI.
 
-ie why does my dual P4-HT take ~18,000 interrupts per second on each 
-virtual CPU?
+* To provide a basis for patches such as swsusp that provides
+suspend-to-disk, and for projects such as those working to support 
+speedstep.
 
-That's a lot more than all other interrupt sources _combined_ on this 
-machine. And comparing it with the uptime shows that that 18kHz interrupt 
-rate has been going on steadily for the whole uptime of the machine (yes, 
-9+ hours right now, giving 600 million interrupts per virtual CPU).
+* IIRC some architectures require ACPI to assign IRQs to boot properly.
 
-Silly me thought a 1kHz timer tick rate might be noticeable, but at least
-I know it results in something useful getting done on the CPU. In
-contrast, that 18kHz irq rate doesn't do any good that I'm aware of.
+It is also predominantly the same code that is used in the 2.5.x kernels 
+where suspend-to-RAM and suspend-to-disk are supported and given the 
+above bullet points it is worth making as much as possible of this 
+functionality available to 2.4.x users.
 
-ACPI people, please enlighten me. Preferably with a patch that turns the 
-crap off.
+The first point is probably the most crucial.  If you have one of many
+modern laptops and want to be able to use it for purposes other than
+frying eggs and seeing quite how quickly it is possible to drain a
+battery but don't want to brave 2.5.x then you're left with no choice
+but 2.4.x+ACPI patchs.
 
-		Linus
+I dare say there are other reasons I've missed here.
 
+-- 
+Stephen White <stephen-acpi-devel-4QvXXjU8Dv4@public.gmane.org>
 
 
 -------------------------------------------------------
