@@ -1,14 +1,13 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Re: What's up with the Embedded Controller driver? [was
- Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
-Date: Tue, 29 Mar 2005 09:50:25 -0500
-Message-ID: <42496B31.5010408@bartol.udel.edu>
-References: <3ACA40606221794F80A5670F0AF15F8407923522@pdsmsx403>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: What's up with the Embedded Controller driver? [was Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
+Date: Tue, 29 Mar 2005 23:01:27 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC161@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8407923522@pdsmsx403>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,75 +17,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, ACPI devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Fran?ois Valenduc <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, ACPI devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Yu, Luming wrote:
-> You modified DSDT just remove some AML methods that related to EC.
-> That means it just delete the problem. 
-> I believe if you think this is the regression, just because the changeset
-> http://linux-acpi.bkbits.net:8080/26-latest-test/diffs/include/acpi/acconfig.h@1.55?nav=index.html|src/.|src/include|src/include/acpi|hist/include/acpi/acconfig.h
-> make _those AML methods just run.
-> So, this is NOT a regression problem.
-> 
-> Please cat /proc/interrupts to me before accessing EC and after accessing EC.(using burst mode EC patch)
-> 
-
-Hi Yuming --
-
-I'm using your ec patch, plus a DSDT modified using my sbs-cm package
-(which accesses the Smart Battery system through the EC address space
-handler). Here's what happens to the interrupts when I access the battery:
-
-rhdt@sto ~ $ cat /proc/interrupts
-           CPU0
-  0:  127116981          XT-PIC  timer
-  1:     213426          XT-PIC  i8042
-  2:          0          XT-PIC  cascade
-  6:     171382          XT-PIC  i915@pci:0000:00:02.0, uhci_hcd,
-uhci_hcd, uhci_hcd, eth1
-  8:          8          XT-PIC  rtc
-  9:    3305062          XT-PIC  acpi
- 10:    1965890          XT-PIC  Intel 82801DB-ICH4, yenta, ehci_hcd,
-ipw2200
- 12:    4335843          XT-PIC  i8042
- 14:     466033          XT-PIC  ide0
- 15:         28          XT-PIC  ide1
-NMI:          0
-LOC:          0
-ERR:          0
-rhdt@sto ~ $ cat /proc/acpi/battery/BAT0/state
-present:                 yes
-capacity state:          ok
-charging state:          charged
-present rate:            0 mA
-remaining capacity:      4081 mAh
-present voltage:         16699 mV
-rhdt@sto ~ $ cat /proc/interrupts
-           CPU0
-  0:  127131974          XT-PIC  timer
-  1:     213488          XT-PIC  i8042
-  2:          0          XT-PIC  cascade
-  6:     171462          XT-PIC  i915@pci:0000:00:02.0, uhci_hcd,
-uhci_hcd, uhci_hcd, eth1
-  8:          8          XT-PIC  rtc
-  9:    3305297          XT-PIC  acpi
- 10:    1966133          XT-PIC  Intel 82801DB-ICH4, yenta, ehci_hcd,
-ipw2200
- 12:    4335843          XT-PIC  i8042
- 14:     466065          XT-PIC  ide0
- 15:         28          XT-PIC  ide1
-NMI:          0
-LOC:          0
-ERR:          0
-
-Note that the battery access took over 5 seconds! And note, of course,
-the big jump in the acpi interrupt count.
-
-cheers,
-
-Rich
+SSdtIHNvcnJ5LCB3aGF0IGlzICBzYnMtY20gcGFja2FnPyANClBsZWFzZSBtYWtlIHN1cmUgc2Jz
+LWNtIHBhY2thZ2UgaXMgdXNpbmcgZWNfcmVhZC93cml0ZSBmdW5jdGlvbnMgZGVmaW5lZCBpbiBl
+Yy5jDQoNClRoYW5rcw0KTHVtaW5nIA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5G
+cm9tOiBSaWNoIFRvd25zZW5kIFttYWlsdG86cmhkdEBiYXJ0b2wudWRlbC5lZHVdIA0KPlNlbnQ6
+IDIwMDXlubQz5pyIMjnml6UgMjI6NTANCj5UbzogWXUsIEx1bWluZw0KPkNjOiBGcmFuw6dvaXMg
+VmFsZW5kdWM7IEFDUEkgZGV2ZWwNCj5TdWJqZWN0OiBSZTogW0FDUEldIFJlOiBXaGF0J3MgdXAg
+d2l0aCB0aGUgRW1iZWRkZWQgQ29udHJvbGxlciANCj5kcml2ZXI/IFt3YXMgUmU6IFtBQ1BJXSBw
+YXRjaGVkIHNtcy1jbSBhY3BpL2VjLmMgdG8gMi42LjExLjVdDQo+DQo+WXUsIEx1bWluZyB3cm90
+ZToNCj4+IFlvdSBtb2RpZmllZCBEU0RUIGp1c3QgcmVtb3ZlIHNvbWUgQU1MIG1ldGhvZHMgdGhh
+dCByZWxhdGVkIHRvIEVDLg0KPj4gVGhhdCBtZWFucyBpdCBqdXN0IGRlbGV0ZSB0aGUgcHJvYmxl
+bS4gDQo+PiBJIGJlbGlldmUgaWYgeW91IHRoaW5rIHRoaXMgaXMgdGhlIHJlZ3Jlc3Npb24sIGp1
+c3QgYmVjYXVzZSANCj50aGUgY2hhbmdlc2V0DQo+PiANCj5odHRwOi8vbGludXgtYWNwaS5ia2Jp
+dHMubmV0OjgwODAvMjYtbGF0ZXN0LXRlc3QvZGlmZnMvaW5jbHVkZS8NCj5hY3BpL2FjY29uZmln
+LmhAMS41NT9uYXY9aW5kZXguaHRtbHxzcmMvLnxzcmMvaW5jbHVkZXxzcmMvaW5jbHUNCmRlL2Fj
+cGl8aGlzdC9pbmNsdWRlL2FjcGkvYWNjb25maWcuaA0KPj4gbWFrZSBfdGhvc2UgQU1MIG1ldGhv
+ZHMganVzdCBydW4uDQo+PiBTbywgdGhpcyBpcyBOT1QgYSByZWdyZXNzaW9uIHByb2JsZW0uDQo+
+PiANCj4+IFBsZWFzZSBjYXQgL3Byb2MvaW50ZXJydXB0cyB0byBtZSBiZWZvcmUgYWNjZXNzaW5n
+IEVDIGFuZCANCj5hZnRlciBhY2Nlc3NpbmcgRUMuKHVzaW5nIGJ1cnN0IG1vZGUgRUMgcGF0Y2gp
+DQo+PiANCj4NCj5IaSBZdW1pbmcgLS0NCj4NCj5JJ20gdXNpbmcgeW91ciBlYyBwYXRjaCwgcGx1
+cyBhIERTRFQgbW9kaWZpZWQgdXNpbmcgbXkgc2JzLWNtIHBhY2thZ2UNCj4od2hpY2ggYWNjZXNz
+ZXMgdGhlIFNtYXJ0IEJhdHRlcnkgc3lzdGVtIHRocm91Z2ggdGhlIEVDIGFkZHJlc3Mgc3BhY2UN
+Cj5oYW5kbGVyKS4gSGVyZSdzIHdoYXQgaGFwcGVucyB0byB0aGUgaW50ZXJydXB0cyB3aGVuIEkg
+YWNjZXNzIA0KPnRoZSBiYXR0ZXJ5Og0KPg0KPnJoZHRAc3RvIH4gJCBjYXQgL3Byb2MvaW50ZXJy
+dXB0cw0KPiAgICAgICAgICAgQ1BVMA0KPiAgMDogIDEyNzExNjk4MSAgICAgICAgICBYVC1QSUMg
+IHRpbWVyDQo+ICAxOiAgICAgMjEzNDI2ICAgICAgICAgIFhULVBJQyAgaTgwNDINCj4gIDI6ICAg
+ICAgICAgIDAgICAgICAgICAgWFQtUElDICBjYXNjYWRlDQo+ICA2OiAgICAgMTcxMzgyICAgICAg
+ICAgIFhULVBJQyAgaTkxNUBwY2k6MDAwMDowMDowMi4wLCB1aGNpX2hjZCwNCj51aGNpX2hjZCwg
+dWhjaV9oY2QsIGV0aDENCj4gIDg6ICAgICAgICAgIDggICAgICAgICAgWFQtUElDICBydGMNCj4g
+IDk6ICAgIDMzMDUwNjIgICAgICAgICAgWFQtUElDICBhY3BpDQo+IDEwOiAgICAxOTY1ODkwICAg
+ICAgICAgIFhULVBJQyAgSW50ZWwgODI4MDFEQi1JQ0g0LCB5ZW50YSwgZWhjaV9oY2QsDQo+aXB3
+MjIwMA0KPiAxMjogICAgNDMzNTg0MyAgICAgICAgICBYVC1QSUMgIGk4MDQyDQo+IDE0OiAgICAg
+NDY2MDMzICAgICAgICAgIFhULVBJQyAgaWRlMA0KPiAxNTogICAgICAgICAyOCAgICAgICAgICBY
+VC1QSUMgIGlkZTENCj5OTUk6ICAgICAgICAgIDANCj5MT0M6ICAgICAgICAgIDANCj5FUlI6ICAg
+ICAgICAgIDANCj5yaGR0QHN0byB+ICQgY2F0IC9wcm9jL2FjcGkvYmF0dGVyeS9CQVQwL3N0YXRl
+DQo+cHJlc2VudDogICAgICAgICAgICAgICAgIHllcw0KPmNhcGFjaXR5IHN0YXRlOiAgICAgICAg
+ICBvaw0KPmNoYXJnaW5nIHN0YXRlOiAgICAgICAgICBjaGFyZ2VkDQo+cHJlc2VudCByYXRlOiAg
+ICAgICAgICAgIDAgbUENCj5yZW1haW5pbmcgY2FwYWNpdHk6ICAgICAgNDA4MSBtQWgNCj5wcmVz
+ZW50IHZvbHRhZ2U6ICAgICAgICAgMTY2OTkgbVYNCj5yaGR0QHN0byB+ICQgY2F0IC9wcm9jL2lu
+dGVycnVwdHMNCj4gICAgICAgICAgIENQVTANCj4gIDA6ICAxMjcxMzE5NzQgICAgICAgICAgWFQt
+UElDICB0aW1lcg0KPiAgMTogICAgIDIxMzQ4OCAgICAgICAgICBYVC1QSUMgIGk4MDQyDQo+ICAy
+OiAgICAgICAgICAwICAgICAgICAgIFhULVBJQyAgY2FzY2FkZQ0KPiAgNjogICAgIDE3MTQ2MiAg
+ICAgICAgICBYVC1QSUMgIGk5MTVAcGNpOjAwMDA6MDA6MDIuMCwgdWhjaV9oY2QsDQo+dWhjaV9o
+Y2QsIHVoY2lfaGNkLCBldGgxDQo+ICA4OiAgICAgICAgICA4ICAgICAgICAgIFhULVBJQyAgcnRj
+DQo+ICA5OiAgICAzMzA1Mjk3ICAgICAgICAgIFhULVBJQyAgYWNwaQ0KPiAxMDogICAgMTk2NjEz
+MyAgICAgICAgICBYVC1QSUMgIEludGVsIDgyODAxREItSUNINCwgeWVudGEsIGVoY2lfaGNkLA0K
+PmlwdzIyMDANCj4gMTI6ICAgIDQzMzU4NDMgICAgICAgICAgWFQtUElDICBpODA0Mg0KPiAxNDog
+ICAgIDQ2NjA2NSAgICAgICAgICBYVC1QSUMgIGlkZTANCj4gMTU6ICAgICAgICAgMjggICAgICAg
+ICAgWFQtUElDICBpZGUxDQo+Tk1JOiAgICAgICAgICAwDQo+TE9DOiAgICAgICAgICAwDQo+RVJS
+OiAgICAgICAgICAwDQo+DQo+Tm90ZSB0aGF0IHRoZSBiYXR0ZXJ5IGFjY2VzcyB0b29rIG92ZXIg
+NSBzZWNvbmRzISBBbmQgbm90ZSwgb2YgY291cnNlLA0KPnRoZSBiaWcganVtcCBpbiB0aGUgYWNw
+aSBpbnRlcnJ1cHQgY291bnQuDQo+DQo+Y2hlZXJzLA0KPg0KPlJpY2gNCj4NCg==
 
 
 -------------------------------------------------------
