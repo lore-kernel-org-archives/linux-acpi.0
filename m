@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: acpi4asus compile problems
-Date: Wed, 26 May 2004 11:01:09 +0200
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Fixing broken DSDT - code suggestions for comment   please!
+Date: Wed, 26 May 2004 08:36:23 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040526090108.GA22530@hell.org.pl>
-References: <200405261047.59632.denniscampbell@web.de>
+Message-ID: <37F890616C995246BE76B3E6B2DBE055E08D59@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200405261047.59632.denniscampbell-S0/GAf8tV78@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dennis Campbell <denniscampbell-S0/GAf8tV78@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, marmon-GymH4r+vMzPQT0dZR+AlfA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Dennis Campbell:
-> Hi all,
-> I have a problem compiling acpi4asus-0.28.
-> I have a suse 9.1 system. 
-> when trying to compile I get an error that the header file modsetver.h doesn't 
-> exist. SuSE has removed this file from the kernel source. Maybe you know a 
-> workaround.
+There *is* an interactive AML debugger in the ACPI CA package.  However,
+it needs to be integrated into Linux.
 
-Hi,
-Please supply the exact make output, as well as kernel package version.
-Best regards,
+As far as I can tell, the reason it hasn't been done yet is because the
+whole concept of "interactive kernel debugging" is rather foreign to
+Linux.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Bob
+
+
+> -----Original Message-----
+> From: Yu, Luming
+> Sent: Tuesday, May 25, 2004 7:36 PM
+> To: marmon-GymH4r+vMzPQT0dZR+AlfA@public.gmane.org; ACPI Developers
+> Cc: linux-acpi
+> Subject: RE: [ACPI] Fixing broken DSDT - code suggestions for comment
+> please!
+>=20
+>  >
+> >I've posted this question before, if its just a question that shall
+go
+> >unanswered someone please let me know so I stop reposting it
+different
+> >ways:
+> >
+> >Where would start searching for information on debugging a compiled
+> >DSDT?  The iasl compiler believes it is fine, 0 errors, 0 warnings;
+but
+> >I kernel panic in the one_complete_parse phase when booting using the
+> >custom dsdt table.
+> >
+>=20
+>   AFAIK, there is no AML debugging tool under linux. To debug the
+DSDT,
+> you have to add some statement like "store ( xxx, debug) " in your ASL
+> code.
+>=20
+>   PS, can you post the detailed message of the panic.
+>=20
+> Thanks,
+> Luming
 
 
 -------------------------------------------------------
