@@ -1,14 +1,18 @@
-From: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
-Date: Tue, 16 Mar 2004 00:19:27 +0100
+From: Mads Paulin <paulin-/w0Os/Ss2Sh/SzgSGea1oA@public.gmane.org>
+Subject: Mandrake 10 weird acpi behaviour
+Date: Tue, 16 Mar 2004 10:28:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040315231927.GA19829@alpha.home.local>
-References: <20040308163452.GE5352@openzaurus.ucw.cz> <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades> <20040308183228.GD484@elf.ucw.cz> <20040308201411.GA18636@alpha.home.local> <20040308205444.GH484@elf.ucw.cz> <20040309233325.GA22953@alpha.home.local> <1079279490.10225.10.camel@darkstar> <20040315210729.GA19306@alpha.home.local> <1079389434.3695.2.camel@darkstar>
+Message-ID: <1079429336.10065.8.camel@skinnerup.mip.sdu.dk>
+References: <1079031999.3679.1.camel@darkstar>
+	 <20040311230047.GA20345@stikine.ucs.sfu.ca>
+	 <Pine.LNX.4.58.0403121055010.1203@frog.athome>
+	 <20040312193716.GC25056@stikine.ucs.sfu.ca>
+	 <Pine.LNX.4.58.0403131152490.1228@frog.athome>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1079389434.3695.2.camel-4/PLUo9XfK8@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.58.0403131152490.1228-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +21,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-Cc: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 15, 2004 at 10:23:54PM +0000, S?rgio Monteiro Basto wrote:
- 
-> and status = acpi_system_save_state(state); 
-> on line 341 of drivers/acpi/system.c ?
+Hi all,
 
-OK sorry, I didn't notice it. So you'll simply have to remove the
-first hunk of the patch so that acpi_system_save_state() stays defined
-at least when CONFIG_ACPI_SLEEP is defined.
+I have recently installed Mandrake 10 on my ASUS M2400N laptop and have
+experienced some strange behaviour (perharps) originating from ACPI or
+acpid.
 
-Willy
+When the laptop boots, everything is fine. ACPI is working correct and
+acpid is started is on boot. When I hit the powerbutton, the laptop
+shuts down fine. However, althoug the acpi events are correctly reported
+when the hotkeys are pressed, the scripts/assigned applications are not
+executed.
+
+If I issue a 'service acpid restartø to restart the acpid daemon, the
+applications assigned to the hotkeys are launched as supposed. However,
+in this case when I hit the powerbutton, the laptop immediately calls
+acpi_power_off and shuts down uncleanly without unmounting file systems
+or anything.
+
+Any ideas to what can be causing this ??
+
+The kernel is a mandrake 2.6.3-4mdk compiled from the mandrake source. I
+had to recompile to disable local apic (known problem for the ASUS
+M2400N). acpi i compiled into the kernel.
+
+Regards,
+Mads
+
+
 
 
 
