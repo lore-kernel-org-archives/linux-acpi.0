@@ -1,12 +1,12 @@
-From: "Info" <steve.kennedy2-LfUFBbCNao6Ide+eSLyLAQ@public.gmane.org>
-Subject: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Date: Thu, 4 Dec 2003 19:31:34 -0500
+From: Bharata B Rao <rao.bharata-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: ACPI support for Apollo Pro 133A (2.6.0-test11) ?
+Date: Fri, 05 Dec 2003 17:37:35 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1AS3tD-0000yp-RT@sc8-sf-mx2.sourceforge.net>
+Message-ID: <3FD043CF.10704@samsung.com>
+Reply-To: rao.bharata-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, rao.bharata-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="= Multipart Boundary 1204031931"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; format=flowed; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,126 +19,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multipart MIME message.
+Hello,
 
---= Multipart Boundary 1204031931
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+I have a x86 m/c with Apollo Pro 133A chipset.
+
+With 2.6.0-test11, the supported states are S0, S1 and S5 (according to
+/proc/acpi/sleep).
+
+Does this mean that I can't ever do suspend to RAM or DISK given that
+there is no BIOS update available for this. The BIOS used is Phoenix
+bios version 03AV.20001005. I have to use acpi=force to get ACPI running.
+
+Strangely /sys/power/state says standby, mem and disk are supported
+however nothing happens if I write mem to /sys/power/state.
+
+Please let me know if anyone knows about this chipset.
+
+Regards,
+Bharata.
 
 
---= Multipart Boundary 1204031931
-Content-Type: application/octet-stream;
-	name="picture008.GIF"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="picture008.GIF"
 
-R0lGODlh/QAIAfcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/
-AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBm
-mQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/
-AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMz
-mTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPM
-ADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYA
-mWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZ
-AGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/
-mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lm
-AJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnM
-mZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wz
-AMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZ
-mcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8A
-AP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9m
-mf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////
-AP//M///Zv//mf//zP///ywAAAAA/QAIAQAI/wAfCBxIsKDBgwgTKlzIsKHD
-hxAjSpxIsaLFixgzatzIsaPHjwzzPfAHsqTJkyhTqkQocqXLlzBjxmwps6bN
-mzgtkszJs6fPn0CDCh1KtKjRoy+30UTKtKnTp1B7ApjaEcDKqVYLZhW4lSvB
-rlipaj0YtusDrAbRDjSbNWxUjFvNXpQLMu7Xs2vBrsXrde9euXr78hVs12/g
-txPZ5rUrlmvjs1bjPt6o2Ctjv3gLY46c9u7gvpU1H0Ycke7gtm0Jg04tmHJC
-zpY3nx4bmzZo2qFbmyYNcbdhzL9bC89oujBr1nxzCy+L/LZn2F/V8i79Wq1o
-65uluybrdjZq7M+7A/9vnhw39M7Te+MOXt55+88alb+HbXz98uf22WuGn56h
-aMeqJYfccb5VVN9dYJ2XGX6e6Sbbg581V2B/aU1G1YB5nSbdhXU1ptiHY5UF
-XITiOQbYY6FpR+GKLLbo4oswFkWNJqLEaCOM+GgSQACiUHPjj6ThQ9AmOwag
-CQJAJgnVPek0c08xmlBCSQCUiIKkklgiVcw4v3QZpZSUoLJUTNqpuFiD1ZnJ
-YJYyNTPOm136okmUmoQiijFCwnQgf/8tNFp+bMLk5ptc/iKnlDta6WNN5KFZ
-3mRoSrYneAsSBmmgDcFDKJy++IKoJn74caVMqUFaXKMOztbeZbXNh2lEzGz/
-GqecdPpxQJ5kZghfcSMuRulxAdKn36sC4TNqQurIOmutqdjUZ68BorcaeN+J
-Jey0l2bJTDMLJUtol4YeuokfzZLaYGXDkrVmcIC5yh+xDzBjzKIHafotuJ5q
-8gu5B+HTDDy4eoRuu9Hymi6wBacLLzWGbmLMw/cQZC+c+GrSKb/4hGJMM8yo
-U4wvxSBwLGXiqQnZYeSJeKZ7ZUbnYbaBGtNppxaHgiQ+6Sgbp8W+hJIKPB/P
-PLMoB5QL79ESNTNrpztukrPOhvLcJZdChyuKH/QirXVD+AQ985QB+PILlxQv
-3ekv6cQJrqGhHJD11nAj1LXQnkqpbzp4442vnGKv/+232G7HLThCCNB96I6+
-5J322OGe7Te+v4xr9OCUCySKxTzPaTfaOTPeeN+Pgxvq5JUPbgzPQn+ZeKGF
-zhw6uONcHfhHJSM0oYEU3Y706YbXra+srr8O7tWkb+cegnXlXvpAhRse9Zxo
-F6q28MOLmvxfpnrHWIKnasi9uhUm6PKN+FDDzJy904322qC/3neP19uGPIAC
-soyetQr3eiCGMeKDSiibQJ36XJc26VHPcb/gVoc8JC3+TaqBwVKIb1KmJGog
-IBWhcN7Zgje9Di4tcpsQRfEEZhlrdeeBJ7sQ/rAlKRMNJ4XDMRmLyndBVGxi
-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
-
---= Multipart Boundary 1204031931--
 
 
 -------------------------------------------------------
