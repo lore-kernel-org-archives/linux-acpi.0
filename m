@@ -1,16 +1,13 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M3N standby resume regression in 2.6.x -- works under
- 2.4.x
-Date: Fri, 14 Jan 2005 21:40:40 +0100
-Message-ID: <41E82E48.6070403@pca.it>
-References: <200501111652.28556.jcard@fe.up.pt>
- <20050112224425.GB2139@elf.ucw.cz> <200501141909.34406.jcard@fe.up.pt>
-Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Sat, 15 Jan 2005 00:12:15 +0000
+Message-ID: <41E85FDF.3080404@arrakis.dhis.org>
+References: <41E81C2C.8010809@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <200501141909.34406.jcard-A1Gx7Te15Zc@public.gmane.org>
+In-Reply-To: <41E81C2C.8010809-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,50 +17,183 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Hello,
+Rich Townsend wrote:
+| Hi all --
+|
+| Recently, Bruno Ducrot posted a driver that allows access to smart
+| batteries, through the /dev/i2c interface. This came at just the right
+| time for me, since I'd recently purchased an Acer TravelMate 4502, and
+| had no way to monitor the status of the smart battery.
 
-on 01/14/2005 08:09 PM, Jo=C3=A3o Cardoso wrote:
-> OK, I have compiled 2.6.11-rc1 without USB support.
-<cut>
-> ... e100_suspend+0x8b/0xe0
-> ... e100_suspend...
-> So, there is obviously a problem with the e100 network driver.
-I think so, but have you tried with the eepro100 driver instead?
+hi rich,
 
-> S3 doesn't work either, but never worked, even in 2.4.xx
-Have you searched on the mailing-list archive for my posts [1]? I had=
- an
-M3N (M3410C) for a while and I tried sleep modes with different kerne=
-ls.
-I don't remember exactly the results, but IIRC S3 worked quite well. =
-And
-AFAIK Georg Greve made other tests with some positive results.
+Bruno also said a working driver was about to be released...
 
-> What is the next step? A new laptop? WinXP? (sorry, but I'm not exa=
-ctly=20
-> happy)
-No, I was very happy with this laptop, so I don't advice you to chang=
-e it.
+anyway I've tested your driver and have some results to show you:
 
-Thx, bye,
-Gismo / Luca
+this is what I get from a modified version of bruno ducrot's smartbattery
+userspace program
 
-[1] http://sourceforge.net/mailarchive/message.php?msg_id=3D6861190
+- -----------------------------------------------------------
+archon smartbatt-head # ./smartbattery 5 -a
+
+smart battery manufacturer information
+
+manufacturer name:              SMP-SONY
+device name:                    04ZL
+manufacture date (yyyy/mm/dd):  2004/8/17
+serial number:                  1
+
+smart battery device specs
+
+device chemistry:               LION
+design voltage:                 14800 mV
+design charge capacity:         4400 mAh
+
+smart battery device state
+
+charger:                        charging (almost full)
+relative charge:                99%
+full charge capacity:           3687 mAh
+remain:                         3667 mAh
+current input:                  0 mA
+average time to empty:          n/a
+average time to full:           n/a
+temperature:                    20.8 C
+voltage:                        16752 mV
+remaining_capacity_alarm:       disabled
+charge cycle count:             22
+archon smartbatt-head #
+- ------------------------------------------------------------
+
+assuming the values are right, let's see:
+
+archon BAT0 # pwd
+/proc/acpi/battery/BAT0
+archon BAT0 # cat info
+present:                 yes
+design capacity:         80 mAh
+last full capacity:      10 mAh
+battery technology:      rechargeable
+design voltage:          0 mV
+model number:
+serial number:           250
+battery type:
+OEM info:
+archon BAT0 #
+
+weird values... maybe something's missing here... or is this something el=
+se
+other than battery read values?
+
+archon BAT0 # cat state
+present:                 yes
+capacity state:          ok
+charging state:          charged
+present rate:            0 mA
+remaining capacity:      3667 mAh
+present voltage:         16753 mV
+archon BAT0 #
+
+this makes sense. It's ok.
+
+archon SBS0 # pwd
+/proc/acpi/sbs/SBS0
+archon SBS0 # cat info
+design voltage:          0 mV
+design capacity:         80 mAh
+full charge capacity:    10 mAh
+remain capacity alarm:   5 mAh
+remain time alarm:       0 mAh
+charging current:        0 mA
+charging voltage:        18 mV
+charge reporting error:  0%
+specification info:      Smart Battery v4.4
+manufacturer name:
+manufacture date:        1980- 0- 0
+serial number:           250
+device name:
+device chemistry:
+archon SBS0 #
+
+again, none of the values seem to be correct...
+
+archon SBS0 # cat state
+charging state:          charged
+current:                 0 mA
+average current          0 mA
+voltage:                 16753 mV
+temperature:             21.5 C
+relative charge:         99%
+absolute charge:         83%
+remaining capacity:      3667 mAh
+run time to empty:       not discharging
+average time to empty:   not discharging
+average time to full:    not charging
+archon SBS0 #
+
+this is also ok.
+
+I haven't had the time to read the code, but it seems that something's mi=
+ssing
+in the info files. could you check on that?
+
+also, it's misbehaving when there is no battery present:
+
+archon SBS0 # pwd
+/proc/acpi/sbs/SBS0
+archon SBS0 # cat state
+cat: state: Operation not permitted
+archon SBS0 #
+
+archon BAT0 # pwd
+/proc/acpi/battery/BAT0
+archon BAT0 # cat info
+present:                 yes
+design capacity:         80 mAh
+last full capacity:      10 mAh
+battery technology:      rechargeable
+design voltage:          0 mV
+model number:
+serial number:           250
+battery type:
+OEM info:
+archon BAT0 #
+
+archon BAT0 # cat state
+cat: state: Operation not permitted
+archon BAT0 #
+
+Thanks for the work with the driver. It's damn good work!
+
+Also, the other driver from Bruno Ducrot should be out soon, so I predict=
+ we'll
+have some work with both. maybe some kind of merge would be possible, bes=
+t parts
+of one and best parts of the other... just a comment.
+
+regards,
+pedro venda.
+- --
+
+Pedro Jo=E3o Lopes Venda
+email: pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org
+http://arrakis.dhis.org
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFB6C5HVAp7Xm10JmkRApI2AJ0b1TY2F6TAnG/wM0MPd0TxtmLvaACfayDH
-3/lUUTZZ/IGL0nKwix3y3UU=3D
-=3Drr/W
+iD8DBQFB6F/feRy7HWZxjWERAjJFAJ9vQ3jaaE1L30YSjcZPRmA5jK+EzACePq5h
+kHp9LlMv5oChkpY52jUWSGI=3D
+=3DHCrZ
 -----END PGP SIGNATURE-----
-
 
 
 -------------------------------------------------------
