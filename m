@@ -1,13 +1,16 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: acpi on new gateway laptops
-Date: Mon, 17 Nov 2003 10:25:00 -0800 (PST)
+Subject: Re: Crash with fs corruption on 2.4.23-rc1 + CONFIG_ACPI_PROCESSOR
+Date: Mon, 17 Nov 2003 10:31:36 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031117102219.O60721@root.org>
-References: <20031112232315.GD430@masanjin.net>
+Message-ID: <20031117102931.B60721@root.org>
+References: <20031113161857.GM26911@roosevelt.alcove-fr>
+ <20031114124713.GK32464@poupinou.org> <20031114152403.GK29316@roosevelt.alcove-fr>
+ <20031115065020.GO32464@poupinou.org> <20031115134811.GA2630@hottah.alcove-fr>
+ <20031117131800.GQ32464@poupinou.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031112232315.GD430-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <20031117131800.GQ32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,46 +19,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
-Cc: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 12 Nov 2003, William Morgan wrote:
-> It seems like having an ECDT is an optional feature? If that's so, then
-> what's the problem? Why isn't Linux simply "discovering and enumerating"
-> the "Embedded Controller device in the AML namespace"?
-
-Yes, it's optional.
-
-> > The reason is BIOS of Gateway 400VTX lacks ECDT table.  And before
-> > initialize EC device, DSDT use ec space region when execute some ASL
-> > init methods. This will cause that battery can't be initializing.
+On Mon, 17 Nov 2003, Ducrot Bruno wrote:
+> On Sat, Nov 15, 2003 at 02:48:11PM +0100, Stelian Pop wrote:
+> > On Sat, Nov 15, 2003 at 07:50:20AM +0100, Ducrot Bruno wrote:
+> >
+> > > I think the trouble come from C3, just need to check some values.  If you
+> > > can, it may be usefull that you disable C3, with something like that:
+> > >
+> > > +		acpi_fadt.plvl3_lat = 1234;
+> >
+> > And the patch works, your assumption was correct.
+> >
+> > Now, C3 seem to be reported as supported, 2.6 (correctly) doesn't
+> > promote to it, but 2.4 does. I can't find an obvious reason by reading
+> > the processor.c code (almost identical between 2.4/2.6...)
 >
-> So, what I *think* is happening, based on that, and on pp.203--204, is:
->
-> There's an Embedded Controller region (In the BIOS? In the DSDT?). One
+> No, 2.6 have some trouble, I guess, because C3 should be promoted.  I guess
+> you are using a USB bridge driver, which need to be rewrotten somehow, because
+> it does a lot of DMA transfers just to check if a device is plugged..
+> That affect all USB driver, but not EHCI IIRC.
 
-in the DSDT
-
-> cannot access a region until registering it, by calling
-> _REG(RegionSpace, 1). There's an exception to this, however, when using
-> an ECDT, which describes "controllers" (?) to access the Embedded
-> Controller region. If you have an ECDT you can then access this region
-> before registering it. So I think that's what the DSDT is doing, but
-> without providing an ECDT?
->
-> So. This implies that rather than provide an ECDT, we can alternately
-> try and fix the DSDT. Since it's buggy anyways, that might conserve some
-> effort, and has the nice advantage of not forcing an upgrade to ACPI 2.0.
-> (Assuming I am ACPI 1.0 like you.)
-
-Your DSDT attempts to access regions before there is an attached EC to
-service the calls to that space, yes.  So the two approaches are to
-provide an ECDT or change the DSDT to not reference those spaces early in
-boot.  The problem with the latter option is that those accesses may be
-crucial to initializing your laptop.  So if you remove them, it may start
-up in a partially initialized state.  It's probably cleaner to provide an
-ECDT.
+BTW, you were right about USB causing huge numbers of BM events.  Without
+it in my kernel, things are quiet and C3 is used.  I just committed the
+driver (FreeBSD).  Playing mp3s also results in BM activity but that is
+expected.  I plan to add a quiesce method to our USB drivers so that ACPI
+can shut the polling off while idle.
 
 -Nate
 
