@@ -1,12 +1,21 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: [RFC] Reliable video POSTing on resume
-Date: Mon, 7 Feb 2005 15:22:19 +0100
-Message-ID: <20050207142219.GC8040@elf.ucw.cz>
-References: <20050122134205.GA9354@wsc-gmbh.de> <4204B3C1.80706@rainbow-software.org> <9e473391050205074769e4f10@mail.gmail.com> <200502051748.43547.stefandoesinger@gmx.at> <9e47339105020509382adbbf39@mail.gmail.com> <420740F1.5050609@hist.no>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Re: [RFC] Reliable video POSTing on resume (was: Re:
+	[ACPI] Samsung P35, S3, black screen (radeon))
+Date: Mon, 07 Feb 2005 14:25:12 +0000
+Message-ID: <1107786312.8575.75.camel@tyrosine>
+References: <20050203225410.GB1110@elf.ucw.cz>
+	 <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
+	 <1107485504.5727.35.camel@desktop.cunninghams>
+	 <9e4733910502032318460f2c0c@mail.gmail.com>
+	 <20050204074454.GB1086@elf.ucw.cz>
+	 <9e473391050204093837bc50d3@mail.gmail.com>
+	 <20050205093550.GC1158@elf.ucw.cz>
+	 <1107695583.14847.167.camel@localhost.localdomain>
+	 <1107782696.8575.72.camel@tyrosine>  <20050207140937.GA8040@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <420740F1.5050609-CND4fxrytsY@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050207140937.GA8040-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,35 +25,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Helge Hafting <helge.hafting-CND4fxrytsY@public.gmane.org>
-Cc: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stefan =?iso-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Ondrej Zary <linux-ZCIryABCsrmttCpgsWEBFmD2FQJk+8+b@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Mon, 2005-02-07 at 15:09 +0100, Pavel Machek wrote:
 
-> >The problem with the radeon reset code is that there are many, many
-> >variations of the radeon chips, including different steppings of the
-> >same part. The ROM is matched to the paticular bugs of the chip. From
-> >what I know ATI doesn't even have a universal radeon reset program.
-> > 
-> >
-> Maybe they could provide such a program, if asked?
-> Basically, a chip detect and a switch statement containing all
-> the bios reset sequences they have.
-> 
-> They may want to protect "trade secrets" about innovative
-> 3D-pipelines and such.  But the bios reset is probably not that
-> high-end, so perhaps they could provide source code for it?
+> Where do I find code to do VBE save state? I might get you some
+> testing...
 
-Try asking them, then ;-)....
+http://www.srcf.ucam.org/~mjg59/vbetool/ - vbetool vbestate save will
+dump the state to stdout, vbetool vbestate restore will restore whatever
+is passed to it from stdin.
 
-Asked the right way, they might even tell you. I believe right way is
-"I'd like to buy 10000 cards, but I need suspend-to-RAM to work".
-
-								Pavel
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
