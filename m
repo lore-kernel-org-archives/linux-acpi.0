@@ -1,11 +1,13 @@
-From: Ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
-Subject: bluetooth button is dead
-Date: Mon, 13 Dec 2004 03:15:08 +0100
-Message-ID: <41BCFB2C.1060806@paranoici.org>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI failures on non-Intel hardware
+Date: Mon, 13 Dec 2004 10:36:30 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575C122F8@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,22 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-on my acer tm 4501 i cant see my bt device (usb) on lsusb.
-the button in front of the laptop used to turn bt on didnt works (and
-the same for wifi i think :( )
+>> > I thought that case crashed /inside/ the wakeup code, rather than
+>> > rebooting before any of it was run?
+>>
+>> I saw some Acer (do not recall model #, sorry, and it was probably
+>> prototype, anyway) where it died before wakeup.
+>
+>Do you remember whether it had an Intel motherboard chipset, or was an
+>Intel CPU on something like an ATI chipset?
+Instead chipset type, I wonder if it's related with BIOS. The two
+victims in bug 3691 have AMI BIOS.
 
-this is the output on dmes when pushing the button:
-
-Unknown key pressed (translated set 2, code 0xd6 on isa0060/serio0).
-atkbd.c: Use 'setkeycodes e056 <keycode>' to make it known
--- 
-+--------------------+-------------------------------------+
-|    Metal OWNZ U    |        GnuPG ID: E2844BB9           |
-|   icq#: 61252311   | My Public key at: wwwkeys.pgp.net   |
-+--------------------+-------------------------------------+
+-Shaohua
 
 
 -------------------------------------------------------
