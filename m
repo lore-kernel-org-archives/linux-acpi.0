@@ -1,14 +1,14 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: APM, ACPI and DPMS question
-Date: Fri, 24 Sep 2004 15:47:52 +0200
+Subject: Re: _PTS call hangs system
+Date: Fri, 24 Sep 2004 16:03:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040924134752.GC5746@message-id.gmane0305.slipkontur.de>
-References: <4146E980.8040501@kn.vutbr.cz>
+Message-ID: <20040924140342.GD5746@message-id.gmane0305.slipkontur.de>
+References: <6EDC9204B3704C4C8522539D5C1185E52449B7@mssmsx403.ccr.corp.intel.com> <200409201430.06459.andre@eisenbach.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4146E980.8040501-nd92eFGgBBntwjQa/ONI9g@public.gmane.org>
+In-Reply-To: <200409201430.06459.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,30 +20,14 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 14, 2004 at 02:52:16PM +0200, Jan Bernatik wrote:
-> Hi,
-> 
-> I'm studying ACPI, and I found that:
-> 
-> ----------------------------------------------------------------------
-> You should also be aware of another little glitch I discovered. The 
-> XFree86 server has an option for DPMS (Energy Star) features. The DPMS 
-> can states can be one of standby, suspend, off or on. Since the 2.4.x 
-> kernels cannot suspend to disk, this can cause problems.
+On Mon, Sep 20, 2004 at 02:30:06PM -0700, Andre Eisenbach wrote:
 
-suspend to disk has nothing to do with DPMS at all. 
-> ----------------------------------------------------------------------
-> source: http://www.tldp.org/HOWTO/ACPI-HOWTO/daemons.html
+> Thats exactly what I am wondering - this _used to_ work. But now those 
+> messages seem to go to the log instead of the console. Which is of course 
+> useless since the log daemon shuts down befoe _PTS is called...
 
-well, this document is simply plain wrong in this regard.
- 
-> I really doesn't understand this. I thought it's just about monitor 
-> energy, so please could somebody just roughly explain this ?
-
-DPMS is monitor "standby", "suspend" and "off". It has nothing to do with
-system power management, ACPI, APM or suspend to disk / RAM.
-
-Maybe you shold write the author of the ACPI-HOWTO and tell him.
+dmesg -n 8
+may help.
 -- 
 Stefan Seyfried
 
