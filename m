@@ -1,12 +1,12 @@
-From: Christian Neubauer <neu-XoJDOot2J3yELgA04lAiVw@public.gmane.org>
-Subject: Compaq Evo800c: s4bios, s3, s4 anybody got this running?
-Date: Wed, 12 Mar 2003 06:54:22 +0100
+From: Lu Tong <ltong-r3+FECOBLOPAaqN1iTbosg@public.gmane.org>
+Subject: evgpeblk.c fix for multiple gpe blocks
+Date: Wed, 12 Mar 2003 02:39:06 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E6ECB8E.4090706@iis.fhg.de>
+Message-ID: <20030312073906.GA29559@dao.cs.ohiou.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="jI8keyz6grp/JLjh"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,31 +18,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I use a Compaq Evo800c with 2.4.21-pre5-acpi280303 with patch DSDT 
-tables. Battery, AC, etc. are showing up in /proc/acpi. The system 
-claims to support S3, S4 and S4BIOS. So far so good.
+--jI8keyz6grp/JLjh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I tried S4BIOS with the kernel-option acpi_sleep=s4bios as well as the 
-os_name kernel switches (dont remember the excat names of these options ;-)
+hi,
 
-As soon I do echo 4 >/proc/acpi/sleep the system clears the console, 
-backlight stays on and the machine hangs.
+the attached is a trial fix for machines with multiple gpe blocks.
 
-Any ideas how to trace this down, or is the behavior known ?
+--ltong
 
-Is anybody out there who got suspend or standby running on this machine 
-or an presario laptop which is hardware compatibe ?
+--jI8keyz6grp/JLjh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="evgpeblk.c.diff"
 
-Best regards
-Christian
+--- a/drivers/acpi/events/evgpeblk.c	2003-03-04 22:29:19.000000000 -0500
++++ b/drivers/acpi/events/evgpeblk.c	2003-03-12 02:07:43.000000000 -0500
+@@ -131,7 +131,8 @@
+ 	/* Ensure that we have a valid GPE number for this GPE block */
+ 
+ 	if ((gpe_number < gpe_block->block_base_number) ||
+-		(gpe_number >= (gpe_block->register_count * 8))) {
++		(gpe_number >= (gpe_block->block_base_number +
++		gpe_block->register_count * 8))) {
+ 		/* Not valid, all we can do here is ignore it */
+ 
+ 		ACPI_DEBUG_PRINT ((ACPI_DB_ERROR,
 
--- 
-Dr. Christian Neubauer                          Phone: +49 9131 776-355
-FhG-IIS A, Audio & Multimedia                   Mobil: +49  160 5840467
-Am Wolfsmantel 33, D-91058 Erlangen, Germany    Fax:   +49 9131 776-398
-
+--jI8keyz6grp/JLjh--
 
 
 -------------------------------------------------------
