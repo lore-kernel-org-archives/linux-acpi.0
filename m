@@ -1,13 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [Patch]fix EC GPE context error
-Date: Fri, 31 Oct 2003 16:42:41 +0800
+From: =?iso-8859-1?Q?BERNARD_S=E9bastien?= <sebastien.bernard-vHHsQtDGzY9GWvitb5QawA@public.gmane.org>
+Subject: RE : NV800a Problem from test9
+Date: Fri, 31 Oct 2003 11:56:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <571ACEFD467F7749BC50E0A98C17CDD8D5FDD0@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3220CFEF35C7D61180EC0002A5438BB005B760DA@achille>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C39F8A.F1F50F50"
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C39F9D.AD756660"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,58 +15,85 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-------_=_NextPart_001_01C39F8A.F1F50F50
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_002_01C39F8A.F1F50F50"
-
-
-------_=_NextPart_002_01C39F8A.F1F50F50
+------_=_NextPart_001_01C39F9D.AD756660
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-Hi,  =20
+In fact, this behaviour is seen on test8 either.
 
-     2.6-test9 has a regression. Specifically, the EC GPE context fix
-has error. This new patch is to replace the old one. The patch is
-against 2.6-test7, and has passed under T40 and ASUS M2400. You can find
-detail info in osdl bugzilla 1171. Please help test.
+The last kernel which worked is the test7.
 
 =20
 
-Thanks,
+=20
 
-Shaohua
+-----Message d'origine-----
+De : BERNARD S=E9bastien [mailto:sebastien.bernard-vHHsQtDGzY9GWvitb5QawA@public.gmane.org]=20
+Envoy=E9 : jeudi 30 octobre 2003 10:43
+=C0 : acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Objet : [ACPI] NV800a Problem from test9
 
 =20
 
+Hi.
 
-------_=_NextPart_002_01C39F8A.F1F50F50
+=20
+
+When moving from test8 to test9 on my Compaq Nv800a I noticed that=20
+
+the LCD screen that was doing fine in test8 failed to switch back on in =
+
+
+test9.
+
+=20
+
+Let me explain.
+
+=20
+
+The Screen is normally initialized and show up nicely at the boot.
+
+When the lid switch is hit the screen turns off and so does the=20
+
+backlight.
+
+When the lid is reopened, the backlight turns on but not the screen.
+
+This behavior happens since test9.
+
+=20
+
+Can anyone explain me why ?
+
+
+------_=_NextPart_001_01C39F9D.AD756660
 Content-Type: text/html;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
 <html>
 
 <head>
-<meta http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii">
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Diso-8859-1">
+
+
 <meta name=3DGenerator content=3D"Microsoft Word 10 (filtered)">
 
 <style>
 <!--
  /* Font Definitions */
  @font-face
-	{font-family:SimSun;
-	panose-1:2 1 6 0 3 1 1 1 1 1;}
-@font-face
-	{font-family:SimSun;
-	panose-1:2 1 6 0 3 1 1 1 1 1;}
+	{font-family:Tahoma;
+	panose-1:2 11 6 4 3 5 4 4 2 4;}
  /* Style Definitions */
  p.MsoNormal, li.MsoNormal, div.MsoNormal
 	{margin:0cm;
@@ -80,12 +106,17 @@ a:link, span.MsoHyperlink
 a:visited, span.MsoHyperlinkFollowed
 	{color:purple;
 	text-decoration:underline;}
-span.EmailStyle17
+span.stylecourrierlectronique17
 	{font-family:Arial;
 	color:windowtext;}
+span.stylecourrierlectronique18
+	{font-family:Arial;}
+span.StyleCourrierlectronique19
+	{font-family:Arial;
+	color:navy;}
 @page Section1
 	{size:595.3pt 841.9pt;
-	margin:72.0pt 90.0pt 72.0pt 90.0pt;}
+	margin:70.85pt 70.85pt 70.85pt 70.85pt;}
 div.Section1
 	{page:Section1;}
 -->
@@ -93,190 +124,142 @@ div.Section1
 
 </head>
 
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
+<body lang=3DFR link=3Dblue vlink=3Dpurple>
 
 <div class=3DSection1>
 
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Hi, &nbsp;&nbsp;</span></font></p>
+<p class=3DMsoNormal><font size=3D2 color=3Dnavy face=3DArial><span =
+lang=3DEN-GB
+style=3D'font-size:10.0pt;font-family:Arial;color:navy'>In fact, this =
+behaviour
+is seen on test8 either.</span></font></p>
 
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp; &nbsp;&nbsp; 2.6-test9 has a regression. =
-Specifically,
-the EC GPE context fix has error. This new patch is to replace the old =
-one. The
-patch is against 2.6-test7, and has passed under T40 and ASUS M2400. You =
-can find
-detail info in osdl bugzilla 1171. Please help test.</span></font></p>
+<p class=3DMsoNormal><font size=3D2 color=3Dnavy face=3DArial><span =
+lang=3DEN-GB
+style=3D'font-size:10.0pt;font-family:Arial;color:navy'>The last kernel =
+which
+worked is the test7.</span></font></p>
 
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>&nbsp;</span></font></p>
+<p class=3DMsoNormal><font size=3D2 color=3Dnavy face=3DArial><span =
+lang=3DEN-GB
+style=3D'font-size:10.0pt;font-family:Arial;color:navy'>&nbsp;</span></f=
+ont></p>
 
-<div>
+<p class=3DMsoNormal><font size=3D2 color=3Dnavy face=3DArial><span =
+lang=3DEN-GB
+style=3D'font-size:10.0pt;font-family:Arial;color:navy'>&nbsp;</span></f=
+ont></p>
 
-<div>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DTahoma><span
+style=3D'font-size:10.0pt;font-family:Tahoma'>-----Message =
+d'origine-----<br>
+<b><span style=3D'font-weight:bold'>De&nbsp;:</span></b> BERNARD =
+S=E9bastien
+[mailto:sebastien.bernard-vHHsQtDGzY9GWvitb5QawA@public.gmane.org] <br>
+<b><span style=3D'font-weight:bold'>Envoy=E9&nbsp;:</span></b> jeudi 30 =
+octobre
+2003 10:43<br>
+<b><span style=3D'font-weight:bold'>=C0&nbsp;:</span></b>
+acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org<br>
+<b><span style=3D'font-weight:bold'>Objet&nbsp;:</span></b> [ACPI] =
+NV800a Problem
+from test9</span></font></p>
 
-<div>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D3
+face=3D"Times New Roman"><span =
+style=3D'font-size:12.0pt'>&nbsp;</span></font></p>
 
-<div>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial'>Hi.</span></font></p>
 
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Thanks,</span></font></p>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial'>&nbsp;</span></font></p>
 
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Shaohua</span></font></p>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>When moving =
+from test8 to
+test9 on my Compaq Nv800a I noticed that </span></font></p>
 
-</div>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>the LCD =
+screen that was
+doing fine in test8 failed to switch back on in </span></font></p>
 
-</div>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial'>test9.</span></font></p>
 
-</div>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial'>&nbsp;</span></font></p>
 
-</div>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>Let me =
+explain.</span></font></p>
 
-<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
-style=3D'font-size:
-12.0pt'>&nbsp;</span></font></p>
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>The Screen is =
+normally
+initialized and show up nicely at the boot.</span></font></p>
+
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>When the lid =
+switch is
+hit the screen turns off and so does the </span></font></p>
+
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial'>backlight.</span></font></p=
+>
+
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>When the lid =
+is reopened,
+the backlight turns on but not the screen.</span></font></p>
+
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>This behavior =
+happens
+since test9.</span></font></p>
+
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'margin-left:35.4pt'><font size=3D2 =
+face=3DArial><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:Arial'>Can anyone =
+explain me why
+?</span></font></p>
 
 </div>
 
 </body>
 
 </html>
-=00
-------_=_NextPart_002_01C39F8A.F1F50F50--
 
-------_=_NextPart_001_01C39F8A.F1F50F50
-Content-Type: application/octet-stream;
-	name="ec-gpe1.patch"
-Content-Transfer-Encoding: base64
-Content-Description: ec-gpe1.patch
-Content-Disposition: attachment;
-	filename="ec-gpe1.patch"
-
-ZGlmZiAtTnVyIGxpbnV4LTIuNi4wLXRlc3Q3L2RyaXZlcnMvYWNwaS9hY3BpX2tzeW1zLmMgbGlu
-dXgtMi42LjAtdGVzdDcubmV3L2RyaXZlcnMvYWNwaS9hY3BpX2tzeW1zLmMKLS0tIGxpbnV4LTIu
-Ni4wLXRlc3Q3L2RyaXZlcnMvYWNwaS9hY3BpX2tzeW1zLmMJMjAwMy0xMC0wOSAwMzoyNDowMy4w
-MDAwMDAwMDAgKzA4MDAKKysrIGxpbnV4LTIuNi4wLXRlc3Q3Lm5ldy9kcml2ZXJzL2FjcGkvYWNw
-aV9rc3ltcy5jCTIwMDMtMTAtMzEgMDg6MjU6MjMuMDAwMDAwMDAwICswODAwCkBAIC0xMDYsNyAr
-MTA2LDcgQEAKIEVYUE9SVF9TWU1CT0woYWNwaV9vc19jcmVhdGVfc2VtYXBob3JlKTsKIEVYUE9S
-VF9TWU1CT0woYWNwaV9vc19kZWxldGVfc2VtYXBob3JlKTsKIEVYUE9SVF9TWU1CT0woYWNwaV9v
-c193YWl0X3NlbWFwaG9yZSk7Ci0KK0VYUE9SVF9TWU1CT0woYWNwaV9vc193YWl0X2V2ZW50c19j
-b21wbGV0ZSk7CiBFWFBPUlRfU1lNQk9MKGFjcGlfb3NfcmVhZF9wY2lfY29uZmlndXJhdGlvbik7
-CiAKIC8qIEFDUEkgVXRpbGl0aWVzIChhY3BpX3V0aWxzLmMpICovCmRpZmYgLU51ciBsaW51eC0y
-LjYuMC10ZXN0Ny9kcml2ZXJzL2FjcGkvZWMuYyBsaW51eC0yLjYuMC10ZXN0Ny5uZXcvZHJpdmVy
-cy9hY3BpL2VjLmMKLS0tIGxpbnV4LTIuNi4wLXRlc3Q3L2RyaXZlcnMvYWNwaS9lYy5jCTIwMDMt
-MTAtMDkgMDM6MjQ6MDcuMDAwMDAwMDAwICswODAwCisrKyBsaW51eC0yLjYuMC10ZXN0Ny5uZXcv
-ZHJpdmVycy9hY3BpL2VjLmMJMjAwMy0xMC0zMSAwODozMDowOC4wMDAwMDAwMDAgKzA4MDAKQEAg
-LTU4OSwxMiArNTg5LDE1IEBACiAJICAgd2Ugbm93IGhhdmUgdGhlICpyZWFsKiBFQyBpbmZvLCBz
-byBraWxsIHRoZSBtYWtlc2hpZnQgb25lLiovCiAJYWNwaV9ldmFsdWF0ZV9pbnRlZ2VyKGVjLT5o
-YW5kbGUsICJfVUlEIiwgTlVMTCwgJnVpZCk7CiAJaWYgKGVjX2VjZHQgJiYgZWNfZWNkdC0+dWlk
-ID09IHVpZCkgeworCQlhY3BpX2Rpc2FibGVfZ3BlKE5VTEwsIGVjX2VjZHQtPmdwZV9iaXQsIEFD
-UElfTk9UX0lTUik7CisJCWFjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxldGUoZWNfZWNkdCk7CiAJ
-CWFjcGlfcmVtb3ZlX2FkZHJlc3Nfc3BhY2VfaGFuZGxlcihBQ1BJX1JPT1RfT0JKRUNULAogCQkJ
-QUNQSV9BRFJfU1BBQ0VfRUMsICZhY3BpX2VjX3NwYWNlX2hhbmRsZXIpOwogCQogCQlhY3BpX3Jl
-bW92ZV9ncGVfaGFuZGxlcihOVUxMLCBlY19lY2R0LT5ncGVfYml0LCAmYWNwaV9lY19ncGVfaGFu
-ZGxlcik7CiAKIAkJa2ZyZWUoZWNfZWNkdCk7CisJCWVjX2VjZHQgPSBOVUxMOwogCX0KIAogCS8q
-IEdldCBHUEUgYml0IGFzc2lnbm1lbnQgKEVDIGV2ZW50cykuICovCkBAIC03NTEsNiArNzU0LDkg
-QEAKIAogCWVjID0gYWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOwogCisJYWNwaV9kaXNhYmxlX2dw
-ZShOVUxMLCBlYy0+Z3BlX2JpdCwgQUNQSV9OT1RfSVNSKTsKKwlhY3BpX29zX3dhaXRfZXZlbnRz
-X2NvbXBsZXRlKGVjKTsKKwogCXN0YXR1cyA9IGFjcGlfcmVtb3ZlX2FkZHJlc3Nfc3BhY2VfaGFu
-ZGxlcihlYy0+aGFuZGxlLAogCQlBQ1BJX0FEUl9TUEFDRV9FQywgJmFjcGlfZWNfc3BhY2VfaGFu
-ZGxlcik7CiAJaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQpkaWZmIC1OdXIgbGludXgtMi42LjAt
-dGVzdDcvZHJpdmVycy9hY3BpL29zbC5jIGxpbnV4LTIuNi4wLXRlc3Q3Lm5ldy9kcml2ZXJzL2Fj
-cGkvb3NsLmMKLS0tIGxpbnV4LTIuNi4wLXRlc3Q3L2RyaXZlcnMvYWNwaS9vc2wuYwkyMDAzLTEw
-LTA5IDAzOjI0OjI3LjAwMDAwMDAwMCArMDgwMAorKysgbGludXgtMi42LjAtdGVzdDcubmV3L2Ry
-aXZlcnMvYWNwaS9vc2wuYwkyMDAzLTEwLTMxIDA4OjQyOjU5LjAwMDAwMDAwMCArMDgwMApAQCAt
-NTYsNiArNTYsNyBAQAogewogICAgIE9TRF9FWEVDVVRJT05fQ0FMTEJBQ0sgIGZ1bmN0aW9uOwog
-ICAgIHZvaWQJCSAgICAqY29udGV4dDsKKyAgICBzdHJ1Y3QgbGlzdF9oZWFkCSAgICBuZXh0Owog
-fTsKIAogCkBAIC02MDQsMjUgKzYwNSwzOCBAQAogCiAjZW5kaWYgLypDT05GSUdfQUNQSV9QQ0kq
-LwogCi1zdGF0aWMgdm9pZAotYWNwaV9vc19leGVjdXRlX2RlZmVycmVkICgKLQl2b2lkICpjb250
-ZXh0KQotewotCXN0cnVjdCBhY3BpX29zX2RwYwkqZHBjID0gTlVMTDsKKy8qCisgKiBBQ1BJIHVz
-ZSBrZXZlbnRkIHRvIGhhbmRsZSBTQ0kgaW50ZXJydXB0LiBFdmVyeSBTQ0kgaW50ZXJydXB0IHdp
-bGwgYWRkIGEgbmV3CisgKiBlbnRyeSBpbiB0aGUgYWNwaSBldmVudHMgcXVldWUuIEFuZCBrZXZl
-bnRkIHdpbGwgZXhlY3V0ZSB0aGUgcXVldWUuIFRoZSAKKyAqIHB1cnBvc2UgdG8gaW1wbGVtZW50
-IHRoZSBuZXcgcXVldWUgaXMgdG8gcHJvdmlkZSBhIG1lY2hhbmlzbSBpbiB3aGljaCB3ZSBjYW4K
-KyAqIHdhaXQgZm9yIGNvbXBsZXRpbmcgU0NJIGludGVycnVwdCBoYW5kbGluZy4gSW4gdGhpcyB3
-YXksIGJlZm9yZSBFQyByZXBsYWNlZCAKKyAqIEVDRFQsIGl0IGNhbiBndWFyYW50ZWUgYWxsIFND
-SSBpbnRlcnJ1cHRzIHdpdGggRUNEVCBhcyBpdHMgY29udGV4dCBjb21wbGV0ZS4KKyAqLworc3Rh
-dGljIExJU1RfSEVBRChhY3BpX2V2ZW50c19saXN0KTsKK3N0YXRpYyBzcGlubG9ja190IGFjcGlf
-ZXZlbnRzX2xpc3Rfc3BpbmxvY2sgPSBTUElOX0xPQ0tfVU5MT0NLRUQ7CitzdGF0aWMgc3RydWN0
-IHdvcmtfc3RydWN0CXRhc2s7CitzdGF0aWMgaW50CQlmaXJzdF9hY3BpX2V2ZW50ID0gMTsKKwor
-c3RhdGljIHZvaWQgCithY3BpX2RvX3Rhc2tfcXVldWUoKQoreworCXN0cnVjdCBsaXN0X2hlYWQg
-CSpwOworCXN0cnVjdCBhY3BpX29zX2RwYyAJKmRwYzsKKwl1bnNpZ25lZCBsb25nIAkJZmxhZ3Mg
-PSAwOworCisgICAJc3Bpbl9sb2NrX2lycXNhdmUoJmFjcGlfZXZlbnRzX2xpc3Rfc3BpbmxvY2ss
-IGZsYWdzKTsJCisJd2hpbGUgKCFsaXN0X2VtcHR5KCZhY3BpX2V2ZW50c19saXN0KSkgeworCQlw
-ID0gYWNwaV9ldmVudHNfbGlzdC5uZXh0OwkJLyogZ2V0IGZpcnN0IGl0ZW0gKi8KKwkJZHBjID0g
-KHN0cnVjdCBhY3BpX29zX2RwYyAqKWxpc3RfZW50cnkocCwgc3RydWN0IGFjcGlfb3NfZHBjLCBu
-ZXh0KTsKKwkJbGlzdF9kZWwocCk7CisJCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmFjcGlfZXZl
-bnRzX2xpc3Rfc3BpbmxvY2ssIGZsYWdzKTsKIAotCUFDUElfRlVOQ1RJT05fVFJBQ0UgKCJvc19l
-eGVjdXRlX2RlZmVycmVkIik7CisJCWRwYy0+ZnVuY3Rpb24oZHBjLT5jb250ZXh0KTsKKwkJa2Zy
-ZWUoZHBjKTsKIAotCWRwYyA9IChzdHJ1Y3QgYWNwaV9vc19kcGMgKikgY29udGV4dDsKLQlpZiAo
-IWRwYykgewotCQlBQ1BJX0RFQlVHX1BSSU5UICgoQUNQSV9EQl9FUlJPUiwgIkludmFsaWQgKE5V
-TEwpIGNvbnRleHQuXG4iKSk7Ci0JCXJldHVybl9WT0lEOworCQlzcGluX2xvY2tfaXJxc2F2ZSgm
-YWNwaV9ldmVudHNfbGlzdF9zcGlubG9jaywgZmxhZ3MpOwogCX0KLQotCWRwYy0+ZnVuY3Rpb24o
-ZHBjLT5jb250ZXh0KTsKLQotCWtmcmVlKGRwYyk7Ci0KLQlyZXR1cm5fVk9JRDsKKwlzcGluX3Vu
-bG9ja19pcnFyZXN0b3JlKCZhY3BpX2V2ZW50c19saXN0X3NwaW5sb2NrLCBmbGFncyk7CiB9CiAK
-IGFjcGlfc3RhdHVzCkBAIC02MzMsNDUgKzY0Nyw2NiBAQAogewogCWFjcGlfc3RhdHVzIAkJc3Rh
-dHVzID0gQUVfT0s7CiAJc3RydWN0IGFjcGlfb3NfZHBjCSpkcGM7Ci0Jc3RydWN0IHdvcmtfc3Ry
-dWN0CSp0YXNrOwogCi0JQUNQSV9GVU5DVElPTl9UUkFDRSAoIm9zX3F1ZXVlX2Zvcl9leGVjdXRp
-b24iKTsKKwlBQ1BJX0ZVTkNUSU9OX1RSQUNFICgiYWNwaV9vc19xdWV1ZV9mb3JfZXhlY3V0aW9u
-Iik7CiAKIAlBQ1BJX0RFQlVHX1BSSU5UICgoQUNQSV9EQl9FWEVDLCAiU2NoZWR1bGluZyBmdW5j
-dGlvbiBbJXAoJXApXSBmb3IgZGVmZXJyZWQgZXhlY3V0aW9uLlxuIiwgZnVuY3Rpb24sIGNvbnRl
-eHQpKTsKIAogCWlmICghZnVuY3Rpb24pCiAJCXJldHVybl9BQ1BJX1NUQVRVUyAoQUVfQkFEX1BB
-UkFNRVRFUik7CiAKLQkvKgotCSAqIEFsbG9jYXRlL2luaXRpYWxpemUgRFBDIHN0cnVjdHVyZS4g
-IE5vdGUgdGhhdCB0aGlzIG1lbW9yeSB3aWxsIGJlCi0JICogZnJlZWQgYnkgdGhlIGNhbGxlZS4g
-IFRoZSBrZXJuZWwgaGFuZGxlcyB0aGUgdHFfc3RydWN0IGxpc3QgIGluIGEKLQkgKiB3YXkgdGhh
-dCBhbGxvd3MgdXMgdG8gYWxzbyBmcmVlIGl0cyBtZW1vcnkgaW5zaWRlIHRoZSBjYWxsZWUuCi0J
-ICogQmVjYXVzZSB3ZSBtYXkgd2FudCB0byBzY2hlZHVsZSBzZXZlcmFsIHRhc2tzIHdpdGggZGlm
-ZmVyZW50Ci0JICogcGFyYW1ldGVycyB3ZSBjYW4ndCB1c2UgdGhlIGFwcHJvYWNoIHNvbWUga2Vy
-bmVsIGNvZGUgdXNlcyBvZgotCSAqIGhhdmluZyBhIHN0YXRpYyB0cV9zdHJ1Y3QuCi0JICogV2Ug
-Y2FuIHNhdmUgdGltZSBhbmQgY29kZSBieSBhbGxvY2F0aW5nIHRoZSBEUEMgYW5kIHRxX3N0cnVj
-dHMKLQkgKiBmcm9tIHRoZSBzYW1lIG1lbW9yeS4KLQkgKi8KLQotCWRwYyA9IGttYWxsb2Moc2l6
-ZW9mKHN0cnVjdCBhY3BpX29zX2RwYykrc2l6ZW9mKHN0cnVjdCB3b3JrX3N0cnVjdCksIEdGUF9B
-VE9NSUMpOworCWRwYyA9IGttYWxsb2Moc2l6ZW9mKHN0cnVjdCBhY3BpX29zX2RwYyksIEdGUF9B
-VE9NSUMpOwogCWlmICghZHBjKQogCQlyZXR1cm5fQUNQSV9TVEFUVVMgKEFFX05PX01FTU9SWSk7
-CiAKIAlkcGMtPmZ1bmN0aW9uID0gZnVuY3Rpb247CiAJZHBjLT5jb250ZXh0ID0gY29udGV4dDsK
-KwlJTklUX0xJU1RfSEVBRCgmZHBjLT5uZXh0KTsKKwkKKwlzcGluX2xvY2soJmFjcGlfZXZlbnRz
-X2xpc3Rfc3BpbmxvY2spOwogCi0JdGFzayA9ICh2b2lkICopKGRwYysxKTsKLQlJTklUX1dPUkso
-dGFzaywgYWNwaV9vc19leGVjdXRlX2RlZmVycmVkLCAodm9pZCopZHBjKTsKLQotCWlmICghc2No
-ZWR1bGVfd29yayh0YXNrKSkgewotCQlBQ1BJX0RFQlVHX1BSSU5UICgoQUNQSV9EQl9FUlJPUiwg
-IkNhbGwgdG8gc2NoZWR1bGVfd29yaygpIGZhaWxlZC5cbiIpKTsKLQkJa2ZyZWUoZHBjKTsKLQkJ
-c3RhdHVzID0gQUVfRVJST1I7CisJbGlzdF9hZGRfdGFpbCgmZHBjLT5uZXh0LCAmYWNwaV9ldmVu
-dHNfbGlzdCk7CisJaWYgKGZpcnN0X2FjcGlfZXZlbnQgfHwgKCF0YXNrLnBlbmRpbmcpKSB7CisJ
-CUlOSVRfV09SSygmdGFzaywgYWNwaV9kb190YXNrX3F1ZXVlLCBOVUxMKTsKKwkJaWYgKCFzY2hl
-ZHVsZV93b3JrKCZ0YXNrKSkgeworCQkJQUNQSV9ERUJVR19QUklOVCAoKEFDUElfREJfRVJST1Is
-ICJDYWxsIHRvIHNjaGVkdWxlX3dvcmsoKSBmYWlsZWQuXG4iKSk7CisJCQlrZnJlZShkcGMpOwor
-CQkJc3RhdHVzID0gQUVfRVJST1I7CisJCX0KKwkJZmlyc3RfYWNwaV9ldmVudCA9IDA7CiAJfQog
-CisJc3Bpbl91bmxvY2soJmFjcGlfZXZlbnRzX2xpc3Rfc3BpbmxvY2spOworCiAJcmV0dXJuX0FD
-UElfU1RBVFVTIChzdGF0dXMpOwogfQogCit2b2lkIAorYWNwaV9vc193YWl0X2V2ZW50c19jb21w
-bGV0ZSgKKwl2b2lkICogY29udGV4dCkKK3sKKwl1bnNpZ25lZCBsb25nCQlmbGFnczsKKwlpbnQJ
-CQlvdmVyID0gMDsKKwlzdHJ1Y3QgbGlzdF9oZWFkICogbm9kZSwgKiBuZXh0OworCisJd2hpbGUg
-KCFvdmVyKSB7CisJCW92ZXIgPSAxOworCQlzcGluX2xvY2tfaXJxc2F2ZSgmYWNwaV9ldmVudHNf
-bGlzdF9zcGlubG9jaywgZmxhZ3MpOworCSAJbGlzdF9mb3JfZWFjaF9zYWZlKG5vZGUsIG5leHQs
-ICZhY3BpX2V2ZW50c19saXN0KSB7CisJCQlzdHJ1Y3QgYWNwaV9vc19kcGMgKmRwYyA9IGNvbnRh
-aW5lcl9vZihub2RlLCBzdHJ1Y3QgYWNwaV9vc19kcGMsIG5leHQpOworCQkJaWYgKGRwYy0+Y29u
-dGV4dCA9PSBjb250ZXh0KSB7CisJCQkJb3ZlciA9IDA7CisJCQkJYnJlYWs7CisJCQl9CisJIAl9
-CisKKwkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmYWNwaV9ldmVudHNfbGlzdF9zcGlubG9jaywg
-ZmxhZ3MpOworCQlpZiAob3ZlcikKKwkJCXJldHVybjsKKwkJYWNwaV9kb190YXNrX3F1ZXVlKCk7
-CisJfQorfQorCiAvKgogICogQWxsb2NhdGUgdGhlIG1lbW9yeSBmb3IgYSBzcGlubG9jayBhbmQg
-aW5pdGlhbGl6ZSBpdC4KICAqLwpkaWZmIC1OdXIgbGludXgtMi42LjAtdGVzdDcvaW5jbHVkZS9h
-Y3BpL2FjcGlvc3hmLmggbGludXgtMi42LjAtdGVzdDcubmV3L2luY2x1ZGUvYWNwaS9hY3Bpb3N4
-Zi5oCi0tLSBsaW51eC0yLjYuMC10ZXN0Ny9pbmNsdWRlL2FjcGkvYWNwaW9zeGYuaAkyMDAzLTEw
-LTA5IDAzOjI0OjAwLjAwMDAwMDAwMCArMDgwMAorKysgbGludXgtMi42LjAtdGVzdDcubmV3L2lu
-Y2x1ZGUvYWNwaS9hY3Bpb3N4Zi5oCTIwMDMtMTAtMzEgMDg6MjI6MjcuMDAwMDAwMDAwICswODAw
-CkBAIC0yMTMsNiArMjEzLDEwIEBACiAJdm9pZCAgICAgICAgICAgICAgICAgICAgICAgICAgICAq
-Y29udGV4dCk7CiAKIHZvaWQKK2FjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxldGUoCisJdm9pZCAq
-IGNvbnRleHQpOworCit2b2lkCiBhY3BpX29zX3NsZWVwICgKIAl1MzIgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIHNlY29uZHMsCiAJdTMyICAgICAgICAgICAgICAgICAgICAgICAgICAgICBt
-aWxsaXNlY29uZHMpOwo=
-
-------_=_NextPart_001_01C39F8A.F1F50F50--
+------_=_NextPart_001_01C39F9D.AD756660--
 
 
 -------------------------------------------------------
