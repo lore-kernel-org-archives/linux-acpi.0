@@ -1,14 +1,15 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: _OSI boot hang
-Date: Wed, 17 Mar 2004 14:40:26 -0800
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: RE: _OSI (Re: Re: cvs commit: src/sys/contrib/dev/acpica
+ acfreebsd.h)
+Date: Wed, 17 Mar 2004 14:45:27 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <CFF522B18982EA4481D3A3E23B83141C01F3FD59@orsmsx407.jf.intel.com>
+Message-ID: <20040317144333.G3595@root.org>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB748@PDSMSX403.ccr.corp.intel.com>
+  <20040311200031.J67848@root.org> <1079073556.3868.37.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <1079073556.3868.37.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,49 +18,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Not according to the MS white paper on OSI. =20
-
-http://www.microsoft.com/whdc/hwdev/tech/onnow/_OSI-method.mspx
-
-
-Yes, \_OS used strings like "Microsoft Windows NT", but apparently not
-OSI
-
-Bob
-
-
------Original Message-----
-From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
-Sent: Wednesday, March 17, 2004 2:36 PM
-To: Brown, Len
-Cc: Moore, Robert; ACPI Developers
-Subject: Re: [ACPI] _OSI boot hang
-
-On Sat, 13 Mar 2004, Len Brown wrote:
-> _OSI is in the ACPI patch on kernel.org and bkbits right now.
+On Thu, 12 Mar 2004, Len Brown wrote:
+> On Thu, 2004-03-11 at 23:00, Nate Lawson wrote:
+> > On Thu, 11 Mar 2004, Yu, Luming wrote:
+> > > > On Wed, 11 Mar 2004, Len Brown wrote:
+> > > > > On Wed, 2004-03-10 at 21:26, Nate Lawson wrote:
+> > > > > > Bob, any word on _OSI implementation?
+> > > > >
+> > > > > Bob sent me an initial implementation for review today;-)
+> > > > >
+> > > > > I'm uncomfortable, however, at claiming to be compatible
+> > > > with Windows,
+> > > > > since I don't really have a definition of exactly what that means...
+> > > > >
+> > > > > -Len
+> > > >
+> > > > Doesn't matter to me.  I plan on claiming to be everything from Win 2k
+> > > > onward and sort out the rest on the mailing list.  :)
+> > > >
+> > > > We already fixed some problems by claiming to be Win 2k for _OS.
+> > > >
+> > >
+> > > Cool! what kind of problems?  :)
+> >
+> > PCI routing.
+> >
+> > -Nate
 >
-> However, I find that on my Toshiba Satellite Pro, it causes boot to
-hang
-> at Executing all Device _STA and_INI methods.
+> You don't need to tempt me any more than that!;-)
 >
-> >From ACPICA, it comes this way:
-> drivers/acpi/utilities/utglobal.c
-> const char
-> *acpi_gbl_valid_osi_strings[ACPI_NUM_OSI_STRINGS] =3D {
->                        "Linux",
->                        "Windows 2000",
->                        "Windows 2001",
->                        "Windows 2001.1"};
+> While I don't like blindly claiming compatibility with something that is
+> neither specified nor visible, I *do* like the idea of causing the AML
+> to follow the *tested* path that it follows under Windows.
 
-That's not the right string for Win2k.  It's:
-  "Microsoft Windows NT"
-
-Since this is the most popular string, not emulating it is probably
-causing some people problems.
+OSI is different than _OS.  _OS is a static string, OSI means you can
+support the behavior of the string passed in.  Since Win2k was the first
+OS that really supported ACPI and the tests for strings for Win98 and ME
+in the ASL are usually to disable functionality/workaround bugs, I think
+it's very reasonable to claim compliance with all Win2k and above
+versions.
 
 -Nate
 
