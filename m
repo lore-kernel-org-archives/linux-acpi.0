@@ -1,15 +1,13 @@
-From: Ken Hughes <khughes-kam3zbT8ll8@public.gmane.org>
-Subject: S4 suspend update on Toshiba Satellite 5105-S501
-Date: Tue, 25 Mar 2003 21:53:00 -0800
+From: "=?ks_c_5601-1987?B?vvbAzrz2?=" <pricewarok-/E1597aS9LT7Za/I2yyZNw@public.gmane.org>
+Subject: =?ks_c_5601-1987?B?x8G288DMvbq/9iC18MH2xbsgxKu43rbzIMDMuqXGrg==?=
+Date: Wed, 26 Mar 2003 19:22:02 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030326055300.GA582@budgie.we1.client2.attbi.com>
-References: <200303252152.h2PLqcP25841@throb.netspace.org>
+Message-ID: <001764c260a5$22860000$0100b150@goq.net>
+Reply-To: "=?ks_c_5601-1987?B?vvbAzrz2?=" <pricewarok-/E1597aS9LT7Za/I2yyZNw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0016_07B36F34.1237D680"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200303252152.h2PLqcP25841-7GtV0IYKK74tA4QZiFxQkx2eb7JE58TQ@public.gmane.org>; from bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org on Tue, Mar 25, 2003 at 13:52:38 -0800
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,35 +17,81 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Ken Hughes <khughes-kam3zbT8ll8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
-I updated my 2.5.65 kernel with the acpi-20030321 patches and tried
-doing a s4 suspend from within X.  I was able to repeatedly suspend/
-resume without having to disable DMA on the hard drive (this would
-not work under previously).  However, on the second and subsequent
-suspends, the machine failed to shut down in the s5 state.  Instead,
-the console displayed the following and hung (copied by hand):
+------=_NextPart_000_0016_07B36F34.1237D680
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
-.....
-Suspend Machine: Trying to power down
-shift_state: 0000
-Shutting down devices
-acpi_power_off called
-  hwsleep-257 [S4:] acpi_enter_sleep_state: Entering sleep state [S5]
+MDMyN21haWwgCQkgCQkJCSAJCQkJIAkJCQkgCQkJCSAJCQkJIAkgICAgICAgICAgICAg
 
-I waited about 20 seconds after the second hang before cycling power
-and rebooting.  On reboot, the CPU can immediately came on (it is not
-controlled via ACPI) and the kernel indicated it was running pretty hot
-(about 80C).  So apparently after hanging, it certainly wasn't
-sleeping.
+------=_NextPart_000_0016_07B36F34.1237D680
+Content-Type: text/html;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
-In addition (and I'm not sure this is an ACPI problem), the PCMCIA
-card manager was dead upon resume; restarting it indicated that one
-of the sockets was already in use so it couldn't resume.
+PEhUTUw+DQo8SEVBRD4NCjxUSVRMRT4wMzI3bWFpbDwvVElUTEU+DQo8TUVUQSBIVFRQLUVRVUlW
+PSJDb250ZW50LVR5cGUiIENPTlRFTlQ9InRleHQvaHRtbDsgY2hhcnNldD1ldWMta3IiPg0KPC9I
+RUFEPg0KPEJPRFkgQkdDT0xPUj0jRkZGRkZGIExFRlRNQVJHSU49MCBUT1BNQVJHSU49MTAgTUFS
+R0lOV0lEVEg9MCBNQVJHSU5IRUlHSFQ9MD4NCjwhLS0gSW1hZ2VSZWFkeSBTbGljZXMgKDAzMjdt
+YWlsLnBzZCkgLS0+DQo8VEFCTEUgV0lEVEg9Njc4IEJPUkRFUj0wIGFsaWduPSJjZW50ZXIiIENF
+TExQQURESU5HPTAgQ0VMTFNQQUNJTkc9MD4NCiAgPFRSPg0KCQkNCiAgICA8VEQ+IDxJTUcgU1JD
+PSJodHRwOi8vd3d3LnByaWNld2FyLmNvLmtyL21haW4vaW1hZ2VzL21haWwvMDMyN21haWxfMDEu
+Z2lmIiBBTFQ9IiIgV0lEVEg9Njc4IEhFSUdIVD0zMzMgYm9yZGVyPSIwIiB1c2VtYXA9IiNNYXA2
+Ij48L1REPg0KCTwvVFI+DQoJPFRSPg0KCQkNCiAgICA8VEQ+IDxJTUcgU1JDPSJodHRwOi8vd3d3
+LnByaWNld2FyLmNvLmtyL21haW4vaW1hZ2VzL21haWwvMDMyN21haWxfMDIuZ2lmIiBBTFQ9IiIg
+V0lEVEg9Njc4IEhFSUdIVD0xNjQgYm9yZGVyPSIwIiB1c2VtYXA9IiNNYXAiPjwvVEQ+DQoJPC9U
+Uj4NCgk8VFI+DQoJCQ0KICAgIDxURD4gPElNRyBTUkM9Imh0dHA6Ly93d3cucHJpY2V3YXIuY28u
+a3IvbWFpbi9pbWFnZXMvbWFpbC8wMzI3bWFpbF8wMy5naWYiIEFMVD0iIiBXSURUSD02NzggSEVJ
+R0hUPTMxMyBib3JkZXI9IjAiIHVzZW1hcD0iI01hcDIiPjwvVEQ+DQoJPC9UUj4NCgk8VFI+DQoJ
+CQ0KICAgIDxURD4gPElNRyBTUkM9Imh0dHA6Ly93d3cucHJpY2V3YXIuY28ua3IvbWFpbi9pbWFn
+ZXMvbWFpbC8wMzI3bWFpbF8wNC5naWYiIEFMVD0iIiBXSURUSD02NzggSEVJR0hUPTE5NSBib3Jk
+ZXI9IjAiIHVzZW1hcD0iI01hcDMiPjwvVEQ+DQoJPC9UUj4NCgk8VFI+DQoJCQ0KICAgIDxURD4g
+PElNRyBTUkM9Imh0dHA6Ly93d3cucHJpY2V3YXIuY28ua3IvbWFpbi9pbWFnZXMvbWFpbC8wMzI3
+bWFpbF8wNS5naWYiIEFMVD0iIiBXSURUSD02NzggSEVJR0hUPTMyMiBib3JkZXI9IjAiIHVzZW1h
+cD0iI01hcDQiPjwvVEQ+DQoJPC9UUj4NCgk8VFI+DQoJCQ0KICAgIDxURD4gPElNRyBTUkM9Imh0
+dHA6Ly93d3cucHJpY2V3YXIuY28ua3IvbWFpbi9pbWFnZXMvbWFpbC8wMzI3bWFpbF8wNi5naWYi
+IEFMVD0iIiBXSURUSD02NzggSEVJR0hUPTEyMyBib3JkZXI9IjAiIHVzZW1hcD0iI01hcDUiPjwv
+VEQ+DQoJPC9UUj4NCjwvVEFCTEU+DQo8IS0tIEVuZCBJbWFnZVJlYWR5IFNsaWNlcyAtLT4NCjxt
+YXAgbmFtZT0iTWFwIj4NCiAgPGFyZWEgc2hhcGU9InJlY3QiIGNvb3Jkcz0iNjksMTI5LDE5NSwx
+NTEiIGhyZWY9Imh0dHA6Ly93d3cucHJpY2V3YXIuY28ua3IvbWFpbi9wcm9kdWN0LWRldGFpbC5h
+c3A/aWQ9NDktMDAzMDAxIiB0YXJnZXQ9Il9ibGFuayI+DQo8L21hcD4NCjxtYXAgbmFtZT0iTWFw
+MiI+DQogIDxhcmVhIHNoYXBlPSJyZWN0IiBjb29yZHM9IjM1NiwyNSw1MDAsMjk1IiBocmVmPSJo
+dHRwOi8vd3d3LnByaWNld2FyLmNvLmtyL21haW4vcHJvZHVjdC1kZXRhaWwuYXNwP2lkPTQ5LTAw
+MzAwOCIgdGFyZ2V0PSJfYmxhbmsiPg0KICA8YXJlYSBzaGFwZT0icmVjdCIgY29vcmRzPSI1MTYs
+MjQsNjU3LDI5NSIgaHJlZj0iaHR0cDovL3d3dy5wcmljZXdhci5jby5rci9tYWluL3Byb2R1Y3Qt
+ZGV0YWlsLmFzcD9pZD00OS0wMDMwMDQiIHRhcmdldD0iX2JsYW5rIj4NCiAgPGFyZWEgc2hhcGU9
+InJlY3QiIGNvb3Jkcz0iMTk1LDI2LDMzOSwyOTUiIGhyZWY9Imh0dHA6Ly93d3cucHJpY2V3YXIu
+Y28ua3IvbWFpbi9wcm9kdWN0LWRldGFpbC5hc3A/aWQ9NDktMDAzMDA1IiB0YXJnZXQ9Il9ibGFu
+ayI+DQogIDxhcmVhIHNoYXBlPSJyZWN0IiBjb29yZHM9IjM3LDI2LDE4MCwyOTUiIGhyZWY9Imh0
+dHA6Ly93d3cucHJpY2V3YXIuY28ua3IvbWFpbi9wcm9kdWN0LWRldGFpbC5hc3A/aWQ9NDktMDAz
+MDAyIiB0YXJnZXQ9Il9ibGFuayI+DQo8L21hcD4NCjxtYXAgbmFtZT0iTWFwMyI+DQogIDxhcmVh
+IHNoYXBlPSJyZWN0IiBjb29yZHM9IjczLDE1NCwxOTUsMTc3IiBocmVmPSJodHRwOi8vd3d3LnBy
+aWNld2FyLmNvLmtyL21haW4vcHJvZHVjdC1kZXRhaWwuYXNwP2lkPTQ5LTAwMzAwNyIgdGFyZ2V0
+PSJfYmxhbmsiPg0KICA8YXJlYSBzaGFwZT0icmVjdCIgY29vcmRzPSIzNTEsMTAsNDc2LDEzMyIg
+aHJlZj0iaHR0cDovL3d3dy5wcmljZXdhci5jby5rci9tYWluL3Byb2R1Y3QtZGV0YWlsLmFzcD9p
+ZD00OS0wMDMwMDciIHRhcmdldD0iX2JsYW5rIj4NCjwvbWFwPg0KPG1hcCBuYW1lPSJNYXA0Ij4N
+CiAgPGFyZWEgc2hhcGU9InJlY3QiIGNvb3Jkcz0iMzIsMjEsMTg0LDMxMCIgaHJlZj0iaHR0cDov
+L3d3dy5wcmljZXdhci5jby5rci9tYWluL3Byb2R1Y3QtZGV0YWlsLmFzcD9pZD00OS0wMDMwMDMi
+IHRhcmdldD0iX2JsYW5rIj4NCiAgPGFyZWEgc2hhcGU9InJlY3QiIGNvb3Jkcz0iMTk3LDIxLDMz
+OCwzMDkiIGhyZWY9Imh0dHA6Ly93d3cucHJpY2V3YXIuY28ua3IvbWFpbi9wcm9kdWN0LWRldGFp
+bC5hc3A/aWQ9NDktMDAzMDA2IiB0YXJnZXQ9Il9ibGFuayI+DQogIDxhcmVhIHNoYXBlPSJyZWN0
+IiBjb29yZHM9IjM1NywyMSw0OTYsMzA4IiBocmVmPSJodHRwOi8vd3d3LnByaWNld2FyLmNvLmty
+L21haW4vcHJvZHVjdC1kZXRhaWwuYXNwP2lkPTUyLTAwMjAwMiIgdGFyZ2V0PSJfYmxhbmsiPg0K
+ICA8YXJlYSBzaGFwZT0icmVjdCIgY29vcmRzPSI1MTYsMjAsNjU1LDMwNyIgaHJlZj0iaHR0cDov
+L3d3dy5wcmljZXdhci5jby5rci9tYWluL3Byb2R1Y3QtZGV0YWlsLmFzcD9pZD01Mi0wMDIwMDEi
+IHRhcmdldD0iX2JsYW5rIj4NCjwvbWFwPg0KPG1hcCBuYW1lPSJNYXA1Ij4NCiAgPGFyZWEgc2hh
+cGU9InJlY3QiIGNvb3Jkcz0iNTExLDIxLDYyNywxMjAiIGhyZWY9Imh0dHA6Ly93d3cucHJpY2V3
+YXIuY28ua3IiIHRhcmdldD0iX2JsYW5rIj4NCjwvbWFwPg0KPG1hcCBuYW1lPSJNYXA2Ij4NCiAg
+PGFyZWEgc2hhcGU9InJlY3QiIGNvb3Jkcz0iMzYwLDE2Miw2NjMsMzI3IiBocmVmPSJodHRwOi8v
+d3d3LnByaWNld2FyLmNvLmtyL21haW4vcHJvZHVjdC1kZXRhaWwuYXNwP2lkPTQ5LTAwMzAwMSIg
+dGFyZ2V0PSJfYmxhbmsiPg0KPC9tYXA+DQo8L0JPRFk+DQo8L0hUTUw+
 
-Ken
+------=_NextPart_000_0016_07B36F34.1237D680--
+
 
 
 -------------------------------------------------------
