@@ -1,11 +1,8 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: Last acpi patch against 2.4.18 and 2.4.19 released
-Date: 03 Sep 2002 01:05:31 -0400
+From: "Jose E. Marchesi" <jemarch-XoAB7pn3pwgdnm+yROfE0A@public.gmane.org>
+Subject: some fan questions
+Date: Tue, 3 Sep 2002 11:06:16 GMT
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1031029533.1420.60.camel@darkstar.portugal>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <200209031106.LAA18605@es.gnu.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,38 +12,43 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Alberto Ornaghi <alor-G/4Acn03FKk@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi(gh)
 
-So I had update my web site with last acpi patches for kernel 2.4.18 and
-kernel 2.4.19 since some people have been asked for it.
+Hi,
 
-http://codecs.home.sapo.pt/acpi/index.html
+I have some questions about ACPI and the fan control. I run a GNU 
+System (Debian Woody) over a Linux kernel 2.4.18.
 
-the concept now is different because under linux/drivers/acpi the source
-is the same for all kernel-2.4.x, this I call it: acpisubsystem.=20
-The rest is the integration of the new acpi in kernel.
-So, now you just have to apply the integration patch for the proper
-kernel. After this, delete drivers/acpi directory and replace to new
-acpisubsystem, in this case is acpisubsystem20020829.tar.gz, with this
-and expecting the new patches just have changes in subsystem, can be
-more easy upgrade acpi releases because we just have to replace the
-drivers/acpi directory.
+In /proc/acpi/thermal_zone/THRM/trip_points:
 
-This time the sources are completely copy from the official sources,
-and have the small patch made by KOCHI, Takayoshi.
+critical (S5):           100 C
+passive:                 92 C: tc1=2 tc2=5 tsp=300 devices=0xcffe0d68 
+active[0]:               100 C: devices=0xc143c6c8 
 
-So it is one suggestion that all source under drivers/acpi for kernel
-2.4.x and 2.5.x be release or accessibly from sf.net site, with CVS or
-downloading. Will be great because will be more easy integrated in other
-kernels like -ac kernels or redhat kernels, unfortunately I don't have
-much time to do it but maybe I will try to do it.
+I think 100 C is too hot for my system! How can i change these 
+values? Can i add new trippoints? 
 
-Thanks=20
-S=E9rgiomb =20
+By the way, when i do:
+
+  echo -n 0 > /proc/acpi/fan/FAN/state
+
+the state change to 'on', but the machine fan doesnt start.
+
+I have an HP OmniBook XE3.
+
+Thanks in advance!
+
+--
+Jose E. Marchesi <jemarch-mXXj517/zsQ@public.gmane.org>
+GNU Spain        http://es.gnu.org
+GNUs Not Unix!   http://www.gnu.org
+--
+"And if cynics ridicule freedom, ridicule community... if 'hard nosed
+realists' say that profit is the only ideal...just ignore them, and
+use copyleft all the same." -- RMS
+---
 
 
 
