@@ -1,13 +1,14 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Hardware state saving & X
-Date: Wed, 15 Oct 2003 09:32:18 -0700 (PDT)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Applications & ACPI events
+Date: Wed, 15 Oct 2003 10:01:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0310150924400.953-100000@localhost.localdomain>
-References: <20031014235240.GD20789@elf.ucw.cz>
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EF4E@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031014235240.GD20789-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,50 +17,43 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+> Patrick Mochel
+> > Currently I've got X opening /proc/acpi/events and acting=20
+> upon them, but
+> > obviously this race condition is with the kernel shutting=20
+> us down before
+> > X has a chance to catch up. This is where the stickling point is on
+> > how to signal X from the kernel.
+>=20
+> It's actually a lot cleaner, and a lot easier to use the=20
+> hotplug interface=20
+> that I described before. We can extend the X API to include a=20
+> PM event=20
+> signalling mechanism. The hotplug scripts can call some=20
+> simple X app that=20
+> sends the message to the server and causes the graphics=20
+> driver (and any=20
+> XInput drivers that need the message) to save state.=20
+>=20
+> This would also be portable across Linux platforms that used=20
+> different=20
+> mechanisms for reading PM events from the kernel (acpid or some APM=20
+> daemon); and across OSes that have similar needs.
 
-> Well, each application should do 
-> 
-> 	* save state
-> 	* reinitialize everything
-> 
-> when it is switched to, and 
-> 
-> 	* shutdown everything
-> 	* restore state
-> 
-> when it is being switched from. That includes random game, and that
-> includes X.
+This was what I was aiming for with ospmd/libpower -- a
+PM-implementation-neutral method for user apps to get notified of
+shutdowns before the kernel does its thing. However, have you read
+anything about D-bus? That initiative seems like it might be right for
+this kind of thing, too.
 
-Whatever, that's fine. 
+http://www.freedesktop.org/Software/dbus
 
-> > Well, it depends on what X (and in general userspace) needs to know on a 
-> > power-state transition. Alan, how does/will X behave differently for each 
-> > power state that we can enter? 
-> 
-> Different scripts should run on apm -s (BIOS saves most of hw state)
-> and S3 (we have to save most of hw state).
-
-The fact that different behavior exists is completely obvious (refer to 
-the question and documentation). The question was *how* it was different 
-from a userpsace perspective. I.e. what exactly is saved, and what isn't. 
-
-Under APM, the BIOS handles the state transition, but it does not know 
-each device initimately, so the OS still has to handle some of the device 
-state. 
-
-Video devices have an int10 call to save/restore state, which is what the 
-APM BIOS uses. Alan, would it suffice to call that from the kernel, in 
-either vm86 mode or real mode to handle all the saving/restoring. If we 
-were able to call that, what more would you have to do? 
-
-
-	Pat
-
-
+Regards -- Andy
 
 
 -------------------------------------------------------
