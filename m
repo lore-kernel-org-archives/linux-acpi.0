@@ -1,14 +1,12 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: ACPI blacklisting: move year blacklist into acpi/blacklist.c
-Date: Wed, 1 Oct 2003 14:38:38 +0100
+From: Simon David Foster <s.d.f-FhtRXb7CoQBt1OO0OYaSVA@public.gmane.org>
+Subject: Screen not resuming after S3 resume
+Date: 30 Sep 2003 21:06:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031001133838.GM24824@parcelfarce.linux.theplanet.co.uk>
-References: <20031001101826.GA3503@elf.ucw.cz> <20031001122412.GJ24824@parcelfarce.linux.theplanet.co.uk> <20031001133104.GA21626@atrey.karlin.mff.cuni.cz>
+Message-ID: <1064952276.2545.12.camel@simon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031001133104.GA21626-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +15,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 01, 2003 at 03:31:04PM +0200, Pavel Machek wrote:
-> > Why do they need to be externs?  The comp.lang.c FAQ suggests they don't
-> > have to be.
-> > 
-> > http://www.eskimo.com/~scs/C-faq/q1.11.html
-> 
-> Well, they don't *have* to be there, but as FAQ says, it is stylistics
-> hint.
+I am running 2.6.0-test6 on a Dell Inspiron 4150 (mainly for the better
+ACPI support) and ACPI works perfectly out-of-box. However, if I issue
+S3 to /proc/sleep, when I try to resume the screen display does not come
+back. I think the system has resumed correctly though because when I do
+Ctrl-Alt-Del, the system displays all signs of going for restart and
+then restarts. Do I have to issue a command on resume to bring back the
+display, and if so how? This happens in both console and XFree86.
 
-I think "being in a .h file" is a sufficient hint ;-)
+Any help is much appreciated.
 
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+-Si
+
 
 
 -------------------------------------------------------
