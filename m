@@ -1,12 +1,12 @@
-From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
-Subject: Missing AML_REF_OF_OP case in exoparg1.c
-Date: Wed, 28 Aug 2002 14:07:07 -0700
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Kill #endif comments
+Date: Thu, 29 Aug 2002 00:05:01 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020829060701.GAUOC0A8264C.1C79D883@mvf.biglobe.ne.jp>
+Message-ID: <20020828220501.GA30098@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,45 +15,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-The aml generated from this source will generate error message
-as follows (using 20020815 core, subtype 71 = AML_REF_OF_OP):
+The ifdef in acpi.h is no longer dependand on CONFIG_ACPI_BOOT (its
+CONFIG_ACPI) so better kill the comment. Also local_irq_disable() that
+did not use to be there somehow slipped in (probably my fault). Please
+apply,
+								Pavel
 
-exoparg1-0604: *** Error: Acpi_ex_opcode_1A_0T_1R/Type_op: Unknown Reference subtype 71
- psparse-1155: *** Error: Method execution failed, AE_AML_INTERNAL
 
-DefinitionBlock ("test.aml", "DSDT", 1, "XXX   ", "AAAAA   ", 0)
-{
-	Scope (\_SB)
-	{
-		Method (XXXX)
-		{
-			Store ("String", Local0)
-			Store (ObjectType (RefOf(Local0)), Local1)
+--- clean/drivers/acpi/system.c	Wed Aug 28 22:38:43 2002
++++ linux-swsusp/drivers/acpi/system.c	Wed Aug 28 23:12:12 2002
+@@ -257,7 +257,6 @@
+ 	unsigned long		flags = 0;
+ 
+ 	local_irq_save(flags);
+-	local_irq_disable();
+ 	
+ 	switch (state)
+ 	{
+--- clean/include/linux/acpi.h	Wed Aug 28 22:39:02 2002
++++ linux-swsusp/include/linux/acpi.h	Wed Aug 28 23:17:41 2002
+@@ -345,11 +345,9 @@
+ 
+ extern int acpi_mp_config;
+ 
+-#else /*!CONFIG_ACPI_BOOT*/
+-
++#else
+ #define acpi_mp_config	0
+-
+-#endif /*CONFIG_ACPI_BOOT*/
++#endif
+ 
+ 
+ #ifdef CONFIG_ACPI_PCI
 
-			Store (0x1234, Local0)
-			Store (ObjectType (RefOf(Local0)), Local2)
-		}
-	}
-}
-
-In acpi_ex_opcode_1A_0T_1R()'s ObjectType (AML_TYPE_OP) case,
-it misses the AML_REF_OF_OP case in its switch statement.
-
-The spec says that "Notice that if this operation is performed on an
-object reference such as one produced by the Alias, Index, or RefOf
-statements, the object type of the base object is returned" (16.2.3.4.2.37).
-
-Bob, could you fix this?
-
-Thanks,
 -- 
-KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
-
+Worst form of spam? Adding advertisment signatures ala sourceforge.net.
+What goes next? Inserting advertisment *into* email?
 
 
 -------------------------------------------------------
