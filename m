@@ -1,13 +1,12 @@
-From: "Antonio G. - Geotronix" <antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org>
-Subject: Messing acpi with new flashed bios?
-Date: Sun, 29 Sep 2002 19:06:22 +0200
+From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
+Subject: Is it possible to have more than two batteries in a laptop?
+Date: Sun, 29 Sep 2002 19:55:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020929170622.GJ1775@geolandia.home>
-Reply-To: antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org
+Message-ID: <20020929195545.79555136.hanno@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline; filename="msg.pgp"
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,33 +18,14 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I'm currently working on a patch for the gnome battery-applet (battstat-applet) to work with two batteries.
+Now I have a version working with two batteries, but it would not work if there are more than two batteries.
+So I wanted to know if there are laptops which can have more than two batteries at the same time?
+If not, my patch is fine. If yes, I would have to enhance it.
 
-
-Hi.
-
-I saw that on the Compaq site they have released a new rom for my
-Presario 710EA bios. I have patched my 2.4.18 kernel with acpi-20021918
-patch and everything seems to work marvelously. All irqs are assigned
-correctly and the laptop doesn't warm up anymore. I even think that it
-warms a lot more under WinXP than under linux.
-I wanted to flash the bios as maybe I can get better funcionality under
-XP but I wouldn't like messing the acpi under linux again. Has anybody
-debugged acpi on the presario 710EA with the new 15 july 2002 bios rom
-installed?
-Nothing changed?
-
-Thanks
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: Per informazioni si veda http://www.gnupg.org
-
-iD8DBQE9lzMOIRaQQEznKxURAiMsAKCsYBCmjWicIbQv5MgXnWNG2l9XzgCgq4ZK
-cSAAZOxlHf1FCNo8E0e5HcA=
-=SwVl
------END PGP SIGNATURE-----
+(If you are interested in the patch: it's against gnome-applets-2.0.3 and you can grab it at:
+www.gentoo.org/~hanno/battstat_two_batteries.diff
+)
 
 
 -------------------------------------------------------
