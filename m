@@ -1,14 +1,15 @@
-From: "Manpreet Singh" <Manpreet.Singh-IrU4XInhIXM@public.gmane.org>
-Subject: RE: Fix wake GPE enabling
-Date: Wed, 7 Apr 2004 15:20:43 -0700
+From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
+Subject: Re: [RFC] filling in ACPI files in sysfs
+Date: Thu, 08 Apr 2004 08:56:20 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EB6B0A91B0F6AC44842492A8F6852CDE0C4534@fcexmb01.efi.internal>
+Message-ID: <1081403779.23178.49.camel@t40>
+References: <1081373781.23176.30.camel@t40>
+	 <1081376023.2748.15.camel@patsy.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <1081376023.2748.15.camel-Wmjt7DDUnIVxnVILBQAtiA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,234 +18,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Robert,
+Hi Alex,
 
-How about a /proc or /sys interface that calls AcpiEnableGpe and/or =
-alters
-the WakeEnable vector? Would that be consistent?
+Boy, you are fast.
+I compiled the second patch in kernel 2.6.5 and booted the laptop.
+The first thing I've noticed is that now we have all devices in
+/sys/firmware/acpi/... even if they are initialized or not (present or
+not) which IMHO is good. So, your fix works.
+I still don't have /proc/acpi/battery/BAT1 if I hot plug the second
+battery after loading the kernel. I don't really know if is because of
+your patch or this is how new kernel behave (I have to test it with
+vanilla 2.6.5 later)
 
-In what other ways do you suggest exporting this to the user space?
+I will get back with more details after more testing/playing.
 
 Thanks,
-Manpreet.
+Paul
 
+On Thu, 2004-04-08 at 01:13, Alex Williamson wrote:
+> On Wed, 2004-04-07 at 15:36, Paul Ionescu wrote:
+> > Hi Alex,
+> > 
+> > I patch-ed a 2.6.5 kernel, and boot-ed an IBM T30 Thinkpad Laptop.
+> > It looks nice at first sight, and now I want _Qxx methods in /EC to play
+> > with :)
+> > 
+> > What I found strange is the following behaviour:
+> > If I boot with my second battery inserted, I have the corresponding
+> > entries for BAT1 in /proc/acpi/battery and /sys/.../EC/BAT1
+> > If I boot without my second battery inserted, and I insert it later on,
+> > I don't have the corresponding BAT1 directory for it in /proc/acpi and
+> > /sys/.../EC/.
+> > And this is true for other acpi devices too.
+> > I think that the problem is that it does not (yet) update the list of
+> > active devices in real time, but uses the list with devices detected at
+> > boot time.
+> 
+>    Yeah, we were only filling in devices that the _STA method claimed
+> were present at boot.  I've fixed that now.
+> 
+> > Anyway, this is a good start, and I am waiting for more patches to test.
+> 
+>    Here you go, a second iteration.  I haven't looked at the _Qxx
+> methods yet, but we're up to over 30 methods exported now.  I've added
+> several writable methods so you can do more than query status.  I've
+> been able to undock my omnibook 500 laptop (electromechanical eject) and
+> switch between a CRT and LCD using only the sysfs interface.  I thought
+> about parsing some of the more complicated data structures, but that
+> turned into way too much code too quickly.  So you'll find there are
+> several entries that return a binary dump of the data structures.  these
+> include _CRS, _PRS, _PRT, and _MAT.  Some of the methods look like they
+> should work, but I don't have a box w/ firmware that exports them, so
+> let me know if the output is broken.  Thanks,
+> 
+> 	Alex
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Moore,
-Robert
-Sent: Wednesday, April 07, 2004 2:35 PM
-To: Dominik Brodowski; Brown, Len; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Grover, Andrew
-Subject: RE: [ACPI] Fix wake GPE enabling
-
-
-
-No, this does not fit the model correctly.
-
-It is the responsibility of the upper software to selectively enable the
-devices which are to be used for wakeup.  This is one of the functions
-of the AcpiGpeEnable interface.  The ACPI CA core cannot just blindly
-enable all "wake" GPEs.
-
-The ACPI CA core simply identifies the "wake" GPEs in order to leave
-them disabled during runtime.
-
-Therefore, in (1) and (2) below, this is the correct behavior.  No
-"wake" GPEs are enabled.
-
-Bob
-
-
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Dominik
-Brodowski
-Sent: Wednesday, April 07, 2004 1:54 PM
-To: Brown, Len; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Fix wake GPE enabling
-
-While trying to get ACPI sleep states to run on my three test systems, I
-found these bugs in ACPI's handling of the GPE blocks:
-
-1.) gpe_block->wake_enable is zero, as even for ACPI_GPE_TYPE_WAKE
-    discovered during boot no call to acpi_hw_enable_gpe_for_wakeup() is
-    done.
-
-2.) The if-wrapping by acpi_gbl_leave_wake_gpes_disabled around the
-    acpi_ev_get_gpe_type walk caused that there is done no distinction
-    between TYPE_WAKE and TYPE_RUNTIME --> gpe_block->wake_enable would
-    _stay_ zero.
-
-So, the attached patch does the following things:
-
-- enable TYPE_WAKE GPEs for wakeup
-- unconditionally differenciate between TYPE_WAKE and TYPE_RUNTIME GPEs
-- if acpi_gbl_leave_wake_gpes_disabled is set, skip the runtime enabling
-  of TYPE_WAKE GPEs
-- else enable all (TYPE_WAKE and TYPE_RUNTIME) GPEs.
-
-With this patch, my Centrino notebook resumes from S3, network et al.
-works
-fine, but the screen stays dark... without this patch, I can press the
-power
-button for minutes, and nothing happens.
-
-BTW, Intel may incorporate this diff into their OS-independent ACPI
-distribution... all stuff below drivers/acpi/* is in there, isn't it?
-
-diff -ruN linux-original/drivers/acpi/events/evgpeblk.c
-linux/drivers/acpi/events/evgpeblk.c
---- linux-original/drivers/acpi/events/evgpeblk.c	2004-04-06
-21:04:18.000000000 +0200
-+++ linux/drivers/acpi/events/evgpeblk.c	2004-04-07
-22:09:31.129961936 +0200
-@@ -374,6 +374,7 @@
-=20
- 		gpe_event_info =3D &gpe_block->event_info[gpe_number -
-gpe_block->block_base_number];
- 		gpe_event_info->flags |=3D ACPI_GPE_TYPE_WAKE;
-+		acpi_hw_enable_gpe_for_wakeup(gpe_event_info);
- 	}
-=20
- cleanup:
-@@ -813,6 +814,7 @@
- 	acpi_native_uint                i;
- 	acpi_native_uint                j;
- 	u32                             wake_gpe_count;
-+	u32                             runtime_gpe_count;
- 	u32                             gpe_enabled_count;
- 	acpi_status                     status;
- 	struct acpi_gpe_walk_info       gpe_info;
-@@ -874,28 +876,21 @@
-=20
- 	/*
- 	 * Runtime option: Should Wake GPEs be enabled at runtime?  The
-default is
--	 * No,they should only be enabled just as the machine goes to
-sleep.
-+	 * Yes, by Linus' opinion.
-+	 *
-+	 * Differentiate RUNTIME vs WAKE GPEs, via the _PRW control
-methods. (Each
-+	 * GPE that has one or more _PRWs that reference it is by
-definition a
-+	 * WAKE GPE and will not be enabled while the machine is
-running.)
- 	 */
--	if (acpi_gbl_leave_wake_gpes_disabled) {
--		/*
--		 * Differentiate RUNTIME vs WAKE GPEs, via the _PRW
-control methods. (Each
--		 * GPE that has one or more _PRWs that reference it is
-by definition a
--		 * WAKE GPE and will not be enabled while the machine is
-running.)
--		 */
--		gpe_info.gpe_block =3D gpe_block;
--		gpe_info.gpe_device =3D gpe_device;
-+	gpe_info.gpe_block =3D gpe_block;
-+	gpe_info.gpe_device =3D gpe_device;
-=20
--		status =3D acpi_ns_walk_namespace (ACPI_TYPE_DEVICE,
-ACPI_ROOT_OBJECT,
--				  ACPI_UINT32_MAX, ACPI_NS_WALK_UNLOCK,
-acpi_ev_get_gpe_type,
--				  &gpe_info, NULL);
--	}
-+	status =3D acpi_ns_walk_namespace (ACPI_TYPE_DEVICE,
-ACPI_ROOT_OBJECT,
-+					 ACPI_UINT32_MAX,
-ACPI_NS_WALK_UNLOCK, acpi_ev_get_gpe_type,
-+					 &gpe_info, NULL);
-=20
--	/*
--	 * Enable all GPEs in this block that are 1) "runtime" GPEs, and
-2) have
--	 * a corresponding _Lxx or _Exx method.  All other GPEs must be
-enabled via
--	 * the acpi_enable_gpe() external interface.
--	 */
- 	wake_gpe_count =3D 0;
-+	runtime_gpe_count =3D 0;
- 	gpe_enabled_count =3D 0;
-=20
- 	for (i =3D 0; i < gpe_block->register_count; i++) {
-@@ -903,9 +898,14 @@
- 			/* Get the info block for this particular GPE */
-=20
- 			gpe_event_info =3D &gpe_block->event_info[(i *
-ACPI_GPE_REGISTER_WIDTH) + j];
--			if ((gpe_event_info->method_node) &&
--			   ((gpe_event_info->flags & ACPI_GPE_TYPE_MASK)
-=3D=3D ACPI_GPE_TYPE_RUNTIME)) {
--				/* Enable this GPE, it is 1) RUNTIME and
-2) has an _Lxx or _Exx method */
-+			if (gpe_event_info->method_node) {
-+				if ((gpe_event_info->flags &
-ACPI_GPE_TYPE_MASK) =3D=3D ACPI_GPE_TYPE_WAKE) {
-+					wake_gpe_count++;
-+					if
-(acpi_gbl_leave_wake_gpes_disabled)
-+						continue;
-+				} else if ((gpe_event_info->flags &
-ACPI_GPE_TYPE_MASK) =3D=3D ACPI_GPE_TYPE_RUNTIME) {
-+					runtime_gpe_count++;
-+				}
-=20
- 				status =3D acpi_hw_enable_gpe
-(gpe_event_info);
- 				if (ACPI_FAILURE (status)) {
-@@ -913,16 +913,12 @@
- 				}
- 				gpe_enabled_count++;
- 			}
--
--			if ((gpe_event_info->flags & ACPI_GPE_TYPE_MASK)
-=3D=3D ACPI_GPE_TYPE_WAKE) {
--				wake_gpe_count++;
--			}
- 		}
- 	}
-=20
- 	ACPI_DEBUG_PRINT ((ACPI_DB_INIT,
--			"Found %u Wake, Enabled %u Runtime GPEs in this
-block\n",
--			wake_gpe_count, gpe_enabled_count));
-+			"Found %u Wake, %u Runtime GPEs in this block,
-and enabled %u of them\n",
-+			wake_gpe_count, runtime_gpe_count,
-gpe_enabled_count));
-=20
- 	/* Return the new block */
-=20
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=3D1470&alloc_id=3D3638&op=3Dcli=
-ck
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dick
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
