@@ -1,17 +1,14 @@
-From: Lukas Schrangl <schrangl-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: Bad: scheduling while atomic!
-Date: Fri, 2 Apr 2004 11:49:28 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 resume and Wake events
+Date: Fri, 2 Apr 2004 12:31:50 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200404021149.29165.schrangl@gmx.net>
-References: <200403311054.55536.schrangl@gmx.net> <200404010846.02216.schrangl@gmx.net> <20040401150739.GC8091@message-id.gmane0305.slipkontur.de>
-Reply-To: schrangl-hi6Y0CQ0nG0@public.gmane.org
+Message-ID: <20040402103150.GA677@elf.ucw.cz>
+References: <EB6B0A91B0F6AC44842492A8F6852CDE11AAB6@fcexmb01.efi.internal>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040401150739.GC8091-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <EB6B0A91B0F6AC44842492A8F6852CDE11AAB6-jfDmLf0o5iKyvBr3IBtpkhUaVx6/PbGo@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,45 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Manpreet Singh <Manpreet.Singh-IrU4XInhIXM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Donnerstag, 1. April 2004 17:07 schrieb Stefan Seyfried:
-> On Thu, Apr 01, 2004 at 08:46:01AM +0200, Lukas Schrangl wrote:
-> > Am Mittwoch, 31. M=E4rz 2004 15:59 schrieb Tomasz Ciolek:
-> > >  I get the same error with suspend to disk on a Fujitsu P2120. Ali 15=
-35
-> > >  chipset is the common bit...
-> > >
-> > >  Whats the network card you use?
-> >
-> > Broadcom BCM 4401
->
-> i need to unload bcm4400 before suspend (swsusp, ACPI S4) and reinsert
-> after resume, otherwise resume fails. Maybe the same is true for S3.
+Hi!
 
-The problem was enabling both preemptible kernel and MCE. Using only one of=
-=20
-them everything works, even if b44 is inserted and Local APIC enabled.
-Only usb makes problems:
-On wakeup I get something like
-"Badness in usb/hcd/....c"
-and a call trace. Will try to resolve that problem (maybe unloading usbmodu=
-les=20
-works, haven't had time to try yet).
-After resume, I am not able to use usb anymore (even unloading/realoading=20
-doesn't work).
-And ACPI- poweroff does not work anymore. When shutting down I can read:
-"The system will be haltet immediately.
-acpi_power_off called"
-or something the like, but no nothing happens; i poweroff manually. On=20
-"normal" shutdowns (when not having resumed from S4) I don't get the msg=20
-"acpi_power_off called" and it powers off.
-Should I write a bug report because of the preempt/MCE problem and/or the A=
-PIC=20
-error which seems not to have any influence?
+> I am attempting to resume from S3 using a magic packet from an NIC. The NIC
+> asserts the PME# and the status bit gets set in the I/O controller, but it
+> turns out that the ACPI suspend code in the kernel disables *all* GPEs before
+> sleeping and so I can't wake the system up after it goes to sleep.
+> 
+> Tracing through the code (on the 2.6.4 stock kernel), at one point, the
+> function acpi_enter_sleep_state() calls acpi_disable_non_wakeup_gpes() which
+> disables all GPEs, even the ones that are potentially the wake-up events like
+> the PME_EN bit.
 
-Lukas
+This needs some work. API should be invented to tell the kernel what
+GPEs may wake us up.
+									Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
