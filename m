@@ -1,14 +1,14 @@
-From: Vibol Hou <vibol-LA8/tbxb0N8@public.gmane.org>
-Subject: Re: Laptop backlight/S1 in 2.6.6 vanilla
-Date: Thu, 27 May 2004 19:33:05 -0700
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Fixing broken DSDT - code suggestions for comment   please!
+Date: Fri, 28 May 2004 11:52:39 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40B6A4E1.8050208@khmer.cc>
-References: <40B1D0BA.8080303@khmer.cc> <20040525192551.GM5215@openzaurus.ucw.cz>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84047B206A@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040525192551.GM5215-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,19 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: marmon-GymH4r+vMzPQT0dZR+AlfA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Is it safe to comment out the code that's switching the VC?
--Vibol
-
->Kernel switches to text console and stops processes.
->It should not be neccessary for S1 and is likely to cause
->your problem.
->  
 >
+>If you're interested in seeing how we did it in FreeBSD, see
+>src/sys/dev/acpica/Osd/OsdDebug.c and the #ifdef ACPI_DEBUGGER in the
+>ACPI-CA code that we added.
 
+Wha'ts the interactive kernel debug tool in FreeBSD? Does ASL debug
+feature=20
+work in that debug tool?
+
+Thanks,
+Luming
 
 
 -------------------------------------------------------
