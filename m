@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Documentation was: Power on at specified time.
-Date: Tue, 18 Feb 2003 17:01:33 -0800
+Subject: RE: [2.4] random fix, new features request.
+Date: Tue, 18 Feb 2003 15:47:42 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A18F@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847138087@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="ISO-8859-1"
@@ -16,18 +16,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Nigel Cunningham [mailto:ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org] 
-> Gladly, but I wanted to make sure I wasn't barking up the wrong tree
-> first, and then I need a push in right direction (toward some
-> documentation!).
+> From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] 
+> Hi Andy,
+> 
+> Here come some random fix and one new feature for acpi, linux 2.4.
+> Some of them was already send to acpi-devel, some not..
 
-Speaking of that, there currently isn't a Documentation/acpi directory,
-although I know a number of people have written some good write-ups of
-various things - maybe that's where they should go.
+I already applied some of these. I know I'm being a pain but when you
+get back would you mind resubmitting whatever didn't make it into this
+release for the next one?
 
 Regards -- Andy
 
