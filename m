@@ -1,19 +1,13 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Radeon PM Support
-Date: 04 Aug 2004 10:52:54 -0400
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Subject: Re: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+Date: Wed, 04 Aug 2004 11:57:57 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091631174.2297.90.camel@dhcppc4>
-References: <1091139240.26511.9.camel@6-allhosts>
-	 <20040730141028.GE21359@luna.mooo.com><20040730162756.4f300a5c@localhost>
-	 <20040730190047.GH21359@luna.mooo.com>
-	<1091560208.24759.15.camel@6-allhosts> <41103952.2030707@optonline.net>
-	 <1091583216.2974.2.camel@localhost.localdomain>
-	 <1091590835.2304.64.camel@dhcppc4>  <yzohdrjqu6p.fsf@localhost.localdomain>
+Message-ID: <41110785.4040000@optonline.net>
+References: <41103F22.4090303@optonline.net> <1091588367.2297.49.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <yzohdrjqu6p.fsf-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-reply-to: <1091588367.2297.49.camel@dhcppc4>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -22,41 +16,259 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ole.rohne-vJEk5272eHo@public.gmane.org
-Cc: Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-08-04 at 02:43, ole.rohne-vJEk5272eHo@public.gmane.org wrote:
-> Len> Some folks have had good luck getting Radeon to resume
-> Len> after applying this patch.  I saw it fix a Dell 600m/Radeon.
-> 
-> Len> http://lists.debian.org/debian-x/2004/03/msg03482.html
-> 
-> The same folks were even happier with a more recent patch that moves
-> the S3 resume POST where really belongs: into kernel space:
-> 
-> <http://article.gmane.org/gmane.linux.acpi.devel/8879>
+This is a multi-part message in MIME format.
 
-Thanks Ole, for pointing that out.
-I too would prefer a kernel-based solution that
-applies to all video adapters.  I would
-like a solution that applies to x86_64
-in addition to i386.
-
-I saw the note about this patch fixing the dell 600m
-with the Radeon 9000.  I haven't yet seen reports of it
-fixing other system's video on S3 resume, including
-the Radeon 7000 that is the subject of this thread.
-Can you summarize the feedback you've got so far?
-
-Can you re-post the cleaned up patch?
-Maybe good to go to lkml with it for broader review
-and feedback.
-
-thanks,
--Len
+--Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)
+Content-type: text/plain; charset=us-ascii; format=flowed
+Content-transfer-encoding: 7BIT
 
 
+Len-
+
+Attached is a respin based on your comments.
+
+Len Brown wrote:
+
+>> static int
+>>+acpi_pci_link_resume (
+>>+	struct acpi_pci_link	*link)
+>>+{
+>>+	ACPI_FUNCTION_TRACE("acpi_pci_link_resume");
+>>+	
+>>+	if (link->irq.active && link->irq.setonboot)
+>>    
+>>
+>
+>I think that before this change, irq.setonboot was a NOP
+>and a candidate for being deleted.  However, it does seem
+>to have a use here, where we want to re-program only those
+>links that were programmed.  ("setonboot" would probably
+>be better called "initialized" or "programmed").
+>  
+>
+Agree, changed to "initialized"
+
+>> static int __init acpi_pci_link_init (void)
+>> {
+>> 	ACPI_FUNCTION_TRACE("acpi_pci_link_init");
+>> 
+>>-	if (acpi_pci_disabled)
+>>+	if (acpi_disabled || acpi_noirq)
+>>    
+>>
+>
+>I think that testing acpi_noirq is sufficient here.
+>  
+>
+I'll take your word for it. changed.
+
+--Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)
+Content-type: text/plain; name=acpi-fixes.patch2
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=acpi-fixes.patch2
+
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/08/04 11:32:42-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   [ACPI] drivers/acpi/pci_link.c: misc cleanups per suggestions
+# 
+# drivers/acpi/pci_link.c
+#   2004/08/04 11:32:33-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +6 -8
+#   [ACPI] drivers/acpi/pci_link.c: misc cleanups per suggestions
+# 
+# ChangeSet
+#   2004/08/04 10:53:42-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   Merge optonline.net:/home/nathan/linux-acpi-test-2.6.8
+#   into optonline.net:/home/nathan/acpi-fixes
+# 
+# BitKeeper/etc/ignore
+#   2004/08/04 10:53:30-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +1 -2
+#   auto-union
+# 
+# ChangeSet
+#   2004/08/03 19:37:56-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   drivers/acpi/pci_link.c: use device_initcall(irqrouter_init_sysfs);
+# 
+# drivers/acpi/pci_link.c
+#   2004/08/03 19:37:47-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +13 -3
+#   use device_initcall(irqrouter_init_sysfs);
+# 
+# ChangeSet
+#   2004/08/03 18:09:20-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   fix ACPI_FUNCTION_TRACE("irqrouter_resume");
+# 
+# drivers/acpi/pci_link.c
+#   2004/08/03 18:09:12-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +1 -1
+#   fix ACPI_FUNCTION_TRACE("irqrouter_resume");
+# 
+# ChangeSet
+#   2004/08/03 18:03:39-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   drivers/acpi/pci_link.c: register us as a sys_device so that we can get
+#   resume callbacks and restore interrupt state. Fixes interrupt problems
+#   reported on the mailing lists:
+#   
+#   http://marc.theaimsgroup.com/?l=acpi4linux&m=109142999328643&w=2
+# 
+# drivers/acpi/pci_link.c
+#   2004/08/03 18:03:31-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +51 -14
+#   drivers/acpi/pci_link.c: register us as a sys_device so that we can get
+#   resume callbacks and restore interrupt state. Fixes interrupt problems
+#   reported on the mailing lists:
+#   
+#   http://marc.theaimsgroup.com/?l=acpi4linux&m=109142999328643&w=2
+# 
+# ChangeSet
+#   2004/08/02 20:41:54-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   [ACPI] drivers/acpi/pci_link.c: add acpi_pci_link_resume(), which will be
+#   called when resuming from a suspend state that needs IRQ routing to be
+#   restored. This fixes issues reported on the mailing lists, e.g.:
+#   
+#   http://marc.theaimsgroup.com/?l=acpi4linux&m=109142999328643&w=2
+# 
+# drivers/acpi/pci_link.c
+#   2004/08/02 20:41:45-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +23 -0
+#   [ACPI] drivers/acpi/pci_link.c: add acpi_pci_link_resume(), which will be
+#   called when resuming from a suspend state that needs IRQ routing to be
+#   restored. This fixes issues reported on the mailing lists, e.g.:
+#   
+#   http://marc.theaimsgroup.com/?l=acpi4linux&m=109142999328643&w=2
+# 
+# BitKeeper/etc/ignore
+#   2004/08/02 20:41:45-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +2 -0
+#   Added Module.symvers drivers/acpi/pci_link.c~ to the ignore list
+# 
+diff -Nru a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c	2004-08-04 11:33:50 -04:00
++++ b/drivers/acpi/pci_link.c	2004-08-04 11:33:50 -04:00
+@@ -29,6 +29,7 @@
+  *	   for IRQ management (e.g. start()->_SRS).
+  */
+ 
++#include <linux/sysdev.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -71,7 +72,7 @@
+ 	u8			active;			/* Current IRQ */
+ 	u8			edge_level;		/* All IRQs */
+ 	u8			active_high_low;	/* All IRQs */
+-	u8			setonboot;
++	u8			initialized;
+ 	u8			resource_type;
+ 	u8			possible_count;
+ 	u8			possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+@@ -517,7 +518,7 @@
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_link_allocate");
+ 
+-	if (link->irq.setonboot)
++	if (link->irq.initialized)
+ 		return_VALUE(0);
+ 
+ 	/*
+@@ -571,7 +572,7 @@
+ 			acpi_device_bid(link->device), link->irq.active);
+ 	}
+ 
+-	link->irq.setonboot = 1;
++	link->irq.initialized = 1;
+ 
+ 	return_VALUE(0);
+ }
+@@ -695,6 +696,42 @@
+ 
+ 
+ static int
++acpi_pci_link_resume (
++	struct acpi_pci_link	*link)
++{
++	ACPI_FUNCTION_TRACE("acpi_pci_link_resume");
++	
++	if (link->irq.active && link->irq.initialized)
++		return_VALUE(acpi_pci_link_set(link, link->irq.active));
++	else
++		return_VALUE(0);
++}
++
++
++static int
++irqrouter_resume(
++	struct sys_device *dev)
++{
++	struct list_head        *node = NULL;
++	struct acpi_pci_link    *link = NULL;
++
++	ACPI_FUNCTION_TRACE("irqrouter_resume");
++
++	list_for_each(node, &acpi_link.entries) {
++
++		link = list_entry(node, struct acpi_pci_link, node);
++		if (!link) {
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link context\n"));
++			continue;
++		}
++
++		acpi_pci_link_resume(link);
++	}
++	return_VALUE(0);
++}
++
++
++static int
+ acpi_pci_link_remove (
+ 	struct acpi_device	*device,
+ 	int			type)
+@@ -786,11 +823,42 @@
+ __setup("acpi_irq_balance", acpi_irq_balance_set);
+ 
+ 
++static struct sysdev_class irqrouter_sysdev_class = {
++        set_kset_name("irqrouter"),
++        .resume = irqrouter_resume,
++};
++
++
++static struct sys_device device_irqrouter = {
++	.id     = 0,
++	.cls    = &irqrouter_sysdev_class,
++};
++
++
++static int __init irqrouter_init_sysfs(void)
++{
++	int error;
++
++	ACPI_FUNCTION_TRACE("irqrouter_init_sysfs");
++
++	if (acpi_disabled || acpi_noirq)
++		return_VALUE(0);
++
++        error = sysdev_class_register(&irqrouter_sysdev_class);
++        if (!error)
++        	error = sysdev_register(&device_irqrouter);
++
++        return_VALUE(error);
++}                                        
++
++device_initcall(irqrouter_init_sysfs);
++
++
+ static int __init acpi_pci_link_init (void)
+ {
+ 	ACPI_FUNCTION_TRACE("acpi_pci_link_init");
+ 
+-	if (acpi_pci_disabled)
++	if (acpi_noirq)
+ 		return_VALUE(0);
+ 
+ 	acpi_link.count = 0;
+
+--Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)--
 
 
 -------------------------------------------------------
