@@ -1,15 +1,12 @@
-From: Wesley T Allen <wezlo-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: Re: boot hanging
-Date: Thu, 11 Mar 2004 07:26:14 -0500
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: [PATCH] fix building module (was [PATCH] disable SMM access to SpeedStep using ACPI-FADT pstate_cnt)
+Date: Thu, 11 Mar 2004 14:36:20 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079007973.3187.12.camel@localhost>
-References: <1078970905.4761.6.camel@localhost>
-	 <1078988718.2557.91.camel@dhcppc4>
+Message-ID: <20040311133620.GK28592@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1078988718.2557.91.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,61 +19,54 @@ To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-03-11 at 02:05, Len Brown wrote:
-> pci=noacpi helps?
+Sorry to break threads, but I want to be sure that you get it.
 
-Nope.  I don't get the "keventd" message anymore but the kernel hangs
-one line earlier when setting the irq to 9.
-
-On next boot I'll get the exact wording and put it in an e-mail; I can't
-find it in the logs right now.
-
+On Sun, 2004-02-15 at 05:57, Dominik Brodowski wrote:
+> Disable SMM access to SpeedStep
 > 
-> if so, it is an ACPI interrupt configuration bug (which you're
-> encouraged to file on bugzilla.kernel.org;-)
-> 
-> thanks,
-> -Len
-> 
-> On Wed, 2004-03-10 at 21:08, Wesley T Allen wrote:
-> > Hi,
-> > 	Sorry if this is the wrong place to ask this question; if I'm off-base
-> > could someone point me in the right direction?
-> > 
-> > 	I have an hp pavilion laptop (an n5000 series, build-to-order) and have
-> > had problems with acpi under linux.  in the 2.4.x series the system
-> > would hang with an error "keventd not started" every now and again.  I
-> > would let it sit for a couple of seconds (making sure the hd had spun
-> > down), and then I'd reboot.  Sometimes I would have to do this a couple
-> > of times, but it was no big deal.
-> > 	I compiled 2.6.0 on my own when it came out (because the acpi support
-> > was better), and I could NEVER get it to boot.  So I gave up for a
-> > while, until I got Mandrake 10.0 community installed on my laptop.  The
-> > kernel is 2.6.3 and I just can't get the thing to boot with acpi enabled
-> > at all (well, once in about 50 attempts I think).  This is a bit of a
-> > bummer, considering that I can't get usb devices to work with my laptop
-> > w/o acpi enabled!  Does anyone have a workaround?  And what other
-> > information would be helpful in troubleshooting?
-> > 
-> > Thanks gang,  one of the things I love about OSS is that the developers
-> > are people you can talk to, and I end up learning how to help the
-> > development process AND other users.
-> > 
-> > Wes
-> > 
-> > 
-> > 
-> > -------------------------------------------------------
-> > This SF.Net email is sponsored by: IBM Linux Tutorials
-> > Free Linux tutorial presented by Daniel Robbins, President and CEO of
-> > GenToo technologies. Learn everything from fundamentals to system
-> > administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> Often, the BIOS changes the CPU frequency if a notebook is (dis)connected
+> from its AC adapter. This interferes with a) an user setting the CPU frequency
+> and b) kernel timing code which needs to know loops_per_jiffy, cpu_khz etc.
 > 
 
+...
+
+>  drivers/acpi/processor.c       |   61 +++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/tables/tbconvrt.c |    5 ++-
+>  2 files changed, 64 insertions(+), 2 deletions(-)
+> 
+> diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
+> --- linux-original/drivers/acpi/processor.c	2004-02-13 17:09:59.000000000 +0100
+> +
+> +	status = acpi_os_write_port (acpi_fadt.smi_cmd,
+> +					(u32) acpi_fadt.pstate_cnt, 8);
+> +	if (ACPI_FAILURE (status))
+
+acpi_os_write_port is not EXPORTed.  So this patch break module compile
+for the acpi processor.
+
+
+ linux-2.6.4-bk-acpi/drivers/acpi/acpi_ksyms.c |    2 ++
+ 1 files changed, 2 insertions(+)
+
+--- linux-2.6.4-bk-acpi/drivers/acpi/acpi_ksyms.c	2004/03/11 12:28:24	1.1
++++ linux-2.6.4-bk-acpi/drivers/acpi/acpi_ksyms.c	2004/03/11 12:30:37
+@@ -100,6 +100,8 @@
+ EXPORT_SYMBOL(acpi_os_printf);
+ EXPORT_SYMBOL(acpi_os_sleep);
+ EXPORT_SYMBOL(acpi_os_stall);
++EXPORT_SYMBOL(acpi_os_read_port);
++EXPORT_SYMBOL(acpi_os_write_port);
+ EXPORT_SYMBOL(acpi_os_signal);
+ EXPORT_SYMBOL(acpi_os_queue_for_execution);
+ EXPORT_SYMBOL(acpi_os_signal_semaphore);
+
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
