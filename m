@@ -1,81 +1,39 @@
-From: Dominik Brodowski <linux@dominikbrodowski.de>
-Subject: [PATCH 2.6.4] (2/2) acpi-cpufreq driver:
-	scaling_available_frequencies
-Date: Mon, 15 Mar 2004 15:15:34 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040315141534.GJ8636@dominikbrodowski.de>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [PATCH] clean up ACPI GSI/IRQ conversions (i386 part)
+Date: Mon, 15 Mar 2004 09:30:04 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200403150930.04733.bjorn.helgaas@hp.com>
+References: <200403121548.39784.bjorn.helgaas@hp.com> <1079199480.3569.2.camel@darkstar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1079199480.3569.2.camel-4/PLUo9XfK8@public.gmane.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: len.brown@intel.com
-Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Len,
+On Saturday 13 March 2004 10:38 am, S=E9rgio Monteiro Basto wrote:
+> This have any chance to be applied on kernels 2.4.x ?
 
-Please apply (2.6.{4,5}). Needs other patch (guess_freq) to apply cleanly.
+Why would we bother?  This doesn't fix any defects, so I don't think
+it's worth the effort of putting it in 2.4.x.  (But sure, it could easily
+be done.)
 
-Thanks,
 
-	Dominik
 
-Export an array of supported frequencies in sysfs [scaling_available_frequencies]
-
- arch/i386/kernel/cpu/cpufreq/acpi.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletion(-)
-
-diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c linux/arch/i386/kernel/cpu/cpufreq/acpi.c
---- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-03-15 13:52:08.060146696 +0100
-+++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-03-15 13:52:32.376450056 +0100
-@@ -331,7 +331,7 @@
- 			data->freq_table[i].frequency = CPUFREQ_TABLE_END;
- 	}
- 
--	result = cpufreq_frequency_table_cpuinfo(policy, &data->freq_table[0]);
-+	result = cpufreq_frequency_table_cpuinfo(policy, data->freq_table);
- 	if (result) {
- 		goto err_freqfree;
- 	}
-@@ -346,6 +346,7 @@
- 			(u32) data->acpi_data.states[i].power,
- 			(u32) data->acpi_data.states[i].transition_latency);
- 
-+	cpufreq_frequency_table_get_attr(data->freq_table, policy->cpu);
- 	return_VALUE(result);
- 
-  err_freqfree:
-@@ -370,6 +371,7 @@
- 	ACPI_FUNCTION_TRACE("acpi_cpufreq_cpu_exit");
- 
- 	if (data) {
-+		cpufreq_frequency_table_put_attr(policy->cpu);
- 		acpi_io_data[policy->cpu] = NULL;
- 		acpi_processor_unregister_performance(&data->acpi_data, policy->cpu);
- 		kfree(data);
-@@ -379,6 +381,11 @@
- }
- 
- 
-+static struct freq_attr* acpi_cpufreq_attr[] = {
-+	&cpufreq_freq_attr_scaling_available_freqs,
-+	NULL,
-+};
-+
- static struct cpufreq_driver acpi_cpufreq_driver = {
- 	.verify 	= acpi_cpufreq_verify,
- 	.target 	= acpi_cpufreq_target,
-@@ -386,6 +393,7 @@
- 	.exit		= acpi_cpufreq_cpu_exit,
- 	.name		= "acpi-cpufreq",
- 	.owner		= THIS_MODULE,
-+	.attr           = acpi_cpufreq_attr,
- };
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
