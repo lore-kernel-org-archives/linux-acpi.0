@@ -1,12 +1,12 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: [RFC] Reliable video POSTing on resume
-Date: Fri, 04 Feb 2005 12:32:42 +0100
-Message-ID: <42035D5A.2030703@gmx.net>
-References: <20050122134205.GA9354@wsc-gmbh.de> <4202DF7B.2000506@gmx.net> <20050204074802.GD1086@elf.ucw.cz> <200502041126.14386.oliver@neukum.org>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: [PATCH] Change spinlock mutex to semaphor in ec.c
+Date: Fri, 04 Feb 2005 07:05:59 -0500
+Message-ID: <42036527.4030807@bartol.udel.edu>
+References: <3ACA40606221794F80A5670F0AF15F84041AC120@pdsmsx403> <200502040150.25175.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502041126.14386.oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <200502040150.25175.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,33 +16,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Oliver Neukum schrieb:
-> Am Freitag, 4. Februar 2005 08:48 schrieb Pavel Machek:
+Dmitry Torokhov wrote:
+> On Friday 04 February 2005 01:31, Yu, Luming wrote:
 > 
->>What about simply blocking all video accesses before disk (etc) is
->>resumed, so that "normal" (not locked in memory) application can be
->>used?
+>>I have patch set for this issue filed at
+>> http://bugzilla.kernel.org/show_bug.cgi?id=3851#c28 .
+>>
+>>The first patch is from you.
+>>
 > 
-> Very bad for debugging. Genuine serial ports are becoming rarer.
+> 
+> Oh, I see... this is a newer version though, simplified a bit (I think).
+> 
 
-As a bonus, even genuine serial ports may be in undefined state after
-resume. I'm unfortunate enough to have a brand new notebook with
-serial port, but the serial console code will print garbage after
-resume until I do a
-echo foo >/dev/ttyS0
+Hi Dmitry & Luming --
 
-I've already sent mail to linux-serial for that problem, but the
-list appears to be dead. Any pointers to the right contact would
-be appreciated.
+I'm glad to see that better minds than mine have been working on this 
+problem!
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+However, I can't get either of the patches on the above Bugzilla page to 
+apply cleanly to 2.6.10. Are there any up-to-date versions of the patch?
+
+cheers,
+
+Rich
+
 
 
 -------------------------------------------------------
