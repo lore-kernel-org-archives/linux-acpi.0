@@ -1,14 +1,13 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: help needed with invalid method in GPE block
-Date: Tue, 18 Mar 2003 22:44:14 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: help needed with invalid method in GPE block
+Date: Tue, 18 Mar 2003 09:21:15 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030318214414.GA12883@dutidad.twi.tudelft.nl>
-References: <F760B14C9561B941B89469F59BA3A847E96D1A@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96D1A@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96D1A-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +16,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
 Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 18, 2003 at 09:21:15AM -0800, Grover, Andrew wrote:
-> > From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
-> > Can I assume that you mean:
-> > acpe_enable_event(gpe_num, ACPI_EVENT_GPE, ACPI_EVENT_WAKE_ENABLE);
-> > where gpe_num is in my case 0x1D (the method in the asl is _L1D)?
+> From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
+> > To verify this, you might try calling _PRW from the button 
+> driver (or
+> > just look at the ASL), and then using that GPE number call
+> > acpi_enable_gpe(gpe_num, NULL, ACPI_EVENT_WAKE_ENABLE).
 > 
-> Hehe yes. Did I mention the next version will change that interface? :)
-> 
-> > I was planning on adding this just after the
-> > status = acpi_hw_enable_gpe (gpe_event_info);
-> > call in the acpi_ev_save_method_info() function of evgpeblk.c IF the
-> > gpe_num is 0x1D.  Is this okay for verifying?
-> 
-> I would think so, but there's only one way to find out...
+> Can I assume that you mean:
+> acpe_enable_event(gpe_num, ACPI_EVENT_GPE, ACPI_EVENT_WAKE_ENABLE);
+> where gpe_num is in my case 0x1D (the method in the asl is _L1D)?
 
-Yay, my frikking sleep button is now waking the laptop from sleep! Nevermind
-the fact that everything else is still dead (these problems seem a tad more
-tractable), the BUTTON IS WORKING.
+Hehe yes. Did I mention the next version will change that interface? :)
 
-Through printk()s all over, it seems that the acpi code never explicitly
-enables the 0x1D event on my machine at all, nevermind enabling it for
-waking.  Is this a problem with my firmware/dsdt or with the acpi kernel
-code?
+> I was planning on adding this just after the
+> status = acpi_hw_enable_gpe (gpe_event_info);
+> call in the acpi_ev_save_method_info() function of evgpeblk.c IF the
+> gpe_num is 0x1D.  Is this okay for verifying?
 
-I ran into some *cough* Microsoft documents *cough* online that claimed that
-*cough* Windows *cough* enabled/disabled certain devices for waking.
-According to these documents, the sleep button was always enabled.  Should
-Linux ACPI be doing the same?
+I would think so, but there's only one way to find out...
 
-Thanks,
-Charl
-
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Regards -- Andy
 
 
 -------------------------------------------------------
