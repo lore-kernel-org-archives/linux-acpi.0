@@ -1,10 +1,11 @@
-From: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH] remove acpi_specific_hotkey kernel option
-Date: Sat, 19 Mar 2005 04:00:53 -0800
-Message-ID: <20050319120053.GV12172@aero.ensim.com>
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC/Patch 0/12] ACPI based root bridge hot-add
+Date: Sat, 19 Mar 2005 15:50:16 +0200
+Message-ID: <pan.2005.03.19.13.50.15.938352@yahoo.com>
+References: <20050318133856.A878@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="VACxsDaSTfeluoxK"
-Content-Disposition: inline
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,252 +15,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, john-wanGne27zNesTnJN9+BGXg@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 18 Mar 2005 13:38:57 -0800, Rajesh Shah wrote:
 
---VACxsDaSTfeluoxK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Here is a series of patches to support ACPI hot-add of a root bridge
+> hierarchy. The added hierarchy may contain other p2p bridges and end/le=
+af
+> I/O devices too. The root bridge itself is assumed to have been assigne=
+d
+> resource ranges, but the p2p bridges and end devices are not required t=
+o
+> be initialized by firmware. Most of the code changes are to make the
+> existing code flows suitable for such a hierarchy of bridges & devices.
+>=20
+> This code supports hot-add on ia64 only for now.It does not yet support
+> I/O APIC hot-add, which is needed to make this fully functional.  The
+> patches are against 2.6.11-mm4 (plus the patch needed for ia64 to boot)=
+.
+> I've tested to make sure this does not break end/leaf device hotplug on
+> the hotplug capable ia64 box I have.
+>=20
+> Thanks,
+> Rajesh
 
-Hi Len,
+Does this mean that when it will be ported for i386, I will be able to
+really use my Docking Station ?
+Does it rescan the DSDT to find new additions to ACPI devices ?
 
-The patch below (also attached) reverts part of the generic hotkey
-patch, specifically the acpi_specific_hotkey kernel option, for the
-following reasons:
+I have an IBM docking station with a PCI bus inside and some other
+devices, and when I hot plug my IBM ThinkPad T41 in it, it does not
+recognize those devices. Only if I boot in dock they are usable.
+And the DSDT is different if I boot in dock or not.
+So I wander if this patch would help me to hot plug my T41 in the dock an=
+d
+all devices will be recognized. (when the patch will be for i386 too)
 
-- The default for this option is to disable several platform-specific
-drivers. This would break existing setups relying on those drivers.
 
-- The generic hotkey driver relies on userspace setup but no userspace
-tools or configuration for common platforms exists. Making it the
-default at this time is not appropriate.
+Thx,
+Paul
 
-- The generic hotkey driver does not claim any ACPI devices at insmod
-time (since it doesn't know what HID to claim) and can therefore
-coexist with a platform-specific driver. It can then be up to the user
-to unload the undesired driver (or not compile it in the first place).
-
-- The platform-specific drivers have more features than simply hot
-keys. For example, ibm-acpi has 13 other features (none of which can
-be implemented via standard ACPI methods).
-
-The patch is against 2.6.12-rc1 + acpi-20050309. Please apply.
-
-Regards,
-Boris
-
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/asus_acpi.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/asus_acpi.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/asus_acpi.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/asus_acpi.c	2005-03-19 03:19:48.908896304 -0800
-@@ -1204,10 +1204,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!acpi_specific_hotkey_enabled){
--		printk(KERN_ERR "Using generic hotkey driver\n");
--		return -ENODEV;	
--	}
- 	asus_proc_dir = proc_mkdir(PROC_ASUS, acpi_root_dir);
- 	if (!asus_proc_dir) {
- 		printk(KERN_ERR "Asus ACPI: Unable to create /proc entry\n");
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/hotkey.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/hotkey.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/hotkey.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/hotkey.c	2005-03-19 03:20:15.022926368 -0800
-@@ -907,11 +907,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (acpi_specific_hotkey_enabled) {
--		printk("Using specific hotkey driver\n");
--		return -ENODEV;
--	}
--
- 	hotkey_proc_dir = proc_mkdir(HOTKEY_PROC, acpi_root_dir);
- 	if (!hotkey_proc_dir) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/ibm_acpi.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/ibm_acpi.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/ibm_acpi.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/ibm_acpi.c	2005-03-19 03:20:28.120935168 -0800
-@@ -1185,10 +1185,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!acpi_specific_hotkey_enabled){
--		printk(IBM_ERR "Using generic hotkey driver\n");
--		return -ENODEV;	
--	}
- 	/* these handles are required */
- 	if (IBM_HANDLE_INIT(ec,	  1) < 0 ||
- 	    IBM_HANDLE_INIT(hkey, 1) < 0 ||
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/osl.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/osl.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/osl.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/osl.c	2005-03-19 03:21:17.608411928 -0800
-@@ -71,9 +71,6 @@
- extern char line_buf[80];
- #endif /*ENABLE_DEBUGGER*/
- 
--int acpi_specific_hotkey_enabled;
--EXPORT_SYMBOL(acpi_specific_hotkey_enabled);
--
- static unsigned int acpi_irq_irq;
- static acpi_osd_handler acpi_irq_handler;
- static void *acpi_irq_context;
-@@ -1155,15 +1152,6 @@
- 
- __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
- 
--int __init
--acpi_hotkey_setup(char *str)
--{
--	acpi_specific_hotkey_enabled = TRUE;
--	return 1;
--}
--
--__setup("acpi_specific_hotkey", acpi_hotkey_setup);
--
- /*
-  * max_cstate is defined in the base kernel so modules can
-  * change it w/o depending on the state of the processor module.
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/toshiba_acpi.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/toshiba_acpi.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/toshiba_acpi.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/toshiba_acpi.c	2005-03-19 03:21:38.154288480 -0800
-@@ -530,10 +530,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!acpi_specific_hotkey_enabled){
--		printk(MY_INFO "Using generic hotkey driver\n");
--		return -ENODEV;	
--	}
- 	/* simple device detection: look for HCI method */
- 	if (is_valid_acpi_path(METHOD_HCI_1))
- 		method_hci = METHOD_HCI_1;
-diff -Nur linux-2.6.12-rc1-acpi/include/acpi/acpi_drivers.h linux-2.6.12-rc1-acpi-bd/include/acpi/acpi_drivers.h
---- linux-2.6.12-rc1-acpi/include/acpi/acpi_drivers.h	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/include/acpi/acpi_drivers.h	2005-03-19 03:17:26.000000000 -0800
-@@ -108,10 +108,4 @@
- 
- int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
- 
--/* --------------------------------------------------------------------------
--                                    Hot Keys
--   -------------------------------------------------------------------------- */
--
--extern int acpi_specific_hotkey_enabled;
--
- #endif /*__ACPI_DRIVERS_H__*/
-
---VACxsDaSTfeluoxK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="no-acpi-specific-hotkey.patch"
-
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/asus_acpi.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/asus_acpi.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/asus_acpi.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/asus_acpi.c	2005-03-19 03:19:48.908896304 -0800
-@@ -1204,10 +1204,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!acpi_specific_hotkey_enabled){
--		printk(KERN_ERR "Using generic hotkey driver\n");
--		return -ENODEV;	
--	}
- 	asus_proc_dir = proc_mkdir(PROC_ASUS, acpi_root_dir);
- 	if (!asus_proc_dir) {
- 		printk(KERN_ERR "Asus ACPI: Unable to create /proc entry\n");
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/hotkey.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/hotkey.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/hotkey.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/hotkey.c	2005-03-19 03:20:15.022926368 -0800
-@@ -907,11 +907,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (acpi_specific_hotkey_enabled) {
--		printk("Using specific hotkey driver\n");
--		return -ENODEV;
--	}
--
- 	hotkey_proc_dir = proc_mkdir(HOTKEY_PROC, acpi_root_dir);
- 	if (!hotkey_proc_dir) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/ibm_acpi.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/ibm_acpi.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/ibm_acpi.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/ibm_acpi.c	2005-03-19 03:20:28.120935168 -0800
-@@ -1185,10 +1185,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!acpi_specific_hotkey_enabled){
--		printk(IBM_ERR "Using generic hotkey driver\n");
--		return -ENODEV;	
--	}
- 	/* these handles are required */
- 	if (IBM_HANDLE_INIT(ec,	  1) < 0 ||
- 	    IBM_HANDLE_INIT(hkey, 1) < 0 ||
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/osl.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/osl.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/osl.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/osl.c	2005-03-19 03:21:17.608411928 -0800
-@@ -71,9 +71,6 @@
- extern char line_buf[80];
- #endif /*ENABLE_DEBUGGER*/
- 
--int acpi_specific_hotkey_enabled;
--EXPORT_SYMBOL(acpi_specific_hotkey_enabled);
--
- static unsigned int acpi_irq_irq;
- static acpi_osd_handler acpi_irq_handler;
- static void *acpi_irq_context;
-@@ -1155,15 +1152,6 @@
- 
- __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
- 
--int __init
--acpi_hotkey_setup(char *str)
--{
--	acpi_specific_hotkey_enabled = TRUE;
--	return 1;
--}
--
--__setup("acpi_specific_hotkey", acpi_hotkey_setup);
--
- /*
-  * max_cstate is defined in the base kernel so modules can
-  * change it w/o depending on the state of the processor module.
-diff -Nur linux-2.6.12-rc1-acpi/drivers/acpi/toshiba_acpi.c linux-2.6.12-rc1-acpi-bd/drivers/acpi/toshiba_acpi.c
---- linux-2.6.12-rc1-acpi/drivers/acpi/toshiba_acpi.c	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/drivers/acpi/toshiba_acpi.c	2005-03-19 03:21:38.154288480 -0800
-@@ -530,10 +530,6 @@
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!acpi_specific_hotkey_enabled){
--		printk(MY_INFO "Using generic hotkey driver\n");
--		return -ENODEV;	
--	}
- 	/* simple device detection: look for HCI method */
- 	if (is_valid_acpi_path(METHOD_HCI_1))
- 		method_hci = METHOD_HCI_1;
-diff -Nur linux-2.6.12-rc1-acpi/include/acpi/acpi_drivers.h linux-2.6.12-rc1-acpi-bd/include/acpi/acpi_drivers.h
---- linux-2.6.12-rc1-acpi/include/acpi/acpi_drivers.h	2005-03-19 02:37:49.000000000 -0800
-+++ linux-2.6.12-rc1-acpi-bd/include/acpi/acpi_drivers.h	2005-03-19 03:17:26.000000000 -0800
-@@ -108,10 +108,4 @@
- 
- int acpi_processor_set_thermal_limit(acpi_handle handle, int type);
- 
--/* --------------------------------------------------------------------------
--                                    Hot Keys
--   -------------------------------------------------------------------------- */
--
--extern int acpi_specific_hotkey_enabled;
--
- #endif /*__ACPI_DRIVERS_H__*/
-
---VACxsDaSTfeluoxK--
 
 
 -------------------------------------------------------
 SF email is sponsored by - The IT Product Guide
 Read honest & candid reviews on hundreds of IT Products from real users.
 Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
