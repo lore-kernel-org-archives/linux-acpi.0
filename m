@@ -1,12 +1,12 @@
-From: Richard K. Lee <jakov-Mw7QyLJ+2FuzQB+pC5nmwQ@public.gmane.org>
-Subject: =?iso-8859-1?B?Q2lhbGlzIC0gdmVyeSBsb3cgcHJpY2U=?=
-Date: Tue, 02 Nov 2004 06:43:40 +0000
-Message-ID: <8c2001c4c0a7$bc8bf44b$30627902@abatan.be>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI Link device suspend/resume
+Date: Tue, 2 Nov 2004 15:12:03 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575745E99@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_638A5995.7070E601"
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C4C0AB.43DCC26E"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,111 +16,107 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>, Luc Saillard <luc.saillard-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0000_638A5995.7070E601
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_76F7737E.6DA89DFC"
+------_=_NextPart_001_01C4C0AB.43DCC26E
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
+Oops, should add irq_disabled. Please try.
+Actually every laptop in PIC mode will oops when resume ACPI link
+device, if 'CONFIG_DEBUG_SPINLOCK_SLEEP' enabled.
 
-------=_NextPart_001_0001_76F7737E.6DA89DFC
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+Shaohua
 
-Full & rock hard erections
-Starts working in less than 15 min.
-Longer-lasting effects
-No prescription required
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Li, Shaohua
+>Sent: Tuesday, November 02, 2004 2:13 PM
+>To: Ow Mun Heng; Luc Saillard
+>Cc: ML ACPI-devel
+>Subject: [ACPI] ACPI Link device suspend/resume
+>
+>Hi Mun Heng and Luc,
+>You reported the Link device suspend/resume before, could you please
+try
+>the attached debug patch? Please enable 'CONFIG_DEBUG_SPINLOCK_SLEEP'.
+>
+>Thanks,
+>Shaohua
 
-CIALIS:
-http://www.decamed.info
+------_=_NextPart_001_01C4C0AB.43DCC26E
+Content-Type: application/octet-stream;
+	name="non-sleep.patch"
+Content-Transfer-Encoding: base64
+Content-Description: non-sleep.patch
+Content-Disposition: attachment;
+	filename="non-sleep.patch"
 
-Pick up the manufacturer you trust!
-Fast delivery to over 120 countries
+CgotLS0KCiAyLjYtcm9vdC9kcml2ZXJzL2FjcGkvb3NsLmMgfCAgIDQ0ICsrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tCiAxIGZpbGVzIGNoYW5nZWQsIDQyIGluc2Vy
+dGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC1wdU4gZHJpdmVycy9hY3BpL29zbC5jfm5v
+bi1zbGVlcCBkcml2ZXJzL2FjcGkvb3NsLmMKLS0tIDIuNi9kcml2ZXJzL2FjcGkvb3NsLmN+bm9u
+LXNsZWVwCTIwMDQtMTEtMDIgMTM6NDM6MDAuMDAwMDAwMDAwICswODAwCisrKyAyLjYtcm9vdC9k
+cml2ZXJzL2FjcGkvb3NsLmMJMjAwNC0xMS0wMiAxNDo1Nzo0OC44MDQ5NTg1MzYgKzA4MDAKQEAg
+LTEzOSw2ICsxMzksOCBAQCBhY3BpX29zX3ZwcmludGYoY29uc3QgY2hhciAqZm10LCB2YV9saXN0
+CiB2b2lkICoKIGFjcGlfb3NfYWxsb2NhdGUoYWNwaV9zaXplIHNpemUpCiB7CisJaWYgKGluX2F0
+b21pYygpIHx8IGlycXNfZGlzYWJsZWQoKSkKKwkJcmV0dXJuIGttYWxsb2Moc2l6ZSwgR0ZQX0FU
+T01JQyk7CiAJcmV0dXJuIGttYWxsb2Moc2l6ZSwgR0ZQX0tFUk5FTCk7CiB9CiAKQEAgLTE3Niw2
+ICsxNzgsMTIgQEAgYWNwaV9vc19nZXRfcm9vdF9wb2ludGVyKHUzMiBmbGFncywgc3RydQogYWNw
+aV9zdGF0dXMKIGFjcGlfb3NfbWFwX21lbW9yeShhY3BpX3BoeXNpY2FsX2FkZHJlc3MgcGh5cywg
+YWNwaV9zaXplIHNpemUsIHZvaWQgX19pb21lbSAqKnZpcnQpCiB7CisJaWYgKGluX2F0b21pYygp
+IHx8IGlycXNfZGlzYWJsZWQoKSkgeworCQlwcmludGsoIk9vcHMsIHBvc3NpYmx5IHdpbGwgc2xl
+ZXAgaW4gYXRvbWljIGluICVzLCIKKwkJCSJwbGVhc2Ugc2VuZCBhbiBlbWFpbCB0byBsaW51eC1h
+Y3BpQGludGVsLmNvbVxuIiwKKwkJCV9fRlVOQ1RJT05fXyk7CisJCXJldHVybiBBRV9OT19NRU1P
+Ulk7CisJfQogCWlmIChlZmlfZW5hYmxlZCkgewogCQlpZiAoRUZJX01FTU9SWV9XQiAmIGVmaV9t
+ZW1fYXR0cmlidXRlcyhwaHlzKSkgewogCQkJKnZpcnQgPSAodm9pZCBfX2lvbWVtICopIHBoeXNf
+dG9fdmlydChwaHlzKTsKQEAgLTIwMiw2ICsyMTAsMTIgQEAgYWNwaV9vc19tYXBfbWVtb3J5KGFj
+cGlfcGh5c2ljYWxfYWRkcmVzcwogdm9pZAogYWNwaV9vc191bm1hcF9tZW1vcnkodm9pZCBfX2lv
+bWVtICp2aXJ0LCBhY3BpX3NpemUgc2l6ZSkKIHsKKwlpZiAoaW5fYXRvbWljKCkgfHwgaXJxc19k
+aXNhYmxlZCgpKSB7CisJCXByaW50aygiT29wcywgcG9zc2libHkgd2lsbCBzbGVlcCBpbiBhdG9t
+aWMgaW4gJXMsIgorCQkJInBsZWFzZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LWFjcGlAaW50ZWwu
+Y29tXG4iLAorCQkJX19GVU5DVElPTl9fKTsKKwkJcmV0dXJuOworCX0KIAlpb3VubWFwKHZpcnQp
+OwogfQogCkBAIC0zMDgsNiArMzIyLDEyIEBAIGFjcGlfb3NfcmVtb3ZlX2ludGVycnVwdF9oYW5k
+bGVyKHUzMiBpcnEKIHZvaWQKIGFjcGlfb3Nfc2xlZXAodTMyIHNlYywgdTMyIG1zKQogeworCWlm
+IChpbl9hdG9taWMoKSB8fCBpcnFzX2Rpc2FibGVkKCkpIHsKKwkJcHJpbnRrKCJPb3BzLCBwb3Nz
+aWJseSB3aWxsIHNsZWVwIGluIGF0b21pYyBpbiAlcywiCisJCQkicGxlYXNlIHNlbmQgYW4gZW1h
+aWwgdG8gbGludXgtYWNwaUBpbnRlbC5jb21cbiIsCisJCQlfX0ZVTkNUSU9OX18pOworCQlyZXR1
+cm47CisJfQogCWN1cnJlbnQtPnN0YXRlID0gVEFTS19JTlRFUlJVUFRJQkxFOwogCXNjaGVkdWxl
+X3RpbWVvdXQoSFogKiBzZWMgKyAobXMgKiBIWikgLyAxMDAwKTsKIH0KQEAgLTM5NSw2ICs0MTUs
+MTIgQEAgYWNwaV9vc19yZWFkX21lbW9yeSgKIAkJCXZpcnRfYWRkciA9ICh2b2lkIF9faW9tZW0g
+KikgcGh5c190b192aXJ0KHBoeXNfYWRkcik7CiAJCX0gZWxzZSB7CiAJCQlpb21lbSA9IDE7CisJ
+CQlpZiAoaW5fYXRvbWljKCkgfHwgaXJxc19kaXNhYmxlZCgpKSB7CisJCQlwcmludGsoIk9vcHMs
+IHBvc3NpYmx5IHdpbGwgc2xlZXAgaW4gYXRvbWljIGluICVzLCIKKwkJCQkicGxlYXNlIHNlbmQg
+YW4gZW1haWwgdG8gbGludXgtYWNwaUBpbnRlbC5jb21cbiIsCisJCQkJX19GVU5DVElPTl9fKTsK
+KwkJCQlyZXR1cm4gQUVfTk9fTUVNT1JZOworCQkJfQogCQkJdmlydF9hZGRyID0gaW9yZW1hcChw
+aHlzX2FkZHIsIHdpZHRoKTsKIAkJfQogCX0gZWxzZQpAQCAtNDM5LDYgKzQ2NSwxMyBAQCBhY3Bp
+X29zX3dyaXRlX21lbW9yeSgKIAkJCXZpcnRfYWRkciA9ICh2b2lkIF9faW9tZW0gKikgcGh5c190
+b192aXJ0KHBoeXNfYWRkcik7CiAJCX0gZWxzZSB7CiAJCQlpb21lbSA9IDE7CisJCQlpZiAoaW5f
+YXRvbWljKCkgfHwgaXJxc19kaXNhYmxlZCgpKSB7CisJCQkJcHJpbnRrKCJPb3BzLCBwb3NzaWJs
+eSB3aWxsIHNsZWVwIGluIGF0b21pYyBpbiAlcywiCisJCQkJInBsZWFzZSBzZW5kIGFuIGVtYWls
+IHRvIGxpbnV4LWFjcGlAaW50ZWwuY29tXG4iLAorCQkJCV9fRlVOQ1RJT05fXyk7CisJCQkJcmV0
+dXJuIEFFX05PX01FTU9SWTsKKwkJCX0KKwogCQkJdmlydF9hZGRyID0gaW9yZW1hcChwaHlzX2Fk
+ZHIsIHdpZHRoKTsKIAkJfQogCX0gZWxzZQpAQCAtNjk0LDYgKzcyNywxMyBAQCB2b2lkCiBhY3Bp
+X29zX3dhaXRfZXZlbnRzX2NvbXBsZXRlKAogCXZvaWQgKmNvbnRleHQpCiB7CisJaWYgKGluX2F0
+b21pYygpIHx8IGlycXNfZGlzYWJsZWQoKSkgeworCQlwcmludGsoIk9vcHMsIHBvc3NpYmx5IHdp
+bGwgc2xlZXAgaW4gYXRvbWljIGluICVzLCIKKwkJCSJwbGVhc2Ugc2VuZCBhbiBlbWFpbCB0byBs
+aW51eC1hY3BpQGludGVsLmNvbVxuIiwKKwkJCV9fRlVOQ1RJT05fXyk7CisJCXJldHVybjsKKwl9
+CisKIAlmbHVzaF93b3JrcXVldWUoa2FjcGlkX3dxKTsKIH0KIApAQCAtODY0LDcgKzkwNCw3IEBA
+IGFjcGlfb3Nfd2FpdF9zZW1hcGhvcmUoCiAKIAlBQ1BJX0RFQlVHX1BSSU5UICgoQUNQSV9EQl9N
+VVRFWCwgIldhaXRpbmcgZm9yIHNlbWFwaG9yZVslcHwlZHwlZF1cbiIsIGhhbmRsZSwgdW5pdHMs
+IHRpbWVvdXQpKTsKIAotCWlmIChpbl9hdG9taWMoKSkKKwlpZiAoaW5fYXRvbWljKCkgfHwgaXJx
+c19kaXNhYmxlZCgpKQogCQl0aW1lb3V0ID0gMDsKIAogCXN3aXRjaCAodGltZW91dCkKQEAgLTk5
+MCw3ICsxMDMwLDcgQEAgYWNwaV9vc193cml0YWJsZSh2b2lkICpwdHIsIGFjcGlfc2l6ZSBsZQog
+dTMyCiBhY3BpX29zX2dldF90aHJlYWRfaWQgKHZvaWQpCiB7Ci0JaWYgKCFpbl9hdG9taWMoKSkK
+KwlpZiAoIWluX2F0b21pYygpICYmICFpcnFzX2Rpc2FibGVkKCkpCiAJCXJldHVybiBjdXJyZW50
+LT5waWQ7CiAKIAlyZXR1cm4gMDsKXwo=
 
-
-_________________________________________________________________________
-To be taken off future campaigns, go here: http://www.decamed.info/uns.htm
-_________________________________________________________________________
-
-
-------=_NextPart_001_0001_76F7737E.6DA89DFC
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-
-<html>
-<BODY text=#000000 vLink=#ffffff aLink=#ffffff link=#ffffff bgProperties=fixed 
-bgColor=#93d706 leftMargin=0 topMargin=0 rightMargin=0 marginheight="0" 
-marginwidth="0">
-<TABLE height=16 cellSpacing=0 cellPadding=0 width="100%" align=center 
-bgColor=#e8e8e8 border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=1>
-      <P align=left></P></TD></TR></TBODY></TABLE>
-<TABLE height=108 cellSpacing=0 cellPadding=0 width="100%" align=center 
-bgColor=#87c505 border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=108>
-      <P align=center><FONT face=Arial color=#ffffff size=3><STRONG><A 
-      style="TEXT-DECORATION: none" 
-      href="http://www.decamed.info">
-Full & hard erections<br>
-Starts working in less than 15 min.<br>
-Longer-lasting effects<br>
-No prescription asked
-</STRONG></FONT></P></A></TD></TR></TBODY></TABLE>
-<TABLE cellSpacing=0 cellPadding=0 width="100%" align=center border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%">
-      <P align=center><A 
-      href="http://www.decamed.info"><FONT 
-      face="Arial Black" color=#ffffff size=7><U><STRONG 
-      style="TEXT-DECORATION: none">ClALlS</STRONG></U></FONT></A></P></TD></TR></TBODY></TABLE>
-<TABLE height=46 cellSpacing=0 cellPadding=0 width="100%" border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=29><A 
-      href="http://www.decamed.info">
-      <P align=center><FONT face=Arial color=#ffffff size=6><U><STRONG>Select the manufacturer you can trust!</STRONG></U></FONT></P></A></TD></TR>
-  <TR>
-    <TD width="100%" height=17>
-      <P align=left></P></TD></TR></TBODY></TABLE>
-<TABLE height=46 cellSpacing=0 cellPadding=0 width="100%" align=center 
-bgColor=#dfdfdf border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=17><A style="TEXT-DECORATION: none" 
-      href="http://www.decamed.info">
-      <P align=center><FONT face="Arial Black" color=#c0c0c0 size=7><SPAN 
-      style="FONT-SIZE: 50px">BEST OFFER! CLICK HERE</SPAN></FONT></P></A></TD></TR></TBODY></TABLE>
-<TABLE height=35 cellSpacing=0 cellPadding=0 width="100%" align=center 
-bgColor=#93d706 border=0>
-  <TBODY>
-  <TR>
-    <TD width="100%" height=35><A style="TEXT-DECORATION: none" 
-      href="http://www.decamed.info">
-      <P align=center><FONT face="Arial Black" color=#ffffff size=4>Discreet delivery worldwide</FONT></P></A></TD></TR></TBODY></TABLE>
-<TABLE height=35 cellSpacing=0 cellPadding=0 width="100%" align=center 
-bgColor=#094e64 border=0>
-  <TBODY>
-  <TR>
-    <TD align=middle width="100%" height=55><A 
-      style="FONT-SIZE: 12px; COLOR: #93d706; FONT-FAMILY: Arial; TEXT-DECORATION: none" 
-      href="http://www.decamed.info/uns.htm">To be taken out, go here</A></TD></TR></TBODY></TABLE></BODY></HTML>
-
-
-------=_NextPart_001_0001_76F7737E.6DA89DFC--
-
-
-
-------=_NextPart_000_0000_638A5995.7070E601--
-
+------_=_NextPart_001_01C4C0AB.43DCC26E--
 
 
 -------------------------------------------------------
