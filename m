@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Applications & ACPI events
-Date: Wed, 8 Oct 2003 21:16:11 +0200
+From: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
+Subject: RE: /proc/battery empty on Gateway 400VTX
+Date: Wed, 8 Oct 2003 15:25:21 -0500 (CDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031008191610.GB1035@elf.ucw.cz>
-References: <20030930165926.GH1921@fairlite.demon.co.uk> <20030930173646.GF11391@poupinou.org> <20031003193814.GE205@openzaurus.ucw.cz> <20031006124935.GQ11391@poupinou.org> <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org>
+Message-ID: <Pine.LNX.4.44.0310081507350.31130-100000@data.upl.cs.wisc.edu>
+References: <Pine.LNX.4.44.0310081413530.30594-100000@data.upl.cs.wisc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031008102745.GF11391-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0310081413530.30594-100000-j0XSImJ06nG869pVMd/zofZ8FUJU4vz8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,55 +16,69 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > > > > When using ACPI to shutdown the machine to disk or memory, obviously an
-> > > > > > application can read events from /proc/acpi/events to see what to do.
-> > > > > > 
-> > > > > > How does ACPI in the kernel wait for applications to do what they
-> > > > > > need to when receiving an ACPI event, as it seems the kernel shuts down
-> > > > > > everything pretty quickly ?
-> > > > > 
-> > > > > AFAIK, there is no support for suspending userspace drivers (like X).
-> > > > 
-> > > > Actually X get console switch event, so they should
-> > > > give control of VGA to the kernel...
-> > > 
-> > > Exactly, you have to switch to a console.  That's the problem.
-> > 
-> > ???
-> > 
-> > Kernel tells X to switch to console; there's interface to say that,
-> > and we are using it. It should just work.
-> 
-> X know more exactly what it have to do to save current states of
-> the video chipset, or even know when to put the video chipset
-> in suspend mode.  The nv driver (for example) have to reset the
-> whole xvideo stuff just because it do not work anymore after a
-> suspend/resume, but this reset is not necessary for just
-> switching to console.  2D/3D acceleration in general also need
-> more works after a suspend/resume which is not necessary
-> for just switching to console.
-> All of that console switching work only on intel like archs.
+On Wed, 8 Oct 2003, Casey Harkins wrote:
+>
+> On Wed, 8 Oct 2003, Li, Shaohua wrote:
+> >
+> > Hi,
+> >    Your BIOS lacks ECDT. Maybe you should provide an ECDT according to EC device.
+> >
+> > Thanks,
+> > Shaohua
+>
+>
+> How would I go about doing this? I'll google around a bit and see what I
+> can figure out.
+>
 
-IMO X should do full save and restore, on every console switch. That
-way it is safe to killall -9 X when you are on console, and I think I
-like it that way. I do not think console switching is i386-only, I
-know that sparc64's had consoles, too.
+I tried using the pmtools acpidmp tool to dump the ecdt, but obviously
+since the bios lacks one it doesn't dump one. I have no clue on how to
+provide an ecdt for the ec device. I'm assuming this would involve getting
+specs for the ec on this particular machine, writing asl describing the
+ec, compiling and patching it into the kernel (similar to replacing bad
+dsdt's). Am I on the right track here?
 
-OTOH if X knew how to bring video card up from powerdown... that would
-help a lot, and would need a kernel support. ("Hey, X, I just did
-resume and graphics card is uninitialized. It is not even in vga text
-mode. Do something with it.")
-								Pavel
+I dug around and found a few more details which may or may not help.
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Gateway's specs for this laptop [1] state:
+
+Bios:
+        Advanced Configuration and Power Interface 1.0b (ACPI 1.0b)
+        support
+
+Battery type:
+        Embedded controller inside to support smart battery
+
+Power Management:
+        Advanced Configuration and Power Interface 1.0b or later
+        (ACPI 1.0b or later) support
+
+I also found this [2] lkml post which suggests that ECDT is a feature of
+ACPI 2.0 and that smart batteries are a 1.0 feature that aren't currently
+supported in the Linux kernel. This message is from September 2002, so the
+support for smart battery objects may have changed.
+
+Anyway, is it possible that this notebook does not support acpi 2.0 and
+therefore the only method for retrieving the battery status is through the
+smart battery acpi 1.0 object?
+
+I'm pretty much acpi ignorant at this point, so any help is appreciated.
+I'll sit down and try to read over the specs this afternoon to see if I
+can become less acpi ignorant!
+
+
+-casey
+
+
+
+[1] http://support.gateway.com/s/Mobile/Gateway/400VTX/3501331sp47.shtml
+[2] http://www.ussg.iu.edu/hypermail/linux/kernel/0209.1/1566.html
+
 
 
 -------------------------------------------------------
