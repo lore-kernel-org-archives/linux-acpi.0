@@ -1,12 +1,13 @@
-From: J <acpi-bdq14YP6qtSeVB85EesmETSf8X3wrgjD@public.gmane.org>
+From: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
 Subject: Re: Re: making progress with ACPI was: ACPI small patch up date
-Date: Wed, 30 Oct 2002 09:55:53 +0800
+Date: Wed, 30 Oct 2002 07:08:37 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210300955.53572.acpi@computerdatasafe.com.au>
+Message-ID: <200210300708.37599.earny@net4u.de>
 References: <EDC461A30AC4D511ADE10002A5072CAD04C7A489@orsmsx119.jf.intel.com>
+Reply-To: earny-euM3SP4ZHrg@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A489-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
@@ -18,36 +19,11 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 30 Oct 2002 07:50, Grover, Andrew wrote:
-> > and not applying cleanly on 2.4.X official kernels.
->
-> If we have a prayer of ever getting into official 2.4, we need to track the
-> pre kernels. People in the past have done backports to the non-pre kernels,
-> but that really depends on what other people are willing to do.
+On Mittwoch, 30. Oktober 2002 00:50, Grover, Andrew wrote:
 
-At present I will only use what's in 2.4. What I do for my machines doesn't 
-matter a whole lot, but when I maintain machines for others I _much_ prefer 
-to use standard source code supplied by my vendor inless there's a good 
-reason for something else.
-
-Best too, I think, if I use the platforms I support for others.
-
-> > > I strongly believe that the ACPI project would make much
-> >
-> > more progress
-> >
-> > > if Andy and Robert put a little effort into tracking bugs and making
-> > > releases.
-> >
-> > I do agree. The more people do not want other to look/critic
-> > their code,
-> > the more they pretend what they do is a kind of black art, and do not
-> > document it or make design document :-) Fixing bug is
-> > annoying, making a
-> > new release and advising to report a problem on it is so more fun.
 >
 > We can fix bugs, the problem is *diagnosing* the issue. There's only so
 > much diagnosis that can be done without the hardware. If you say "line 444
@@ -56,34 +32,23 @@ Best too, I think, if I use the platforms I support for others.
 > hangs" then it's a lot harder. Sometimes the dmesg or DSDT are enough that
 > other people can suss out what might be the problem -- sometimes not.
 >
->
-> Part of this whole open source "gift" economy is that it's polite to not
-> turn one's nose up a gift. Even if it wasn't all that you wanted. And
-> especially if you haven't reciprocated.
->
->
-> Regards -- Andy
 
-This can be taken two ways.
+Hm. Give me some debugging hints. I'm not a kernel hacker, and i see the need 
+for ACPI, but this stuff is complex. I have not the time and i am not willing 
+to understand every line in the code. But i'm willing to help you to help you 
+to fix problems in the code. 
 
-It's becoming apparent to me this project is in need of some management. I 
-think Jan was hinting he might provide some management, maybe only in the 
-short term, but who knows? He has some problems he wants fixed, and if he 
-finds it enjoyable being part of the team he'll probably stick around. Why 
-turn up your nose at the gift?
+ACPI_FUNCTION_TRACE looks for me like a function that can help.  Should it 
+work if i change acpi_set_debug(..) to ACPI_DEBUG_HIGH in acpi_init(void)?  
+Last try i get a kernel that don't start or was not able to send any 
+printk-message.
+(clean 2.4.20-pre11, newest patched ACPI patch, compiled into, not modules, 
+gcc3.2)
 
-If you don't like the sourceforge bug tracking system, then how about 
-Bugzilla? As a user I don't like it a lot, but it does handle some sizable 
-projects so it can't be all bad. Probably someone here could host it.
+Problem is, that thermal and processor doesn't work anymore, no error message, 
+no warning... no hint ;-)
 
-Even a weblog (or spreadsheet for that matter!) would serve to keep bugs 
-visible until they're resolved. I have the impression from what others have 
-said that losing track of them is a problem.
-
-
-
-
-
+<Earny>
 
 
 -------------------------------------------------------
