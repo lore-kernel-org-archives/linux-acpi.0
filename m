@@ -1,8 +1,8 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: ibm-acpi-0.3
-Date: 18 Aug 2004 01:41:37 -0400
+Date: 18 Aug 2004 01:42:26 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092807697.25902.152.camel@dhcppc4>
+Message-ID: <1092807746.25902.155.camel@dhcppc4>
 References: <20040810080826.GD28939@aero.ensim.com>
 	 <20040814211247.GS20883@aero.ensim.com>
 	 <20040817091921.GI20883@aero.ensim.com>
@@ -20,14 +20,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org, ipw2100-devel List <ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-what's the GLOBAL_NOTIFY stuff about?
+> http://bkernel.sf.net/tmp/ibm-acpi-0.3.tar.gz
 
-        status = acpi_install_notify_handler(ACPI_ROOT_OBJECT,
-                                             ACPI_DEVICE_NOTIFY,
-                                             global_notify, NULL);
+The radio hot key sends an ACPI event,
+and the acpid example calls this radio.sh:
+
+#!/bin/bash
+
+if ! /sbin/rmmod ipw2100; then
+        /sbin/service network restart
+fi
+
+
+Does this means that the button press magically changed
+the state of the radio in hardware?  I didn't see any
+processing inside the driver to do that.
+
+thanks,
+-Len
 
 
 
