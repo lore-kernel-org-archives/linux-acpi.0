@@ -1,12 +1,11 @@
 From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: Thinkpad T40 Fan
-Date: Fri, 6 Feb 2004 11:03:32 +0800
+Subject: RE: Status of ACPI on IBM T40p
+Date: Fri, 6 Feb 2004 11:12:53 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03F9E358@wdmyexch02.my.asia.wdc.com>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03F9E359@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C3EC5F.1BF6B740"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,33 +16,85 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ben lamothe <blamothe-DPNOqEs/LNQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Gran <alex-4mRm4CWMOdkHuPwBo6/EyUB+6BGkLq7r@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+This is a multi-part message in MIME format.
+
+------_=_NextPart_001_01C3EC5F.1BF6B740
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
 
 
 > -----Original Message-----
-> From: ben lamothe [mailto:blamothe-DPNOqEs/LNQ@public.gmane.org]
-> Sent: Wednesday, February 04, 2004 7:13 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: [ACPI] Thinkpad T40 Fan
->=20
->=20
-> Hi, I have an IBM Thinkpad T40 and the fan won't shut off.  If the
-> computer is left idle after power on, after about five minutes the
-> fan turns on and stays on seemingly for hours.  This behavior is not
-> exibited in Windows, on the contrary, the fan is almost never=20
-> on.  Using
-> the thermal zone driver from acpi, I've noticed that the fan is on for
-> temperatures as low as 86 degrees. =20
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of=20
+> Li, Shaohua
 
+> > Alexander Gran Wrote
+> > C-states are not working right:
+> without USB devices, my T40 can enter C3
 
-what does ls -l /proc/acpi/fan/* says??
-In My Dell D600, there's nothing there at all. and fan kicks in etc.
+can you tell me how to remove usb so that my Laptop can get into C3?=20
+It keeps being in C2 and usage of C3 is [000000000]
 
-Yu,Luming mentioned its my DSDT prob.
-workaround using the i8kfanutil which controls the fan. Now, it's=20
-working fine with temp control.
+bus master activity =3D fffffffff all the time..
+
+I tried removing all the usb references but can remove usbcore..
+
+:( Help please.
+
+------_=_NextPart_001_01C3EC5F.1BF6B740
+Content-Type: application/ms-tnef;
+	name="winmail.dat"
+Content-Transfer-Encoding: base64
+
+eJ8+IgQDAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEIgAcAGAAAAElQTS5NaWNy
+b3NvZnQgTWFpbC5Ob3RlADEIAQ2ABAACAAAAAgACAAEEgAEAJgAAAFJFOiBbQUNQSV0gU3RhdHVz
+IG9mIEFDUEkgb24gSUJNIFQ0MHAA2QoBBYADAA4AAADUBwIABgALAAwANQAFADQBASCAAwAOAAAA
+1AcCAAYACwAMADUABQA0AQEJgAEAIQAAADcxRTFCNDI1M0Q1RDI2NDNBOTBEMzEyMjlERjJDQzcw
+ABIHAQOQBgAICAAAMwAAAAsAAgABAAAAAwAmAAAAAAALACsAAAAAAAMALgAAAAAAAwA2AAAAAABA
+ADkAQLf2G1/swwEeAD0AAQAAAAUAAABSRTogAAAAAAIBRwABAAAAKQAAAGM9VVM7YT0gO2w9V0RN
+WUVYQ0gwMi0wNDAyMDYwMzEyNTNaLTM0NTgAAAAAHgBwAAEAAAAiAAAAW0FDUEldIFN0YXR1cyBv
+ZiBBQ1BJIG9uIElCTSBUNDBwAAAAAgFxAAEAAAAWAAAAAcPsXxtUPH9invvGTRmMgig/XH238QAA
+HgAaDAEAAAAMAAAAT3cgTXVuIEhlbmcAHgAdDgEAAAAiAAAAW0FDUEldIFN0YXR1cyBvZiBBQ1BJ
+IG9uIElCTSBUNDBwAAAAAgEJEAEAAAA+AgAAOgIAAGIDAABMWkZ1KYLEBAMACgByY3BnMTI14jID
+Q3RleAVBAQMB9/8KgAKkA+QHEwKAD/MAUARWPwhVB7IRJQ5RAwECAGNo4QrAc2V0MgYABsMRJfYz
+BEYTtzASLBEzCO8J97Y7GB8OMDURIgxgYwBQ8wsJAWQzNhZQC6YK4wqEUQqAPiAtHdJPBRBnDwuA
+B0AF0AeQc2FnZUsd0x1WRgNhOiAA0HAEaS0BAHZlbC1hJGRtC4BAbAQAdHN0LnMIYWMBEAWwHwAu
+Nm4UIB1WWwDAAxB0b046IF8hbyJyXU8DoELCZRPgbGYgTyagHVYYTGksBgAT4G9odeZhHPwdsEFs
+DsAAcASB6CBHcgORVwNgDrAoiHRDLSTgYQ6wBCAKwGWkIG4qMCB3BbBrC4DEZyAeMWh0Oh1WA/AM
+dGgIYAVAVVNCIA8kAQ3gB5AnkG15IFR6NBZQYwORCfAOsAXAQ1cVMB0JLzJ5CGAgDrBsewMgB4Ag
+LaAH4COALIBlgwRgJCAgdXNiICHATzEgE+AFQC7BTGEFMG9+cC8jHwAFQAuAMfEv0D9VHOVJBUBr
+CeBwBCBi/mUsUguAEiAUQClhMoEe8TwgbyagL9A0YAQgWzC1N/ZdHPpiMpAusGEk4FMSgQDQdGku
+UHQu0D3+IAEgOrUgQDFRLZArsDog6QeALi4c+kkxIAiBNtDfMiMsUjtWMpIYIGYEkAnwfy5xNeAt
+wS8yMigFoTwNOrgoIEgkMDPQC1BlOaALImAc9H1DEAAAHgA1EAEAAABGAAAAPEMzODYzMjgwODhF
+RDdGNEU5RjgxQUZCQUJEREY2MERBMDNGOUUzNTlAd2RteWV4Y2gwMi5teS5hc2lhLndkYy5jb20+
+AAAAHgBCEAEAAABGAAAAPDU3MUFDRUZENDY3Rjc3NDlCQzUwRTBBOThDMTdDREQ4RDVGRUQyQFBE
+U01TWDQwMy5jY3IuY29ycC5pbnRlbC5jb20+AAAAAwCAEP////8fAPMQAQAAAFgAAABSAEUAJQAz
+AEEAIABbAEEAQwBQAEkAXQAgAFMAdABhAHQAdQBzACAAbwBmACAAQQBDAFAASQAgAG8AbgAgAEkA
+QgBNACAAVAA0ADAAcAAuAEUATQBMAAAACwD2EAAAAABAAAcwQLf2G1/swwFAAAgwiI4OHF/swwED
+AN4/n04AAAMA8T8JBAAAHgD4PwEAAAAMAAAAT3cgTXVuIEhlbmcAAgH5PwEAAABKAAAAAAAAANyn
+QMjAQhAatLkIACsv4YIBAAAAAAAAAC9PPVdEQy9PVT1XREVYQ0gvQ049UkVDSVBJRU5UUy9DTj1P
+Vy5NVU4uSEVORwAAAB4A+j8BAAAAFQAAAFN5c3RlbSBBZG1pbmlzdHJhdG9yAAAAAAIB+z8BAAAA
+HgAAAAAAAADcp0DIwEIQGrS5CAArL+GCAQAAAAAAAAAuAAAAAwD9P+QEAAADABlAAAAAAAMAGkAA
+AAAAHgAwQAEAAAAMAAAAT1cuTVVOLkhFTkcAHgAxQAEAAAAMAAAAT1cuTVVOLkhFTkcAHgA4QAEA
+AAAMAAAAT1cuTVVOLkhFTkcAHgA5QAEAAAACAAAALgAAAAMACVkBAAAACwBmgQggBgAAAAAAwAAA
+AAAAAEYAAAAADoUAAAAAAAADAH6BCCAGAAAAAADAAAAAAAAARgAAAABShQAAfW4BAB4Af4EIIAYA
+AAAAAMAAAAAAAABGAAAAAFSFAAABAAAABAAAADkuMAADAMKBCCAGAAAAAADAAAAAAAAARgAAAAAB
+hQAAAAAAAAsAx4EIIAYAAAAAAMAAAAAAAABGAAAAAAOFAAAAAAAAAwDMgQggBgAAAAAAwAAAAAAA
+AEYAAAAAEYUAAAAAAAADANGBCCAGAAAAAADAAAAAAAAARgAAAAAQhQAAAAAAAAMA2IEIIAYAAAAA
+AMAAAAAAAABGAAAAABiFAAAAAAAACwAMggggBgAAAAAAwAAAAAAAAEYAAAAABoUAAAAAAAALACkA
+AAAAAAsAIwAAAAAAAwAGEFXQE8YDAAcQkAEAAAMAEBABAAAAAwAREAEAAAAeAAgQAQAAAGUAAAAt
+LS0tLU9SSUdJTkFMTUVTU0FHRS0tLS0tRlJPTTpBQ1BJLURFVkVMLUFETUlOQExJU1RTU09VUkNF
+Rk9SR0VORVRNQUlMVE86QUNQSS1ERVZFTC1BRE1JTkBMSVNUU1NPVVJDAAAAAAIBfwABAAAARgAA
+ADxDMzg2MzI4MDg4RUQ3RjRFOUY4MUFGQkFCRERGNjBEQTAzRjlFMzU5QHdkbXlleGNoMDIubXku
+YXNpYS53ZGMuY29tPgAAAKC1
+
+------_=_NextPart_001_01C3EC5F.1BF6B740--
 
 
 -------------------------------------------------------
