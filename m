@@ -1,15 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Bad: scheduling while atomic!
-Date: Thu, 1 Apr 2004 17:07:39 +0200
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: Poweroff works intermittently
+Date: Thu, 01 Apr 2004 17:48:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040401150739.GC8091@message-id.gmane0305.slipkontur.de>
-References: <200403311054.55536.schrangl@gmx.net> <200403311107.02570.schrangl@gmx.net> <20040331135925.GF28355@dreamcraft.com.au> <200404010846.02216.schrangl@gmx.net>
+Message-ID: <406C39D7.1040505@pca.it>
+References: <40696F10.7020009@tiscali.it> <40697D34.9050507@pca.it> <406C3301.4010809@tiscali.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200404010846.02216.schrangl-hi6Y0CQ0nG0@public.gmane.org>
+In-Reply-To: <406C3301.4010809-IWqWACnzNjyonA0d6jMUrA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,21 +20,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 01, 2004 at 08:46:01AM +0200, Lukas Schrangl wrote:
-> Am Mittwoch, 31. März 2004 15:59 schrieb Tomasz Ciolek:
-> >  I get the same error with suspend to disk on a Fujitsu P2120. Ali 1535
-> >  chipset is the common bit...
-> >
-> >  Whats the network card you use?
-> >
-> 
-> Broadcom BCM 4401
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-i need to unload bcm4400 before suspend (swsusp, ACPI S4) and reinsert
-after resume, otherwise resume fails. Maybe the same is true for S3.
--- 
-Stefan Seyfried
+Hello,
 
+on 04/01/04 17:19, Nico wrote:
+> thanks for your suggestions, but adding "noapic" or "nolapic" or "noapic
+> nolapic" doesn't help at all.
+and have you tried compiling a kernel with no APIC support?
+
+Also, have you tried Hartwig Felger's patch?
+
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFAbDnVVAp7Xm10JmkRAgBaAJ9RbQUIT2qd9MAfwdGL5dQF9cm99QCfQf8W
+1eQ8bhozkHPqn2eLmd6mono=
+=75HS
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
