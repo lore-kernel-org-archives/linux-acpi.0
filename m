@@ -1,15 +1,12 @@
-From: =?iso-8859-1?q?J=F6rg=20Sonnenberger?= <joerg.sonnenberger-S0/GAf8tV78@public.gmane.org>
-Subject: Re: acpi-patch + kernel 2.4.19
-Date: Thu, 8 Aug 2002 11:46:26 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: AML disassembler questions.
+Date: Thu, 8 Aug 2002 12:09:00 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208081146.26336.joerg.sonnenberger@web.de>
-References: <20020807215528.GA646@enigma.daemon.sh>
+Message-ID: <20020808100900.GD19606@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020807215528.GA646-adzhR0EPeY/7X6WiDY61Ug@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,53 +15,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: ACPI devel Mailinglist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Sebastian Henschel <s.henschel-TGKKaGbebvyzQB+pC5nmwQ@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Black, Richard" <Richard.Black-VXdhtT5mjnY@public.gmane.org>, "KOCHI, Takayoshi" <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Am Mittwoch, 7. August 2002 23:55 schrieb Sebastian Henschel:
-> hi folx...
->
-> did anyone of you try to install the current acpi-patch to the current
-> linux kernel 2.4.19?
->
+Hi all.
 
-Well, I tried against 2.4.19-ac1. The patch itself creates lots of reject=
-s,=20
-some of them I couldn't solve directly.=20
+Since Phoenix seems to not support anymore their disassembler, I am
+wondering which tools we can use for this purpose.
 
-> i am very confused, since the structure of the files in linux/drivers/a=
-cpi
-> seems to have changed enormously. on the other hand, acpi from the orig=
-inal
-> kernel still seems to be quite old (output from dmesg):
->
-> ACPI: Core Subsystem version [20011018]
-> ACPI: Subsystem enabled
+For now, we can use :
 
-Yep, this version doesn't support my battery state, 2.5.25 does.
+- the pacpidump tool, made by a FreeBSD guy, which compile cleanly under
+Linux,
+- the new option '-d' of iasl.
 
->
-> well, and as you can see, acpi claims to be enabled. but there is no
-> /proc/acpi to be found. even with the stock 2.4.18 a couple of months a=
-go,
-> i had at least something in there.
->
+pacpidump seems for me to be OK, but it was written for F-BSD.  For
+me, it is not a real problem, because I use sometime a FBSD-current.
+I think, though, that some debugging, etc. was made, but this is only
+present for the current version of acpidump under FBSD-current,
+not the one we can have under Linux.  For example, it lack the output
+of the RessourceTemplate (should be ok, though, only a 'cosmetic' change,
+but for debugging purpose, it is somewhat needed), but under F-BSD, it
+was added (with an option).
 
-That's strange. It's working for me with both the plain 2.4.18 and 2.4.19=
--ac1.=20
-Any error message in dmesg? Perhaps the bios is some kind of broken or ac=
-pi=20
-is inactivated per command line?
+iasl, as a disassembler, should be OK.  As stated by the change log, it
+was tested intensively.  But it have perhaps some little bugs that
+have to be discovered, since this feature seems to be only added the
+last month.
 
-> any insights?
->
-> cheers,
->  sebastian
->
-> p.s.: please cc: me or group-reply, i am not on the list, so far.
+Good day,
 
-J=F6rg
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
