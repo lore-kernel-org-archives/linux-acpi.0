@@ -1,14 +1,14 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: ASL fixing questions
-Date: Thu, 12 Feb 2004 23:06:57 +0100
+Date: Thu, 12 Feb 2004 23:11:08 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040212220657.GY13262@poupinou.org>
-References: <402AF9FF.3020706@zopatista.com> <20040212093732.GP13262@poupinou.org> <402B9313.9000701@zopatista.com> <402BAABC.5040706@zopatista.com> <20040212204335.GU13262@poupinou.org> <402BE889.5090502@zopatista.com> <402BEE34.9050908@zopatista.com> <20040212212649.GX13262@poupinou.org> <402BF19C.9050803@zopatista.com>
+Message-ID: <20040212221108.GZ13262@poupinou.org>
+References: <402AF9FF.3020706@zopatista.com> <20040212093732.GP13262@poupinou.org> <402B7917.2090505@zopatista.com> <20040212211615.GV13262@poupinou.org> <402BF14A.8040406@zopatista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <402BF19C.9050803-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
+In-Reply-To: <402BF14A.8040406-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,17 +21,47 @@ To: Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 12, 2004 at 04:35:24PM -0500, Martijn Pieters wrote:
+On Thu, Feb 12, 2004 at 04:34:02PM -0500, Martijn Pieters wrote:
 > Bruno Ducrot wrote:
-> >Make much more sens now.  Or else the powernow-acpi patch I send this
-> >week to the cpufreq mailing list will be broken ;)
+> >The 3 first errors are due to this:
+> >
+> >                OperationRegion (CCRD, PCI_Config, 0x00, 0xA7)
+> >                Field (CCRD, DWordAcc, Lock, Preserve)
+> >                {
+> >                    Offset (0x04),
+> >                    TI04,   8,
+> >                    Offset (0x44),
+> >                    TI44,   16,
+> >                    Offset (0x80),
+> >                    PMEE,   1,
+> >                    Offset (0x81),
+> >                    Offset (0xA4),
+> >                    PWST,   2,
+> >                    Offset (0xA5),
+> >                    PMEN,   1,
+> >                        ,   6,
+> >                    PMST,   1
+> >                }
+> >
+> >You have the option to change the length for the OR (that is,
+> >replace the 0xA7 with 0xA8 (that will give you in fact the same
+> >behaviour if you enable the ACPI_RELAX compile kernel option), or
+> >you can change the DWordAcc by WordAcc in the Field.
+> >
+> >Unfortunately, that is hard to know what is correct though,
+> >other than to bug the OEM, or to look if those fields can be accessed
+> >as double word in this PCI config space by looking the data book for
+> >this pci device.  It's the only (stable) solution unfortunately, even
+> >though there are some ACPI_PEDANTIC that need to be defined those days
+> >;(
 > 
-> Hehe. Is that why the 2.6.2 version of cpufreq says that things are 
-> disabled in the BIOS? (can't quite recall the correct message).
-> 
+> OEM is Arima (it's an eMachines W6805, motherbord is a W720-K8). The PCI 
+> Bridge is an onboard VIA chipset:
 
-Yes.  But I don't think it will go to 2.6.3 since kernel is at RC stage
-though.
+
+Wait, the processor is an opteron?  If yes, my remark I send was only
+for powernow-k7, it does not apply to powernow-k8.
+
 
 -- 
 Bruno Ducrot
