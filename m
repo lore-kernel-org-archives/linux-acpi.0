@@ -1,13 +1,9 @@
-From: Mizu <michal-VaXaUECoPuY@public.gmane.org>
-Subject: S3,S4 on Acer TM632XC
-Date: Sat, 26 Apr 2003 11:47:05 +0200
+From: Kevin Schmidt <w9cf-iy676YoZKZKAgX/H7s3LlTe48wsgrGvP@public.gmane.org>
+Subject: Re:presario 1505us battery not found
+Date: Sat, 26 Apr 2003 03:58:12 -0700 (MST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030426094705.GA11796@icmza.sk>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+Message-ID: <200304261058.DAA12435@ptolemy.la.asu.edu>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,212 +15,46 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I am running a 2.4.19 kernel and acpi20020918, on a compaq evo1000v.
+Many things may have improved since then. I finally gave up and patched
+the dsdt to always report the battery present. I was then able to get
+the battery charge status etc.; I changed:
+Return (local1)
+to
+Return (Or (local1,0x10))
+in my C10F method, to set the battery present bit. I don't know if this
+name is the same in other compaq dsdts.
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi.
-
-  I was testing $SUBJ with kernel 2.5.68 (acpi ver=3D3D20030328)
-
-  With this kernel options:  acpi_sleep=3D3Ds3_bios pci=3D3Dnoacpi
-
-  echo -n 3 >/proc/acpi/sleep
-  this is a debug message:
-
-    Enabling SEP on CPU 0
-    Back to C!
-
-    Debug: sleeping function called from illegal context
-    		at mm/slab.c:1664
-    Call Trace:
-    [...]  __might_sleep+..
-    	   kmalloc
-	   acpi_os_allocate
-	   acpi_ut_callocate
-	   acpi_evalute
-	   acpi_leave_sleep_state
-	   acpi_system_suspend
-	   acpi_suspend
-	   acpi_system_write_sleep
-	   vfs_write
-	   sys_write
-	   syscall_call
-
-  .................F R E E Z Y....................
-
-
-  Without s3_bios, there is no backlight of LCD.
-
-
-++
- And later, i saw this kernel messages. (Automatic sleeping function
-after x=3D
-y minutes
-?)=3D20
-
-kern.log:
- Debug: sleeping function called from illegal context at
-mm/page_alloc.c:541
-Apr 25 10:24:08 mizu kernel: Call Trace:
-Apr 25 10:24:08 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
-Apr 25 10:24:08 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
-Apr 25 10:24:08 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
-Apr 25 10:24:08 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
-Apr 25 10:24:08 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
-Apr 25 10:24:08 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
-[nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b76300>] +0x40/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0a0cffe>] nv_kern_mmap+0x1a4/0x2bf
-[nvidia]
-Apr 25 10:24:08 mizu kernel:  [<c015bdfa>] do_mmap_pgoff+0x263/0x6a0
-Apr 25 10:24:08 mizu kernel:  [<c015beaa>] do_mmap_pgoff+0x313/0x6a0
-Apr 25 10:24:08 mizu kernel:  [<c0112e1f>] old_mmap+0xf7/0x14f
-Apr 25 10:24:08 mizu kernel:  [<c010c58b>] math_state_restore+0x29/0x41
-Apr 25 10:24:08 mizu kernel:  [<c010afaf>] syscall_call+0x7/0xb
-Apr 25 10:24:08 mizu kernel:=3D20
-Apr 25 10:25:30 mizu kernel: spurious 8259A interrupt: IRQ7.
-Apr 25 10:50:05 mizu kernel: Debug: sleeping function called from
-illegal context at mm/page_alloc.c:541
-Apr 25 10:50:05 mizu kernel: Call Trace:
-Apr 25 10:50:05 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
-Apr 25 10:50:05 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
-Apr 25 10:50:05 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
-Apr 25 10:50:05 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
-Apr 25 10:50:05 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
-Apr 25 10:50:05 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
-Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:50:05 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
-[nvidia] And later, i saw this kernel messages. (Automatic sleeping
-function after x=3D
-y minutes
-?)=3D20
-
-kern.log:
- Debug: sleeping function called from illegal context at
-mm/page_alloc.c:541
-Apr 25 10:24:08 mizu kernel: Call Trace:
-Apr 25 10:24:08 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
-Apr 25 10:24:08 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
-Apr 25 10:24:08 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
-Apr 25 10:24:08 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
-Apr 25 10:24:08 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
-Apr 25 10:24:08 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
-[nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b76300>] +0x40/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:24:08 mizu kernel:  [<d0a0cffe>] nv_kern_mmap+0x1a4/0x2bf
-[nvidia]
-Apr 25 10:24:08 mizu kernel:  [<c015bdfa>] do_mmap_pgoff+0x263/0x6a0
-Apr 25 10:24:08 mizu kernel:  [<c015beaa>] do_mmap_pgoff+0x313/0x6a0
-Apr 25 10:24:08 mizu kernel:  [<c0112e1f>] old_mmap+0xf7/0x14f
-Apr 25 10:24:08 mizu kernel:  [<c010c58b>] math_state_restore+0x29/0x41
-Apr 25 10:24:08 mizu kernel:  [<c010afaf>] syscall_call+0x7/0xb
-Apr 25 10:24:08 mizu kernel:=3D20
-Apr 25 10:25:30 mizu kernel: spurious 8259A interrupt: IRQ7.
-Apr 25 10:50:05 mizu kernel: Debug: sleeping function called from
-illegal context at mm/page_alloc.c:541
-Apr 25 10:50:05 mizu kernel: Call Trace:
-Apr 25 10:50:05 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
-Apr 25 10:50:05 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
-Apr 25 10:50:05 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
-Apr 25 10:50:05 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
-Apr 25 10:50:05 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
-Apr 25 10:50:05 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
-Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:50:05 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
-[nvidia]=20
-Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:50:05 mizu kernel:  [<d0b76300>] +0x40/0xa20 [nvidia]
-Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
-Apr 25 10:50:05 mizu kernel:  [<d0a0cffe>] nv_kern_mmap+0x1a4/0x2bf
-[nvidia]
-Apr 25 10:50:05 mizu kernel:  [<c015bdfa>] do_mmap_pgoff+0x263/0x6a0
-Apr 25 10:50:05 mizu kernel:  [<c015beaa>] do_mmap_pgoff+0x313/0x6a0
-Apr 25 10:50:05 mizu kernel:  [<c0112e1f>] old_mmap+0xf7/0x14f
-Apr 25 10:50:05 mizu kernel:  [<c010c58b>] math_state_restore+0x29/0x41
-Apr 25 10:50:05 mizu kernel:  [<c010afaf>] syscall_call+0x7/0xb
-Apr 25 10:50:05 mizu kernel:=3D20
-
-=3D2E
-++
-
-Sometimes S4 works good (with same Trace messages ;( ), but sometimes
-when =3D
-i try to S4, there was something like ide-disk BUG. I dont have
-that message, becouse there was only console message + FREEZY !
-
-I've ALI chipset:
-
-ALI15X3: IDE controller at PCI slot 00:10.0
-ALI15X3: chipset revision 196
-ALI15X3: not 100% native mode: will probe irqs later
-    ide0: BM-DMA at 0x2480-0x2487, BIOS settings: hda:DMA, hdb:pio
-    ide1: BM-DMA at 0x2488-0x248f, BIOS settings: hdc:pio, hdd:pio
-
-
-++
-On the pci, there is this device:
-
-00:11.0 Bridge: ALi Corporation M7101 PMU
-        Subsystem: Acer Incorporated [ALI]: Unknown device 102b
-        Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
-ParErr-=3D
- Stepping- SERR- FastB2B-
-        Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3D3Dmedium
->TAbort- =3D
-<TAbort- <MAbort- >SERR- <PERR-
-
-I read in kernel src: pci/devices.h:
-   DEVICE(1025,7101,"M7101 PCI PMU Power Management Controller")
-=3D2E...
-Do i need this device to correct Power Management ?
-=20
----END OF QUESTIONS..  ;)
-
-
-Thx=3D20
-
-				mizu=20
-
-
---=20
---=20
-_______M_i_z_u________
-
---> Linux Friendly <--
-[-> E-mail:michal-VaXaUECoPuY@public.gmane.org   =20
-[-> ICQ:97165392
-[-> WWW: http://www.mizu.sk
-
-
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+qlWZ9kFXwDL4DRkRAgn5AKC37xfsnWpOkZZQcvtSAaFXuHhXuQCgq2Yx
-Jg9PjmVEFaFFzjmfclxk7tw=
-=Ry1X
------END PGP SIGNATURE-----
-
---pf9I7BMVVzbSWLtt--
+> Date: Thu, 24 Apr 2003 15:49:43 -0400
+> From: Abheek Anand <abheek-VX+DGZyGJwM3uPMLIKxrzw@public.gmane.org>
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Organization: CS Department, University of Maryland
+> Subject: [ACPI] presario 1505us battery not found
+> 
+> Hi,
+> 
+> After quite a bit of tinkering with my presario 1505us, I managed to get most
+> of what I need up and working. Currently im using linux 2.5.67 with
+> acpi-20030328. I am able to get ac-adaptor information, and the LID works
+> fine. However, I am unable to get acpi to recognize my battery, which it
+> always shows as absent. I have looked at several people's suggestions on this
+> on the mailing list, but none of them work for me.
+> 
+> I'm including a copy of the dmesg messages my system spews out. I also did the
+> usual dsdt disassemble, fix, and include in kernel routine. I have put up my
+> original (and fixed) dsdt on http://www.cs.umd.edu/~abheek/acpi . My
+> /proc/acpi/battery/BAT1 entries show the battery as absent.
+> 
+> Any help would be _very_ appreciated.
+> 
+> Thanks,
+> Abheek
+> 
+=-------------------------------------------------------------
+Kevin Schmidt, w9cf-iy676YoZKZKAgX/H7s3LlTe48wsgrGvP@public.gmane.org, http://fermi.la.asu.edu/w9cf
+Department of Physics and Astronomy
+Arizona State University, Tempe, AZ 85287-1504
+(480) 965-8240 Fax: (480) 965-7954
 
 
 -------------------------------------------------------
