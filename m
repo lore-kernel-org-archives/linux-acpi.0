@@ -1,58 +1,152 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [ACPI] [PATCH] remove 55 dead prototypes from include/acpi/acdisasm.h
-Date: Wed, 21 Jul 2004 13:30:29 -0700
+From: Carl Spalletta <cspalletta@yahoo.com>
+Subject: RE: [PATCH] remove 55 dead prototypes from include/acpi/acdisasm.h
+Date: Wed, 21 Jul 2004 15:35:40 -0700 (PDT)
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <37F890616C995246BE76B3E6B2DBE055017355C4@orsmsx403.amr.corp.intel.com>
+Message-ID: <20040721223540.16485.qmail@web53804.mail.yahoo.com>
+References: <37F890616C995246BE76B3E6B2DBE055017355C4@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266616AbUGUUgP@vger.kernel.org>
-Content-class: urn:content-classes:message
-To: Carl Spalletta <cspalletta@yahoo.com>, lkml <linux-kernel@vger.kernel.org>
-Cc: en.brown@intel.com, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266633AbUGUWfq@vger.kernel.org>
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE055017355C4@orsmsx403.amr.corp.intel.com>
+To: "Moore, Robert" <robert.moore@intel.com>, lkml <linux-kernel@vger.kernel.org>
+Cc: len.brown@intel.com, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-These aren't nonexistent functions, they are part of the AML
-disassembler (which is not always configured into the kernel)
+--- "Moore, Robert" <robert.moore@intel.com> wrote:
+> These aren't nonexistent functions, they are part of the AML
+> disassembler (which is not always configured into the kernel)
+
+  With respect, I cannot find the functions listed below anywhere in
+the kernel.org kernel.  Where are they?  Given that they are not present,
+you should consider either contributing them to the mainline kernel source
+tree, or removing their prototypes.
+
+from include/acpi/acdisasm.h:
+
+acpi_dm_address_space
+acpi_dm_ascending_op
+acpi_dm_bit_list
+acpi_dm_block_type
+acpi_dm_byte_list
+acpi_dm_comma_if_field_member
+acpi_dm_comma_if_list_member
+acpi_dm_decode_attribute
+acpi_dm_decode_internal_object
+acpi_dm_decode_node
+acpi_dm_descending_op
+acpi_dm_disasm_byte_list
+acpi_dm_disassemble
+acpi_dm_disassemble_one_op
+acpi_dm_display_arguments
+acpi_dm_display_internal_object
+acpi_dm_display_locals
+acpi_dm_display_path
+acpi_dm_dma_descriptor
+acpi_dm_dump_name
+acpi_dm_dword_descriptor
+acpi_dm_eisa_id
+acpi_dm_end_dependent_descriptor
+acpi_dm_field_flags
+acpi_dm_fixed_io_descriptor
+acpi_dm_fixed_mem32_descriptor
+acpi_dm_generic_register_descriptor
+acpi_dm_indent
+acpi_dm_interrupt_descriptor
+acpi_dm_io_descriptor
+acpi_dm_io_flags
+acpi_dm_irq_descriptor
+acpi_dm_is_resource_descriptor
+acpi_dm_is_string_buffer
+acpi_dm_is_unicode_buffer
+acpi_dm_list_type
+acpi_dm_match_keyword
+acpi_dm_match_op
+acpi_dm_memory24_descriptor
+acpi_dm_memory32_descriptor
+acpi_dm_memory_flags
+acpi_dm_method_flags
+acpi_dm_namestring
+acpi_dm_qword_descriptor
+acpi_dm_region_flags
+acpi_dm_resource_descriptor
+acpi_dm_start_dependent_descriptor
+acpi_dm_unicode
+acpi_dm_validate_name
+acpi_dm_vendor_large_descriptor
+acpi_dm_vendor_small_descriptor
+acpi_dm_walk_parse_tree
+acpi_dm_word_descriptor
+acpi_is_eisa_id
+acpi_ps_display_object_pathname
 
 
+from include/acpi/acdebug.h:
 
-
-> -----Original Message-----
-> From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
-> admin@lists.sourceforge.net] On Behalf Of Carl Spalletta
-> Sent: Tuesday, July 20, 2004 4:05 PM
-> To: lkml
-> Cc: en.brown@intel.com; acpi-devel@lists.sourceforge.net
-> Subject: [ACPI] [PATCH] remove 55 dead prototypes from
-> include/acpi/acdisasm.h
-> 
-> This patch removes 55 prototypes of nonexistent functions.
-> 
-> N.B.
->  Due to my inability to cut and paste the tab chars embedded in file
-to be
-> patched (they are
->  picked up as sequences of spaces), you must either a) 'unexpand
---first-
-> only' the enclosed patch
->  to recover the tab chars from the original file, or b) apply with
-'patch
-> --ignore-whitespace'.
->  The latter option can't hurt since we are only removing lines from
-the
-> file, not adding.
-> 
-> Signed-off-by: Carl Spalletta <cspalletta@yahoo.com>
-> 
-> diff -ru /usr/src/linux-2.6.7-orig/include/acpi/acdisasm.h
-> /usr/src/linux-2.6.7-new/include/acpi/acdisasm.h
-> --- /usr/src/linux-2.6.7-orig/include/acpi/acdisasm.h   2004-06-15
-> 22:19:26.000000000 -0700
-> +++ /usr/src/linux-2.6.7-new/include/acpi/acdisasm.h    2004-07-18
-> 20:10:42.000000000 -0700
-> @@ -86,317 +86,14 @@
->         u32                                 level,
->         void                                *context);
-> 
+acpi_db_add_to_history
+acpi_db_check_integrity
+acpi_db_classify_one_object
+acpi_db_close_debug_file
+acpi_db_command_dispatch
+acpi_db_count_namespace_objects
+acpi_db_create_execution_threads
+acpi_db_decode_and_display_object
+acpi_db_disassemble_aml
+acpi_db_display_all_methods
+acpi_db_display_arguments
+acpi_db_display_calling_tree
+acpi_db_display_gpes
+acpi_db_display_help
+acpi_db_display_history
+acpi_db_display_locals
+acpi_db_display_locks
+acpi_db_display_method_info
+acpi_db_display_object_type
+acpi_db_display_objects
+acpi_db_display_resources
+acpi_db_display_results
+acpi_db_display_statistics
+acpi_db_display_table_info
+acpi_db_dump_buffer
+acpi_db_dump_namespace
+acpi_db_dump_namespace_by_owner
+acpi_db_dump_object
+acpi_db_dump_parser_descriptor
+acpi_db_enumerate_object
+acpi_db_execute
+acpi_db_execute_method
+acpi_db_execute_setup
+acpi_db_execute_thread
+acpi_db_execution_walk
+acpi_db_find_name_in_namespace
+acpi_db_find_references
+acpi_db_generate_gpe
+acpi_db_generate_statistics
+acpi_db_get_from_history
+acpi_db_get_line
+acpi_db_get_next_token
+acpi_db_get_outstanding_allocations
+acpi_db_get_pointer
+acpi_db_get_table_from_file
+acpi_db_integrity_walk
+acpi_db_load_acpi_table
+acpi_db_local_ns_lookup
+acpi_db_match_argument
+acpi_db_match_command
+acpi_db_method_thread
+acpi_db_open_debug_file
+acpi_db_prep_namestring
+acpi_db_read_table_from_file
+acpi_db_second_pass_parse
+acpi_db_send_notify
+acpi_db_set_method_breakpoint
+acpi_db_set_method_call_breakpoint
+acpi_db_set_method_data
+acpi_db_set_output_destination
+acpi_db_set_scope
+acpi_db_single_thread
+acpi_db_start_command
+acpi_db_unload_acpi_table
+acpi_db_walk_and_match_name
+acpi_db_walk_for_references
+acpi_db_walk_for_specific_objects
+ae_local_load_table
