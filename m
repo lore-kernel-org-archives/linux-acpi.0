@@ -1,13 +1,14 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: Re: ACPI bug tracking
-Date: Thu, 8 May 2003 13:36:39 +0200 (CEST)
+From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+Subject: Re: Evo N610C new ROM
+Date: Thu, 8 May 2003 14:04:31 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.53.0305081331030.10902@dynast.gaugusch.at>
-References: <F760B14C9561B941B89469F59BA3A84725A292@orsmsx401.jf.intel.com>
+Message-ID: <20030508140431.A2692@fermat.unipv.it>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E4FB@cceexc19.americas.cpqcorp.net> <878ythpvfc.fsf@lapper.ihatent.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A292-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <878ythpvfc.fsf-E1YXmAG8v4VQD7NkSvH8p9BPR1lH4CV8@public.gmane.org>; from alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org on Thu, May 08, 2003 at 12:47:03PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,28 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
+Cc: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On May 7, Grover, Andrew <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> I just wanted to ask that people make greater use of
-> bugzilla.kernel.org
-This is only for 2.5 series now, what about 2.4? Most people here use 2.4,
-I think and it's not good to report bugs for 2.4 into the 2.5 bugzilla, I
-guess.
-Also, which tree of 2.5 should we use? The Linus-tree?
+On Thu, May 08, 2003 at 12:47:03PM +0200, Alexander Hoogerhuis wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Is there any specific work for the Evo N800c and related laptops for
+> this as well?
 
-I would particulary like to get my dsdt-initrd patch into acpi :)
-Can I just submit my patch and hope that someone will pick it up?
+You can download a modified dsdt table for N800v from
 
-thanks,
-Markus
--- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
+acpi.sf.net/dsdt
+
+It has been reported to work fine with N800c also.
+
+Daniele
 
 
 -------------------------------------------------------
