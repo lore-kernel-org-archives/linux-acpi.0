@@ -1,13 +1,13 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: Fix wake GPE enabling
-Date: Thu, 8 Apr 2004 10:47:54 -0700 (PDT)
+From: "Mariana Jacobson" <moontorturex-F4nFrkFuSeFBDgjK7y7TUQ@public.gmane.org>
+Subject: University Certificates, No Classes Needed, circle
+Date: Fri, 09 Apr 2004 01:50:13 +0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040408104615.K42238@root.org>
-References: <37F890616C995246BE76B3E6B2DBE0554F1A53@orsmsx403.amr.corp.intel.com>
+Message-ID: <QHXMHWDJDBGKGPHXXNXFPX__39035.5484596968$1081450839@yahoo.com>
+Reply-To: "Mariana Jacobson" <moontorturex-F4nFrkFuSeFBDgjK7y7TUQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/alternative;
+	boundary="--27453745536421371714"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <37F890616C995246BE76B3E6B2DBE0554F1A53-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,98 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux1394-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: openinteract-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sgmltools-lite-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 8 Apr 2004, Moore, Robert wrote:
-> Linux needs a user interface and some additional OSPM software to
-> identify and program the wake devices, as well as handle the other
-> information in the _PRW methods.
->
-> The ACPI CA core subsystem will only identify wake vs. runtime GPEs.
->
-> > -> wake_enable is not touched directly,
-> > -> events/evgpeblk.c does not care, and according to your opinion,
-> should
-> >    not care.
-> > -> acpi_enable_gpe is _only_ called by drivers/acpi/ec.c, which means
-> it
-> > is
-> >    _not_ called for buttons, which are very clearly needed in most
-> cases
-> > to
-> >    wake up a system.
-> >
-> > At least for buttons, the ACPI subsystem should enable their wake
-> > functionality, e.g. the wake GPEs, unconditionally. Having to manually
-> > enter
-> > "echo powerbutton > /proc/acpi/wakeup_devices", as the patch in bug
-> #1415
-> > suggests, seems to be overly complicated. However, having this file as
-> > override might be a valid option, I agree.
-> >
->
-> The ACPI CA core subsystem does NOT scan for particular devices (via the
-> _HID, _UID, etc.)  The upper OSPM software already does this and is thus
-> responsible for enabling individual devices and GPEs for wake-up,
-> including the power button, lid button, etc.  This code apparently still
-> needs to be written.
+----27453745536421371714
+Content-Type: text/plain;
+Content-Transfer-Encoding: 7Bit
 
-You mean like this code snippet?
+Academic-Qualifications from 
 
--Nate
+NON–ACCR. Universities.
 
-acpi_button_attach(device_t dev)
-{
-    if (sc->fixed) {
-        AcpiClearEvent(event);
-        status = AcpiInstallFixedEventHandler(event,
-                        acpi_button_fixed_handler, sc);
-    } else {
-        status = AcpiInstallNotifyHandler(sc->button_handle,
-                        ACPI_DEVICE_NOTIFY, acpi_button_notify_handler, sc);
-    }
+No exams. No classes. No 
 
-    acpi_device_enable_wake_capability(sc->button_handle, 1);
-}
+books.
 
-acpi_button_suspend(device_t dev)
-{
-    struct acpi_button_softc    *sc;
+Call to register and get 
 
-    sc = device_get_softc(dev);
-    acpi_device_enable_wake_event(sc->button_handle);
-    return (0);
-}
+yours in days - 1-203 286 
 
-acpi_device_enable_wake_capability(ACPI_HANDLE h, int enable)
-{
-    /*
-     * All Power Resources referenced by elements 2 through N
-     * of the _PRW object are put into the ON state.
-     */
+2403.
 
-    (void)acpi_SetInteger(h, "_PSW", enable);
-}
 
-acpi_device_enable_wake_event(ACPI_HANDLE h)
-{
-    status = AcpiEvaluateObject(h, "_PRW", NULL, &prw_buffer);
-    if (ACPI_FAILURE(status))
-        return;
 
-    switch (res->Package.Elements[0].Type) {
-    case ACPI_TYPE_INTEGER:
-        /*
-         * If the data type of this package element is numeric, then this
-         * _PRW package element is the bit index in the GPEx_EN, in the
-         * GPE blocks described in the FADT, of the enable bit that is
-         * enabled for the wake event.
-         */
-        status = AcpiEnableGpe(NULL, res->Package.Elements[0].Integer.Value,
-                               ACPI_EVENT_WAKE_ENABLE);
-}
+No more ads: 
+
+alaeth45-o+MxOtu4lMCHXe+LvDLADg@public.gmane.org
+
+maiden numerous cowboy art insecure genealogy apollo u's appeasable diabetic fischbein decomposition mildew 
+
+alexandra acrobacy tan stationery seville thousand cornelius balinese spectroscopy equipoise win jolt weber lift hypocycloid runaway copybook confiscable diminution naturopath dissertation mobile halide indiscretion hypophyseal leverage chimpanzee death dockside codetermine candid sherbet duane brandish travail spermatophyte distillate 
+
+----27453745536421371714--
 
 
 -------------------------------------------------------
