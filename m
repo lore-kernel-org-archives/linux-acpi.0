@@ -1,10 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Acer aspire 1203 & ACPI
-Date: Fri, 18 Oct 2002 10:39:51 -0700
+From: Ruud Koendering <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+Subject: Mandrake 9.0 and acpi
+Date: Fri, 18 Oct 2002 20:35:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF38@orsmsx119.jf.intel.com>
+Message-ID: <200210182035.34654.ruud.koendering@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,21 +16,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Gabriele Alberti' <gabriele.alberti-06ZeP6ie+xM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Gabriele Alberti [mailto:gabriele.alberti-06ZeP6ie+xM@public.gmane.org] 
-> > How does 2.5.latest's ACPI work on this machine?
-> I just tried the stable kernel...could I try the latest 2.5 
-> ACPI version in my 2.4.19 or I have to
-> try 2.5 series? I've not been able to understand if there is 
-> some backport for 2.4 of the latest
-> acpi patches...
+where is the full and latest acpi directory for download to put in my ker=
+nel=20
+source?
 
-http://sourceforge.net/project/showfiles.php?group_id=36832
+Use mandrake 9.0 kernel 2.4.19-16mdk
+--=20
+regards RUUD
 
-Regards -- Andy
+Ruud Koendering
+Sr. Program / Project Manager
+De Wickelaan 11
+2265 DG  Leidschendam
+Netherlands
+----------------------------------
+Phone:+31(0)703271506
+Mobile:+31(0)641372381
+E-mail:ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org=09
+          r_koendering-ktR7oAotx3zQT0dZR+AlfA@public.gmane.org
 
 
 -------------------------------------------------------
