@@ -1,12 +1,12 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: [PATCH] Change spinlock mutex to semaphor in ec.c
-Date: Fri, 04 Feb 2005 13:26:49 -0500
-Message-ID: <4203BE69.50004@bartol.udel.edu>
-References: <4202C0A4.1020700@bartol.udel.edu> <200502040055.53765.dtor_core@ameritech.net>
+From: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: Battery alarm ->  was General Questions:
+Date: Fri, 4 Feb 2005 13:36:57 -0600
+Message-ID: <B774920D825C2D4880A3C1B0D6EF9418034150B4@ssdmx.ssd.fsi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502040055.53765.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,42 +16,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dmitry Torokhov wrote:
-> On Thursday 03 February 2005 19:24, Rich Townsend wrote:
-> 
->>Hi all --
->>
->>Attached is a patch against the 2.6.10 kernel, to convert the mutexing 
->>in the embdedded controller driver from a spinlock to a semaphore. The 
->>rationale behind this is to permit sleeping inside the acpi_ec_wait() 
->>polling routine.
->>
-> 
-> 
-> Hi,
-> 
-> Last time such patch was proposed there were some concerns regarding
-> possible interrupt storm, see the follwing thread:
-> 
-> http://marc.theaimsgroup.com/?l=acpi4linux&m=110055992814866&w=2
-> 
-> I have an alternative patch that tries to address these concerns,
-> unfortunately I do not have a box with EC controller so it is
-> completely untested.
-> 
 
-I've just tried your patch out on 2.6.11-rc3 (with acpi-dsdt-initrd and 
-swsusp2 patches), and it causes a kernel oops when the EC is accessed at 
-boot time. Unfortunately, the backtrace is too long to see where the 
-oops arises; I'm sure there's a way of capturing the oops output, but I 
-don't know it yet (suggestions welcome).
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+> Rich Townsend
+> Sent: Friday, February 04, 2005 8:48 AM
+> To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org; Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] General Questions:
 
-cheers,
+[snip]
 
-Rich
+> The 'alarm' feature implemented in Linux is actually mapped to the
+_BTP=20
+> (battery trip point) of the ACPI specification. Section 10.2.2.4 of
+this=20
+> spec indicates that a notify must be issued when the battery remaining
+
+> capacity crosses this alarm level (either falling below or rising
+above).
+
+[snip]
+
+> However, it only=20
+> works through the _BTP functionality. If this functionality is not=20
+> implemented in the DSDT -- or if the alarm level is set crazy low --=20
+> then you lose the capability to get advanced warning of low-power=20
+> situations.
+
+My DSDT used to have AML errors reported by exfldio, but with 2.6.10
+kernel in FC3 not any more.  Today I've run iasl to disassemble and
+reassemble dsdt.dat and no errors are reported.  Also, a simple cat of
+/proc/acpi/battery/BAT0/alarm says "unsupported".
+I apparently don't have the battery alarm feature.
+
+My notebook, Uniwill N351S1, is - supposedly - both APM and ACPI 2.0
+supported.  Would something as important as battery alarm simply not
+be implemented in ACPI?
+FWIW, /proc/acpi/battery/BAT0/info gives both design capacity warning
+and low data.
+
+A 'grep BTP dsdt.dsl' turns up:      BTP0,     16,
+
+Can I modify dsdt.dsl to add this ACPI function myself?
+
+Thanks.
 
 
 -------------------------------------------------------
