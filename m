@@ -1,16 +1,12 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: [PATCH] 2.6.0-test4 Fix mpparse properly
-Date: Mon, 8 Sep 2003 11:02:46 +0100
+From: System Administrator <postmaster-1ZEeh0A21ZFWk0Htik3J/w@public.gmane.org>
+Subject: Undeliverable: Re: Approved
+Date: Tue, 9 Sep 2003 00:09:13 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309081102.46779.adq_dvb@lidskialf.net>
-References: <200309072130.40200.adq_dvb@lidskialf.net> <20030908042548.3bbfcf7d.ak@suse.de>
+Message-ID: <fs4RbZrNN00000a55@emw2ksmtp01.LeapFrog.Local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_000_01C376A1.46500A6E"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030908042548.3bbfcf7d.ak-l3A5Bk7waGM@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,38 +15,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 08 Sep 2003 3:25 am, Andi Kleen wrote:
-> On Sun, 7 Sep 2003 21:30:40 +0100
->
-> Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org> wrote:
-> > --- linux-2.6.0-test4.null_crs/arch/i386/kernel/mpparse.c	2003-09-06
-> > 00:23:10.000000000 +0100 +++
-> > linux-2.6.0-test4.es7000fix/arch/i386/kernel/mpparse.c	2003-09-07
-> > 15:53:41.369717552 +0100 @@ -1129,8 +1129,10 @@
-> >  			continue;
-> >  		ioapic_pin = irq - mp_ioapic_routing[ioapic].irq_start;
-> >
-> > +#ifdef CONFIG_X86_ES7000
-> >  		if (!ioapic && (irq < 16))
-> >  			irq += 16;
-> > +#endif
->
-> That won't work for an "generic" subarch kernel that supports the ES7000
-> and other boxes too. You should test es7000_plat instead (that's currently
-> a static in the es7000 code, needs to be unstatic'ed).
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-Hmm, yeah, thats a good point. However, I don't think checking for es7000_plat 
-will work. The file defining it is only included if es7000 is targetted as a 
-platform directly.  Theres no code which checks for an es7000 platform by 
-looking at the hardware or anything; it just sets the variable if the es7000 
-architecture is targetted... 
+------_=_NextPart_000_01C376A1.46500A6E
+Content-Type: text/plain;
+	charset="iso-8859-1"
 
-Any ideas?
+Your message
 
+  To:      3DJWu-1ZEeh0A21ZFWk0Htik3J/w@public.gmane.org
+  Subject: Re: Approved
+  Sent:    Tue, 9 Sep 2003 00:11:44 -0700
+
+did not reach the following recipient(s):
+
+3DJWu-1ZEeh0A21ZFWk0Htik3J/w@public.gmane.org on Tue, 9 Sep 2003 00:11:55 -0700
+    The e-mail account does not exist at the organization this message was
+sent to.  Check the e-mail address, or contact the recipient directly to
+find out the correct address.
+    <emw2ksmtp01.LeapFrog.Local #5.1.1>
+
+
+
+------_=_NextPart_000_01C376A1.46500A6E
+Content-Type: message/rfc822
+
+Message-ID: <200309090726.h897QLa02013-TBdr5N4dwa9m/Kok3h1/6Q@public.gmane.org>
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 3DJWu-1ZEeh0A21ZFWk0Htik3J/w@public.gmane.org
+Subject: Re: Approved
+Date: Tue, 9 Sep 2003 00:11:44 -0700 
+MIME-Version: 1.0
+X-Mailer: Internet Mail Service (5.5.2655.55)
+X-MS-Embedded-Report: 
+return-path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+x-virus-scanned: by amavisd-milter (http://amavis.org/)
+x-originalarrivaltime: 09 Sep 2003 07:11:55.0147 (UTC) FILETIME=[A67C1DB0:01C376A1]
+x-mailscanner: Found to be clean
+Content-Type: text/plain;
+	charset="iso-8859-1"
+
+See the attached file for details
+
+------_=_NextPart_000_01C376A1.46500A6E--
 
 
 -------------------------------------------------------
