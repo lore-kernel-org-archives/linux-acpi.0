@@ -1,11 +1,11 @@
-From: "Gaetano Sferra" <g.sferra.s2-jeWSZhyng+boZ1rtG9PHaQ@public.gmane.org>
-Subject: Why nobody help me?
-Date: Tue, 13 Jul 2004 17:18:24 +0200
+From: "Jeremy Mann" <jmann-hthdAawbG4PxMOqTD017tQC/G2K4zDHf@public.gmane.org>
+Subject: Compaq Presario 2175US
+Date: Tue, 13 Jul 2004 10:20:55 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000901c468ec$a4425e40$0800a8c0@SQUADRA>
+Message-ID: <007601c468ec$fe378b00$3901a8c0@nurscaresvr.integracarehh.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,25 +19,15 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello to all,
-
-ACPI errors on my AMILO D laptop still here, I'm waiting
-support from you. In last post of mine there is all details on
-AE_NOT_EXISTS boot errors and the dsdt attachment for my
-laptop. There isn't a valid or patched dsdt in your database at
-http://acpi.sourceforge.net so I still waiting for instructions.
-I'm using a 2.4.26 acpi-patched kernel and in the /proc/acpi directory
-all reports seems to be freezed, temperature 75C, trip points 85C,
-polling frequency is disabled and the cooling mode isn't supported at all.
-May be it is a config problem, I've readed all howtos in your site
-but... nothing... can someone help me please?
- 
- See my previous postings for more details.... or ask to me...
-
-Thank you for your great job,
-Gaetano Sferra
-
-
+I've just spent the better part of 2 hours looking through the list archives
+and see many posts related to the 2100 series Compaq laptops, but I didn't
+see anything related to how I can get ACPI active enough to dump my DSDT
+code.  I'm running Mandrake 10, just tried a kernel recompile using an IRQ9
+hack, but my laptop still gets a hard lockup upon boot from a 2.6.7
+kernel(and 2.6.3, and 2.4.2x).  The only way I can get the laptop to bootup
+is using either ACPI=off or ACPI=ht(mandrake default).  Any suggestions?  I
+just flashed to the latest and greatest(ha!) bios from compaq and tried
+again with no such luck.
 
 
 
