@@ -1,14 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: acpi poweroff problem (kernel > 2.4.23-rc1)
-Date: 01 Dec 2003 02:24:04 -0500
+From: Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
+Subject: Re: If your ACPI-enabled machine does clean shutdown randomly...
+Date: Mon, 01 Dec 2003 10:51:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1070263443.2513.4.camel@dhcppc4>
-References: <BF1FE1855350A0479097B3A0D2A80EE00184CEA9@hdsmsx402.hd.intel.com>
+Message-ID: <3FCB0F13.7010908@sbox.tugraz.at>
+References: <20031128145249.GA563@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------060606080205050601070802"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE00184CEA9-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20031128145249.GA563-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,105 +17,205 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan Bernatik <bernatik-nd92eFGgBBntwjQa/ONI9g@public.gmane.org>
-Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jan,
+This is a multi-part message in MIME format.
+--------------060606080205050601070802
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Probably best to file a bug against this one.
+Pavel Machek wrote:
+> ...then you probably need this one. (One notebook I have here
+> certainly needs it).
+> 
+> It seems that acpi likes to report completely bogus value from time to
+> time...
 
-thanks,
--Len
+As you perhapps remember, I reported a similar problem with my Acer TM 
+630 some time ago.
+
+I was now able to log such a shutdown with temperature-printouts at the 
+important places.
+
+When reading the log, I can state two things:
+* The temp-value causing the shutdown is definitly bogus, as the entries 
+before and after the trip-causing check are far below that value but 
+occuring at nearly the same time.
+* Unfortunately the value is not as ingredible as your 200C, so 
+distingushing between a bogus and a non-bogus value is not that simple.
+
+I attached a cut from the syslog.
+
+Regards,
+Maier Gerfried
 
 
-How to file a bug against ACPI:
-
-http://bugzilla.kernel.org/
-Category: Power Management
-Component: ACPI
-
-Please attach the output from acpidmp, available in /usr/sbin/, or in
-here
-http://www.intel.com/technology/iapc/acpi/downloads/pmtools-20010730.tar.gz
-
-Please attach dmesg output showing the failure, if possible.
+PS:
+I archieved the temperature-printouts by adding some lines (marked with 
+^^^^^^^) to thermal.c (2.4.22-version):
 
 
-On Sun, 2003-11-30 at 11:11, Jan Bernatik wrote:
-> I upgraded (after some time) from
-> 2.4.23-rc1 to 2.4.23 and encountered problem with poweroff (I think)
-> similar to:
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=1456
-> 
-> but difference is it worked for me with 2.4.23-rc1.
-> I located problem to change from rc1 to rc2 finally.
-> I tried then also all 2.6.0-test4 and newer kernels, same problem.
-> 
-> I think it has somethink to do with this mentioned in rc2 release:
->   o [ACPI] If ACPI is disabled by DMI BIOS date, then turn it off
-> completely, \
-> (taken from: http://lkml.org/lkml/2003/11/19/44)
-> but couldn't find out more.
-> 
-> what happenes is that after "power off", monitor is switched off, hdd
-> semms to be switched off too, but leds indicating "power on" are still
-> "shining", and fan is working.
-> I have to swith laptop manually and then turn it on again.
-> I searched the logs, but didn't found anything interesting.
-> One thing have to be mentioned, I have to use
-> acpi="force" boot option
-> (ACPI disabled because your bios is from 92 and too old)
-> 
-> 
-> using:
-> Linux version 2.4.23-rc2 (gcc version 2.95.4 20011002)
-> 
-> compiled with acpi options:
-> 
-> CONFIG_ACPI=y
-> CONFIG_ACPI_BOOT=y
-> CONFIG_ACPI_BUS=y
-> CONFIG_ACPI_INTERPRETER=y
-> CONFIG_ACPI_EC=y
-> CONFIG_ACPI_POWER=y
-> CONFIG_ACPI_PCI=y
-> CONFIG_ACPI_SLEEP=y
-> CONFIG_ACPI_SYSTEM=y
-> CONFIG_ACPI_AC=y
-> CONFIG_ACPI_BATTERY=y
-> CONFIG_ACPI_BUTTON=y
-> CONFIG_ACPI_FAN=y
-> CONFIG_ACPI_PROCESSOR=y
-> CONFIG_ACPI_THERMAL=y
-> # CONFIG_ACPI_ASUS is not set
-> # CONFIG_ACPI_TOSHIBA is not set
-> CONFIG_ACPI_DEBUG=y
-> CONFIG_ACPI_RELAXED_AML=y
-> 
-> hardware:
-> centrino laptop without Intel wireless card :)
-> (4-months old)
-> pentium-M, intel 855PM chipset
-> phoenix bios (could't found any real information at support), but
-> maual
-> to laptop says "BIOS corresponding to ACPI".
-> 
-> I can provide logs, dmesg's from rc1 & rc2 kernel, or some more
-> information, if You need more.
-> I'm new to linux kernel, sorry I couldn't find more.
-> 
-> Honza
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
+static int
+acpi_thermal_critical (
+	struct acpi_thermal	*tz)
+{
+	int			result = 0;
+	struct acpi_device	*device = NULL;
+
+	ACPI_FUNCTION_TRACE("acpi_thermal_critical");
+
+	if (!tz || !tz->trips.critical.flags.valid)
+		return_VALUE(-EINVAL);
+
+	if (tz->temperature >= tz->trips.critical.temperature) {
+		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Critical trip point\n"));
+		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Trip-Point: %lu, Temperature: %lu\n", 
+  tz->trips.critical.temperature, tz->temperature));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+		tz->trips.critical.flags.enabled = 1;
+	}
+	else if (tz->trips.critical.flags.enabled)
+		tz->trips.critical.flags.enabled = 0;
+
+
+	result = acpi_bus_get_device(tz->handle, &device);
+	if (result)
+		return_VALUE(result);
+
+	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, 
+tz->trips.critical.flags.enabled);
+	
+	acpi_thermal_call_usermode("/bin/logger ACPI poweroff");
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# Unfortunately, this line does not generate the log-enty I expect it
+# to.
+
+	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
+
+	return_VALUE(0);
+}
+
+
+
+
+
+
+static void
+acpi_thermal_check (
+	void                    *data)
+{
+	int			result = 0;
+	struct acpi_thermal	*tz = (struct acpi_thermal *) data;
+	unsigned long		sleep_time = 0;
+	int			i = 0;
+	struct acpi_thermal_state state = tz->state;
+
+	ACPI_FUNCTION_TRACE("acpi_thermal_check");
+
+	if (!tz) {
+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) context.\n"));
+		return_VOID;
+	}
+
+	result = acpi_thermal_get_temperature(tz);
+	if (result)
+		return_VOID;
+	
+	memset(&tz->state, 0, sizeof(tz->state));
+	
+	/*
+	 * Check Trip Points
+	 * -----------------
+	 * Compare the current temperature to the trip point values to see
+	 * if we've entered one of the thermal policy states.  Note that
+	 * this function determines when a state is entered, but the
+	 * individual policy decides when it is exited (e.g. hysteresis).
+	 */
+	if (tz->trips.critical.flags.valid)
+		state.critical |= (tz->temperature >= tz->trips.critical.temperature);
+	if (tz->trips.hot.flags.valid)
+		state.hot |= (tz->temperature >= tz->trips.hot.temperature);
+	if (tz->trips.passive.flags.valid)
+		state.passive |= (tz->temperature >= tz->trips.passive.temperature);
+	for (i=0; i<ACPI_THERMAL_MAX_ACTIVE; i++)
+		if (tz->trips.active[i].flags.valid)
+			state.active |= (tz->temperature >= tz->trips.active[i].temperature);
+
+
+
+	ACPI_DEBUG_PRINT((ACPI_DB_WARN, "%s: Temperature: %lu\n", tz->name, 
+tz->temperature));
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+
+--------------060606080205050601070802
+Content-Type: text/plain;
+ name="messages-cut"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="messages-cut"
+
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: ----------------- Thermal event -------------------
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: SYST of _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002E
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1547] acpi_thermal_check    : THRS: Temperature: 3192
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1547] acpi_thermal_check    : THRC: Temperature: 3162
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: ----------------- Thermal event -------------------
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1546] acpi_thermal_check    : THRC: Temperature: 3162
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: SYST of _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002E
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1547] acpi_thermal_check    : THRS: Temperature: 3192
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1547] acpi_thermal_check    : THRC: Temperature: 3162
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: ----------------- Thermal event -------------------
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1546] acpi_thermal_check    : THRC: Temperature: 3162
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: SYST of _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002E
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1547] acpi_thermal_check    : THRS: Temperature: 3192
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: BAT0_BST_RETURN:
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: BAT0_BST_RETURN:
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: --------------------------------------- AC Present   
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 0000000000000064
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1547] acpi_thermal_check    : THRC: Temperature: 3732
+Nov 16 20:19:49 acer kernel: acpi_thermal-0398 [1548] acpi_thermal_critical : Critical trip point
+Nov 16 20:19:49 acer kernel: acpi_thermal-0399 [1548] acpi_thermal_critical : Trip-Point: 3732, Temperature: 3732
+Nov 16 20:19:49 acer kernel: acpi_processor-1095 [1551] acpi_processor_set_per: Transition failed
+Nov 16 20:19:49 acer kernel: acpi_processor-1426 [1550] acpi_processor_apply_l: Unable to set limit
+Nov 16 20:19:49 acer kernel: acpi_processor-1527 [1549] acpi_processor_set_the: Unable to set thermal limit
+Nov 16 20:19:49 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:49 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:49 acer kernel: acpi_thermal-0637 [1548] acpi_thermal_check    : THRC: Temperature: 3162
+Nov 16 20:19:50 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:50 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:50 acer kernel: [ACPI Debug] String: SYST of _TMP =
+Nov 16 20:19:50 acer kernel: [ACPI Debug] Integer: 000000000000002E
+Nov 16 20:19:50 acer kernel: [ACPI Debug] String: CPU _TMP =
+Nov 16 20:19:50 acer kernel: [ACPI Debug] Integer: 000000000000002B
+Nov 16 20:19:50 acer kernel: [ACPI Debug] String: SYST of _TMP =
+Nov 16 20:19:50 acer kernel: [ACPI Debug] Integer: 000000000000002E
+Nov 16 20:19:51 acer init: Switching to runlevel: 0
+Nov 16 20:20:07 acer cardmgr[548]: exiting
+Nov 16 20:20:07 acer kernel: unloading Kernel Card Services
+Nov 16 20:20:08 acer kernel: Kernel logging (proc) stopped.
+Nov 16 20:20:08 acer kernel: Kernel log daemon terminating.
+Nov 16 20:20:09 acer exiting on signal 15
+N
+
+--------------060606080205050601070802--
 
 
 
