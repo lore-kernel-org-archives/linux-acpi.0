@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: VIA KT333 acpi DSDT bug
-Date: Tue, 3 Feb 2004 15:24:56 +0800
+Subject: RE: Fujitsu Lifebook p2120/2.6.1: Restart on second S3 suspend
+Date: Tue, 3 Feb 2004 15:27:49 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB66C@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB66D@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,41 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: chp.dekker-OdOgJZujJHXcqV2Q6a4srg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ole Myren Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I use a VIA KT333 motherboard.
+> After one successful S3 suspend/resume cycle, the machine=20
+> spontaneously=20
 >=20
-> It hase some bugs in the DSDT file and I don't know how to fix them.
-> Once when I had xp installed on it (2 days long ;) I had S0=20
-> t/m S5 (Ofcourse=20
-> not called that way by M$cro)
-> No ACPI (sleep) say I only have S0 S3 S4 S5
-> Some time none of them work becuase "one process didn't stop"=20
-> But now it "at=20
-> least I can "use S3", all that it does is putting my computer=20
-> in 1/10000 sec=20
-> to sleep (S3) mode and can be re-awakend. The lid switch=20
-> doesn't do any=20
-> thing.
+> restarts (as in machine_restart) on another suspend attempt.=20
+> It seems the=20
+>=20
+> restart happens during or just after executing the _PTS=20
+> method. Any ideas what=20
+>=20
+> causes this or what I can do to debug? Some earlier kernels=20
+> (late 2.5) were did=20
+>=20
+> multiple suspend/resume quite reliably.
 
-Do you have any hints to let us know this kind of symptom is due
-to DSDT bug?=20
-
->=20
-> Maybe there is already a DSDT patch, but for some reason the=20
-> pathes are=20
-> ordened by computer brands and not by chip-set brand, still I=20
-> have looked=20
-> there but as far as I know there isn't a VIA / VIA KT333 DSDT file.
->=20
-> I have tried to fix the bugs, even read a howto (+ some=20
-> howto's it pointed to)=20
-> and couldn't find a solution to my problem
->=20
-> So I hope that some one can fix my DSDT file
-
-Don't presume DSDT is the only buggy places.
+Do you remember the exact version number of kernel and ACPI CA ?
 
 
 -------------------------------------------------------
