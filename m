@@ -1,13 +1,11 @@
-From: Arjen Verweij <a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org>
+From: "vincent.legarrec" <vincent.legarrec-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
 Subject: Re: Impossible to compile iasl
-Date: Fri, 26 Nov 2004 14:19:04 +0100
-Message-ID: <41A72D48.6070300@student.tudelft.nl>
-References: <6EDC9204B3704C4C8522539D5C1185E565103D@mssmsx403.ccr.corp.intel.com>
+Date: Fri, 26 Nov 2004 14:04:11 +0100
+Message-ID: <20041126130337.A9C6D1C00120@mwinf0107.wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0010_01C4D3C0.CE9F1450"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <6EDC9204B3704C4C8522539D5C1185E565103D-g/v8ENnfjb4gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,154 +15,151 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "vincent.legarrec" <vincent.legarrec-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-OK, ie:
+This is a multi-part message in MIME format.
 
--      '}'                           {$$ = $2}
-+      '}'                           {$$ = $2;}
+------=_NextPart_000_0010_01C4D3C0.CE9F1450
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-This fixes it, thanks. I found a compile warning now, gonna see if I can 
-figure out if it is necessary to take a closer look. Thanks Alexey.
+Thanks a lot for all replies, one problem is solve but now I have the
+message :
+
+ 
+
+aslcompiler.l:846: error: `yytext_ptr' undeclared (first use in this
+function)
+
+aslcompiler.l:846: error: (Each undeclared identifier is reported only once
+
+aslcompiler.l:846: error: for each function it appears in.)
+
+make: *** [aslcompilerlex.o] Erreur 1
+
+ 
 
 Regards,
 
-Arjen
+ 
 
-Starikovskiy, Alexey Y wrote:
+Vincent
 
->Thanks, that is enough :)
->
->Edit aslcompiler.y and put semicolon ';' before the closing curly braket
->'}'
->
->Sorry for inconvenience,
->	Alex.
->
->  
->
->>-----Original Message-----
->>From: Arjen Verweij [mailto:a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org]
->>Sent: Friday, November 26, 2004 2:03 PM
->>To: Starikovskiy, Alexey Y
->>Cc: vincent.legarrec; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>Subject: Re: [ACPI] Impossible to compile iasl
->>
->>sphere@barton:~/media/acpica-unix-20041105/compiler$ make
->>cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER
->>-I../include    -c -o aslcompilerparse.o aslcompilerparse.c
->>aslcompiler.y: In function `AslCompilerparse':
->>aslcompiler.y:953: error: parse error before '}' token
->>make: *** [aslcompilerparse.o] Error 1
->>
->>This behaviour is the same regardless of flex/flex-old.
->>
->>I don't know what other details to tell you.
->>
->>Regards,
->>
->>Arjen
->>
->>Starikovskiy, Alexey Y wrote:
->>
->>    
->>
->>>Hi,
->>>
->>>Could you describe your problem in more detail? One of the problems on
->>>debian is that you need to install flex-old instead of just flex.
->>>
->>>
->>>Regards,
->>>	Alex.
->>>
->>>
->>>
->>>      
->>>
->>>>-----Original Message-----
->>>>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->>>>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of vincent.legarrec
->>>>Sent: Friday, November 26, 2004 12:55 AM
->>>>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>>>Subject: [ACPI] Impossible to compile iasl
->>>>
->>>>Hi, I downloaded iasl from
->>>>http://www.intel.com/technology/iapc/acpi/downloads.htm and I can't
->>>>
->>>>
->>>>        
->>>>
->>>compile
->>>
->>>
->>>      
->>>
->>>>it.
->>>>I need iasl because I have the recurrent message : ACPI:
->>>>acpi_ec_space_handler: bit_width should be 8
->>>>
->>>>Is anyone have the same problem?
->>>>
->>>>Thanks
->>>>
->>>>
->>>>
->>>>-------------------------------------------------------
->>>>SF email is sponsored by - The IT Product Guide
->>>>Read honest & candid reviews on hundreds of IT Products from real
->>>>
->>>>
->>>>        
->>>>
->>>users.
->>>
->>>
->>>      
->>>
->>>>Discover which products truly live up to the hype. Start reading now.
->>>>http://productguide.itmanagersjournal.com/
->>>>_______________________________________________
->>>>Acpi-devel mailing list
->>>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
->>>>
->>>>
->>>>        
->>>>
->>>-------------------------------------------------------
->>>SF email is sponsored by - The IT Product Guide
->>>Read honest & candid reviews on hundreds of IT Products from real
->>>      
->>>
->users.
->  
->
->>>Discover which products truly live up to the hype. Start reading now.
->>>http://productguide.itmanagersjournal.com/
->>>_______________________________________________
->>>Acpi-devel mailing list
->>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
->>>
->>>
->>>      
->>>
->
->
->-------------------------------------------------------
->SF email is sponsored by - The IT Product Guide
->Read honest & candid reviews on hundreds of IT Products from real users.
->Discover which products truly live up to the hype. Start reading now. 
->http://productguide.itmanagersjournal.com/
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->  
->
+
+------=_NextPart_000_0010_01C4D3C0.CE9F1450
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:612.0pt 792.0pt;
+	margin:70.85pt 70.85pt 70.85pt 70.85pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=3DFR link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:"Courier New"'>Thanks =
+a lot for
+all replies, one problem is solve but now I have the message =
+:<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:"Courier =
+New"'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>aslcompiler.l:846:
+error: `yytext_ptr' undeclared (first use in this =
+function)<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>aslcompiler.l:846:
+error: (Each undeclared identifier is reported only =
+once<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+lang=3DEN-GB style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>aslcompiler.l:846:
+error: for each function it appears in.)<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>make: *** =
+[aslcompilerlex.o]
+Erreur 1<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>Regards,<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>Vincent<o:p></o:p></span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0010_01C4D3C0.CE9F1450--
+
+
 
 
 -------------------------------------------------------
