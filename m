@@ -1,16 +1,16 @@
-From: "Bernard Normier" <bernard-jCTGDdqZGLzlLTHTg0CpQwC/G2K4zDHf@public.gmane.org>
-Subject: Re: ACPI on Intel SE7501WV2
-Date: Sat, 9 Oct 2004 22:58:35 -0400
+From: Neil Russell <neil-/H+5mSEr0Z/QT0dZR+AlfA@public.gmane.org>
+Subject: Please confirm your message
+Date: Sat, 09 Oct 2004 23:13:00 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <001601c4ae75$0995dec0$6400a8c0@centrino>
-References: <16A54BF5D6E14E4D916CE26C9AD305754574D8@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <1097388780.24393.TMDA@lx.c-side.com>
+References: <20041010061225.691FC15DDF8@delight.idiom.com>
+Reply-To: neil-confirm-1097388780.24393.9f1ad9-/H+5mSEr0Z/QT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041010061225.691FC15DDF8-v3wWnkbFTF0E9owNI1yPEAC/G2K4zDHf@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,71 +19,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>- with USB enabled in the BIOS, dmesg shows:
->>
->>hub 2-0:1.0: USB hub found
->>hub 2-0:1.0: 2 ports detected
->>irq 169: nobody cared! (screaming interrupt?)
->>irq 169: Please try booting with acpi=off and report a bug
->> [<021074d6>] __report_bad_irq+0x3a/0x77
->> [<02107572>] note_interrupt+0x43/0x66
->> [<021078c4>] do_IRQ+0x19d/0x225
->>handlers:
->>[<0225a679>] (usb_hcd_irq+0x0/0x4b)
->>Disabling IRQ #169
-> What's the result if you disable 'CONFIG_PCI_MSI'?
 
-I did not try; I can live without USB.
-
->
->>PCI: PCI BIOS revision 2.10 entry at 0xfdb75, last bus=4
->>PCI: Using configuration type 1
->>mtrr: v2.0 (20020519)
->>ACPI: Subsystem revision 20040326
->>    ACPI-0562: *** Warning: Type override - [DEB_] had invalid type
->>(Integer) for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [MLIB] had invalid type
->>(Integer) for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [DATA] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [SIO_] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [LEDP] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [GPEN] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [GPST] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [WUES] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [WUSE] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [SBID] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>    ACPI-0562: *** Warning: Type override - [SWCE] had invalid type
-> (String)
->>for Scope operator, changed to (Scope)
->>ACPI: Interpreter enabled
-> The error message possibly isn't harmful. Please latest kernel.
-
-I hope these warnings are indeed harmless! I also get them with 2.6.9-rc3; 
-which kernel do you suggest?
-
-Thanks,
-Bernard
+Hi,
 
 
+The message you sent recently is being held because your address
+<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> has not been verified.
+
+To confirm that your message was not junk-mail, please reply to this
+Email or send an empty message to this address:
+
+   neil-confirm-1097388780.24393.9f1ad9-/H+5mSEr0Z/QT0dZR+AlfA@public.gmane.org
+
+You should only have to confirm your address once.
+
+
+Neil.
 
 
 -------------------------------------------------------
