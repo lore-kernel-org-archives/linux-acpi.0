@@ -1,29 +1,51 @@
-From: Jamie Lokier <jamie@shareable.org>
-Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Wed, 31 Mar 2004 16:02:19 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040331150219.GC18990@mail.shareable.org>
-References: <4069A359.7040908@nortelnetworks.com> <1080668673.989.106.camel@dhcppc4> <4069D3D2.2020402@tmr.com> <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
+From: Grant Grundler <grundler-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
+Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
+Date: Wed, 31 Mar 2004 08:28:31 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040331152831.GA1869@colo.lackof.org>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk> <20040320181000.GA8272@kroah.com> <20040322223425.GB3213@neo.rr.com> <20040324013557.GB21477@kroah.com> <20040324090746.A13095@flint.arm.linux.org.uk> <20040330214941.L85074@root.org> <20040331082834.B27804@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
-To: "Maciej W. Rozycki" <macro@ds2.pg.gda.pl>
-Cc: Bill Davidsen <davidsen@tmr.com>, Len Brown <len.brown@intel.com>, Chris Friesen <cfriesen@nortelnetworks.com>, Willy Tarreau <willy@w.ods.org>, "Richard B. Johnson" <root@chaos.analogic.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+In-Reply-To: <20040331082834.B27804-f404yB8NqCZvn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Russell King <rmk-pci-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Maciej W. Rozycki wrote:
->  Well, "cmpxchg", "xadd", etc. can be easily emulated with an aid of a
-> spinlock.  With SMP operation included.
+On Wed, Mar 31, 2004 at 08:28:34AM +0100, Russell King wrote:
+> Also, if what you say is true, these device drivers can only ever be
+> inserted and never removed and re-inserted - which would be a driver
+> bug.
 
-Nope.  Len Brown wrote:
+We could call it a driver bug if we like. But reality is we don't
+know what magic BIOS is doing and can't fix the problem. Trying
+to get gfx cards working on parisc-linux is an example of that.
 
-> Linux uses this locking mechanism to coordinate shared access
-> to hardware registers with embedded controllers,
-> which is true also on uniprocessors too.
+Can someone provide a cleaner example than PCI-PCI Bridge of generic 
+class driver?
+Maybe from serial or LAN cards? (eg 16550 or tulip chip support)
+Talking about a concrete example(s) might define the problem(s) better.
 
-You can't do that with a spinlock.  The embedded controllers would
-need to know about the spinlock.
+PCI-PCI Bridge class support is integrated in the generic PCI bus
+enumeration in order to walk PCI config space and ultimately configure
+devices behind the PCI-PCI bridge. A seperate PCI-PCI Bridge "class"
+driver could do some other house-keeping stuff to support hot plug.
 
--- Jamie
+thanks,
+grant
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
