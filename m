@@ -1,47 +1,55 @@
-From: Michael Grigoriev <mag-wxkiEGMmYARAfugRpC6u6w@public.gmane.org>
-Subject: Power off does not work when connected to AC (was: S4/S5 wake up immediately)
-Date: Mon, 20 Sep 2004 19:22:23 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2004.09.20.23.22.22.309738@luminal.org>
-References: <pan.2004.09.02.22.46.23.624873@luminal.org>
+From: Dmitry Torokhov <dtor_core@ameritech.net>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
+Date: Mon, 20 Sep 2004 18:12:45 -0500
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <200409201812.45933.dtor_core@ameritech.net>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201333.42857.dtor_core@ameritech.net> <20040920122404.B15677@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20040920122404.B15677@unix-os.sc.intel.com>
+Content-Disposition: inline
+To: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 02 Sep 2004 15:46:25 -0700, Michael Grigoriev wrote:
-> My laptop (HP ZT3000 series) does not seem to be able to reliably enter S4
-> and S5 states anymore. It used to work with 2.6.7-mm2, but with
-> 2.6.8.1-mm2 and 2.6.9-rc1 + acpi-20040816, it powers down (harddrive
-> clicks off, leds go out, etc), but then turn back on right away.
+On Monday 20 September 2004 02:24 pm, Keshavamurthy Anil S wrote:
+> On Mon, Sep 20, 2004 at 01:33:42PM -0500, Dmitry Torokhov wrote:
+> > On Monday 20 September 2004 11:35 am, Keshavamurthy Anil S wrote:
+> > > This patch support /sys/firmware/acpi/eject interface where in 
+> > > the ACPI device say "LSB0" can be ejected by echoing "\_SB.LSB0" > 
+> > > /sys/firmware/acpi/eject
+> > > 
+> > 
+> > I wonder if eject should be an attribute of an individual device and visible
+> > only when device can be ejected. Reading from it could show eject level
+> > (_EJ0/_EJ3 etc).
+> Hi Dmitry,
+> 	Today there is really no sysfs representation of acpi devices apart from
+> the acpi namespace representation. Evaluating acpi namespaces's _EJ0 method won't help,
+> as we need acpi device and all its child devices to be removed as part of the eject.
+> 
+> Also for there is no 1:1 maping of acpi devices to pci devices to consider eject to be
+> part of the pci devices.
+> 
+> Hence the best solution for now is to echo ACPI full path name of the device to be
+> ejected onto the eject file and the code will make sure that the device supports _EJx method before actuall removing the device.
+> 
 
-The problem persists with 2.6.9-rc2-mm1.
-I have since determined that power off consistently works when running on
-battery power, but not when connected to AC, in which case it simply
-reboots. 
+Hi Anil,
 
-Any ideas?
+I obviously failed to deliver my idea :) I meant that I would like add eject
+attribute (along with maybe status, hid and some others) to kobjects in
+/sys/firmware/acpi tree.
+
+I also wonder if userspace should traverse tree and emit eject requests for
+children. While it is OK for user[space]-initiated removal what about surprise
+removal. My concern that scripts will not be ready for all devices to be
+suddently gone... Would not it be beter if generic handler for BUS_CHECK was
+implemented in acpi/bus.c that would add/remove acpi devices and notify
+userspace via hotplug?
 
 -- 
-Have fun,                        "This day has altered my perception
-Michael "mag" Grigoriev         I'll never see things quite the same
-mag-wxkiEGMmYARAfugRpC6u6w@public.gmane.org                    All that I knew was misconception
-http://www.luminal.org             But all of that's about to change"
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM.
-Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
+Dmitry
