@@ -1,30 +1,41 @@
-From: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [ACPI] RE: [BK PATCH] ACPI updates
-Date: Mon, 9 Dec 2002 12:45:07 -0700
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ACPI] Re: [2.5.50, ACPI] link error
+Date: Mon, 9 Dec 2002 11:12:43 -0800
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200212091245.07770.bjorn_helgaas@hp.com>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A576@orsmsx119.jf.intel.com> <20021209191252.N20336@parcelfarce.linux.theplanet.co.uk> <20021209141720.A11277@devserv.devel.redhat.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A581@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20021209141720.A11277-s/M1imWmeEoQw3kMeb7FcACJwEvxM/w9@public.gmane.org>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>, Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hanno =?iso-8859-1?q?B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, pavel-+ZI9xUNit7I@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: 'Ducrot Bruno' <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 09 December 2002 12:17 pm, Arjan van de Ven wrote:
-> On Mon, Dec 09, 2002 at 07:12:52PM +0000, Matthew Wilcox wrote:
-> > On Mon, Dec 09, 2002 at 02:09:04PM -0200, Marcelo Tosatti wrote:
-> > > Which machines do not work without the new ACPI code?
-> > 
-> > hp's zx1-based ia64 machines (my personal interest..) 
+> From: Ducrot Bruno [mailto:poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] 
+
+> > I think that s4bios is nice to have. Its similar to S3 and easier to
+> > set up than swsusp... It would be nice to have it.
 > 
-> That one doesn't boot without other major patches anyway...
+> for me:
+> pros:
+> -----
+> 1- it is really really more easier to implement than S4;
+> 2- we can even have it with 2.4 kernels (it seems that it work without
+> the need of freezing processes, but I suspect that this statement
+> is 'wrong' by nature).
+> 
+> cons:
+> -----
+> 1- it is much slower (especially at save time) than your swsusp;
+> 2- end users must setup their systems (need to create a 
+> suspend partition,
+> or to keep a vfat partition as the really first one (/dev/hda1));
+> 3- we use a bios function.  Actually, everything can happen...
+> 
+> That why I prefer swsusp at this time, or any other 
+> implementation of S4 (I
+> think about an implementation of S4 via LKCD).
 
-Apart from ACPI, the non-ia64 patches required to boot a zx1
-should be relatively small: some IRQ changes, support in
-memmap_init for discontiguous memory, etc.
+I concur with your pros and cons. This makes me think that if S4BIOS support
+ever gets added, it should get added to 2.4 only.
 
-Having a newer ACPI in 2.4.x (it currently has 20011018!)
-would make things much easier for ia64.
+Regards -- Andy
