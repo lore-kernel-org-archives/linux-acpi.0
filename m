@@ -1,10 +1,10 @@
-From: Brouard Nicolas <nicolas.brouard-TDf4sKD1mxeHlu7OokbhRg@public.gmane.org>
-Subject: Sony Vaio ACPI S4 suspend resumes instead of power off
-Date: Thu, 04 Nov 2004 19:32:19 +0100
-Message-ID: <1099593139.6265.17.camel@pichat>
+From: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>
+Subject: No battery information on a ACER Travelmate 4001LMi
+Date: Thu, 04 Nov 2004 20:24:44 +0100
+Message-ID: <418A81FC.9030001@tiscali.be>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,41 +18,50 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hello everybody,
 
-I have been using echo 4>/proc/acpi/sleep on kernel 2.6.8.1 successfully
-since some time now on my Sony Z1. 
+I own a ACER Travelmate 4001Lmi laptop and I don't manage to get battery 
+information with ACPI. It has an intel centrino 1,5Ghz processor and an 
+Intel 855GM chipset. I have compiled all necessary modules but in fact I 
+can only get information about the fan, the processor and thermal zone. 
+I can no more get the status of the adapter. I have tried different 
+kernel boot parameters (pci=noacpi, acpi=on, acpi=ht), but it's always 
+the same. With the latter, there is even no /proc/acpi directory. Here 
+belows is the kernel configuration concerning ACPI I have choosen:
 
-The sonypi module has been patched recently (Dmitry Torokhov) and
-Stelian Pop) in order to suspend/resume correctly. I have been able to
-patch a kernel 2.6.8.1 with these patches (need kfifo and
-roundup_pow_of_two patches from 2.6.10). 
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_INTERPRETER=y
+# CONFIG_ACPI_SLEEP is not set
+CONFIG_ACPI_AC=m
+CONFIG_ACPI_BATTERY=m
+CONFIG_ACPI_BUTTON=m
+CONFIG_ACPI_FAN=m
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_THERMAL=m
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_TOSHIBA is not set
+# CONFIG_ACPI_CUSTOM_DSDT is not set
+CONFIG_ACPI_BLACKLIST_YEAR=0
+CONFIG_ACPI_DEBUG=y
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_X86_ACPI_CPUFREQ=m
+# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+# CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI is not set
+CONFIG_HOTPLUG_PCI_ACPI=m
+# CONFIG_HOTPLUG_PCI_ACPI_IBM is not set
+CONFIG_SERIAL_8250_ACPI=y
 
-And suspending/resuming works well but it doesn't halt in between! It is
-only cycling.
+In fact, in side the /proc/ac_adapter and /proc/acpi/battery, there is 
+nothing. So I guess there is something wrong with ac and battery 
+modules. Nevertheless, I am able to load these modules.
 
-In fact I discovered that the reason is elsewhere. Just at the same time
-I upgraded my system (Mandrake cooker uptodated 10.1) by using the 6 CD
-of the Mandrake 10.1 Official distribution. The upgrade was very quick
-because all of my rpms were already updated, but the upgrade added new
-services (Bluetooth) and modules and even other configuration which I
-don't know.
-
-I had a list of former modules and removed the new modules (or
-daemon/services) added by the upgrade. But I am STILL cycling and don't
-know what to do.
-
-With all of my tests or official kernel I am recycling.
-
-Is there a parameter in /proc/acpi/??? which makes the cycling.
-
-Any hint will be appreciated.
-
-Nicolas Brouard
-
--- 
-Brouard Nicolas <nicolas.brouard-TDf4sKD1mxeHlu7OokbhRg@public.gmane.org>
-
+Thanks for your advices.
+François Valenduc
 
 
 -------------------------------------------------------
