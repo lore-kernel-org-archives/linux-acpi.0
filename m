@@ -1,15 +1,14 @@
-From: Peter Soetens <peter.soetens-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org>
-Subject: Success : Tyan Tiger S2460 + linux-2.6.9-rc1
-Date: Wed, 8 Sep 2004 09:27:25 +0200
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: passive cooling policy
+Date: Wed, 8 Sep 2004 10:54:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409080927.25894.peter.soetens@mech.kuleuven.ac.be>
-Reply-To: peter.soetens-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org
+Message-ID: <20040908085423.GA7785@dominikbrodowski.de>
+References: <413CA0D9.5030901@renninger.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <413CA0D9.5030901-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,22 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+Hi Thomas,
 
-linux-2.6.9-rc1 is the first linux version actually able to shutdown (halt) 
-and reboot my system. The 'other OS' had no problems whatsoever and my Bios
-was, although probably buggy, at the latest version.
+> 3) If passive limit is reached, kernel throttles cpu and tries to set 
+> cpufreq to lowest step. Only way to find out whether machine is 
+> passively cooled is in polling /proc/acpi/thermal_zone/*/state.
+> (Is it right that cpufreq daemons poll this file to be informed of 
+> kernel forced cpufreq slow downs?)
 
-My system needed acpi compiled in or it would hang a few minutes after boot.
-The noapic option for AMD processors did not help solving that, but all
-these troubles seem to be gone now !
+Why do cpufreq daemons want to know that? And the ordering is important:
+first scale CPU frequency be means of cpufreq, _then_ throttle the CPU.
 
-Good work ! Thank you Alexander Rauth ! 
+> 1) inform userspace that cpu speed is increased/decreased through a 
+> thermal event.
+> -> avoid userspace progs polling /proc/acpi/thermal_zone/*/state to be 
+> informed whether the system is slowed down.
 
-Peter
+Again, I do not see a reason for why this needs to be exported to userspace.
+
+> 2) Allow setting a passive trip point even BIOS does not export a 
+> passive trip point value and initialise tc1, tc2 and tsp with some 
+> sensible default values.
+> -> you could lower fan activity on every laptop/workstation that 
+> supports throttling/cpufreq regardless whether the BIOS exports any 
+> passive trip points/cooling mode (event most laptop vendors don't care 
+> about trip points).
+
+As long as this allows an additional, probably lower "trip point" for
+_passive_ cooling, this sounds like a good idea. It cannot hurt as long as
+it doesn't disable the BIOS-initialized active cooling.
+
+	Dominik
 
 
 -------------------------------------------------------
