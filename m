@@ -1,9 +1,17 @@
-From: Peter.Zeipelt-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org
-Subject: No network after S3
-Date: Sat, 14 Feb 2004 15:39:49 +0100 (CET)
+From: linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org
+Subject: ACPI on Inspiron 5100 doesn't work
+Date: Sat, 14 Feb 2004 17:59:13 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076768932.402e30a460d2e@webmail.t-online.de>
+Message-ID: <200402141759.13906.linux@dodgybloke.co.uk>
+References: <200401202136.37449.linux@dodgybloke.co.uk>
+Reply-To: linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200401202136.37449.linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,34 +23,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello list
+I got the DSDT to be used on bootup...
 
-I hope this is the right place for my question.
-Using an ABIT KT7-RAID with SuSE 8.2prof and the kernel 2.6.1 or 2.6.2
-STR seems to work fine.
-But trying to use network nothing really happens.
-I tried out several NICs (3c905c, 100PRO/S and one with a 8139b).
-When i try to ping another  host in the local net, all get is an
-Destination Host unreachable.
-The 8139b says "no buffer space available" .
-A dmesg with the 3c905 says "IRQ blocked by another device?"
-But there isn't any other device on this IRQ.
-Un- and reloading the module doesn't help.
-Trying the STR on an ASUS A7N8X with driver for the nforce NIC in the
-kernel brings the same result.
-Another strange thing to me is, that S3 and S4 are working better on
-the old ABIT  board with Via KT133
-chipset then on my newer nforce boards.
-The ASUS didn't fall in S4 mode, cause it seems that the disks are
-powered down before writing the RAM
-on it.
-An Enmic 8RDA+ doesn't boot after S3.
-But for now my main problem is to bring the network to work after the
-S3.
-Any hints?
 
-Thanks
-Peter
+
+Looking for DSDT in initrd ... found (at offset 286191)!
+=A0 =A0 ACPI-0292: *** Info: Table [DSDT] replaced by host OS
+
+
+But It doesn't work.
+
+Any suggestions people?
+
+I'm using SUSE 9 on Dell Inspiron 5100
+
 
 
 -------------------------------------------------------
