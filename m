@@ -1,29 +1,50 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [ACPI][2.6.10-rc3][SUSPEND] S3 mode - Cannot resume from PCI devices
-Date: Fri, 10 Dec 2004 15:20:10 +0100
-Message-ID: <20041210142010.GA3654@openzaurus.ucw.cz>
-References: <200412100315.21725.shawn.starr@rogers.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: How to control Thermal zone
+Date: Fri, 10 Dec 2004 15:24:25 +0100
+Message-ID: <20041210142425.GB3654@openzaurus.ucw.cz>
+References: <41B8FC12.5090602@yahoo.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262236AbULMMKr@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200412100315.21725.shawn.starr@rogers.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shawn Starr <shawn.starr@rogers.com>
-Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net
+In-Reply-To: <41B8FC12.5090602-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Francisco Figueiredo Jr." <fxjrlists-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I have netconsole configured I can see kernel messages on a remote machine, but when I suspend the laptop it goes into S3.
-> I am unable to capture the (oops) the laptop when bringing it out of S3. It remains in a half suspended-unsuspended state.
-> (the crescent moon LED is solidly on, video is back on (can see the 'Back to C!' string), cannot use sysctl key combos, 
-> netconsole doesn't display the output since no PCI devices resume (the video is AGP onboard).
+> sorry if this has been already asked,
 > 
-> Is there any way I can capture this output somehow? I don't think even serial would work (it would be a USB to serial converter which would be PCI)
+> but I'd like to know if is it possible to control thermal zone in 
+> order
+> to turn off my laptop fan when I get my login screen.
+> 
+> I mean, The fan is being correctly turned on and off but only after
+> getting some threshold. When the laptop is turned on and my thermal 
+> zone
+> temp is 35C fan is kept on when it could be turned off.
+> 
+> Any tips?
 
-If you can see Back to C, your video works, just capture oops
-with paper and pencil.
-
+You can just echo 1:2:3 > trip_points...
+				Pavel
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now. 
+http://productguide.itmanagersjournal.com/
