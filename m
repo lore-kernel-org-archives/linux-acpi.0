@@ -1,15 +1,14 @@
-From: Mario Giammarco <mgiammarco-gH+WsCr1+wQ1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: Thinkpad r50p: serious slowness at restart.
-Date: Sat, 23 Oct 2004 19:38:38 +0200
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ibm-acpi: module loading fix, LED control fix
+Date: 23 Oct 2004 13:41:41 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098553118.21648.3.camel@r50p>
-References: <1098552335.10630.3.camel@r50p>
-	 <1098552629.23795.1.camel@sunshine>
+Message-ID: <1098553301.21808.0.camel@d845pe>
+References: <20041023080608.GC26903@aero.ensim.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1098552629.23795.1.camel@sunshine>
+In-Reply-To: <20041023080608.GC26903-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,27 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
+To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2004-10-23 at 19:30 +0200, Timo Hoenig wrote:
-> On Sat, 2004-10-23 at 19:25 +0200, Mario Giammarco wrote:
-> [...]
-> > I have done some checks and I have discovered with hdparm that when I
-> > fresh start my machine I obtain 30mb/s from hard disk. When I
-> > suspend/hibernate and I wake up it again I obtain only 3 mb/s.
+Applied.
+
+thanks,
+-Len
+
+On Sat, 2004-10-23 at 04:06, Borislav Deianov wrote:
+> Hi Len,
 > 
-> Is DMA still on after suspend (hdparm -d /dev/hdX to obtain the status)?
+> The attached patch fixes a couple of bugs introduced in the 0.5
+> release:
 > 
-It is off, very very strange because:
+> - The CMOS handle was incorrectly marked as required, breaking insmod
+>   on models without one;
+> 
+> - The BLED method was incorrectly required if LED is not defined,
+>   breaking LED control on the A21e.
+> 
+> Both fixes have been tested. The patch also includes minor doc and
+> comment changes. Please apply.
 
-1) hdparm -i shows me udma5 active
-2) after wake up I restart several times debian hdparm script
-
-Fortunately for me now I have manually set -d 1 and now I regained some
-speed!
-
-Thank you very much!
 
 
 
