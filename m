@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Report Toshiba Satellite300-214
-Date: Tue, 4 Mar 2003 12:52:08 +0100
+Subject: Re: ACPI-20030228 and custom dsdt
+Date: Tue, 4 Mar 2003 13:07:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030304115208.GA7861@poup.poupinou.org>
-References: <microsoft-free.m3k7fg49lq.fsf@grisu.schuckeduster.org>
+Message-ID: <20030304120717.GC7861@poup.poupinou.org>
+References: <20030303211020.7e008a42.greg@algx.net> <33027.192.168.10.204.1046748953.squirrel@benham.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <microsoft-free.m3k7fg49lq.fsf-NYHFM3qjxh+4Q6RjEJEvzQmWJwt+BgR4@public.gmane.org>
+In-Reply-To: <33027.192.168.10.204.1046748953.squirrel-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,30 +17,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Kosch <t.kosch-FfjHXTYIe3sI54nVjq4dGti2O/JbrIOy@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
+Cc: greg-OpKIWVIkplU@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 03, 2003 at 06:56:49PM +0100, Thomas Kosch wrote:
-> Hi,
-> i wuold like to give you an report for my satellite3000-214. I use the
-> latest patch with Brunos dsdt, SuSEs TIOCGDEV-patch, packet writing
-> patch and SuSEs boot-splash patch.
-> 
+On Mon, Mar 03, 2003 at 07:35:53PM -0800, Darren Benham wrote:
+> No... You apply the diff to osl.c that expects an external variable called
+> AmlCode.
+> You then have to rename the dsdt.hex into something that will compile.  I
+> think 2.4 make will pick up the file but with 2.5 you have to modify the
+> make file.
+> Alternatively, you can add #include "dsdt.hex" to the osl.c file...
 
-Could you give a try to
-tosh3k-214-v2 that I just released ?
 
-This will fix the following :
+http://www.poupinou.org/apci/over.html
 
-correct detection of batteries (that is it will say
-at boot that the second batterie is not present..)
-
-corrected info file and state file for all batteries i.e.
-you now have the correct value for 'last full capacity' and
-friend.
-
-Cheers,
 
 -- 
 Ducrot Bruno
