@@ -1,8 +1,8 @@
 From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [PATCH 1/2] acpi4asus update: new models
-Date: Sat, 10 Jul 2004 00:27:40 +0200
+Subject: [PATCH 2/2] acpi4asus update: whitespace
+Date: Sat, 10 Jul 2004 00:29:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040709222740.GA31054@hell.org.pl>
+Message-ID: <20040709222935.GB31054@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,111 +20,63 @@ Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
-The following patch adds support for L4R and M5N, moves some bits for M6N
-and restores WLED functionality for M2N, please apply to both trees.
+The following patch contains some comment and whitespace cleanups, please 
+apply to both trees.
 
 Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 
 
 --- a/drivers/acpi/asus_acpi.c	2004-06-29 23:39:06.000000000 +0200
 +++ b/drivers/acpi/asus_acpi.c	2004-07-09 23:28:13.000000000 +0200
-@@ -123,14 +127,16 @@
- 		L3C,      //L3800C
- 		L3D,      //L3400D
- 		L3H,      //L3H, but also L2000E
-+		L4R,      //L4500R
- 		L5x,      //L5800C 
- 		L8L,      //L8400L
- 		M1A,      //M1300A
- 		M2E,      //M2400E, L4400L
-+		M6N,      //M6800N
- 		P30,	  //Samsung P30
- 		S1x,      //S1300A, but also L1400B and M2400A (L84F)
- 		S2x,      //S200 (J1 reported), Victor MP-XP7210
--		xxN,      //M2400N, M3700N, M6800N, S1300N, S5200N (Centrino)
-+		xxN,      //M2400N, M3700N, M5200N, S1300N, S5200N (Centrino)
- 		END_MODEL
- 	} model;              //Models currently supported
- 	u16 event_count[128]; //count for each event TODO make this better
-@@ -247,6 +253,19 @@
- 	},
- 
- 	{
-+		.name              = "L4R",
-+		.mt_mled           = "MLED",
-+		.mt_wled           = "WLED",
-+		.wled_status       = "\\_SB.PCI0.SBRG.SG13",
-+		.mt_lcd_switch     = xxN_PREFIX "_Q10",
-+		.lcd_status        = "\\_SB.PCI0.SBSM.SEO4",
-+		.brightness_set    = "SPLV",
-+		.brightness_get    = "GPLV", 
-+		.display_set       = "SDSP",
-+		.display_get       = "\\_SB.PCI0.P0P1.VGA.GETD"
-+	},
-+
-+	{
- 		.name              = "L5x",
- 		.mt_mled           = "MLED",
- /* WLED present, but not controlled by ACPI */
-@@ -289,6 +308,19 @@
- 	},
- 
- 	{
-+		.name              = "M6N",
-+		.mt_mled           = "MLED",
-+		.mt_wled           = "WLED",
-+		.wled_status       = "\\_SB.PCI0.SBRG.SG13",
-+		.mt_lcd_switch     = xxN_PREFIX "_Q10",
-+		.lcd_status        = "\\_SB.BKLT",
-+		.brightness_set    = "SPLV",
-+		.brightness_get    = "GPLV",
-+		.display_set       = "SDSP",
-+		.display_get       = "\\SSTE"
-+	},
-+
-+	{
- 		.name              = "P30",
- 		.mt_wled           = "WLED",
- 		.mt_lcd_switch     = P30_PREFIX "_Q0E",
-@@ -764,6 +795,7 @@
- 	
- 	if (!read_acpi_int(hotk->handle, hotk->methods->display_get, &value))
- 		printk(KERN_WARNING "Asus ACPI: Error reading display status\n");
-+	value &= 0x07; /* needed for some models, shouldn't hurt others */
- 	return sprintf(page, "%d\n", value);
+@@ -456,7 +456,7 @@
+ 		len += sprintf(page + len, "SFUN value         : 0x%04x\n", temp);
+ 	/*
+ 	 * Another value for userspace: the ASYM method returns 0x02 for
+-	 * battery low and 0x04 for battery critical, it's readings tend to be
++	 * battery low and 0x04 for battery critical, its readings tend to be
+ 	 * more accurate than those provided by _BST. 
+ 	 * Note: since not all the laptops provide this method, errors are
+ 	 * silently ignored.
+@@ -608,7 +608,6 @@
  }
  
-@@ -998,8 +1007,13 @@
- 		hotk->model = L3C;
- 	else if (strncmp(model->string.pointer, "L8L", 3) == 0)
- 		hotk->model = L8L;
-+	else if (strncmp(model->string.pointer, "L4R", 3) == 0)
-+		hotk->model = L4R;
-+	else if (strncmp(model->string.pointer, "M6N", 3) == 0)
-+		hotk->model = M6N;
- 	else if (strncmp(model->string.pointer, "M2N", 3) == 0 ||
- 		 strncmp(model->string.pointer, "M3N", 3) == 0 ||
-+		 strncmp(model->string.pointer, "M5N", 3) == 0 ||
- 		 strncmp(model->string.pointer, "M6N", 3) == 0 ||
- 		 strncmp(model->string.pointer, "S1N", 3) == 0 ||
- 		 strncmp(model->string.pointer, "S5N", 3) == 0)
-@@ -1043,13 +1056,9 @@
- 	else if (strncmp(model->string.pointer, "S5N", 3) == 0)
- 		hotk->methods->mt_mled = NULL; 
- 	/* S5N has no MLED */
--	else if (strncmp(model->string.pointer, "M6N", 3) == 0) {
--		hotk->methods->display_get = NULL; //TODO
--		hotk->methods->lcd_status = "\\_SB.BKLT";
--		hotk->methods->mt_wled = "WLED";
--		hotk->methods->wled_status = "\\_SB.PCI0.SBRG.SG13";
--	/* M6N differs slightly and has a usable WLED */
--	}
-+	else if (strncmp(model->string.pointer, "M2N", 3) == 0)
-+		hotk->methods->mt_wled = "WLED"; 
-+	/* M2N has a usable WLED */
- 	else if (asus_info) {
- 		if (strncmp(asus_info->oem_table_id, "L1", 2) == 0)
- 			hotk->methods->mled_status = NULL;
+ 
+-
+ static int get_lcd_state(struct asus_hotk *hotk)
+ {
+ 	int lcd = 0;
+@@ -1059,7 +1058,6 @@
+ 		hotk->model = L5x;
+ 
+ 	if (hotk->model == END_MODEL) {
+-		/* By default use the same values, as I don't know others */
+ 		printk("unsupported, trying default values, supply the "
+ 		       "developers with your DSDT\n");
+ 		hotk->model = M2E;
+@@ -1092,7 +1090,6 @@
+ }
+ 
+ 
+-
+ static int __init asus_hotk_check(struct asus_hotk *hotk)
+ {
+ 	int result = 0;
+@@ -1115,7 +1112,6 @@
+ }
+ 
+ 
+-
+ static int __init asus_hotk_add(struct acpi_device *device)
+ {
+ 	struct asus_hotk *hotk = NULL;
+@@ -1182,6 +1178,7 @@
+ 	return(result);
+ }
+ 
++
+ static int asus_hotk_remove(struct acpi_device *device, int type)
+ {
+ 	acpi_status status = 0;
 
 
 -------------------------------------------------------
