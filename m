@@ -1,64 +1,57 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: [BKPATCH] ACPI for 2.4
-Date: Fri, 21 Nov 2003 19:46:51 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20031121184651.GA16548@alpha.home.local>
-References: <1069189083.2970.540.camel@dhcppc4> <1069326962.16410.49.camel@dhcppc4> <20031121174909.GA16457@alpha.home.local>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Computer Resets on Resume From S3
+Date: Fri, 21 Nov 2003 22:16:07 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20031121211607.GA882@elf.ucw.cz>
+References: <200311201522.15255.jak97@doc.ic.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031121174909.GA16457@alpha.home.local>
-To: Willy Tarreau <willy@w.ods.org>
-Cc: Len Brown <len.brown@intel.com>, Marcelo Tosatti <marcelo.tosatti@cyclades.com.br>, Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+In-Reply-To: <200311201522.15255.jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi again,
+Hi!
 
-in fact this is not an ACPI problem. It's the ATYFB driver which never
-worked before on this machine which prevents it from rebooting. That
-doesn't surprize me, since this bios doesn't reinitialize anything properly
-(previously, this bios hung on the IDE controller if APIC was set).
+> 
+> I have a KT4 Ultra (MS-6590) computer, with latest BIOS. 
+> I am running kernel 2.6.0-test9-bk21.
+> When I enter S3, by "echo 3 > /proc/acpi/sleep", the machine suspends all the 
+> tasks and then appears to power-down (all the hard disks are powered down, 
+> and the power-supply fan is off).
+> 
+> I know that the machine is not truly off, because I can trigger a resume by 
+> pressing a key on the keyboard. Also /proc/acpi/alarm works fine.
+> 
+> The trouble is that resume from S3 immediately resets the computer, so it as 
+> if I had just turned the computer on, rather than resuming the previous 
+> session.
+> 
+> Can anybody suggest some debugging that I can try to narrow this problem down? 
+> Perhaps by inserting a forced oops() somewhere so that I can see where it 
+> gets to before rebooting?
 
-Once back to VESAFB, everything's OK, so there's no regression at all.
+Inserting infinite loops can be used for debugging. Or debug leds on
+pci card...
+								Pavel
 
-Sorry for the noise,
-Willy
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
-On Fri, Nov 21, 2003 at 06:49:09PM +0100, Willy Tarreau wrote:
-> Hi Len,
-> 
-> On Thu, Nov 20, 2003 at 06:16:03AM -0500, Len Brown wrote:
-> > Hi Marcelo, please do a 
-> > 
-> > 	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
-> > 
-> 
-> This version, as well as the original 2.4.23-rc2 code cannot reboot my
-> VAIO. I don't know yet when the problem got in, since I've been using
-> a 2.4.21 base + acpi-20030424-2.4.21-rc1.diff for a long time without
-> this problem, and don't know if this was the case with intermediate
-> versions since it's not something that I immediately notice.
-> 
-> I will try to identify which pre-release brought this problem.
-> 
-> Basically, when I reboot, the screen goes black, and I hear the
-> speakers shut down exactly as when it will reboot. But nothing
-> appears on the screen anymore. I must say that I also had this
-> behaviour with the above version only when I used LOCAL_APIC.
-> But I tried both with and without, without success. I clearly
-> suspect my BIOS since it's a real crap, but since it once worked,
-> I'll search a bit.
-> 
-> Other than that, power down works pretty well (this has always
-> been a problem on this crap too), and the rest of the kernel is
-> really fine and stable.
-> 
-> Regards,
-> Willy
-> 
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
