@@ -1,11 +1,11 @@
-From: "Phyllis Holbrook" <p.holbrook_xn-qZPzWoBKQewqdlJmJB21zg@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Wed, 17 Nov 2004 08:34:07 -0600
-Message-ID: <4d6001c4ccb2$129c6ede$73d77816@alphanet.sk>
+From: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: NP3760 is still missing thermal zones
+Date: Wed, 17 Nov 2004 16:40:35 +0000
+Message-ID: <e294b46e0411170840770187fb@mail.gmail.com>
+Reply-To: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,30 +19,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Well, after a bit of fooling around with a copy of the ACPIv3 spec,
+the 20030918 iasl compiler and my NP3760's DSDT, I managed to solve
+the errors and get a clean compile:
 
-Do you want a rolex watch?
+http://acpi.sourceforge.net/dsdt/tables/Sager/NP3760_aka_M375E/Sager-NP3760_aka_M375E-0-original.asl.gz
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+Unfortunately, after checking for the thermal zone methods inside the
+DSDT, I was unable to find any. Does anyone know of a Sager/Clevo BIOS
+update that would restore this missing functionality?
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+TIA,
 
-Visit us: http://www.icors.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.icors.com/z.php
-
+Brad
 
 
 -------------------------------------------------------
