@@ -1,14 +1,14 @@
-From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: Re: S3 on Intel Desktop Board D865GBF
-Date: Tue, 25 May 2004 11:26:45 -0500
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] MADT printk cleanups
+Date: Tue, 25 May 2004 09:50:30 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40B373C5.4030400@verizon.net>
-References: <1085272779.7511.11.camel@300mlinux>
+Message-ID: <200405250950.30717.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1085272779.7511.11.camel-Yau0ytKvSx2eZLLa646FqQ@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,55 +17,103 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>, Acpi-Devel List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Andrew Barr wrote:
+Here's a fairly straightforward patch to go along with the switch to
+printing GSIs in decimal instead of hex.  It
+	- uses "gsi" rather than "global_irq"
+	- prints GSIs as %u rather than 0x%x
+	- places the "polarity trigger" stuff at the end consistently
+	- reorders IOSAPIC info to be consistent with IOAPIC
+	- changes a couple addresses from %p to 0x%08lx for consistency
 
->I'm trying to get S3 to work on an Intel D865GBF Desktop Board (Intel
->865G chipset) running a 2.6.6 vanilla kernel. Right now, the computer
->powers up after a resume and some devices initialize (CD drives), but
->the display remains off. Adding acpi_sleep=s3_mode to the command line
->does nothing (visibly) and acpi_sleep=s3_bios causes a Video BIOS
->identification screen to be displayed. The keyboard and mouse do not
->work, and pinging the machine's wireless card fails as well.
->
->When the machine resumes, the power LED is off, and pressing the reset
->switch fails to bring up the BIOS "silent boot" screen. Only by forcibly
->shutting off the machine (hold down the power button, pull the plug) and
->turning back on can I get it to boot.
->
->What needs done to get S3 working on a system like this?
->
->  
->
-I tried to get S3 suspend working on a similar motherboard: an Intel 
-D975PBZ. There is a thread about it on the list.
+No functional change.  This is against current BK of linux-2.5.
 
-The gist of the (very helpful) replies were:
-
-Disable the SMP (if your using Hyperthreading that is) and preempt 
-kernel options. Make sure you have the ACPI option for suspend in the 
-the bios set to S3. The default is S1.
-I am using a ATI Radeon 9700 pro and was told that suspend might not be 
-possible with this card, that using a Radeon 7000 card might increase my 
-chances of success.
-
-I was thinking of picking up a Radeon 7000 (haven't seen any with DVI 
-out) to see if I can get S3 to work that way, but haven't had the time. 
-I might try building a spare machine with one of the new Pentium M 
-desktop boards that are just being released, seeing that I might have 
-beter luck getting S3 to work with a laptop chipset. Ther other plus 
-would be the CPU can be passivley cooled, resulting in a truly silent 
-machine.
-
-Oh, how I envy those Mac heads and their sleep function.
-
-Good luck, let me know if you have any luck with that board.
-
-
-Nick
-
+===== drivers/acpi/tables.c 1.23 vs edited =====
+--- 1.23/drivers/acpi/tables.c	2004-05-12 21:30:55 -06:00
++++ edited/drivers/acpi/tables.c	2004-05-25 09:39:47 -06:00
+@@ -131,7 +131,7 @@
+ 	{
+ 		struct acpi_table_ioapic *p =
+ 			(struct acpi_table_ioapic*) header;
+-		printk(KERN_INFO PREFIX "IOAPIC (id[0x%02x] address[0x%08x] global_irq_base[0x%x])\n",
++		printk(KERN_INFO PREFIX "IOAPIC (id[0x%02x] address[0x%08x] gsi_base[%u])\n",
+ 			p->id, p->address, p->global_irq_base);
+ 	}
+ 		break;
+@@ -140,7 +140,7 @@
+ 	{
+ 		struct acpi_table_int_src_ovr *p =
+ 			(struct acpi_table_int_src_ovr*) header;
+-		printk(KERN_INFO PREFIX "INT_SRC_OVR (bus %d bus_irq %d global_irq %d %s %s)\n",
++		printk(KERN_INFO PREFIX "INT_SRC_OVR (bus %d bus_irq %d gsi %u %s %s)\n",
+ 			p->bus, p->bus_irq, p->global_irq,
+ 			mps_inti_flags_polarity[p->flags.polarity],
+ 			mps_inti_flags_trigger[p->flags.trigger]);
+@@ -155,9 +155,10 @@
+ 	{
+ 		struct acpi_table_nmi_src *p =
+ 			(struct acpi_table_nmi_src*) header;
+-		printk(KERN_INFO PREFIX "NMI_SRC (%s %s global_irq %d)\n",
++		printk(KERN_INFO PREFIX "NMI_SRC (gsi %u %s %s)\n",
++			p->global_irq,
+ 			mps_inti_flags_polarity[p->flags.polarity],
+-			mps_inti_flags_trigger[p->flags.trigger], p->global_irq);
++			mps_inti_flags_trigger[p->flags.trigger]);
+ 	}
+ 		break;
+ 
+@@ -165,10 +166,10 @@
+ 	{
+ 		struct acpi_table_lapic_nmi *p =
+ 			(struct acpi_table_lapic_nmi*) header;
+-		printk(KERN_INFO PREFIX "LAPIC_NMI (acpi_id[0x%02x] %s %s lint[0x%x])\n",
+-			p->acpi_id,
++		printk(KERN_INFO PREFIX "LAPIC_NMI (acpi_id[0x%02x] lint[0x%x] %s %s)\n",
++			p->acpi_id, p->lint,
+ 			mps_inti_flags_polarity[p->flags.polarity],
+-			mps_inti_flags_trigger[p->flags.trigger], p->lint);
++			mps_inti_flags_trigger[p->flags.trigger]);
+ 	}
+ 		break;
+ 
+@@ -176,8 +177,8 @@
+ 	{
+ 		struct acpi_table_lapic_addr_ovr *p =
+ 			(struct acpi_table_lapic_addr_ovr*) header;
+-		printk(KERN_INFO PREFIX "LAPIC_ADDR_OVR (address[%p])\n",
+-			(void *) (unsigned long) p->address);
++		printk(KERN_INFO PREFIX "LAPIC_ADDR_OVR (address[0x%08lx])\n",
++			(unsigned long) p->address);
+ 	}
+ 		break;
+ 
+@@ -185,8 +186,9 @@
+ 	{
+ 		struct acpi_table_iosapic *p =
+ 			(struct acpi_table_iosapic*) header;
+-		printk(KERN_INFO PREFIX "IOSAPIC (id[0x%x] global_irq_base[0x%x] address[%p])\n",
+-			p->id, p->global_irq_base, (void *) (unsigned long) p->address);
++		printk(KERN_INFO PREFIX "IOSAPIC (id[0x%x] address[0x%08lx] gsi_base[%u])\n",
++			p->id, (unsigned long) p->address,
++			p->global_irq_base);
+ 	}
+ 		break;
+ 
+@@ -203,10 +205,10 @@
+ 	{
+ 		struct acpi_table_plat_int_src *p =
+ 			(struct acpi_table_plat_int_src*) header;
+-		printk(KERN_INFO PREFIX "PLAT_INT_SRC (%s %s type[0x%x] id[0x%04x] eid[0x%x] iosapic_vector[0x%x] global_irq[0x%x]\n",
++		printk(KERN_INFO PREFIX "PLAT_INT_SRC (type[0x%x] id[0x%04x] eid[0x%x] iosapic_vector[0x%x] gsi[%u] %s %s)\n",
++			p->type, p->id, p->eid, p->iosapic_vector, p->global_irq,
+ 			mps_inti_flags_polarity[p->flags.polarity],
+-			mps_inti_flags_trigger[p->flags.trigger],
+-			p->type, p->id, p->eid, p->iosapic_vector, p->global_irq);
++			mps_inti_flags_trigger[p->flags.trigger]);
+ 	}
+ 		break;
  
 
 
