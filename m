@@ -1,13 +1,14 @@
-From: "Polevoy, IgorX" <igorx.polevoy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: enabling ACPI on RH 8
-Date: Tue, 8 Apr 2003 11:09:52 +0300
+From: "=?ks_c_5601-1987?B?wNq68cPixsc=?=" <h5-PgBelngkwdU+MW+wcPHoAA@public.gmane.org>
+Subject: =?ks_c_5601-1987?B?KLGksO0pIMDauvHD4sbHIL7Is7tbvcPB/Sy89sfKLLzSvLM=?=
+ =?ks_c_5601-1987?B?LLDmwaYssOa/tSzDs7y8ILHixbhd?=
+Date: Tue, 8 Apr 2003 17:12:02 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <DFDDBBFBAF6C634BAE34B5F175A29F0227F406@hasmsx403.iil.intel.com>
+Message-ID: <005523c267f5$38442a20$0100f620@ccnbogoj.net>
+Reply-To: "=?ks_c_5601-1987?B?wNq68cPixsc=?=" <h5-PgBelngkwdU+MW+wcPHoAA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0000_0A3E7FA3.630F6FD0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,97 +17,214 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-after adding kernel options with "append"  the following appeared
-in dmesg, reporting that ACPI was enabled OK: 
+This is a multi-part message in MIME format.
 
-apm: BIOS version 1.2 Flags 0x0b (Driver version 1.16)
-apm: disabled on user request.
-Starting kswapd
-VFS: Diskquotas version dquot_6.5.0 initialized
- tbxface-0099 [01] Acpi_load_tables      : ACPI Tables successfully
-loaded
-Parsing
-Methods:...........................................................
-59 Control Methods found and parsed (196 nodes total)
-ACPI Namespace successfully loaded at root c03bd640
-ACPI: Core Subsystem version [20011018]
-evxfevnt-0081 [02] Acpi_enable           : Transition to ACPI mode
-successful
-Executing device _INI methods:...........................
-27 Devices found: 27 _STA, 0 _INI
-Completing Region and Field initialization:.......
-7/9 Regions, 0/0 Fields initialized (196 nodes total)
-ACPI: Subsystem enabled
+------=_NextPart_000_0000_0A3E7FA3.630F6FD0
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
-Still there is no /proc/acpi entry... 
-Could be that the problem is now in the old BIOS ? 
-Also it reports on reboot about "AWARD Modular BIOS v 4.51PC" and 
-"ASUS P2B-N ACPI BIOS Revision 1012", there are no ACPI config options
-in BIOS 
-setup.
+v/iw7cHfsLMsIMDauvHD4sbHLCDA2rytwPwsILHiyLnD4sbHILXuIMPixse8rbrxvbogwPy5rsi4
+u+cgIMDauvHD4sbHIL7Is7sovcPB/Sy89sfKLLzSvLMssObBpiyw5r+1LMOzvLwsseLFuCkgICAg
+DQphY3BpLWRldmVstNSysiAgx+C6ucDMIMfUsrLHz73DseK4piC697TPtNkuDQqxzcfPwMcgILje
+wM/B1rzStMIgwKW8rcfOwd+/obytIL7LsNQgtciwzcDMuOcsIEUtTWFpbCDB1rzSIL/cv6EsILTZ
+uKUgIMGkuri0wiCwrrDtIMDWwfYgvsq9wLTPtNkuILq7ILjewM/AuiDBpLq4xeu9xbjBIMDMv+vD
+y8H4ILnXIMGkuri6uMijICC17r+hILD8x9Eguf23/CDBpiA1MMG2v6EgwMewxcfRW7GksO1dILje
+wM/A1LTPtNkNCg0KIA0KvPa9xbDFus64piC/+MfPvcO46SC/qbHiuKYgxay4r8fPseK4uCDHz7y8
+v+R+IA0KICANCiBJZiAgeW91IGRvbid0IHdhbnQgdGhpcyB0eXBlIG9mIGluZm9ybWF0aW9uIG9y
+IGUtbWFpbCwgcGxlYXNlIGNsaWNrICB0aGUgcmVqZWN0DQoNCiANCiAgIA0KIFvA2rrxw+LGx8DH
+ICDA2ry8x9Egs7u/610NCiAgwPrA27HHu+fH1w0KICDA+sDawMcgILvnu/Ow+iDDtsfQwLsgtOO+
+xiDHsMCnwNa0wiDDpcC4t84guLi16b7uICC15biztM+02S4gIMPixse17rfPsPogILG5waYgua7H
+5bn4yKMoSVNCTim4piC6zr+px9ggteW4s7TPtNkuICANCiCxubizwd++07W1vK2w/L+hICCzs7q7
+x8+/qSC+8MGmtvO1tSC/rbb3x8+9xyC89iDA1r3AtM+02S4gIA0KIMD6wNuxx8C7ICDDtsD6x8+w
+1CC6uMDlx9W0z7TZLiAgICDBpsDbuea5/Q0KICCz67fDx9EgIL/uv7XAuLfOIMGmwNu68bimIMPW
+tOvH0SDA/b7gx8+/qSDA+rfFx9EgILrxv+vAzCC17LTPtNkuIA0KIMO2wPrHz7DUICDA+sDawMcg
+wMe1tbimIDEwMCUgud2/tcfVtM+02S4NCiC6u7musPogIMelwfbAxyCxs8Gkwfa4piDD1rzSx9Eg
+tc4gufggwMy78yC6uLO7teW4s7TPtNkuICANCiDA+sDawMcgIE9Lu+fAzsDMILOqvt+4uCDBpsDb
+v6Egtem+7rCptM+02S4gDQogsPiw3cD7wM4gILDmv7XAuLfOILDFt6G8rcGhwLsgx8+357W1ILr8
+wfbB9iC+yrDtICC55rmux8+/qSC1tbytwMcgwfi/rbvzxcK4piC89r3Dt84gwaGwy8fPsO0sICC0
+9b/tIMHBwLogwNq4rr+hIMH4v621ySC89iDA1rW1t88gw9a8scC7ICC02cfVtM+02S4gICAgICDA
+zry8ICCw6L7guea9xA0KICDDs8C9ICDBpsDbuvHAxyDAz7rOuKYgwPrA2rChILrOtOPHz7TCILDN
+IL/cv6EgIMDPud0gw+LGx7mwsPogtb/Az8fRILDovuAgw9+wobrxv+sgIMD8x/QgvvjAuLjnIMOl
+wMwgwN8gxsi4rrjpIMD6wNq/obDUICDAzry8uKYgwfa808D7wLi3ziDB9rHeIDEwJSAgvLHAzry8
+ICAgDQrA2ry8x9EgILvnx9fAuiC1tbytw+LGxyDA28C6vaO/obytICC77Mbsuri9w7HiILnZtvi0
+z7TZLg0KICANCiC1tbytw+LGxyDA28C6vaMgDQogDQoNCiANCg==
 
-Thanks,
-Igor.
+------=_NextPart_000_0000_0A3E7FA3.630F6FD0
+Content-Type: text/html;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
-> -----Original Message-----
-> From: Sebastian Henschel [mailto:shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org]
-> Sent: Monday, April 07, 2003 11:20 AM
-> To: Polevoy, IgorX
-> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] enabling ACPI on RH 8
-> 
-> 
-> hello...
-> 
-> Received at 2003-04-06 / 18:28 by Polevoy, IgorX:
-> 
-> > I'm trying to enable ACPI on Linux RH 80 (kernel 2.4.18-14) 
-> and to run
-> > acpid.
-> > I succeeded to re-compile and re-boot the kernel with all the
-> > ACPI support options selected, however there is no 
-> > /proc/acpi created (or other signs of ACPI driver is up). 
-> > 
-> > How do I enable it? 
-> 
-> dunno what redhat uses, but:
-> 
-> check the boot parameters of your kernel, for instance in
-> /etc/lilo.conf:
-> - look for the line which conains the "append" keyword and 
-> replace "apm=on"
-> with "apm=off" and "acpi=off" with "acpi=on".
-> - save lilo.conf and rerun lilo with "/sbin/lilo".
-> 
-> if you are running grub it is quite similar, look for the 
-> aforementioned
-> parameters and change them.
-> the important thing is to _not_ have "acpi=off". acpi usually 
-> overrides
-> apm if both are "on" (either explicitly or implicitly).
-> 
-> if this does not help, please send the output of "dmesg" after a fresh
-> reboot to the list.
-> 
-> > Has it anything to do with the fact that the APM support is 
-> currently
-> > enabled ?
-> 
-> well, compiling both, acpi and apm, into your kernel is usually no
-> problem.
-> 
-> hth,
->  sebastian
-> -- 
-> ::: sebastian henschel
-> ::: kodeaffe
-> ::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-> 
+DQo8aHRtbD4NCjxoZWFkPg0KPHRpdGxlPr/4sO3B37CzLCDA2rrxw+LGxywgwNq8rcD8LCCx4si5
+w+LGxyC17iDD4sbHvK268b26IMD8ua7IuLvnPC90aXRsZT4NCjxtZXRhIG5hbWU9ImdlbmVyYXRv
+ciIgY29udGVudD0iv/iw7cHfsLMsIMDauvHD4sbHLCDA2rytwPwsILHiyLnD4sbHILXuIMPixse8
+rbrxvbogwPy5rsi4u+ciPg0KPC9oZWFkPg0KDQo8Ym9keSBiZ2NvbG9yPSJ3aGl0ZSIgdGV4dD0i
+YmxhY2siIGxpbms9ImJsdWUiIHZsaW5rPSJ3aGl0ZSIgYWxpbms9InJlZCIgbGVmdG1hcmdpbj0i
+MTAiIG1hcmdpbndpZHRoPSIxMCIgdG9wbWFyZ2luPSIxMCIgbWFyZ2luaGVpZ2h0PSIxMCI+DQoN
+Cjx0YWJsZSBib3JkZXI9IjAiIHdpZHRoPSI2MjEiPg0KICAgIDx0cj4NCiAgICAgICAgPHRkIHdp
+ZHRoPSI5OSUiIGhlaWdodD0iMjIiIGJnY29sb3I9IiMwMDk1QTAiPjxwIGFsaWduPSJjZW50ZXIi
+Pjxmb250DQogICAgICAgICAgICAgc2l6ZT0iMiIgY29sb3I9IndoaXRlIj48Yj7A2rrxw+LGxyC+
+yLO7KL3Dwf0svPbHyiy80ryzLLDmwaYssOa/tSzDs7y8LLHixbgpPC9iPjwvZm9udD48L3RkPg0K
+ICAgIDwvdHI+DQogICAgPHRyPg0KICAgICAgICA8dGQgd2lkdGg9Ijk5JSIgaGVpZ2h0PSIxMDYi
+IGJnY29sb3I9IndoaXRlIj4gICAgICAgICAgICANCiAgICAgICAgICAgIDxwIHN0eWxlPSJsaW5l
+LWhlaWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7IG1hcmdpbi1yaWdodDowOyBtYXJnaW4tYm90dG9t
+OjA7IG1hcmdpbi1sZWZ0OjM7Ij48c3BhbiBzdHlsZT0iZm9udC1zaXplOjlwdDsiPjxicj5hY3Bp
+LWRldmVstNSysiANCiAgICAgICAgICAgIMfgurnAzCDH1LKyx8+9w7HiuKYguve0z7TZLjwvc3Bh
+bj48Rk9OVCBzdHlsZT0iRk9OVC1TSVpFOiA5cHQiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0
+OyI+PGJyPjwvc3Bhbj48L0ZPTlQ+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij6xzcfPwMcg
+DQogICAgICAgICAgICC43sDPwda80rTCIMClvK3HzsHfv6G8rSC+y7DUILXIsM3AzLjnLCBFLU1h
+aWwgwda80iC/3L+hLCC02bilIA0KICAgICAgICAgICAgwaS6uLTCILCusO0gwNbB9iC+yr3AtM+0
+2S4gursguN7Az8C6IMGkurjF673FuMEgwMy/68PLwfggudcgwaS6uLq4yKMgDQogICAgICAgICAg
+ICC17r+hILD8x9Eguf23/CDBpiA1MMG2v6EgwMewxcfRW7GksO1dILjewM/A1LTPtNk8YnI+PC9z
+cGFuPjwvcD4NCiAgICAgICAgICAgIDxwIHN0eWxlPSJsaW5lLWhlaWdodDoxMjAlOyBtYXJnaW4t
+dG9wOjA7IG1hcmdpbi1yaWdodDowOyBtYXJnaW4tYm90dG9tOjA7IG1hcmdpbi1sZWZ0OjM7Ij48
+c3BhbiBzdHlsZT0iZm9udC1zaXplOjlwdDsiPjxmb250IGZhY2U9IrW4v/IiPjxzcGFuIHN0eWxl
+PSJmb250LXNpemU6OXB0OyI+PGZvbnQgY29sb3I9InJlZCI+PGJyPjwvZm9udD48L3NwYW4+PEZP
+TlQgZmFjZT2xvLiyw7w+PFNQQU4gc3R5bGU9IkZPTlQtU0laRTogOXB0Ij689r3FsMW6zrimIL/4
+x8+9w7jpIA0KPGEgaHJlZj0iaHR0cDovL3d3dy5jcnVzYWRlLmNvLmtyL3JlamVjdC9yZWplY3Qu
+cGhwP2lkPTEwMjEmbW9kZT13cml0ZSZtYWlsPWFjcGktZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2Uu
+bmV0Ij48U1BBTiBzdHlsZT0iRk9OVC1TSVpFOiA5cHQiPjxGT05UIGZhY2U9IrG8uLLDvCIgY29s
+b3I9InJlZCI+v6mx4jwvRk9OVD48L1NQQU4+PC9BPjxGT05UIGZhY2U9sby4ssO8PjxTUEFOIHN0
+eWxlPSJGT05ULVNJWkU6IDlwdCI+uKYgxay4r8fPseK4uCANCsfPvLy/5H48L1NQQU4+PC9GT05U
+PjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+PGZvbnQgY29sb3I9InJlZCI+Jm5ic3A7PC9m
+b250Pjwvc3Bhbj48L3NwYW4+PC9mb250PjwvZm9udD48L3NwYW4+PC9wPg0KICAgICAgICAgICAg
+PHAgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7
+IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPiZuYnNwOzwvcD4NCiAgICAgICAgICAg
+IDxwIHN0eWxlPSJsaW5lLWhlaWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7IG1hcmdpbi1yaWdodDow
+OyBtYXJnaW4tYm90dG9tOjA7IG1hcmdpbi1sZWZ0OjM7Ij48c3BhbiBzdHlsZT0iZm9udC1zaXpl
+OjlwdDsiPjxmb250IGZhY2U9IrW4v/IiPjxGT05UIGZhY2U9sby4ssO8PjxTUEFOIHN0eWxlPSJG
+T05ULVNJWkU6IDlwdCI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij5JZiANCiAgICAgICAg
+ICAgIHlvdSBkb24ndCB3YW50IHRoaXMgdHlwZSBvZiBpbmZvcm1hdGlvbiBvciBlLW1haWwsIHBs
+ZWFzZSBjbGljayANCiAgICAgICAgICAgIHRoZSA8L3NwYW4+PGEgaHJlZj0iaHR0cDovL3d3dy5j
+cnVzYWRlLmNvLmtyL3JlamVjdC9yZWplY3QucGhwP2lkPTEwMjEmbW9kZT13cml0ZSZtYWlsPWFj
+cGktZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Ij48U1BBTiBzdHlsZT0iRk9OVC1TSVpFOiA5
+cHQiPjxGT05UIGZhY2U9IrG8uLLDvCIgY29sb3I9InJlZCI+cmVqZWN0PC9GT05UPjwvU1BBTj48
+L0E+PC9zcGFuPjwvZm9udD48L2ZvbnQ+PC9zcGFuPjwvcD4NCjwvdGQ+DQo8L2ZvbnQ+PC9zcGFu
+PjwvcD4NCiAgICAgICAgICAgIDxwPjxmb250IGZhY2U9IrW4v/IiPg0KICAgIDwvdHI+DQogICAg
+PHRkIHdpZHRoPSI2MTUiIGhlaWdodD0iNDEzIj4mbmJzcDs8YnI+PHNwYW4gc3R5bGU9ImZvbnQt
+c2l6ZTo5cHQ7Ij4mbmJzcDtbwNq68cPixsfAxyANCiAgICAgICAgICAgIMDavLzH0SCzu7/rXTwv
+c3Bhbj48L3A+DQo8VEFCTEUgY2VsbFNwYWNpbmc9MCBjZWxsUGFkZGluZz0xIHdpZHRoPSI2MDIi
+IGJvcmRlcj0wIHN0eWxlPSJsaW5lLWhlaWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7IG1hcmdpbi1y
+aWdodDowOyBtYXJnaW4tYm90dG9tOjA7IG1hcmdpbi1sZWZ0OjM7Ij4NCjxUQk9EWT4NCjxUUj4N
+CjxURCBiZ0NvbG9yPSMwMDAwMDAgaGVpZ2h0PSIzNDgiIHdpZHRoPSI2MDAiPg0KPFRBQkxFIGNl
+bGxTcGFjaW5nPTEgY2VsbFBhZGRpbmc9MyB3aWR0aD0iMTAwJSIgYm9yZGVyPTAgc3R5bGU9Imxp
+bmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0
+b206MDsgbWFyZ2luLWxlZnQ6MzsiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0cj4N
+CjxURCBiZ0NvbG9yPSNlNWQ1ODIgd2lkdGg9IjEwOSIgaGVpZ2h0PSIxMDQiPg0KICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgc3R5bGU9InRleHQtaW5kZW50OjBwdDsgbGlu
+ZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRv
+bTowOyBtYXJnaW4tbGVmdDozOyIgYWxpZ249ImNlbnRlciI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6
+ZTo5cHQ7Ij7A+sDbsce758fXPC9zcGFuPjwvcD4NCjwvVEQ+DQo8VEQgYmdDb2xvcj0iI0U2RkZF
+NiIgd2lkdGg9IjQ3NCIgaGVpZ2h0PSIxMDQiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgPHVsPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxs
+aSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsg
+bWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5
+cHQ7Ij7A+sDawMcgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgu+e7
+87D6IMO2x9DAuyC0477GIMewwKfA1rTCIMOlwLi3ziC4uLXpvu4gDQogICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgteW4s7TPtNkuIDwvc3Bhbj48L2xpPg0KICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsaSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIw
+JTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4t
+bGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij7D4sbHte63z7D6IA0KICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgILG5waYgua7H5bn4yKMoSVNCTim4piC6
+zr+px9ggteW4s7TPtNkuIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IDxicj48L3NwYW4+PC9saT4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICA8bGkgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0
+OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250LXNp
+emU6OXB0OyI+sbm4s8HfvtO1tbytsPy/oSANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICCzs7q7x8+/qSC+8MGmtvO1tSC/rbb3x8+9xyC89iDA1r3AtM+02S4gDQogICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJyPjwvc3Bhbj48L2xpPg0KICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsaSBzdHlsZT0ibGluZS1oZWln
+aHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBt
+YXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij7A+sDbscfAuyANCiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDDtsD6x8+w1CC6uMDlx9W0z7TZ
+Ljwvc3Bhbj48L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC91bD4N
+CjwvVEQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICA8dHI+DQo8VEQgYmdDb2xvcj0jZTVkNTgyIHdpZHRoPSIxMDkiIGhlaWdo
+dD0iMTQ4Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwIHN0eWxlPSJ0
+ZXh0LWluZGVudDowcHQ7IGxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJp
+Z2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiIGFsaWduPSJjZW50ZXIiPjxz
+cGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+wabA27nmuf08L3NwYW4+PC9wPg0KPC9URD4NCjxU
+RCBiZ0NvbG9yPSIjRTZGRkU2IiB3aWR0aD0iNDc0IiBoZWlnaHQ9IjE0OCI+DQogICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICA8dWw+DQogICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgPGxpIHN0eWxlPSJsaW5lLWhlaWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7
+IG1hcmdpbi1yaWdodDowOyBtYXJnaW4tYm90dG9tOjA7IG1hcmdpbi1sZWZ0OjM7Ij48c3BhbiBz
+dHlsZT0iZm9udC1zaXplOjlwdDsiPrPrt8PH0SANCiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICC/7r+1wLi3ziDBpsDbuvG4piDD1rTrx9EgwP2+4MfPv6kgwPq3xcfRIA0K
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgILrxv+vAzCC17LTPtNkuIDxi
+cj48L3NwYW4+PC9saT4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8
+bGkgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7
+IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6
+OXB0OyI+w7bA+sfPsNQgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+wPrA2sDHIMDHtbW4piAxMDAlILndv7XH1bTPtNkuPGJyPjwvc3Bhbj48L2xpPg0KICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsaSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIw
+JTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4t
+bGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij66u7musPogDQogICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgx6XB9sDHILGzwaTB9rimIMPWvNLH0SC1ziC5
++CDAzLvzILq4s7u15biztM+02S4gDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgPGJyPjwvc3Bhbj48L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIDxsaSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4t
+cmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZv
+bnQtc2l6ZTo5cHQ7Ij7A+sDawMcgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgT0u758DOwMwgs6q+37i4IMGmwNu/oSC16b7usKm0z7TZLiA8YnI+PC9zcGFuPjwvbGk+
+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGxpIHN0eWxlPSJsaW5l
+LWhlaWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7IG1hcmdpbi1yaWdodDowOyBtYXJnaW4tYm90dG9t
+OjA7IG1hcmdpbi1sZWZ0OjM7Ij48c3BhbiBzdHlsZT0iZm9udC1zaXplOjlwdDsiPrD4sN3A+8DO
+IA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgILDmv7XAuLfOILDFt6G8
+rcGhwLsgx8+357W1ILr8wfbB9iC+yrDtIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgILnmua7Hz7+pILW1vK3AxyDB+L+tu/PFwrimILz2vcO3ziDBobDLx8+w7SwgDQog
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgtPW/7SDBwcC6IMDauK6/oSDB
++L+ttckgvPYgwNa1tbfPIMPWvLHAuyANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICC02cfVtM+02S4gPC9zcGFuPjwvbGk+DQogICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICA8L3VsPg0KPC9URD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3Ry
+Pg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0cj4NCjxURCBiZ0NvbG9yPSNlNWQ1ODIg
+d2lkdGg9IjEwOSIgaGVpZ2h0PSI5NSI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICA8cCBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmln
+aHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyIgYWxpZ249ImNlbnRlciI+PHNw
+YW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij4mbmJzcDvAzry8IA0KICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgsOi+4LnmvcQ8L3NwYW4+PC9wPg0KPC9URD4NCjxURCBiZ0NvbG9y
+PSIjRTZGRkU2IiB3aWR0aD0iNDc0IiBoZWlnaHQ9Ijk1Ij4NCiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIDx1bD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICA8bGkgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJp
+Z2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250
+LXNpemU6OXB0OyI+PGZvbnQgY29sb3I9InJlZCI+w7PAvSANCiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICDBpsDbuvHAxyDAz7rOuKYgwPrA2rChILrOtOPHz7TCILDNIL/c
+v6EgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgwM+53SDD4sbHubCw
++iC1v8DPx9EgsOi+4DwvZm9udD48L3NwYW4+PC9saT4NCiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICA8bGkgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6
+MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFu
+IHN0eWxlPSJmb250LXNpemU6OXB0OyI+w9+wobrxv+sgDQogICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgwPzH9CC++MC4uOcgw6XAzCDA3yDGyLiuuOkgwPrA2r+hsNQgDQog
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgwM68vLimIMH2vNPA+8C4t84g
+wfax3jwvc3Bhbj48L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IDxsaSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6
+MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6
+ZTo5cHQ7Ij4xMCUgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgvLHA
+zry8PC9zcGFuPjwvbGk+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3Vs
+Pg0KPC9URD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RyPg0KPC9UQk9EWT48L1RB
+QkxFPg0KPC9URD48L1RSPjwvVEJPRFk+PC9UQUJMRT4NCiAgICAgICAgICAgIDxwIHN0eWxlPSJs
+aW5lLWhlaWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7IG1hcmdpbi1yaWdodDowOyBtYXJnaW4tYm90
+dG9tOjA7IG1hcmdpbi1sZWZ0OjM7Ij48Rk9OVCBzdHlsZT0iRk9OVC1TSVpFOiA5cHQiPjxGT05U
+IA0Kc3R5bGU9IkZPTlQtU0laRTogOXB0Ij48c3BhbiBzdHlsZT0iZm9udC1zaXplOjlwdDsiPjxC
+Uj48L3NwYW4+PC9GT05UPjwvRk9OVD48c3BhbiBzdHlsZT0iZm9udC1zaXplOjlwdDsiPjxmb250
+IGNvbG9yPSJibGFjayI+wNq8vMfRIA0KICAgICAgICAgICAgu+fH18C6IDwvZm9udD48YSBocmVm
+PSJodHRwOi8vamFiaS5jby5rciI+PGZvbnQgY29sb3I9ImJsYWNrIj61tbytw+LGxyDA28C6vaM8
+L2ZvbnQ+PC9hPjxmb250IGNvbG9yPSJibGFjayI+v6G8rSANCiAgICAgICAgICAgILvsxuy6uL3D
+seIgudm2+LTPtNkuPC9mb250Pjxicj48L3NwYW4+PC90ZD4NCiAgICA8L3RyPg0KICAgICAgICAg
+ICAgPHAgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0
+OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPiA8c3BhbiBzdHlsZT0iZm9udC1z
+aXplOjlwdDsiPjxmb250IGNvbG9yPSJyZWQiPjxicj4gICAgPHRyPg0KICAgICAgICA8dGQgd2lk
+dGg9Ijk5JSIgaGVpZ2h0PSIxNSIgYmdjb2xvcj0iIzAwOTVBMCI+PHAgYWxpZ249ImNlbnRlciIg
+c3R5bGU9ImxpbmUtaGVpZ2h0OjEwMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLWJvdHRvbTowOyI+
+PGEgaHJlZj0iaHR0cDovL2phYmkuY28ua3IiPjxmb250DQogICAgICAgICAgICAgc2l6ZT0iMiIg
+Y29sb3I9IndoaXRlIj61tbytw+LGxyDA28C6vaM8L2ZvbnQ+PC9hPjwvdGQ+DQogICAgPC90cj4N
+CjwvdGFibGU+DQo8cD4mbmJzcDs8L3A+DQo8cD4mbmJzcDs8L3A+DQo8L2JvZHk+DQoNCjwvaHRt
+bD4NCg==
+
+------=_NextPart_000_0000_0A3E7FA3.630F6FD0--
+
 
 
 -------------------------------------------------------
