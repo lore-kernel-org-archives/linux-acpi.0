@@ -1,11 +1,15 @@
-From: Andy Grover <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org>
-Subject: [PATCH] ACPI compile fix
-Date: Fri, 26 Jul 2002 11:42:47 -0700 (PDT)
+From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Subject: RE: S3 resume on Omnibook XE3-GF
+Date: Sat, 27 Jul 2002 08:04:21 +1200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0207261130250.11912-100000@dexter.groveronline.com>
+Message-ID: <000901c234df$a524d100$0201010a@cunninghams>
+References: <20020726104037.GC279@elf.ucw.cz>
+Reply-To: ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020726104037.GC279-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,90 +18,81 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: 'Pavel Machek' <pavel-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Cc: "'ACPI List (E-mail)'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Hi again.
 
-This fixes the ACPI_DEBUG compile issue that turned up.
+As you'll see from the lspci listing, all of the memory access on the PCI
+bus is turned off for one thing. I made a script to turn these on (using
+setpci). It seemed to work in the sense that running the lspci command again
+at the end showed that the memory access was now enabled. It's been a couple
+of weeks since I did this, and I have an idea that I couldn't successfully
+turn one of the items back on - oh and I didn't try doing it for a couple of
+things I don't use... I'll check this out some more.
 
-(acpi-devel people, I'll be updating sf.net patches with this asap)
+Quite apart from this, the video card (i830mg) seems to need to be
+completely reinitialised. I downloaded a document from Intel on the video
+card, but I'm not knowledgable enough to be able to use it (I got the idea
+that it needs to be reinitialised from this documents - it talks about S3
+putting the card in the same state as S5).
 
-Regards -- Andy
+The system also runs very slowly. It looks like this could be CPU throttling
+because even a beep gets made long. The DSDT includes a hint that there is
+throttling, but no actual methods, so I can't use /proc/acpi to reset it.
 
-diff -Naur -X bin/dontdiff acpi-old/drivers/acpi/include/aclocal.h linux/drivers/acpi/include/aclocal.h
---- acpi-old/drivers/acpi/include/aclocal.h	Fri Jul 26 11:27:34 2002
-+++ linux/drivers/acpi/include/aclocal.h	Fri Jul 26 11:20:05 2002
-@@ -1,7 +1,7 @@
- /******************************************************************************
-  *
-  * Name: aclocal.h - Internal data types used across the ACPI subsystem
-- *       $Revision: 172 $
-+ *       $Revision: 173 $
-  *
-  *****************************************************************************/
- 
-@@ -567,7 +567,7 @@
-  */
- typedef struct acpi_opcode_info
- {
--#ifdef ACPI_DISASSEMBLER
-+#if defined(ACPI_DISASSEMBLER) || defined(ACPI_DEBUG)
- 	NATIVE_CHAR             *name;          /* Opcode name (disassembler/debug only) */
- #endif
- 	u32                     parse_args;     /* Grammar/Parse time arguments */
-diff -Naur -X bin/dontdiff acpi-old/drivers/acpi/include/acmacros.h linux/drivers/acpi/include/acmacros.h
---- acpi-old/drivers/acpi/include/acmacros.h	Fri Jul 26 11:27:34 2002
-+++ linux/drivers/acpi/include/acmacros.h	Fri Jul 26 11:20:05 2002
-@@ -1,7 +1,7 @@
- /******************************************************************************
-  *
-  * Name: acmacros.h - C macros for the entire subsystem.
-- *       $Revision: 125 $
-+ *       $Revision: 126 $
-  *
-  *****************************************************************************/
- 
-@@ -287,11 +287,15 @@
- /*
-  * Macros for the master AML opcode table
-  */
--#ifdef ACPI_DISASSEMBLER
-+#if defined(ACPI_DISASSEMBLER) || defined (ACPI_DEBUG)
- #define ACPI_OP(name,Pargs,Iargs,obj_type,class,type,flags)    {name,Pargs,Iargs,flags,obj_type,class,type}
--#define ACPI_DISASM_ONLY_MEMBERS(a)      a;
- #else
- #define ACPI_OP(name,Pargs,Iargs,obj_type,class,type,flags)    {Pargs,Iargs,flags,obj_type,class,type}
-+#endif
-+
-+#ifdef ACPI_DISASSEMBLER
-+#define ACPI_DISASM_ONLY_MEMBERS(a)      a;
-+#else
- #define ACPI_DISASM_ONLY_MEMBERS(a)
- #endif
- 
-diff -Naur -X bin/dontdiff acpi-old/drivers/acpi/parser/psutils.c linux/drivers/acpi/parser/psutils.c
---- acpi-old/drivers/acpi/parser/psutils.c	Fri Jul 26 11:27:34 2002
-+++ linux/drivers/acpi/parser/psutils.c	Fri Jul 26 11:20:05 2002
-@@ -1,7 +1,7 @@
- /******************************************************************************
-  *
-  * Module Name: psutils - Parser miscellaneous utilities (Parser only)
-- *              $Revision: 53 $
-+ *              $Revision: 54 $
-  *
-  *****************************************************************************/
- 
-@@ -88,7 +88,7 @@
- 	op->common.data_type = ACPI_DESC_TYPE_PARSER;
- 	op->common.aml_opcode = opcode;
- 
--	ACPI_DEBUG_ONLY_MEMBERS (ACPI_STRNCPY (op->common.aml_op_name,
-+	ACPI_DISASM_ONLY_MEMBERS (ACPI_STRNCPY (op->common.aml_op_name,
- 			(acpi_ps_get_opcode_info (opcode))->name, sizeof (op->common.aml_op_name)));
- }
- 
+That's all I know about - there may of course be more.
+
+I am, of course, happy to send and try anything you want that will help in
+dealing with these issues. Just ask.
+
+Regards,
+
+Nigel
+
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of
+> Pavel Machek
+> Sent: Friday, 26 July 2002 22:41
+> To: Nigel Cunningham
+> Cc: ACPI List (E-mail)
+> Subject: Re: [ACPI] S3 resume on Omnibook XE3-GF
+>
+>
+> Hi!
+>
+> > I've been trying to figure out why my laptop doesn't resume
+> properly. I've
+>
+> Can you elaborate on "does not resume properly"? You've been able to
+> run lspci, so it must have worked at least a bit ;).
+>
+> > found the following with differences between pre- and post- suspend
+> > configuration (using lspci -vvx)... [The original output is
+> attached]
+> >
+> > Can anyone suggest what needs to be done to fix this?
+>
+> Driver support in drivers being affected?
+> 								Pavel
+> --
+> I'm pavel-7aPAsKgELzg@public.gmane.org "In my country we have almost anarchy and I
+> don't care."
+> Panos Katsaloulis describing me w.r.t. patents at
+> discuss-q33YXrgyAoMgsBAKwltoeQ@public.gmane.org
+>
+>
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 
