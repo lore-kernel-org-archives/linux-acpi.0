@@ -1,14 +1,13 @@
-From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
-Subject: Re: S3 broken Samsung P35 - howto debug?
-Date: Mon, 22 Nov 2004 13:26:14 +0100
-Message-ID: <1101126375.4589.16.camel@mhcln03>
-References: <200411211600.01820.od@fet.uni-hannover.de>
-	 <1101064133.7220.15.camel@mhcln03>  <41A1A145.4090006@helios.de>
+From: giupil <giupil-nznwD2ikctv02BlrwmTdfg@public.gmane.org>
+Subject: Re: Aspire 1511LMI - Aspire 1513LMI DSDT
+Date: Mon, 22 Nov 2004 14:36:35 +0000
+Message-ID: <41A1F973.7060700@aliceposta.it>
+References: <419E5183.6030405@aliceposta.it> <20041119200129.GG31422@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41A1A145.4090006-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <20041119200129.GG31422-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,54 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Montag, den 22.11.2004, 09:20 +0100 schrieb Oliver Dawid:
-> Hi Matthias,
-> 
-> Matthias Hentges wrote:
+Hi Bruno,
 
-[...]
+I'm sorry for my ignorance, I'm not a expert. I'm very gratefull for 
+your notes.
+The only problem that still remains in my mind is:
 
-> > For testing purposes I'd recommend using a minimalistic kernel .config
-> > (no usb, firewire, preempt, AGP etc.)
-> 
-> Hmm wouldn't it be good to collect which modules are hanging? Or is it 
-> platform-dependent?
+   In
+  
+   http://acpi.sourceforge.net/dsdt/tables/ACER/Aspire_1513LMi/-
+   ACER-Aspire_1513LMi-unknown_bios-custom.asl.gz
+  
+   at the line 3893 of the ACER-Aspire_1513LMi-unknown_bios-custom.dsl 
+decompiled file, I
+   find:
 
-Once there is a way to completely resume the machine from S3 (including
-AGP) one
-can always test which drivers are causing problems. I'd hate it to waste
-lots of time hunting down Yet Another Freeze (YAF) which is caused by a
-driver and totally unrelated to the borked AGP card / controller. It
-happened to me already, and I had to redo some tests because of it.
+                    Return (Package (0x02)
+                    {
+                            Zero,
+                            Zero
+                     })
 
-> As dri or fglrx are freezing the system, do you need to abandon X before 
-> going to sleep?
+    but at the 
+http://casteyde.christian.free.fr/laptop/LinuxOnAspire1511LMi.html in the
+    dsdt_asp1511.asl at the line 3895, I find:
 
-As long as you don't enable DRI, running X doesn't seem to cause any
-problems.
-In fact, only a running X can enable the (useless) backlight.
 
-> > There's a little script to restore lost PCI configuration DATA after a
-> > resume. 
-> > I've managed to get the backlight on, but that's it heh.
-> 
-> so you aren't sitting totally in the dark but have some miserable lamp 
-> to illuminate your keyboard ;-)
+                    Return (0x00)
 
-:)
--- 
-Matthias Hentges 
-Cologne / Germany
+    These corrections are about the warnig:
 
-[www.hentges.net] -> PGP welcome, HTML tolerated
-ICQ: 97 26 97 4   -> No files, no URL's
+    mydsdt_orig.dsl  3865:                     Method (DRUL, 1, 
+NotSerialized)
+    Warning  2019 -                              ^ Not all control paths 
+return a value (DRUL)
 
-My OS: Debian SID. Geek by Nature, Linux by Choice
+    Is there anyone who know the difference between the two solutions
+    and which is the better solution?
 
+Bye Giuseppe
 
 
 -------------------------------------------------------
