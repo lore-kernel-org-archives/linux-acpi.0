@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI Hangs with kernel 2.4.20 (PLEASE HELP !)
-Date: Mon, 27 Oct 2003 18:51:38 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [PM]No ACPI interrupts after resume from S1
+Date: Mon, 27 Oct 2003 18:02:03 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031027175138.GR28351@poupinou.org>
-References: <1066994097.1864.18.camel@localhost.localdomain>
+Message-ID: <20031027170203.GA11206@hell.org.pl>
+References: <3ACA40606221794F80A5670F0AF15F8401720B67@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1066994097.1864.18.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720B67-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,89 +17,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Frederic Dernbach <fredatwork-GANU6spQydw@public.gmane.org>
-Cc: ACPI dlevel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, M?ns Rullg?rd <mru-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 24, 2003 at 01:14:56PM +0200, Frederic Dernbach wrote:
-> Hello,
-> 
-> I'm trying to have some ACPI software run on my HP Pavillion ze 5400
-> (that I use for private purposes, not professional stuff: I only have
-> access to Web resources : this mailing list).
-> 
-> 1. I tried to compile a 2.4.22 with appropriate ACPI patch. THE
-> RESULTING PATCHED KERNEL DOES NOT COMPILE. For details, please check a
-> previous message I posted previous to the mailing list. Can anybody let
-> me know about why the patched kernel does not compile?
-> 
-> 2. Then, I tried to compile a 2.4.20 baseline kernel with appropriate
-> ACPI patch (found on sourceforge.net). This time it compiled without
-> error. However, while booting, the system loops while printing some ACPI
-> the following debug messages on the screen every 20 seconds or so (I
-> compiled the kernel with the appropriate ACPI debug option).
-> 
-> [ACPI Debug] String : QUERY_09
-> [ACPI Debug] String : CLBatt - SMSL
-> [ACPI Debug] Integer : 00000000000000F1
-> [ACPI Debug] String: CMBatt - CHBP.BAT1
-> [ACPI Debug] String: CMBatt - BAT1 still present
-> [ACPI Debug] String: CMBatt - UPBI.BAT1
-> [ACPI Debug] Package: Elements Ptr - edb7ea08
-> [ACPI Debug] String: CMBatt - UPBS.BAT1
-> [ACPI Debug] Package: Elements Ptr - edb7ea08
-> [ACPI Debug] String: CMBatt - UPBH.BAT1
-> [ACPI Debug] Package: Elements Ptr - edb39888
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> 
-> Sometimes a slightly different output is printed :
-> 
-> [ACPI Debug] String : QUERY_09
-> [ACPI Debug] String : CLBatt - SMSL
-> [ACPI Debug] Integer : 00000000000000F1
-> [ACPI Debug] String: CMBatt - CHBP.BAT1
-> [ACPI Debug] String: CMBatt - BAT1 still present
-> [ACPI Debug] String: CMBatt - UPBI.BAT1
-> [ACPI Debug] Package: Elements Ptr - edb7ea08
-> [ACPI Debug] String: CMBatt - UPBS.BAT1
-> [ACPI Debug] String: CMBATT - PBST Changed
-> [ACPI Debug] Package: Elements Ptr - edb7ea08
-> [ACPI Debug] String: CMBatt - UPBH.BAT1
-> [ACPI Debug] Package: Elements Ptr - edb39888
-> [ACPI Debug] String : CMBatt - Notify(BAT1, 0x00): B1ST
-> [ACPI Debug] String : CMBatt - _STA.BAT1
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> [ACPI Debug] String : QUERY_20
-> 
-> 
+Thus wrote Yu, Luming:
+> I made a mistake in using base_number. Would you please have updated patch a try?
+> Thanks a lot. --Luming
 
-They are harmless.  Try
-echo 0 > /proc/acpi/debug_layer
-echo 0 > /proc/acpi/debug_level
-in one of your boot script if you want
-to get rid of them.
-
-In short, there is some codes in your bios that need
-to be interpreted by what is called an acpi interpreter.
-That code is writen in AML (ACPI Machine Language, IIRC).
-On this language, there is possibility to print debug statements,
-and may only meaningfull for the programmers of your bios (or
-eventually users if they know about ACPI enough).
-
-What you see are those debug statements.
+The updated patch fixes the issue, the interrupts now still occur after S1
+resume.
+Thanks,
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
