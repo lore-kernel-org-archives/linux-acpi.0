@@ -1,14 +1,14 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: "irq 11: nobody cared" after S3
-Date: Tue, 03 Aug 2004 11:32:18 -0400
+From: "Test Person2" <TestP2-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org>
+Subject: Delivery Status Notification (Failure)
+Date: Tue, 3 Aug 2004 15:02:22 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <410FB002.5030907@optonline.net>
-References: <200408011850.25991.stefandoesinger@gmx.at> <410DC163.1090109@optonline.net> <200408031629.19466.stefandoesinger@gmx.at>
+Message-ID: <k2o4wMcmT00000c78@GENERAL.hq.farsitecommunications.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/report;
+	report-type=delivery-status;
+	boundary="----_=_NextPart_001_01C47962.7F61BE62"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200408031629.19466.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Content-Class: urn:content-classes:dsn
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,43 +17,115 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Dösinger wrote:
-[snip]
->>Does kernel command line "acpi=noirq" help?
-> 
-> 
-> Yes it does. Sorry for not mentioning this. I used pci=noacpi the last few 
-> weeks. This makes the wireless card use IRQ 10
-> It doesn't work very well thought, the IRQ10 and IRQ5 are unstable and the 
-> wireless and the sound block each other(Both IRQ 10), as well as USB and 
-> ethernet(IRQ 5). Additionally, DRI is unstable after resume.
-> 
-> I modified my DSDT to use IRQ 10 for LNKE, and that makes my system work 
-> perfectly. Is this a workaround or can I consider this a solution. The 
+This is a multi-part message in MIME format.
 
-This is a workaround. The ultimate solution is to have Linux restore the 
-IRQ routing upon resume from S3. There is not yet a clear consensus 
-about whether this needs to be done through the chipset drivers or the 
-ACPI BIOS routines...
+------_=_NextPart_001_01C47962.7F61BE62
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-IMO, we need to make the ACPI BIOS IRQ routing code compatible with the 
-non-ACPI IRQ routing code. This means that either they both should run 
-only at boot/resume, or they both should NOT. Right now they are 
-inconsistent...
+Your message
 
-> problem is, that half my hardware uses irq10 while the irqs 4,6,7,11,14 and 
-> 15 are unused.
-> Shall I upload my modified dsdt? I think so.
+  To:      bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org
+  Subject: Re: Hello
+  Sent:    Tue, 3 Aug 2004 15:02:17 +0100
 
-the ultimate solution is IRQ restore on resume. Your modified DSDT isn't 
-really guaranteed to do the right thing for everyone forever, it just 
-hardwires certain interrupts that Linux might want to dynamically assign 
-in some circumstances...
+did not reach the following recipient(s):
 
+bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org on Tue, 3 Aug 2004 15:02:22 +0100
+    The e-mail account does not exist at the organization this message
+was sent to.  Check the e-mail address, or contact the recipient
+directly to find out the correct address.
+    <GENERAL.hq.farsitecommunications.com #5.1.1>
+
+
+------_=_NextPart_001_01C47962.7F61BE62
+Content-Type: message/delivery-status
+Content-Transfer-Encoding: 7bit
+
+Reporting-MTA: dns; general.hq.farsitecommunications.com
+
+Final-Recipient: RFC822; bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org
+Action: failed
+Status: 5.1.1
+X-Supplementary-Info: <GENERAL.hq.farsitecommunications.com #5.1.1>
+X-Display-Name: bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org
+
+------_=_NextPart_001_01C47962.7F61BE62
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 7bit
+
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_002_01C47962.7DF23E00"
+Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+X-OriginalArrivalTime: 03 Aug 2004 14:02:21.0095 (UTC) FILETIME=[7E995370:01C47962]
+X-MimeOLE: Produced By Microsoft Exchange V6.0.6487.1
+Content-Class: urn:content-classes:message
+Subject: Hello
+Date: Tue, 3 Aug 2004 15:02:17 +0100
+Message-ID: <GENERAL1dSlWnPdQ2KJ0000b6ff-ZZP+BBBrG0WkgvwBEQO/tkSdnDkjUD96wRGifH+7rbhWk0Htik3J/w@public.gmane.org>
+X-MS-Has-Attach: yes
+X-MS-TNEF-Correlator: 
+From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: <bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org>
+
+This is a multi-part message in MIME format.
+
+------_=_NextPart_002_01C47962.7DF23E00
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_003_01C47962.7DF23E00"
+
+
+------_=_NextPart_003_01C47962.7DF23E00
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+Your document is attached.
+
+------_=_NextPart_003_01C47962.7DF23E00
+Content-Type: text/html;
+	charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3DWindows-1252">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.0.6487.1">
+<TITLE>Hello</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/plain format -->
+
+<P><FONT SIZE=3D2>Your document is attached.</FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_003_01C47962.7DF23E00--
+
+------_=_NextPart_002_01C47962.7DF23E00
+Content-Type: text/plain;
+	name="Quarantined Attachment.txt"
+Content-Transfer-Encoding: base64
+Content-Description: Quarantined Attachment Report
+Content-Disposition: attachment;
+	filename="Quarantined Attachment.txt"
+
+WW91ciBhdHRhY2htZW50ICJ5b3VyX3BpY3R1cmUucGlmIiBjb250YWluZWQgdmlydXM6DQogICAg
+ICAgICAiVzMyLk5ldHNreS5LQG1tIi4NCg0KSXQgd2FzIHF1YXJhbnRpbmVkIGFuZCByZXBsYWNl
+ZCB3aXRoIHRoaXMgdGV4dCBmaWxlLg0KDQpJRDpHRU5FUkFMOjpTWVE0ZjAwNDkxNg==
+
+------_=_NextPart_002_01C47962.7DF23E00--
+
+------_=_NextPart_001_01C47962.7F61BE62--
 
 
 -------------------------------------------------------
