@@ -1,12 +1,12 @@
-From: Andrew Miller <chungyen-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>
-Subject: Popular soft - very low price
-Date: Tue, 20 Jul 2004 20:22:26 +0000
+From: "Russell Y. Neches" <russell-1vnkWVZi4QaVc3sceRu5cw@public.gmane.org>
+Subject: power-off on boot
+Date: Tue, 20 Jul 2004 18:38:13 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1Bn1H6-0000pZ-AM@sc8-sf-mx2.sourceforge.net>
+Message-ID: <1090363093.6236.27.camel@joker.ccs.neu.edu>
+Reply-To: russell-1vnkWVZi4QaVc3sceRu5cw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_57A0F55C.870F4FB3"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,97 +19,43 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hey there --
 
-------=_NextPart_000_0000_57A0F55C.870F4FB3
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_098B0CD9.F252302D"
+I have an "interesting" behavior with 2.6.6 and 2.6.7, and I was
+wondering if this list would mind helping me figure out what's causing
+it. 
 
+Basically, my machine turns off while it's booting. It doesn't get far
+enough to mount any filesystems, so there aren't any logs. On a hunch, I
+turned on ACPI-debugging, and noticed that the kernel immediately begins
+spewing warnings about a critical trap (that's from memory, I can't be
+completely sure if that's literally the string), and that the CPU is
+over 120 degrees C. Now, I'm actually *underclocking* my CPU because I
+have very bad luck with hardware, and I happen to know that the
+temperature never goes above 38 degrees C (according to my BIOS and the
+hardware meter glued to the heat sync). 
 
-------=_NextPart_001_0001_098B0CD9.F252302D
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+2.6.5 doesn't seem to have this problem (USB-related oopses
+notwithstanding), and Debian's 2.6.7-1-k7 kernel package boots without
+issue (Debian's module insanity notwithstanding). So, I know there is a
+solution to the problem somewhere, but without logs, I'm not sure how to
+even begin researching it.
 
-Get all the software imaginable for prices substantially lower than in stores.
-Our software is 2-10 times cheaper than sold by our competitors. 
+If it weren't for the fact that there are recent ACPI-enabled kernels
+that work fine, I'd guess that my motherboard has a broken DSTD. 
 
-Examples:
+Would anyone mind orienting me and pointing me in the right direction? 
 
-$80 Windows XP Professional 
-$60 Norton Antivirus 2004 Professional 
-$90 Adobe Photoshop 7.0
-$60 Ahead Nero 6.3 Powerpack
-$150 Adobe Acrobat 6.0 Professional
-$200 MS Windows Server 2003 Enterprise
-$120 Microsoft Office 2003 Professional
-$60 Red Hat Linux 7.3
+Thanks!
 
-Categories: Security, Business, Antivirus, Internet, etc.
-And lots more... Please visit us here at: 
+Russell
 
-Mirror 1: http://www.softparadise.biz
-Mirror 2: http://www.dailysoft.info
+PS - The list moderator hasn't approved a previous email with some
+system information attached. So, instead of attaching it, I'll just link
+to it:
+	
+	http://vort.org/downloads/spew.txt
 
-Sincerely,
-Andrew Miller
-
-
-
-_____________________________________________________ 
-To change your mail preferences, go here: http://www.dailysoft.info/uns.htm
-_____________________________________________________ 
-
-
-------=_NextPart_001_0001_098B0CD9.F252302D
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-
-<body>
-<html>
-<CENTER>
-<TABLE cellSpacing=0 cellPadding=0 width=600 align=center border=0>
-  <TBODY>
-  <TR>
-    <TD>
-      <P>
-
-Get all the software imaginable for prices substantially lower than in stores. <br>
-Our software is 2-10 times cheaper than sold by our competitors. <br><br>
-
-Examples:<br><br>
-
-$80 Windows XP Professional <br>
-$60 Norton Antivirus 2004 Professional <br>
-$90 Adobe Photoshop 7.0<br>
-$60 Ahead Nero 6.3 Powerpack<br>
-$150 Adobe Acrobat 6.0 Professional<br>
-$200 MS Windows Server 2003 Enterprise<br>
-$120 Microsoft Office 2003 Professional<br>
-$60 Red Hat Linux 7.3 <br><br>
-
-Categories: Security, Business, Antivirus, Internet, etc.<br>
-And lots more...  <br><br>
-Mirror 1: <a href="http://www.softparadise.biz">http://www.softparadise.biz</a> <br>
-Mirror 2: <a href="http://www.dailysoft.info">http://www.dailysoft.info</a> <br><br>
-
-Sincerely,<br>
-Andrew Miller 
-<br><br><br>
-_____________________________________________________ <br>
-To change your mail preferences, go here:
-<a href="http://www.dailysoft.info/uns.htm">http://www.dailysoft.info/uns.htm</a><br>
-_____________________________________________________ 
-
-
-
-</P></TD></TR></TBODY></TABLE></CENTER></BODY></HTML>
-
-
-------=_NextPart_001_0001_098B0CD9.F252302D--
-
-
-
-------=_NextPart_000_0000_57A0F55C.870F4FB3--
 
 
 
