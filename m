@@ -1,11 +1,14 @@
-From: Christian Krause <chkr-XkyyLUlAgJkb1SvskN2V4Q@public.gmane.org>
-Subject: ACPI on GA-7VRXP - no C2 state
-Date: 16 Oct 2002 23:24:37 +0200
+From: elach <elach-jWYU6TZn4kjYtjvyW6yDsg@public.gmane.org>
+Subject: Re: Acpi-devel -- confirmation of subscription -- request 885546
+Date: Thu, 17 Oct 2002 00:58:59 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3it02axgq.fsf@gondor.middle-earth.priv>
+Message-ID: <20021017005859.1ce82b65.elach@sudac.org>
+References: <E181x4F-0005q1-00@usw-sf-list2.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <E181x4F-0005q1-00-HKCwXBn57GynvZpeIfgr/KQD96bmaF075NbjCUgZEJk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,32 +20,33 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Wed, 16 Oct 2002 15:55:03 -0700
+acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
 
-after changing my board+cpu to a gigabyte GA-7VRXP and Athlon 2000+
-I noticed, that there is no C2 state any more.
-
-I tried the following:
-- 2.4.19 with included ACPI-Support:
-/var/log/messages:
-Processor[0]: C0 C1, 8 throttling states
-
-- 2.4.19 with acpi-20020918-2.4.19.diff:
-/var/log/messages:
-ACPI: Processor [CPU1] (supports C1, 16 throttling states)
-
-- later I increased the debuglevel:
-debug output:
-acpi_processor_get_pow: C2 latency too large [101]
-
-What does this means and what can I do to get ACPI with C2 working?
-(only C1 doens't reduce the CPU temperature on my system and with the
-older board + older athlon C2 was working...)
-
-
-regards,
-christian
-
+> Acpi-devel -- confirmation of subscription -- request 885546
+> 
+> We have received a request from elach-jWYU6TZn4kjYtjvyW6yDsg@public.gmane.org for subscription of
+> your email address, <elach-jWYU6TZn4kjYtjvyW6yDsg@public.gmane.org>, to the
+> acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org mailing list.  To confirm the
+> request, please send a message to
+> acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, and either:
+> 
+> - maintain the subject line as is (the reply's additional "Re:" is
+> ok),
+> 
+> - or include the following line - and only the following line - in the
+> message body: 
+> 
+> confirm 885546
+> 
+> (Simply sending a 'reply' to this message should work from most email
+> interfaces, since that usually leaves the subject line in the right
+> form.)
+> 
+> If you do not wish to subscribe to this list, please simply disregard
+> this message.  Send questions to
+> acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
+> 
 
 
 -------------------------------------------------------
