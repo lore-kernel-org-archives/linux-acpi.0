@@ -1,17 +1,17 @@
-From: Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>
-Subject: Re: Re: Re: ibm-acpi-0.1
-Date: Wed, 11 Aug 2004 14:16:06 +0200
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Subject: Re: current ACPI status in 2.6.7 kernel
+Date: Wed, 11 Aug 2004 09:19:01 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092226566.3156.3.camel@localhost.localdomain>
-References: <20040810080826.GD28939@aero.ensim.com>
-	 <pan.2004.08.11.01.01.25.610270@yahoo.com>
-	 <1092188650.3156.0.camel@localhost.localdomain>
-	 <pan.2004.08.11.09.38.47.140647@yahoo.com>
+Message-ID: <411A1CC5.5030401@optonline.net>
+References: <411881B1.9000903@ti.com>
+ <1092132146.2666.3.camel@laptop.cunninghams> <4118D40D.5030404@ti.com>
+ <4118F918.7070909@optonline.net> <4119024B.5060602@optonline.net>
+ <4119CF6A.8020807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <pan.2004.08.11.09.38.47.140647-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+In-reply-to: <4119CF6A.8020807-l0cyMroinI0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,29 +20,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>
+Cc: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Am Mi, den 11.08.2004 schrieb Paul Ionescu um 11:38:
-> Even now, without proper ACPI support, you don't have to reboot your
-> thinkpad to do that.
-> If you are using an ACPI enabled kernel, then you can just 
-> "idectl 1 off"
-> pull out your cdrom
-> insert your battery
-> use the battery
-> eject the battery
-> insert the cdrom
-> "idectl 1 on" or "idectl 1 rescan"
-> use the cdrom
 
-Cool, this works.
+> Thanks for the tip, fortunately I don't have any SCSI or SATA disks. 
+> Unfortunately, I still don't
+> know how to do this. Is there an utility to put PC into sleep/suspend 
+> ? I know I can switch
+> to various S modes using /proc entry, but what about all the 
+> peripherals and user mode apps ?
+> I would venture that there has to be some kind of subsystem in user 
+> mode to take care of
+> all this. I probably did not phrase my question right, but when I 
+> Asked if ACPI suspend/sleep
+> status is stable enough I was actually referring to the whole 
+> subsystem, not just kernel
+> support.
 
-> however the DMA on the cdrom will not work because of this bug:
->  http://bugme.osdl.org/show_bug.cgi?id=2261
+It's not that big of a deal for userspace, you just need scripts to 
+unload any problem device drives before suspend and reload them after 
+resume. You would also need to kill and restart any programs that will 
+be broken by those devices going away. APM already has config files that 
+specify a lot of this which could probably be adapted to ACPI. But the 
+ultimate goal is to get devices that don't even need to be unloaded, 
+since we now have proper suspend/resume hooks. ;)
 
-Yes, same thing here, running 2.6.8-rc3 with acpi-patch.
+I think there is a "pmsuspend" program floating around out there, don't 
+know how well it has been integrated with existing suspend/resume 
+scripts though. Otherwise you can just talk to the kernel directly...
 
+Nathan
+
+Oh, and there's that annoying little problem where acpid sees the button 
+press that I have to use to resume, as a shutdown event...
 
 
 -------------------------------------------------------
