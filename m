@@ -1,14 +1,14 @@
-From: Heiko Ettelbrueck <hbruckynews-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Problems installing ACPI
-Date: Mon, 20 Jan 2003 19:45:39 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] S4Bios support for 2.4.20 + acpi-20021205
+Date: Mon, 20 Jan 2003 19:47:50 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E2C43D3.3020307@gmx.net>
-References: <1043083690.1702.15.camel@localhost.localdomain>
+Message-ID: <20030120184750.GR11487@poup.poupinou.org>
+References: <20021213155309.GG4327@poup.poupinou.org> <3E2A9826.6010709@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1043083690.1702.15.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3E2A9826.6010709-hi6Y0CQ0nG0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,49 +17,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christian Brix Folsted Andersen <folsted-TJNDrJVYK8B/SzgSGea1oA@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Martin Platter <mxp1-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Christian,
-
-Christian Brix Folsted Andersen wrote:
-> I'm running RedHat 8.0 on my Compaq EVO N160 laptop.
+On Sun, Jan 19, 2003 at 01:20:54PM +0100, Martin Platter wrote:
+> > The issues I encounter are still present, then; so play with
+> > it carrefully..
+> Hi all!
 > 
-> What might be the problem?
+> I have just tried 2.4.20 + acpi-20021205+s4bios the suspend and resume does 
+> work till it reaches
+> 
+> CPU context restored
+> 
+> after that it either hangs on
+> 
+> PCI: Enabling device 00:09.0 (0000->0003) // this is my eth0
 
-As far is I know, it's because of some errors in the DSDT of the Compaq 
-Evo N160. I also have this notebook and have fixed at least the obvious 
-errors (and wrong information about the battery).
+btw, what is your card?
 
---> You should take a fixed DSDT and include in into your kernel.
+> 
+> or if I am trying to disable eth0 prior suspend on
+> 
+> [ACPI Debug] String ... VIA Software SMI PMIO 2fh
+> [ACPI Debug] String: ________________________
+> [ACPI Debug] String: THRM_TMP
+> [ACPI Debug] String: ________________________
+> 
+> 
+> Are this the known issues you refered to in your posting? How do we solve 
+> them ?
 
-Steps:
-- Get a fixed DSDT. You could try mine from 
-http://www.ettelbrueck.de/linux-acpi/compaq-evo-n160/acpi_dsdt.asl , but 
-you should alter it to fit to your battery. I've coded the current 
-maximum capacity of my battery (3357 mAh instead of 4000 mAh for a new 
-battery) into it - see my posting of 14 december 2002 for details about 
-the battery part.
-- Compile your DSDT with Intel's ASL compiler into a c source code file 
-and copy it to kernel-src-dir/drivers/acpi/tables/acpi_dsdt.c.
-- [Don't know by heart if this is needed with current acpi patches] 
-Apply a patch to your kernel that makes it use your DSDT.
-- Compile your kernel once again.
-- Boot it...
+Nope.  The known issue are basically: rewrotte acpi_wakeup.S properly, same
+for the processor fix code, also seek for possible memory corruption,
+and others (especially usb stuff as well as pcmcia.  I forgot to mention
+the agpgart stuff)...
 
-I'm sorry that I couldn't write it in more detail, but I my Evo N160 is 
-not running at the moment and I'm busy... I hope you'll find out how to 
-use the information I could give you by now.
+> Ps: What do you mean by "play with it carefully" ? There is not a lot to 
+> play with :-/
 
-Some links that could help you, especially for finding Intel's ASL 
-compiler and patching your kernel:
+I mean that this code is in developpement, and it is not tested well in
+a lot of machines especially if the devices are properly restored in a
+working state (which is apparently what you hit).
 
-http://www.cpqlinux.com/acpi-howto.html
-http://dude.noc.clara.net/~faye/compaq2701ea/
+'Play with it carrefully' mean that at least you should try it in single mode,
+or best create a dedicated partition known to been crashed (due to possible
+fs corruptions).
 
-Kind regards
-Heiko
 
+Thank for testing!
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
