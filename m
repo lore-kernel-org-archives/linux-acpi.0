@@ -1,87 +1,145 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: [PATCH] acpi-20030916-2.6.0-pre5.diff
-Date: Thu, 18 Sep 2003 15:57:15 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030918155715.61a41697.akpm@osdl.org>
-References: <20030823150219.21c951aa.akpm@osdl.org>
-	<1063926206.2680.200.camel@linux.local>
+From: Ramon Casellas <casellas-Ps1RxedxAdk/xqpuW5qSgA@public.gmane.org>
+Subject: ACPI Patch for 2.6.0-test5-mm3 (post 20030916) needs testing,
+ ref.count errors detecting battery/status
+Date: Fri, 19 Sep 2003 17:15:00 +0200 (CEST)
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <Pine.LNX.4.58.0309191704470.9325@gandalf.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1063926206.2680.200.camel-Tk/TtsB/rErDOqzlkpFKJg@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shaohuha.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
-> This patch updates 2.6.0-test5 to the current ACPI in 2.4.22-pre5
-> If nothing explodes, I'll be releasing it to Linus shortly via BK.
 
-And it doesn't include this fix.
+Hi,
 
+Original patch from Li, Shaohua <shaohua-lUQJ9CVx3tM@public.gmane.org> for 2.4.22/23, ported to 
+2.6.0-test5-mm3 (with acpi 20030916), please test.
 
 
+[1] Bug Report 
+----------------------------------------------------------
+http://sourceforge.net/mailarchive/forum.php?thread_id=3144527&forum_id=6102
 
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+[2] Answer
+-----------------------------------------------------------
+> From: Li, Shaohua <shaohua-lUQJ9CVx3tM@public.gmane.org> 
+> RE: Re: IBM Thinkpad and ACPI 20030916 for 2.4.23-pre4   
+2003-09-17 17:28 
 
-With the help of Chris Wright testing several failed patches, I've tracked
-down another ACPI IRQ problem.  On many systems, the BIOS pre-allocates
-IRQs for certain PCI devices, providing a list of alternate possibilities
-as well.
+>Hi,
+> Patch for the battery error is available in OSDL bugzilla #1038. Pl. 
+try.
+> Thanks,
+> Shaohua
+-----------------------------------------------------------
 
-On some systems, changing the IRQ to one of those alternate possibilities
-works fine.  On others however, it really isn't a good idea.  As theres no
-way to tell which systems are good and bad in advance, this patch simply
-ensures that ACPI does not change an IRQ if the BIOS has pre-allocated it.
+Note: Works for me.
+
+Regards,
+Ramon
+// Ramon Casellas 		GET/ENST/INFRES/RHD/C206  
 
 
 
- 25-akpm/drivers/acpi/pci_link.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
-
-diff -puN drivers/acpi/pci_link.c~acpi-bios-preallocation-fix drivers/acpi/pci_link.c
---- 25/drivers/acpi/pci_link.c~acpi-bios-preallocation-fix	Tue Sep 16 16:17:11 2003
-+++ 25-akpm/drivers/acpi/pci_link.c	Tue Sep 16 16:18:00 2003
-@@ -509,15 +509,14 @@ static int acpi_pci_link_allocate(struct
- 		irq = link->irq.active;
- 	} else {
- 		irq = link->irq.possible[0];
--	}
--
--	/*
--	 * Select the best IRQ.  This is done in reverse to promote
--	 * the use of IRQs 9, 10, 11, and >15.
--	 */
--	for (i=(link->irq.possible_count-1); i>0; i--) {
--		if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
--			irq = link->irq.possible[i];
-+		/*
-+		 * Select the best IRQ.  This is done in reverse to promote
-+		 * the use of IRQs 9, 10, 11, and >15.
-+		 */
-+		for (i=(link->irq.possible_count-1); i>0; i--) {
-+			if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
-+				irq = link->irq.possible[i];
-+		}
- 	}
+###############################################
+diff -ru linux-2.6.0-test5-mm3/drivers/acpi/utilities/utdelete.c linux-2.6.0-test5-mm3.acpi/drivers/acpi/utilities/utdelete.c
+--- linux-2.6.0-test5-mm3/drivers/acpi/utilities/utdelete.c	2003-09-08 21:50:04.000000000 +0200
++++ linux-2.6.0-test5-mm3.acpi/drivers/acpi/utilities/utdelete.c	2003-09-19 16:50:13.656199160 +0200
+@@ -417,6 +417,8 @@
+ 	union acpi_generic_state         *state_list = NULL;
+ 	union acpi_generic_state         *state;
  
- 	/* Attempt to enable the link device at this IRQ. */
-
-_
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
++	union acpi_operand_object        *tmp;
++
+ 
+ 	ACPI_FUNCTION_TRACE_PTR ("ut_update_object_reference", object);
+ 
+@@ -447,9 +449,16 @@
+ 		 */
+ 		switch (ACPI_GET_OBJECT_TYPE (object)) {
+ 		case ACPI_TYPE_DEVICE:
+-
+-			acpi_ut_update_ref_count (object->device.system_notify, action);
+-			acpi_ut_update_ref_count (object->device.device_notify, action);
++			
++			tmp = object->device.system_notify;
++			if(tmp && tmp->common.reference_count<=1 && action == REF_DECREMENT)
++				object->device.system_notify = NULL;
++			acpi_ut_update_ref_count (tmp, action);
++
++			tmp = object->device.device_notify;
++			if(tmp && tmp->common.reference_count <=1 && action == REF_DECREMENT)
++				object->device.device_notify = NULL;
++			acpi_ut_update_ref_count (tmp, action);
+ 			break;
+ 
+ 
+@@ -467,6 +476,9 @@
+ 				 */
+ 				status = acpi_ut_create_update_state_and_push (
+ 						 object->package.elements[i], action, &state_list);
++				tmp = object->package.elements[i];
++				if(tmp && tmp->common.reference_count<=1  && action == REF_DECREMENT) /*reference count didn't refresh now*/
++					object->package.elements[i] = NULL;
+ 				if (ACPI_FAILURE (status)) {
+ 					goto error_exit;
+ 				}
+@@ -478,6 +490,9 @@
+ 
+ 			status = acpi_ut_create_update_state_and_push (
+ 					 object->buffer_field.buffer_obj, action, &state_list);
++			tmp = object->buffer_field.buffer_obj;
++			if( tmp && tmp->common.reference_count <=1  && action == REF_DECREMENT)/*reference count didn't refresh now*/
++				object->buffer_field.buffer_obj = NULL;
+ 			if (ACPI_FAILURE (status)) {
+ 				goto error_exit;
+ 			}
+@@ -491,6 +506,9 @@
+ 			if (ACPI_FAILURE (status)) {
+ 				goto error_exit;
+ 			}
++			tmp = object->field.region_obj;
++			if( tmp && tmp->common.reference_count <=1  && action == REF_DECREMENT)/*reference count didn't refresh now*/
++				object->field.region_obj = NULL;
+ 		   break;
+ 
+ 
+@@ -501,12 +519,18 @@
+ 			if (ACPI_FAILURE (status)) {
+ 				goto error_exit;
+ 			}
++			tmp = object->bank_field.bank_obj;
++			if( tmp && tmp->common.reference_count <=1  && action == REF_DECREMENT)/*reference count didn't refresh now*/
++				object->bank_field.bank_obj = NULL;
+ 
+ 			status = acpi_ut_create_update_state_and_push (
+ 					 object->bank_field.region_obj, action, &state_list);
+ 			if (ACPI_FAILURE (status)) {
+ 				goto error_exit;
+ 			}
++			tmp = object->bank_field.region_obj;
++			if( tmp && tmp->common.reference_count <=1  && action == REF_DECREMENT)/*reference count didn't refresh now*/
++				object->bank_field.region_obj = NULL;
+ 			break;
+ 
+ 
+@@ -517,12 +541,18 @@
+ 			if (ACPI_FAILURE (status)) {
+ 				goto error_exit;
+ 			}
++			tmp = object->index_field.index_obj;
++			if( tmp && tmp->common.reference_count <=1  && action == REF_DECREMENT)/*reference count didn't refresh now*/
++				object->index_field.index_obj = NULL;
+ 
+ 			status = acpi_ut_create_update_state_and_push (
+ 					 object->index_field.data_obj, action, &state_list);
+ 			if (ACPI_FAILURE (status)) {
+ 				goto error_exit;
+ 			}
++			tmp = object->index_field.data_obj;
++			if( tmp && tmp->common.reference_count <=1  && action == REF_DECREMENT)/*reference count didn't refresh now*/
++				object->index_field.data_obj = NULL;
+ 			break;
+ 
