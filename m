@@ -1,47 +1,50 @@
-From: Proinnsias Breathnach <proinnsias-cv59FeDIM0c@public.gmane.org>
-Subject: Re: Re: Call for help: list of machines with working S3
-Date: Thu, 24 Feb 2005 11:21:18 +0000
-Message-ID: <20050224112118.GV26667@project-bob.org>
-References: <20050214211105.GA12808@elf.ucw.cz> <29495f1d050223113044b96fcf@mail.gmail.com> <1109217054.10202.1.camel@neuromancer.home.net>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: [ACPI] Call for help: list of machines with working S3
+Date: Thu, 24 Feb 2005 13:37:16 +0100
+Message-ID: <20050224123716.GD28961@gamma.logic.tuwien.ac.at>
+References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at> <20050222220828.GB538@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Content-Disposition: inline
-In-Reply-To: <1109217054.10202.1.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050222220828.GB538@hell.org.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 24, 2005 at 11:50:54AM +0800, Ow Mun Heng wrote:
-> In some cases, the D600 _can_ work. I've had it working on 2.6.7 kernel.
-> I've seen references that it works on 2.6.9 but fails on 2.6.10 with a
-> blank screen. 
-> 
-> I'm on 2.6.10 right now and it does not work. Actually I don't even get
-> SSH access or anything like that
-> 
-> 
-That's curious - I've a D600 beside me here with the latest Dell BIOS on
-it, and it boots/S3/resume etc fine - uptime of well over a week now -
-mostly either on battery or suspended !!
+On Die, 22 Feb 2005, Karol Kozimor wrote:
+> Thus wrote Norbert Preining:
+> > - DRI must be disabled I guess?! Even with newer X server (x.org)?
+>=20
+> You still didn't state which X server are you using. In short, XFree8=
+6 4.4,
 
-grub contains the following line:
-kernel	/boot/vmlinuz-2.6.10-3-686 root=/dev/hda2 ro vga=normal 
+I have stated it several times, but here a sum up:
 
-Kernel is the "vanilla" ubuntu 2.6.10-3 kernel from Hoary.
+- XFree86 4.3 (debian/sid)=20
+	no work
+- X.Org 6.8.1.99 (debian -dri-trunk stuff plus kernel modules9
+	no work
+	with 2.6.11-rc4 and 2.6.11-rc3-mm2
+	this server crashes when switching to the console or shutting
+	down (crashing is sometimes, not always), very nice screen which
+	slowly turns white
 
-P
+Best wishes
 
+Norbert
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+-----------------------------------------------------------------------=
+--------
+Norbert Preining <preining AT logic DOT at>                 Universit=E0=
+ di Siena
+sip:preining@at43.tuwien.ac.at                             +43 (0) 5996=
+6-690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+QUEDGELEY (n.)
+A rabidly left-wing politician who can afford to be that way because
+he married a millionairess.
+			--- Douglas Adams, The Meaning of Liff
