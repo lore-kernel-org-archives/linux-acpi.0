@@ -1,14 +1,14 @@
-From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: ACPI HOWTO
-Date: Fri, 21 May 2004 15:58:59 +0800
+From: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
+Subject: Re: Fixing broken DSDT - code suggestions for comment	please!
+Date: Fri, 21 May 2004 09:51:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <opr8ca4low4evsfm@smtp.pacific.net.th>
-References: <B774920D825C2D4880A3C1B0D6EF94189A5063@ssdmx.ssd.fsi.com> <1085114355.12354.586.camel@dhcppc4>
+Message-ID: <40ADC304.5090104@mesias.co.uk>
+References: <40A73460.2070407@mesias.co.uk> <1084822558.12353.365.camel@dhcppc4> <40A95EB3.5070206@mesias.co.uk> <1084842006.12349.372.camel@dhcppc4> <20040520202950.GK5920@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1085114355.12354.586.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <20040520202950.GK5920-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,23 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Chris McDermott <lcm-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->>
->> What is ACPI?  Maybe terse definition is all that is needed with
->>    pointers to Intel standard, and some others.
->>
->> If ACPI is an Intel standard does it work with Athlon or other
->>    hardware?
->
-> Intel is just one of the spec authors/promoters.
-> Yes, ACPI works also on systems w/o Intel processors, such as Intel
-> compatible processors from AMD.
+Chris
 
-... or AMD compatible processors from Intel ;)
+> Following the link above, I see a newer version of iasl for Windows, but not 
+> for Linux. Is there a version of iasl newer than 20030918 for Linux? Am I
+> missing something?
 
+Get the sources for linux from that page.
+
+For the record it did not give any different errrors in my case.
+
+-Cam
+
+-- 
+camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org                                                 <--
 
 
 -------------------------------------------------------
