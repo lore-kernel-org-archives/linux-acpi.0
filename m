@@ -1,13 +1,13 @@
-From: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: ACPI on a Fujitsu-Siemens Amilo L
-Date: Mon, 31 May 2004 18:55:22 +0100
+Date: Mon, 31 May 2004 21:04:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40BB718A.9090104@mesias.co.uk>
+Message-ID: <20040531190438.GB7926@poupinou.org>
 References: <200405311839.20577.mailinglisten@merula.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <200405311839.20577.mailinglisten-Ztphx+FISXizQB+pC5nmwQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,23 +18,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Lars Amsel <mailinglisten-Ztphx+FISXizQB+pC5nmwQ@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Lars
-
+On Mon, May 31, 2004 at 06:39:20PM +0200, Lars Amsel wrote:
+> Hi all,
+> 
 > I'm trying to get ACPI work on my notebook as I bought it in autumn last year. 
 > First I decided to wait for Fedora Core 2 with full 2.6 support but I waited 
 > in vain (not for the release but for working ACPI).
-
-What doesn't work, is it failing to suspend/resume or are events not 
-working, or does it not report the battery etc.?
-
-I have found that on my machine suspend/resume only works reliably with 
-some kernels, I pass the acpi_os_name because it is "Linux" in the 
-Fedora kernels, also I have to rmmod and modprobe battery before it will 
-start detecting a battery present.
-
+> 
+> So now I decided to have a view into details. I read 
+> http://forums.gentoo.org/viewtopic.php?t=122145 and downloaded the iasl 
+> compiler from intel, did a make on it (after fixing some pathes in the 
+> Makefile) and decompiled it and tried to recompile. I got the following error
+> 
 > [root-uXme+rPq5IdZ5tFPsFZChg@public.gmane.org compiler]# ./iasl -tc dsdt.dsl
 > 
 > Intel ACPI Component Architecture
@@ -44,16 +42,20 @@ start detecting a battery present.
 > 
 > dsdt.dsl  3097:     If (SS1)
 > Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
+> 
+> ASL Input:  dsdt.dsl - 3174 lines, 104798 bytes, 1533 keywords
+> Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
+> 
 
-I'm guessing something before that point is causing confusion. Maybe 
-post a little more of the input file for the gurus to examine.
+This is some instructions outside of a method which is not allowed by
+acpi standard.  The only way to go is to remove them and to warn Fujitsu
+that they are indeed wrong.
 
-FYI I have a laptop that now suspends and resumes, and reports battery 
-info with Fedora Core 2 - but it was not easily achieved! Also I 
-recompiled the kernel and patched the DSDT a few times but was not able 
-to effect an improvement that way...
+-- 
+Bruno Ducrot
 
--Cam
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
