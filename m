@@ -1,11 +1,13 @@
-From: "Pedro I. Sanchez" <pedro.sanchez-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Help with the DSDT for an Acer Ferrari 3400 laptop
-Date: Tue, 28 Dec 2004 00:38:37 -0500
-Message-ID: <41D0F15D.8000201@rogers.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: what is the worst laptop atm?
+Date: Tue, 28 Dec 2004 11:30:19 +0100
+Message-ID: <20041228103019.GD9606@poupinou.org>
+References: <20041227165207.GB9606@poupinou.org> <41D06CA6.30607@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41D06CA6.30607-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,157 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Mon, Dec 27, 2004 at 08:12:22PM +0000, Pedro Venda wrote:
+> Bruno Ducrot wrote:
+> >Hi,
+> >
+> >Due to hw failure, I'm thinking buying a new laptop.  I would like
+> >to know what is the worst laptop with ACPI atm?
+> >
+> >I'm thinking about a new ACER so that I could work on the smartbattery
+> >support, but well maybe there is other stuff more interresting?
+> 
+> hello bruno,
+> 
+> I'd advise the travelmate 4001, but as a good laptop, not as a bad one :-p
+> Seriously, you must admit your oppinion/request is peculiar. Glad some 
+> people think of hardware that way: "I want to buy the worse to make it 
+> better" :-)
 
-I'm new to this ACPI world and I'd like your help to fix the dsdt.dsl 
-file that I got with this laptop. I followed the steps in the ACPI FAQ 
-to disassemble the bin file and ended up with a source file that 
-compiles with 8 errors and 1 warning using the Intel ASL compiler.
+Indeed.  The fact that Linux do not support smartbattery yet is not ACER
+fault.
 
-For your reference the problem I want to fix is that I have no control 
-over the fan which is always on, quite annoying. Even though my Linux 
-kernel has compiled ACPI fan support the directory /proc/acpi/fan is 
-empty. I'm running vanilla kernel 2.6.10 with Debian-AMD64.
+ACPI under Linux is now mature but still have some trouble though,
+or lack of functionality.  It's interresting to track those problems and
+it's better to have the hardware to do so.
 
-The good news is that the 8 errors are actually the same one spread all 
-over the source file. So fixing it once will fix the whole file. The bad 
-news is that I don't know how to fix it :|
+> the 4001 is serious value for money (at least in portugal) and it 
+> definately has a smart battery.
+> 
+> the 4500 series are also good laptops, but as far as smart batteries are 
+> concerned, I don't know.
 
-The Error
----------
-dsdt.dsl  4480:           If (LLess (\_PR.CPU0._PPC, Local1))
-Error    1022 -             Object does not exist ^  (\_PR.CPU0._PPC)
-
-The error is repeated every time the object \_PR.CPU0._PPC appears in 
-the code. I read in the FAQ that one possible solution is to use the 
-statement
-
-	External(\_PR.CPU0._PPC)
-
-to tell the compiler that this is an external object. However I don't 
-understand where this External statement should go. I've tried putting 
-it at the beginning of the file and inside the Scope(\_PR) section which 
-simply reads
-
-	Scope (\_PR)
-	{
-	   Processor (CPU0, 0x00, 0x00004010, 0x06) {}
-	}
-
-In both cases the compiler complains. So, where shall this External 
-statement go?
-
-The Warning
------------
-dsdt.dsl  4287: Method (SMSL, 0, NotSerialized)
-Warning  2019 -            ^ Not all control paths return a value (SMSL)
-
-I added a Return (0x00) statement at the very end of the method and the 
-warning disappeared. But, is this right? Following my signature you will 
-find the code of the offending method including my extra line.
-
-
-Thanks in advance for any advice you can give me.
+Thanks,
 
 -- 
-Pedro
+Bruno Ducrot
 
-
-
-                     Name (ACFL, 0x00)
-                     Method (SMSL, 0, NotSerialized)
-                     {
-                         Store ("CMBatt - SMSL", Debug)
-                         If (LEqual (\_SB.ECOK, 0x00))
-                         {
-                             Return (0xFF)
-                         }
-
-                         Acquire (\_SB.PCI0.PIB.EC0.MUT1, 0xFFFF)
-                         If (LNot (\_SB.PCI0.PIB.EC0.SMRD (0x09, 0x14, 
-0x01, RefOf (Local0))))
-                         {
-                             Store (Local0, SEL0)
-                             Store (SEL0, Debug)
-                             If (LEqual (ALRT, 0x01))
-                             {
-                                 \_SB.BAT1.IVBI ()
-                                 \_SB.BAT1.IVBS ()
-                                 Store (0x00, ALRT)
-                             }
-
-                             Store (\_SB.ACAD.CHAC (SEL0), Local1)
-                             Store (\_SB.BAT1.CHBP (SEL0), Local2)
-                             Or (SEL0, 0x0FFF, Local0)
-                             SMWR (0x08, 0x14, 0x01, Local0)
-                             If (LAnd (Local1, \_SB.ACAD.ACP))
-                             {
-                                 Store ("CMBatt - Notify(ACAD,0x80): 
-AC_Inserted", Debug)
-                                 Notify (\_SB.ACAD, 0x80)
-                                 Store (0x02, ACFL)
-                             }
-
-                             If (And (0x04, Local2))
-                             {
-                                 \_SB.BAT1.B1CK ()
-                             }
-
-                             If (And (0x02, Local2))
-                             {
-                                 \_SB.BAT1.B1ST ()
-                             }
-
-                             If (And (0x01, Local2))
-                             {
-                                 \_SB.BAT1.B1IF ()
-                             }
-
-                             If (LAnd (Local1, LNot (\_SB.ACAD.ACP)))
-                             {
-                                 Store ("CMBatt - Notify(ACAD, 0x80): 
-AC_Removed", Debug)
-                                 Notify (\_SB.ACAD, 0x80)
-                                 Store (0x01, ACFL)
-                             }
-                         }
-
-                         Store (0x3C, Local4)
-                         If (\_SB.BAT1.REPT)
-                         {
-                             Store (0x02, Local4)
-                         }
-
-                         If (BFLG)
-                         {
-                             Store (0x01, Local5)
-                             While (LNot (And (BFLG, 0x01)))
-                             {
-                                 Increment (Local5)
-                                 ShiftRight (BFLG, 0x01, BFLG)
-                             }
-
-                             ShiftRight (BFLG, 0x01, BFLG)
-                             If (LGreater (Local4, Local5))
-                             {
-                                 Store (Local5, Local4)
-                             }
-                         }
-
-                         Store (Local4, BPD)
-                         BPOL ()
-                         Release (\_SB.PCI0.PIB.EC0.MUT1)
-                         If (ACFL)
-                         {
-                             Decrement (ACFL)
-                             Store (0x00, ACFL)
-                         }
-                         Return (0x00)
-                     }
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
