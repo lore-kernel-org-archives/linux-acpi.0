@@ -1,43 +1,43 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: [PATCH] ibm-acpi-0.6 - ACPI driver for IBM ThinkPad laptops
-Date: Thu, 21 Oct 2004 17:04:59 +0800
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041ABFD4@pdsmsx403>
+From: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Aspire 1703SM
+Date: Thu, 21 Oct 2004 11:57:26 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <8d158e1f04102102573cc62fa4@mail.gmail.com>
+Reply-To: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S269079AbUJUJLP@vger.kernel.org>
-Content-class: urn:content-classes:message
-To: Borislav Deianov <borislav@users.sourceforge.net>
-Cc: acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->
->On Wed, Oct 20, 2004 at 11:18:08AM +0800, Yu, Luming wrote:
->> 
->> I'm working on a generic hotkey driver, which will move configurable 
->> stuff to user space. 
->[snip]
->> 1. add a new hotkey:
->>  echo "0 : _SB.VGA : _SB.VGA.LCD._BCM :0x86 : 0x86" >
->> /proc/acpi/ev_config
->
->How would user space know what devices and methods to use? In the
->kernel, you can use HIDs where available, or check for specific
->objects with acpi_get_handle(). Are you going to expose these to user
->space somehow?
->
->Boris
->
+Hello All,
 
-Wrt hotkey, there don't have any standard or well known method to
-find out which acpi device and acpi methods are for which hotkey.
-But, they are working in the similar way, which is achieving hotkey 
-function through acpi generic core. 
+I have a little question for the people on the list here.
+Is the original DSDT for the Aspire 1703SM considered to be
+stable/working or is/are there replacement(s) for this DSDT?
 
-So, at the first stage , I have to rely on user or vendor to supply 
-meaningful data, till we have standard auto-config method.
+Whenever I boot up my laptop I get a bunch of ACPI errors about
+unknown/unresolved keys etc. This happens with all 2.6.8 and 2.6.9,
+other kernels are untested by me.
 
-Thanks,
-Luming
+
+Thanks for your replies,
+
+
+Patrick Ale
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
