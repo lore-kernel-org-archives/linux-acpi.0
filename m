@@ -1,12 +1,14 @@
-From: "Bryan K. Wright" <bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org>
-Subject: Bad interaction between ehci-hcd and acpi?
-Date: Mon, 01 Mar 2004 12:08:07 -0500
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI PM Timer
+Date: Mon, 1 Mar 2004 18:38:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403011708.i21H87b06973@ayesha.phys.Virginia.EDU>
-Reply-To: bryan-utW8kV9oO443r0Ub5QXD9Q@public.gmane.org
+Message-ID: <20040301173857.GX2869@poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A8470255F022@orsmsx401.jf.intel.com> <20040228174754.X99033@root.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040228174754.X99033-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,49 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, john stultz <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-(Sorry if this is a duplicate.  I just realized that I wasn't subscribed
-to acpi-devel.  I've subscribed now.)
+On Sat, Feb 28, 2004 at 05:48:07PM -0800, Nate Lawson wrote:
+> On Tue, 24 Feb 2004, Grover, Andrew wrote:
+> > So 2.6.4 will support the option of using the PM timer as the main
+> > kernel timesource!
+> >
+> > This is great. This has been on my personal wish list for, oh, about 4
+> > years now. I just wanted to say thanks to Dominik, John, and Dmitry for
+> > making it happen.
+> >
+> > Regards -- Andy
+> 
+> Welcome to the club!  :)
+> 
 
-Hi folks,
-
-	The ehci-hcd kernel module enables support for high-speed USB
-devices.  I've noticed the following oddity:  When I plug in a high-speed
-USB device, the CPU temperature jumps up by about 25 degrees C.  The 
-temperature stays up even after I unplug the USB device.  Rmmod'ing
-the ehci-hcd module brings the temperature back down.  I can then
-re-install the ehci-hcd module, and things stay normal until the next
-time I plug in a high-speed USB device.
-
-	Here are the configuration details:
-Kernel 2.4.21 (vanilla) with the acpi-20030619-2.4.21.diff patch.
-Sharp PC-AV18 laptop (KN266, Athlon XP-M 1800+)
-Tested with two different models of Epson scanner, and with two different
-brands of external USB disks.
-
-	I've also recently tried using 'athcool', which enables
-the VLink auto-disconnect bit and the 'bus disconnect on STPGNT' bit
-(this was already set).  I'd hoped it might fix the odd behavior noted
-above, but athcool doesn't seem to make any difference.
-
-	Has anybody else seen similar symptoms?
-
-						Thanks,
-						Bryan
+Well, it seems to be a little more 'basic' than the one on the FreeBSD
+in fact.
 
 -- 
-===============================================================================
-Bryan Wright                |"If you take cranberries and stew them like 
-Physics Department          | applesauce, they taste much more like prunes 
-University of Virginia      | than rhubarb does."  --  Groucho 
-Charlottesville, VA  22901  |			
-(434) 924-7218              |         bryan-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
-===============================================================================
+Bruno Ducrot
 
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
