@@ -1,14 +1,15 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Build PST for AthlonXP
-Date: Wed, 4 Feb 2004 12:18:17 +0100
+From: Alexander Gran <alex-4mRm4CWMOdkHuPwBo6/EyUB+6BGkLq7r@public.gmane.org>
+Subject: Status of ACPI on IBM T40p
+Date: Wed, 4 Feb 2004 15:07:32 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040204111817.GJ882@poupinou.org>
-References: <11695.1075891525@www14.gmx.net>
+Message-ID: <200402041507.33902@zodiac.zodiac.dnsalias.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Description: clearsigned data
 Content-Disposition: inline
-In-Reply-To: <11695.1075891525-uoI8PbPD7Nlmcu3hnIyYJQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,81 +18,76 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lukas Schrangl <schrangl-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 04, 2004 at 11:45:25AM +0100, Lukas Schrangl wrote:
-> Hi!
-> 
-> I don't know wether this is the right mailinglist for my problem, but at
-> least I think here are some people who can help me.
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Correct, the mailling list is the CPUFreq mailing list..
+Hi,
 
-> Maybe someone remembers my problem: I have a AMD Athlon XP 2600+ mobile CPU
-> but neither ACPI- performance states nor cpufreq/powernow-k7 (no PST matching
-> this cpuid) do work.
+I just gave ACPI an other try this night. This are my results:
+I used linux-2.6.2-rc3-mm1 on a T40p 2373-G1G.
+Config: http://zodiac.dnsalias.org/misc/262-rc3-mm1.acpi.config
+Errors: http://zodiac.dnsalias.org/misc/syslog.acpi
+lspci -v (on APM kernel): http://zodiac.dnsalias.org/misc/lspci
 
-Retrieving configuration from ACPI is a work in progress.  I do have
-some experimental patch for, but not publically available yet
-(it depends on others patches from Dominik, I'm not sure if that OK by
-now).
+Booting is ok. All ACPI modules load without warning, only the relaxed AML=
+=20
+seems to be needed.
+What's working:
+Battery monitoring, thermal monitoring, ac-adapter, lid-button are all ok.
+The sound-system survives a suspend. Great.
+laptop_mode is in this kernel, finally. Cool, Andrew!
+=46an isn't recognized. Power-button is recognized, but gives no events.
+C-states are not working right:
+The CPU has C0-C3. C0 is full speed, the rest is slower. According to the A=
+CPI=20
+documentation the CPU should switch automagically to the slower modes after=
+=20
+some time of inactivaty. However it cannot controll busmaster PCI transfers=
+=20
+in C3. Now some driver doesn't gets busmaster right, and due to this, the c=
+pu=20
+never go's to C3 [Hope I got this right, I am no acpi master..](my went to =
+C3=20
+after some fiddeling with suspend (see later) and the PCI-Bus crashed, henc=
+e=20
+I know. If my CPU uses C3, laptop_mode and backlight  mostly dimmed, I=20
+reached 5h+ :)
+Other things that don't work:
+When suspending, the USB-drivers don't get it right, and do not work after=
+=20
+resuming. Unloading them before suspending and loading them afterwards=20
+doesn't help either. Additionally there seems to be issues with the PCI bus=
+=2E=20
+I got random errors (everything between kernel-oops, error-loops and=20
+warnings) when reinserting the uhci_hcd module.
+After resuming my power LED is not switched on (not so problematic), and th=
+e =20
+notebook doesn't ask for a password (Really problematic).
+The e1000 module still needs the unload/load procedure.
 
-> Recently I browsed a bit through the powernow-k7 source and have now an idea
-> how it works. It shouldn't be too difficult to set up my own PST for my CPU,
-> should it?
+Hope I'm right on this list. Tell me If I'd cc to an other one, please.
+Include my in your cc's please, as I'm not reading this list.
 
-Well, not so, especially if you can retrieve the configuration for the different
-states.
-The key is the control word, in the _PSS packages.
+regards
+Alex
 
-For example, suppose you have that:
+=2D --=20
+Some operating systems are called `user friendly',
+	Linux however is `expert friendly'.
+Encrypted Mails welcome.
+PGP-Key at http://zodiac.dnsalias.org/misc/pgpkey.asc | Key-ID: 0x6D7DD291
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-Processor(..) {
-	...
-	Name (_PSS, Package () {	/* this may be a method, btw */
-		Package () {
-			0x0352,
-			0x61A8,
-			0x7D,
-			0x009C414B,	/* that the control. */
-			0x014B
-		},
-		Package () {
-			...,
-			...,
-		}
-	})
+iD8DBQFAIPyk/aHb+2190pERAjhgAKCkYnYnJcTJMFQc7YY4sGNWRVh4dwCgkdQX
+hAR99v74cSPS4JsYv+vuz54=3D
+=3DI96u
+=2D----END PGP SIGNATURE-----
 
-For the first one, this is 0x009C414B.
-The layout seems to be:
-bit 0-5: FID,
-bit 6-10: VID,
-bit 11-30: SGTC (or in other word 'latency' in 10 time micro second)
-bit 31-32: reserved.
-
-Note that this is *not* confirmed by AMD people.
-
-> I know about FIDs and VIDs and what they are good for, but can anyone
-> explain me the structure of a PST and the PSB (links to some documents, ...)?
-> The second thing: I could get the cpu- frequences that seem work (for my
-> FIDs) from my SSDT, but how can I calculate the voltage (for the VIDs) matching
-> the frequency, if there are only the mW given in the SSDT?
-> 
-
-BTW, I send to CPUFreq ML yesterday a patch in order to get a sysctl
-interface for overwritting a powernow k7 table.
-
-http://www.poupinou.org/cpufreq/powernow-k7/
-
-Cheers,
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
