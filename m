@@ -1,15 +1,17 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: acpi-devel list archive & acpi.sf.net
-Date: Thu, 27 May 2004 09:26:59 +0200
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: 2.6 won't poweroff
+Date: Thu, 27 May 2004 09:12:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040527072659.GA3039@fuchi>
-References: <29AC424F54821A4FB5D7CBE081922E408ABAEA@hdsmsx403.hd.intel.com>
+Message-ID: <16565.41690.262681.183380@aber.ac.uk>
+References: <20040525044514.GC2217@smeagol>
+	<16563.119.414292.134855@aber.ac.uk>
+	<20040526043252.GF2576@smeagol>
+	<1085622000.3503.10.camel@darkstar>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <29AC424F54821A4FB5D7CBE081922E408ABAEA-N2PTB0HCzHJviC08c4yzC1DQ4js95KgL@public.gmane.org>
+In-Reply-To: <1085622000.3503.10.camel-4/PLUo9XfK8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,54 +20,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Cc: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+S=E9rgio Monteiro writes:
 
---PEIAKu/WMn1b1Hv9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ > 1- Have you configure Power Management support on yes (CONFIG_PM=3D3=
+Dy) ?
 
-re...
+Yes, otherwise you can't even get to acpi, can you (in menuconfig I mea=
+n)
 
-* "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [2004-05-27 09:11 +0200]:
+ > 2- you use poweroff command or shutdown -h now ? poweroff can have
+ > better results (I think).
 
-> Although sourceforge provides the actual acpi-devel list,
-> the list archive on that site is notoriously unreliable.
->=20
-> Perhaps you can mention these alternative archives on the acpi.sf.net
-> web page:
->=20
-> http://news.gmane.org/gmane.linux.acpi.devel
-> http://marc.theaimsgroup.com/?l=3Dacpi4linux
+Have tried both.
 
-of course, could have thought about it myself.
-done (http://acpi.sourceforge.net/mailinglists.html).
+ > 3- no longer have to worry about compile w/ or w/o APIC because you
+ > should have same results if you use "nolapic" on boot options, or no=
+t
+ > use.
 
-bye,
- sebastian
---=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
+Have tried all the possible combinations for having and not having apic=
+ (at
+least the ones mentioned in the kernel options file.
 
---PEIAKu/WMn1b1Hv9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Thanks anyway.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+Fred
 
-iD8DBQFAtZhDreHfL3pi+bQRAljCAJ9W/F/tTK7ADz6TTIaJPsj6YLVJdQCcCbE+
-NXMFaVBPsv+O1JlTpcFYu/A=
-=rx4L
------END PGP SIGNATURE-----
-
---PEIAKu/WMn1b1Hv9--
 
 
 -------------------------------------------------------
