@@ -1,14 +1,12 @@
-From: Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: Call for help: list of machines with working S3
-Date: Mon, 14 Mar 2005 07:19:00 +0100
-Message-ID: <200503140719.01536.lkml@kcore.org>
-References: <20050214211105.GA12808@elf.ucw.cz>
+Date: Mon, 14 Mar 2005 09:00:29 +0100
+Message-ID: <20050314080029.GF22635@elf.ucw.cz>
+References: <20050214211105.GA12808@elf.ucw.cz> <200503140719.01536.lkml@kcore.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050214211105.GA12808-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <200503140719.01536.lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,35 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 14 February 2005 22:11, Pavel Machek wrote:
-> Hi!
->
-> Stefan provided me initial list of machines where S3 works (including
-> video). If you have machine that is not on the list, please send me a
-> diff. If you have eMachines... I'd like you to try playing with
-> vbetool (it worked for me), and if it works for you supplying right
-> model numbers.
+Hi!
 
-Acer Travelmate 803LCi, working Suspend to ram:
-- Have to use the soft-boot method for the radeon
-- Have to shutdown the following parts: 
-  * hotplug (actually the USB subsystem, but hotplug does that nicely)
-  * ALSA (modem won't work otherwise without reloading the modules)
-    (snd_intel8x0m module)
-  * MySQL (hinders the actual suspension process and kicks the pc back to 
-    where it was)
+>   * MySQL (hinders the actual suspension process and kicks the pc back to 
+>     where it was)
 
-Other than these little things it works like a charm :)
+Try this patch...
+								Pavel
 
-Jan
+--- clean/kernel/signal.c	2005-02-03 22:27:26.000000000 +0100
++++ linux/kernel/signal.c	2005-02-03 22:28:19.000000000 +0100
+@@ -2222,6 +2222,7 @@
+ 			ret = -EINTR;
+ 	}
+ 
++	try_to_freeze(1);
+ 	return ret;
+ }
+ 
+
+
 -- 
-Bumper sticker:
- All the parts falling off this car are of the very finest
- British manufacture.
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
