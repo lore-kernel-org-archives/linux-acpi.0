@@ -1,15 +1,16 @@
-From: Thomas Kosch <t.kosch-7+EO1k1ndLmazgQtNeiOUg@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Sun, 22 Sep 2002 10:32:13 +0200
+From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: Patch against kernels 2.4.x release
+Date: 22 Sep 2002 12:34:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <microsoft-free.m34rci2zn6.fsf@grisu.cyvermail.de>
-References: <E17rvjI-0001mI-00@usw-sf-list2.sourceforge.net>
+Message-ID: <1032690860.1054.1.camel@paragon.slim>
+References: <1032636606.2215.49.camel@darkstar.portugal>
+	<200209211635.51419.m.c.p@gmx.net>
+	<1032659130.1509.9.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <E17rvjI-0001mI-00-HKCwXBn57GynvZpeIfgr/KQD96bmaF075NbjCUgZEJk@public.gmane.org> (acpi-devel-request@lists.sourceforge.net's
- message of "Thu, 19 Sep 2002 00:27:02 -0700")
+In-Reply-To: <1032659130.1509.9.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,37 +19,67 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Cc: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Sergio,
 
-> I wanted to make a special request for testing of the 2.4 patch (or
-> should I say, MEGA-patch).
+Your patch works beautifully! I am currently running it on a modified
+2.4.19 (rmap + preempt etc).
 
-Here we are...
-The computer is a Toschiba Satellite 300-214
+Thanks,
 
-> The main issues of importance are:
->
-> - DOES IT BOOT?
+Jurgen
 
-Yes
+On Sun, 2002-09-22 at 03:45, S=E9rgio Monteiro Basto wrote:
+    http://codecs.home.sapo.pt/acpi/index.html
+   =20
+   =20
+    http://codecs.home.sapo.pt/acpi/acpi-20020918-2.4.18.diff.gz
+    http://codecs.home.sapo.pt/acpi/acpi-20020918-2.4.19.diff.gz
+   =20
+    =20
+   =20
+   =20
+   =20
+    On Sat, 2002-09-21 at 10:35, Marc-Christian Petersen wrote:
+    > On Saturday 21 September 2002 21:30, S=E9rgio Monteiro Basto wrote:
+    >=20
+    > Hi S=E9rgio,
+    >=20
+    > > I already done the patches for kernels 2.4.19 and 2.4.18,
+    > > and I have 3 questions :
+    > where can I find those patches against 2.4.18 for current ACPI code? =
+:)
+    >=20
+    > --=20
+    > Kind regards
+    >         Marc-Christian Petersen
+    >=20
+    > http://sourceforge.net/projects/wolk
+    >=20
+    > PGP/GnuPG Key: 1024D/569DE2E3DB441A16
+    > Fingerprint: 3469 0CF8 CA7E 0042 7824 080A 569D E2E3 DB44 1A16
+    > Key available at www.keyserver.net. Encrypted e-mail preferred.
+    >=20
+   =20
+   =20
+   =20
+   =20
+   =20
+   =20
+    -------------------------------------------------------
+    This sf.net email is sponsored by:ThinkGeek
+    Welcome to geek heaven.
+    http://thinkgeek.com/sf
+    _______________________________________________
+    Acpi-devel mailing list
+    Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
+   =20
+   =20
 
-> - DOES IT ASSIGN INTERRUPTS PROPERLY?
-
-It looks good
-
-There are still some small errors. Sometimes I get an 'grisu kernel:
-ACPI-0323: *** Error: Handler for [Embedded_control] returned AE_TIME'
-and there is some trouble which the scsi hostadapter emulation. If i try
-to mmount a cd-rom after an S1 sleep the computer freezes. I must reload
-the ide-scsi module.
-
-ttyl8er, t.k.
-
-=2D-=20
-Slowly and surely the unix crept up on the Nintendo user ...
 
 
 -------------------------------------------------------
