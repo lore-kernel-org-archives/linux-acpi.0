@@ -1,15 +1,14 @@
-From: Steven Michalske <michalsc-Kx4bGX/NEpX2fBVCVOL8/A@public.gmane.org>
-Subject: new acpi user
-Date: Wed, 12 Feb 2003 12:32:14 -0500
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: System hang when trying to enter sleep/standby state
+Date: Wed, 12 Feb 2003 21:36:37 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200302121232.14256.michalsc@email.uc.edu>
+Message-ID: <20030212203637.GA32274@hell.org.pl>
+References: <1044987042.1149.4.camel@localhost.localdomain> <Pine.LNX.4.33.0302121042480.1479-100000@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Description: clearsigned data
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0302121042480.1479-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,36 +17,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: Erik van Pienbroek <admin-0LxUhLuGNoZIf6P1QZMOBw@public.gmane.org>, ACPI Mailinglist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Thus wrote Patrick Mochel:
+> ACPI should not allow a user to write '5' to that file. It used to be that 
+> way, but someone clever decided that that interface should support _all_ 
+> sleep states. (It might have been me, in one of my finer moments). 
 
-hey guys i am new to acpi but i am liking it better than apm as my screen=20
-dosent lock up leaving x11 on my thinkpad anymore (long story)
+May I ask: why? Is it really dangerous to leave it like it is now? Does it
+break anything? I actually used it a couple of times, not bothering to hold
+my poweroff button for the time needed to poweroff the machine completely.
+As for potential dangers, I see many other ways of using the /proc 
+interface that can be really *much* more harmful to the system, yet they
+don't cease to exist. However confusing it might be now, it is fully
+functional, at least. I can't really see any reason for crippling that
+functionality. Please, do leave it the way it is.
 
-how can i help with the development, testing and improving of acpi.
+Gosh, where's my manners... I hereby say hello to everyone. Hope you don't
+take the above too personal or whatever, I'm a newbie to ACPI and I might
+as well miss the whole point there.
+Regards,
 
-i am currently running 2.4.20 with acpi patch set from 20021212
-
-my machine is an IBM a21p
-
-what information can i provide for you guys
-
-Steven Michalske "hardkrash"
-
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+SoUeJhwOdxS4dYERAghAAJ9I8RbIdKcGMuhbRJSIVrWWLCAAygCffnpy
-tjnUS4XyobA4ec483uwKsuo=3D
-=3Dcctk
-=2D----END PGP SIGNATURE-----
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
