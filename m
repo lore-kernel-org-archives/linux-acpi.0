@@ -1,11 +1,12 @@
-From: Alberto Ornaghi <alor-G/4Acn03FKk@public.gmane.org>
+From: Sebastian Zimmermann <wegwerf-juni02-XrphxVexwn4ANkabGmIAxw@public.gmane.org>
 Subject: Re: Getting things clear.
-Date: Fri, 27 Sep 2002 19:49:46 +0200
+Date: 27 Sep 2002 20:53:32 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.0.14.2.20020927194816.02cba8e0@wheresmymailserver.com>
+Message-ID: <1033152812.1051.92.camel@coruscant.datenknoten.de>
 References: <20020927162855.GA1806@geolandia.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <20020927162855.GA1806-CwhMdJBTcbtgNr7TIQy98w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,25 +21,34 @@ To: antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-At 18.28 27-09-2002, Antonio G. - Geotronix wrote:
+Am Fre, 2002-09-27 um 18.28 schrieb Antonio G. - Geotronix:
+> *) kacpid.patch
 
->I seem to understand that a good acpi implementation (including swsusp)
->is done by applying the following patches to 2.4.18 kernel (as there's
->non swsusp for 2.4.19):
->
->*) kacpid.patch
+not required
 
-not needed anymore.
-this patch is needed by presario 7xx family if you use the acpi patch prior 
-to 20020918.
-with the latest the SCI is handled properly
+> *) acpi-2002---.diff
+> *) acpid (for intercepting acpi signals for use on gui monitoring
+> software for instance)
 
-bye
+and the supporting scripts in /etc/acpi
+they are essential, I would like to see an example on the web page
 
-    --==> ALoR <==---------------------- -  -   -
+> *) a acpi complying gui app for the window manager.
+> 
+> *) pmtools is needed for debugging purposes
+> 
+> Am i missing something?
 
-There are only 10 types of people in this world...
-those who understand binary, and those who don't.
+For Toshiba Laptops:
+
+Toshiba Laptop Extras (included in most recent acpi patches) and
+supporting hotkey daemon (by John Belmonte).
+
+I modified the latter to support Toshiba Tecra 9xxx series notebooks.
+Send me an email, if you are interested.
+
+Sebastian
+
 
 
 
