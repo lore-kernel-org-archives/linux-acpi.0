@@ -1,15 +1,12 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
-Date: 25 Mar 2005 14:07:43 -0500
-Message-ID: <1111777662.19921.43.camel@d845pe>
-References: <41062.15.99.19.46.1111525073.squirrel@mail.atl.hp.com>
-	 <1111539249.18927.17.camel@sli10-desk.sh.intel.com>
-	 <1110.65.74.231.82.1111550240.squirrel@mail.cce.hp.com>
-	 <1111603235.17317.883.camel@d845pe>  <1111688662.24547.26.camel@eeyore>
+From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
+Subject: Re: ACPI on hp Tablet TC1100
+Date: Fri, 25 Mar 2005 16:14:57 -0500
+Message-ID: <42447F51.2030000@joshuawise.com>
+References: <Pine.LNX.4.58.0503241657510.4376@dashnine>	 <1111704587.11677.27.camel@tyrosine>	 <Pine.LNX.4.58.0503241901440.4867@dashnine> <1111723887.11677.33.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1111688662.24547.26.camel@eeyore>
+In-Reply-To: <1111723887.11677.33.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,43 +16,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>, Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+> Unload USB modules before suspend, and reload them after resume. You
+> probably want to write a script to do this.
+Ok, I'll do that. It still seems like Bad Behavior, though. Is this list 
+the right place, or should I mail linux-usb-devel? Or is this a known issue?
 
-thanks,
--Len
+> Seriously, give up on the nvidia driver if you want working ACPI. It
+> just doesn't work properly. If I had the source code I'd try to debug
+> it, but, well...
+I see where you're coming from with that, but it's not solely the nvidia 
+driver's fault. If I kill off X entirely before suspending, then resume, 
+and restart X, X hangs before the nvidia driver even gets loaded.
 
-On Thu, 2005-03-24 at 13:24, Bjorn Helgaas wrote:
-> On Wed, 2005-03-23 at 13:40 -0500, Len Brown wrote:
-> > But checking skip_ioapic_setup in the non-ACPI case
-> > isn't quite right.  This is set for "noapic".  But
-> > it is not set in the PIC-mode case where the kernel
-> > supports IOAPIC but the hardware does not -- in that
-> > case the quirk would erroneously exit.
-> 
-> Ah, right, thanks.  I changed it to:
-> 
->         if (nr_ioapics && !skip_ioapic_setup)
->                 return;
-> 
-> Is that better?
-> 
-> > Also, the original quirk_via_irqpic()
-> > had a udelay(15) before the write -- I have no idea
-> > if that was significant or not -- maybe soembody else
-> > on the list does -- as none of us have VIA documentation...
-> 
-> Yes, I was worried about that, too.  I added it back.
-> 
-> > ps. we need to fix this on 2.4 also.
-> 
-> Here's yet another iteration for 2.6.  If this works OK,
-> I can back-port it to 2.4.
-...
-
+joshua
 
 
 -------------------------------------------------------
