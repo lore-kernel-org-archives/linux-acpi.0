@@ -1,38 +1,47 @@
-From: Bill Davidsen <davidsen@tmr.com>
-Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Wed, 31 Mar 2004 08:04:10 -0500 (EST)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.3.96.1040331075620.11879A-100000@gatekeeper.tmr.com>
-References: <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
+From: Philippe =?ISO-8859-15?Q?Gramoull=E9?= <philippe.gramoulle-2kpEERWQSfTQT0dZR+AlfA@public.gmane.org>
+Subject: Can't poweroff Dell Dimension 4100 with latest 2.4 bk but 2.6 is ok
+Date: Wed, 31 Mar 2004 15:35:59 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040331153559.10b51985@philou.gramoulle.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
-To: "Maciej W. Rozycki" <macro@ds2.pg.gda.pl>
-Cc: Len Brown <len.brown@intel.com>, Chris Friesen <cfriesen@nortelnetworks.com>, Willy Tarreau <willy@w.ods.org>, "Richard B. Johnson" <root@chaos.analogic.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 31 Mar 2004, Maciej W. Rozycki wrote:
 
-> On Tue, 30 Mar 2004, Bill Davidsen wrote:
-> 
-> > Is there no reasonable way to avoid using it in ACPI? It's not as if 
-> > performance was critical there, or the code gets run often. Too bad it 
-> > can't just be emulated like floating point, but I don't think it can on SMP.
-> 
->  Well, "cmpxchg", "xadd", etc. can be easily emulated with an aid of a
-> spinlock.  With SMP operation included.
+ Hello,
 
-Clearly they can be replaced with inline code, as for catching the ill-op
-fault and emulating inline, I want to think about that a bit on SMP, in
-the case where multiple CPUs are accessing different locations, one is in
-kernel and one in user mode, etc.
+ I have a somewhat old Dell Dimension 4100 XPS-Z PC, with A11 BIOS which i can't poweroff with any recent 2.4 kernels i tried
+while i can power it off nicely with either 2.6.4 or 2.6.5-rc2 for example.
 
-If it can be emulated safely in all cases, then that provides an out for
-the 386 case. To be useful it would have to be correct for all
-combinations of SMP, preempt and an interrupt and any point.
+I tried the latest 2.4 BK + latest ACPI BK ( bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.26 )
+and this is still a no go.
 
--- 
-bill davidsen <davidsen@tmr.com>
-  CTO, TMR Associates, Inc
-Doing interesting things with little computers since 1979.
+I can't use APM either as i have a message that the BIOS is blacklisted
+(dmi_scan.c:    { apm_is_horked, "Dell XPS-Z", { /* APM crashes */))
+
+I've been upgrading this from since around 2.4.20 and IIRC, there was at least one kernel during the course
+that worked, but i'm not 100% sure.
+
+Any pointer welcome.
+
+Thanks,
+
+Philippe
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
