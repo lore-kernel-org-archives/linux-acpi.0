@@ -1,13 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Harddisk problems after S3
-Date: Thu, 7 Apr 2005 14:46:54 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575019613B7@pdsmsx402.ccr.corp.intel.com>
+From: Valentine Sinitsyn <Valentine.Sinitsyn-lD3gN07P50w@public.gmane.org>
+Subject: wakeup devices configuration
+Date: Thu, 7 Apr 2005 14:31:40 +0600
+Message-ID: <738914040.20050407143140@usu.ru>
+Reply-To: Valentine Sinitsyn <Valentine.Sinitsyn-lD3gN07P50w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,51 +16,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bartlomiej Zolnierkiewicz <B.Zolnierkiewicz-ZGDBLhmm9VR4rM3dGMyr8Q@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-[Send this to the ide maintainer to seek his help]
+Hi all,
 
-I encounter a similar issue, which I think it's the ide suspend/resume
-issue. Every time if I heard the sound of the harddisk initializing, my
-desktop's S3 resume works. Every time I didn't hear it, the resume
-hangs. And after I reboot the system the BIOS reports a checksum error.
-The symptom always can be reproduced.
+My question may sound silly, but I'm very new to ACPI (although not for
+Linux :-): Is there any means to specify wakeup devices? I have a
+laptop (it is pretty close to ECS A530) and the only way to bring it
+up after standby (S1 sleep state) is pressing power button. Keyboard
+and mouse events are ignored. I'm using kernel 2.6.11 and have only two
+wakeup devices in /proc/acpi/wakeup: MC9 and LAN, both disabled. As one can see,
+PS2K, PS2M or something like this are not among them. I'm using AMI
+DeskNote BIOS (12/05/2003) which also does not seem to have any options
+for wakeup devices (I'm comparing this with my desktop computer with
+Award BIOS. It has explicit menus like "Wake up on LAN: Yes/NO"). Does
+this mean that I'm unable to wakeup on keyboard/mouse, at least until I
+upgrade my BIOS? Thanks in advance.
 
->From the ACPI spec, harddisk hasn't standard method to support
-suspend/resume. And it should do:
-Powering down (or .suspend method)
-*	Call _GTM.
-*	Power down drive (calls _PS3 method and turns off power planes).
-Powering up (or .resume method):
-*	Power up drive (calls _PS0 method if present and turns on power
-planes).
-*	Call _STM passing info from _GTM (possibly modified), with ID
-data from
-*	each drive.
-*	Initialize the channel.
-*	May modify the results of _GTF.
-*	For each drive:
-		Call _GTF.
-		Execute task file (possibly modified).
+Valentine
 
-I could help write the ACPI related code for this, but I know few about
-the ide controller.
 
-Thanks,
-Shaohua
 
->
->On Tue, 2005-03-29 at 20:57 +0200, Pavel Machek wrote:
->
->> Ask ide maintainers...
->
->The fact that we do nothing with the _GTM, _STM and _GTF methods
-doesn't
->help here. Implementing those ought to help on a range of IDE resume
->issues.
 
 
 -------------------------------------------------------
