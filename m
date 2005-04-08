@@ -1,14 +1,13 @@
-From: Sebastian <sebastian_ml-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: DSDT properly fixed?
-Date: Fri, 08 Apr 2005 20:19:15 +0200
-Message-ID: <4256CB23.8080204@gmx.net>
-References: <971FCB6690CD0E4898387DBF7552B90E01199754@orsmsx403.amr.corp.intel.com>
-Reply-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
+Subject: High frequency sound when loading the processor module --   Please help
+Date: Fri, 8 Apr 2005 13:28:48 -0600
+Message-ID: <200504081428.48477.gkanis@cems.umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E01199754-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,28 +20,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Moore, Robert schrieb:
-> Neither problem will make any difference on current versions of ACPI CA
-> 
-> 1) We don't look at the value returned by _WAK, if any.
-> 2) The AML interpreter just ignores things like "Store (Local0,
-> Local0)", which seems to be used as some form of twisted NOOP.
-> 
-> However, if your goal is to eliminate all warnings/errors, your fix for
-> 1) is OK, but for 2) I think you can simply delete the offending line of
-> code.
-> 
-> Bob
+Hi,
 
-Hello Bob,
+I have a Gateway laptop, which came with a Centrino CPU. Since this is a 
+Centrino, I want to load the speedstep-centrino module and the thermal zone 
+module. Unfortunately, I found out that when I load the processor module, I 
+hear this high frequency sound.  If I ignore it, and I go ahead and I load 
+the speedstep-centrino moudle, the '/sys/device/system/cpu/cpu0/cpu-freq/' 
+folder is populated and I can change the CPU frequency. In fact, if I change 
+it to 800Mhz (lowest value), the volume of the sound decreases, but it is 
+still annoying. 
 
-thanks for clearing that up. So it seems it isn't necessary to "fix" the
-dsdt after all :) Well, maybe I was a little too eager then ;-)
+On the other hand, in Windows everything looks and sounds normal.
 
-Thanks!
+I do not know what kind of informations you might need, but I can provide 
+pretty much anything.
 
-Sebastian
-
+Thank you,
+Vasilis
 
 
 -------------------------------------------------------
