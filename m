@@ -1,7 +1,7 @@
 From: domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
-Subject: [patch 1/2] printk : drivers/block/drivers/acpi/container.c
-Date: Fri, 08 Apr 2005 09:50:31 +0200
-Message-ID: <20050408075031.E91851EE91@trashy.coderock.org>
+Subject: [patch 2/2] printk: drivers/acpi/pci_link.c
+Date: Fri, 08 Apr 2005 09:50:34 +0200
+Message-ID: <20050408075035.16A7C1EE91@trashy.coderock.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -25,21 +25,21 @@ Signed-off-by: Domen Puncer <domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org>
 ---
 
 
- kj-domen/drivers/acpi/container.c |    2 +-
+ kj-domen/drivers/acpi/pci_link.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/container.c~printk-drivers_acpi_container drivers/acpi/container.c
---- kj/drivers/acpi/container.c~printk-drivers_acpi_container	2005-04-05 12:57:57.000000000 +0200
-+++ kj-domen/drivers/acpi/container.c	2005-04-05 12:57:57.000000000 +0200
-@@ -174,7 +174,7 @@ container_notify_cb(acpi_handle handle, 
- 	case ACPI_NOTIFY_BUS_CHECK:
- 		/* Fall through */
- 	case ACPI_NOTIFY_DEVICE_CHECK:
--		printk("Container driver received %s event\n",
-+		printk(KERN_INFO "Container driver received %s event\n",
- 			(type == ACPI_NOTIFY_BUS_CHECK)?
- 			"ACPI_NOTIFY_BUS_CHECK":"ACPI_NOTIFY_DEVICE_CHECK");
- 		status = acpi_bus_get_device(handle, &device);
+diff -puN drivers/acpi/pci_link.c~printk-drivers_acpi_pci_link drivers/acpi/pci_link.c
+--- kj/drivers/acpi/pci_link.c~printk-drivers_acpi_pci_link	2005-04-05 12:57:57.000000000 +0200
++++ kj-domen/drivers/acpi/pci_link.c	2005-04-05 12:57:57.000000000 +0200
+@@ -352,7 +352,7 @@ acpi_pci_link_set (
+ 		/* ignore resource_source, it's optional */
+ 		break;
+ 	default:
+-		printk("ACPI BUG: resource_type %d\n", link->irq.resource_type);
++		printk(KERN_WARNING "ACPI BUG: resource_type %d\n", link->irq.resource_type);
+ 		result = -EINVAL;
+ 		goto end;
+ 
 _
 
 
