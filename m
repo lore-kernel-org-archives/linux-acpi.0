@@ -1,13 +1,14 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Subject: Re: High frequency sound when loading the processor module --   Please help
-Date: Sat, 9 Apr 2005 00:17:03 +0200
-Message-ID: <20050408221703.GA20022@isilmar.linta.de>
-References: <200504081428.48477.gkanis@cems.umn.edu> <200504081528.51796.gkanis@cems.umn.edu> <20050408203934.GA18490@isilmar.linta.de> <200504081647.30433.gkanis@cems.umn.edu>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: 2.6.12-rc2-mm2
+Date: Fri, 8 Apr 2005 15:21:26 -0700
+Message-ID: <20050408152126.3b1c03ac.akpm@osdl.org>
+References: <20050408030835.4941cd98.akpm@osdl.org>
+	<425691BD.9080507@portrix.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200504081647.30433.gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
+In-Reply-To: <425691BD.9080507-wDE+IXx/zk/R7s880joybQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +18,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Philipp Wollermann <phil_wo-hi6Y0CQ0nG0@public.gmane.org>
+To: Jan Dittmer <j.dittmer-wDE+IXx/zk/R7s880joybQ@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 08, 2005 at 03:47:30PM -0600, Vasileios Gkanis wrote:
-> If in the file include/asm-i386/param.h, I change the 
-> #ifdef __KERNEL__
-> # define HZ  1000  /* Internal kernel timer frequency */
-> # define USER_HZ 100  /* .. some user interfaces are in "ticks" */
-> # define CLOCKS_PER_SEC  (USER_HZ) /* like times() */
-> #endif
+Jan Dittmer <j.dittmer-wDE+IXx/zk/R7s880joybQ@public.gmane.org> wrote:
+>
+> Andrew Morton wrote:
+> > - The bk-acpi patch here causes my ia64 test box to hang during boot
 > 
-> to 
-> #ifdef __KERNEL__
-> # define HZ  100  /* Internal kernel timer frequency */
-> # define USER_HZ 100  /* .. some user interfaces are in "ticks" */
-> # define CLOCKS_PER_SEC  (USER_HZ) /* like times() */
-> #endif
+> >  bk-ia64.patch
 > 
-> will it do the trick or will I make a mess?
+> ia64 defconfig does not even build anymore:
+> 
+> 
+>   CC [M]  drivers/char/agp/hp-agp.o
+> In file included from /usr/src/ctest/mm/kernel/drivers/char/agp/hp-agp.c:18:
+> include2/asm/acpi-ext.h:15: error: parse error before "hp_acpi_csr_space"
+> include2/asm/acpi-ext.h:15: error: parse error before "u64"
+> include2/asm/acpi-ext.h:15: warning: type defaults to `int' in declaration of `hp_acpi_csr_space'
 
-I don't know exactly, however IIRC there are some issues if you do only
-this.
+I suppose this is needed.
 
-The latest dynamic tick patch can be found at
+--- 25/include/asm-ia64/acpi-ext.h~acpi-ext-build-fix	Fri Apr  8 15:19:43 2005
++++ 25-akpm/include/asm-ia64/acpi-ext.h	Fri Apr  8 15:20:12 2005
+@@ -11,6 +11,7 @@
+ #define _ASM_IA64_ACPI_EXT_H
+ 
+ #include <linux/types.h>
++#include <acpi/actypes.h>
+ 
+ extern acpi_status hp_acpi_csr_space (acpi_handle, u64 *base, u64 *length);
+ 
+_
 
-http://lkml.org/lkml/2005/4/8/54
-
-but it might still be on the bleeding side of the warm fuzzy feeling of
-being on the bleeding edge of kernel development.
-
-Thanks,
-	Dominik
 
 
 -------------------------------------------------------
