@@ -1,7 +1,7 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Re: Fw: Re: 2.6.12-rc2-mm2
-Date: Fri, 08 Apr 2005 17:50:02 -0600
-Message-ID: <1113004202.12025.105.camel@eeyore>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Fw: Re: 2.6.12-rc2-mm2
+Date: 08 Apr 2005 23:20:34 -0400
+Message-ID: <1113016833.2418.14.camel@d845pe>
 References: <20050408092947.41175d63.akpm@osdl.org>
 	 <425707A2.2050208@gmail.com>
 Mime-Version: 1.0
@@ -19,34 +19,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2005-04-09 at 00:37 +0200, Michael Thonke wrote:
-> but whats so different that causes some PCI-E cards to get not regonized
+On Fri, 2005-04-08 at 18:37, Michael Thonke wrote:
+> Hi Andrew and Bjorn,
+> 
+> but whats so different that causes some PCI-E cards to get not
+> regonized
 > or working at all?
+> I mean 2.6.11.x works and 2.6.12-rc2 works,while 2.6.12-rc1 was like
+> mm-behavior with
+> 
+> ACPI: Can't get handler for
+> 
 
-I'm not clear on which cards are not recognized.  In the -mm dmesg
-log you posted, sk98lin found a card:
+Not possible, the code that prints that (nop) string
+is not present in Linus' tree -- it exists only in the mm patch.
 
-    Linux version 2.6.12-rc2-mm2-md1 (root@ioGL64NX) (gcc-Version 3.4.3 20041125 (Gentoo Linux 3.4.3-r1, ssp-3.4.3-0, pie-8.7.7)) #2 SMP PREEMPT
-    ...
-    sk98lin: Network Device Driver v8.15.1.3
-    (C)Copyright 1999-2005 Marvell(R).
-    ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 17 (level, low) -> IRQ 201
-    PCI: Setting latency timer of device 0000:02:00.0 to 64
-    eth0: Marvell Yukon 88E8053 Gigabit Ethernet Controller
-          PrefPort:A  RlmtMode:Check Link State
+Indeed, the glue.c code that prints this message has been in
+mm tree, and you can remove just that patch by getting it here:
+http://linux-acpi.bkbits.net:8080/to-akpm/cset@423bb5a2CcvybiQpT6qaZpTIzPtzCQ
 
-So what do you mean by "not recognized"?  I assumed you meant that
-the card just didn't work.
+If 2.6.12-rc1 was broken like the mm tree, then it could
+have had noting to do with this.
 
-I noticed in some lspci output the IRQ was reported as 7, not
-the 201 above.  So that also makes me suspicious of PCI-Express
-IRQ routing gone bad.
-
-Please don't trim the to/cc list; I added Tom because he knows
-about PCI Express.
+-Len
 
 
 
