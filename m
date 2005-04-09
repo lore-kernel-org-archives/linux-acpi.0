@@ -1,7 +1,7 @@
-From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
-Subject: [2.6 patch] drivers/pnp/pnpacpi/rsparser.c: fix an array overflow
-Date: Sat, 9 Apr 2005 20:04:00 +0200
-Message-ID: <20050409180400.GF3632@stusta.de>
+From: Hadmut Danisch <hadmut-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
+Subject: LCD does not wake up
+Date: Sat, 9 Apr 2005 23:31:10 +0200
+Message-ID: <20050409213110.GA26933@danisch.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,33 +15,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch fixes an array overflow found by the Coverity checker.
+Hi,
 
-Signed-off-by: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+is there any FAQ about ACPI problems?
 
----
+I have an MSI S260 (Intel chipset) with
+kernel 2.6.11.7. 
 
-This patch was already sent on:
-- 27 Mar 2005
+An  echo mem > /sys/power/state  works well, 
+the machine goes into suspend state and wakes up 
+properly except for one thing: The LCD remains black,
+backlight is not turned on.
 
---- linux-2.6.12-rc1-mm1-full/drivers/pnp/pnpacpi/rsparser.c.old	2005-03-23 02:58:31.000000000 +0100
-+++ linux-2.6.12-rc1-mm1-full/drivers/pnp/pnpacpi/rsparser.c	2005-03-23 03:02:49.000000000 +0100
-@@ -94,8 +94,8 @@
- pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
- {
- 	int i = 0;
--	while (!(res->dma_resource[i].flags & IORESOURCE_UNSET) &&
--			i < PNP_MAX_DMA)
-+	while (i < PNP_MAX_DMA &&
-+			!(res->dma_resource[i].flags & IORESOURCE_UNSET))
- 		i++;
- 	if (i < PNP_MAX_DMA) {
- 		res->dma_resource[i].flags = IORESOURCE_DMA;  // Also clears _UNSET flag
+How can I turn the display on?
 
+regards
+Hadmut
 
 
 -------------------------------------------------------
