@@ -1,14 +1,12 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Fw: Re: 2.6.12-rc2-mm2
-Date: 08 Apr 2005 23:20:34 -0400
-Message-ID: <1113016833.2418.14.camel@d845pe>
-References: <20050408092947.41175d63.akpm@osdl.org>
-	 <425707A2.2050208@gmail.com>
+From: Doug Gray <dgra1233-bzGI/hKkdgQnC9Muvcwxkw@public.gmane.org>
+Subject: ACPI and hyper-threading on a dual Xeon board with a bios without
+ acpi module
+Date: Sat, 09 Apr 2005 17:59:02 +1000
+Message-ID: <42578B46.2000805@bigpond.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <425707A2.2050208-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,33 +16,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-04-08 at 18:37, Michael Thonke wrote:
-> Hi Andrew and Bjorn,
-> 
-> but whats so different that causes some PCI-E cards to get not
-> regonized
-> or working at all?
-> I mean 2.6.11.x works and 2.6.12-rc2 works,while 2.6.12-rc1 was like
-> mm-behavior with
-> 
-> ACPI: Can't get handler for
-> 
+Folks,
 
-Not possible, the code that prints that (nop) string
-is not present in Linus' tree -- it exists only in the mm patch.
+The hardware is a GMS V269  VME format dual Xeon board.
 
-Indeed, the glue.c code that prints this message has been in
-mm tree, and you can remove just that patch by getting it here:
-http://linux-acpi.bkbits.net:8080/to-akpm/cset@423bb5a2CcvybiQpT6qaZpTIzPtzCQ
+How can I get Hyperthreading working when the BIOS does not contain the ACPI support module?
 
-If 2.6.12-rc1 was broken like the mm tree, then it could
-have had noting to do with this.
+I do not understand why but have seen reference to the requirement to have ACPI available before the 
+hyperthreading will function.
 
--Len
+Is ACPI required to recognise the Hyperthreaded CPUs?  If so what are the minimal acpi tables 
+required to be included in the kernel to enable hyperthreading and can acpi be invoked on the system 
+(via kernel) when there is no pre existing support in the BIOS.
+
+Background:
+
+I am having a problem with a dual (physical) Xeon VME single board (from GMS model V269)) getting 
+hyperthreading up and going on the CPUs.  Two physical CPUs are recognised but not the logical 
+'siblings'.
+
+I have Fedora Core 3 installed with the SMP kernel now upgraded (rpm) to 2.6.10
+
+The board manufacturer has not included the ACPI module in the BIOS (AMIBIOS8) for their own 
+reasons.  GMS position is that this is only a power management function and users of this board 
+would not require power manangement.
+
+The BIOS Northbridge (Serverworks GC-LE) support does have a switch option to enable hyperthreading, 
+this is enabled.
+
+As I understand ACPI the BIOS passes configuration information about the CPUs to the Linux Kernel 
+which then know how to initialise the Hyperthreading CPUs.
+
+Apparently Windows does not require this information from the Kernel to run Hyperthreading so 
+naturally GMS (the board manufacturer) is not willing to spend the effort to get ht on Linux sorted out.
+
+On booting the Linux dmesg shows the message "ACPI: Unable to locate RSDP"  which I interpret to 
+mean the Kernel is unable to find the resource information table which should have been setup by the 
+BIOS. The acpi reference manual tells me that the search in the first megabyte of physical memory is 
+unable to locate the RSDP signature "RSD PTR".
+
+I am not surprised that the RSDP is not found because the OEM did not include the ACPI module in the 
+BIOS.
+
+I have tried the kernel parameter acpi=ht but this did nothing to activate the ht activity. Does 
+this need to be be augmented with an acpi=force command?
+
+I hope someone can help.
+
+Thanks
+Doug
 
 
 
