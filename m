@@ -1,13 +1,15 @@
-From: Hadmut Danisch <hadmut-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
-Subject: Re: Re: LCD does not wake up (problem found)
-Date: Sun, 10 Apr 2005 10:43:57 +0200
-Message-ID: <20050410084357.GA25407@danisch.de>
-References: <20050410083144.GA21389@danisch.de>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Button problems
+Date: Sun, 10 Apr 2005 11:30:30 +0000
+Message-ID: <200504101130.30497.stefandoesinger@gmx.at>
+References: <20050409221927.GA28709@danisch.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050409221927.GA28709-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050410083144.GA21389-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,27 +20,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Hadmut Danisch <hadmut-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Ok, 
 
-I found the problem and the solution. The problem is mentioned
-on http://www.thinkwiki.org/How_to_make_ACPI_work, it's a kernel 
-bug. 
+> - HP nx7000:
+>
+>   suspend to ram works. To wake the computer up I have to
+>   press the main power button. The computer wakes up. But as
+>   soon as everything is restored the ACPI routines detect
+>   that the power button had been pressed (the one to wake it up) and
+>   act as if the power button was pressed: The linux is shut down
+>   (halt), which is obviously not what was expected.
+You have to edit your acpid scripts(the one which handle the power button and 
+the sleep button)
+Method A is to disable any actions done on power button events. Method B is to 
+create some marker in the suspend script, e.g. a file in /tmp or /dev/shm, 
+before suspend. The power button handler checks for this file. If it's there 
+it delets it, otherwise it shuts down the system
 
-It takes the boot parameter 
+>
+> - MSI S260:
+>
+>   The S260 has three buttons: Power button, Lid button, and
+>   Sleep button (Fn+F12 "Zz"). /proc/acpi/button says that
+>   all three buttons are recognized under ACPI. Power and Lid work,
+>   but when the sleep button is pressed just nothing happens.
+>   No log entry, no event, the acpid does not even wake up.
+>
+>   Any idea?  (under WindowsXP it works...)
+No Idea here. Sorry. Broken DSDT?
 
-  acpi_sleep=s3_bios
-
-
-The web pages says this problem had been fixed in 2.6.11-rc1, but
-obviously it still exists.
-
-
-regards
-Hadmut
-
-
+Stefan
 
 
 -------------------------------------------------------
