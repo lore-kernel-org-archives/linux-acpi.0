@@ -1,11 +1,13 @@
 From: Hadmut Danisch <hadmut-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
-Subject: Re: LCD does not wake up
-Date: Sun, 10 Apr 2005 10:31:44 +0200
-Message-ID: <20050410083144.GA21389@danisch.de>
+Subject: Re: Re: LCD does not wake up (problem found)
+Date: Sun, 10 Apr 2005 10:43:57 +0200
+Message-ID: <20050410084357.GA25407@danisch.de>
+References: <20050410083144.GA21389@danisch.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20050410083144.GA21389-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,17 +20,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Tomasz Kojm <tk@lo...> wrote:
+Ok, 
 
-> Try `dpms on`. 
+I found the problem and the solution. The problem is mentioned
+on http://www.thinkwiki.org/How_to_make_ACPI_work, it's a kernel 
+bug. 
+
+It takes the boot parameter 
+
+  acpi_sleep=s3_bios
 
 
-Good hint, thanks. But doesn't work. :-(
+The web pages says this problem had been fixed in 2.6.11-rc1, but
+obviously it still exists.
 
-Any other idea how to wakup the LCD?
 
 regards
 Hadmut
+
+
 
 
 -------------------------------------------------------
