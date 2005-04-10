@@ -1,10 +1,11 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: Re: LCD does not wake up (problem found)
-Date: Sun, 10 Apr 2005 11:39:57 +0200
-Message-ID: <4258F46D.5080606@gmx.net>
-References: <20050410083144.GA21389@danisch.de> <20050410084357.GA25407@danisch.de>
+Date: Sun, 10 Apr 2005 12:08:15 +0100
+Message-ID: <1113131295.14234.70.camel@tyrosine>
+References: <20050410083144.GA21389@danisch.de>
+	 <20050410084357.GA25407@danisch.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <20050410084357.GA25407-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
@@ -17,42 +18,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hadmut Danisch <hadmut-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hadmut Danisch schrieb:
+On Sun, 2005-04-10 at 10:43 +0200, Hadmut Danisch wrote:
 > Ok, 
 > 
 > I found the problem and the solution. The problem is mentioned
-> on http://www.thinkwiki.org/How_to_make_ACPI_work, it's a 
-> kernel bug. 
+> on http://www.thinkwiki.org/How_to_make_ACPI_work, it's a kernel 
+> bug. 
 
-The webpage only applies to thinkpads. For information about other
-manufacturers and models, please refer to
-Documentation/power/video.txt in your Linux source. However, I
-can't see where on the page that problem is described as a
-kernel bug.
+It's not a kernel bug. Most hardware needs the video to be
+reinitialised. s3_bios is one way of attempting to do that, and it works
+on some hardware. On other hardware, it crashes the machine.
 
-
-> It takes the boot parameter 
-> 
->   acpi_sleep=s3_bios
-> 
-> 
-> The web pages says this problem had been fixed in 2.6.11-rc1, but
-> obviously it still exists.
-
-Yes, that is a machine specific parameter. Some time in the future,
-distributions will probably set it automatically, but there is no
-generic way to find out which resume parameters a machine needs,
-we can only build a database and use that.
-
-
-Regards,
-Carl-Daniel
 -- 
-http://www.hailfinger.org/
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
