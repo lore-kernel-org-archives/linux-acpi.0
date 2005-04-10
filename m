@@ -1,7 +1,7 @@
 From: Hadmut Danisch <hadmut-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
-Subject: Button problems
-Date: Sun, 10 Apr 2005 00:19:27 +0200
-Message-ID: <20050409221927.GA28709@danisch.de>
+Subject: Re: LCD does not wake up
+Date: Sun, 10 Apr 2005 10:31:44 +0200
+Message-ID: <20050410083144.GA21389@danisch.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,40 +18,17 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Tomasz Kojm <tk@lo...> wrote:
 
-I have two more problems (kernel 2.4.11.7, intel based notebooks), 
-with buttons:
-
-
-- HP nx7000:
-
-  suspend to ram works. To wake the computer up I have to 
-  press the main power button. The computer wakes up. But as
-  soon as everything is restored the ACPI routines detect 
-  that the power button had been pressed (the one to wake it up) and 
-  act as if the power button was pressed: The linux is shut down
-  (halt), which is obviously not what was expected. 
+> Try `dpms on`. 
 
 
+Good hint, thanks. But doesn't work. :-(
 
-- MSI S260:
-
-  The S260 has three buttons: Power button, Lid button, and 
-  Sleep button (Fn+F12 "Zz"). /proc/acpi/button says that 
-  all three buttons are recognized under ACPI. Power and Lid work, 
-  but when the sleep button is pressed just nothing happens. 
-  No log entry, no event, the acpid does not even wake up.
-
-  Any idea?  (under WindowsXP it works...)
-
-
+Any other idea how to wakup the LCD?
 
 regards
 Hadmut
-
-
-
 
 
 -------------------------------------------------------
