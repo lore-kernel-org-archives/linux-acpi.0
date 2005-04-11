@@ -1,14 +1,11 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: bk-acpi causes freezes on ia64/tiger
-Date: 11 Apr 2005 16:45:42 -0400
-Message-ID: <1113252341.2419.44.camel@d845pe>
-References: <20050408011437.7fe1159d.akpm@osdl.org>
-	 <1113190685.2420.36.camel@d845pe>
+From: klug <klug-90T4dkFmkpLYtjvyW6yDsg@public.gmane.org>
+Subject: No longer able to turn lcd backlight off with 2.6.11->2.6.12-rc2
+Date: Mon, 11 Apr 2005 19:08:20 -0400
+Message-ID: <425B0364.6000602@blarg.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1113190685.2420.36.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,25 +15,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Venkatesh Pallipadi <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2005-04-10 at 23:38, Len Brown wrote:
-> On Fri, 2005-04-08 at 04:14, Andrew Morton wrote:
-> > Current bk-acpi tree causes my Intel tiger box to freeze partway
-> > through boot.
+After upgrading to 2.6.11.6 from 2.6.9 I am no longer able to turn the 
+lcd backlight off with the command "echo lcd_out:0 > 
+/proc/acpi/toshiba/video". I have since tried, 2.6.11, 2.6.11.7, 
+2.6.12-rc1, and 2.6.12-rc2 with no luck. With that command I have been 
+able to turn the lcd backlight off with all 2.6 kernels up to and 
+including 2.6.9. Previous to the upgrade, nothing appeared in my kernel 
+logs after giving the command, however, now with 2.6.11->2.6.12-rc2 I 
+get the entry "[kernel] video bus notify". I have also tried the new 
+option "CONFIG_BACKLIGHT_LCD_SUPPOT", but again that does not allow me 
+to turn the backlight off. My complete setup including hardware/kernel 
+options is avaiable at, http://bugme.osdl.org/show_bug.cgi?id=4468
 
-Looks like the freeze may be due to the "C1 patch":
-
-http://linux-acpi.bkbits.net:8080/to-akpm/cset@424cccb33M89YNHJOda1O6L0B6ucjw
-
-If you revert that one does your tiger live?
-
-thanks,
--Len
-
-
+-klug
 
 
 -------------------------------------------------------
