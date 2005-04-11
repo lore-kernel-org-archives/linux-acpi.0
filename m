@@ -1,12 +1,13 @@
-From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Subject: bk-acpi breaks suspend2ram
-Date: Mon, 11 Apr 2005 12:19:57 +0200
-Message-ID: <20050411101957.GA32363@gamma.logic.tuwien.ac.at>
+From: Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Fw: Re: 2.6.12-rc2-mm2
+Date: Mon, 11 Apr 2005 18:24:33 +0200
+Message-ID: <425AA4C1.6050609@gmail.com>
+References: <16A54BF5D6E14E4D916CE26C9AD30575019C29C7@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="fUYQa+Pmc3FrFX/N"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------070002030407000002060202"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575019C29C7-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,1861 +17,803 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Nguyen, Tom L" <tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
---fUYQa+Pmc3FrFX/N
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Dear ACPI Developers!
-
-On my laptop bk-acpi breaks suspend2ram as follows: Suspend works fine,
-but resume sends the laptop straight into reboot.
-
-I have checked that 2.6.12-rc2 works fine, while 2.6.12-rc2 plus the
-bk-acpi patch from the current mm kernel (mm3) does not work.
-
-I booted into single user mode, no process running (more or less), and
-no modules loaded.
-
-I use the attached .config file.
-
-The last time I saw it working was around 2.6.12-rc1-mm4, after this it
-stopped working for me.
-
-laptop: acer travelmate 654LCi, debian/sid
-
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------=
-------
-Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0 =
-di Siena
-sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
-690018
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
-5 B094
--------------------------------------------------------------------------=
-------
-LUPPITT (n.)
-The piece of leather which hangs off the bottom of your shoe before
-you can be bothered to get it mended.
-			--- Douglas Adams, The Meaning of Liff
-
---fUYQa+Pmc3FrFX/N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="config-2.6.12-rc2-bkacpi"
-
-#
-# Automatically generated make config: don't edit
-# Linux kernel version: 2.6.12-rc2-bkacpi
-# Mon Apr 11 11:33:47 2005
-#
-CONFIG_X86=y
-CONFIG_MMU=y
-CONFIG_UID16=y
-CONFIG_GENERIC_ISA_DMA=y
-CONFIG_GENERIC_IOMAP=y
-
-#
-# Code maturity level options
-#
-CONFIG_EXPERIMENTAL=y
-# CONFIG_CLEAN_COMPILE is not set
-CONFIG_BROKEN=y
-CONFIG_BROKEN_ON_SMP=y
-CONFIG_LOCK_KERNEL=y
-CONFIG_INIT_ENV_ARG_LIMIT=32
-
-#
-# General setup
-#
-CONFIG_LOCALVERSION=""
-CONFIG_SWAP=y
-CONFIG_SYSVIPC=y
-CONFIG_POSIX_MQUEUE=y
-# CONFIG_BSD_PROCESS_ACCT is not set
-CONFIG_SYSCTL=y
-# CONFIG_AUDIT is not set
-CONFIG_HOTPLUG=y
-CONFIG_KOBJECT_UEVENT=y
-CONFIG_IKCONFIG=y
-CONFIG_IKCONFIG_PROC=y
-# CONFIG_EMBEDDED is not set
-CONFIG_KALLSYMS=y
-# CONFIG_KALLSYMS_ALL is not set
-# CONFIG_KALLSYMS_EXTRA_PASS is not set
-CONFIG_BASE_FULL=y
-CONFIG_FUTEX=y
-CONFIG_EPOLL=y
-CONFIG_SHMEM=y
-CONFIG_CC_ALIGN_FUNCTIONS=0
-CONFIG_CC_ALIGN_LABELS=0
-CONFIG_CC_ALIGN_LOOPS=0
-CONFIG_CC_ALIGN_JUMPS=0
-# CONFIG_TINY_SHMEM is not set
-CONFIG_BASE_SMALL=0
-
-#
-# Loadable module support
-#
-CONFIG_MODULES=y
-CONFIG_MODULE_UNLOAD=y
-# CONFIG_MODULE_FORCE_UNLOAD is not set
-CONFIG_OBSOLETE_MODPARM=y
-# CONFIG_MODVERSIONS is not set
-# CONFIG_MODULE_SRCVERSION_ALL is not set
-CONFIG_KMOD=y
-
-#
-# Processor type and features
-#
-CONFIG_X86_PC=y
-# CONFIG_X86_ELAN is not set
-# CONFIG_X86_VOYAGER is not set
-# CONFIG_X86_NUMAQ is not set
-# CONFIG_X86_SUMMIT is not set
-# CONFIG_X86_BIGSMP is not set
-# CONFIG_X86_VISWS is not set
-# CONFIG_X86_GENERICARCH is not set
-# CONFIG_X86_ES7000 is not set
-# CONFIG_M386 is not set
-# CONFIG_M486 is not set
-# CONFIG_M586 is not set
-# CONFIG_M586TSC is not set
-# CONFIG_M586MMX is not set
-# CONFIG_M686 is not set
-# CONFIG_MPENTIUMII is not set
-# CONFIG_MPENTIUMIII is not set
-# CONFIG_MPENTIUMM is not set
-CONFIG_MPENTIUM4=y
-# CONFIG_MK6 is not set
-# CONFIG_MK7 is not set
-# CONFIG_MK8 is not set
-# CONFIG_MCRUSOE is not set
-# CONFIG_MEFFICEON is not set
-# CONFIG_MWINCHIPC6 is not set
-# CONFIG_MWINCHIP2 is not set
-# CONFIG_MWINCHIP3D is not set
-# CONFIG_MGEODE is not set
-# CONFIG_MCYRIXIII is not set
-# CONFIG_MVIAC3_2 is not set
-# CONFIG_X86_GENERIC is not set
-CONFIG_X86_CMPXCHG=y
-CONFIG_X86_XADD=y
-CONFIG_X86_L1_CACHE_SHIFT=7
-CONFIG_RWSEM_XCHGADD_ALGORITHM=y
-CONFIG_GENERIC_CALIBRATE_DELAY=y
-CONFIG_X86_WP_WORKS_OK=y
-CONFIG_X86_INVLPG=y
-CONFIG_X86_BSWAP=y
-CONFIG_X86_POPAD_OK=y
-CONFIG_X86_GOOD_APIC=y
-CONFIG_X86_INTEL_USERCOPY=y
-CONFIG_X86_USE_PPRO_CHECKSUM=y
-CONFIG_HPET_TIMER=y
-CONFIG_HPET_EMULATE_RTC=y
-# CONFIG_SMP is not set
-CONFIG_PREEMPT=y
-CONFIG_PREEMPT_BKL=y
-CONFIG_X86_UP_APIC=y
-CONFIG_X86_UP_IOAPIC=y
-CONFIG_X86_LOCAL_APIC=y
-CONFIG_X86_IO_APIC=y
-CONFIG_X86_TSC=y
-CONFIG_X86_MCE=y
-CONFIG_X86_MCE_NONFATAL=y
-CONFIG_X86_MCE_P4THERMAL=y
-# CONFIG_TOSHIBA is not set
-# CONFIG_I8K is not set
-CONFIG_MICROCODE=y
-CONFIG_X86_MSR=y
-CONFIG_X86_CPUID=y
-
-#
-# Firmware Drivers
-#
-# CONFIG_EDD is not set
-CONFIG_NOHIGHMEM=y
-# CONFIG_HIGHMEM4G is not set
-# CONFIG_HIGHMEM64G is not set
-# CONFIG_MATH_EMULATION is not set
-CONFIG_MTRR=y
-# CONFIG_EFI is not set
-CONFIG_HAVE_DEC_LOCK=y
-CONFIG_REGPARM=y
-CONFIG_SECCOMP=y
-
-#
-# Power management options (ACPI, APM)
-#
-CONFIG_PM=y
-CONFIG_PM_DEBUG=y
-CONFIG_SOFTWARE_SUSPEND=y
-CONFIG_PM_STD_PARTITION="/dev/hda3"
-
-#
-# ACPI (Advanced Configuration and Power Interface) Support
-#
-CONFIG_ACPI=y
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_INTERPRETER=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SLEEP_PROC_FS=y
-CONFIG_ACPI_AC=y
-CONFIG_ACPI_BATTERY=y
-CONFIG_ACPI_BUTTON=y
-CONFIG_ACPI_VIDEO=y
-CONFIG_ACPI_HOTKEY=y
-CONFIG_ACPI_FAN=y
-CONFIG_ACPI_PROCESSOR=y
-CONFIG_ACPI_THERMAL=y
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_IBM is not set
-# CONFIG_ACPI_TOSHIBA is not set
-CONFIG_ACPI_CUSTOM_DSDT=y
-CONFIG_ACPI_CUSTOM_DSDT_FILE="/etc/DSDT-fixed.hex"
-CONFIG_ACPI_BLACKLIST_YEAR=0
-# CONFIG_ACPI_DEBUG is not set
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SYSTEM=y
-# CONFIG_X86_PM_TIMER is not set
-# CONFIG_ACPI_CONTAINER is not set
-
-#
-# APM (Advanced Power Management) BIOS Support
-#
-# CONFIG_APM is not set
-
-#
-# CPU Frequency scaling
-#
-CONFIG_CPU_FREQ=y
-CONFIG_CPU_FREQ_TABLE=y
-# CONFIG_CPU_FREQ_DEBUG is not set
-CONFIG_CPU_FREQ_STAT=y
-CONFIG_CPU_FREQ_STAT_DETAILS=y
-CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
-# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-CONFIG_CPU_FREQ_GOV_POWERSAVE=y
-CONFIG_CPU_FREQ_GOV_USERSPACE=y
-CONFIG_CPU_FREQ_GOV_ONDEMAND=y
-
-#
-# CPUFreq processor drivers
-#
-CONFIG_X86_ACPI_CPUFREQ=y
-# CONFIG_X86_POWERNOW_K6 is not set
-# CONFIG_X86_POWERNOW_K7 is not set
-# CONFIG_X86_POWERNOW_K8 is not set
-# CONFIG_X86_GX_SUSPMOD is not set
-# CONFIG_X86_SPEEDSTEP_CENTRINO is not set
-CONFIG_X86_SPEEDSTEP_ICH=y
-# CONFIG_X86_SPEEDSTEP_SMI is not set
-# CONFIG_X86_P4_CLOCKMOD is not set
-# CONFIG_X86_CPUFREQ_NFORCE2 is not set
-# CONFIG_X86_LONGRUN is not set
-# CONFIG_X86_LONGHAUL is not set
-
-#
-# shared options
-#
-CONFIG_X86_ACPI_CPUFREQ_PROC_INTF=y
-CONFIG_X86_SPEEDSTEP_LIB=y
-# CONFIG_X86_SPEEDSTEP_RELAXED_CAP_CHECK is not set
-
-#
-# Bus options (PCI, PCMCIA, EISA, MCA, ISA)
-#
-CONFIG_PCI=y
-# CONFIG_PCI_GOBIOS is not set
-# CONFIG_PCI_GOMMCONFIG is not set
-# CONFIG_PCI_GODIRECT is not set
-CONFIG_PCI_GOANY=y
-CONFIG_PCI_BIOS=y
-CONFIG_PCI_DIRECT=y
-CONFIG_PCI_MMCONFIG=y
-# CONFIG_PCIEPORTBUS is not set
-# CONFIG_PCI_MSI is not set
-CONFIG_PCI_LEGACY_PROC=y
-CONFIG_PCI_NAMES=y
-# CONFIG_PCI_DEBUG is not set
-CONFIG_ISA=y
-CONFIG_EISA=y
-# CONFIG_EISA_VLB_PRIMING is not set
-CONFIG_EISA_PCI_EISA=y
-# CONFIG_EISA_VIRTUAL_ROOT is not set
-# CONFIG_EISA_NAMES is not set
-# CONFIG_MCA is not set
-# CONFIG_SCx200 is not set
-
-#
-# PCCARD (PCMCIA/CardBus) support
-#
-CONFIG_PCCARD=m
-# CONFIG_PCMCIA_DEBUG is not set
-CONFIG_PCMCIA=m
-CONFIG_CARDBUS=y
-
-#
-# PC-card bridges
-#
-CONFIG_YENTA=m
-# CONFIG_PD6729 is not set
-# CONFIG_I82092 is not set
-# CONFIG_I82365 is not set
-# CONFIG_TCIC is not set
-CONFIG_PCMCIA_PROBE=y
-CONFIG_PCCARD_NONSTATIC=m
-
-#
-# PCI Hotplug Support
-#
-# CONFIG_HOTPLUG_PCI is not set
-
-#
-# Executable file formats
-#
-CONFIG_BINFMT_ELF=y
-# CONFIG_BINFMT_AOUT is not set
-CONFIG_BINFMT_MISC=m
-
-#
-# Device Drivers
-#
-
-#
-# Generic Driver Options
-#
-# CONFIG_STANDALONE is not set
-CONFIG_PREVENT_FIRMWARE_BUILD=y
-CONFIG_FW_LOADER=y
-# CONFIG_DEBUG_DRIVER is not set
-
-#
-# Memory Technology Devices (MTD)
-#
-# CONFIG_MTD is not set
-
-#
-# Parallel port support
-#
-CONFIG_PARPORT=y
-CONFIG_PARPORT_PC=y
-# CONFIG_PARPORT_SERIAL is not set
-CONFIG_PARPORT_PC_FIFO=y
-# CONFIG_PARPORT_PC_SUPERIO is not set
-# CONFIG_PARPORT_PC_PCMCIA is not set
-# CONFIG_PARPORT_GSC is not set
-CONFIG_PARPORT_1284=y
-
-#
-# Plug and Play support
-#
-CONFIG_PNP=y
-# CONFIG_PNP_DEBUG is not set
-
-#
-# Protocols
-#
-CONFIG_ISAPNP=y
-CONFIG_PNPBIOS=y
-CONFIG_PNPBIOS_PROC_FS=y
-CONFIG_PNPACPI=y
-
-#
-# Block devices
-#
-# CONFIG_BLK_DEV_FD is not set
-# CONFIG_BLK_DEV_XD is not set
-# CONFIG_PARIDE is not set
-# CONFIG_BLK_CPQ_DA is not set
-# CONFIG_BLK_CPQ_CISS_DA is not set
-# CONFIG_BLK_DEV_DAC960 is not set
-# CONFIG_BLK_DEV_UMEM is not set
-# CONFIG_BLK_DEV_COW_COMMON is not set
-CONFIG_BLK_DEV_LOOP=m
-CONFIG_BLK_DEV_CRYPTOLOOP=m
-# CONFIG_BLK_DEV_NBD is not set
-# CONFIG_BLK_DEV_SX8 is not set
-# CONFIG_BLK_DEV_UB is not set
-CONFIG_BLK_DEV_RAM=y
-CONFIG_BLK_DEV_RAM_COUNT=16
-CONFIG_BLK_DEV_RAM_SIZE=4096
-CONFIG_BLK_DEV_INITRD=y
-CONFIG_INITRAMFS_SOURCE=""
-# CONFIG_LBD is not set
-CONFIG_CDROM_PKTCDVD=m
-CONFIG_CDROM_PKTCDVD_BUFFERS=8
-# CONFIG_CDROM_PKTCDVD_WCACHE is not set
-
-#
-# IO Schedulers
-#
-CONFIG_IOSCHED_NOOP=y
-CONFIG_IOSCHED_AS=y
-CONFIG_IOSCHED_DEADLINE=y
-CONFIG_IOSCHED_CFQ=y
-CONFIG_ATA_OVER_ETH=m
-
-#
-# ATA/ATAPI/MFM/RLL support
-#
-CONFIG_IDE=y
-CONFIG_BLK_DEV_IDE=y
-
-#
-# Please see Documentation/ide.txt for help/info on IDE drives
-#
-# CONFIG_BLK_DEV_IDE_SATA is not set
-# CONFIG_BLK_DEV_HD_IDE is not set
-CONFIG_BLK_DEV_IDEDISK=y
-# CONFIG_IDEDISK_MULTI_MODE is not set
-CONFIG_BLK_DEV_IDECS=m
-CONFIG_BLK_DEV_IDECD=y
-# CONFIG_BLK_DEV_IDETAPE is not set
-CONFIG_BLK_DEV_IDEFLOPPY=m
-# CONFIG_BLK_DEV_IDESCSI is not set
-# CONFIG_IDE_TASK_IOCTL is not set
-
-#
-# IDE chipset support/bugfixes
-#
-CONFIG_IDE_GENERIC=y
-# CONFIG_BLK_DEV_CMD640 is not set
-# CONFIG_BLK_DEV_IDEPNP is not set
-CONFIG_BLK_DEV_IDEPCI=y
-CONFIG_IDEPCI_SHARE_IRQ=y
-# CONFIG_BLK_DEV_OFFBOARD is not set
-# CONFIG_BLK_DEV_GENERIC is not set
-# CONFIG_BLK_DEV_OPTI621 is not set
-# CONFIG_BLK_DEV_RZ1000 is not set
-CONFIG_BLK_DEV_IDEDMA_PCI=y
-# CONFIG_BLK_DEV_IDEDMA_FORCED is not set
-CONFIG_IDEDMA_PCI_AUTO=y
-# CONFIG_IDEDMA_ONLYDISK is not set
-# CONFIG_BLK_DEV_AEC62XX is not set
-# CONFIG_BLK_DEV_ALI15X3 is not set
-# CONFIG_BLK_DEV_AMD74XX is not set
-# CONFIG_BLK_DEV_ATIIXP is not set
-# CONFIG_BLK_DEV_CMD64X is not set
-# CONFIG_BLK_DEV_TRIFLEX is not set
-# CONFIG_BLK_DEV_CY82C693 is not set
-# CONFIG_BLK_DEV_CS5520 is not set
-# CONFIG_BLK_DEV_CS5530 is not set
-# CONFIG_BLK_DEV_HPT34X is not set
-# CONFIG_BLK_DEV_HPT366 is not set
-# CONFIG_BLK_DEV_SC1200 is not set
-CONFIG_BLK_DEV_PIIX=y
-# CONFIG_BLK_DEV_NS87415 is not set
-# CONFIG_BLK_DEV_PDC202XX_OLD is not set
-# CONFIG_BLK_DEV_PDC202XX_NEW is not set
-# CONFIG_BLK_DEV_SVWKS is not set
-# CONFIG_BLK_DEV_SIIMAGE is not set
-# CONFIG_BLK_DEV_SIS5513 is not set
-# CONFIG_BLK_DEV_SLC90E66 is not set
-# CONFIG_BLK_DEV_TRM290 is not set
-# CONFIG_BLK_DEV_VIA82CXXX is not set
-# CONFIG_IDE_ARM is not set
-# CONFIG_IDE_CHIPSETS is not set
-CONFIG_BLK_DEV_IDEDMA=y
-# CONFIG_IDEDMA_IVB is not set
-CONFIG_IDEDMA_AUTO=y
-# CONFIG_BLK_DEV_HD is not set
-
-#
-# SCSI device support
-#
-CONFIG_SCSI=y
-CONFIG_SCSI_PROC_FS=y
-
-#
-# SCSI support type (disk, tape, CD-ROM)
-#
-CONFIG_BLK_DEV_SD=m
-# CONFIG_CHR_DEV_ST is not set
-# CONFIG_CHR_DEV_OSST is not set
-# CONFIG_BLK_DEV_SR is not set
-CONFIG_CHR_DEV_SG=m
-
-#
-# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
-#
-# CONFIG_SCSI_MULTI_LUN is not set
-# CONFIG_SCSI_CONSTANTS is not set
-CONFIG_SCSI_LOGGING=y
-
-#
-# SCSI Transport Attributes
-#
-# CONFIG_SCSI_SPI_ATTRS is not set
-# CONFIG_SCSI_FC_ATTRS is not set
-# CONFIG_SCSI_ISCSI_ATTRS is not set
-
-#
-# SCSI low-level drivers
-#
-# CONFIG_BLK_DEV_3W_XXXX_RAID is not set
-# CONFIG_SCSI_3W_9XXX is not set
-# CONFIG_SCSI_7000FASST is not set
-# CONFIG_SCSI_ACARD is not set
-# CONFIG_SCSI_AHA152X is not set
-# CONFIG_SCSI_AHA1542 is not set
-# CONFIG_SCSI_AHA1740 is not set
-# CONFIG_SCSI_AACRAID is not set
-# CONFIG_SCSI_AIC7XXX is not set
-# CONFIG_SCSI_AIC7XXX_OLD is not set
-# CONFIG_SCSI_AIC79XX is not set
-# CONFIG_SCSI_DPT_I2O is not set
-# CONFIG_SCSI_ADVANSYS is not set
-# CONFIG_SCSI_IN2000 is not set
-# CONFIG_MEGARAID_NEWGEN is not set
-# CONFIG_MEGARAID_LEGACY is not set
-# CONFIG_SCSI_SATA is not set
-# CONFIG_SCSI_BUSLOGIC is not set
-# CONFIG_SCSI_CPQFCTS is not set
-# CONFIG_SCSI_DMX3191D is not set
-# CONFIG_SCSI_DTC3280 is not set
-# CONFIG_SCSI_EATA is not set
-# CONFIG_SCSI_EATA_PIO is not set
-# CONFIG_SCSI_FUTURE_DOMAIN is not set
-# CONFIG_SCSI_GDTH is not set
-# CONFIG_SCSI_GENERIC_NCR5380 is not set
-# CONFIG_SCSI_GENERIC_NCR5380_MMIO is not set
-# CONFIG_SCSI_IPS is not set
-# CONFIG_SCSI_INITIO is not set
-# CONFIG_SCSI_INIA100 is not set
-# CONFIG_SCSI_PPA is not set
-CONFIG_SCSI_IMM=m
-# CONFIG_SCSI_IZIP_EPP16 is not set
-# CONFIG_SCSI_IZIP_SLOW_CTR is not set
-# CONFIG_SCSI_NCR53C406A is not set
-# CONFIG_SCSI_SYM53C8XX_2 is not set
-# CONFIG_SCSI_IPR is not set
-# CONFIG_SCSI_PAS16 is not set
-# CONFIG_SCSI_PCI2000 is not set
-# CONFIG_SCSI_PCI2220I is not set
-# CONFIG_SCSI_PSI240I is not set
-# CONFIG_SCSI_QLOGIC_FAS is not set
-# CONFIG_SCSI_QLOGIC_ISP is not set
-# CONFIG_SCSI_QLOGIC_FC is not set
-# CONFIG_SCSI_QLOGIC_1280 is not set
-CONFIG_SCSI_QLA2XXX=y
-# CONFIG_SCSI_QLA21XX is not set
-# CONFIG_SCSI_QLA22XX is not set
-# CONFIG_SCSI_QLA2300 is not set
-# CONFIG_SCSI_QLA2322 is not set
-# CONFIG_SCSI_QLA6312 is not set
-# CONFIG_SCSI_SEAGATE is not set
-# CONFIG_SCSI_SIM710 is not set
-# CONFIG_SCSI_SYM53C416 is not set
-# CONFIG_SCSI_DC395x is not set
-# CONFIG_SCSI_DC390T is not set
-# CONFIG_SCSI_T128 is not set
-# CONFIG_SCSI_U14_34F is not set
-# CONFIG_SCSI_ULTRASTOR is not set
-# CONFIG_SCSI_NSP32 is not set
-# CONFIG_SCSI_DEBUG is not set
-
-#
-# PCMCIA SCSI adapter support
-#
-CONFIG_PCMCIA_AHA152X=m
-CONFIG_PCMCIA_FDOMAIN=m
-# CONFIG_PCMCIA_NINJA_SCSI is not set
-CONFIG_PCMCIA_QLOGIC=m
-CONFIG_PCMCIA_SYM53C500=m
-
-#
-# Old CD-ROM drivers (not SCSI, not IDE)
-#
-# CONFIG_CD_NO_IDESCSI is not set
-
-#
-# Multi-device support (RAID and LVM)
-#
-# CONFIG_MD is not set
-
-#
-# Fusion MPT device support
-#
-# CONFIG_FUSION is not set
-
-#
-# IEEE 1394 (FireWire) support
-#
-CONFIG_IEEE1394=m
-
-#
-# Subsystem Options
-#
-# CONFIG_IEEE1394_VERBOSEDEBUG is not set
-# CONFIG_IEEE1394_OUI_DB is not set
-CONFIG_IEEE1394_EXTRA_CONFIG_ROMS=y
-CONFIG_IEEE1394_CONFIG_ROM_IP1394=y
-
-#
-# Device Drivers
-#
-# CONFIG_IEEE1394_PCILYNX is not set
-CONFIG_IEEE1394_OHCI1394=m
-
-#
-# Protocol Drivers
-#
-CONFIG_IEEE1394_VIDEO1394=m
-CONFIG_IEEE1394_SBP2=m
-# CONFIG_IEEE1394_SBP2_PHYS_DMA is not set
-CONFIG_IEEE1394_ETH1394=m
-CONFIG_IEEE1394_DV1394=m
-CONFIG_IEEE1394_RAWIO=m
-CONFIG_IEEE1394_CMP=m
-CONFIG_IEEE1394_AMDTP=m
-
-#
-# I2O device support
-#
-# CONFIG_I2O is not set
-
-#
-# Networking support
-#
-CONFIG_NET=y
-
-#
-# Networking options
-#
-CONFIG_PACKET=y
-# CONFIG_PACKET_MMAP is not set
-CONFIG_UNIX=y
-CONFIG_NET_KEY=y
-CONFIG_INET=y
-CONFIG_IP_MULTICAST=y
-# CONFIG_IP_ADVANCED_ROUTER is not set
-# CONFIG_IP_PNP is not set
-# CONFIG_NET_IPIP is not set
-# CONFIG_NET_IPGRE is not set
-# CONFIG_IP_MROUTE is not set
-# CONFIG_ARPD is not set
-CONFIG_SYN_COOKIES=y
-CONFIG_INET_AH=m
-CONFIG_INET_ESP=m
-CONFIG_INET_IPCOMP=m
-CONFIG_INET_TUNNEL=m
-CONFIG_IP_TCPDIAG=y
-# CONFIG_IP_TCPDIAG_IPV6 is not set
-
-#
-# IP: Virtual Server Configuration
-#
-# CONFIG_IP_VS is not set
-# CONFIG_IPV6 is not set
-CONFIG_NETFILTER=y
-# CONFIG_NETFILTER_DEBUG is not set
-
-#
-# IP: Netfilter Configuration
-#
-CONFIG_IP_NF_CONNTRACK=m
-# CONFIG_IP_NF_CT_ACCT is not set
-CONFIG_IP_NF_CONNTRACK_MARK=y
-CONFIG_IP_NF_CT_PROTO_SCTP=m
-CONFIG_IP_NF_FTP=m
-CONFIG_IP_NF_IRC=m
-CONFIG_IP_NF_TFTP=m
-CONFIG_IP_NF_AMANDA=m
-CONFIG_IP_NF_QUEUE=m
-CONFIG_IP_NF_IPTABLES=m
-CONFIG_IP_NF_MATCH_LIMIT=m
-CONFIG_IP_NF_MATCH_IPRANGE=m
-CONFIG_IP_NF_MATCH_MAC=m
-CONFIG_IP_NF_MATCH_PKTTYPE=m
-CONFIG_IP_NF_MATCH_MARK=m
-CONFIG_IP_NF_MATCH_MULTIPORT=m
-CONFIG_IP_NF_MATCH_TOS=m
-CONFIG_IP_NF_MATCH_RECENT=m
-CONFIG_IP_NF_MATCH_ECN=m
-CONFIG_IP_NF_MATCH_DSCP=m
-CONFIG_IP_NF_MATCH_AH_ESP=m
-CONFIG_IP_NF_MATCH_LENGTH=m
-CONFIG_IP_NF_MATCH_TTL=m
-CONFIG_IP_NF_MATCH_TCPMSS=m
-CONFIG_IP_NF_MATCH_HELPER=m
-CONFIG_IP_NF_MATCH_STATE=m
-CONFIG_IP_NF_MATCH_CONNTRACK=m
-CONFIG_IP_NF_MATCH_OWNER=m
-CONFIG_IP_NF_MATCH_ADDRTYPE=m
-CONFIG_IP_NF_MATCH_REALM=m
-CONFIG_IP_NF_MATCH_SCTP=m
-CONFIG_IP_NF_MATCH_COMMENT=m
-CONFIG_IP_NF_MATCH_CONNMARK=m
-CONFIG_IP_NF_MATCH_HASHLIMIT=m
-CONFIG_IP_NF_FILTER=m
-CONFIG_IP_NF_TARGET_REJECT=m
-CONFIG_IP_NF_TARGET_LOG=m
-CONFIG_IP_NF_TARGET_ULOG=m
-CONFIG_IP_NF_TARGET_TCPMSS=m
-CONFIG_IP_NF_NAT=m
-CONFIG_IP_NF_NAT_NEEDED=y
-CONFIG_IP_NF_TARGET_MASQUERADE=m
-CONFIG_IP_NF_TARGET_REDIRECT=m
-CONFIG_IP_NF_TARGET_NETMAP=m
-CONFIG_IP_NF_TARGET_SAME=m
-# CONFIG_IP_NF_NAT_SNMP_BASIC is not set
-CONFIG_IP_NF_NAT_IRC=m
-CONFIG_IP_NF_NAT_FTP=m
-CONFIG_IP_NF_NAT_TFTP=m
-CONFIG_IP_NF_NAT_AMANDA=m
-CONFIG_IP_NF_MANGLE=m
-CONFIG_IP_NF_TARGET_TOS=m
-CONFIG_IP_NF_TARGET_ECN=m
-CONFIG_IP_NF_TARGET_DSCP=m
-CONFIG_IP_NF_TARGET_MARK=m
-CONFIG_IP_NF_TARGET_CLASSIFY=m
-CONFIG_IP_NF_TARGET_CONNMARK=m
-CONFIG_IP_NF_TARGET_CLUSTERIP=m
-CONFIG_IP_NF_RAW=m
-CONFIG_IP_NF_TARGET_NOTRACK=m
-CONFIG_IP_NF_ARPTABLES=m
-CONFIG_IP_NF_ARPFILTER=m
-CONFIG_IP_NF_ARP_MANGLE=m
-CONFIG_XFRM=y
-CONFIG_XFRM_USER=m
-
-#
-# SCTP Configuration (EXPERIMENTAL)
-#
-CONFIG_IP_SCTP=m
-# CONFIG_SCTP_DBG_MSG is not set
-# CONFIG_SCTP_DBG_OBJCNT is not set
-# CONFIG_SCTP_HMAC_NONE is not set
-CONFIG_SCTP_HMAC_SHA1=y
-# CONFIG_SCTP_HMAC_MD5 is not set
-# CONFIG_ATM is not set
-# CONFIG_BRIDGE is not set
-# CONFIG_VLAN_8021Q is not set
-# CONFIG_DECNET is not set
-# CONFIG_LLC2 is not set
-# CONFIG_IPX is not set
-# CONFIG_ATALK is not set
-# CONFIG_X25 is not set
-# CONFIG_LAPB is not set
-# CONFIG_NET_DIVERT is not set
-# CONFIG_ECONET is not set
-# CONFIG_WAN_ROUTER is not set
-
-#
-# QoS and/or fair queueing
-#
-# CONFIG_NET_SCHED is not set
-CONFIG_NET_CLS_ROUTE=y
-
-#
-# Network testing
-#
-# CONFIG_NET_PKTGEN is not set
-# CONFIG_NETPOLL is not set
-# CONFIG_NET_POLL_CONTROLLER is not set
-# CONFIG_HAMRADIO is not set
-CONFIG_IRDA=m
-
-#
-# IrDA protocols
-#
-CONFIG_IRLAN=m
-CONFIG_IRNET=m
-CONFIG_IRCOMM=m
-# CONFIG_IRDA_ULTRA is not set
-
-#
-# IrDA options
-#
-CONFIG_IRDA_CACHE_LAST_LSAP=y
-CONFIG_IRDA_FAST_RR=y
-# CONFIG_IRDA_DEBUG is not set
-
-#
-# Infrared-port device drivers
-#
-
-#
-# SIR device drivers
-#
-CONFIG_IRTTY_SIR=m
-
-#
-# Dongle support
-#
-# CONFIG_DONGLE is not set
-
-#
-# Old SIR device drivers
-#
-CONFIG_IRPORT_SIR=m
-
-#
-# Old Serial dongle support
-#
-CONFIG_DONGLE_OLD=y
-# CONFIG_ESI_DONGLE_OLD is not set
-# CONFIG_ACTISYS_DONGLE_OLD is not set
-# CONFIG_TEKRAM_DONGLE_OLD is not set
-# CONFIG_GIRBIL_DONGLE_OLD is not set
-# CONFIG_LITELINK_DONGLE_OLD is not set
-# CONFIG_MCP2120_DONGLE_OLD is not set
-# CONFIG_OLD_BELKIN_DONGLE_OLD is not set
-# CONFIG_ACT200L_DONGLE_OLD is not set
-# CONFIG_MA600_DONGLE_OLD is not set
-
-#
-# FIR device drivers
-#
-# CONFIG_USB_IRDA is not set
-# CONFIG_SIGMATEL_FIR is not set
-CONFIG_NSC_FIR=m
-# CONFIG_WINBOND_FIR is not set
-# CONFIG_TOSHIBA_FIR is not set
-# CONFIG_SMC_IRCC_FIR is not set
-# CONFIG_ALI_FIR is not set
-# CONFIG_VLSI_FIR is not set
-# CONFIG_VIA_FIR is not set
-# CONFIG_BT is not set
-CONFIG_NETDEVICES=y
-# CONFIG_DUMMY is not set
-# CONFIG_BONDING is not set
-# CONFIG_EQUALIZER is not set
-# CONFIG_TUN is not set
-# CONFIG_NET_SB1000 is not set
-
-#
-# ARCnet devices
-#
-# CONFIG_ARCNET is not set
-
-#
-# Ethernet (10 or 100Mbit)
-#
-CONFIG_NET_ETHERNET=y
-CONFIG_MII=y
-# CONFIG_HAPPYMEAL is not set
-# CONFIG_SUNGEM is not set
-# CONFIG_NET_VENDOR_3COM is not set
-# CONFIG_LANCE is not set
-# CONFIG_NET_VENDOR_SMC is not set
-# CONFIG_NET_VENDOR_RACAL is not set
-
-#
-# Tulip family network device support
-#
-# CONFIG_NET_TULIP is not set
-# CONFIG_AT1700 is not set
-# CONFIG_DEPCA is not set
-# CONFIG_HP100 is not set
-# CONFIG_NET_ISA is not set
-CONFIG_NET_PCI=y
-# CONFIG_PCNET32 is not set
-# CONFIG_AMD8111_ETH is not set
-# CONFIG_ADAPTEC_STARFIRE is not set
-# CONFIG_AC3200 is not set
-# CONFIG_APRICOT is not set
-CONFIG_B44=m
-# CONFIG_FORCEDETH is not set
-# CONFIG_CS89x0 is not set
-# CONFIG_DGRS is not set
-# CONFIG_EEPRO100 is not set
-# CONFIG_E100 is not set
-# CONFIG_LNE390 is not set
-# CONFIG_FEALNX is not set
-# CONFIG_NATSEMI is not set
-# CONFIG_NE2K_PCI is not set
-# CONFIG_NE3210 is not set
-# CONFIG_ES3210 is not set
-# CONFIG_8139CP is not set
-# CONFIG_8139TOO is not set
-# CONFIG_SIS900 is not set
-# CONFIG_EPIC100 is not set
-# CONFIG_SUNDANCE is not set
-# CONFIG_TLAN is not set
-# CONFIG_VIA_RHINE is not set
-# CONFIG_NET_POCKET is not set
-
-#
-# Ethernet (1000 Mbit)
-#
-# CONFIG_ACENIC is not set
-# CONFIG_DL2K is not set
-# CONFIG_E1000 is not set
-# CONFIG_NS83820 is not set
-# CONFIG_HAMACHI is not set
-# CONFIG_YELLOWFIN is not set
-# CONFIG_R8169 is not set
-# CONFIG_SK98LIN is not set
-# CONFIG_VIA_VELOCITY is not set
-# CONFIG_TIGON3 is not set
-
-#
-# Ethernet (10000 Mbit)
-#
-# CONFIG_IXGB is not set
-# CONFIG_S2IO is not set
-
-#
-# Token Ring devices
-#
-# CONFIG_TR is not set
-
-#
-# Wireless LAN (non-hamradio)
-#
-CONFIG_NET_RADIO=y
-
-#
-# Obsolete Wireless cards support (pre-802.11)
-#
-# CONFIG_STRIP is not set
-# CONFIG_ARLAN is not set
-# CONFIG_WAVELAN is not set
-# CONFIG_PCMCIA_WAVELAN is not set
-# CONFIG_PCMCIA_NETWAVE is not set
-
-#
-# Wireless 802.11 Frequency Hopping cards support
-#
-# CONFIG_PCMCIA_RAYCS is not set
-
-#
-# Wireless 802.11b ISA/PCI cards support
-#
-# CONFIG_AIRO is not set
-CONFIG_HERMES=m
-CONFIG_PLX_HERMES=m
-# CONFIG_TMD_HERMES is not set
-CONFIG_PCI_HERMES=m
-# CONFIG_ATMEL is not set
-
-#
-# Wireless 802.11b Pcmcia/Cardbus cards support
-#
-CONFIG_PCMCIA_HERMES=m
-# CONFIG_AIRO_CS is not set
-# CONFIG_PCMCIA_WL3501 is not set
-
-#
-# Prism GT/Duette 802.11(a/b/g) PCI/Cardbus support
-#
-# CONFIG_PRISM54 is not set
-CONFIG_NET_WIRELESS=y
-
-#
-# PCMCIA network device support
-#
-CONFIG_NET_PCMCIA=y
-CONFIG_PCMCIA_3C589=m
-CONFIG_PCMCIA_3C574=m
-CONFIG_PCMCIA_FMVJ18X=m
-CONFIG_PCMCIA_PCNET=m
-CONFIG_PCMCIA_NMCLAN=m
-CONFIG_PCMCIA_SMC91C92=m
-CONFIG_PCMCIA_XIRC2PS=m
-CONFIG_PCMCIA_AXNET=m
-
-#
-# Wan interfaces
-#
-# CONFIG_WAN is not set
-# CONFIG_FDDI is not set
-# CONFIG_HIPPI is not set
-CONFIG_PLIP=m
-CONFIG_PPP=m
-# CONFIG_PPP_MULTILINK is not set
-CONFIG_PPP_FILTER=y
-CONFIG_PPP_ASYNC=m
-# CONFIG_PPP_SYNC_TTY is not set
-CONFIG_PPP_DEFLATE=m
-CONFIG_PPP_BSDCOMP=m
-# CONFIG_PPPOE is not set
-# CONFIG_SLIP is not set
-# CONFIG_NET_FC is not set
-# CONFIG_SHAPER is not set
-# CONFIG_NETCONSOLE is not set
-
-#
-# ISDN subsystem
-#
-# CONFIG_ISDN is not set
-
-#
-# Telephony Support
-#
-# CONFIG_PHONE is not set
-
-#
-# Input device support
-#
-CONFIG_INPUT=y
-
-#
-# Userland interfaces
-#
-CONFIG_INPUT_MOUSEDEV=y
-CONFIG_INPUT_MOUSEDEV_PSAUX=y
-CONFIG_INPUT_MOUSEDEV_SCREEN_X=1400
-CONFIG_INPUT_MOUSEDEV_SCREEN_Y=1050
-CONFIG_INPUT_JOYDEV=m
-# CONFIG_INPUT_TSDEV is not set
-CONFIG_INPUT_EVDEV=m
-# CONFIG_INPUT_EVBUG is not set
-
-#
-# Input Device Drivers
-#
-CONFIG_INPUT_KEYBOARD=y
-CONFIG_KEYBOARD_ATKBD=y
-# CONFIG_KEYBOARD_SUNKBD is not set
-# CONFIG_KEYBOARD_LKKBD is not set
-# CONFIG_KEYBOARD_XTKBD is not set
-# CONFIG_KEYBOARD_NEWTON is not set
-CONFIG_INPUT_MOUSE=y
-CONFIG_MOUSE_PS2=y
-# CONFIG_MOUSE_SERIAL is not set
-# CONFIG_MOUSE_INPORT is not set
-# CONFIG_MOUSE_LOGIBM is not set
-# CONFIG_MOUSE_PC110PAD is not set
-# CONFIG_MOUSE_VSXXXAA is not set
-# CONFIG_INPUT_JOYSTICK is not set
-# CONFIG_INPUT_TOUCHSCREEN is not set
-CONFIG_INPUT_MISC=y
-# CONFIG_INPUT_PCSPKR is not set
-# CONFIG_INPUT_UINPUT is not set
-
-#
-# Hardware I/O ports
-#
-CONFIG_SERIO=y
-CONFIG_SERIO_I8042=y
-CONFIG_SERIO_SERPORT=y
-# CONFIG_SERIO_CT82C710 is not set
-# CONFIG_SERIO_PARKBD is not set
-# CONFIG_SERIO_PCIPS2 is not set
-CONFIG_SERIO_LIBPS2=y
-# CONFIG_SERIO_RAW is not set
-# CONFIG_GAMEPORT is not set
-CONFIG_SOUND_GAMEPORT=y
-
-#
-# Character devices
-#
-CONFIG_VT=y
-CONFIG_VT_CONSOLE=y
-CONFIG_HW_CONSOLE=y
-# CONFIG_SERIAL_NONSTANDARD is not set
-
-#
-# Serial drivers
-#
-CONFIG_SERIAL_8250=y
-# CONFIG_SERIAL_8250_CONSOLE is not set
-# CONFIG_SERIAL_8250_CS is not set
-CONFIG_SERIAL_8250_ACPI=y
-CONFIG_SERIAL_8250_NR_UARTS=4
-# CONFIG_SERIAL_8250_EXTENDED is not set
-
-#
-# Non-8250 serial port support
-#
-CONFIG_SERIAL_CORE=y
-# CONFIG_SERIAL_JSM is not set
-CONFIG_UNIX98_PTYS=y
-# CONFIG_LEGACY_PTYS is not set
-CONFIG_PRINTER=y
-# CONFIG_LP_CONSOLE is not set
-# CONFIG_PPDEV is not set
-# CONFIG_TIPAR is not set
-
-#
-# IPMI
-#
-# CONFIG_IPMI_HANDLER is not set
-
-#
-# Watchdog Cards
-#
-# CONFIG_WATCHDOG is not set
-CONFIG_HW_RANDOM=y
-# CONFIG_NVRAM is not set
-CONFIG_RTC=y
-# CONFIG_DTLK is not set
-# CONFIG_R3964 is not set
-# CONFIG_APPLICOM is not set
-# CONFIG_SONYPI is not set
-
-#
-# Ftape, the floppy tape device driver
-#
-# CONFIG_FTAPE is not set
-CONFIG_AGP=m
-# CONFIG_AGP_ALI is not set
-CONFIG_AGP_ATI=m
-# CONFIG_AGP_AMD is not set
-# CONFIG_AGP_AMD64 is not set
-CONFIG_AGP_INTEL=m
-# CONFIG_AGP_NVIDIA is not set
-# CONFIG_AGP_SIS is not set
-# CONFIG_AGP_SWORKS is not set
-# CONFIG_AGP_VIA is not set
-# CONFIG_AGP_EFFICEON is not set
-CONFIG_DRM=m
-# CONFIG_DRM_TDFX is not set
-# CONFIG_DRM_GAMMA is not set
-# CONFIG_DRM_R128 is not set
-CONFIG_DRM_RADEON=m
-# CONFIG_DRM_I810 is not set
-# CONFIG_DRM_I830 is not set
-# CONFIG_DRM_I915 is not set
-# CONFIG_DRM_MGA is not set
-# CONFIG_DRM_SIS is not set
-
-#
-# PCMCIA character devices
-#
-# CONFIG_SYNCLINK_CS is not set
-# CONFIG_MWAVE is not set
-CONFIG_RAW_DRIVER=m
-# CONFIG_HPET is not set
-CONFIG_MAX_RAW_DEVS=256
-# CONFIG_HANGCHECK_TIMER is not set
-
-#
-# TPM devices
-#
-# CONFIG_TCG_TPM is not set
-
-#
-# I2C support
-#
-CONFIG_I2C=y
-CONFIG_I2C_CHARDEV=m
-
-#
-# I2C Algorithms
-#
-CONFIG_I2C_ALGOBIT=y
-CONFIG_I2C_ALGOPCF=m
-CONFIG_I2C_ALGOPCA=m
-
-#
-# I2C Hardware Bus support
-#
-CONFIG_I2C_ALI1535=m
-# CONFIG_I2C_ALI1563 is not set
-CONFIG_I2C_ALI15X3=m
-CONFIG_I2C_AMD756=m
-# CONFIG_I2C_AMD756_S4882 is not set
-CONFIG_I2C_AMD8111=m
-CONFIG_I2C_ELEKTOR=m
-CONFIG_I2C_I801=m
-CONFIG_I2C_I810=m
-CONFIG_I2C_PIIX4=m
-CONFIG_I2C_ISA=m
-CONFIG_I2C_NFORCE2=m
-CONFIG_I2C_PARPORT=m
-CONFIG_I2C_PARPORT_LIGHT=m
-CONFIG_I2C_PROSAVAGE=m
-CONFIG_I2C_SAVAGE4=m
-CONFIG_SCx200_ACB=m
-CONFIG_I2C_SIS5595=m
-CONFIG_I2C_SIS630=m
-CONFIG_I2C_SIS96X=m
-# CONFIG_I2C_STUB is not set
-CONFIG_I2C_VIA=m
-CONFIG_I2C_VIAPRO=m
-CONFIG_I2C_VOODOO3=m
-CONFIG_I2C_PCA_ISA=m
-
-#
-# Hardware Sensors Chip support
-#
-CONFIG_I2C_SENSOR=m
-CONFIG_SENSORS_ADM1021=m
-CONFIG_SENSORS_ADM1025=m
-# CONFIG_SENSORS_ADM1026 is not set
-CONFIG_SENSORS_ADM1031=m
-CONFIG_SENSORS_ASB100=m
-# CONFIG_SENSORS_DS1621 is not set
-CONFIG_SENSORS_FSCHER=m
-# CONFIG_SENSORS_FSCPOS is not set
-CONFIG_SENSORS_GL518SM=m
-# CONFIG_SENSORS_GL520SM is not set
-CONFIG_SENSORS_IT87=m
-# CONFIG_SENSORS_LM63 is not set
-CONFIG_SENSORS_LM75=m
-CONFIG_SENSORS_LM77=m
-CONFIG_SENSORS_LM78=m
-CONFIG_SENSORS_LM80=m
-CONFIG_SENSORS_LM83=m
-CONFIG_SENSORS_LM85=m
-CONFIG_SENSORS_LM87=m
-CONFIG_SENSORS_LM90=m
-# CONFIG_SENSORS_LM92 is not set
-# CONFIG_SENSORS_MAX1619 is not set
-# CONFIG_SENSORS_PC87360 is not set
-# CONFIG_SENSORS_SMSC47B397 is not set
-# CONFIG_SENSORS_SIS5595 is not set
-CONFIG_SENSORS_SMSC47M1=m
-CONFIG_SENSORS_VIA686A=m
-CONFIG_SENSORS_W83781D=m
-CONFIG_SENSORS_W83L785TS=m
-CONFIG_SENSORS_W83627HF=m
-
-#
-# Other I2C Chip support
-#
-# CONFIG_SENSORS_DS1337 is not set
-CONFIG_SENSORS_EEPROM=m
-# CONFIG_SENSORS_PCF8574 is not set
-# CONFIG_SENSORS_PCF8591 is not set
-# CONFIG_SENSORS_RTC8564 is not set
-# CONFIG_I2C_DEBUG_CORE is not set
-# CONFIG_I2C_DEBUG_ALGO is not set
-# CONFIG_I2C_DEBUG_BUS is not set
-# CONFIG_I2C_DEBUG_CHIP is not set
-
-#
-# Dallas's 1-wire bus
-#
-# CONFIG_W1 is not set
-
-#
-# Misc devices
-#
-# CONFIG_IBM_ASM is not set
-
-#
-# Multimedia devices
-#
-CONFIG_VIDEO_DEV=m
-
-#
-# Video For Linux
-#
-
-#
-# Video Adapters
-#
-# CONFIG_VIDEO_BT848 is not set
-# CONFIG_VIDEO_PMS is not set
-# CONFIG_VIDEO_BWQCAM is not set
-# CONFIG_VIDEO_CQCAM is not set
-# CONFIG_VIDEO_W9966 is not set
-# CONFIG_VIDEO_CPIA is not set
-# CONFIG_VIDEO_SAA5246A is not set
-# CONFIG_VIDEO_SAA5249 is not set
-# CONFIG_TUNER_3036 is not set
-# CONFIG_VIDEO_STRADIS is not set
-# CONFIG_VIDEO_ZORAN is not set
-# CONFIG_VIDEO_ZR36120 is not set
-# CONFIG_VIDEO_SAA7134 is not set
-# CONFIG_VIDEO_MXB is not set
-# CONFIG_VIDEO_DPC is not set
-# CONFIG_VIDEO_HEXIUM_ORION is not set
-# CONFIG_VIDEO_HEXIUM_GEMINI is not set
-# CONFIG_VIDEO_CX88 is not set
-# CONFIG_VIDEO_OVCAMCHIP is not set
-
-#
-# Radio Adapters
-#
-# CONFIG_RADIO_CADET is not set
-# CONFIG_RADIO_RTRACK is not set
-# CONFIG_RADIO_RTRACK2 is not set
-# CONFIG_RADIO_AZTECH is not set
-# CONFIG_RADIO_GEMTEK is not set
-# CONFIG_RADIO_GEMTEK_PCI is not set
-# CONFIG_RADIO_MAXIRADIO is not set
-# CONFIG_RADIO_MAESTRO is not set
-# CONFIG_RADIO_SF16FMI is not set
-# CONFIG_RADIO_SF16FMR2 is not set
-# CONFIG_RADIO_TERRATEC is not set
-# CONFIG_RADIO_TRUST is not set
-# CONFIG_RADIO_TYPHOON is not set
-# CONFIG_RADIO_ZOLTRIX is not set
-
-#
-# Digital Video Broadcasting Devices
-#
-# CONFIG_DVB is not set
-
-#
-# Graphics support
-#
-# CONFIG_FB is not set
-CONFIG_VIDEO_SELECT=y
-
-#
-# Console display driver support
-#
-CONFIG_VGA_CONSOLE=y
-# CONFIG_MDA_CONSOLE is not set
-CONFIG_DUMMY_CONSOLE=y
-
-#
-# Sound
-#
-CONFIG_SOUND=y
-
-#
-# Advanced Linux Sound Architecture
-#
-CONFIG_SND=y
-CONFIG_SND_TIMER=y
-CONFIG_SND_PCM=y
-CONFIG_SND_RAWMIDI=y
-CONFIG_SND_SEQUENCER=y
-# CONFIG_SND_SEQ_DUMMY is not set
-CONFIG_SND_OSSEMUL=y
-CONFIG_SND_MIXER_OSS=y
-CONFIG_SND_PCM_OSS=y
-CONFIG_SND_SEQUENCER_OSS=y
-CONFIG_SND_RTCTIMER=y
-# CONFIG_SND_VERBOSE_PRINTK is not set
-# CONFIG_SND_DEBUG is not set
-
-#
-# Generic devices
-#
-CONFIG_SND_MPU401_UART=y
-# CONFIG_SND_DUMMY is not set
-# CONFIG_SND_VIRMIDI is not set
-# CONFIG_SND_MTPAV is not set
-# CONFIG_SND_SERIAL_U16550 is not set
-CONFIG_SND_MPU401=y
-
-#
-# ISA devices
-#
-# CONFIG_SND_AD1816A is not set
-# CONFIG_SND_AD1848 is not set
-# CONFIG_SND_CS4231 is not set
-# CONFIG_SND_CS4232 is not set
-# CONFIG_SND_CS4236 is not set
-# CONFIG_SND_ES968 is not set
-# CONFIG_SND_ES1688 is not set
-# CONFIG_SND_ES18XX is not set
-# CONFIG_SND_GUSCLASSIC is not set
-# CONFIG_SND_GUSEXTREME is not set
-# CONFIG_SND_GUSMAX is not set
-# CONFIG_SND_INTERWAVE is not set
-# CONFIG_SND_INTERWAVE_STB is not set
-# CONFIG_SND_OPTI92X_AD1848 is not set
-# CONFIG_SND_OPTI92X_CS4231 is not set
-# CONFIG_SND_OPTI93X is not set
-# CONFIG_SND_SB8 is not set
-# CONFIG_SND_SB16 is not set
-# CONFIG_SND_SBAWE is not set
-# CONFIG_SND_WAVEFRONT is not set
-# CONFIG_SND_ALS100 is not set
-# CONFIG_SND_AZT2320 is not set
-# CONFIG_SND_CMI8330 is not set
-# CONFIG_SND_DT019X is not set
-# CONFIG_SND_OPL3SA2 is not set
-# CONFIG_SND_SGALAXY is not set
-# CONFIG_SND_SSCAPE is not set
-
-#
-# PCI devices
-#
-CONFIG_SND_AC97_CODEC=m
-# CONFIG_SND_ALI5451 is not set
-# CONFIG_SND_ATIIXP is not set
-# CONFIG_SND_ATIIXP_MODEM is not set
-# CONFIG_SND_AU8810 is not set
-# CONFIG_SND_AU8820 is not set
-# CONFIG_SND_AU8830 is not set
-# CONFIG_SND_AZT3328 is not set
-# CONFIG_SND_BT87X is not set
-# CONFIG_SND_CS46XX is not set
-# CONFIG_SND_CS4281 is not set
-# CONFIG_SND_EMU10K1 is not set
-# CONFIG_SND_EMU10K1X is not set
-# CONFIG_SND_CA0106 is not set
-# CONFIG_SND_KORG1212 is not set
-# CONFIG_SND_MIXART is not set
-# CONFIG_SND_NM256 is not set
-# CONFIG_SND_RME32 is not set
-# CONFIG_SND_RME96 is not set
-# CONFIG_SND_RME9652 is not set
-# CONFIG_SND_HDSP is not set
-# CONFIG_SND_TRIDENT is not set
-# CONFIG_SND_YMFPCI is not set
-# CONFIG_SND_ALS4000 is not set
-# CONFIG_SND_CMIPCI is not set
-# CONFIG_SND_ENS1370 is not set
-# CONFIG_SND_ENS1371 is not set
-# CONFIG_SND_ES1938 is not set
-# CONFIG_SND_ES1968 is not set
-# CONFIG_SND_MAESTRO3 is not set
-# CONFIG_SND_FM801 is not set
-# CONFIG_SND_ICE1712 is not set
-# CONFIG_SND_ICE1724 is not set
-CONFIG_SND_INTEL8X0=m
-CONFIG_SND_INTEL8X0M=m
-# CONFIG_SND_SONICVIBES is not set
-# CONFIG_SND_VIA82XX is not set
-# CONFIG_SND_VIA82XX_MODEM is not set
-# CONFIG_SND_VX222 is not set
-# CONFIG_SND_HDA_INTEL is not set
-
-#
-# USB devices
-#
-# CONFIG_SND_USB_AUDIO is not set
-# CONFIG_SND_USB_USX2Y is not set
-
-#
-# PCMCIA devices
-#
-# CONFIG_SND_VXPOCKET is not set
-# CONFIG_SND_VXP440 is not set
-# CONFIG_SND_PDAUDIOCF is not set
-
-#
-# Open Sound System
-#
-# CONFIG_SOUND_PRIME is not set
-
-#
-# USB support
-#
-CONFIG_USB_ARCH_HAS_HCD=y
-CONFIG_USB_ARCH_HAS_OHCI=y
-CONFIG_USB=m
-# CONFIG_USB_DEBUG is not set
-
-#
-# Miscellaneous USB options
-#
-CONFIG_USB_DEVICEFS=y
-# CONFIG_USB_BANDWIDTH is not set
-# CONFIG_USB_DYNAMIC_MINORS is not set
-# CONFIG_USB_SUSPEND is not set
-# CONFIG_USB_OTG is not set
-
-#
-# USB Host Controller Drivers
-#
-CONFIG_USB_EHCI_HCD=m
-CONFIG_USB_EHCI_SPLIT_ISO=y
-CONFIG_USB_EHCI_ROOT_HUB_TT=y
-# CONFIG_USB_OHCI_HCD is not set
-CONFIG_USB_UHCI_HCD=m
-# CONFIG_USB_SL811_HCD is not set
-
-#
-# USB Device Class drivers
-#
-# CONFIG_USB_AUDIO is not set
-# CONFIG_USB_BLUETOOTH_TTY is not set
-# CONFIG_USB_MIDI is not set
-# CONFIG_USB_ACM is not set
-CONFIG_USB_PRINTER=m
-
-#
-# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support' may also be needed; see USB_STORAGE Help for more information
-#
-CONFIG_USB_STORAGE=m
-# CONFIG_USB_STORAGE_DEBUG is not set
-# CONFIG_USB_STORAGE_DATAFAB is not set
-# CONFIG_USB_STORAGE_FREECOM is not set
-# CONFIG_USB_STORAGE_ISD200 is not set
-# CONFIG_USB_STORAGE_DPCM is not set
-# CONFIG_USB_STORAGE_USBAT is not set
-# CONFIG_USB_STORAGE_SDDR09 is not set
-# CONFIG_USB_STORAGE_SDDR55 is not set
-# CONFIG_USB_STORAGE_JUMPSHOT is not set
-
-#
-# USB Input Devices
-#
-CONFIG_USB_HID=m
-CONFIG_USB_HIDINPUT=y
-# CONFIG_HID_FF is not set
-CONFIG_USB_HIDDEV=y
-
-#
-# USB HID Boot Protocol drivers
-#
-# CONFIG_USB_KBD is not set
-# CONFIG_USB_MOUSE is not set
-# CONFIG_USB_AIPTEK is not set
-CONFIG_USB_WACOM=m
-# CONFIG_USB_KBTAB is not set
-# CONFIG_USB_POWERMATE is not set
-# CONFIG_USB_MTOUCH is not set
-# CONFIG_USB_EGALAX is not set
-# CONFIG_USB_XPAD is not set
-# CONFIG_USB_ATI_REMOTE is not set
-
-#
-# USB Imaging devices
-#
-# CONFIG_USB_MDC800 is not set
-# CONFIG_USB_MICROTEK is not set
-
-#
-# USB Multimedia devices
-#
-# CONFIG_USB_DABUSB is not set
-# CONFIG_USB_VICAM is not set
-# CONFIG_USB_DSBR is not set
-# CONFIG_USB_IBMCAM is not set
-# CONFIG_USB_KONICAWC is not set
-# CONFIG_USB_OV511 is not set
-# CONFIG_USB_SE401 is not set
-# CONFIG_USB_SN9C102 is not set
-# CONFIG_USB_STV680 is not set
-CONFIG_USB_PWC=m
-
-#
-# USB Network Adapters
-#
-# CONFIG_USB_CATC is not set
-# CONFIG_USB_KAWETH is not set
-# CONFIG_USB_PEGASUS is not set
-# CONFIG_USB_RTL8150 is not set
-# CONFIG_USB_USBNET is not set
-# CONFIG_USB_ZD1201 is not set
-# CONFIG_USB_MON is not set
-
-#
-# USB port drivers
-#
-# CONFIG_USB_USS720 is not set
-
-#
-# USB Serial Converter support
-#
-CONFIG_USB_SERIAL=m
-# CONFIG_USB_SERIAL_GENERIC is not set
-# CONFIG_USB_SERIAL_BELKIN is not set
-# CONFIG_USB_SERIAL_WHITEHEAT is not set
-# CONFIG_USB_SERIAL_DIGI_ACCELEPORT is not set
-# CONFIG_USB_SERIAL_CP2101 is not set
-# CONFIG_USB_SERIAL_CYPRESS_M8 is not set
-# CONFIG_USB_SERIAL_EMPEG is not set
-# CONFIG_USB_SERIAL_FTDI_SIO is not set
-CONFIG_USB_SERIAL_VISOR=m
-# CONFIG_USB_SERIAL_IPAQ is not set
-# CONFIG_USB_SERIAL_IR is not set
-# CONFIG_USB_SERIAL_EDGEPORT is not set
-# CONFIG_USB_SERIAL_EDGEPORT_TI is not set
-CONFIG_USB_SERIAL_GARMIN=m
-# CONFIG_USB_SERIAL_IPW is not set
-# CONFIG_USB_SERIAL_KEYSPAN_PDA is not set
-# CONFIG_USB_SERIAL_KEYSPAN is not set
-# CONFIG_USB_SERIAL_KLSI is not set
-# CONFIG_USB_SERIAL_KOBIL_SCT is not set
-# CONFIG_USB_SERIAL_MCT_U232 is not set
-# CONFIG_USB_SERIAL_PL2303 is not set
-# CONFIG_USB_SERIAL_SAFE is not set
-# CONFIG_USB_SERIAL_TI is not set
-CONFIG_USB_SERIAL_CYBERJACK=m
-# CONFIG_USB_SERIAL_XIRCOM is not set
-# CONFIG_USB_SERIAL_OMNINET is not set
-
-#
-# USB Miscellaneous drivers
-#
-# CONFIG_USB_EMI62 is not set
-# CONFIG_USB_EMI26 is not set
-# CONFIG_USB_AUERSWALD is not set
-# CONFIG_USB_RIO500 is not set
-# CONFIG_USB_LEGOTOWER is not set
-# CONFIG_USB_LCD is not set
-# CONFIG_USB_LED is not set
-# CONFIG_USB_CYTHERM is not set
-# CONFIG_USB_PHIDGETKIT is not set
-# CONFIG_USB_PHIDGETSERVO is not set
-# CONFIG_USB_IDMOUSE is not set
-# CONFIG_USB_SISUSBVGA is not set
-# CONFIG_USB_TEST is not set
-
-#
-# USB ATM/DSL drivers
-#
-
-#
-# USB Gadget Support
-#
-# CONFIG_USB_GADGET is not set
-
-#
-# MMC/SD Card support
-#
-# CONFIG_MMC is not set
-
-#
-# InfiniBand support
-#
-# CONFIG_INFINIBAND is not set
-
-#
-# File systems
-#
-CONFIG_EXT2_FS=y
-CONFIG_EXT2_FS_XATTR=y
-CONFIG_EXT2_FS_POSIX_ACL=y
-CONFIG_EXT2_FS_SECURITY=y
-CONFIG_EXT3_FS=y
-CONFIG_EXT3_FS_XATTR=y
-CONFIG_EXT3_FS_POSIX_ACL=y
-CONFIG_EXT3_FS_SECURITY=y
-CONFIG_JBD=y
-# CONFIG_JBD_DEBUG is not set
-CONFIG_FS_MBCACHE=y
-# CONFIG_REISERFS_FS is not set
-# CONFIG_JFS_FS is not set
-CONFIG_FS_POSIX_ACL=y
-
-#
-# XFS support
-#
-# CONFIG_XFS_FS is not set
-CONFIG_MINIX_FS=m
-CONFIG_ROMFS_FS=m
-# CONFIG_QUOTA is not set
-CONFIG_DNOTIFY=y
-# CONFIG_AUTOFS_FS is not set
-CONFIG_AUTOFS4_FS=m
-
-#
-# CD-ROM/DVD Filesystems
-#
-CONFIG_ISO9660_FS=m
-CONFIG_JOLIET=y
-CONFIG_ZISOFS=y
-CONFIG_ZISOFS_FS=m
-CONFIG_UDF_FS=m
-CONFIG_UDF_NLS=y
-
-#
-# DOS/FAT/NT Filesystems
-#
-CONFIG_FAT_FS=y
-CONFIG_MSDOS_FS=y
-CONFIG_VFAT_FS=y
-CONFIG_FAT_DEFAULT_CODEPAGE=850
-CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-15"
-CONFIG_NTFS_FS=m
-# CONFIG_NTFS_DEBUG is not set
-# CONFIG_NTFS_RW is not set
-
-#
-# Pseudo filesystems
-#
-CONFIG_PROC_FS=y
-CONFIG_PROC_KCORE=y
-CONFIG_SYSFS=y
-# CONFIG_DEVFS_FS is not set
-# CONFIG_DEVPTS_FS_XATTR is not set
-CONFIG_TMPFS=y
-CONFIG_TMPFS_XATTR=y
-# CONFIG_TMPFS_SECURITY is not set
-# CONFIG_HUGETLBFS is not set
-# CONFIG_HUGETLB_PAGE is not set
-CONFIG_RAMFS=y
-
-#
-# Miscellaneous filesystems
-#
-# CONFIG_ADFS_FS is not set
-# CONFIG_AFFS_FS is not set
-CONFIG_HFS_FS=m
-CONFIG_HFSPLUS_FS=m
-# CONFIG_BEFS_FS is not set
-# CONFIG_BFS_FS is not set
-# CONFIG_EFS_FS is not set
-CONFIG_CRAMFS=m
-# CONFIG_VXFS_FS is not set
-# CONFIG_HPFS_FS is not set
-# CONFIG_QNX4FS_FS is not set
-# CONFIG_SYSV_FS is not set
-# CONFIG_UFS_FS is not set
-
-#
-# Network File Systems
-#
-CONFIG_NFS_FS=m
-CONFIG_NFS_V3=y
-# CONFIG_NFS_V4 is not set
-# CONFIG_NFS_DIRECTIO is not set
-CONFIG_NFSD=m
-CONFIG_NFSD_V3=y
-# CONFIG_NFSD_V4 is not set
-# CONFIG_NFSD_TCP is not set
-CONFIG_LOCKD=m
-CONFIG_LOCKD_V4=y
-CONFIG_EXPORTFS=m
-CONFIG_SUNRPC=m
-# CONFIG_RPCSEC_GSS_KRB5 is not set
-# CONFIG_RPCSEC_GSS_SPKM3 is not set
-CONFIG_SMB_FS=m
-CONFIG_SMB_NLS_DEFAULT=y
-CONFIG_SMB_NLS_REMOTE="iso8859-15"
-CONFIG_CIFS=m
-CONFIG_CIFS_STATS=y
-# CONFIG_CIFS_XATTR is not set
-# CONFIG_CIFS_EXPERIMENTAL is not set
-# CONFIG_NCP_FS is not set
-# CONFIG_CODA_FS is not set
-# CONFIG_AFS_FS is not set
-
-#
-# Partition Types
-#
-# CONFIG_PARTITION_ADVANCED is not set
-CONFIG_MSDOS_PARTITION=y
-
-#
-# Native Language Support
-#
-CONFIG_NLS=y
-CONFIG_NLS_DEFAULT="iso8859-15"
-CONFIG_NLS_CODEPAGE_437=y
-CONFIG_NLS_CODEPAGE_737=m
-# CONFIG_NLS_CODEPAGE_775 is not set
-CONFIG_NLS_CODEPAGE_850=y
-CONFIG_NLS_CODEPAGE_852=m
-CONFIG_NLS_CODEPAGE_855=m
-# CONFIG_NLS_CODEPAGE_857 is not set
-# CONFIG_NLS_CODEPAGE_860 is not set
-CONFIG_NLS_CODEPAGE_861=m
-CONFIG_NLS_CODEPAGE_862=m
-# CONFIG_NLS_CODEPAGE_863 is not set
-CONFIG_NLS_CODEPAGE_864=m
-# CONFIG_NLS_CODEPAGE_865 is not set
-CONFIG_NLS_CODEPAGE_866=m
-CONFIG_NLS_CODEPAGE_869=m
-# CONFIG_NLS_CODEPAGE_936 is not set
-# CONFIG_NLS_CODEPAGE_950 is not set
-# CONFIG_NLS_CODEPAGE_932 is not set
-# CONFIG_NLS_CODEPAGE_949 is not set
-# CONFIG_NLS_CODEPAGE_874 is not set
-CONFIG_NLS_ISO8859_8=m
-CONFIG_NLS_CODEPAGE_1250=m
-# CONFIG_NLS_CODEPAGE_1251 is not set
-CONFIG_NLS_ASCII=y
-CONFIG_NLS_ISO8859_1=y
-CONFIG_NLS_ISO8859_2=m
-# CONFIG_NLS_ISO8859_3 is not set
-# CONFIG_NLS_ISO8859_4 is not set
-CONFIG_NLS_ISO8859_5=m
-CONFIG_NLS_ISO8859_6=m
-CONFIG_NLS_ISO8859_7=m
-# CONFIG_NLS_ISO8859_9 is not set
-# CONFIG_NLS_ISO8859_13 is not set
-# CONFIG_NLS_ISO8859_14 is not set
-CONFIG_NLS_ISO8859_15=y
-CONFIG_NLS_KOI8_R=m
-# CONFIG_NLS_KOI8_U is not set
-CONFIG_NLS_UTF8=m
-
-#
-# Profiling support
-#
-# CONFIG_PROFILING is not set
-
-#
-# Kernel hacking
-#
-# CONFIG_PRINTK_TIME is not set
-CONFIG_DEBUG_KERNEL=y
-CONFIG_MAGIC_SYSRQ=y
-CONFIG_LOG_BUF_SHIFT=16
-# CONFIG_SCHEDSTATS is not set
-# CONFIG_DEBUG_SLAB is not set
-# CONFIG_DEBUG_PREEMPT is not set
-# CONFIG_DEBUG_SPINLOCK is not set
-# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-# CONFIG_DEBUG_KOBJECT is not set
-CONFIG_DEBUG_BUGVERBOSE=y
-# CONFIG_DEBUG_INFO is not set
-# CONFIG_DEBUG_FS is not set
-# CONFIG_FRAME_POINTER is not set
-CONFIG_EARLY_PRINTK=y
-# CONFIG_DEBUG_STACKOVERFLOW is not set
-# CONFIG_KPROBES is not set
-# CONFIG_DEBUG_STACK_USAGE is not set
-
-#
-# Page alloc debug is incompatible with Software Suspend on i386
-#
-# CONFIG_4KSTACKS is not set
-CONFIG_X86_FIND_SMP_CONFIG=y
-CONFIG_X86_MPPARSE=y
-
-#
-# Security options
-#
-# CONFIG_KEYS is not set
-# CONFIG_SECURITY is not set
-
-#
-# Cryptographic options
-#
-CONFIG_CRYPTO=y
-CONFIG_CRYPTO_HMAC=y
-CONFIG_CRYPTO_NULL=m
-CONFIG_CRYPTO_MD4=m
-CONFIG_CRYPTO_MD5=m
-CONFIG_CRYPTO_SHA1=y
-CONFIG_CRYPTO_SHA256=m
-CONFIG_CRYPTO_SHA512=m
-CONFIG_CRYPTO_WP512=m
-CONFIG_CRYPTO_TGR192=m
-CONFIG_CRYPTO_DES=m
-CONFIG_CRYPTO_BLOWFISH=m
-CONFIG_CRYPTO_TWOFISH=m
-CONFIG_CRYPTO_SERPENT=m
-CONFIG_CRYPTO_AES_586=m
-CONFIG_CRYPTO_CAST5=m
-CONFIG_CRYPTO_CAST6=m
-CONFIG_CRYPTO_TEA=m
-CONFIG_CRYPTO_ARC4=m
-CONFIG_CRYPTO_KHAZAD=m
-CONFIG_CRYPTO_ANUBIS=m
-CONFIG_CRYPTO_DEFLATE=m
-CONFIG_CRYPTO_MICHAEL_MIC=m
-CONFIG_CRYPTO_CRC32C=m
-# CONFIG_CRYPTO_TEST is not set
-
-#
-# Hardware crypto devices
-#
-# CONFIG_CRYPTO_DEV_PADLOCK is not set
-
-#
-# Library routines
-#
-CONFIG_CRC_CCITT=m
-CONFIG_CRC32=m
-CONFIG_LIBCRC32C=m
-CONFIG_ZLIB_INFLATE=m
-CONFIG_ZLIB_DEFLATE=m
-CONFIG_GENERIC_HARDIRQS=y
-CONFIG_GENERIC_IRQ_PROBE=y
-CONFIG_X86_BIOS_REBOOT=y
-CONFIG_PC=y
-
---fUYQa+Pmc3FrFX/N--
+This is a multi-part message in MIME format.
+--------------070002030407000002060202
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Li, Shaohua schrieb:
+
+>>On Fri, 2005-04-08 at 09:29 -0700, Andrew Morton wrote:
+>>    
+>>
+>>>I assume this problem is related to that "No ACPI bus support"
+>>>message, which is new in bk-acpi.patch.
+>>>      
+>>>
+>>I don't see any obvious ACPI problems.  True, there are a bunch
+>>of "ACPI: Can't get handler" and "ACPI: No ACPI bus support"
+>>messages, but that looks like device model stuff that isn't
+>>quite cooked yet and should be harmless.  Maybe Shaohua can
+>>confirm/deny.
+>>    
+>>
+>True, the "ACPI: Can't get handler" and "ACPI: No ACPI bus support"
+>don't impact anything. This is just debug info. Maybe I should lower the
+>printk level.
+>
+>Thanks,
+>Shaohua
+>
+>  
+>
+Hello all,
+
+thanks for the help and you look for the problem.
+I've now testet 2.6.12-rc2-mm3 and ACPI is going very bad now here.
+As you can see late in the dmesg and cut-out what happen.
+It first consider that no bus supports ACPI, but than it say ACPI supported.
+Maybe I interpret it in the wrong way. I hope you will/can fnd what is
+wrong.
+
+Thanks so far
+Best regards
+/Michael
+
+I attache the dmesg and lspci -vv output file
+
+
+This message 1st spotted over the screen:
+    ACPI: No ACPI bus support for 00:00
+    ACPI: No ACPI bus support for 00:01
+    ACPI: No ACPI bus support for 00:02
+    ACPI: No ACPI bus support for 00:03
+    ACPI: No ACPI bus support for 00:04
+    ACPI: No ACPI bus support for 00:05
+    ACPI: No ACPI bus support for 00:06
+    ACPI: No ACPI bus support for 00:07
+    ACPI: No ACPI bus support for 00:08
+    ACPI: No ACPI bus support for 00:09
+    ACPI: No ACPI bus support for 00:0a
+    ACPI: No ACPI bus support for 00:0b
+
+And then for each pcie port:
+    ACPI: No ACPI bus support for pcie00-03
+
+After that this appears:
+    ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 17 (level, low) -> IRQ
+201   
+    ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 17 (level, low) -> IRQ 201
+    ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 217
+
+and so on
+
+this is really strange :-(
+
+--------------070002030407000002060202
+Content-Type: text/plain;
+ name="dmesg.2.6.12-rc2-mm3"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmesg.2.6.12-rc2-mm3"
+
+Bootdata ok (command line is root=/dev/md1 vga=794 quiet)
+Linux version 2.6.12-rc2-mm3-md1 (root@ioGL64NX) (gcc-Version 3.4.3 20041125 (Gentoo Linux 3.4.3-r1, ssp-3.4.3-0, pie-8.7.7)) #2 SMP PREEMPT Mon Apr 11 18:02:49 CEST 2005
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
+ BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000e4000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000003ffb0000 (usable)
+ BIOS-e820: 000000003ffb0000 - 000000003ffbe000 (ACPI data)
+ BIOS-e820: 000000003ffbe000 - 000000003fff0000 (ACPI NVS)
+ BIOS-e820: 000000003fff0000 - 0000000040000000 (reserved)
+ BIOS-e820: 00000000ffb00000 - 0000000100000000 (reserved)
+ACPI: RSDP (v002 ACPIAM                                ) @ 0x00000000000faf90
+ACPI: XSDT (v001 A M I  OEMXSDT  0x03000523 MSFT 0x00000097) @ 0x000000003ffb0100
+ACPI: FADT (v003 A M I  OEMFACP  0x03000523 MSFT 0x00000097) @ 0x000000003ffb0290
+ACPI: MADT (v001 A M I  OEMAPIC  0x03000523 MSFT 0x00000097) @ 0x000000003ffb0390
+ACPI: OEMB (v001 A M I  AMI_OEM  0x03000523 MSFT 0x00000097) @ 0x000000003ffbe040
+ACPI: MCFG (v001 A M I  OEMMCFG  0x03000523 MSFT 0x00000097) @ 0x000000003ffb6c40
+ACPI: DSDT (v001  A0144 A0144000 0x00000000 INTL 0x02002026) @ 0x0000000000000000
+On node 0 totalpages: 262064
+  DMA zone: 4096 pages, LIFO batch:1
+  Normal zone: 257968 pages, LIFO batch:16
+  HighMem zone: 0 pages, LIFO batch:1
+ACPI: Local APIC address 0xfee00000
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
+Processor #0 15:4 APIC version 16
+ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
+Processor #1 15:4 APIC version 16
+ACPI: IOAPIC (id[0x02] address[0xfec00000] gsi_base[0])
+IOAPIC[0]: apic_id 2, version 32, address 0xfec00000, GSI 0-23
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+ACPI: IRQ0 used by override.
+ACPI: IRQ2 used by override.
+ACPI: IRQ9 used by override.
+Setting APIC routing to flat
+Using ACPI (MADT) for SMP configuration information
+Allocating PCI resources starting at 40000000 (gap: 40000000:bfb00000)
+Built 1 zonelists
+Initializing CPU#0
+Kernel command line: root=/dev/md1 vga=794 quiet console=tty0
+PID hash table entries: 4096 (order: 12, 131072 bytes)
+time.c: Using 1.193182 MHz PIT timer.
+time.c: Detected 3236.025 MHz processor.
+Console: colour dummy device 80x25
+Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
+Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes)
+Memory: 1024832k/1048256k available (3320k kernel code, 22796k reserved, 1270k data, 216k init)
+Calibrating delay loop... 6389.76 BogoMIPS (lpj=3194880)
+Security Framework v1.0.0 initialized
+Capability LSM initialized
+Mount-cache hash table entries: 256
+CPU: Trace cache: 12K uops, L1 D cache: 16K
+CPU: L2 cache: 2048K
+using mwait in idle threads.
+CPU: Physical Processor ID: 0
+CPU0: Thermal monitoring enabled (TM1)
+Using IO APIC NMI watchdog
+activating NMI Watchdog ... done.
+Using local APIC timer interrupts.
+Detected 12.640 MHz APIC timer.
+Booting processor 1/1 rip 6000 rsp ffff81003ff35f58
+Initializing CPU#1
+Calibrating delay loop... 6455.29 BogoMIPS (lpj=3227648)
+CPU: Trace cache: 12K uops, L1 D cache: 16K
+CPU: L2 cache: 2048K
+CPU: Physical Processor ID: 0
+CPU1: Thermal monitoring enabled (TM1)
+              Intel(R) Pentium(R) 4 CPU 3.20GHz stepping 03
+Synced TSC of CPU 1 difference 128849016776
+APIC error on CPU1: 00(40)
+Brought up 2 CPUs
+time.c: Using PIT/TSC based timekeeping.
+CPU0 attaching sched-domain:
+ domain 0: span 3
+  groups: 1 2
+CPU1 attaching sched-domain:
+ domain 0: span 3
+  groups: 2 1
+NET: Registered protocol family 16
+PCI: Using configuration type 1
+PCI: Using MMCONFIG at e0000000
+mtrr: v2.0 (20020519)
+ACPI: Subsystem revision 20050309
+ACPI: Interpreter enabled
+ACPI: Using IOAPIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI: Probing PCI hardware (bus 00)
+ACPI: Assume root bridge [\_SB_.PCI0] segment is 0
+PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
+Boot video device is 0000:04:00.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: Can't get handler for 0000:00:1b.0
+ACPI: Can't get handler for 0000:00:1f.3
+ACPI: Can't get handler for 0000:04:00.0
+ACPI: Can't get handler for 0000:02:00.0
+ACPI: Can't get handler for 0000:01:09.0
+ACPI: Can't get handler for 0000:01:0a.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P3._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P5._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 *10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 *7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *3 4 5 6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 10 11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 *4 5 6 7 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 10 11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 10 *11 12 14 15)
+Linux Plug and Play Support v0.97 (c) Adam Belay
+pnp: PnP ACPI init
+ACPI: No ACPI bus support for 00:00
+ACPI: No ACPI bus support for 00:01
+ACPI: No ACPI bus support for 00:02
+ACPI: No ACPI bus support for 00:03
+ACPI: No ACPI bus support for 00:04
+ACPI: No ACPI bus support for 00:05
+ACPI: No ACPI bus support for 00:06
+ACPI: No ACPI bus support for 00:07
+ACPI: No ACPI bus support for 00:08
+ACPI: No ACPI bus support for 00:09
+ACPI: No ACPI bus support for 00:0a
+ACPI: No ACPI bus support for 00:0b
+pnp: PnP ACPI: found 12 devices
+SCSI subsystem initialized
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+PCI: Using ACPI for IRQ routing
+PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
+pnp: 00:06: ioport range 0x290-0x297 has been reserved
+IA32 emulation $Id: sys_ia32.c,v 1.32 2002/03/24 13:02:28 ak Exp $
+inotify device minor=63
+SGI XFS with large block/inode numbers, no debug enabled
+Initializing Cryptographic API
+ACPI: PCI Interrupt 0000:00:01.0[A] -> GSI 16 (level, low) -> IRQ 169
+PCI: Setting latency timer of device 0000:00:01.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[pcie00]
+ACPI: No ACPI bus support for pcie00
+Allocate Port Service[pcie03]
+ACPI: No ACPI bus support for pcie03
+ACPI: PCI Interrupt 0000:00:1c.0[A] -> GSI 16 (level, low) -> IRQ 169
+PCI: Setting latency timer of device 0000:00:1c.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[pcie00]
+ACPI: No ACPI bus support for pcie00
+Allocate Port Service[pcie02]
+ACPI: No ACPI bus support for pcie02
+Allocate Port Service[pcie03]
+ACPI: No ACPI bus support for pcie03
+ACPI: PCI Interrupt 0000:00:1c.1[B] -> GSI 17 (level, low) -> IRQ 201
+PCI: Setting latency timer of device 0000:00:1c.1 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[pcie00]
+ACPI: No ACPI bus support for pcie00
+Allocate Port Service[pcie02]
+ACPI: No ACPI bus support for pcie02
+Allocate Port Service[pcie03]
+ACPI: No ACPI bus support for pcie03
+ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 16 (level, low) -> IRQ 169
+nvidiafb: nVidia device/chipset 10DE0140
+nvidiafb: nVidia Corporation NV43 [MSI NX6600GT-TD128E]
+nvidiafb: CRTC0 not found
+nvidiafb: CRTC1 found
+nvidiafb: EDID found from BUS1
+nvidiafb: CRTC 0 is currently programmed for DFP
+nvidiafb: Using DFP on CRTC 0
+Panel size is 1280 x 1024
+nvidiafb: MTRR set to ON
+Console: switching to colour frame buffer device 160x64
+nvidiafb: PCI nVidia NV14 framebuffer (128MB @ 0xD8000000)
+vesafb: abort, cannot reserve video memory at 0xd8000000
+vesafb: framebuffer at 0xd8000000, mapped to 0xffffc2001c200000, using 5120k, total 131072k
+vesafb: mode is 1280x1024x16, linelength=2560, pages=1
+vesafb: scrolling: redraw
+vesafb: Truecolor: size=0:5:6:5, shift=0:11:5:0
+fb1: VESA VGA frame buffer device
+ACPI: No ACPI bus support for vesafb.0
+fb2: Virtual frame buffer device, using 1024K of video memory
+ACPI: No ACPI bus support for vfb.0
+ACPI: CPU0 (power states: C1[C1])
+ACPI: Processor [CPU1] (supports 8 throttling states)
+ACPI: CPU1 (power states: C1[C1])
+Real Time Clock Driver v1.12
+io scheduler noop registered
+io scheduler cfq registered
+ACPI: Floppy Controller [FDC] at I/O 0x3f0-0x3f5, 0x3f7 irq 6 dma channel 2
+Floppy drive(s): fd0 is 1.44M
+FDC 0 is a post-1991 82077
+ACPI: No ACPI bus support for floppy.0
+RAMDISK driver initialized: 4 RAM disks of 4096K size 1024 blocksize
+loop: loaded (max 8 devices)
+ub: sizeof ub_scsi_cmd 88 ub_dev 2672
+usbcore: registered new driver ub
+ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 17 (level, low) -> IRQ 201
+sk98lin: Network Device Driver v8.16.2.3
+(C)Copyright 1999-2005 Marvell(R).
+ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 17 (level, low) -> IRQ 201
+PCI: Setting latency timer of device 0000:02:00.0 to 64
+eth0: Marvell Yukon 88E8053 Gigabit Ethernet Controller
+      PrefPort:A  RlmtMode:Check Link State
+netconsole: not configured, aborting
+Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+ICH6: IDE controller at PCI slot 0000:00:1f.1
+ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 217
+ICH6: chipset revision 4
+ICH6: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0xffa0-0xffa7, BIOS settings: hda:DMA, hdb:pio
+    ide1: BM-DMA at 0xffa8-0xffaf, BIOS settings: hdc:pio, hdd:pio
+Probing IDE interface ide0...
+hda: PLEXTOR DVDR PX-716A, ATAPI CD/DVD-ROM drive
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+ACPI: No ACPI bus support for 0.0
+Probing IDE interface ide1...
+hda: ATAPI 40X DVD-ROM DVD-R CD-R/RW drive, 8192kB Cache, UDMA(66)
+Uniform CD-ROM driver Revision: 3.20
+libata version 1.10 loaded.
+ata_piix version 1.03
+ACPI: PCI Interrupt 0000:00:1f.2[B] -> GSI 19 (level, low) -> IRQ 225
+PCI: Setting latency timer of device 0000:00:1f.2 to 64
+ata1: SATA max UDMA/133 cmd 0xA800 ctl 0xA402 bmdma 0x9400 irq 225
+ata2: SATA max UDMA/133 cmd 0xA000 ctl 0x9802 bmdma 0x9408 irq 225
+ata1: dev 0 cfg 49:2f00 82:346b 83:7f01 84:4003 85:3c69 86:3e01 87:4003 88:20ff
+ata1: dev 0 ATA, max UDMA7, 234493056 sectors: lba48
+ata1: dev 1 cfg 49:2f00 82:346b 83:7f01 84:4003 85:3c69 86:3e01 87:4003 88:20ff
+ata1: dev 1 ATA, max UDMA7, 312581808 sectors: lba48
+ata1: dev 0 configured for UDMA/133
+ata1: dev 1 configured for UDMA/133
+scsi0 : ata_piix
+ata2: dev 0 cfg 49:2f00 82:346b 83:7f01 84:4003 85:3c69 86:3e01 87:4003 88:20ff
+ata2: dev 0 ATA, max UDMA7, 234493056 sectors: lba48
+ata2: dev 1 cfg 49:2f00 82:346b 83:7f01 84:4003 85:3c69 86:3e01 87:4003 88:20ff
+ata2: dev 1 ATA, max UDMA7, 312581808 sectors: lba48
+ata2: dev 0 configured for UDMA/133
+ata2: dev 1 configured for UDMA/133
+scsi1 : ata_piix
+  Vendor: ATA       Model: SAMSUNG SP1213C   Rev: SV10
+  Type:   Direct-Access                      ANSI SCSI revision: 05
+ACPI: No ACPI bus support for 0:0:0:0
+  Vendor: ATA       Model: SAMSUNG SP1614C   Rev: SW10
+  Type:   Direct-Access                      ANSI SCSI revision: 05
+ACPI: No ACPI bus support for 0:0:1:0
+  Vendor: ATA       Model: SAMSUNG SP1213C   Rev: SV10
+  Type:   Direct-Access                      ANSI SCSI revision: 05
+ACPI: No ACPI bus support for 1:0:0:0
+  Vendor: ATA       Model: SAMSUNG SP1614C   Rev: SW10
+  Type:   Direct-Access                      ANSI SCSI revision: 05
+ACPI: No ACPI bus support for 1:0:1:0
+SCSI device sda: 234493056 512-byte hdwr sectors (120060 MB)
+SCSI device sda: drive cache: write back
+SCSI device sda: 234493056 512-byte hdwr sectors (120060 MB)
+SCSI device sda: drive cache: write back
+ sda: sda1 sda2 < sda5 sda6 sda7 >
+Attached scsi disk sda at scsi0, channel 0, id 0, lun 0
+SCSI device sdb: 312581808 512-byte hdwr sectors (160042 MB)
+SCSI device sdb: drive cache: write back
+SCSI device sdb: 312581808 512-byte hdwr sectors (160042 MB)
+SCSI device sdb: drive cache: write back
+ sdb: sdb1 sdb2 < sdb5 >
+Attached scsi disk sdb at scsi0, channel 0, id 1, lun 0
+SCSI device sdc: 234493056 512-byte hdwr sectors (120060 MB)
+SCSI device sdc: drive cache: write back
+SCSI device sdc: 234493056 512-byte hdwr sectors (120060 MB)
+SCSI device sdc: drive cache: write back
+ sdc: sdc1 sdc2 < sdc5 sdc6 >
+Attached scsi disk sdc at scsi1, channel 0, id 0, lun 0
+SCSI device sdd: 312581808 512-byte hdwr sectors (160042 MB)
+SCSI device sdd: drive cache: write back
+SCSI device sdd: 312581808 512-byte hdwr sectors (160042 MB)
+SCSI device sdd: drive cache: write back
+ sdd: sdd1 sdd2 < sdd5 >
+Attached scsi disk sdd at scsi1, channel 0, id 1, lun 0
+Attached scsi generic sg0 at scsi0, channel 0, id 0, lun 0,  type 0
+Attached scsi generic sg1 at scsi0, channel 0, id 1, lun 0,  type 0
+Attached scsi generic sg2 at scsi1, channel 0, id 0, lun 0,  type 0
+Attached scsi generic sg3 at scsi1, channel 0, id 1, lun 0,  type 0
+usbmon: debugs is not available
+ACPI: PCI Interrupt 0000:00:1d.7[A] -> GSI 23 (level, low) -> IRQ 233
+PCI: Setting latency timer of device 0000:00:1d.7 to 64
+ehci_hcd 0000:00:1d.7: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB2 EHCI Controller
+ehci_hcd 0000:00:1d.7: new USB bus registered, assigned bus number 1
+ehci_hcd 0000:00:1d.7: irq 233, io mem 0xd2cff800
+PCI: cache line size of 128 is not supported by device 0000:00:1d.7
+ehci_hcd 0000:00:1d.7: USB 2.0 initialized, EHCI 1.00, driver 10 Dec 2004
+ACPI: No ACPI bus support for usb1
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 8 ports detected
+ACPI: No ACPI bus support for 1-0:1.0
+USB Universal Host Controller Interface driver v2.2
+ACPI: PCI Interrupt 0000:00:1d.0[A] -> GSI 23 (level, low) -> IRQ 233
+PCI: Setting latency timer of device 0000:00:1d.0 to 64
+uhci_hcd 0000:00:1d.0: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #1
+uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 2
+uhci_hcd 0000:00:1d.0: irq 233, io base 0x00008000
+ACPI: No ACPI bus support for usb2
+hub 2-0:1.0: USB hub found
+hub 2-0:1.0: 2 ports detected
+ACPI: No ACPI bus support for 2-0:1.0
+ACPI: PCI Interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 225
+PCI: Setting latency timer of device 0000:00:1d.1 to 64
+uhci_hcd 0000:00:1d.1: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #2
+uhci_hcd 0000:00:1d.1: new USB bus registered, assigned bus number 3
+uhci_hcd 0000:00:1d.1: irq 225, io base 0x00008400
+ACPI: No ACPI bus support for usb3
+hub 3-0:1.0: USB hub found
+hub 3-0:1.0: 2 ports detected
+ACPI: No ACPI bus support for 3-0:1.0
+ACPI: PCI Interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 217
+PCI: Setting latency timer of device 0000:00:1d.2 to 64
+uhci_hcd 0000:00:1d.2: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #3
+uhci_hcd 0000:00:1d.2: new USB bus registered, assigned bus number 4
+uhci_hcd 0000:00:1d.2: irq 217, io base 0x00008800
+ACPI: No ACPI bus support for usb4
+hub 4-0:1.0: USB hub found
+hub 4-0:1.0: 2 ports detected
+ACPI: No ACPI bus support for 4-0:1.0
+ACPI: PCI Interrupt 0000:00:1d.3[D] -> GSI 16 (level, low) -> IRQ 169
+PCI: Setting latency timer of device 0000:00:1d.3 to 64
+uhci_hcd 0000:00:1d.3: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #4
+uhci_hcd 0000:00:1d.3: new USB bus registered, assigned bus number 5
+uhci_hcd 0000:00:1d.3: irq 169, io base 0x00009000
+ACPI: No ACPI bus support for usb5
+hub 5-0:1.0: USB hub found
+hub 5-0:1.0: 2 ports detected
+ACPI: No ACPI bus support for 5-0:1.0
+Initializing USB Mass Storage driver...
+usb 1-5: new high speed USB device using ehci_hcd and address 4
+ACPI: No ACPI bus support for 1-5
+uba: device 4 capacity nsec 510720 bsize 512
+uba: device 4 capacity nsec 510720 bsize 512
+ uba: uba1
+ACPI: No ACPI bus support for 1-5:1.0
+usbcore: registered new driver usb-storage
+USB Mass Storage support registered.
+usbcore: registered new driver usbhid
+drivers/usb/input/hid-core.c: v2.01:USB HID core driver
+mice: PS/2 mouse device common for all mice
+md: linear personality registered as nr 1
+md: raid0 personality registered as nr 2
+md: raid1 personality registered as nr 3
+md: raid5 personality registered as nr 4
+raid5: automatically using best checksumming function: generic_sse
+   generic_sse:  4712.000 MB/sec
+raid5: using function: generic_sse (4712.000 MB/sec)
+md: multipath personality registered as nr 7
+md: md driver 0.90.2 MAX_MD_DEVS=256, MD_SB_DISKS=27
+md: bitmap version 3.38
+Advanced Linux Sound Architecture Driver Version 1.0.9rc2  (Thu Mar 24 10:33:39 2005 UTC).
+ACPI: PCI Interrupt 0000:00:1b.0[A] -> GSI 16 (level, low) -> IRQ 169
+PCI: Setting latency timer of device 0000:00:1b.0 to 64
+ALSA device list:
+  #0: HDA Intel at 0xd2cf4000 irq 169
+NET: Registered protocol family 2
+IP: routing cache hash table of 4096 buckets, 64Kbytes
+TCP established hash table entries: 262144 (order: 10, 4194304 bytes)
+TCP bind hash table entries: 65536 (order: 8, 1048576 bytes)
+TCP: Hash tables configured (established 262144 bind 65536)
+ip_conntrack version 2.1 (4094 buckets, 32752 max) - 296 bytes per conntrack
+ip_tables: (C) 2000-2002 Netfilter core team
+ipt_recent v0.3.1: Stephen Frost <sfrost-vhD3WmCyG/PR7s880joybQ@public.gmane.org>.  http://snowman.net/projects/ipt_recent/
+arp_tables: (C) 2002 David S. Miller
+NET: Registered protocol family 1
+NET: Registered protocol family 17
+Testing NMI watchdog ... OK.
+ACPI wakeup devices: 
+P0P1 P0P3 P0P4 P0P5 P0P6 P0P7 USB1 USB2 USB3 USB4 EUSB MC97 
+ACPI: (supports S0 S1 S3 S4 S5)
+md: Autodetecting RAID arrays.
+usb 3-1: new low speed USB device using uhci_hcd and address 2
+md: autorun ...
+md: considering sdd5 ...
+md:  adding sdd5 ...
+md: sdd1 has different UUID to sdd5
+md: sdc6 has different UUID to sdd5
+md: sdc5 has different UUID to sdd5
+md:  adding sdb5 ...
+md: sdb1 has different UUID to sdd5
+md: sda6 has different UUID to sdd5
+md: sda5 has different UUID to sdd5
+md: created md3
+md: bind<sdb5>
+md: bind<sdd5>
+md: running: <sdd5><sdb5>
+raid1: raid set md3 active with 2 out of 2 mirrors
+md: considering sdd1 ...
+md:  adding sdd1 ...
+md:  adding sdc6 ...
+md: sdc5 has different UUID to sdd1
+md:  adding sdb1 ...
+md:  adding sda6 ...
+md: sda5 has different UUID to sdd1
+md: created md1
+md: bind<sda6>
+md: bind<sdb1>
+md: bind<sdc6>
+md: bind<sdd1>
+md: running: <sdd1><sdc6><sdb1><sda6>
+md1: setting max_sectors to 128, segment boundary to 32767
+raid0: looking at sdd1
+raid0:   comparing sdd1(7325504) with sdd1(7325504)
+raid0:   END
+raid0:   ==> UNIQUE
+raid0: 1 zones
+raid0: looking at sdc6
+raid0:   comparing sdc6(7325504) with sdd1(7325504)
+raid0:   EQUAL
+raid0: looking at sdb1
+raid0:   comparing sdb1(7325504) with sdd1(7325504)
+raid0:   EQUAL
+raid0: looking at sda6
+raid0:   comparing sda6(7325504) with sdd1(7325504)
+raid0:   EQUAL
+raid0: FINAL 1 zones
+raid0: done.
+raid0 : md_size is 29302016 blocks.
+raid0 : conf->hash_spacing is 29302016 blocks.
+raid0 : nb_zone is 1.
+raid0 : Allocating 8 bytes for hash.
+md: considering sdc5 ...
+md:  adding sdc5 ...
+md:  adding sda5 ...
+md: created md0
+md: bind<sda5>
+md: bind<sdc5>
+md: running: <sdc5><sda5>
+md0: setting max_sectors to 128, segment boundary to 32767
+raid0: looking at sdc5
+raid0:   comparing sdc5(30001280) with sdc5(30001280)
+raid0:   END
+raid0:   ==> UNIQUE
+raid0: 1 zones
+raid0: looking at sda5
+raid0:   comparing sda5(30001280) with sdc5(30001280)
+raid0:   EQUAL
+raid0: FINAL 1 zones
+raid0: done.
+raid0 : md_size is 60002560 blocks.
+raid0 : conf->hash_spacing is 60002560 blocks.
+raid0 : nb_zone is 1.
+raid0 : Allocating 8 bytes for hash.
+md: ... autorun DONE.
+UDF-fs: No partition found (1)
+XFS mounting filesystem md1
+ACPI: No ACPI bus support for 3-1
+Ending clean XFS mount for filesystem: md1
+VFS: Mounted root (xfs filesystem) readonly.
+Freeing unused kernel memory: 216k freed
+input: USB HID v1.10 Keyboard [Logitech HID compliant keyboard] on usb-0000:00:1d.1-1
+ACPI: No ACPI bus support for 3-1:1.0
+input: USB HID v1.10 Device [Logitech HID compliant keyboard] on usb-0000:00:1d.1-1
+ACPI: No ACPI bus support for 3-1:1.1
+usb 3-2: new low speed USB device using uhci_hcd and address 3
+ACPI: No ACPI bus support for 3-2
+input: USB HID v1.10 Mouse [Logitech USB-PS/2 Optical Mouse] on usb-0000:00:1d.1-2
+ACPI: No ACPI bus support for 3-2:1.0
+ReiserFS: sdc1: found reiserfs format "3.6" with standard journal
+ReiserFS: sdc1: using ordered data mode
+ReiserFS: sdc1: journal params: device sdc1, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: sdc1: checking transaction log (sdc1)
+ReiserFS: sdc1: Using r5 hash to sort names
+ReiserFS: md3: found reiserfs format "3.6" with standard journal
+ReiserFS: md3: using ordered data mode
+ReiserFS: md3: journal params: device md3, size 8192, journal first block 18, max trans len 1024, max batch 900, max commit age 30, max trans age 30
+ReiserFS: md3: checking transaction log (md3)
+ReiserFS: md3: Using r5 hash to sort names
+eth0: network connection up using port A
+    speed:           100
+    autonegotiation: yes
+    duplex mode:     full
+    flowctrl:        symmetric
+    irq moderation:  disabled
+    tcp offload:     enabled
+    scatter-gather:  enabled
+    tx-checksum:     enabled
+    rx-checksum:     enabled
+    rx-polling:      enabled
+
+--------------070002030407000002060202
+Content-Type: text/plain;
+ name="lspci.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="lspci.txt"
+
+0000:00:00.0 Host bridge: Intel Corporation 925X/XE Memory Controller Hub (rev 0e)
+	Subsystem: Intel Corporation: Unknown device 2580
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort+ >SERR- <PERR-
+	Latency: 0
+	Capabilities: [e0] #09 [0109]
+
+0000:00:01.0 PCI bridge: Intel Corporation 925X/XE PCI Express Root Port (rev 0e) (prog-if 00 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0, cache line size 04
+	Bus: primary=00, secondary=04, subordinate=04, sec-latency=0
+	I/O behind bridge: 0000e000-0000efff
+	Memory behind bridge: d2f00000-d7ffffff
+	Prefetchable memory behind bridge: d8000000-dfffffff
+	Expansion ROM at 0000e000 [disabled] [size=4K]
+	BridgeCtl: Parity- SERR+ NoISA- VGA+ MAbort- >Reset- FastB2B-
+	Capabilities: [88] #0d [0000]
+	Capabilities: [80] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+	Capabilities: [90] Message Signalled Interrupts: 64bit- Queue=0/0 Enable+
+		Address: fee01004  Data: 40b9
+	Capabilities: [a0] #10 [0141]
+
+0000:00:1b.0 Class 0403: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) High Definition Audio Controller (rev 04)
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 813d
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0, cache line size 04
+	Interrupt: pin A routed to IRQ 169
+	Region 0: Memory at d2cf4000 (64-bit, non-prefetchable)
+	Capabilities: [50] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=55mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+	Capabilities: [60] Message Signalled Interrupts: 64bit+ Queue=0/0 Enable-
+		Address: 0000000000000000  Data: 0000
+	Capabilities: [70] #10 [0091]
+
+0000:00:1c.0 PCI bridge: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) PCI Express Port 1 (rev 04) (prog-if 00 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0, cache line size 04
+	Bus: primary=00, secondary=03, subordinate=03, sec-latency=0
+	I/O behind bridge: 0000d000-0000dfff
+	Expansion ROM at 0000d000 [disabled] [size=4K]
+	BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
+	Capabilities: [40] #10 [0141]
+	Capabilities: [80] Message Signalled Interrupts: 64bit- Queue=0/0 Enable+
+		Address: fee01004  Data: 40c1
+	Capabilities: [90] #0d [0000]
+	Capabilities: [a0] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+0000:00:1c.1 PCI bridge: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) PCI Express Port 2 (rev 04) (prog-if 00 [Normal decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0, cache line size 04
+	Bus: primary=00, secondary=02, subordinate=02, sec-latency=0
+	I/O behind bridge: 0000c000-0000cfff
+	Memory behind bridge: d2e00000-d2efffff
+	Expansion ROM at 0000c000 [disabled] [size=4K]
+	BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
+	Capabilities: [40] #10 [0141]
+	Capabilities: [80] Message Signalled Interrupts: 64bit- Queue=0/0 Enable+
+		Address: fee01004  Data: 40d1
+	Capabilities: [90] #0d [0000]
+	Capabilities: [a0] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+0000:00:1d.0 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #1 (rev 04) (prog-if 00 [UHCI])
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 80a6
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 233
+	Region 4: I/O ports at 8000 [size=32]
+
+0000:00:1d.1 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #2 (rev 04) (prog-if 00 [UHCI])
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 80a6
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 225
+	Region 4: I/O ports at 8400 [size=32]
+
+0000:00:1d.2 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #3 (rev 04) (prog-if 00 [UHCI])
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 80a6
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin C routed to IRQ 217
+	Region 4: I/O ports at 8800 [size=32]
+
+0000:00:1d.3 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB UHCI #4 (rev 04) (prog-if 00 [UHCI])
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 80a6
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin D routed to IRQ 169
+	Region 4: I/O ports at 9000 [size=32]
+
+0000:00:1d.7 USB Controller: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) USB2 EHCI Controller (rev 04) (prog-if 20 [EHCI])
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 80a6
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 233
+	Region 0: Memory at d2cff800 (32-bit, non-prefetchable)
+	Capabilities: [50] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+	Capabilities: [58] #0a [20a0]
+
+0000:00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev d4) (prog-if 01 [Subtractive decode])
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Bus: primary=00, secondary=01, subordinate=01, sec-latency=32
+	I/O behind bridge: 0000b000-0000bfff
+	Memory behind bridge: d2d00000-d2dfffff
+	BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
+	Capabilities: [50] #0d [0000]
+
+0000:00:1f.0 ISA bridge: Intel Corporation 82801FB/FR (ICH6/ICH6R) LPC Interface Bridge (rev 04)
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+
+0000:00:1f.1 IDE interface: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) IDE Controller (rev 04) (prog-if 8a [Master SecP PriP])
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 80a6
+	Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 217
+	Region 0: I/O ports at <unassigned>
+	Region 1: I/O ports at <unassigned>
+	Region 2: I/O ports at <unassigned>
+	Region 3: I/O ports at <unassigned>
+	Region 4: I/O ports at ffa0 [size=16]
+
+0000:00:1f.2 IDE interface: Intel Corporation 82801FR/FRW (ICH6R/ICH6RW) SATA Controller (rev 04) (prog-if 8f [Master SecP SecO PriP PriO])
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 2601
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz+ UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 225
+	Region 0: I/O ports at a800
+	Region 1: I/O ports at a400 [size=4]
+	Region 2: I/O ports at a000 [size=8]
+	Region 3: I/O ports at 9800 [size=4]
+	Region 4: I/O ports at 9400 [size=16]
+	Region 5: Memory at d2cffc00 (32-bit, non-prefetchable) [size=1K]
+	Capabilities: [70] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot+,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+0000:00:1f.3 SMBus: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6 Family) SMBus Controller (rev 04)
+	Subsystem: ASUSTeK Computer Inc.: Unknown device 80a6
+	Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Interrupt: pin B routed to IRQ 0
+	Region 4: I/O ports at 0400 [size=32]
+
+0000:01:09.0 Multimedia controller: Philips Semiconductors SAA7134 (rev 01)
+	Subsystem: TERRATEC Electronic GmbH: Unknown device 1158
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 64 (63750ns min, 63750ns max)
+	Interrupt: pin A routed to IRQ 7
+	Region 0: Memory at d2dff800 (32-bit, non-prefetchable)
+	Capabilities: [40] Power Management version 1
+		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=3 PME-
+
+0000:01:0a.0 Ethernet controller: VIA Technologies, Inc. VT6105 [Rhine-III] (rev 86)
+	Subsystem: D-Link System Inc DFE-530TX rev C
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 64 (750ns min, 2000ns max), cache line size 04
+	Interrupt: pin A routed to IRQ 4
+	Region 0: I/O ports at b800 [size=d2de0000]
+	Region 1: Memory at d2dffc00 (32-bit, non-prefetchable) [size=256]
+	Expansion ROM at 00010000 [disabled]
+	Capabilities: [40] Power Management version 2
+		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+0000:02:00.0 Ethernet controller: Marvell Technology Group Ltd. Gigabit Ethernet Controller (rev 19)
+	Subsystem: ASUSTeK Computer Inc. Marvell 88E8053 Gigabit Ethernet Controller (Asus)
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR+ <PERR-
+	Latency: 0, cache line size 04
+	Interrupt: pin A routed to IRQ 201
+	Region 0: Memory at d2efc000 (64-bit, non-prefetchable) [size=d2ec0000]
+	Region 2: I/O ports at c800 [size=256]
+	Expansion ROM at 00020000 [disabled]
+	Capabilities: [48] Power Management version 2
+		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold+)
+		Status: D0 PME-Enable- DSel=0 DScale=1 PME-
+	Capabilities: [50] Vital Product Data
+	Capabilities: [5c] Message Signalled Interrupts: 64bit+ Queue=0/1 Enable-
+		Address: 0000000000000000  Data: 0000
+	Capabilities: [e0] #10 [0011]
+
+0000:04:00.0 VGA compatible controller: nVidia Corporation NV43 [MSI NX6600GT-TD128E] (rev a2) (prog-if 00 [VGA])
+	Subsystem: XFX Pine Group Inc.: Unknown device 2118
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+	Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 169
+	Region 0: Memory at d4000000 (32-bit, non-prefetchable) [size=d2fe0000]
+	Region 1: Memory at d8000000 (64-bit, prefetchable) [size=128M]
+	Region 3: Memory at d3000000 (64-bit, non-prefetchable) [size=16M]
+	Expansion ROM at 00020000 [disabled]
+	Capabilities: [60] Power Management version 2
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+	Capabilities: [68] Message Signalled Interrupts: 64bit+ Queue=0/0 Enable-
+		Address: 0000000000000000  Data: 0000
+	Capabilities: [78] #10 [0001]
+
+
+--------------070002030407000002060202--
 
 
 -------------------------------------------------------
