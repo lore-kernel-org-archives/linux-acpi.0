@@ -1,14 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Re: LCD does not wake up (problem found)
-Date: Sun, 10 Apr 2005 12:08:15 +0100
-Message-ID: <1113131295.14234.70.camel@tyrosine>
-References: <20050410083144.GA21389@danisch.de>
-	 <20050410084357.GA25407@danisch.de>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Fw: Re: 2.6.12-rc2-mm2
+Date: Mon, 11 Apr 2005 11:04:12 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575019C29C7@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050410084357.GA25407-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,23 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Nguyen, Tom L" <tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2005-04-10 at 10:43 +0200, Hadmut Danisch wrote:
-> Ok, 
-> 
-> I found the problem and the solution. The problem is mentioned
-> on http://www.thinkwiki.org/How_to_make_ACPI_work, it's a kernel 
-> bug. 
+>On Fri, 2005-04-08 at 09:29 -0700, Andrew Morton wrote:
+>> I assume this problem is related to that "No ACPI bus support"
+>> message, which is new in bk-acpi.patch.
+>
+>I don't see any obvious ACPI problems.  True, there are a bunch
+>of "ACPI: Can't get handler" and "ACPI: No ACPI bus support"
+>messages, but that looks like device model stuff that isn't
+>quite cooked yet and should be harmless.  Maybe Shaohua can
+>confirm/deny.
+True, the "ACPI: Can't get handler" and "ACPI: No ACPI bus support"
+don't impact anything. This is just debug info. Maybe I should lower the
+printk level.
 
-It's not a kernel bug. Most hardware needs the video to be
-reinitialised. s3_bios is one way of attempting to do that, and it works
-on some hardware. On other hardware, it crashes the machine.
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
