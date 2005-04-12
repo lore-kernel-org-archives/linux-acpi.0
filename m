@@ -1,255 +1,280 @@
-From: Li Shaohua <shaohua.li@intel.com>
-Subject: [PATCH 4/6]cpu state clean after hot remove
-Date: Tue, 12 Apr 2005 13:31:07 +0800
-Message-ID: <1113283859.27646.430.camel@sli10-desk.sh.intel.com>
+From: Evan White <evwhite-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI seems to be functioning but not reporting events
+Date: Mon, 11 Apr 2005 23:49:32 -0700 (PDT)
+Message-ID: <20050412064932.45809.qmail@web31712.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262037AbVDLFnl@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lkml <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>
-Cc: Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Zwane Mwaikambo <zwane@linuxpower.ca>, Andrew Morton <akpm@osdl.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Clean CPU states in order to reuse smp boot code for CPU hotplug.
+I'm running Fedora Core 3 with kernel 2.6.10-1.770 on
+a brand new Dell Inspiron laptop.  I have not
+recompiled the kernel myself at any point (I'm a
+relative newbie), but I'm pretty sure ACPI support is
+automatically enabled in Fedora's kernel.  
 
-Signed-off-by: Li Shaohua<shaohua.li@intel.com>
----
+I can see that it correctly monitors the various
+states, but it does not report events.
 
- linux-2.6.11-root/arch/i386/kernel/cpu/common.c |   12 ++++
- linux-2.6.11-root/arch/i386/kernel/irq.c        |    5 +
- linux-2.6.11-root/arch/i386/kernel/process.c    |   19 +++----
- linux-2.6.11-root/arch/i386/kernel/smpboot.c    |   62 ++++++++++++++++++++++--
- linux-2.6.11-root/include/asm-i386/irq.h        |    2 
- linux-2.6.11-root/include/asm-i386/smp.h        |    5 +
- 6 files changed, 89 insertions(+), 16 deletions(-)
+For instance, by typing "cat
+/proc/acpi/battery/BATO/state" I can see the battery
+state ("charged"), and I can see that it monitors the
+change to "discharging" when I unplug the AC adapter. 
+However, it never reports the battery events in
+/var/log/acpid, nor does it output anything when I
+type "acpi_listen".
 
-diff -puN arch/i386/kernel/cpu/common.c~cpu_state_clean arch/i386/kernel/cpu/common.c
---- linux-2.6.11/arch/i386/kernel/cpu/common.c~cpu_state_clean	2005-04-12 10:37:50.642376224 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/common.c	2005-04-12 10:37:50.654374400 +0800
-@@ -644,3 +644,15 @@ void __devinit cpu_init (void)
- 	clear_used_math();
- 	mxcsr_feature_mask_init();
- }
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+void __devinit cpu_uninit(void)
-+{
-+	int cpu = _smp_processor_id();
-+	cpu_clear(cpu, cpu_initialized);
-+
-+	/* lazy TLB state */
-+	per_cpu(cpu_tlbstate, cpu).state = 0;
-+	per_cpu(cpu_tlbstate, cpu).active_mm = &init_mm;
-+}
-+#endif
-diff -puN arch/i386/kernel/irq.c~cpu_state_clean arch/i386/kernel/irq.c
---- linux-2.6.11/arch/i386/kernel/irq.c~cpu_state_clean	2005-04-12 10:37:50.643376072 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/irq.c	2005-04-12 10:37:50.654374400 +0800
-@@ -158,6 +158,11 @@ void irq_ctx_init(int cpu)
- 		cpu,hardirq_ctx[cpu],softirq_ctx[cpu]);
- }
- 
-+void irq_ctx_exit(int cpu)
-+{
-+	hardirq_ctx[cpu] = NULL;
-+}
-+
- extern asmlinkage void __do_softirq(void);
- 
- asmlinkage void do_softirq(void)
-diff -puN arch/i386/kernel/process.c~cpu_state_clean arch/i386/kernel/process.c
---- linux-2.6.11/arch/i386/kernel/process.c~cpu_state_clean	2005-04-12 10:37:50.645375768 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/process.c	2005-04-12 10:37:50.655374248 +0800
-@@ -148,21 +148,18 @@ static void poll_idle (void)
- /* We don't actually take CPU down, just spin without interrupts. */
- static inline void play_dead(void)
- {
-+	/* This must be done before dead CPU ack */
-+	cpu_exit_clear();
-+	mb();
- 	/* Ack it */
- 	__get_cpu_var(cpu_state) = CPU_DEAD;
- 
--	/* We shouldn't have to disable interrupts while dead, but
--	 * some interrupts just don't seem to go away, and this makes
--	 * it "work" for testing purposes. */
--	/* Death loop */
--	while (__get_cpu_var(cpu_state) != CPU_UP_PREPARE)
--		cpu_relax();
--
-+	/*
-+	 * With physical CPU hotplug, we should halt the cpu
-+	 */
- 	local_irq_disable();
--	__flush_tlb_all();
--	cpu_set(smp_processor_id(), cpu_online_map);
--	enable_APIC_timer();
--	local_irq_enable();
-+	while (1)
-+		__asm__ __volatile__("hlt":::"memory");
- }
- #else
- static inline void play_dead(void)
-diff -puN arch/i386/kernel/smpboot.c~cpu_state_clean arch/i386/kernel/smpboot.c
---- linux-2.6.11/arch/i386/kernel/smpboot.c~cpu_state_clean	2005-04-12 10:37:50.646375616 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-04-12 10:37:50.656374096 +0800
-@@ -798,8 +798,18 @@ wakeup_secondary_cpu(int phys_apicid, un
- #endif	/* WAKE_SECONDARY_VIA_INIT */
- 
- extern cpumask_t cpu_initialized;
-+static inline int alloc_cpu_id(void)
-+{
-+	cpumask_t	tmp_map;
-+	int cpu;
-+	cpus_complement(tmp_map, cpu_present_map);
-+	cpu = first_cpu(tmp_map);
-+	if (cpu >= NR_CPUS)
-+		return -ENODEV;
-+	return cpu;
-+}
- 
--static int __devinit do_boot_cpu(int apicid)
-+static int __devinit do_boot_cpu(int apicid, int cpu)
- /*
-  * NOTE - on most systems this is a PHYSICAL apic ID, but on multiquad
-  * (ie clustered apic addressing mode), this is a LOGICAL apic ID.
-@@ -808,11 +818,12 @@ static int __devinit do_boot_cpu(int api
- {
- 	struct task_struct *idle;
- 	unsigned long boot_error;
--	int timeout, cpu;
-+	int timeout;
- 	unsigned long start_eip;
- 	unsigned short nmi_high = 0, nmi_low = 0;
- 
--	cpu = ++cpucount;
-+	++cpucount;
-+
- 	/*
- 	 * We can't use kernel_thread since we must avoid to
- 	 * reschedule the child.
-@@ -884,13 +895,16 @@ static int __devinit do_boot_cpu(int api
- 			inquire_remote_apic(apicid);
- 		}
- 	}
--	x86_cpu_to_apicid[cpu] = apicid;
-+
- 	if (boot_error) {
- 		/* Try to put things back the way they were before ... */
- 		unmap_cpu_to_logical_apicid(cpu);
- 		cpu_clear(cpu, cpu_callout_map); /* was set here (do_boot_cpu()) */
- 		cpu_clear(cpu, cpu_initialized); /* was set by cpu_init() */
- 		cpucount--;
-+	} else {
-+		x86_cpu_to_apicid[cpu] = apicid;
-+		cpu_set(cpu, cpu_present_map);
- 	}
- 
- 	/* mark "stuck" area as not stuck */
-@@ -899,6 +913,26 @@ static int __devinit do_boot_cpu(int api
- 	return boot_error;
- }
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+void cpu_exit_clear(void)
-+{
-+	int cpu = _smp_processor_id();
-+
-+	idle_task_exit();
-+
-+	cpucount --;
-+	cpu_uninit();
-+	irq_ctx_exit(cpu);
-+
-+	cpu_clear(cpu, cpu_callout_map);
-+	cpu_clear(cpu, cpu_callin_map);
-+	cpu_clear(cpu, cpu_present_map);
-+
-+	cpu_clear(cpu, smp_commenced_mask);
-+	unmap_cpu_to_logical_apicid(cpu);
-+}
-+#endif
-+
- static void smp_tune_scheduling (void)
- {
- 	unsigned long cachesize;       /* kB   */
-@@ -1052,7 +1086,7 @@ static void __init smp_boot_cpus(unsigne
- 		if (max_cpus <= cpucount+1)
- 			continue;
- 
--		if (do_boot_cpu(apicid))
-+		if ((cpu = alloc_cpu_id() > 0) && do_boot_cpu(apicid, cpu))
- 			printk("CPU #%d not responding - cannot use it.\n",
- 								apicid);
- 		else
-@@ -1131,6 +1165,7 @@ void __devinit smp_prepare_boot_cpu(void
- {
- 	cpu_set(smp_processor_id(), cpu_online_map);
- 	cpu_set(smp_processor_id(), cpu_callout_map);
-+	cpu_set(smp_processor_id(), cpu_present_map);
- }
- 
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -1152,6 +1187,21 @@ static int __devinit cpu_enable(unsigned
- 	return 0;
- }
- 
-+static void
-+remove_siblinginfo(int cpu)
-+{
-+	int sibling;
-+
-+	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
-+		cpu_clear(cpu, cpu_sibling_map[sibling]);
-+	for_each_cpu_mask(sibling, cpu_core_map[cpu])
-+		cpu_clear(cpu, cpu_core_map[sibling]);
-+	cpus_clear(cpu_sibling_map[cpu]);
-+	cpus_clear(cpu_core_map[cpu]);
-+	phys_proc_id[cpu] = BAD_APICID;
-+	cpu_core_id[cpu] = BAD_APICID;
-+}
-+
- int __cpu_disable(void)
- {
- 	cpumask_t map = cpu_online_map;
-@@ -1175,6 +1225,8 @@ int __cpu_disable(void)
- 	mdelay(1);
- 	local_irq_disable();
- 
-+	remove_siblinginfo(cpu);
-+
- 	cpu_clear(cpu, map);
- 	fixup_irqs(map);
- 	/* It's now safe to remove this processor from the online map */
-diff -puN include/asm-i386/irq.h~cpu_state_clean include/asm-i386/irq.h
---- linux-2.6.11/include/asm-i386/irq.h~cpu_state_clean	2005-04-12 10:37:50.648375312 +0800
-+++ linux-2.6.11-root/include/asm-i386/irq.h	2005-04-12 10:37:50.656374096 +0800
-@@ -29,9 +29,11 @@ extern void release_vm86_irqs(struct tas
- 
- #ifdef CONFIG_4KSTACKS
-   extern void irq_ctx_init(int cpu);
-+  extern void irq_ctx_exit(int cpu);
- # define __ARCH_HAS_DO_SOFTIRQ
- #else
- # define irq_ctx_init(cpu) do { } while (0)
-+# define irq_ctx_exit(cpu) do { } while (0)
- #endif
- 
- #ifdef CONFIG_IRQBALANCE
-diff -puN include/asm-i386/smp.h~cpu_state_clean include/asm-i386/smp.h
---- linux-2.6.11/include/asm-i386/smp.h~cpu_state_clean	2005-04-12 10:37:50.649375160 +0800
-+++ linux-2.6.11-root/include/asm-i386/smp.h	2005-04-12 10:37:50.656374096 +0800
-@@ -49,6 +49,11 @@ extern void zap_low_mappings (void);
- #define MAX_APICID 256
- extern u8 x86_cpu_to_apicid[];
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+extern void cpu_exit_clear(void);
-+extern void cpu_uninit(void);
-+#endif
-+
- /*
-  * This function is needed by all SMP systems. It must _always_ be valid
-  * from the initial startup. We map APIC_BASE very early in page_setup(),
-_
+The same is true for the power button and for the lid
+closing/opening: no event is registered in
+/var/log/acpid or while running acpi_listen.
+
+Below are some outputs that might help.  
+
+Does anyone know how to get ACPI(D) to correctly
+report all the supported events???
+
+------------------------------------------
+/var/log/acpid reads:
+
+[Mon Apr 11 23:19:55 2005] starting up
+[Mon Apr 11 23:19:55 2005] 6 rules loaded
+[Mon Apr 11 23:37:54 2005] client connected from
+8616[0:0]
+[Mon Apr 11 23:37:54 2005] 1 client rule loaded
+
+------------------------------------------
+The output from dmesg | grep ACPI is:
+
+ACPI: RSDP (v000 DELL                                 
+) @ 0x000fc9b0
+ACPI: RSDT (v001 DELL    CPi R   0x27d50204 ASL 
+0x00000061) @ 0x7ffda7d3
+ACPI: FADT (v001 DELL    CPi R   0x27d50204 ASL 
+0x00000061) @ 0x7ffdb400
+ACPI: MADT (v001 DELL    CPi R   0x27d50204 ASL 
+0x00000047) @ 0x7ffdbc00
+ACPI: MCFG (v016 DELL    CPi R   0x27d50204 ASL 
+0x00000061) @ 0x7ffdbbc0
+ACPI: BOOT (v001 DELL    CPi R   0x27d50204 ASL 
+0x00000061) @ 0x7ffdb7c0
+ACPI: SSDT (v001  PmRef  Cpu0Ist 0x00003000 INTL
+0x20030522) @ 0x7ffdabe6
+ACPI: SSDT (v001  PmRef  Cpu0Cst 0x00003001 INTL
+0x20030522) @ 0x7ffdaa0e
+ACPI: SSDT (v001  PmRef    CpuPm 0x00003000 INTL
+0x20030522) @ 0x7ffda813
+ACPI: DSDT (v001 INT430 SYSFexxx 0x00001001 MSFT
+0x0100000e) @ 0x00000000
+ACPI: PM-Timer IO Port: 0x1008
+ACPI: setting ELCR to 0200 (from 0e80)
+ACPI: Subsystem revision 20041105
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (00:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 9 10 *11)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 5 7) *10
+ACPI: PCI Interrupt Link [LNKC] (IRQs *9 10 11)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 5 *7 9 10 11)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10
+11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10
+11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 10
+11 12 14 15) *0, disabled.
+ACPI: PCI Interrupt Routing Table
+[\_SB_.PCI0.AGP_._PRT]
+ACPI: PCI Interrupt Routing Table
+[\_SB_.PCI0.PCIE._PRT]
+pnp: PnP ACPI init
+pnp: PnP ACPI: found 10 devices
+PCI: Using ACPI for IRQ routing
+ACPI: Processor [CPU0] (supports C1 C2 C3)
+ACPI: Processor [CPU0] (supports 8 throttling states)
+ACPI: Thermal Zone [THM] (35 C)
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 7
+ACPI: PCI interrupt 0000:00:1e.3[B] -> GSI 7 (level,
+low) -> IRQ 7
+ACPI wakeup devices:
+ACPI: (supports S0 S3 S4 S4bios S5)
+ACPI: PCI interrupt 0000:00:1f.2[B] -> GSI 7 (level,
+low) -> IRQ 7
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
+ACPI: PCI interrupt 0000:03:00.0[A] -> GSI 11 (level,
+low) -> IRQ 11
+ACPI: PCI interrupt 0000:03:03.0[A] -> GSI 7 (level,
+low) -> IRQ 7
+ACPI: PCI interrupt 0000:00:1e.2[A] -> GSI 11 (level,
+low) -> IRQ 11
+ACPI: PCI interrupt 0000:00:1d.7[A] -> GSI 11 (level,
+low) -> IRQ 11
+ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level,
+low) -> IRQ 11
+ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 7 (level,
+low) -> IRQ 7
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 9
+ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 9 (level,
+low) -> IRQ 9
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 7
+ACPI: PCI interrupt 0000:00:1d.3[D] -> GSI 7 (level,
+low) -> IRQ 7
+ACPI: PCI interrupt 0000:03:01.0[A] -> GSI 7 (level,
+low) -> IRQ 7
+ACPI: PCI interrupt 0000:03:01.1[B] -> GSI 9 (level,
+low) -> IRQ 9
+ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level,
+low) -> IRQ 11
+ACPI: AC Adapter [AC] (off-line)
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Lid Switch [LID]
+ACPI: Power Button (CM) [PBTN]
+ACPI: Sleep Button (CM) [SBTN]
+ACPI: Video Device [VID] (multi-head: yes  rom: no 
+post: no)
+
+------------------------------------------
+The output from cat /var/log/messages | grep ACPI is:
+
+Apr 11 17:07:11 localhost kernel: ACPI: PM-Timer IO
+Port: 0x1008
+Apr 11 17:07:11 localhost kernel: ACPI: setting ELCR
+to 0200 (from 0e80)
+Apr 11 17:07:11 localhost kernel: ACPI: Subsystem
+revision 20041105
+Apr 11 17:07:11 localhost kernel: ACPI: Interpreter
+enabled
+Apr 11 17:07:11 localhost kernel: ACPI: Using PIC for
+interrupt routing
+Apr 11 17:07:11 localhost kernel: ACPI: PCI Root
+Bridge [PCI0] (00:00)
+Apr 11 17:07:11 localhost kernel: ACPI: PCI Interrupt
+Link [LNKA] (IRQs 9 10 *11)
+Apr 11 17:07:11 localhost kernel: ACPI: PCI Interrupt
+Link [LNKB] (IRQs 5 7) *10Apr 11 17:07:11 localhost
+kernel: ACPI: PCI Interrupt Link [LNKC] (IRQs *9 10
+11)
+Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
+Link [LNKD] (IRQs 5 *7 9 10 11)
+Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
+Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,
+disabled.
+Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
+Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,
+disabled.
+Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
+Link [LNKH] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,
+disabled.
+Apr 11 17:07:12 localhost kernel: pnp: PnP ACPI init
+Apr 11 17:07:12 localhost kernel: pnp: PnP ACPI: found
+10 devices
+Apr 11 17:07:12 localhost kernel: PCI: Using ACPI for
+IRQ routing
+Apr 11 17:07:16 localhost kernel: ACPI: Processor
+[CPU0] (supports C1 C2 C3)
+Apr 11 17:07:16 localhost kernel: ACPI: Processor
+[CPU0] (supports 8 throttling states)
+Apr 11 17:07:16 localhost kernel: ACPI: Thermal Zone
+[THM] (35 C)
+Apr 11 17:07:17 localhost kernel: ACPI: PCI Interrupt
+Link [LNKB] enabled at IRQ 7
+Apr 11 17:07:17 localhost kernel: ACPI: PCI interrupt
+0000:00:1e.3[B] -> GSI 7 (level, low) -> IRQ 7
+Apr 11 17:07:19 localhost kernel: ACPI wakeup devices:
+Apr 11 17:07:21 localhost kernel: ACPI: (supports S0
+S3 S4 S4bios S5)
+Apr 11 17:07:24 localhost kernel: ACPI: PCI interrupt
+0000:00:1f.2[B] -> GSI 7 (level, low) -> IRQ 7
+Apr 11 17:07:26 localhost kernel: ACPI: PCI Interrupt
+Link [LNKA] enabled at IRQ 11
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:03:00.0[A] -> GSI 11 (level, low) -> IRQ 11
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:03:03.0[A] -> GSI 7 (level, low) -> IRQ 7
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:00:1e.2[A] -> GSI 11 (level, low) -> IRQ 11
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:00:1d.7[A] -> GSI 11 (level, low) -> IRQ 11
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:00:1d.1[B] -> GSI 7 (level, low) -> IRQ 7
+Apr 11 17:07:26 localhost kernel: ACPI: PCI Interrupt
+Link [LNKC] enabled at IRQ 9
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:00:1d.2[C] -> GSI 9 (level, low) -> IRQ 9
+Apr 11 17:07:26 localhost kernel: ACPI: PCI Interrupt
+Link [LNKD] enabled at IRQ 7
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:00:1d.3[D] -> GSI 7 (level, low) -> IRQ 7
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:03:01.0[A] -> GSI 7 (level, low) -> IRQ 7
+Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
+0000:03:01.1[B] -> GSI 9 (level, low) -> IRQ 9
+Apr 11 17:07:27 localhost kernel: ACPI: PCI interrupt
+0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
+Apr 11 17:07:27 localhost kernel: ACPI: AC Adapter
+[AC] (off-line)
+Apr 11 17:07:27 localhost kernel: ACPI: Battery Slot
+[BAT0] (battery present)
+Apr 11 17:07:27 localhost kernel: ACPI: Lid Switch
+[LID]
+Apr 11 17:07:27 localhost kernel: ACPI: Power Button
+(CM) [PBTN]
+Apr 11 17:07:27 localhost kernel: ACPI: Sleep Button
+(CM) [SBTN]
+Apr 11 17:07:27 localhost kernel: ACPI: Video Device
+[VID] (multi-head: yes  rom: no  post: no)
+------------------------------------------
+output from cat /proc/acpi/battery/BAT0/state when
+plugged in:
+
+
+present:                 yes
+capacity state:          ok
+charging state:          charged
+present rate:            1 mA
+remaining capacity:      7200 mAh
+present voltage:         12545 mV
+
+------------------------------------------
+output from cat /proc/acpi/battery/BAT0/state when
+unplugged:
+
+
+present:                 yes
+capacity state:          ok
+charging state:          discharging
+present rate:            2180 mA
+remaining capacity:      6788 mAh
+present voltage:         12343 mV
+
+
+
+Please help!
+~evan
+
+
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+Make Yahoo! your home page 
+http://www.yahoo.com/r/hs
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
