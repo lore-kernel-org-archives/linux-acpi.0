@@ -1,168 +1,255 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/6]sibling map initializing rework
-Date: Tue, 12 Apr 2005 13:30:56 +0800
-Message-ID: <1113283852.27646.426.camel@sli10-desk.sh.intel.com>
+From: Li Shaohua <shaohua.li@intel.com>
+Subject: [PATCH 4/6]cpu state clean after hot remove
+Date: Tue, 12 Apr 2005 13:31:07 +0800
+Message-ID: <1113283859.27646.430.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262037AbVDLFnl@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lkml <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>
+Cc: Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Zwane Mwaikambo <zwane@linuxpower.ca>, Andrew Morton <akpm@osdl.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Make sibling map init per-cpu. Hotplug CPU may change the map at
-runtime.
+Clean CPU states in order to reuse smp boot code for CPU hotplug.
 
-Signed-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
+Signed-off-by: Li Shaohua<shaohua.li@intel.com>
 ---
 
- linux-2.6.11-root/arch/i386/kernel/smpboot.c |   86 ++++++++++++++-------------
- 1 files changed, 45 insertions(+), 41 deletions(-)
+ linux-2.6.11-root/arch/i386/kernel/cpu/common.c |   12 ++++
+ linux-2.6.11-root/arch/i386/kernel/irq.c        |    5 +
+ linux-2.6.11-root/arch/i386/kernel/process.c    |   19 +++----
+ linux-2.6.11-root/arch/i386/kernel/smpboot.c    |   62 ++++++++++++++++++++++--
+ linux-2.6.11-root/include/asm-i386/irq.h        |    2 
+ linux-2.6.11-root/include/asm-i386/smp.h        |    5 +
+ 6 files changed, 89 insertions(+), 16 deletions(-)
 
-diff -puN arch/i386/kernel/smpboot.c~sibling_map_init_cleanup arch/i386/kernel/smpboot.c
---- linux-2.6.11/arch/i386/kernel/smpboot.c~sibling_map_init_cleanup	2005-04-12 10:36:34.283984464 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-04-12 10:36:34.287983856 +0800
-@@ -63,11 +63,16 @@ static int __initdata smp_b_stepping;
- 
- /* Number of siblings per CPU package */
- int smp_num_siblings = 1;
--int phys_proc_id[NR_CPUS]; /* Package ID of each logical CPU */
-+/* Package ID of each logical CPU */
-+int phys_proc_id[NR_CPUS] = {[0 ... NR_CPUS-1] = BAD_APICID};
- EXPORT_SYMBOL(phys_proc_id);
--int cpu_core_id[NR_CPUS]; /* Core ID of each logical CPU */
-+/* Core ID of each logical CPU */
-+int cpu_core_id[NR_CPUS] = {[0 ... NR_CPUS-1] = BAD_APICID};
- EXPORT_SYMBOL(cpu_core_id);
- 
-+cpumask_t cpu_sibling_map[NR_CPUS] __cacheline_aligned;
-+cpumask_t cpu_core_map[NR_CPUS] __cacheline_aligned;
+diff -puN arch/i386/kernel/cpu/common.c~cpu_state_clean arch/i386/kernel/cpu/common.c
+--- linux-2.6.11/arch/i386/kernel/cpu/common.c~cpu_state_clean	2005-04-12 10:37:50.642376224 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/common.c	2005-04-12 10:37:50.654374400 +0800
+@@ -644,3 +644,15 @@ void __devinit cpu_init (void)
+ 	clear_used_math();
+ 	mxcsr_feature_mask_init();
+ }
 +
- /* bitmap of online cpus */
- cpumask_t cpu_online_map __cacheline_aligned;
- 
-@@ -417,6 +422,38 @@ static void __init smp_callin(void)
- 
- static int cpucount;
- 
-+static inline void
-+set_cpu_sibling_map(int cpu)
++#ifdef CONFIG_HOTPLUG_CPU
++void __devinit cpu_uninit(void)
 +{
-+	int i;
++	int cpu = _smp_processor_id();
++	cpu_clear(cpu, cpu_initialized);
 +
-+	if (smp_num_siblings > 1) {
-+		for (i = 0; i < NR_CPUS; i++) {
-+			if (!cpu_isset(i, cpu_callout_map))
-+				continue;
-+			if (cpu_core_id[cpu] == cpu_core_id[i]) {
-+				cpu_set(i, cpu_sibling_map[cpu]);
-+				cpu_set(cpu, cpu_sibling_map[i]);
-+			}
-+		}
-+	} else {
-+		cpu_set(cpu, cpu_sibling_map[cpu]);
-+	}
-+
-+	if (current_cpu_data.x86_num_cores > 1) {
-+		for (i = 0; i < NR_CPUS; i++) {
-+			if (!cpu_isset(i, cpu_callout_map))
-+				continue;
-+			if (phys_proc_id[cpu] == phys_proc_id[i]) {
-+				cpu_set(i, cpu_core_map[cpu]);
-+				cpu_set(cpu, cpu_core_map[i]);
-+			}
-+		}
-+	} else {
-+		cpu_core_map[cpu] = cpu_sibling_map[cpu];
-+	}
++	/* lazy TLB state */
++	per_cpu(cpu_tlbstate, cpu).state = 0;
++	per_cpu(cpu_tlbstate, cpu).active_mm = &init_mm;
++}
++#endif
+diff -puN arch/i386/kernel/irq.c~cpu_state_clean arch/i386/kernel/irq.c
+--- linux-2.6.11/arch/i386/kernel/irq.c~cpu_state_clean	2005-04-12 10:37:50.643376072 +0800
++++ linux-2.6.11-root/arch/i386/kernel/irq.c	2005-04-12 10:37:50.654374400 +0800
+@@ -158,6 +158,11 @@ void irq_ctx_init(int cpu)
+ 		cpu,hardirq_ctx[cpu],softirq_ctx[cpu]);
+ }
+ 
++void irq_ctx_exit(int cpu)
++{
++	hardirq_ctx[cpu] = NULL;
 +}
 +
- /*
-  * Activate a secondary processor.
-  */
-@@ -444,6 +481,10 @@ static void __init start_secondary(void 
- 	 */
- 	local_flush_tlb();
+ extern asmlinkage void __do_softirq(void);
  
-+	/* This must be done before setting cpu_online_map */
-+	set_cpu_sibling_map(_smp_processor_id());
-+	wmb();
-+
- 	/* Note: this must be done before __cpu_up finish */
- 	enable_sep_cpu();
- 	cpu_set(smp_processor_id(), cpu_online_map);
-@@ -896,8 +937,6 @@ static int boot_cpu_logical_apicid;
- /* Where the IO area was mapped on multiquad, always 0 otherwise */
- void *xquad_portio;
- 
--cpumask_t cpu_sibling_map[NR_CPUS] __cacheline_aligned;
--cpumask_t cpu_core_map[NR_CPUS] __cacheline_aligned;
- 
- static void __init smp_boot_cpus(unsigned int max_cpus)
+ asmlinkage void do_softirq(void)
+diff -puN arch/i386/kernel/process.c~cpu_state_clean arch/i386/kernel/process.c
+--- linux-2.6.11/arch/i386/kernel/process.c~cpu_state_clean	2005-04-12 10:37:50.645375768 +0800
++++ linux-2.6.11-root/arch/i386/kernel/process.c	2005-04-12 10:37:50.655374248 +0800
+@@ -148,21 +148,18 @@ static void poll_idle (void)
+ /* We don't actually take CPU down, just spin without interrupts. */
+ static inline void play_dead(void)
  {
-@@ -1064,43 +1103,8 @@ static void __init smp_boot_cpus(unsigne
- 		cpus_clear(cpu_sibling_map[cpu]);
- 		cpus_clear(cpu_core_map[cpu]);
++	/* This must be done before dead CPU ack */
++	cpu_exit_clear();
++	mb();
+ 	/* Ack it */
+ 	__get_cpu_var(cpu_state) = CPU_DEAD;
+ 
+-	/* We shouldn't have to disable interrupts while dead, but
+-	 * some interrupts just don't seem to go away, and this makes
+-	 * it "work" for testing purposes. */
+-	/* Death loop */
+-	while (__get_cpu_var(cpu_state) != CPU_UP_PREPARE)
+-		cpu_relax();
+-
++	/*
++	 * With physical CPU hotplug, we should halt the cpu
++	 */
+ 	local_irq_disable();
+-	__flush_tlb_all();
+-	cpu_set(smp_processor_id(), cpu_online_map);
+-	enable_APIC_timer();
+-	local_irq_enable();
++	while (1)
++		__asm__ __volatile__("hlt":::"memory");
+ }
+ #else
+ static inline void play_dead(void)
+diff -puN arch/i386/kernel/smpboot.c~cpu_state_clean arch/i386/kernel/smpboot.c
+--- linux-2.6.11/arch/i386/kernel/smpboot.c~cpu_state_clean	2005-04-12 10:37:50.646375616 +0800
++++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-04-12 10:37:50.656374096 +0800
+@@ -798,8 +798,18 @@ wakeup_secondary_cpu(int phys_apicid, un
+ #endif	/* WAKE_SECONDARY_VIA_INIT */
+ 
+ extern cpumask_t cpu_initialized;
++static inline int alloc_cpu_id(void)
++{
++	cpumask_t	tmp_map;
++	int cpu;
++	cpus_complement(tmp_map, cpu_present_map);
++	cpu = first_cpu(tmp_map);
++	if (cpu >= NR_CPUS)
++		return -ENODEV;
++	return cpu;
++}
+ 
+-static int __devinit do_boot_cpu(int apicid)
++static int __devinit do_boot_cpu(int apicid, int cpu)
+ /*
+  * NOTE - on most systems this is a PHYSICAL apic ID, but on multiquad
+  * (ie clustered apic addressing mode), this is a LOGICAL apic ID.
+@@ -808,11 +818,12 @@ static int __devinit do_boot_cpu(int api
+ {
+ 	struct task_struct *idle;
+ 	unsigned long boot_error;
+-	int timeout, cpu;
++	int timeout;
+ 	unsigned long start_eip;
+ 	unsigned short nmi_high = 0, nmi_low = 0;
+ 
+-	cpu = ++cpucount;
++	++cpucount;
++
+ 	/*
+ 	 * We can't use kernel_thread since we must avoid to
+ 	 * reschedule the child.
+@@ -884,13 +895,16 @@ static int __devinit do_boot_cpu(int api
+ 			inquire_remote_apic(apicid);
+ 		}
  	}
--
--	for (cpu = 0; cpu < NR_CPUS; cpu++) {
--		struct cpuinfo_x86 *c = cpu_data + cpu;
--		int siblings = 0;
--		int i;
--		if (!cpu_isset(cpu, cpu_callout_map))
--			continue;
--
--		if (smp_num_siblings > 1) {
--			for (i = 0; i < NR_CPUS; i++) {
--				if (!cpu_isset(i, cpu_callout_map))
--					continue;
--				if (cpu_core_id[cpu] == cpu_core_id[i]) {
--					siblings++;
--					cpu_set(i, cpu_sibling_map[cpu]);
--				}
--			}
--		} else {
--			siblings++;
--			cpu_set(cpu, cpu_sibling_map[cpu]);
--		}
--
--		if (siblings != smp_num_siblings)
--			printk(KERN_WARNING "WARNING: %d siblings found for CPU%d, should be %d\n", siblings, cpu, smp_num_siblings);
--
--		if (c->x86_num_cores > 1) {
--			for (i = 0; i < NR_CPUS; i++) {
--				if (!cpu_isset(i, cpu_callout_map))
--					continue;
--				if (phys_proc_id[cpu] == phys_proc_id[i]) {
--					cpu_set(i, cpu_core_map[cpu]);
--				}
--			}
--		} else {
--			cpu_core_map[cpu] = cpu_sibling_map[cpu];
--		}
--	}
-+	cpu_set(0, cpu_sibling_map[0]);
-+	cpu_set(0, cpu_core_map[0]);
+-	x86_cpu_to_apicid[cpu] = apicid;
++
+ 	if (boot_error) {
+ 		/* Try to put things back the way they were before ... */
+ 		unmap_cpu_to_logical_apicid(cpu);
+ 		cpu_clear(cpu, cpu_callout_map); /* was set here (do_boot_cpu()) */
+ 		cpu_clear(cpu, cpu_initialized); /* was set by cpu_init() */
+ 		cpucount--;
++	} else {
++		x86_cpu_to_apicid[cpu] = apicid;
++		cpu_set(cpu, cpu_present_map);
+ 	}
  
- 	smpboot_setup_io_apic();
+ 	/* mark "stuck" area as not stuck */
+@@ -899,6 +913,26 @@ static int __devinit do_boot_cpu(int api
+ 	return boot_error;
+ }
  
++#ifdef CONFIG_HOTPLUG_CPU
++void cpu_exit_clear(void)
++{
++	int cpu = _smp_processor_id();
++
++	idle_task_exit();
++
++	cpucount --;
++	cpu_uninit();
++	irq_ctx_exit(cpu);
++
++	cpu_clear(cpu, cpu_callout_map);
++	cpu_clear(cpu, cpu_callin_map);
++	cpu_clear(cpu, cpu_present_map);
++
++	cpu_clear(cpu, smp_commenced_mask);
++	unmap_cpu_to_logical_apicid(cpu);
++}
++#endif
++
+ static void smp_tune_scheduling (void)
+ {
+ 	unsigned long cachesize;       /* kB   */
+@@ -1052,7 +1086,7 @@ static void __init smp_boot_cpus(unsigne
+ 		if (max_cpus <= cpucount+1)
+ 			continue;
+ 
+-		if (do_boot_cpu(apicid))
++		if ((cpu = alloc_cpu_id() > 0) && do_boot_cpu(apicid, cpu))
+ 			printk("CPU #%d not responding - cannot use it.\n",
+ 								apicid);
+ 		else
+@@ -1131,6 +1165,7 @@ void __devinit smp_prepare_boot_cpu(void
+ {
+ 	cpu_set(smp_processor_id(), cpu_online_map);
+ 	cpu_set(smp_processor_id(), cpu_callout_map);
++	cpu_set(smp_processor_id(), cpu_present_map);
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -1152,6 +1187,21 @@ static int __devinit cpu_enable(unsigned
+ 	return 0;
+ }
+ 
++static void
++remove_siblinginfo(int cpu)
++{
++	int sibling;
++
++	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
++		cpu_clear(cpu, cpu_sibling_map[sibling]);
++	for_each_cpu_mask(sibling, cpu_core_map[cpu])
++		cpu_clear(cpu, cpu_core_map[sibling]);
++	cpus_clear(cpu_sibling_map[cpu]);
++	cpus_clear(cpu_core_map[cpu]);
++	phys_proc_id[cpu] = BAD_APICID;
++	cpu_core_id[cpu] = BAD_APICID;
++}
++
+ int __cpu_disable(void)
+ {
+ 	cpumask_t map = cpu_online_map;
+@@ -1175,6 +1225,8 @@ int __cpu_disable(void)
+ 	mdelay(1);
+ 	local_irq_disable();
+ 
++	remove_siblinginfo(cpu);
++
+ 	cpu_clear(cpu, map);
+ 	fixup_irqs(map);
+ 	/* It's now safe to remove this processor from the online map */
+diff -puN include/asm-i386/irq.h~cpu_state_clean include/asm-i386/irq.h
+--- linux-2.6.11/include/asm-i386/irq.h~cpu_state_clean	2005-04-12 10:37:50.648375312 +0800
++++ linux-2.6.11-root/include/asm-i386/irq.h	2005-04-12 10:37:50.656374096 +0800
+@@ -29,9 +29,11 @@ extern void release_vm86_irqs(struct tas
+ 
+ #ifdef CONFIG_4KSTACKS
+   extern void irq_ctx_init(int cpu);
++  extern void irq_ctx_exit(int cpu);
+ # define __ARCH_HAS_DO_SOFTIRQ
+ #else
+ # define irq_ctx_init(cpu) do { } while (0)
++# define irq_ctx_exit(cpu) do { } while (0)
+ #endif
+ 
+ #ifdef CONFIG_IRQBALANCE
+diff -puN include/asm-i386/smp.h~cpu_state_clean include/asm-i386/smp.h
+--- linux-2.6.11/include/asm-i386/smp.h~cpu_state_clean	2005-04-12 10:37:50.649375160 +0800
++++ linux-2.6.11-root/include/asm-i386/smp.h	2005-04-12 10:37:50.656374096 +0800
+@@ -49,6 +49,11 @@ extern void zap_low_mappings (void);
+ #define MAX_APICID 256
+ extern u8 x86_cpu_to_apicid[];
+ 
++#ifdef CONFIG_HOTPLUG_CPU
++extern void cpu_exit_clear(void);
++extern void cpu_uninit(void);
++#endif
++
+ /*
+  * This function is needed by all SMP systems. It must _always_ be valid
+  * from the initial startup. We map APIC_BASE very early in page_setup(),
 _
-
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
