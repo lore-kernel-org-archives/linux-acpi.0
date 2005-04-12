@@ -1,14 +1,13 @@
-From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH 5/6]physical CPU hot add
-Date: Tue, 12 Apr 2005 07:04:56 -0600 (MDT)
-Message-ID: <Pine.LNX.4.61.0504120704250.19885@montezuma.fsmlabs.com>
-References: <1113283863.27646.432.camel@sli10-desk.sh.intel.com>
- <Pine.LNX.4.61.0504120609350.14171@montezuma.fsmlabs.com>
- <1113310145.5155.12.camel@sli10-desk.sh.intel.com>
+From: klug <klugster-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: Re: No longer able to turn lcd backlight off with 2.6.11->2.6.12-rc2
+Date: Tue, 12 Apr 2005 11:42:24 -0400
+Message-ID: <425BEC60.6060001@comcast.net>
+References: <425B0364.6000602@blarg.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1113310145.5155.12.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <425B0364.6000602-90T4dkFmkpLYtjvyW6yDsg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,32 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 12 Apr 2005, Li Shaohua wrote:
+I tested 2.6.10, and had the same results as with 2.6.11->2.6.12-rc2. So 
+it appears this is where the problem began.
 
-> On Tue, 2005-04-12 at 20:17, Zwane Mwaikambo wrote:
-> > On Tue, 12 Apr 2005, Li Shaohua wrote:
-> > 
-> > >  #ifdef CONFIG_HOTPLUG_CPU
-> > > +int __attribute__ ((weak)) smp_prepare_cpu(int cpu)
-> > > +{
-> > > +	return 0;
-> > > +}
-> > > +
-> > 
-> > Any way for you to avoid using weak attribute?
-> Just want to avoid more 'ifdef' or 'define empty routine for other
-> archs' staffs. Someone prefer 'weak' attribute. Either way is ok to me,
-> but if you think the former is better, I'd change it.
+klug wrote:
 
-The define method is fine and preferred.
-
-Thanks!
-	Zwane
-
+> After upgrading to 2.6.11.6 from 2.6.9 I am no longer able to turn the 
+> lcd backlight off with the command "echo lcd_out:0 > 
+> /proc/acpi/toshiba/video". I have since tried, 2.6.11, 2.6.11.7, 
+> 2.6.12-rc1, and 2.6.12-rc2 with no luck. With that command I have been 
+> able to turn the lcd backlight off with all 2.6 kernels up to and 
+> including 2.6.9. Previous to the upgrade, nothing appeared in my 
+> kernel logs after giving the command, however, now with 
+> 2.6.11->2.6.12-rc2 I get the entry "[kernel] video bus notify". I have 
+> also tried the new option "CONFIG_BACKLIGHT_LCD_SUPPOT", but again 
+> that does not allow me to turn the backlight off. My complete setup 
+> including hardware/kernel options is avaiable at, 
+> http://bugme.osdl.org/show_bug.cgi?id=4468
+>
+> -klug
+>
 
 
 -------------------------------------------------------
