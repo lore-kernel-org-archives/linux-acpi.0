@@ -1,11 +1,15 @@
-From: brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
-Subject: Re: Server Report
-Date: Mon, 11 Apr 2005 20:55:10 -0400 (EDT)
-Message-ID: <E1DL9gP-0003rc-00@sbrelay01.mail.atl.earthlink.net>
-Reply-To: nobody-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org
+From: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
+Subject: Policy question (was Re: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop)
+Date: Mon, 11 Apr 2005 20:09:28 -0400
+Message-ID: <200504112009.30928.rob@landley.net>
+References: <20050406212221.75716.qmail@web88010.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="SPMB1113267310880933e7d382960c99625e9282f631ae"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050406212221.75716.qmail-PllgjHOHifKB9c0Qi4KiSl5cfvJIxWXgQQ4Iyu8u01E@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,56 +19,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---SPMB1113267310880933e7d382960c99625e9282f631ae
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain;
+On Wednesday 06 April 2005 05:22 pm, Shawn Starr wrote:
+> --- Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+> > Hi!
+> >
+> > > So nobody minds if I make this into a CONFIG
+> >
+> > option marked as Deprecated? :)
+> >
+> > Actually it should probably go through
+> >
+> > Documentation/feature-removal-schedule.txt
+> >
+> > ...and give it *long* timeout, since it is API
+> > change.
+> > 									Pavel
 
-I apologize for this automatic reply to your email.
+Shouldn't all deprecated features be in feature-removal-schedule.txt?
 
-To control spam, I now allow incoming messages only from senders I
-have approved beforehand.
+There are four entries in feature-removal-schedule in 2.6.12-rc2, but
+`find . -name "Kconfig" | xargs grep -i deprecated` finds eight entries.  (And 
+there's more if the grep -i is for "obsolete" instead...)
 
-If you would like to be added to my list of approved senders, please
-fill out the short request form (see link below). Once I approve you,
-I will receive your original message in my inbox. You do not need to
-resend your message. I apologize for this one-time inconvenience.
+Just wondering...
 
-Click the link below to fill out the request:
-
-https://webmail.atl.earthlink.net/wam/addme?a=brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dl9F164T3Nl3qW0
-
---SPMB1113267310880933e7d382960c99625e9282f631ae
-Content-Type: text/html;
-
-<HTML>
-<BODY>
-<DIV>I apologize for this automatic reply to your email.</DIV>
-<DIV><BR></DIV>
-<DIV>
-To control spam, I now allow incoming messages only from senders I
-have approved beforehand.
-</DIV>
-<DIV><BR></DIV>
-<DIV>
-If you would like to be added to my list of approved senders, please
-fill out the short request form (see link below). Once I approve you,
-I will receive your original message in my inbox. You do not need to
-resend your message. I apologize for this one-time inconvenience.
-</DIV>
-<DIV><BR></DIV>
-<DIV>Click the link below to fill out the request:</DIV>
-<DIV><BR></DIV>
-<DIV>
-<A HREF="https://webmail.atl.earthlink.net/wam/addme?a=brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dl9F164T3Nl3qW0">
-https://webmail.atl.earthlink.net/wam/addme?a=brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dl9F164T3Nl3qW0</A></DIV>
-<DIV><BR></DIV>
-</BODY>
-</HTML>
-
---SPMB1113267310880933e7d382960c99625e9282f631ae--
+Rob
 
 
 -------------------------------------------------------
