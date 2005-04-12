@@ -1,14 +1,11 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Fw: Re: 2.6.12-rc2-mm2
-Date: Tue, 12 Apr 2005 10:17:13 -0600
-Message-ID: <1113322633.17684.23.camel@eeyore>
-References: <16A54BF5D6E14E4D916CE26C9AD30575019C29C7@pdsmsx402.ccr.corp.intel.com>
-	 <425AA4C1.6050609@gmail.com>
+From: Stas Sergeev <stsp-D1TkPCJej5s@public.gmane.org>
+Subject: Re: 2.6.12-rc2-mm3 (ACPI build problem)
+Date: Tue, 12 Apr 2005 21:53:02 +0400
+Message-ID: <425C0AFE.9080106@aknet.ru>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <425AA4C1.6050609-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,46 +15,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nguyen, Tom L" <tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Linux kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-04-11 at 18:24 +0200, Michael Thonke wrote:
-> It first consider that no bus supports ACPI, but than it say ACPI supported.
-> Maybe I interpret it in the wrong way. I hope you will/can fnd what is
-> wrong.
-> ...
-> This message 1st spotted over the screen:
->     ACPI: No ACPI bus support for 00:00
->     ACPI: No ACPI bus support for 00:01
->     ACPI: No ACPI bus support for 00:02
->     ACPI: No ACPI bus support for 00:03
->     ACPI: No ACPI bus support for 00:04
->     ACPI: No ACPI bus support for 00:05
->     ACPI: No ACPI bus support for 00:06
->     ACPI: No ACPI bus support for 00:07
->     ACPI: No ACPI bus support for 00:08
->     ACPI: No ACPI bus support for 00:09
->     ACPI: No ACPI bus support for 00:0a
->     ACPI: No ACPI bus support for 00:0b
-> 
-> And then for each pcie port:
->     ACPI: No ACPI bus support for pcie00-03
+Hello.
 
-The messages above are harmless, so you can ignore them.
-ACPI is in fact supported and working in spite of these
-messages.
+Andrew Morton wrote:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.12-rc=
+2/2.6.12-rc2-mm3/
+Fails to compile with
+!CONFIG_ACPI && CONFIG_SMP.
+CONFIG_SMP sets CONFIG_X86_HT,
+which sets CONFIG_ACPI_BOOT,
+but that fails without CONFIG_ACPI:
 
-> After that this appears:
->     ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 17 (level, low) -> IRQ 201   
->     ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 17 (level, low) -> IRQ 201
->     ACPI: PCI Interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 217
-
-These messages are perfectly normal.
-
-Apart from the messages, what is actually broken?  Is there a device
-that is not functional?  Which one?
-
+  CC      arch/i386/kernel/setup.o
+arch/i386/kernel/setup.c:96: error: syntax error before =E2=80=98acpi_sci=
+_flags=E2=80=99
+arch/i386/kernel/setup.c:96: warning: type defaults to =E2=80=98int=E2=80=
+=99 in declaration of =E2=80=98acpi_sci_flags=E2=80=99
+arch/i386/kernel/setup.c:96: warning: data definition has no type or stor=
+age class
+arch/i386/kernel/setup.c: In function =E2=80=98parse_cmdline_early=E2=80=99=
+:
+arch/i386/kernel/setup.c:811: error: request for member =E2=80=98trigger=E2=
+=80=99 in something not a structure or union
+arch/i386/kernel/setup.c:814: error: request for member =E2=80=98trigger=E2=
+=80=99 in something not a structure or union
+arch/i386/kernel/setup.c:817: error: request for member =E2=80=98polarity=
+=E2=80=99 in something not a structure or union
+arch/i386/kernel/setup.c:820: error: request for member =E2=80=98polarity=
+=E2=80=99 in something not a structure or union
 
 
 
