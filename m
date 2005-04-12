@@ -1,9 +1,10 @@
-From: Evan White <evwhite-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI seems to be functioning but not reporting events
-Date: Mon, 11 Apr 2005 23:49:32 -0700 (PDT)
-Message-ID: <20050412064932.45809.qmail@web31712.mail.mud.yahoo.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: add-acpi-based-floppy-controller-enumeration.patch
+Date: Tue, 12 Apr 2005 02:02:22 -0700
+Message-ID: <20050412020222.2a4e5bac.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -14,263 +15,274 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm running Fedora Core 3 with kernel 2.6.10-1.770 on
-a brand new Dell Inspiron laptop.  I have not
-recompiled the kernel myself at any point (I'm a
-relative newbie), but I'm pretty sure ACPI support is
-automatically enabled in Fedora's kernel.  
 
-I can see that it correctly monitors the various
-states, but it does not report events.
-
-For instance, by typing "cat
-/proc/acpi/battery/BATO/state" I can see the battery
-state ("charged"), and I can see that it monitors the
-change to "discharging" when I unplug the AC adapter. 
-However, it never reports the battery events in
-/var/log/acpid, nor does it output anything when I
-type "acpi_listen".
-
-The same is true for the power button and for the lid
-closing/opening: no event is registered in
-/var/log/acpid or while running acpi_listen.
-
-Below are some outputs that might help.  
-
-Does anyone know how to get ACPI(D) to correctly
-report all the supported events???
-
-------------------------------------------
-/var/log/acpid reads:
-
-[Mon Apr 11 23:19:55 2005] starting up
-[Mon Apr 11 23:19:55 2005] 6 rules loaded
-[Mon Apr 11 23:37:54 2005] client connected from
-8616[0:0]
-[Mon Apr 11 23:37:54 2005] 1 client rule loaded
-
-------------------------------------------
-The output from dmesg | grep ACPI is:
-
-ACPI: RSDP (v000 DELL                                 
-) @ 0x000fc9b0
-ACPI: RSDT (v001 DELL    CPi R   0x27d50204 ASL 
-0x00000061) @ 0x7ffda7d3
-ACPI: FADT (v001 DELL    CPi R   0x27d50204 ASL 
-0x00000061) @ 0x7ffdb400
-ACPI: MADT (v001 DELL    CPi R   0x27d50204 ASL 
-0x00000047) @ 0x7ffdbc00
-ACPI: MCFG (v016 DELL    CPi R   0x27d50204 ASL 
-0x00000061) @ 0x7ffdbbc0
-ACPI: BOOT (v001 DELL    CPi R   0x27d50204 ASL 
-0x00000061) @ 0x7ffdb7c0
-ACPI: SSDT (v001  PmRef  Cpu0Ist 0x00003000 INTL
-0x20030522) @ 0x7ffdabe6
-ACPI: SSDT (v001  PmRef  Cpu0Cst 0x00003001 INTL
-0x20030522) @ 0x7ffdaa0e
-ACPI: SSDT (v001  PmRef    CpuPm 0x00003000 INTL
-0x20030522) @ 0x7ffda813
-ACPI: DSDT (v001 INT430 SYSFexxx 0x00001001 MSFT
-0x0100000e) @ 0x00000000
-ACPI: PM-Timer IO Port: 0x1008
-ACPI: setting ELCR to 0200 (from 0e80)
-ACPI: Subsystem revision 20041105
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 9 10 *11)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 5 7) *10
-ACPI: PCI Interrupt Link [LNKC] (IRQs *9 10 11)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 5 *7 9 10 11)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10
-11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10
-11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 10
-11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Routing Table
-[\_SB_.PCI0.AGP_._PRT]
-ACPI: PCI Interrupt Routing Table
-[\_SB_.PCI0.PCIE._PRT]
-pnp: PnP ACPI init
-pnp: PnP ACPI: found 10 devices
-PCI: Using ACPI for IRQ routing
-ACPI: Processor [CPU0] (supports C1 C2 C3)
-ACPI: Processor [CPU0] (supports 8 throttling states)
-ACPI: Thermal Zone [THM] (35 C)
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 7
-ACPI: PCI interrupt 0000:00:1e.3[B] -> GSI 7 (level,
-low) -> IRQ 7
-ACPI wakeup devices:
-ACPI: (supports S0 S3 S4 S4bios S5)
-ACPI: PCI interrupt 0000:00:1f.2[B] -> GSI 7 (level,
-low) -> IRQ 7
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-ACPI: PCI interrupt 0000:03:00.0[A] -> GSI 11 (level,
-low) -> IRQ 11
-ACPI: PCI interrupt 0000:03:03.0[A] -> GSI 7 (level,
-low) -> IRQ 7
-ACPI: PCI interrupt 0000:00:1e.2[A] -> GSI 11 (level,
-low) -> IRQ 11
-ACPI: PCI interrupt 0000:00:1d.7[A] -> GSI 11 (level,
-low) -> IRQ 11
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 11 (level,
-low) -> IRQ 11
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 7 (level,
-low) -> IRQ 7
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 9
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 9 (level,
-low) -> IRQ 9
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 7
-ACPI: PCI interrupt 0000:00:1d.3[D] -> GSI 7 (level,
-low) -> IRQ 7
-ACPI: PCI interrupt 0000:03:01.0[A] -> GSI 7 (level,
-low) -> IRQ 7
-ACPI: PCI interrupt 0000:03:01.1[B] -> GSI 9 (level,
-low) -> IRQ 9
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level,
-low) -> IRQ 11
-ACPI: AC Adapter [AC] (off-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Lid Switch [LID]
-ACPI: Power Button (CM) [PBTN]
-ACPI: Sleep Button (CM) [SBTN]
-ACPI: Video Device [VID] (multi-head: yes  rom: no 
-post: no)
-
-------------------------------------------
-The output from cat /var/log/messages | grep ACPI is:
-
-Apr 11 17:07:11 localhost kernel: ACPI: PM-Timer IO
-Port: 0x1008
-Apr 11 17:07:11 localhost kernel: ACPI: setting ELCR
-to 0200 (from 0e80)
-Apr 11 17:07:11 localhost kernel: ACPI: Subsystem
-revision 20041105
-Apr 11 17:07:11 localhost kernel: ACPI: Interpreter
-enabled
-Apr 11 17:07:11 localhost kernel: ACPI: Using PIC for
-interrupt routing
-Apr 11 17:07:11 localhost kernel: ACPI: PCI Root
-Bridge [PCI0] (00:00)
-Apr 11 17:07:11 localhost kernel: ACPI: PCI Interrupt
-Link [LNKA] (IRQs 9 10 *11)
-Apr 11 17:07:11 localhost kernel: ACPI: PCI Interrupt
-Link [LNKB] (IRQs 5 7) *10Apr 11 17:07:11 localhost
-kernel: ACPI: PCI Interrupt Link [LNKC] (IRQs *9 10
-11)
-Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
-Link [LNKD] (IRQs 5 *7 9 10 11)
-Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
-Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,
-disabled.
-Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
-Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,
-disabled.
-Apr 11 17:07:12 localhost kernel: ACPI: PCI Interrupt
-Link [LNKH] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,
-disabled.
-Apr 11 17:07:12 localhost kernel: pnp: PnP ACPI init
-Apr 11 17:07:12 localhost kernel: pnp: PnP ACPI: found
-10 devices
-Apr 11 17:07:12 localhost kernel: PCI: Using ACPI for
-IRQ routing
-Apr 11 17:07:16 localhost kernel: ACPI: Processor
-[CPU0] (supports C1 C2 C3)
-Apr 11 17:07:16 localhost kernel: ACPI: Processor
-[CPU0] (supports 8 throttling states)
-Apr 11 17:07:16 localhost kernel: ACPI: Thermal Zone
-[THM] (35 C)
-Apr 11 17:07:17 localhost kernel: ACPI: PCI Interrupt
-Link [LNKB] enabled at IRQ 7
-Apr 11 17:07:17 localhost kernel: ACPI: PCI interrupt
-0000:00:1e.3[B] -> GSI 7 (level, low) -> IRQ 7
-Apr 11 17:07:19 localhost kernel: ACPI wakeup devices:
-Apr 11 17:07:21 localhost kernel: ACPI: (supports S0
-S3 S4 S4bios S5)
-Apr 11 17:07:24 localhost kernel: ACPI: PCI interrupt
-0000:00:1f.2[B] -> GSI 7 (level, low) -> IRQ 7
-Apr 11 17:07:26 localhost kernel: ACPI: PCI Interrupt
-Link [LNKA] enabled at IRQ 11
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:03:00.0[A] -> GSI 11 (level, low) -> IRQ 11
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:03:03.0[A] -> GSI 7 (level, low) -> IRQ 7
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:00:1e.2[A] -> GSI 11 (level, low) -> IRQ 11
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:00:1d.7[A] -> GSI 11 (level, low) -> IRQ 11
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:00:1d.0[A] -> GSI 11 (level, low) -> IRQ 11
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:00:1d.1[B] -> GSI 7 (level, low) -> IRQ 7
-Apr 11 17:07:26 localhost kernel: ACPI: PCI Interrupt
-Link [LNKC] enabled at IRQ 9
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:00:1d.2[C] -> GSI 9 (level, low) -> IRQ 9
-Apr 11 17:07:26 localhost kernel: ACPI: PCI Interrupt
-Link [LNKD] enabled at IRQ 7
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:00:1d.3[D] -> GSI 7 (level, low) -> IRQ 7
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:03:01.0[A] -> GSI 7 (level, low) -> IRQ 7
-Apr 11 17:07:26 localhost kernel: ACPI: PCI interrupt
-0000:03:01.1[B] -> GSI 9 (level, low) -> IRQ 9
-Apr 11 17:07:27 localhost kernel: ACPI: PCI interrupt
-0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
-Apr 11 17:07:27 localhost kernel: ACPI: AC Adapter
-[AC] (off-line)
-Apr 11 17:07:27 localhost kernel: ACPI: Battery Slot
-[BAT0] (battery present)
-Apr 11 17:07:27 localhost kernel: ACPI: Lid Switch
-[LID]
-Apr 11 17:07:27 localhost kernel: ACPI: Power Button
-(CM) [PBTN]
-Apr 11 17:07:27 localhost kernel: ACPI: Sleep Button
-(CM) [SBTN]
-Apr 11 17:07:27 localhost kernel: ACPI: Video Device
-[VID] (multi-head: yes  rom: no  post: no)
-------------------------------------------
-output from cat /proc/acpi/battery/BAT0/state when
-plugged in:
-
-
-present:                 yes
-capacity state:          ok
-charging state:          charged
-present rate:            1 mA
-remaining capacity:      7200 mAh
-present voltage:         12545 mV
-
-------------------------------------------
-output from cat /proc/acpi/battery/BAT0/state when
-unplugged:
-
-
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            2180 mA
-remaining capacity:      6788 mAh
-present voltage:         12343 mV
+Bjorn, this has been in -mm for ages.  What did we end up deciding
+to do with it?
 
 
 
-Please help!
-~evan
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
+This can be disabled with "floppy=no_acpi", which should only be required
+if your BIOS supplies incorrect ACPI _CRS information about I/O ports,
+IRQs, or DMA channels.
 
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+---
 
+ 25-akpm/Documentation/floppy.txt |    6 +
+ 25-akpm/drivers/block/floppy.c   |  183 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 189 insertions(+)
 
-		
-__________________________________ 
-Do you Yahoo!? 
-Make Yahoo! your home page 
-http://www.yahoo.com/r/hs
+diff -puN Documentation/floppy.txt~add-acpi-based-floppy-controller-enumeration Documentation/floppy.txt
+--- 25/Documentation/floppy.txt~add-acpi-based-floppy-controller-enumeration	2005-03-11 13:45:42.000000000 -0800
++++ 25-akpm/Documentation/floppy.txt	2005-03-11 13:45:42.000000000 -0800
+@@ -204,6 +204,12 @@ in /etc/modprobe.conf.
+ 	   It's been recommended that take about 1/4 of the default speed
+ 	   in some more extreme cases."
+ 
++ floppy=no_acpi
++	Don't enumerate floppy controllers using ACPI namespace.
++	You may need this if your ACPI is buggy and doesn't report
++	a floppy controller when it actually exists, or if it
++	reports incorrect I/O port, IRQ, or DMA information.
++
+ 
+ Supporting utilities and additional documentation:
+ ==================================================
+diff -puN drivers/block/floppy.c~add-acpi-based-floppy-controller-enumeration drivers/block/floppy.c
+--- 25/drivers/block/floppy.c~add-acpi-based-floppy-controller-enumeration	2005-03-11 13:45:42.000000000 -0800
++++ 25-akpm/drivers/block/floppy.c	2005-03-11 13:48:56.000000000 -0800
+@@ -180,6 +180,13 @@ static int print_unex = 1;
+ #include <linux/device.h>
+ #include <linux/buffer_head.h>	/* for invalidate_buffers() */
+ 
++#ifdef CONFIG_ACPI
++#include <linux/acpi.h>
++#include <acpi/acpi_bus.h>
++
++static int no_acpi_floppy;
++#endif
++
+ /*
+  * PS/2 floppies have much slower step rates than regular floppies.
+  * It's been recommended that take about 1/4 of the default speed
+@@ -4145,6 +4152,9 @@ static struct param_table {
+ 	{"slow", NULL, &slow_floppy, 1, 0},
+ 	{"unexpected_interrupts", NULL, &print_unex, 1, 0},
+ 	{"no_unexpected_interrupts", NULL, &print_unex, 0, 0},
++#ifdef CONFIG_ACPI
++	{"no_acpi", NULL, &no_acpi_floppy, 1, 0},
++#endif
+ 	{"L40SX", NULL, &print_unex, 0, 0}
+ 
+ 	EXTRA_FLOPPY_PARAMS
+@@ -4217,11 +4227,180 @@ static struct kobject *floppy_find(dev_t
+ 	return get_disk(disks[drive]);
+ }
+ 
++#ifdef CONFIG_ACPI
++static int acpi_floppy_registered;
++static int acpi_floppies;
++
++struct region {
++	unsigned int base;
++	unsigned int size;
++};
++
++struct floppy_resources {
++	unsigned int nr_io_regions;
++	struct region io_region[2];
++	unsigned int irq;
++	unsigned int dma_channel;
++};
++
++static acpi_status acpi_floppy_resource(struct acpi_resource *res, void *data)
++{
++	struct floppy_resources *fd = (struct floppy_resources *) data;
++	struct acpi_resource_io *io;
++	struct acpi_resource_irq *irq;
++	struct acpi_resource_ext_irq *ext_irq;
++	struct acpi_resource_dma *dma;
++	int n;
++
++	if (res->id == ACPI_RSTYPE_IO) {
++		io = &res->data.io;
++		if (io->range_length) {
++			n = fd->nr_io_regions;
++			if (n < 2) {
++				fd->io_region[n].base = io->min_base_address;
++				fd->io_region[n].size = io->range_length;
++				fd->nr_io_regions++;
++			} else {
++				printk(KERN_WARNING "%s: ignoring I/O port region 0x%x-0x%x\n",
++					DEVICE_NAME, io->min_base_address,
++					io->min_base_address + io->range_length - 1);
++			}
++		}
++	} else if (res->id == ACPI_RSTYPE_IRQ) {
++		irq = &res->data.irq;
++		if (irq->number_of_interrupts > 0)
++			fd->irq = acpi_register_gsi(irq->interrupts[0],
++				irq->edge_level, irq->active_high_low);
++	} else if (res->id == ACPI_RSTYPE_EXT_IRQ) {
++		ext_irq = &res->data.extended_irq;
++		if (ext_irq->number_of_interrupts > 0)
++			fd->irq = acpi_register_gsi(ext_irq->interrupts[0],
++				ext_irq->edge_level, ext_irq->active_high_low);
++	} else if (res->id == ACPI_RSTYPE_DMA) {
++		dma = &res->data.dma;
++		if (dma->number_of_channels > 0)
++			fd->dma_channel = dma->channels[0];
++	}
++	return AE_OK;
++}
++
++static int acpi_floppy_add(struct acpi_device *device)
++{
++	struct floppy_resources fd;
++	acpi_status status;
++	unsigned int base, dcr;
++
++	memset(&fd, 0, sizeof(fd));
++	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
++		acpi_floppy_resource, &fd);
++	if (ACPI_FAILURE(status))
++		return -ENODEV;
++
++	strncpy(acpi_device_name(device), "Floppy Controller",
++		sizeof(acpi_device_name(device)));
++	printk("ACPI: %s [%s] at I/O 0x%x-0x%x",
++		acpi_device_name(device), acpi_device_bid(device),
++		fd.io_region[0].base,
++		fd.io_region[0].base + fd.io_region[0].size - 1);
++	if (fd.nr_io_regions > 1) {
++		if (fd.io_region[1].size == 1)
++			printk(", 0x%x", fd.io_region[1].base);
++		else
++			printk(", 0x%x-0x%x", fd.io_region[1].base,
++				fd.io_region[1].base + fd.io_region[1].size - 1);
++	}
++	printk(" irq %d dma channel %d\n", fd.irq, fd.dma_channel);
++
++	/*
++	 * The most correct resource description is probably of the form
++	 *    0x3f2-0x3f5, 0x3f7
++	 * Those are the only ports this driver actually uses.
++	 *
++	 * 0x3f0 and 0x3f1 were apparently used on PS/2 systems (though
++	 * this driver doesn't touch them), and 0x3f6 is used by IDE.
++	 * Some BIOS's erroneously include those ports, or omit 0x3f7,
++	 * so we should also be able to handle the following:
++	 *    0x3f0-0x3f5
++	 *    0x3f0-0x3f5, 0x3f7
++	 *    0x3f0-0x3f7
++	 *    0x3f2-0x3f7
++	 */
++	base = fd.io_region[0].base & ~0x7;
++	dcr = base + 7;
++
++#define contains(region, port)	((region).base <= (port) && \
++				 (port) < (region).base + (region).size)
++
++	if (!(contains(fd.io_region[0], dcr) || contains(fd.io_region[1], dcr))) {
++		printk(KERN_WARNING "ACPI: [%s] doesn't declare FD_DCR; also claiming 0x%x\n",
++			acpi_device_bid(device), dcr);
++	}
++
++#undef contains
++
++	if (acpi_floppies == 0) {
++		FDC1 = base;
++		FLOPPY_IRQ = fd.irq;
++		FLOPPY_DMA = fd.dma_channel;
++	} else if (acpi_floppies == 1) {
++		FDC2 = base;
++		if (fd.irq != FLOPPY_IRQ || fd.dma_channel != FLOPPY_DMA)
++			printk(KERN_WARNING "%s: different IRQ/DMA info for [%s]; may not work\n",
++				DEVICE_NAME, acpi_device_bid(device));
++	} else {
++		printk(KERN_ERR "%s: only 2 controllers supported; [%s] ignored\n",
++			DEVICE_NAME, acpi_device_bid(device));
++		return -ENODEV;
++	}
++
++	acpi_floppies++;
++	return 0;
++}
++
++static struct acpi_driver acpi_floppy_driver = {
++	.name	= "floppy",
++	.ids	= "PNP0700",
++	.ops	= {
++		.add	= acpi_floppy_add,
++	},
++};
++
++static int acpi_floppy_init(void)
++{
++	int err;
++
++	if (no_acpi_floppy) {
++		printk("%s: ACPI detection disabled\n", DEVICE_NAME);
++		return -ENODEV;
++	}
++	err = acpi_bus_register_driver(&acpi_floppy_driver);
++	if (err >= 0)
++		acpi_floppy_registered = 1;
++	return err;
++}
++
++static void acpi_floppy_exit(void)
++{
++	if (acpi_floppy_registered) {
++		acpi_bus_unregister_driver(&acpi_floppy_driver);
++		acpi_floppy_registered = 0;
++	}
++}
++#else
++static inline int  acpi_floppy_init(void) { return -ENODEV; }
++static inline void acpi_floppy_exit(void) { }
++#endif
++
+ static int __init floppy_init(void)
+ {
+ 	int i, unit, drive;
+ 	int err, dr;
+ 
++	if (acpi_floppy_init() == 0) {
++		err = -ENODEV;
++		goto out_put_acpi;
++	}
++
+ 	raw_cmd = NULL;
+ 
+ 	for (dr = 0; dr < N_DRIVE; dr++) {
+@@ -4405,6 +4584,8 @@ out_put_disk:
+ 		del_timer(&motor_off_timer[dr]);
+ 		put_disk(disks[dr]);
+ 	}
++out_put_acpi:
++	acpi_floppy_exit();
+ 	return err;
+ }
+ 
+@@ -4619,6 +4800,8 @@ void cleanup_module(void)
+ 	/* eject disk, if any */
+ 	fd_eject(0);
+ 
++	acpi_floppy_exit();
++
+ 	wait_for_completion(&device_release);
+ }
+ 
+_
+
 
 
 -------------------------------------------------------
