@@ -1,13 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH 6/6]suspend/resume SMP support
-Date: Tue, 12 Apr 2005 12:51:15 +0200
-Message-ID: <20050412105115.GD17903@elf.ucw.cz>
-References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com>
+From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH 1/6]sep initializing rework
+Date: Tue, 12 Apr 2005 06:07:46 -0600 (MDT)
+Message-ID: <Pine.LNX.4.61.0504120558500.14171@montezuma.fsmlabs.com>
+References: <1113283845.27646.424.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1113283867.27646.434.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <1113283845.27646.424.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,29 +17,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Protasevich, Natalie" <Natalie.Protasevich-8PZ5lytb3wbQT0dZR+AlfA@public.gmane.org>, Ryan Harper <ryanh-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello Shaohua,
 
-> Using CPU hotplug to support suspend/resume SMP. Both S3 and S4 use
-> disable/enable_nonboot_cpus API. The S4 part is based on Pavel's
-> original S4 SMP patch.
+On Tue, 12 Apr 2005, Li Shaohua wrote:
 
-I tested it on 2x PII(?) 550MHz system. Suspend went ok, resume loaded
-image from disk, but then I got
+> These patches (together with 5 patches followed this one) are updated
+> suspend/resume SMP patches. The patches fixed some bugs and do clean up
+> as suggested. Now they work for both suspend-to-ram and suspend-to-disk.
+> Patches are against 2.6.12-rc2-mm3.
 
-Thawing cpus ....
-Booting processor 1/0 eip 3000
+These patches look good and i think we should go ahead with them. I've 
+also cross checked with physical hotplug cpu patches for ES7xxx from 
+Natalie (added to Cc) and it does indeed look like a lot of the code will 
+work for her too, but i'd appreciate it if she also does a double check. 
+Obviously this won't work for other upcoming users of hotplug cpu like Xen 
+(Ryan added to Cc) but i think we can abstract things later on to cover 
+other special users.
 
-...and very funny effect on keyboard leds. They started to blink
-(panic-like), but with very wrong frequency. It looked like 2 cpus
-doing panic blinks at once...
+Thanks Shaohua,
+	Zwane
 
-								Pavel
-
--- 
-Boycott Kodak -- for their patent abuse against Java.
 
 
 -------------------------------------------------------
