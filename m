@@ -1,48 +1,42 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Subject: Re: [PATCH 3/6]init call cleanup
-Date: Tue, 12 Apr 2005 11:32:29 +0200
-Message-ID: <200504121132.30027@bilbo.math.uni-mannheim.de>
-References: <1113283855.27646.428.camel@sli10-desk.sh.intel.com>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [PATCH 6/6]suspend/resume SMP support
+Date: Tue, 12 Apr 2005 11:43:54 +0200
+Message-ID: <20050412094354.GD1352@elf.ucw.cz>
+References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262075AbVDLJb4@vger.kernel.org>
-In-Reply-To: <1113283855.27646.428.camel@sli10-desk.sh.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Li Shaohua <shaohua.li@intel.com>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Zwane Mwaikambo <zwane@linuxpower.ca>, Andrew Morton <akpm@osdl.org>
+In-Reply-To: <1113283867.27646.434.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Li Shaohua wrote:
-> Trival patch for CPU hotplug. In CPU identify  part, only did cleaup for
-> intel CPUs. Need do for other CPUs if they support S3 SMP.
->
-> @@ -405,7 +405,7 @@ void __init init_bsp_APIC(void)
->  	apic_write_around(APIC_LVT1, value);
->  }
->
-> -void __init setup_local_APIC (void)
-> +void __devinit setup_local_APIC (void)
-                                  ^
+Hi!
 
->  {
->  	unsigned long oldvalue, value, ver, maxlvt;
->
+> Using CPU hotplug to support suspend/resume SMP. Both S3 and S4 use
+> disable/enable_nonboot_cpus API. The S4 part is based on Pavel's
+> original S4 SMP patch.
 
-Please remove this space while you are at it.
+The series looks good to me, but I was not yet able to actually try
+it. Will try to do that in few hours.
+								Pavel
 
-> @@ -556,7 +556,7 @@ void __init early_cpu_init(void)
->   * and IDT. We reload them nevertheless, this function acts as a
->   * 'CPU state barrier', nothing should get across.
->   */
-> -void __init cpu_init (void)
-> +void __devinit cpu_init (void)
->  {
->  	int cpu = smp_processor_id();
->  	struct tss_struct * t = &per_cpu(init_tss, cpu);
+-- 
+Boycott Kodak -- for their patent abuse against Java.
 
-This one too.
 
-Eike
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
