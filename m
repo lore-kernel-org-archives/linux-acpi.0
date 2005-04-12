@@ -1,12 +1,16 @@
-From: "Brian Sedlacek" <brian-JEO+i2wh/fUqcZcGjlUOXw@public.gmane.org>
-Subject: Inspiron 1100 ACPI Not Running? {Scanned}
-Date: Mon, 11 Apr 2005 21:17:59 -0600 (MDT)
-Message-ID: <48151.192.168.1.4.1113275879.squirrel@www.like-mike.net>
-Reply-To: brian-JEO+i2wh/fUqcZcGjlUOXw@public.gmane.org
+From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: Re: bk-acpi causes freezes on ia64/tiger
+Date: Tue, 12 Apr 2005 13:25:13 +1000
+Message-ID: <1113276313.3645.1130.camel@desktop.cunningham.myip.net.au>
+References: <20050408011437.7fe1159d.akpm@osdl.org>
+	 <1113190685.2420.36.camel@d845pe> <1113252341.2419.44.camel@d845pe>
+	 <20050411182951.52f76e93.akpm@osdl.org>
+Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050411182951.52f76e93.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,12 +20,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm running Mandrake 10.1 with a custom compiled 2.6.11.7 kernel with
-swsusp2 applied.  When I run cat /proc/acpi/event, nothing shows.  It
-doesn't seem to recognize any events.  Any ideas?
+On Tue, 2005-04-12 at 11:29, Andrew Morton wrote:
+> Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> >
+> > On Sun, 2005-04-10 at 23:38, Len Brown wrote:
+> >  > On Fri, 2005-04-08 at 04:14, Andrew Morton wrote:
+> >  > > Current bk-acpi tree causes my Intel tiger box to freeze partway
+> >  > > through boot.
+> > 
+> >  Looks like the freeze may be due to the "C1 patch":
+> > 
+> >  http://linux-acpi.bkbits.net:8080/to-akpm/cset@424cccb33M89YNHJOda1O6L0B6ucjw
+> > 
+> >  If you revert that one does your tiger live?
+> 
+> That server appears to be dead.  I took a punt and reverted the below
+> patch.  That fixed things up.
+
+Larry posted a message on LKML a short while ago saying bk-bits is down,
+and offering to go and reboot it if anyone so desired.
+
+Regards,
+
+Nigel
+-- 
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
+Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
+
+Maintainer of Suspend2 Kernel Patches http://suspend2.net
 
 
 
