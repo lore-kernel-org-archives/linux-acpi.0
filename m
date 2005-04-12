@@ -1,14 +1,14 @@
-From: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
-Subject: Policy question (was Re: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop)
-Date: Mon, 11 Apr 2005 20:09:28 -0400
-Message-ID: <200504112009.30928.rob@landley.net>
-References: <20050406212221.75716.qmail@web88010.mail.re2.yahoo.com>
+From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Policy question (was Re: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop)
+Date: Mon, 11 Apr 2005 21:21:51 -0400
+Message-ID: <200504112121.52203.shawn.starr@rogers.com>
+References: <20050406212221.75716.qmail@web88010.mail.re2.yahoo.com> <200504112009.30928.rob@landley.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050406212221.75716.qmail-PllgjHOHifKB9c0Qi4KiSl5cfvJIxWXgQQ4Iyu8u01E@public.gmane.org>
+In-Reply-To: <200504112009.30928.rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,35 +19,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+To: Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>
 Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 06 April 2005 05:22 pm, Shawn Starr wrote:
-> --- Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
-> > Hi!
-> >
-> > > So nobody minds if I make this into a CONFIG
-> >
-> > option marked as Deprecated? :)
-> >
-> > Actually it should probably go through
-> >
-> > Documentation/feature-removal-schedule.txt
-> >
-> > ...and give it *long* timeout, since it is API
-> > change.
-> > 									Pavel
+Well, of course. When I get around to figuring out the best way to do this.  
+Since I don't want to bloat up sysfs ACPI stuff just to check if the echoed 
+value is a number or string. We can just gradually phase it out by just 
+marking it DEPRECATED and keep it ON in the Kbuild file so nobody looses the 
+functionality until then.
 
-Shouldn't all deprecated features be in feature-removal-schedule.txt?
+I'm thinking 2 years but some say thats too long :)
 
-There are four entries in feature-removal-schedule in 2.6.12-rc2, but
-`find . -name "Kconfig" | xargs grep -i deprecated` finds eight entries.  (And 
-there's more if the grep -i is for "obsolete" instead...)
+Now that I look at it, I don't need to put it into a CONFIG option as its 
+already a module :-) even better.
 
-Just wondering...
+Shawn.
 
-Rob
+On April 11, 2005 20:09, Rob Landley wrote:
+> On Wednesday 06 April 2005 05:22 pm, Shawn Starr wrote:
+> > --- Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+> > > Hi!
+> > >
+> > > > So nobody minds if I make this into a CONFIG
+> > >
+> > > option marked as Deprecated? :)
+> > >
+> > > Actually it should probably go through
+> > >
+> > > Documentation/feature-removal-schedule.txt
+> > >
+> > > ...and give it *long* timeout, since it is API
+> > > change.
+> > >          Pavel
+>
+> Shouldn't all deprecated features be in feature-removal-schedule.txt?
+>
+> There are four entries in feature-removal-schedule in 2.6.12-rc2, but
+> `find . -name "Kconfig" | xargs grep -i deprecated` finds eight entries. 
+> (And there's more if the grep -i is for "obsolete" instead...)
+>
+> Just wondering...
+>
+> Rob
 
 
 -------------------------------------------------------
