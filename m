@@ -1,7 +1,7 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/6]init call cleanup
-Date: Tue, 12 Apr 2005 13:31:00 +0800
-Message-ID: <1113283855.27646.428.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 5/6]physical CPU hot add
+Date: Tue, 12 Apr 2005 13:31:12 +0800
+Message-ID: <1113283863.27646.432.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -19,481 +19,228 @@ To: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-
 Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-Trival patch for CPU hotplug. In CPU identify  part, only did cleaup for
-intel CPUs. Need do for other CPUs if they support S3 SMP.
+Boot a CPU at runtime.
 
 Signed-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- linux-2.6.11-root/arch/i386/kernel/apic.c                |   14 +++----
- linux-2.6.11-root/arch/i386/kernel/cpu/common.c          |   30 +++++++--------
- linux-2.6.11-root/arch/i386/kernel/cpu/intel.c           |   12 +++---
- linux-2.6.11-root/arch/i386/kernel/cpu/intel_cacheinfo.c |    4 +-
- linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/mce.c      |    4 +-
- linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p4.c       |    4 +-
- linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p5.c       |    2 -
- linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p6.c       |    2 -
- linux-2.6.11-root/arch/i386/kernel/process.c             |    2 -
- linux-2.6.11-root/arch/i386/kernel/setup.c               |    2 -
- linux-2.6.11-root/arch/i386/kernel/smpboot.c             |   18 ++++-----
- linux-2.6.11-root/arch/i386/kernel/timers/timer_tsc.c    |    2 -
- 12 files changed, 48 insertions(+), 48 deletions(-)
+ linux-2.6.11-root/arch/i386/kernel/smpboot.c |  112 ++++++++++++++++++++-------
+ linux-2.6.11-root/drivers/base/cpu.c         |    8 +
+ linux-2.6.11-root/include/asm-i386/smp.h     |    2 
+ 3 files changed, 93 insertions(+), 29 deletions(-)
 
-diff -puN arch/i386/kernel/apic.c~init_call_cleanup arch/i386/kernel/apic.c
---- linux-2.6.11/arch/i386/kernel/apic.c~init_call_cleanup	2005-04-12 10:37:07.216977888 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/apic.c	2005-04-12 10:37:07.243973784 +0800
-@@ -405,7 +405,7 @@ void __init init_bsp_APIC(void)
- 	apic_write_around(APIC_LVT1, value);
- }
+diff -puN arch/i386/kernel/smpboot.c~warm_boot_cpu arch/i386/kernel/smpboot.c
+--- linux-2.6.11/arch/i386/kernel/smpboot.c~warm_boot_cpu	2005-04-12 10:38:16.720411760 +0800
++++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-04-12 11:11:09.155556040 +0800
+@@ -80,6 +80,12 @@ cpumask_t cpu_callin_map;
+ cpumask_t cpu_callout_map;
+ static cpumask_t smp_commenced_mask;
  
--void __init setup_local_APIC (void)
-+void __devinit setup_local_APIC (void)
- {
- 	unsigned long oldvalue, value, ver, maxlvt;
++/* TSC's upper 32 bits can't be written in eariler CPU (before prescott), there
++ * is no way to resync one AP against BP. TBD: for prescott and above, we
++ * should use IA64's algorithm
++ */
++static int __devinitdata tsc_sync_disabled;
++
+ /* Per CPU bogomips and other parameters */
+ struct cpuinfo_x86 cpu_data[NR_CPUS] __cacheline_aligned;
  
-@@ -676,7 +676,7 @@ static struct sys_device device_lapic = 
- 	.cls	= &lapic_sysclass,
- };
- 
--static void __init apic_pm_activate(void)
-+static void __devinit apic_pm_activate(void)
- {
- 	apic_pm_state.active = 1;
- }
-@@ -877,7 +877,7 @@ fake_ioapic_page:
-  * but we do not accept timer interrupts yet. We only allow the BP
-  * to calibrate.
-  */
--static unsigned int __init get_8254_timer_count(void)
-+static unsigned int __devinit get_8254_timer_count(void)
- {
- 	extern spinlock_t i8253_lock;
- 	unsigned long flags;
-@@ -896,7 +896,7 @@ static unsigned int __init get_8254_time
- }
- 
- /* next tick in 8254 can be caught by catching timer wraparound */
--static void __init wait_8254_wraparound(void)
-+static void __devinit wait_8254_wraparound(void)
- {
- 	unsigned int curr_count, prev_count;
- 
-@@ -916,7 +916,7 @@ static void __init wait_8254_wraparound(
-  * Default initialization for 8254 timers. If we use other timers like HPET,
-  * we override this later
-  */
--void (*wait_timer_tick)(void) __initdata = wait_8254_wraparound;
-+void (*wait_timer_tick)(void) __devinitdata = wait_8254_wraparound;
- 
- /*
-  * This function sets up the local APIC timer, with a timeout of
-@@ -952,7 +952,7 @@ static void __setup_APIC_LVTT(unsigned i
- 	apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
- }
- 
--static void __init setup_APIC_timer(unsigned int clocks)
-+static void __devinit setup_APIC_timer(unsigned int clocks)
- {
- 	unsigned long flags;
- 
-@@ -1065,7 +1065,7 @@ void __init setup_boot_APIC_clock(void)
- 	local_irq_enable();
- }
- 
--void __init setup_secondary_APIC_clock(void)
-+void __devinit setup_secondary_APIC_clock(void)
- {
- 	setup_APIC_timer(calibration_result);
- }
-diff -puN arch/i386/kernel/cpu/common.c~init_call_cleanup arch/i386/kernel/cpu/common.c
---- linux-2.6.11/arch/i386/kernel/cpu/common.c~init_call_cleanup	2005-04-12 10:37:07.218977584 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/common.c	2005-04-12 10:37:07.244973632 +0800
-@@ -24,9 +24,9 @@ EXPORT_PER_CPU_SYMBOL(cpu_gdt_table);
- DEFINE_PER_CPU(unsigned char, cpu_16bit_stack[CPU_16BIT_STACK_SIZE]);
- EXPORT_PER_CPU_SYMBOL(cpu_16bit_stack);
- 
--static int cachesize_override __initdata = -1;
--static int disable_x86_fxsr __initdata = 0;
--static int disable_x86_serial_nr __initdata = 1;
-+static int cachesize_override __devinitdata = -1;
-+static int disable_x86_fxsr __devinitdata = 0;
-+static int disable_x86_serial_nr __devinitdata = 1;
- 
- struct cpu_dev * cpu_devs[X86_VENDOR_NUM] = {};
- 
-@@ -59,7 +59,7 @@ static int __init cachesize_setup(char *
- }
- __setup("cachesize=", cachesize_setup);
- 
--int __init get_model_name(struct cpuinfo_x86 *c)
-+int __devinit get_model_name(struct cpuinfo_x86 *c)
- {
- 	unsigned int *v;
- 	char *p, *q;
-@@ -89,7 +89,7 @@ int __init get_model_name(struct cpuinfo
- }
- 
- 
--void __init display_cacheinfo(struct cpuinfo_x86 *c)
-+void __devinit display_cacheinfo(struct cpuinfo_x86 *c)
- {
- 	unsigned int n, dummy, ecx, edx, l2size;
- 
-@@ -130,7 +130,7 @@ void __init display_cacheinfo(struct cpu
- /* in particular, if CPUID levels 0x80000002..4 are supported, this isn't used */
- 
- /* Look up CPU names by table lookup. */
--static char __init *table_lookup_model(struct cpuinfo_x86 *c)
-+static char __devinit *table_lookup_model(struct cpuinfo_x86 *c)
- {
- 	struct cpu_model_info *info;
- 
-@@ -151,7 +151,7 @@ static char __init *table_lookup_model(s
- }
- 
- 
--void __init get_cpu_vendor(struct cpuinfo_x86 *c, int early)
-+void __devinit get_cpu_vendor(struct cpuinfo_x86 *c, int early)
- {
- 	char *v = c->x86_vendor_id;
- 	int i;
-@@ -202,7 +202,7 @@ static inline int flag_is_changeable_p(u
- 
- 
- /* Probe for the CPUID instruction */
--static int __init have_cpuid_p(void)
-+static int __devinit have_cpuid_p(void)
- {
- 	return flag_is_changeable_p(X86_EFLAGS_ID);
- }
-@@ -245,7 +245,7 @@ static void __init early_cpu_detect(void
- 	early_intel_workaround(c);
- }
- 
--void __init generic_identify(struct cpuinfo_x86 * c)
-+void __devinit generic_identify(struct cpuinfo_x86 * c)
- {
- 	u32 tfms, xlvl;
- 	int junk;
-@@ -292,7 +292,7 @@ void __init generic_identify(struct cpui
- 	}
- }
- 
--static void __init squash_the_stupid_serial_number(struct cpuinfo_x86 *c)
-+static void __devinit squash_the_stupid_serial_number(struct cpuinfo_x86 *c)
- {
- 	if (cpu_has(c, X86_FEATURE_PN) && disable_x86_serial_nr ) {
- 		/* Disable processor serial number */
-@@ -320,7 +320,7 @@ __setup("serialnumber", x86_serial_nr_se
- /*
-  * This does the hard work of actually picking apart the CPU stuff...
-  */
--void __init identify_cpu(struct cpuinfo_x86 *c)
-+void __devinit identify_cpu(struct cpuinfo_x86 *c)
- {
- 	int i;
- 
-@@ -431,7 +431,7 @@ void __init identify_cpu(struct cpuinfo_
- }
- 
- #ifdef CONFIG_X86_HT
--void __init detect_ht(struct cpuinfo_x86 *c)
-+void __devinit detect_ht(struct cpuinfo_x86 *c)
- {
- 	u32 	eax, ebx, ecx, edx;
- 	int 	index_msb, tmp;
-@@ -486,7 +486,7 @@ void __init detect_ht(struct cpuinfo_x86
- }
- #endif
- 
--void __init print_cpu_info(struct cpuinfo_x86 *c)
-+void __devinit print_cpu_info(struct cpuinfo_x86 *c)
- {
- 	char *vendor = NULL;
- 
-@@ -509,7 +509,7 @@ void __init print_cpu_info(struct cpuinf
- 		printk("\n");
- }
- 
--cpumask_t cpu_initialized __initdata = CPU_MASK_NONE;
-+cpumask_t cpu_initialized __devinitdata = CPU_MASK_NONE;
- 
- /* This is hacky. :)
-  * We're emulating future behavior.
-@@ -556,7 +556,7 @@ void __init early_cpu_init(void)
-  * and IDT. We reload them nevertheless, this function acts as a
-  * 'CPU state barrier', nothing should get across.
-  */
--void __init cpu_init (void)
-+void __devinit cpu_init (void)
- {
- 	int cpu = smp_processor_id();
- 	struct tss_struct * t = &per_cpu(init_tss, cpu);
-diff -puN arch/i386/kernel/cpu/intel.c~init_call_cleanup arch/i386/kernel/cpu/intel.c
---- linux-2.6.11/arch/i386/kernel/cpu/intel.c~init_call_cleanup	2005-04-12 10:37:07.219977432 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/intel.c	2005-04-12 10:37:07.244973632 +0800
-@@ -28,7 +28,7 @@ extern int trap_init_f00f_bug(void);
- struct movsl_mask movsl_mask;
- #endif
- 
--void __init early_intel_workaround(struct cpuinfo_x86 *c)
-+void __devinit early_intel_workaround(struct cpuinfo_x86 *c)
- {
- 	if (c->x86_vendor != X86_VENDOR_INTEL)
- 		return;
-@@ -43,7 +43,7 @@ void __init early_intel_workaround(struc
-  *	This is called before we do cpu ident work
-  */
-  
--int __init ppro_with_ram_bug(void)
-+int __devinit ppro_with_ram_bug(void)
- {
- 	/* Uses data from early_cpu_detect now */
- 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
-@@ -61,7 +61,7 @@ int __init ppro_with_ram_bug(void)
-  * P4 Xeon errata 037 workaround.
-  * Hardware prefetcher may cause stale data to be loaded into the cache.
-  */
--static void __init Intel_errata_workarounds(struct cpuinfo_x86 *c)
-+static void __devinit Intel_errata_workarounds(struct cpuinfo_x86 *c)
- {
- 	unsigned long lo, hi;
- 
-@@ -80,7 +80,7 @@ static void __init Intel_errata_workarou
- /*
-  * find out the number of processor cores on the die
-  */
--static int __init num_cpu_cores(struct cpuinfo_x86 *c)
-+static int __devinit num_cpu_cores(struct cpuinfo_x86 *c)
- {
- 	unsigned int eax;
- 
-@@ -98,7 +98,7 @@ static int __init num_cpu_cores(struct c
- 		return 1;
- }
- 
--static void __init init_intel(struct cpuinfo_x86 *c)
-+static void __devinit init_intel(struct cpuinfo_x86 *c)
- {
- 	unsigned int l2 = 0;
- 	char *p = NULL;
-@@ -204,7 +204,7 @@ static unsigned int intel_size_cache(str
- 	return size;
- }
- 
--static struct cpu_dev intel_cpu_dev __initdata = {
-+static struct cpu_dev intel_cpu_dev __devinitdata = {
- 	.c_vendor	= "Intel",
- 	.c_ident 	= { "GenuineIntel" },
- 	.c_models = {
-diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~init_call_cleanup arch/i386/kernel/cpu/intel_cacheinfo.c
---- linux-2.6.11/arch/i386/kernel/cpu/intel_cacheinfo.c~init_call_cleanup	2005-04-12 10:37:07.221977128 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/intel_cacheinfo.c	2005-04-12 10:37:07.244973632 +0800
-@@ -28,7 +28,7 @@ struct _cache_table
- };
- 
- /* all the cache descriptor types we care about (no TLB or trace cache entries) */
--static struct _cache_table cache_table[] __initdata =
-+static struct _cache_table cache_table[] __devinitdata =
- {
- 	{ 0x06, LVL_1_INST, 8 },	/* 4-way set assoc, 32 byte line size */
- 	{ 0x08, LVL_1_INST, 16 },	/* 4-way set assoc, 32 byte line size */
-@@ -160,7 +160,7 @@ static int __init find_num_cache_leaves(
- 	return retval;
- }
- 
--unsigned int __init init_intel_cacheinfo(struct cpuinfo_x86 *c)
-+unsigned int __devinit init_intel_cacheinfo(struct cpuinfo_x86 *c)
- {
- 	unsigned int trace = 0, l1i = 0, l1d = 0, l2 = 0, l3 = 0; /* Cache sizes */
- 	unsigned int new_l1d = 0, new_l1i = 0; /* Cache sizes from cpuid(4) */
-diff -puN arch/i386/kernel/cpu/mcheck/mce.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/mce.c
---- linux-2.6.11/arch/i386/kernel/cpu/mcheck/mce.c~init_call_cleanup	2005-04-12 10:37:07.222976976 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/mce.c	2005-04-12 10:37:07.245973480 +0800
-@@ -16,7 +16,7 @@
- 
- #include "mce.h"
- 
--int mce_disabled __initdata = 0;
-+int mce_disabled __devinitdata = 0;
- int nr_mce_banks;
- 
- EXPORT_SYMBOL_GPL(nr_mce_banks);	/* non-fatal.o */
-@@ -31,7 +31,7 @@ static fastcall void unexpected_machine_
- void fastcall (*machine_check_vector)(struct pt_regs *, long error_code) = unexpected_machine_check;
- 
- /* This has to be run for each processor */
--void __init mcheck_init(struct cpuinfo_x86 *c)
-+void __devinit mcheck_init(struct cpuinfo_x86 *c)
- {
- 	if (mce_disabled==1)
- 		return;
-diff -puN arch/i386/kernel/cpu/mcheck/p4.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/p4.c
---- linux-2.6.11/arch/i386/kernel/cpu/mcheck/p4.c~init_call_cleanup	2005-04-12 10:37:07.224976672 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p4.c	2005-04-12 10:37:07.245973480 +0800
-@@ -78,7 +78,7 @@ fastcall void smp_thermal_interrupt(stru
- }
- 
- /* P4/Xeon Thermal regulation detect and init */
--static void __init intel_init_thermal(struct cpuinfo_x86 *c)
-+static void __devinit intel_init_thermal(struct cpuinfo_x86 *c)
- {
- 	u32 l, h;
- 	unsigned int cpu = smp_processor_id();
-@@ -232,7 +232,7 @@ static fastcall void intel_machine_check
- }
- 
- 
--void __init intel_p4_mcheck_init(struct cpuinfo_x86 *c)
-+void __devinit intel_p4_mcheck_init(struct cpuinfo_x86 *c)
- {
- 	u32 l, h;
- 	int i;
-diff -puN arch/i386/kernel/cpu/mcheck/p5.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/p5.c
---- linux-2.6.11/arch/i386/kernel/cpu/mcheck/p5.c~init_call_cleanup	2005-04-12 10:37:07.225976520 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p5.c	2005-04-12 10:37:07.245973480 +0800
-@@ -29,7 +29,7 @@ static fastcall void pentium_machine_che
- }
- 
- /* Set up machine check reporting for processors with Intel style MCE */
--void __init intel_p5_mcheck_init(struct cpuinfo_x86 *c)
-+void __devinit intel_p5_mcheck_init(struct cpuinfo_x86 *c)
- {
- 	u32 l, h;
- 	
-diff -puN arch/i386/kernel/cpu/mcheck/p6.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/p6.c
---- linux-2.6.11/arch/i386/kernel/cpu/mcheck/p6.c~init_call_cleanup	2005-04-12 10:37:07.227976216 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p6.c	2005-04-12 10:37:07.245973480 +0800
-@@ -80,7 +80,7 @@ static fastcall void intel_machine_check
- }
- 
- /* Set up machine check reporting for processors with Intel style MCE */
--void __init intel_p6_mcheck_init(struct cpuinfo_x86 *c)
-+void __devinit intel_p6_mcheck_init(struct cpuinfo_x86 *c)
- {
- 	u32 l, h;
- 	int i;
-diff -puN arch/i386/kernel/process.c~init_call_cleanup arch/i386/kernel/process.c
---- linux-2.6.11/arch/i386/kernel/process.c~init_call_cleanup	2005-04-12 10:37:07.228976064 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/process.c	2005-04-12 10:37:07.246973328 +0800
-@@ -256,7 +256,7 @@ static void mwait_idle(void)
- 	}
- }
- 
--void __init select_idle_routine(const struct cpuinfo_x86 *c)
-+void __devinit select_idle_routine(const struct cpuinfo_x86 *c)
- {
- 	if (cpu_has(c, X86_FEATURE_MWAIT)) {
- 		printk("monitor/mwait feature present.\n");
-diff -puN arch/i386/kernel/setup.c~init_call_cleanup arch/i386/kernel/setup.c
---- linux-2.6.11/arch/i386/kernel/setup.c~init_call_cleanup	2005-04-12 10:37:07.230975760 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/setup.c	2005-04-12 10:37:07.246973328 +0800
-@@ -66,7 +66,7 @@ void __init find_max_pfn(void);
-    address, and must not be in the .bss segment! */
- unsigned long init_pg_tables_end __initdata = ~0UL;
- 
--int disable_pse __initdata = 0;
-+int disable_pse __devinitdata = 0;
- 
- /*
-  * Machine setup..
-diff -puN arch/i386/kernel/smpboot.c~init_call_cleanup arch/i386/kernel/smpboot.c
---- linux-2.6.11/arch/i386/kernel/smpboot.c~init_call_cleanup	2005-04-12 10:37:07.231975608 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-04-12 10:37:07.247973176 +0800
-@@ -59,7 +59,7 @@
- #include <smpboot_hooks.h>
- 
- /* Set if we find a B stepping CPU */
--static int __initdata smp_b_stepping;
-+static int __devinitdata smp_b_stepping;
- 
- /* Number of siblings per CPU package */
- int smp_num_siblings = 1;
-@@ -107,7 +107,7 @@ DEFINE_PER_CPU(int, cpu_state) = { 0 };
-  * has made sure it's suitably aligned.
-  */
- 
--static unsigned long __init setup_trampoline(void)
-+static unsigned long __devinit setup_trampoline(void)
- {
- 	memcpy(trampoline_base, trampoline_data, trampoline_end - trampoline_data);
- 	return virt_to_phys(trampoline_base);
-@@ -137,7 +137,7 @@ void __init smp_alloc_memory(void)
-  * a given CPU
-  */
- 
--static void __init smp_store_cpu_info(int id)
-+static void __devinit smp_store_cpu_info(int id)
- {
- 	struct cpuinfo_x86 *c = cpu_data + id;
- 
-@@ -331,7 +331,7 @@ extern void calibrate_delay(void);
- 
- static atomic_t init_deasserted;
- 
--static void __init smp_callin(void)
-+static void __devinit smp_callin(void)
- {
- 	int cpuid, phys_id;
- 	unsigned long timeout;
-@@ -457,7 +457,7 @@ set_cpu_sibling_map(int cpu)
- /*
-  * Activate a secondary processor.
-  */
--static void __init start_secondary(void *unused)
-+static void __devinit start_secondary(void *unused)
- {
+@@ -416,7 +422,7 @@ static void __devinit smp_callin(void)
  	/*
- 	 * Dont put anything before smp_callin(), SMP
-@@ -502,7 +502,7 @@ static void __init start_secondary(void 
-  * from the task structure
-  * This function must not return.
-  */
--void __init initialize_secondary(void)
-+void __devinit initialize_secondary(void)
- {
- 	/*
- 	 * We don't actually need to load the full TSS,
-@@ -617,7 +617,7 @@ static inline void __inquire_remote_apic
-  * INIT, INIT, STARTUP sequence will reset the chip hard for us, and this
-  * won't ... remember to clear down the APIC, etc later.
-  */
--static int __init
-+static int __devinit
- wakeup_secondary_cpu(int logical_apicid, unsigned long start_eip)
- {
- 	unsigned long send_status = 0, accept_status = 0;
-@@ -663,7 +663,7 @@ wakeup_secondary_cpu(int logical_apicid,
- #endif	/* WAKE_SECONDARY_VIA_NMI */
+ 	 *      Synchronize the TSC with the BP
+ 	 */
+-	if (cpu_has_tsc && cpu_khz)
++	if (cpu_has_tsc && cpu_khz && !tsc_sync_disabled)
+ 		synchronize_tsc_ap();
+ }
  
- #ifdef WAKE_SECONDARY_VIA_INIT
--static int __init
-+static int __devinit
- wakeup_secondary_cpu(int phys_apicid, unsigned long start_eip)
- {
- 	unsigned long send_status = 0, accept_status = 0;
-@@ -799,7 +799,7 @@ wakeup_secondary_cpu(int phys_apicid, un
+@@ -809,6 +815,31 @@ static inline int alloc_cpu_id(void)
+ 	return cpu;
+ }
  
- extern cpumask_t cpu_initialized;
- 
--static int __init do_boot_cpu(int apicid)
-+static int __devinit do_boot_cpu(int apicid)
++#ifdef CONFIG_HOTPLUG_CPU
++static struct task_struct * __devinitdata cpu_idle_tasks[NR_CPUS];
++static inline struct task_struct * alloc_idle_task(int cpu)
++{
++	struct task_struct *idle;
++
++	if ((idle = cpu_idle_tasks[cpu]) != NULL) {
++		/* initialize thread_struct.  we really want to avoid destroy
++		 * idle tread
++		 */
++		idle->thread.esp = (unsigned long)(((struct pt_regs *)
++			(THREAD_SIZE + (unsigned long) idle->thread_info)) - 1);
++		init_idle(idle, cpu);
++		return idle;
++	}
++	idle = fork_idle(cpu);
++
++	if (!IS_ERR(idle))
++		cpu_idle_tasks[cpu] = idle;
++	return idle;
++}
++#else
++#define alloc_idle_task(cpu) fork_idle(cpu)
++#endif
++
+ static int __devinit do_boot_cpu(int apicid, int cpu)
  /*
   * NOTE - on most systems this is a PHYSICAL apic ID, but on multiquad
-  * (ie clustered apic addressing mode), this is a LOGICAL apic ID.
-diff -puN arch/i386/kernel/timers/timer_tsc.c~init_call_cleanup arch/i386/kernel/timers/timer_tsc.c
---- linux-2.6.11/arch/i386/kernel/timers/timer_tsc.c~init_call_cleanup	2005-04-12 10:37:07.233975304 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/timers/timer_tsc.c	2005-04-12 10:37:07.247973176 +0800
-@@ -33,7 +33,7 @@ static struct timer_opts timer_tsc;
+@@ -828,7 +859,7 @@ static int __devinit do_boot_cpu(int api
+ 	 * We can't use kernel_thread since we must avoid to
+ 	 * reschedule the child.
+ 	 */
+-	idle = fork_idle(cpu);
++	idle = alloc_idle_task(cpu);
+ 	if (IS_ERR(idle))
+ 		panic("failed fork for CPU %d", cpu);
+ 	idle->thread.eip = (unsigned long) start_secondary;
+@@ -931,6 +962,55 @@ void cpu_exit_clear(void)
+ 	cpu_clear(cpu, smp_commenced_mask);
+ 	unmap_cpu_to_logical_apicid(cpu);
+ }
++
++struct warm_boot_cpu_info {
++	struct completion *complete;
++	int apicid;
++	int cpu;
++};
++
++static void __devinit do_warm_boot_cpu(void *p)
++{
++	struct warm_boot_cpu_info *info = p;
++	do_boot_cpu(info->apicid, info->cpu);
++	complete(info->complete);
++}
++
++int __devinit smp_prepare_cpu(int cpu)
++{
++	DECLARE_COMPLETION(done);
++	struct warm_boot_cpu_info info;
++	struct work_struct task;
++	int	apicid, ret;
++
++	lock_cpu_hotplug();
++	apicid = x86_cpu_to_apicid[cpu];
++	if (apicid == BAD_APICID) {
++		ret = -ENODEV;
++		goto exit;
++	}
++
++	info.complete = &done;
++	info.apicid = apicid;
++	info.cpu = cpu;
++	INIT_WORK(&task, do_warm_boot_cpu, &info);
++
++	tsc_sync_disabled = 1;
++
++	/* init low mem mapping */
++	memcpy(swapper_pg_dir, swapper_pg_dir + USER_PGD_PTRS,
++			sizeof(swapper_pg_dir[0]) * KERNEL_PGD_PTRS);
++	flush_tlb_all();
++	schedule_work(&task);
++	wait_for_completion(&done);
++
++	tsc_sync_disabled = 0;
++	zap_low_mappings();
++	ret = 0;
++exit:
++	unlock_cpu_hotplug();
++	return ret;
++}
+ #endif
  
- static inline void cpufreq_delayed_get(void);
+ static void smp_tune_scheduling (void)
+@@ -1169,24 +1249,6 @@ void __devinit smp_prepare_boot_cpu(void
+ }
  
--int tsc_disable __initdata = 0;
-+int tsc_disable __devinitdata = 0;
+ #ifdef CONFIG_HOTPLUG_CPU
+-
+-/* must be called with the cpucontrol mutex held */
+-static int __devinit cpu_enable(unsigned int cpu)
+-{
+-	/* get the target out of its holding state */
+-	per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
+-	wmb();
+-
+-	/* wait for the processor to ack it. timeout? */
+-	while (!cpu_online(cpu))
+-		cpu_relax();
+-
+-	fixup_irqs(cpu_online_map);
+-	/* counter the disable in fixup_irqs() */
+-	local_irq_enable();
+-	return 0;
+-}
+-
+ static void
+ remove_siblinginfo(int cpu)
+ {
+@@ -1270,14 +1332,6 @@ int __devinit __cpu_up(unsigned int cpu)
+ 		return -EIO;
+ 	}
  
- extern spinlock_t i8253_lock;
+-#ifdef CONFIG_HOTPLUG_CPU
+-	/* Already up, and in cpu_quiescent now? */
+-	if (cpu_isset(cpu, smp_commenced_mask)) {
+-		cpu_enable(cpu);
+-		return 0;
+-	}
+-#endif
+-
+ 	local_irq_enable();
+ 	/* Unleash the CPU! */
+ 	cpu_set(cpu, smp_commenced_mask);
+@@ -1292,10 +1346,12 @@ void __init smp_cpus_done(unsigned int m
+ 	setup_ioapic_dest();
+ #endif
+ 	zap_low_mappings();
++#ifndef CONFIG_HOTPLUG_CPU
+ 	/*
+ 	 * Disable executability of the SMP trampoline:
+ 	 */
+ 	set_kernel_exec((unsigned long)trampoline_base, trampoline_exec);
++#endif
+ }
  
+ void __init smp_intr_init(void)
+diff -puN drivers/base/cpu.c~warm_boot_cpu drivers/base/cpu.c
+--- linux-2.6.11/drivers/base/cpu.c~warm_boot_cpu	2005-04-12 10:38:16.721411608 +0800
++++ linux-2.6.11-root/drivers/base/cpu.c	2005-04-12 10:38:16.727410696 +0800
+@@ -16,6 +16,11 @@ struct sysdev_class cpu_sysdev_class = {
+ EXPORT_SYMBOL(cpu_sysdev_class);
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
++int __attribute__ ((weak)) smp_prepare_cpu(int cpu)
++{
++	return 0;
++}
++
+ static ssize_t show_online(struct sys_device *dev, char *buf)
+ {
+ 	struct cpu *cpu = container_of(dev, struct cpu, sysdev);
+@@ -36,7 +41,8 @@ static ssize_t store_online(struct sys_d
+ 			kobject_hotplug(&dev->kobj, KOBJ_OFFLINE);
+ 		break;
+ 	case '1':
+-		ret = cpu_up(cpu->sysdev.id);
++		if ((ret = smp_prepare_cpu(cpu->sysdev.id)) == 0)
++			ret = cpu_up(cpu->sysdev.id);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+diff -puN include/asm-i386/smp.h~warm_boot_cpu include/asm-i386/smp.h
+--- linux-2.6.11/include/asm-i386/smp.h~warm_boot_cpu	2005-04-12 10:38:16.722411456 +0800
++++ linux-2.6.11-root/include/asm-i386/smp.h	2005-04-12 10:38:16.727410696 +0800
+@@ -52,6 +52,8 @@ extern u8 x86_cpu_to_apicid[];
+ #ifdef CONFIG_HOTPLUG_CPU
+ extern void cpu_exit_clear(void);
+ extern void cpu_uninit(void);
++
++extern int smp_prepare_cpu(int cpu);
+ #endif
+ 
+ /*
 _
 
 
