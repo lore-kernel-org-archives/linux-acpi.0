@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 Subject: Re: bk-acpi causes freezes on ia64/tiger
-Date: Mon, 11 Apr 2005 18:29:51 -0700
-Message-ID: <20050411182951.52f76e93.akpm@osdl.org>
+Date: Mon, 11 Apr 2005 19:13:14 -0700
+Message-ID: <20050411191314.27dc51d3.akpm@osdl.org>
 References: <20050408011437.7fe1159d.akpm@osdl.org>
 	<1113190685.2420.36.camel@d845pe>
 	<1113252341.2419.44.camel@d845pe>
+	<20050411182951.52f76e93.akpm@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1113252341.2419.44.camel@d845pe>
+In-Reply-To: <20050411182951.52f76e93.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,139 +20,86 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org> wrote:
 >
-> On Sun, 2005-04-10 at 23:38, Len Brown wrote:
->  > On Fri, 2005-04-08 at 04:14, Andrew Morton wrote:
->  > > Current bk-acpi tree causes my Intel tiger box to freeze partway
->  > > through boot.
-> 
->  Looks like the freeze may be due to the "C1 patch":
-> 
->  http://linux-acpi.bkbits.net:8080/to-akpm/cset@424cccb33M89YNHJOda1O6L0B6ucjw
-> 
->  If you revert that one does your tiger live?
+> That server appears to be dead.  I took a punt and reverted the below
+>  patch.  That fixed things up.
 
-That server appears to be dead.  I took a punt and reverted the below
-patch.  That fixed things up.
-
-There's a bit of noice in the bootup though:
-
-usbcore: registered new driver usbled                 
-usbcore: registered new driver legousbtower
-drivers/usb/misc/legousbtower.c: LEGO USB Tower Driver v0.96
-mice: PS/2 mouse device common for all mice                 
-i2c /dev entries driver                    
-i2c-parport: using default base 0x378
-i2c-sis96x version 1.0.0             
-ACPI: No ACPI bus support for 1-0018
-ACPI: No ACPI bus support for 1-0019
-ACPI: No ACPI bus support for 1-001a
-ACPI: No ACPI bus support for 1-0029
-ACPI: No ACPI bus support for 1-002a
-ACPI: No ACPI bus support for 1-002b
-ACPI: No ACPI bus support for 1-004c
-ACPI: No ACPI bus support for 1-004d
-ACPI: No ACPI bus support for 1-004e
-ACPI: No ACPI bus support for 1-0050
-ACPI: No ACPI bus support for 1-0051
-ACPI: No ACPI bus support for 1-0052
-ACPI: No ACPI bus support for 1-0053
-ACPI: No ACPI bus support for 1-0054
-ACPI: No ACPI bus support for 1-0055
-ACPI: No ACPI bus support for 1-0056
-ACPI: No ACPI bus support for 1-0057
-ACPI: No ACPI bus support for 1-0048
-ACPI: No ACPI bus support for 1-0049
-ACPI: No ACPI bus support for 1-004a
-ACPI: No ACPI bus support for 1-004b
-ACPI: No ACPI bus support for 1-004f
-i2c_adapter i2c-1: Unsupported chip (man_id=0x0000, chip_id=0x00).
-EFI Variables Facility v0.08 2004-May-17                          
-NET: Registered protocol family 2       
+btw, I have a trace from the soft-lockup detector which appears to tell us
+what's going on when this bug bites:
 
 
-
-
-
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2005/03/31 23:23:15-05:00 len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org 
-#   [ACPI] update /proc/acpi/processor/*/power even if only C1 support
-#   
-#   Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-#   Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-# 
-# drivers/acpi/processor_idle.c
-#   2005/03/25 21:41:52-05:00 len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org +26 -7
-#   C1 stats
-# 
-diff -Nru a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c	2005-04-11 18:19:06 -07:00
-+++ b/drivers/acpi/processor_idle.c	2005-04-11 18:19:06 -07:00
-@@ -519,6 +519,29 @@
- }
- 
- 
-+static int acpi_processor_get_power_info_default_c1 (struct acpi_processor *pr)
-+{
-+	int i;
-+
-+	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info_default_c1");
-+
-+	for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
-+		memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
-+
-+	/* if info is obtained from pblk/fadt, type equals state */
-+	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
-+	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
-+	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
-+
-+	/* the C0 state only exists as a filler in our array,
-+	 * and all processors need to support C1 */
-+	pr->power.states[ACPI_STATE_C0].valid = 1;
-+	pr->power.states[ACPI_STATE_C1].valid = 1;
-+
-+	return_VALUE(0);
-+}
-+
-+
- static int acpi_processor_get_power_info_cst (struct acpi_processor *pr)
- {
- 	acpi_status		status = 0;
-@@ -787,10 +810,7 @@
- 	if ((result) || (acpi_processor_power_verify(pr) < 2)) {
- 		result = acpi_processor_get_power_info_fadt(pr);
- 		if (result)
--			return_VALUE(result);
--
--		if (acpi_processor_power_verify(pr) < 2)
--			return_VALUE(-ENODEV);
-+			result = acpi_processor_get_power_info_default_c1(pr);
- 	}
- 
- 	/*
-@@ -810,11 +830,10 @@
- 	 * CPU as being "idle manageable"
- 	 */
- 	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
--		if (pr->power.states[i].valid)
-+		if (pr->power.states[i].valid) {
- 			pr->power.count = i;
--		if ((pr->power.states[i].valid) &&
--		    (pr->power.states[i].type >= ACPI_STATE_C2))
- 			pr->flags.power = 1;
-+		}
- 	}
- 
- 	return_VALUE(0);
-
-
+io scheduler noop registered             
+BUG: soft lockup detected on CPU#0!
+Modules linked in:                 
+                  
+Pid: 1, CPU 0, comm:              swapper
+psr : 00001010085a6010 ifs : 8000000000000691 ip  : [<a00000010004efb0>]    Not tainted
+ip is at smp_call_function+0x270/0x3a0                                                 
+unat: 0000000000000000 pfs : 0000000000000691 rsc : 0000000000000003
+rnat: 0000000000000000 bsps: 0000000000000000 pr  : 5694155165566a95
+ldrs: 0000000000000000 ccv : 0000000000000000 fpsr: 0009804c8a70433f
+csd : 0930ffff00090000 ssd : 0930ffff00090000                       
+b0  : a00000010004ef70 b6  : 0000000000000000 b7  : a0000001000f78c0
+f6  : 0fff5f4898d5f7d3e2694 f7  : 0ffe8823e07cec0000000             
+f8  : 1000cea80000000000000 f9  : 100088600000000000000
+f10 : 10003dffffffff8396e57 f11 : 1003e000000000000001c
+r1  : a000000100e42ff0 r2  : c0000000feec4180 r3  : 00000000000000fe
+r8  : c0000000fee00000 r9  : 00000000000c4180 r10 : 0000000000000000
+r11 : 000000000000c418 r12 : e00000003c7a7db0 r13 : e00000003c7a0000
+r14 : 00000000000000fe r15 : 000000000000c418 r16 : 0000000000000000
+r17 : a000000100c66b4c r18 : 00000000000000fe r19 : 0000000000000003
+r20 : a000000100c66b40 r21 : a000000100c5dbb0 r22 : a000000100c66b40
+r23 : 0000000000000000 r24 : 0000000000000000 r25 : 000000000000000f
+r26 : 0000000000000007 r27 : 000000000000000f r28 : a000000100c5fa30
+r29 : 0000000000000000 r30 : 0000000000000000 r31 : e00000003c7a0d54
+                                                                    
+Call Trace:
+ [<a00000010000ff60>] show_stack+0x80/0xa0
+                                sp=e00000003c7a79f0 bsp=e00000003c7a1270
+ [<a0000001000107c0>] show_regs+0x7e0/0x800                             
+                                sp=e00000003c7a7bc0 bsp=e00000003c7a1210
+ [<a0000001000dcd10>] softlockup_tick+0x130/0x160                       
+                                sp=e00000003c7a7bd0 bsp=e00000003c7a11d8
+ [<a0000001000a5ae0>] do_timer+0xc0/0x1e0                               
+                                sp=e00000003c7a7be0 bsp=e00000003c7a11b0
+ [<a000000100033a20>] timer_interrupt+0x2e0/0x340                       
+                                sp=e00000003c7a7be0 bsp=e00000003c7a1160
+ [<a0000001000dd1f0>] handle_IRQ_event+0x90/0x140                       
+                                sp=e00000003c7a7be0 bsp=e00000003c7a1120
+ [<a0000001000dd3b0>] __do_IRQ+0x110/0x380                              
+                                sp=e00000003c7a7be0 bsp=e00000003c7a10c8
+ [<a00000010000ef40>] ia64_handle_irq+0xa0/0x140                        
+                                sp=e00000003c7a7be0 bsp=e00000003c7a1090
+ [<a00000010000b2a0>] ia64_leave_kernel+0x0/0x280                       
+                                sp=e00000003c7a7be0 bsp=e00000003c7a1090
+ [<a00000010004efb0>] smp_call_function+0x270/0x3a0                     
+                                sp=e00000003c7a7db0 bsp=e00000003c7a1008
+ [<a0000001000f3b10>] smp_call_function_all_cpus+0x90/0xe0              
+                                sp=e00000003c7a7dd0 bsp=e00000003c7a0fd8
+ [<a0000001000f7a90>] do_tune_cpucache+0x130/0x3e0                      
+                                sp=e00000003c7a7dd0 bsp=e00000003c7a0f70
+ [<a0000001000f7e10>] enable_cpucache+0xd0/0x120                        
+                                sp=e00000003c7a7e20 bsp=e00000003c7a0f50
+ [<a0000001000f3730>] kmem_cache_create+0xdf0/0xfa0                     
+                                sp=e00000003c7a7e20 bsp=e00000003c7a0eb8
+ [<a0000001009feee0>] as_init+0x40/0xe0                                 
+                                sp=e00000003c7a7e30 bsp=e00000003c7a0e90
+ [<a0000001009d50f0>] do_initcalls+0xb0/0x200                           
+                                sp=e00000003c7a7e30 bsp=e00000003c7a0e28
+ [<a0000001009d52b0>] do_basic_setup+0x70/0xa0                          
+                                sp=e00000003c7a7e30 bsp=e00000003c7a0e10
+ [<a0000001000093b0>] init+0xd0/0x380                                   
+                                sp=e00000003c7a7e30 bsp=e00000003c7a0dd8
+ [<a000000100012150>] kernel_thread_helper+0xd0/0x100                   
+                                sp=e00000003c7a7e30 bsp=e00000003c7a0db0
+ [<a000000100009120>] start_kernel_thread+0x20/0x40                     
+                                sp=e00000003c7a7e30 bsp=e00000003c7a0db0
+ce 0000:06:02.0                                                         
+ACPI: Can't get handler for 0000:06:02.0
 
 
 -------------------------------------------------------
