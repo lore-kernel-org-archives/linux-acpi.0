@@ -1,13 +1,14 @@
-From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
-Subject: Re: [PATCH 1/2] Allow multiple GPE interrupts
-Date: Tue, 12 Apr 2005 23:06:38 +0100
-Message-ID: <20050412220638.GA19995@parcelfarce.linux.theplanet.co.uk>
-References: <20050412215831.1A7CA49677B@palinux.hppa>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACPI Suspend on Inspiron 1100
+Date: Wed, 13 Apr 2005 01:07:29 +0200
+Message-ID: <20050412230729.GA24414@elf.ucw.cz>
+References: <20050331191931.GA16450@jose.lug.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050412215831.1A7CA49677B-FiZ3l54wS2LEHB76qoKHYw@public.gmane.org>
+In-Reply-To: <20050331191931.GA16450-0dTycEvvTfOQTptMt33A/4dd74u8MsAO@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +18,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, matthew-Ztpu424NOJ8@public.gmane.org
+To: ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+Cc: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 12, 2005 at 03:58:31PM -0600, Matthew Wilcox wrote:
-> Allow multiple GPE interrupts
-> 
-> If we have multiple GPE blocks, they can (and do) have independent
-> interrupts.  Remove the assumptions in OSL that there is only one GPE
-> interrupt.
+On =C4=8Ct 31-03-05 14:19:32, ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org wrote:
+> Hello everyone,
+>=20
+> I have some questions on ACPI suspend on a Dell Inspiron 1100.  I have
+> tried two different kernels: 2.6.8 (as comes with Debian sarge) and a
+> 2.6.11.6 (which I built myself).  This is with BIOS A31.
+>=20
+> Neither one has working ACPI suspend, though the symptoms are different=
+:
+>=20
+> 1) 2.6.8: putting the machine to sleep via proc/sysfs works, but the
+> laptop immediately wakes back up.  It looks almost like some device is
+> not going to sleep, generating activity, and then causing a wakeup.
+>=20
+> 2) 2.6.11.6: putting the machine to sleep via proc/sysfs works, but
+> the machine never fully wakes up.  I can still login to a console and
+> halt the laptop, but the display won't turn back on.  Switching
+> to/from X11 VT doesn't seem to help.
 
-Bah, I forgot ..
+Doc*/power/video.txt.
 
-Signed-off-by: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
-
-That applies to both patches.
-
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+--=20
+Boycott Kodak -- for their patent abuse against Java.
 
 
 -------------------------------------------------------
