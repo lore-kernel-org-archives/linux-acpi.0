@@ -1,10 +1,10 @@
-From: klug <klug-90T4dkFmkpLYtjvyW6yDsg@public.gmane.org>
-Subject: No longer able to turn lcd backlight off with 2.6.11->2.6.12-rc2
-Date: Mon, 11 Apr 2005 19:08:20 -0400
-Message-ID: <425B0364.6000602@blarg.org>
+From: brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
+Subject: Re: Server Report
+Date: Mon, 11 Apr 2005 20:55:10 -0400 (EDT)
+Message-ID: <E1DL9gP-0003rc-00@sbrelay01.mail.atl.earthlink.net>
+Reply-To: nobody-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="SPMB1113267310880933e7d382960c99625e9282f631ae"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,19 +18,53 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-After upgrading to 2.6.11.6 from 2.6.9 I am no longer able to turn the 
-lcd backlight off with the command "echo lcd_out:0 > 
-/proc/acpi/toshiba/video". I have since tried, 2.6.11, 2.6.11.7, 
-2.6.12-rc1, and 2.6.12-rc2 with no luck. With that command I have been 
-able to turn the lcd backlight off with all 2.6 kernels up to and 
-including 2.6.9. Previous to the upgrade, nothing appeared in my kernel 
-logs after giving the command, however, now with 2.6.11->2.6.12-rc2 I 
-get the entry "[kernel] video bus notify". I have also tried the new 
-option "CONFIG_BACKLIGHT_LCD_SUPPOT", but again that does not allow me 
-to turn the backlight off. My complete setup including hardware/kernel 
-options is avaiable at, http://bugme.osdl.org/show_bug.cgi?id=4468
+--SPMB1113267310880933e7d382960c99625e9282f631ae
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
 
--klug
+I apologize for this automatic reply to your email.
+
+To control spam, I now allow incoming messages only from senders I
+have approved beforehand.
+
+If you would like to be added to my list of approved senders, please
+fill out the short request form (see link below). Once I approve you,
+I will receive your original message in my inbox. You do not need to
+resend your message. I apologize for this one-time inconvenience.
+
+Click the link below to fill out the request:
+
+https://webmail.atl.earthlink.net/wam/addme?a=brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dl9F164T3Nl3qW0
+
+--SPMB1113267310880933e7d382960c99625e9282f631ae
+Content-Type: text/html;
+
+<HTML>
+<BODY>
+<DIV>I apologize for this automatic reply to your email.</DIV>
+<DIV><BR></DIV>
+<DIV>
+To control spam, I now allow incoming messages only from senders I
+have approved beforehand.
+</DIV>
+<DIV><BR></DIV>
+<DIV>
+If you would like to be added to my list of approved senders, please
+fill out the short request form (see link below). Once I approve you,
+I will receive your original message in my inbox. You do not need to
+resend your message. I apologize for this one-time inconvenience.
+</DIV>
+<DIV><BR></DIV>
+<DIV>Click the link below to fill out the request:</DIV>
+<DIV><BR></DIV>
+<DIV>
+<A HREF="https://webmail.atl.earthlink.net/wam/addme?a=brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dl9F164T3Nl3qW0">
+https://webmail.atl.earthlink.net/wam/addme?a=brian-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dl9F164T3Nl3qW0</A></DIV>
+<DIV><BR></DIV>
+</BODY>
+</HTML>
+
+--SPMB1113267310880933e7d382960c99625e9282f631ae--
 
 
 -------------------------------------------------------
