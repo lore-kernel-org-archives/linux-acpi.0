@@ -1,253 +1,192 @@
-From: Li Shaohua <shaohua.li@intel.com>
-Subject: Re: [PATCH 5/6]physical CPU hot add
-Date: Wed, 13 Apr 2005 11:23:31 +0800
-Message-ID: <1113362611.7148.40.camel@sli10-desk.sh.intel.com>
-References: <1113283863.27646.432.camel@sli10-desk.sh.intel.com>
-	 <Pine.LNX.4.61.0504120609350.14171@montezuma.fsmlabs.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH 6/6]suspend/resume SMP support
+Date: Wed, 13 Apr 2005 10:32:02 +0200
+Message-ID: <20050413083202.GA1361@elf.ucw.cz>
+References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com> <20050412105115.GD17903@elf.ucw.cz> <1113309627.5155.3.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262616AbVDMDbf@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0504120609350.14171@montezuma.fsmlabs.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zwane Mwaikambo <zwane@arm.linux.org.uk>
-Cc: lkml <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@osdl.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1113309627.5155.3.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-04-12 at 20:17, Zwane Mwaikambo wrote:
-> On Tue, 12 Apr 2005, Li Shaohua wrote:
-> 
-> >  #ifdef CONFIG_HOTPLUG_CPU
-> > +int __attribute__ ((weak)) smp_prepare_cpu(int cpu)
-> > +{
-> > +	return 0;
-> > +}
-> > +
-> 
-> Any way for you to avoid using weak attribute?
-Replace weak attribute with define method as suggested.
+Hi!
 
-Thanks,
-Shaohua
+> > > Using CPU hotplug to support suspend/resume SMP. Both S3 and S4 use
+> > > disable/enable_nonboot_cpus API. The S4 part is based on Pavel's
+> > > original S4 SMP patch.
+> > 
+> > I tested it on 2x PII(?) 550MHz system. Suspend went ok, resume loaded
+> > image from disk, but then I got
+> > 
+> > Thawing cpus ....
+> > Booting processor 1/0 eip 3000
+> > 
+> > ...and very funny effect on keyboard leds. They started to blink
+> > (panic-like), but with very wrong frequency. It looked like 2 cpus
+> > doing panic blinks at once...
+> Check if /sys/device/system/cpu/cpu1/online attribute works. If it
+> works, then it's other issue. I only tested the patches in two HT based
+> systems.
+
+Ok, this is PIII system 550MHz system:
+
+root@hobit:/home/pavel# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 7
+model name      : Pentium III (Katmai)
+stepping        : 3
+cpu MHz         : 551.309
+cache size      : 512 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 mmx fxsr sse
+bogomips        : 1085.44
+
+core id         : 255
+cpu cores       : 1
+processor       : 1
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 7
+model name      : Pentium III (Katmai)
+stepping        : 3
+cpu MHz         : 551.309
+cache size      : 512 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 mmx fxsr sse
+bogomips        : 1097.72
+
+core id         : 255
+cpu cores       : 1
+root@hobit:/home/pavel#
+
+Offlining CPU seems to work ok:
+
+root@hobit:/sys/devices/system/cpu/cpu1# cat online
+1
+root@hobit:/sys/devices/system/cpu/cpu1# echo 0 > online
+root@hobit:/sys/devices/system/cpu/cpu1# sync
+root@hobit:/sys/devices/system/cpu/cpu1# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 7
+model name      : Pentium III (Katmai)
+stepping        : 3
+cpu MHz         : 551.309
+cache size      : 512 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 mmx fxsr sse
+bogomips        : 1085.44
+
+core id         : 255
+cpu cores       : 1
+root@hobit:/sys/devices/system/cpu/cpu1#
+
+Putting cpu back online, I get:
+
+Booting processor 1/0 eip 3000
+
+on console, and mess in syslog. Seems like my cpu #1 panicked but cpu
+#0 just keeps going?!
+
+root@hobit:/sys/devices/system/cpu/cpu1# dmesg | tail -20
+ [<c02c758f>] vt_console_print+0x24f/0x260
+ [<c02c7340>] vt_console_print+0x0/0x260
+ [<c01247e7>] __call_console_drivers+0x57/0x60
+ [<c01248e0>] call_console_drivers+0x80/0x110
+ [<c0124d8e>] release_console_sem+0x4e/0xc0
+ [<c0124c12>] vprintk+0x192/0x240
+ [<c0528891>] preempt_schedule_irq+0x51/0x80
+ [<c02adeca>] acpi_processor_idle+0x0/0x265
+ [<c010325e>] need_resched+0x1f/0x21
+ [<c02adeca>] acpi_processor_idle+0x0/0x265
+ [<c0124a77>] printk+0x17/0x20
+ [<c010b583>] cpu_init+0x73/0x360
+ [<c0117bd6>] start_secondary+0x6/0x170
+Code: d2 74 bd fc 8b 44 24 28 b9 0e 00 00 00 8b 74 24 14 01 c6 b8 0e
+00 00 00 89 74 24 1c 8b 74 24 30 89 44 24 10 8b 7c 24 1c 83 c6 10 <f3>
+a5 8b 74 24 24 8b 44 24 1c 89 4c 24 10 01 ee f7 d5 21 ee 89
+ <0>Kernel panic - not syncing: Attempted to kill the idle task!
+ Stuck ??
+Inquiring remote APIC #0...
+... APIC #0 ID: 00000000
+... APIC #0 VERSION: 00040011
+... APIC #0 SPIV: 000000ff
+root@hobit:/sys/devices/system/cpu/cpu1# dmesg | tail -25
+ [<c011d001>] activate_task+0x1/0xa0
+ [<c011d128>] resched_task+0x68/0x90
+ [<c011d8ba>] try_to_wake_up+0x2aa/0x2f0
+ [<c025ed7a>] fbcon_cursor+0x19a/0x270
+ [<c02c4958>] hide_cursor+0x18/0x30
+ [<c02c758f>] vt_console_print+0x24f/0x260
+ [<c02c7340>] vt_console_print+0x0/0x260
+ [<c01247e7>] __call_console_drivers+0x57/0x60
+ [<c01248e0>] call_console_drivers+0x80/0x110
+ [<c0124d8e>] release_console_sem+0x4e/0xc0
+ [<c0124c12>] vprintk+0x192/0x240
+ [<c0528891>] preempt_schedule_irq+0x51/0x80
+ [<c02adeca>] acpi_processor_idle+0x0/0x265
+ [<c010325e>] need_resched+0x1f/0x21
+ [<c02adeca>] acpi_processor_idle+0x0/0x265
+ [<c0124a77>] printk+0x17/0x20
+ [<c010b583>] cpu_init+0x73/0x360
+ [<c0117bd6>] start_secondary+0x6/0x170
+Code: d2 74 bd fc 8b 44 24 28 b9 0e 00 00 00 8b 74 24 14 01 c6 b8 0e
+00 00 00 89 74 24 1c 8b 74 24 30 89 44 24 10 8b 7c 24 1c 83 c6 10 <f3>
+a5 8b 74 24 24 8b 44 24 1c 89 4c 24 10 01 ee f7 d5 21 ee 89
+ <0>Kernel panic - not syncing: Attempted to kill the idle task!
+ Stuck ??
+Inquiring remote APIC #0...
+... APIC #0 ID: 00000000
+... APIC #0 VERSION: 00040011
+... APIC #0 SPIV: 000000ff
+root@hobit:/sys/devices/system/cpu/cpu1#
+
+								Pavel
+-- 
+Boycott Kodak -- for their patent abuse against Java.
 
 
----
-
- linux-2.6.11-root/arch/i386/kernel/smpboot.c |  112 ++++++++++++++++++++-------
- linux-2.6.11-root/drivers/base/cpu.c         |    7 +
- linux-2.6.11-root/include/asm-i386/smp.h     |    3 
- 3 files changed, 93 insertions(+), 29 deletions(-)
-
-diff -puN arch/i386/kernel/smpboot.c~warm_boot_cpu arch/i386/kernel/smpboot.c
---- linux-2.6.11/arch/i386/kernel/smpboot.c~warm_boot_cpu	2005-04-13 10:58:37.152081456 +0800
-+++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-04-13 10:58:37.159080392 +0800
-@@ -80,6 +80,12 @@ cpumask_t cpu_callin_map;
- cpumask_t cpu_callout_map;
- static cpumask_t smp_commenced_mask;
- 
-+/* TSC's upper 32 bits can't be written in eariler CPU (before prescott), there
-+ * is no way to resync one AP against BP. TBD: for prescott and above, we
-+ * should use IA64's algorithm
-+ */
-+static int __devinitdata tsc_sync_disabled;
-+
- /* Per CPU bogomips and other parameters */
- struct cpuinfo_x86 cpu_data[NR_CPUS] __cacheline_aligned;
- 
-@@ -416,7 +422,7 @@ static void __devinit smp_callin(void)
- 	/*
- 	 *      Synchronize the TSC with the BP
- 	 */
--	if (cpu_has_tsc && cpu_khz)
-+	if (cpu_has_tsc && cpu_khz && !tsc_sync_disabled)
- 		synchronize_tsc_ap();
- }
- 
-@@ -809,6 +815,31 @@ static inline int alloc_cpu_id(void)
- 	return cpu;
- }
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+static struct task_struct * __devinitdata cpu_idle_tasks[NR_CPUS];
-+static inline struct task_struct * alloc_idle_task(int cpu)
-+{
-+	struct task_struct *idle;
-+
-+	if ((idle = cpu_idle_tasks[cpu]) != NULL) {
-+		/* initialize thread_struct.  we really want to avoid destroy
-+		 * idle tread
-+		 */
-+		idle->thread.esp = (unsigned long)(((struct pt_regs *)
-+			(THREAD_SIZE + (unsigned long) idle->thread_info)) - 1);
-+		init_idle(idle, cpu);
-+		return idle;
-+	}
-+	idle = fork_idle(cpu);
-+
-+	if (!IS_ERR(idle))
-+		cpu_idle_tasks[cpu] = idle;
-+	return idle;
-+}
-+#else
-+#define alloc_idle_task(cpu) fork_idle(cpu)
-+#endif
-+
- static int __devinit do_boot_cpu(int apicid, int cpu)
- /*
-  * NOTE - on most systems this is a PHYSICAL apic ID, but on multiquad
-@@ -828,7 +859,7 @@ static int __devinit do_boot_cpu(int api
- 	 * We can't use kernel_thread since we must avoid to
- 	 * reschedule the child.
- 	 */
--	idle = fork_idle(cpu);
-+	idle = alloc_idle_task(cpu);
- 	if (IS_ERR(idle))
- 		panic("failed fork for CPU %d", cpu);
- 	idle->thread.eip = (unsigned long) start_secondary;
-@@ -931,6 +962,55 @@ void cpu_exit_clear(void)
- 	cpu_clear(cpu, smp_commenced_mask);
- 	unmap_cpu_to_logical_apicid(cpu);
- }
-+
-+struct warm_boot_cpu_info {
-+	struct completion *complete;
-+	int apicid;
-+	int cpu;
-+};
-+
-+static void __devinit do_warm_boot_cpu(void *p)
-+{
-+	struct warm_boot_cpu_info *info = p;
-+	do_boot_cpu(info->apicid, info->cpu);
-+	complete(info->complete);
-+}
-+
-+int __devinit smp_prepare_cpu(int cpu)
-+{
-+	DECLARE_COMPLETION(done);
-+	struct warm_boot_cpu_info info;
-+	struct work_struct task;
-+	int	apicid, ret;
-+
-+	lock_cpu_hotplug();
-+	apicid = x86_cpu_to_apicid[cpu];
-+	if (apicid == BAD_APICID) {
-+		ret = -ENODEV;
-+		goto exit;
-+	}
-+
-+	info.complete = &done;
-+	info.apicid = apicid;
-+	info.cpu = cpu;
-+	INIT_WORK(&task, do_warm_boot_cpu, &info);
-+
-+	tsc_sync_disabled = 1;
-+
-+	/* init low mem mapping */
-+	memcpy(swapper_pg_dir, swapper_pg_dir + USER_PGD_PTRS,
-+			sizeof(swapper_pg_dir[0]) * KERNEL_PGD_PTRS);
-+	flush_tlb_all();
-+	schedule_work(&task);
-+	wait_for_completion(&done);
-+
-+	tsc_sync_disabled = 0;
-+	zap_low_mappings();
-+	ret = 0;
-+exit:
-+	unlock_cpu_hotplug();
-+	return ret;
-+}
- #endif
- 
- static void smp_tune_scheduling (void)
-@@ -1169,24 +1249,6 @@ void __devinit smp_prepare_boot_cpu(void
- }
- 
- #ifdef CONFIG_HOTPLUG_CPU
--
--/* must be called with the cpucontrol mutex held */
--static int __devinit cpu_enable(unsigned int cpu)
--{
--	/* get the target out of its holding state */
--	per_cpu(cpu_state, cpu) = CPU_UP_PREPARE;
--	wmb();
--
--	/* wait for the processor to ack it. timeout? */
--	while (!cpu_online(cpu))
--		cpu_relax();
--
--	fixup_irqs(cpu_online_map);
--	/* counter the disable in fixup_irqs() */
--	local_irq_enable();
--	return 0;
--}
--
- static void
- remove_siblinginfo(int cpu)
- {
-@@ -1270,14 +1332,6 @@ int __devinit __cpu_up(unsigned int cpu)
- 		return -EIO;
- 	}
- 
--#ifdef CONFIG_HOTPLUG_CPU
--	/* Already up, and in cpu_quiescent now? */
--	if (cpu_isset(cpu, smp_commenced_mask)) {
--		cpu_enable(cpu);
--		return 0;
--	}
--#endif
--
- 	local_irq_enable();
- 	/* Unleash the CPU! */
- 	cpu_set(cpu, smp_commenced_mask);
-@@ -1292,10 +1346,12 @@ void __init smp_cpus_done(unsigned int m
- 	setup_ioapic_dest();
- #endif
- 	zap_low_mappings();
-+#ifndef CONFIG_HOTPLUG_CPU
- 	/*
- 	 * Disable executability of the SMP trampoline:
- 	 */
- 	set_kernel_exec((unsigned long)trampoline_base, trampoline_exec);
-+#endif
- }
- 
- void __init smp_intr_init(void)
-diff -puN drivers/base/cpu.c~warm_boot_cpu drivers/base/cpu.c
---- linux-2.6.11/drivers/base/cpu.c~warm_boot_cpu	2005-04-13 10:58:37.153081304 +0800
-+++ linux-2.6.11-root/drivers/base/cpu.c	2005-04-13 10:58:37.159080392 +0800
-@@ -16,6 +16,10 @@ struct sysdev_class cpu_sysdev_class = {
- EXPORT_SYMBOL(cpu_sysdev_class);
- 
- #ifdef CONFIG_HOTPLUG_CPU
-+#ifndef __HAVE_ARCH_SMP_PREPARE_CPU
-+#define smp_prepare_cpu(cpu) (0)
-+#endif
-+
- static ssize_t show_online(struct sys_device *dev, char *buf)
- {
- 	struct cpu *cpu = container_of(dev, struct cpu, sysdev);
-@@ -36,7 +40,8 @@ static ssize_t store_online(struct sys_d
- 			kobject_hotplug(&dev->kobj, KOBJ_OFFLINE);
- 		break;
- 	case '1':
--		ret = cpu_up(cpu->sysdev.id);
-+		if ((ret = smp_prepare_cpu(cpu->sysdev.id)) == 0)
-+			ret = cpu_up(cpu->sysdev.id);
- 		break;
- 	default:
- 		ret = -EINVAL;
-diff -puN include/asm-i386/smp.h~warm_boot_cpu include/asm-i386/smp.h
---- linux-2.6.11/include/asm-i386/smp.h~warm_boot_cpu	2005-04-13 10:58:37.155081000 +0800
-+++ linux-2.6.11-root/include/asm-i386/smp.h	2005-04-13 11:00:26.353480320 +0800
-@@ -52,6 +52,9 @@ extern u8 x86_cpu_to_apicid[];
- #ifdef CONFIG_HOTPLUG_CPU
- extern void cpu_exit_clear(void);
- extern void cpu_uninit(void);
-+
-+#define __HAVE_ARCH_SMP_PREPARE_CPU
-+extern int smp_prepare_cpu(int cpu);
- #endif
- 
- /*
-_
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
