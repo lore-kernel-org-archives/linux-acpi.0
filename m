@@ -1,15 +1,14 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Re: i855-based ThinkPad STR: Graphics device stays in =?iso-8859-6?q?D3=09after?= resume
-Date: Wed, 13 Apr 2005 08:08:50 -0400
-Message-ID: <200504130808.50773.barr.156@osu.edu>
-References: <200504122032.36053.barr.156@osu.edu> <1113353440.10110.96.camel@tyrosine>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: i855-based ThinkPad STR: Graphics device stays in D3
+	after resume
+Date: Wed, 13 Apr 2005 01:50:40 +0100
+Message-ID: <1113353440.10110.96.camel@tyrosine>
+References: <200504122032.36053.barr.156@osu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-6"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1113353440.10110.96.camel@tyrosine>
-Content-Disposition: inline
+In-Reply-To: <200504122032.36053.barr.156-ZbGKxL/pcrQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,44 +18,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 12 April 2005 08:50 pm, Matthew Garrett wrote:
-> Hmm. Interesting. There's no code that will actually have bound to the
-> PCI device (well, other than the drm driver, but that's different in
-> magical ways), so the kernel won't attempt to reenable it on resume.
->
-> We really should be doing something about devices that the kernel has no
-> drivers for - at the moment, unless there's a driver loaded, we don't
-> power down the device at all. However, I'm not entirely clear on /what/
-> we should be doing.
+On Tue, 2005-04-12 at 20:32 -0400, Andrew Barr wrote:
 
-I've made some promising progress in getting suspend-to-RAM working. The 
-following commands return me to the bash prompt after suspend-to-RAM. I 
-haven't had time to try this within X.org:
+> Basically, these people did a BIOS upgrade that seems to have borked 
+> suspend-to-RAM on their ThinkPads. My ThinkPad is very new, so it shipped 
+> with a BIOS with this problem. I am going to try downgrading to BIOS and 
+> Embedded Controller versions mentioned in the above-referenced threads, but I 
+> did discover something interesting. The graphics device stays in D3 after 
+> resuming from S3 (I can ssh into my laptop). Here is the output of 'lspci 
+> -vvvxxx -s 00:02.0' before S3:
 
-cat /sys/bus/pci/devices/0000:00:02.0/config > /var/tmp/pci.config
-echo -n mem > /sys/power/state
-(resume; ssh into the machine)
-cat /var/tmp/pci.config > /proc/bus/pci/00/02.0
-video_post
+Hmm. Interesting. There's no code that will actually have bound to the
+PCI device (well, other than the drm driver, but that's different in
+magical ways), so the kernel won't attempt to reenable it on resume.
 
-This is without any acpi_sleep parameters. Writing the saved config space back 
-to sysfs didn't work--the device stayed in D3. Using /proc/bus/pci returned 
-it to D0. I don't know why. I'll be testing this in X.org later on today.
+We really should be doing something about devices that the kernel has no
+drivers for - at the moment, unless there's a driver loaded, we don't
+power down the device at all. However, I'm not entirely clear on /what/
+we should be doing.
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-
---
-Andrew Barr
-Student, Ohio State University
-
-[firstname][lastname] at columbus rr com | [lastname].156 at osu edu
-http://home.columbus.rr.com/andrewbarr
-
-"Everyone is entitled to their own opinions, but not their own facts."
-	- Daniel Patrick Moynihan
 
 
 -------------------------------------------------------
