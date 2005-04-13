@@ -1,13 +1,15 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: add-acpi-based-floppy-controller-enumeration.patch
-Date: Tue, 12 Apr 2005 09:24:40 -0600
-Message-ID: <1113319480.17684.6.camel@eeyore>
-References: <20050412020222.2a4e5bac.akpm@osdl.org>
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Re: i855-based ThinkPad STR: Graphics device stays in =?iso-8859-6?q?D3=09after?= resume
+Date: Wed, 13 Apr 2005 08:08:50 -0400
+Message-ID: <200504130808.50773.barr.156@osu.edu>
+References: <200504122032.36053.barr.156@osu.edu> <1113353440.10110.96.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050412020222.2a4e5bac.akpm-3NddpPZAyC0@public.gmane.org>
+In-Reply-To: <1113353440.10110.96.camel@tyrosine>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,296 +19,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-04-12 at 02:02 -0700, Andrew Morton wrote:
-> Bjorn, this has been in -mm for ages.  What did we end up deciding
-> to do with it?
+On Tuesday 12 April 2005 08:50 pm, Matthew Garrett wrote:
+> Hmm. Interesting. There's no code that will actually have bound to the
+> PCI device (well, other than the drm driver, but that's different in
+> magical ways), so the kernel won't attempt to reenable it on resume.
+>
+> We really should be doing something about devices that the kernel has no
+> drivers for - at the moment, unless there's a driver loaded, we don't
+> power down the device at all. However, I'm not entirely clear on /what/
+> we should be doing.
 
-You know, I spent a lot of time fiddling with this, but now I'm
-not sure there's any real benefit.  We did need the similar work
-for i8042, because some ia64 boxes have it, but not others, and
-we don't want to blindly poke for it.
+I've made some promising progress in getting suspend-to-RAM working. The 
+following commands return me to the bash prompt after suspend-to-RAM. I 
+haven't had time to try this within X.org:
 
-But no ia64 boxes have floppy, so there's no reason for us to
-even build the driver.
+cat /sys/bus/pci/devices/0000:00:02.0/config > /var/tmp/pci.config
+echo -n mem > /sys/power/state
+(resume; ssh into the machine)
+cat /var/tmp/pci.config > /proc/bus/pci/00/02.0
+video_post
 
-And if somebody *does* want something along these lines, it should
-be done via PNPACPI rather than using ACPI directly.  So I think
-we should drop this patch.
+This is without any acpi_sleep parameters. Writing the saved config space back 
+to sysfs didn't work--the device stayed in D3. Using /proc/bus/pci returned 
+it to D0. I don't know why. I'll be testing this in X.org later on today.
 
-> From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-> 
-> This can be disabled with "floppy=no_acpi", which should only be required
-> if your BIOS supplies incorrect ACPI _CRS information about I/O ports,
-> IRQs, or DMA channels.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-> ---
-> 
->  25-akpm/Documentation/floppy.txt |    6 +
->  25-akpm/drivers/block/floppy.c   |  183 +++++++++++++++++++++++++++++++++++++++
->  2 files changed, 189 insertions(+)
-> 
-> diff -puN Documentation/floppy.txt~add-acpi-based-floppy-controller-enumeration Documentation/floppy.txt
-> --- 25/Documentation/floppy.txt~add-acpi-based-floppy-controller-enumeration	2005-03-11 13:45:42.000000000 -0800
-> +++ 25-akpm/Documentation/floppy.txt	2005-03-11 13:45:42.000000000 -0800
-> @@ -204,6 +204,12 @@ in /etc/modprobe.conf.
->  	   It's been recommended that take about 1/4 of the default speed
->  	   in some more extreme cases."
->  
-> + floppy=no_acpi
-> +	Don't enumerate floppy controllers using ACPI namespace.
-> +	You may need this if your ACPI is buggy and doesn't report
-> +	a floppy controller when it actually exists, or if it
-> +	reports incorrect I/O port, IRQ, or DMA information.
-> +
->  
->  Supporting utilities and additional documentation:
->  ==================================================
-> diff -puN drivers/block/floppy.c~add-acpi-based-floppy-controller-enumeration drivers/block/floppy.c
-> --- 25/drivers/block/floppy.c~add-acpi-based-floppy-controller-enumeration	2005-03-11 13:45:42.000000000 -0800
-> +++ 25-akpm/drivers/block/floppy.c	2005-03-11 13:48:56.000000000 -0800
-> @@ -180,6 +180,13 @@ static int print_unex = 1;
->  #include <linux/device.h>
->  #include <linux/buffer_head.h>	/* for invalidate_buffers() */
->  
-> +#ifdef CONFIG_ACPI
-> +#include <linux/acpi.h>
-> +#include <acpi/acpi_bus.h>
-> +
-> +static int no_acpi_floppy;
-> +#endif
-> +
->  /*
->   * PS/2 floppies have much slower step rates than regular floppies.
->   * It's been recommended that take about 1/4 of the default speed
-> @@ -4145,6 +4152,9 @@ static struct param_table {
->  	{"slow", NULL, &slow_floppy, 1, 0},
->  	{"unexpected_interrupts", NULL, &print_unex, 1, 0},
->  	{"no_unexpected_interrupts", NULL, &print_unex, 0, 0},
-> +#ifdef CONFIG_ACPI
-> +	{"no_acpi", NULL, &no_acpi_floppy, 1, 0},
-> +#endif
->  	{"L40SX", NULL, &print_unex, 0, 0}
->  
->  	EXTRA_FLOPPY_PARAMS
-> @@ -4217,11 +4227,180 @@ static struct kobject *floppy_find(dev_t
->  	return get_disk(disks[drive]);
->  }
->  
-> +#ifdef CONFIG_ACPI
-> +static int acpi_floppy_registered;
-> +static int acpi_floppies;
-> +
-> +struct region {
-> +	unsigned int base;
-> +	unsigned int size;
-> +};
-> +
-> +struct floppy_resources {
-> +	unsigned int nr_io_regions;
-> +	struct region io_region[2];
-> +	unsigned int irq;
-> +	unsigned int dma_channel;
-> +};
-> +
-> +static acpi_status acpi_floppy_resource(struct acpi_resource *res, void *data)
-> +{
-> +	struct floppy_resources *fd = (struct floppy_resources *) data;
-> +	struct acpi_resource_io *io;
-> +	struct acpi_resource_irq *irq;
-> +	struct acpi_resource_ext_irq *ext_irq;
-> +	struct acpi_resource_dma *dma;
-> +	int n;
-> +
-> +	if (res->id == ACPI_RSTYPE_IO) {
-> +		io = &res->data.io;
-> +		if (io->range_length) {
-> +			n = fd->nr_io_regions;
-> +			if (n < 2) {
-> +				fd->io_region[n].base = io->min_base_address;
-> +				fd->io_region[n].size = io->range_length;
-> +				fd->nr_io_regions++;
-> +			} else {
-> +				printk(KERN_WARNING "%s: ignoring I/O port region 0x%x-0x%x\n",
-> +					DEVICE_NAME, io->min_base_address,
-> +					io->min_base_address + io->range_length - 1);
-> +			}
-> +		}
-> +	} else if (res->id == ACPI_RSTYPE_IRQ) {
-> +		irq = &res->data.irq;
-> +		if (irq->number_of_interrupts > 0)
-> +			fd->irq = acpi_register_gsi(irq->interrupts[0],
-> +				irq->edge_level, irq->active_high_low);
-> +	} else if (res->id == ACPI_RSTYPE_EXT_IRQ) {
-> +		ext_irq = &res->data.extended_irq;
-> +		if (ext_irq->number_of_interrupts > 0)
-> +			fd->irq = acpi_register_gsi(ext_irq->interrupts[0],
-> +				ext_irq->edge_level, ext_irq->active_high_low);
-> +	} else if (res->id == ACPI_RSTYPE_DMA) {
-> +		dma = &res->data.dma;
-> +		if (dma->number_of_channels > 0)
-> +			fd->dma_channel = dma->channels[0];
-> +	}
-> +	return AE_OK;
-> +}
-> +
-> +static int acpi_floppy_add(struct acpi_device *device)
-> +{
-> +	struct floppy_resources fd;
-> +	acpi_status status;
-> +	unsigned int base, dcr;
-> +
-> +	memset(&fd, 0, sizeof(fd));
-> +	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-> +		acpi_floppy_resource, &fd);
-> +	if (ACPI_FAILURE(status))
-> +		return -ENODEV;
-> +
-> +	strncpy(acpi_device_name(device), "Floppy Controller",
-> +		sizeof(acpi_device_name(device)));
-> +	printk("ACPI: %s [%s] at I/O 0x%x-0x%x",
-> +		acpi_device_name(device), acpi_device_bid(device),
-> +		fd.io_region[0].base,
-> +		fd.io_region[0].base + fd.io_region[0].size - 1);
-> +	if (fd.nr_io_regions > 1) {
-> +		if (fd.io_region[1].size == 1)
-> +			printk(", 0x%x", fd.io_region[1].base);
-> +		else
-> +			printk(", 0x%x-0x%x", fd.io_region[1].base,
-> +				fd.io_region[1].base + fd.io_region[1].size - 1);
-> +	}
-> +	printk(" irq %d dma channel %d\n", fd.irq, fd.dma_channel);
-> +
-> +	/*
-> +	 * The most correct resource description is probably of the form
-> +	 *    0x3f2-0x3f5, 0x3f7
-> +	 * Those are the only ports this driver actually uses.
-> +	 *
-> +	 * 0x3f0 and 0x3f1 were apparently used on PS/2 systems (though
-> +	 * this driver doesn't touch them), and 0x3f6 is used by IDE.
-> +	 * Some BIOS's erroneously include those ports, or omit 0x3f7,
-> +	 * so we should also be able to handle the following:
-> +	 *    0x3f0-0x3f5
-> +	 *    0x3f0-0x3f5, 0x3f7
-> +	 *    0x3f0-0x3f7
-> +	 *    0x3f2-0x3f7
-> +	 */
-> +	base = fd.io_region[0].base & ~0x7;
-> +	dcr = base + 7;
-> +
-> +#define contains(region, port)	((region).base <= (port) && \
-> +				 (port) < (region).base + (region).size)
-> +
-> +	if (!(contains(fd.io_region[0], dcr) || contains(fd.io_region[1], dcr))) {
-> +		printk(KERN_WARNING "ACPI: [%s] doesn't declare FD_DCR; also claiming 0x%x\n",
-> +			acpi_device_bid(device), dcr);
-> +	}
-> +
-> +#undef contains
-> +
-> +	if (acpi_floppies == 0) {
-> +		FDC1 = base;
-> +		FLOPPY_IRQ = fd.irq;
-> +		FLOPPY_DMA = fd.dma_channel;
-> +	} else if (acpi_floppies == 1) {
-> +		FDC2 = base;
-> +		if (fd.irq != FLOPPY_IRQ || fd.dma_channel != FLOPPY_DMA)
-> +			printk(KERN_WARNING "%s: different IRQ/DMA info for [%s]; may not work\n",
-> +				DEVICE_NAME, acpi_device_bid(device));
-> +	} else {
-> +		printk(KERN_ERR "%s: only 2 controllers supported; [%s] ignored\n",
-> +			DEVICE_NAME, acpi_device_bid(device));
-> +		return -ENODEV;
-> +	}
-> +
-> +	acpi_floppies++;
-> +	return 0;
-> +}
-> +
-> +static struct acpi_driver acpi_floppy_driver = {
-> +	.name	= "floppy",
-> +	.ids	= "PNP0700",
-> +	.ops	= {
-> +		.add	= acpi_floppy_add,
-> +	},
-> +};
-> +
-> +static int acpi_floppy_init(void)
-> +{
-> +	int err;
-> +
-> +	if (no_acpi_floppy) {
-> +		printk("%s: ACPI detection disabled\n", DEVICE_NAME);
-> +		return -ENODEV;
-> +	}
-> +	err = acpi_bus_register_driver(&acpi_floppy_driver);
-> +	if (err >= 0)
-> +		acpi_floppy_registered = 1;
-> +	return err;
-> +}
-> +
-> +static void acpi_floppy_exit(void)
-> +{
-> +	if (acpi_floppy_registered) {
-> +		acpi_bus_unregister_driver(&acpi_floppy_driver);
-> +		acpi_floppy_registered = 0;
-> +	}
-> +}
-> +#else
-> +static inline int  acpi_floppy_init(void) { return -ENODEV; }
-> +static inline void acpi_floppy_exit(void) { }
-> +#endif
-> +
->  static int __init floppy_init(void)
->  {
->  	int i, unit, drive;
->  	int err, dr;
->  
-> +	if (acpi_floppy_init() == 0) {
-> +		err = -ENODEV;
-> +		goto out_put_acpi;
-> +	}
-> +
->  	raw_cmd = NULL;
->  
->  	for (dr = 0; dr < N_DRIVE; dr++) {
-> @@ -4405,6 +4584,8 @@ out_put_disk:
->  		del_timer(&motor_off_timer[dr]);
->  		put_disk(disks[dr]);
->  	}
-> +out_put_acpi:
-> +	acpi_floppy_exit();
->  	return err;
->  }
->  
-> @@ -4619,6 +4800,8 @@ void cleanup_module(void)
->  	/* eject disk, if any */
->  	fd_eject(0);
->  
-> +	acpi_floppy_exit();
-> +
->  	wait_for_completion(&device_release);
->  }
->  
-> _
-> 
-> 
-> 
-> -------------------------------------------------------
-> SF email is sponsored by - The IT Product Guide
-> Read honest & candid reviews on hundreds of IT Products from real users.
-> Discover which products truly live up to the hype. Start reading now.
-> http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
+--
+Andrew Barr
+Student, Ohio State University
+
+[firstname][lastname] at columbus rr com | [lastname].156 at osu edu
+http://home.columbus.rr.com/andrewbarr
+
+"Everyone is entitled to their own opinions, but not their own facts."
+	- Daniel Patrick Moynihan
 
 
 -------------------------------------------------------
