@@ -1,135 +1,525 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/6]sep initializing rework
-Date: Wed, 13 Apr 2005 09:39:19 +0800
-Message-ID: <1113356358.7148.27.camel@sli10-desk.sh.intel.com>
-References: <19D0D50E9B1D0A40A9F0323DBFA04ACCE04AB0@USRV-EXCH4.na.uis.unisys.com>
+From: Li Shaohua <shaohua.li@intel.com>
+Subject: Re: [PATCH 3/6]init call cleanup
+Date: Wed, 13 Apr 2005 11:20:17 +0800
+Message-ID: <1113362416.7148.35.camel@sli10-desk.sh.intel.com>
+References: <200504121132.30027@bilbo.math.uni-mannheim.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <19D0D50E9B1D0A40A9F0323DBFA04ACCE04AB0-wTIArdAVPtsEm5531iEKmc1LmFYJkIXwVpNB7YpNyf8@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Protasevich, Natalie" <Natalie.Protasevich-8PZ5lytb3wbQT0dZR+AlfA@public.gmane.org>
-Cc: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Ryan Harper <ryanh-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, hotplug_sig-qjLDD68F18O7TbgM5vRIOg@public.gmane.org, Joel Schopp <jschopp-V7BBcbaFuwjMbYB6QlFGEg@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262310AbVDMDft@vger.kernel.org>
+In-Reply-To: <200504121132.30027@bilbo.math.uni-mannheim.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Zwane Mwaikambo <zwane@linuxpower.ca>, Andrew Morton <akpm@osdl.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2005-04-13 at 01:57, Protasevich, Natalie wrote:
-> Hello,
-> This is a hotplug CPU patch for i386, done against 2.6.12-rc2-mm3.
-> Somewhat alternative to the one posted by Li Shaohua, but not really
-> (and I didn't mean that :). If you look closer, our patches are
-> different and can complement each other I think. Li did great job on
-> sep, after-offline cleanup, __devinit etc., and I have some radical
-> changes in the AP bringup mechanism. I left alone __init to __devinit
-> part (I was going through it lately, but I think even though I had few
-> more than Li did, he covered it sufficiently perhaps). I started
-> having
-> doubts in free_initmem() vs __devinit because look how many of
-> __init's
-> left! just a few :). 
-Looks quite smart, but people will argue it will keep all __init
-sections in this way. I'd like we keep the default behavior of __init. 
-
-> I got rid of do_boot_cpu loop in smpboot.c because
-> the loop
-> static void __init smp_init(void)
-> {
->         unsigned int i;
+On Tue, 2005-04-12 at 17:32, Rolf Eike Beer wrote:
+> Li Shaohua wrote:
+> > Trival patch for CPU hotplug. In CPU identify  part, only did cleaup
+> for
+> > intel CPUs. Need do for other CPUs if they support S3 SMP.
+> >
+> > @@ -405,7 +405,7 @@ void __init init_bsp_APIC(void)
+> >       apic_write_around(APIC_LVT1, value);
+> >  }
+> >
+> > -void __init setup_local_APIC (void)
+> > +void __devinit setup_local_APIC (void)
+>                                   ^
 > 
->         /* FIXME: This should be done in userspace --RR */
->         for_each_present_cpu(i) {
->                 if (num_online_cpus() >= max_cpus)
->                         break;
->                 if (!cpu_online(i))
->                         cpu_up(i);
->         }
-> ...
-> does it again so why leave it in smpboot.c to boot AP's twice. 
-This is what IA64 does. In this way, you must clean up the bogomips
-message, TSC synchronization. And CPU_UP could be called in user
-context, so fork_idle possibly should be in workqueue. And please make
-sure it doesn't break other things like check_nmi_watchdog. I just
-select an easy way (add smp_prepare_cpu) and it doesn't break anything. 
-
-> I also
-> found that my system fails sooner or later when I try not to synch
-> runtime booted processor with others, so I changed tsc synchronization
-> to only sync between booting CPU and the one that boots it. 
-IA64 also does like this. It synchronizes one AP's ITC against BP's one
-time. But in IA32, TSC's upper 32 bits can be written only on prescott
-and above. In earlier CPU, upper 32 bits will become 0 after any write.
-
-> The patch
-> works for me on Intel 8x generic box, and on ES7000. I was asked to
-> separate my patch into smaller ones by the theme, but I'm posting the
-> entire patch for now, because I think it is probably not the final
-> one.
-> I think (I hope) I will sync up with Li later on.
-> My idea was that if we find a CPU core in ACPI (enabled or disabled),
-> we
-> encounter for it in sibling map and create a sysfs node accordingly,
-> and
-> cpu_possible_map will reflect that. We take processors up/down
-> depending
-> on physical presence using the existing node. That's the scenario
-> implemented on ES7000 that reports all possible cores in ACPI marking
-> absent processors as disabled. Runtime enablement/disablement depends
-> on
-> sysfs only and the driving agent can be anything (ACPI or user) that
-> triggers sysfs node for this processor.
-You possibly can refer to IA64's implementation. The goal of my patches
-are to support suspend/resume, which actually doesn't really hotremove a
-CPU, so I just ignored the sysfs/ACPI issues.
+> >  {
+> >       unsigned long oldvalue, value, ver, maxlvt;
+> >
+> 
+> Please remove this space while you are at it.
+> 
+> > @@ -556,7 +556,7 @@ void __init early_cpu_init(void)
+> >   * and IDT. We reload them nevertheless, this function acts as a
+> >   * 'CPU state barrier', nothing should get across.
+> >   */
+> > -void __init cpu_init (void)
+> > +void __devinit cpu_init (void)
+> >  {
+> >       int cpu = smp_processor_id();
+> >       struct tss_struct * t = &per_cpu(init_tss, cpu);
+> 
+> This one too.
+Removed the space at two places as suggested.
 
 Thanks,
 Shaohua
 
-> 
-> -----Original Message-----
-> From: Zwane Mwaikambo [mailto:zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org] 
-> Sent: Tuesday, April 12, 2005 6:08 AM
-> To: Li Shaohua
-> Cc: lkml; ACPI-DEV; Len Brown; Pavel Machek; Andrew Morton;
-> Protasevich,
-> Natalie; Ryan Harper
-> Subject: Re: [PATCH 1/6]sep initializing rework
-> 
-> Hello Shaohua,
-> 
-> On Tue, 12 Apr 2005, Li Shaohua wrote:
-> 
-> > These patches (together with 5 patches followed this one) are
-> updated 
-> > suspend/resume SMP patches. The patches fixed some bugs and do clean
-> > up as suggested. Now they work for both suspend-to-ram and
-> suspend-to-disk.
-> > Patches are against 2.6.12-rc2-mm3.
-> 
-> These patches look good and i think we should go ahead with them. I've
-> also cross checked with physical hotplug cpu patches for ES7xxx from
-> Natalie (added to Cc) and it does indeed look like a lot of the code
-> will work for her too, but i'd appreciate it if she also does a double
-> check. 
-> Obviously this won't work for other upcoming users of hotplug cpu like
-> Xen (Ryan added to Cc) but i think we can abstract things later on to
-> cover other special users.
-> 
-> Thanks Shaohua,
->         Zwane
-> 
+Trival patch for CPU hotplug. In CPU identify  part, only did cleaup for intel
+CPUs. Need do for other CPUs if they support S3 SMP.
 
+---
 
+ linux-2.6.11-root/arch/i386/kernel/apic.c                |   14 +++----
+ linux-2.6.11-root/arch/i386/kernel/cpu/common.c          |   30 +++++++--------
+ linux-2.6.11-root/arch/i386/kernel/cpu/intel.c           |   12 +++---
+ linux-2.6.11-root/arch/i386/kernel/cpu/intel_cacheinfo.c |    4 +-
+ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/mce.c      |    4 +-
+ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p4.c       |    4 +-
+ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p5.c       |    2 -
+ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p6.c       |    2 -
+ linux-2.6.11-root/arch/i386/kernel/process.c             |    2 -
+ linux-2.6.11-root/arch/i386/kernel/setup.c               |    2 -
+ linux-2.6.11-root/arch/i386/kernel/smpboot.c             |   18 ++++-----
+ linux-2.6.11-root/arch/i386/kernel/timers/timer_tsc.c    |    2 -
+ 12 files changed, 48 insertions(+), 48 deletions(-)
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+diff -puN arch/i386/kernel/apic.c~init_call_cleanup arch/i386/kernel/apic.c
+--- linux-2.6.11/arch/i386/kernel/apic.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/apic.c	2005-04-13 10:57:55.817365288 +0800
+@@ -405,7 +405,7 @@ void __init init_bsp_APIC(void)
+ 	apic_write_around(APIC_LVT1, value);
+ }
+ 
+-void __init setup_local_APIC (void)
++void __devinit setup_local_APIC(void)
+ {
+ 	unsigned long oldvalue, value, ver, maxlvt;
+ 
+@@ -676,7 +676,7 @@ static struct sys_device device_lapic = 
+ 	.cls	= &lapic_sysclass,
+ };
+ 
+-static void __init apic_pm_activate(void)
++static void __devinit apic_pm_activate(void)
+ {
+ 	apic_pm_state.active = 1;
+ }
+@@ -877,7 +877,7 @@ fake_ioapic_page:
+  * but we do not accept timer interrupts yet. We only allow the BP
+  * to calibrate.
+  */
+-static unsigned int __init get_8254_timer_count(void)
++static unsigned int __devinit get_8254_timer_count(void)
+ {
+ 	extern spinlock_t i8253_lock;
+ 	unsigned long flags;
+@@ -896,7 +896,7 @@ static unsigned int __init get_8254_time
+ }
+ 
+ /* next tick in 8254 can be caught by catching timer wraparound */
+-static void __init wait_8254_wraparound(void)
++static void __devinit wait_8254_wraparound(void)
+ {
+ 	unsigned int curr_count, prev_count;
+ 
+@@ -916,7 +916,7 @@ static void __init wait_8254_wraparound(
+  * Default initialization for 8254 timers. If we use other timers like HPET,
+  * we override this later
+  */
+-void (*wait_timer_tick)(void) __initdata = wait_8254_wraparound;
++void (*wait_timer_tick)(void) __devinitdata = wait_8254_wraparound;
+ 
+ /*
+  * This function sets up the local APIC timer, with a timeout of
+@@ -952,7 +952,7 @@ static void __setup_APIC_LVTT(unsigned i
+ 	apic_write_around(APIC_TMICT, clocks/APIC_DIVISOR);
+ }
+ 
+-static void __init setup_APIC_timer(unsigned int clocks)
++static void __devinit setup_APIC_timer(unsigned int clocks)
+ {
+ 	unsigned long flags;
+ 
+@@ -1065,7 +1065,7 @@ void __init setup_boot_APIC_clock(void)
+ 	local_irq_enable();
+ }
+ 
+-void __init setup_secondary_APIC_clock(void)
++void __devinit setup_secondary_APIC_clock(void)
+ {
+ 	setup_APIC_timer(calibration_result);
+ }
+diff -puN arch/i386/kernel/cpu/common.c~init_call_cleanup arch/i386/kernel/cpu/common.c
+--- linux-2.6.11/arch/i386/kernel/cpu/common.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/common.c	2005-04-13 10:58:25.777810608 +0800
+@@ -24,9 +24,9 @@ EXPORT_PER_CPU_SYMBOL(cpu_gdt_table);
+ DEFINE_PER_CPU(unsigned char, cpu_16bit_stack[CPU_16BIT_STACK_SIZE]);
+ EXPORT_PER_CPU_SYMBOL(cpu_16bit_stack);
+ 
+-static int cachesize_override __initdata = -1;
+-static int disable_x86_fxsr __initdata = 0;
+-static int disable_x86_serial_nr __initdata = 1;
++static int cachesize_override __devinitdata = -1;
++static int disable_x86_fxsr __devinitdata = 0;
++static int disable_x86_serial_nr __devinitdata = 1;
+ 
+ struct cpu_dev * cpu_devs[X86_VENDOR_NUM] = {};
+ 
+@@ -59,7 +59,7 @@ static int __init cachesize_setup(char *
+ }
+ __setup("cachesize=", cachesize_setup);
+ 
+-int __init get_model_name(struct cpuinfo_x86 *c)
++int __devinit get_model_name(struct cpuinfo_x86 *c)
+ {
+ 	unsigned int *v;
+ 	char *p, *q;
+@@ -89,7 +89,7 @@ int __init get_model_name(struct cpuinfo
+ }
+ 
+ 
+-void __init display_cacheinfo(struct cpuinfo_x86 *c)
++void __devinit display_cacheinfo(struct cpuinfo_x86 *c)
+ {
+ 	unsigned int n, dummy, ecx, edx, l2size;
+ 
+@@ -130,7 +130,7 @@ void __init display_cacheinfo(struct cpu
+ /* in particular, if CPUID levels 0x80000002..4 are supported, this isn't used */
+ 
+ /* Look up CPU names by table lookup. */
+-static char __init *table_lookup_model(struct cpuinfo_x86 *c)
++static char __devinit *table_lookup_model(struct cpuinfo_x86 *c)
+ {
+ 	struct cpu_model_info *info;
+ 
+@@ -151,7 +151,7 @@ static char __init *table_lookup_model(s
+ }
+ 
+ 
+-void __init get_cpu_vendor(struct cpuinfo_x86 *c, int early)
++void __devinit get_cpu_vendor(struct cpuinfo_x86 *c, int early)
+ {
+ 	char *v = c->x86_vendor_id;
+ 	int i;
+@@ -202,7 +202,7 @@ static inline int flag_is_changeable_p(u
+ 
+ 
+ /* Probe for the CPUID instruction */
+-static int __init have_cpuid_p(void)
++static int __devinit have_cpuid_p(void)
+ {
+ 	return flag_is_changeable_p(X86_EFLAGS_ID);
+ }
+@@ -245,7 +245,7 @@ static void __init early_cpu_detect(void
+ 	early_intel_workaround(c);
+ }
+ 
+-void __init generic_identify(struct cpuinfo_x86 * c)
++void __devinit generic_identify(struct cpuinfo_x86 * c)
+ {
+ 	u32 tfms, xlvl;
+ 	int junk;
+@@ -292,7 +292,7 @@ void __init generic_identify(struct cpui
+ 	}
+ }
+ 
+-static void __init squash_the_stupid_serial_number(struct cpuinfo_x86 *c)
++static void __devinit squash_the_stupid_serial_number(struct cpuinfo_x86 *c)
+ {
+ 	if (cpu_has(c, X86_FEATURE_PN) && disable_x86_serial_nr ) {
+ 		/* Disable processor serial number */
+@@ -320,7 +320,7 @@ __setup("serialnumber", x86_serial_nr_se
+ /*
+  * This does the hard work of actually picking apart the CPU stuff...
+  */
+-void __init identify_cpu(struct cpuinfo_x86 *c)
++void __devinit identify_cpu(struct cpuinfo_x86 *c)
+ {
+ 	int i;
+ 
+@@ -431,7 +431,7 @@ void __init identify_cpu(struct cpuinfo_
+ }
+ 
+ #ifdef CONFIG_X86_HT
+-void __init detect_ht(struct cpuinfo_x86 *c)
++void __devinit detect_ht(struct cpuinfo_x86 *c)
+ {
+ 	u32 	eax, ebx, ecx, edx;
+ 	int 	index_msb, tmp;
+@@ -486,7 +486,7 @@ void __init detect_ht(struct cpuinfo_x86
+ }
+ #endif
+ 
+-void __init print_cpu_info(struct cpuinfo_x86 *c)
++void __devinit print_cpu_info(struct cpuinfo_x86 *c)
+ {
+ 	char *vendor = NULL;
+ 
+@@ -509,7 +509,7 @@ void __init print_cpu_info(struct cpuinf
+ 		printk("\n");
+ }
+ 
+-cpumask_t cpu_initialized __initdata = CPU_MASK_NONE;
++cpumask_t cpu_initialized __devinitdata = CPU_MASK_NONE;
+ 
+ /* This is hacky. :)
+  * We're emulating future behavior.
+@@ -556,7 +556,7 @@ void __init early_cpu_init(void)
+  * and IDT. We reload them nevertheless, this function acts as a
+  * 'CPU state barrier', nothing should get across.
+  */
+-void __init cpu_init (void)
++void __devinit cpu_init(void)
+ {
+ 	int cpu = smp_processor_id();
+ 	struct tss_struct * t = &per_cpu(init_tss, cpu);
+diff -puN arch/i386/kernel/cpu/intel.c~init_call_cleanup arch/i386/kernel/cpu/intel.c
+--- linux-2.6.11/arch/i386/kernel/cpu/intel.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/intel.c	2005-04-12 10:37:07.000000000 +0800
+@@ -28,7 +28,7 @@ extern int trap_init_f00f_bug(void);
+ struct movsl_mask movsl_mask;
+ #endif
+ 
+-void __init early_intel_workaround(struct cpuinfo_x86 *c)
++void __devinit early_intel_workaround(struct cpuinfo_x86 *c)
+ {
+ 	if (c->x86_vendor != X86_VENDOR_INTEL)
+ 		return;
+@@ -43,7 +43,7 @@ void __init early_intel_workaround(struc
+  *	This is called before we do cpu ident work
+  */
+  
+-int __init ppro_with_ram_bug(void)
++int __devinit ppro_with_ram_bug(void)
+ {
+ 	/* Uses data from early_cpu_detect now */
+ 	if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
+@@ -61,7 +61,7 @@ int __init ppro_with_ram_bug(void)
+  * P4 Xeon errata 037 workaround.
+  * Hardware prefetcher may cause stale data to be loaded into the cache.
+  */
+-static void __init Intel_errata_workarounds(struct cpuinfo_x86 *c)
++static void __devinit Intel_errata_workarounds(struct cpuinfo_x86 *c)
+ {
+ 	unsigned long lo, hi;
+ 
+@@ -80,7 +80,7 @@ static void __init Intel_errata_workarou
+ /*
+  * find out the number of processor cores on the die
+  */
+-static int __init num_cpu_cores(struct cpuinfo_x86 *c)
++static int __devinit num_cpu_cores(struct cpuinfo_x86 *c)
+ {
+ 	unsigned int eax;
+ 
+@@ -98,7 +98,7 @@ static int __init num_cpu_cores(struct c
+ 		return 1;
+ }
+ 
+-static void __init init_intel(struct cpuinfo_x86 *c)
++static void __devinit init_intel(struct cpuinfo_x86 *c)
+ {
+ 	unsigned int l2 = 0;
+ 	char *p = NULL;
+@@ -204,7 +204,7 @@ static unsigned int intel_size_cache(str
+ 	return size;
+ }
+ 
+-static struct cpu_dev intel_cpu_dev __initdata = {
++static struct cpu_dev intel_cpu_dev __devinitdata = {
+ 	.c_vendor	= "Intel",
+ 	.c_ident 	= { "GenuineIntel" },
+ 	.c_models = {
+diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~init_call_cleanup arch/i386/kernel/cpu/intel_cacheinfo.c
+--- linux-2.6.11/arch/i386/kernel/cpu/intel_cacheinfo.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/intel_cacheinfo.c	2005-04-12 10:37:07.000000000 +0800
+@@ -28,7 +28,7 @@ struct _cache_table
+ };
+ 
+ /* all the cache descriptor types we care about (no TLB or trace cache entries) */
+-static struct _cache_table cache_table[] __initdata =
++static struct _cache_table cache_table[] __devinitdata =
+ {
+ 	{ 0x06, LVL_1_INST, 8 },	/* 4-way set assoc, 32 byte line size */
+ 	{ 0x08, LVL_1_INST, 16 },	/* 4-way set assoc, 32 byte line size */
+@@ -160,7 +160,7 @@ static int __init find_num_cache_leaves(
+ 	return retval;
+ }
+ 
+-unsigned int __init init_intel_cacheinfo(struct cpuinfo_x86 *c)
++unsigned int __devinit init_intel_cacheinfo(struct cpuinfo_x86 *c)
+ {
+ 	unsigned int trace = 0, l1i = 0, l1d = 0, l2 = 0, l3 = 0; /* Cache sizes */
+ 	unsigned int new_l1d = 0, new_l1i = 0; /* Cache sizes from cpuid(4) */
+diff -puN arch/i386/kernel/cpu/mcheck/mce.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/mce.c
+--- linux-2.6.11/arch/i386/kernel/cpu/mcheck/mce.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/mce.c	2005-04-12 10:37:07.000000000 +0800
+@@ -16,7 +16,7 @@
+ 
+ #include "mce.h"
+ 
+-int mce_disabled __initdata = 0;
++int mce_disabled __devinitdata = 0;
+ int nr_mce_banks;
+ 
+ EXPORT_SYMBOL_GPL(nr_mce_banks);	/* non-fatal.o */
+@@ -31,7 +31,7 @@ static fastcall void unexpected_machine_
+ void fastcall (*machine_check_vector)(struct pt_regs *, long error_code) = unexpected_machine_check;
+ 
+ /* This has to be run for each processor */
+-void __init mcheck_init(struct cpuinfo_x86 *c)
++void __devinit mcheck_init(struct cpuinfo_x86 *c)
+ {
+ 	if (mce_disabled==1)
+ 		return;
+diff -puN arch/i386/kernel/cpu/mcheck/p4.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/p4.c
+--- linux-2.6.11/arch/i386/kernel/cpu/mcheck/p4.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p4.c	2005-04-12 10:37:07.000000000 +0800
+@@ -78,7 +78,7 @@ fastcall void smp_thermal_interrupt(stru
+ }
+ 
+ /* P4/Xeon Thermal regulation detect and init */
+-static void __init intel_init_thermal(struct cpuinfo_x86 *c)
++static void __devinit intel_init_thermal(struct cpuinfo_x86 *c)
+ {
+ 	u32 l, h;
+ 	unsigned int cpu = smp_processor_id();
+@@ -232,7 +232,7 @@ static fastcall void intel_machine_check
+ }
+ 
+ 
+-void __init intel_p4_mcheck_init(struct cpuinfo_x86 *c)
++void __devinit intel_p4_mcheck_init(struct cpuinfo_x86 *c)
+ {
+ 	u32 l, h;
+ 	int i;
+diff -puN arch/i386/kernel/cpu/mcheck/p5.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/p5.c
+--- linux-2.6.11/arch/i386/kernel/cpu/mcheck/p5.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p5.c	2005-04-12 10:37:07.000000000 +0800
+@@ -29,7 +29,7 @@ static fastcall void pentium_machine_che
+ }
+ 
+ /* Set up machine check reporting for processors with Intel style MCE */
+-void __init intel_p5_mcheck_init(struct cpuinfo_x86 *c)
++void __devinit intel_p5_mcheck_init(struct cpuinfo_x86 *c)
+ {
+ 	u32 l, h;
+ 	
+diff -puN arch/i386/kernel/cpu/mcheck/p6.c~init_call_cleanup arch/i386/kernel/cpu/mcheck/p6.c
+--- linux-2.6.11/arch/i386/kernel/cpu/mcheck/p6.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/cpu/mcheck/p6.c	2005-04-12 10:37:07.000000000 +0800
+@@ -80,7 +80,7 @@ static fastcall void intel_machine_check
+ }
+ 
+ /* Set up machine check reporting for processors with Intel style MCE */
+-void __init intel_p6_mcheck_init(struct cpuinfo_x86 *c)
++void __devinit intel_p6_mcheck_init(struct cpuinfo_x86 *c)
+ {
+ 	u32 l, h;
+ 	int i;
+diff -puN arch/i386/kernel/process.c~init_call_cleanup arch/i386/kernel/process.c
+--- linux-2.6.11/arch/i386/kernel/process.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/process.c	2005-04-13 10:56:58.856024728 +0800
+@@ -256,7 +256,7 @@ static void mwait_idle(void)
+ 	}
+ }
+ 
+-void __init select_idle_routine(const struct cpuinfo_x86 *c)
++void __devinit select_idle_routine(const struct cpuinfo_x86 *c)
+ {
+ 	if (cpu_has(c, X86_FEATURE_MWAIT)) {
+ 		printk("monitor/mwait feature present.\n");
+diff -puN arch/i386/kernel/setup.c~init_call_cleanup arch/i386/kernel/setup.c
+--- linux-2.6.11/arch/i386/kernel/setup.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/setup.c	2005-04-12 10:37:07.000000000 +0800
+@@ -66,7 +66,7 @@ void __init find_max_pfn(void);
+    address, and must not be in the .bss segment! */
+ unsigned long init_pg_tables_end __initdata = ~0UL;
+ 
+-int disable_pse __initdata = 0;
++int disable_pse __devinitdata = 0;
+ 
+ /*
+  * Machine setup..
+diff -puN arch/i386/kernel/smpboot.c~init_call_cleanup arch/i386/kernel/smpboot.c
+--- linux-2.6.11/arch/i386/kernel/smpboot.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-04-13 10:56:58.857024576 +0800
+@@ -59,7 +59,7 @@
+ #include <smpboot_hooks.h>
+ 
+ /* Set if we find a B stepping CPU */
+-static int __initdata smp_b_stepping;
++static int __devinitdata smp_b_stepping;
+ 
+ /* Number of siblings per CPU package */
+ int smp_num_siblings = 1;
+@@ -107,7 +107,7 @@ DEFINE_PER_CPU(int, cpu_state) = { 0 };
+  * has made sure it's suitably aligned.
+  */
+ 
+-static unsigned long __init setup_trampoline(void)
++static unsigned long __devinit setup_trampoline(void)
+ {
+ 	memcpy(trampoline_base, trampoline_data, trampoline_end - trampoline_data);
+ 	return virt_to_phys(trampoline_base);
+@@ -137,7 +137,7 @@ void __init smp_alloc_memory(void)
+  * a given CPU
+  */
+ 
+-static void __init smp_store_cpu_info(int id)
++static void __devinit smp_store_cpu_info(int id)
+ {
+ 	struct cpuinfo_x86 *c = cpu_data + id;
+ 
+@@ -331,7 +331,7 @@ extern void calibrate_delay(void);
+ 
+ static atomic_t init_deasserted;
+ 
+-static void __init smp_callin(void)
++static void __devinit smp_callin(void)
+ {
+ 	int cpuid, phys_id;
+ 	unsigned long timeout;
+@@ -457,7 +457,7 @@ set_cpu_sibling_map(int cpu)
+ /*
+  * Activate a secondary processor.
+  */
+-static void __init start_secondary(void *unused)
++static void __devinit start_secondary(void *unused)
+ {
+ 	/*
+ 	 * Dont put anything before smp_callin(), SMP
+@@ -502,7 +502,7 @@ static void __init start_secondary(void 
+  * from the task structure
+  * This function must not return.
+  */
+-void __init initialize_secondary(void)
++void __devinit initialize_secondary(void)
+ {
+ 	/*
+ 	 * We don't actually need to load the full TSS,
+@@ -617,7 +617,7 @@ static inline void __inquire_remote_apic
+  * INIT, INIT, STARTUP sequence will reset the chip hard for us, and this
+  * won't ... remember to clear down the APIC, etc later.
+  */
+-static int __init
++static int __devinit
+ wakeup_secondary_cpu(int logical_apicid, unsigned long start_eip)
+ {
+ 	unsigned long send_status = 0, accept_status = 0;
+@@ -663,7 +663,7 @@ wakeup_secondary_cpu(int logical_apicid,
+ #endif	/* WAKE_SECONDARY_VIA_NMI */
+ 
+ #ifdef WAKE_SECONDARY_VIA_INIT
+-static int __init
++static int __devinit
+ wakeup_secondary_cpu(int phys_apicid, unsigned long start_eip)
+ {
+ 	unsigned long send_status = 0, accept_status = 0;
+@@ -799,7 +799,7 @@ wakeup_secondary_cpu(int phys_apicid, un
+ 
+ extern cpumask_t cpu_initialized;
+ 
+-static int __init do_boot_cpu(int apicid)
++static int __devinit do_boot_cpu(int apicid)
+ /*
+  * NOTE - on most systems this is a PHYSICAL apic ID, but on multiquad
+  * (ie clustered apic addressing mode), this is a LOGICAL apic ID.
+diff -puN arch/i386/kernel/timers/timer_tsc.c~init_call_cleanup arch/i386/kernel/timers/timer_tsc.c
+--- linux-2.6.11/arch/i386/kernel/timers/timer_tsc.c~init_call_cleanup	2005-04-12 10:37:07.000000000 +0800
++++ linux-2.6.11-root/arch/i386/kernel/timers/timer_tsc.c	2005-04-12 10:37:07.000000000 +0800
+@@ -33,7 +33,7 @@ static struct timer_opts timer_tsc;
+ 
+ static inline void cpufreq_delayed_get(void);
+ 
+-int tsc_disable __initdata = 0;
++int tsc_disable __devinitdata = 0;
+ 
+ extern spinlock_t i8253_lock;
+ 
+_
