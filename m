@@ -1,243 +1,53 @@
-From: willy-6jwH94ZQLHl74goWV3ctuw@public.gmane.org (Matthew Wilcox)
-Subject: [PATCH 2/2] GPE block driver
-Date: Tue, 12 Apr 2005 15:58:37 -0600 (MDT)
-Message-ID: <20050412215837.8762149677C@palinux.hppa>
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, matthew-Ztpu424NOJ8@public.gmane.org
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: 2.6.11 acpi battery state readout as source of keyboard/touchpad troubles
+Date: Wed, 13 Apr 2005 13:24:52 +0200
+Message-ID: <20050413112452.GA21023@elf.ucw.cz>
+References: <424AF9C3.4000905@domdv.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261317AbVDMLZc@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <424AF9C3.4000905@domdv.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andreas Steinmetz <ast@domdv.de>
+Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>, vojtech@suse.cz, dtor_core@ameritech.net, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-GPE block driver
+Hi!
 
-This simple driver sets up the ACPI core to handle GPE blocks that are
-not described in the FADT.
+> In traceing the source of my sporadic synaptics touchpad troubles
+> 
+> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
+> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
+> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
+> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
+> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
+> psmouse.c: TouchPad at isa0060/serio4/input0 - driver resynched.
+> 
+> and keyboard troubles (sporadically lost key up/down events) on an Acer
+> Aspire 1520 (x86_64, latest bios v1.09) I did enable the
+> report_lost_ticks option which did spit out stuff like the following at
+> regular intervals:
+> 
+> time.c: Lost 17 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
+> time.c: Lost 8 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
+> time.c: Lost 19 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
+> time.c: Lost 8 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
+> time.c: Lost 18 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
+> time.c: Lost 8 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
+> 
+> This looked suspiciously like it happended when the the kde laptop
+> applet polled the battery status. So I did terminate the applet.
+> 
+> The result was no more lost ticks, no lost keyboard events and no more
+> lost touchpad sync.
+> 
+> To verify ACPI battery data as the source of trouble i did a simple
+> 
+> cat /proc/acpi/battery/BAT0/state
+...
 
-Index: ./drivers/acpi/Kconfig
-===================================================================
-RCS file: /var/cvs/linux-2.6/drivers/acpi/Kconfig,v
-retrieving revision 1.16
-diff -u -p -r1.16 Kconfig
---- ./drivers/acpi/Kconfig	22 Jan 2005 14:59:09 -0000	1.16
-+++ ./drivers/acpi/Kconfig	26 Jan 2005 19:16:52 -0000
-@@ -134,6 +134,20 @@ config ACPI_FAN
- 	  This driver adds support for ACPI fan devices, allowing user-mode 
- 	  applications to perform basic fan control (on, off, status).
- 
-+config ACPI_GPE_BLOCK
-+	tristate "GPE block"
-+	depends on ACPI_INTERPRETER
-+	depends on !IA64_SGI_SN
-+	default m
-+	help
-+	  GPE block devices are used to expand the number of ACPI events
-+	  available to the system.  Common uses include expansion chassis
-+	  and laptop docking stations.  If you don't know whether you
-+	  have one or not, it is safe to say Y.
-+	  
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called gpe-block.
-+
- config ACPI_PROCESSOR
- 	tristate "Processor"
- 	depends on ACPI_INTERPRETER
-Index: ./drivers/acpi/Makefile
-===================================================================
-RCS file: /var/cvs/linux-2.6/drivers/acpi/Makefile,v
-retrieving revision 1.7
-diff -u -p -r1.7 Makefile
---- ./drivers/acpi/Makefile	12 Jan 2005 20:16:09 -0000	1.7
-+++ ./drivers/acpi/Makefile	26 Jan 2005 19:16:52 -0000
-@@ -42,6 +42,7 @@ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
- obj-$(CONFIG_ACPI_EC)		+= ec.o
- obj-$(CONFIG_ACPI_FAN)		+= fan.o
-+obj-$(CONFIG_ACPI_GPE_BLOCK)	+= gpe-block.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-$(CONFIG_ACPI_PCI)		+= pci_root.o pci_link.o pci_irq.o pci_bind.o
- obj-$(CONFIG_ACPI_POWER)	+= power.o
-Index: ./drivers/acpi/gpe-block.c
-===================================================================
-RCS file: ./drivers/acpi/gpe-block.c
-diff -N ./drivers/acpi/gpe-block.c
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ ./drivers/acpi/gpe-block.c	26 Jan 2005 19:16:52 -0000
-@@ -0,0 +1,163 @@
-+/*
-+ * drivers/acpi/gpe-block.c
-+ *
-+ * Copyright (c) Matthew Wilcox for Hewlett Packard 2004
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or (at
-+ * your option) any later version.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/ioport.h>
-+#include <linux/module.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
-+#include <acpi/acpixf.h>
-+#include <acpi/acnamesp.h>
-+
-+MODULE_AUTHOR("Matthew Wilcox <willy-VXdhtT5mjnY@public.gmane.org>");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION("0.3");
-+
-+#define NAME "gpe-block"
-+
-+struct gpe_block {
-+	struct acpi_generic_address address;
-+	u32 register_count;
-+	u32 interrupt_level;
-+};
-+
-+static acpi_status acpi_gpe_block_crs_irq(struct acpi_resource_ext_irq *irq,
-+		struct gpe_block *data)
-+{
-+	acpi_register_gsi(irq->interrupts[0], irq->edge_level,
-+			irq->active_high_low);
-+	data->interrupt_level = irq->interrupts[0];
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_gpe_block_crs_addr(struct acpi_resource_address64 *addr,
-+		struct gpe_block *data)
-+{
-+	int size = addr->max_address_range - addr->min_address_range + 1;
-+	if (addr->resource_type == ACPI_MEMORY_RANGE) {
-+		data->address.address_space_id = ACPI_ADR_SPACE_SYSTEM_MEMORY;
-+		if (!request_mem_region(addr->min_address_range, size, NAME))
-+			return AE_CTRL_TERMINATE;
-+
-+	} else if (addr->resource_type == ACPI_IO_RANGE) {
-+		data->address.address_space_id = ACPI_ADR_SPACE_SYSTEM_IO;
-+		if (!request_region(addr->min_address_range, size, NAME))
-+			return AE_CTRL_TERMINATE;
-+	} else {
-+		return AE_CTRL_TERMINATE;
-+	}
-+
-+	data->address.register_bit_width = ACPI_GPE_REGISTER_WIDTH;
-+	data->address.register_bit_offset = ACPI_GPE_REGISTER_WIDTH;
-+	data->address.address = addr->min_address_range;
-+	data->register_count = size / 2;
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_gpe_block_crs_add(struct acpi_resource *res, void *data)
-+{
-+	if (res->id == ACPI_RSTYPE_EXT_IRQ)
-+		return acpi_gpe_block_crs_irq(&res->data.extended_irq, data);
-+
-+	if (res->id == ACPI_RSTYPE_ADDRESS16 ||
-+	    res->id == ACPI_RSTYPE_ADDRESS32 ||
-+	    res->id == ACPI_RSTYPE_ADDRESS64) {
-+		struct acpi_resource_address64 address;
-+		acpi_resource_to_address64(res, &address);
-+		return acpi_gpe_block_crs_addr(&address, data);
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static acpi_status acpi_gpe_block_crs_remove(struct acpi_resource *res,
-+		void *context)
-+{
-+	struct acpi_resource_address64 addr;
-+	int size;
-+
-+	if (res->id != ACPI_RSTYPE_ADDRESS16 &&
-+	    res->id != ACPI_RSTYPE_ADDRESS32 &&
-+	    res->id != ACPI_RSTYPE_ADDRESS64)
-+		return AE_OK;
-+
-+	acpi_resource_to_address64(res, &addr);
-+
-+	size = addr.max_address_range - addr.min_address_range + 1;
-+	if (addr.resource_type == ACPI_MEMORY_RANGE) {
-+		release_mem_region(addr.min_address_range, size);
-+	} else if (addr.resource_type == ACPI_IO_RANGE) {
-+		release_region(addr.min_address_range, size);
-+	}
-+	return AE_OK;
-+}
-+
-+static int acpi_gpe_block_add(struct acpi_device *device)
-+{
-+	struct gpe_block block;
-+
-+	memset(&block, 0, sizeof(block));
-+	acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-+			acpi_gpe_block_crs_add, &block);
-+
-+	/* Decline to handle GPE blocks with no _CRS. */
-+	if (block.register_count == 0)
-+		return -ENODEV;
-+
-+	acpi_install_gpe_block(device->handle, &block.address,
-+			block.register_count, block.interrupt_level);
-+
-+	return AE_OK;
-+}
-+
-+static int acpi_gpe_block_remove(struct acpi_device *device, int type)
-+{
-+	struct acpi_namespace_node *node;
-+	union acpi_operand_object *obj_desc;
-+
-+	node = acpi_ns_map_handle_to_node(device->handle);
-+	if(!node)
-+		goto Exit;
-+	obj_desc = acpi_ns_get_attached_object (node);
-+	if(!obj_desc)
-+		goto Exit;
-+	acpi_hw_disable_gpe_block(NULL, obj_desc->device.gpe_block);
-+	acpi_os_sleep(1);
-+	acpi_os_wait_events_complete(NULL);
-+	acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-+			acpi_gpe_block_crs_remove, NULL);
-+Exit:
-+	return acpi_remove_gpe_block(device->handle);
-+}
-+
-+static struct acpi_driver acpi_gpe_block_driver = {
-+	.name =		NAME,
-+	.ids =		"ACPI0006",
-+	.ops =	{
-+		.add =		acpi_gpe_block_add,
-+		.remove =	acpi_gpe_block_remove,
-+	},
-+};
-+
-+static int __init acpi_gpe_block_init(void)
-+{
-+	int result = acpi_bus_register_driver(&acpi_gpe_block_driver);
-+	return (result < 0) ? -ENODEV : 0;
-+}
-+
-+static void __exit acpi_gpe_block_exit(void)
-+{
-+	acpi_bus_unregister_driver(&acpi_gpe_block_driver);
-+}
-+
-+module_init(acpi_gpe_block_init);
-+module_exit(acpi_gpe_block_exit);
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+CONFIG_ACPI_DEBUG enabled by chance?
+								Pavel
+-- 
+Boycott Kodak -- for their patent abuse against Java.
