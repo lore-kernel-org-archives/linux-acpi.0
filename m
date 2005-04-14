@@ -1,13 +1,11 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Savage backlight control
-Date: Thu, 14 Apr 2005 10:19:36 +0100
-Message-ID: <1113470376.10110.160.camel@tyrosine>
-References: <20050414060742.71711.qmail@web50205.mail.yahoo.com>
+From: klug <klug-90T4dkFmkpLYtjvyW6yDsg@public.gmane.org>
+Subject: Toshiba backlight control
+Date: Thu, 14 Apr 2005 18:06:13 -0400
+Message-ID: <425EE955.7020400@blarg.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050414060742.71711.qmail-/7KY5DUzB96A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +15,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Braennlund <johan_brn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2005-04-13 at 23:07 -0700, Johan Braennlund wrote:
+Previous to the 2.6.10 release I was able to control the lcd backlight 
+on my toshiba satellite S507-5005 via the commands "echo lcd_out:0 > 
+/proc/acpi/toshiba/video" (off) & "echo lcd_out:1 > 
+/proc/acpi/toshiba/video" (on). The DPMS commands have never worked for 
+this system. I have tested the new backlight module by passing commands 
+to the /sys/module/backlight files with no luck. Also, there has never 
+been a /proc/acpi/video to test. I posted a complete bug report 
+(http://bugme.osdl.org/show_bug.cgi?id=4468) and was advised by the 
+fbdev list my problem looks to be acpi related. I have tested 2.6.10, 
+2.6.11, 2.6.11.4->7, 2.6.12-rc1, and 2.6.12-rc2 all with the same 
+result. The "Toshiba Laptop ACPI Extras" version (0.18) is the same in 
+every tested version, including the working 2.6.0->2.6.9. So the 
+change/problem doesn't appear to be in the toshiba features. Below is my 
+acpi / toshiba config options. My complete hardware setup can be seen in 
+the bug report (http://bugme.osdl.org/show_bug.cgi?id=4468).
 
-> Would it be possible to connect either of those methods to the /proc
-> interface? My interest in all this comes from a desire to be able to
-> script brightness control, depending on whether I'm on AC or batteries.
+-klug
 
-It's quite likely that your machine will have acpi methods to control
-the brightness, and if it does you could hook them up to the /proc
-interface. However, these methods tend to be per-manufacturer rather
-than per-graphics chipset. The current /proc/acpi/video stuff uses the
-standard ACPI video methods, and sadly many manufacturers don't support
-that. Your best bet may be to work on a hardware-specific support module
-- it's likely to work on several other machines from the same
-manufacturer as well.
+CONFIG_TOSHIBA=y
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_INTERPRETER=y
+# CONFIG_ACPI_SLEEP is not set
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_VIDEO=y
+CONFIG_ACPI_FAN=y
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_IBM is not set
+CONFIG_ACPI_TOSHIBA=y
+CONFIG_ACPI_BLACKLIST_YEAR=0
+# CONFIG_ACPI_DEBUG is not set
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SYSTEM=y
+# CONFIG_X86_PM_TIMER is not set
+# CONFIG_ACPI_CONTAINER is not set
 
 
 -------------------------------------------------------
