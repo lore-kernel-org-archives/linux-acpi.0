@@ -1,13 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Savage backlight control
-Date: Thu, 14 Apr 2005 01:11:32 +0100
-Message-ID: <1113437492.10110.155.camel@tyrosine>
-References: <20050413221344.58942.qmail@web50209.mail.yahoo.com>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] Allow multiple GPE interrupts
+Date: Wed, 13 Apr 2005 22:22:41 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3002F68269@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050413221344.58942.qmail-k4S4SYk0aM6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,25 +17,234 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Wilcox <willy-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, matthew-Ztpu424NOJ8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2005-04-13 at 15:13 -0700, Johan Braennlund wrote:
-> Hi. With recent kernel releases, I see that there's now a file
-> /proc/acpi/video/VGA0/LCD0/brightness. Unfortunately that file says
-> "<not supported>" - what's missing for this feature to be supported?
-> I'm using an Acer Aspire 1304 with a Savage graphics card and a recent
-> snapshot of the Savage driver, which by itself supports backlight
-> control - for instance, "xset dpms force off" turns off the backlight.
-> I asked Alex Deucher (one of the savage driver developers) and he
-> suggested that I post here.
+=20
 
-It requires your machine's BIOS to provide standard brightness control
-methods. Not many machines seem to do that.
+>-----Original Message-----
+>From: Matthew Wilcox [mailto:willy-6jwH94ZQLHl74goWV3ctuw@public.gmane.org]=20
+>Sent: Tuesday, April 12, 2005 5:59 PM
+>To: Brown, Len
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; matthew-Ztpu424NOJ8@public.gmane.org
+>Subject: [PATCH 1/2] Allow multiple GPE interrupts
+>
+>Allow multiple GPE interrupts
+>
+>If we have multiple GPE blocks, they can (and do) have independent
+>interrupts.  Remove the assumptions in OSL that there is only one GPE
+>interrupt.
+>
+>Index: ./drivers/acpi/osl.c
+>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>RCS file: /var/cvs/linux-2.6/drivers/acpi/osl.c,v
+>retrieving revision 1.16
+>diff -u -p -r1.16 osl.c
+>--- ./drivers/acpi/osl.c	12 Jan 2005 20:16:09 -0000	1.16
+>+++ ./drivers/acpi/osl.c	26 Jan 2005 19:16:52 -0000
+>@@ -71,9 +71,6 @@ EXPORT_SYMBOL(acpi_in_debugger);
+> extern char line_buf[80];
+> #endif /*ENABLE_DEBUGGER*/
+>=20
+>-static unsigned int acpi_irq_irq;
+>-static acpi_osd_handler acpi_irq_handler;
+>-static void *acpi_irq_context;
+> static struct workqueue_struct *kacpid_wq;
+>=20
+> acpi_status
+>@@ -101,13 +98,12 @@ acpi_os_initialize1(void)
+> 	return AE_OK;
+> }
+>=20
+>+static void acpi_os_remove_interrupt_handlers(void);
+>+
+> acpi_status
+> acpi_os_terminate(void)
+> {
+>-	if (acpi_irq_handler) {
+>-		acpi_os_remove_interrupt_handler(acpi_irq_irq,
+>-						 acpi_irq_handler);
+>-	}
+>+	acpi_os_remove_interrupt_handlers();
+>=20
+> 	destroy_workqueue(kacpid_wq);
+>=20
+>@@ -264,50 +260,127 @@ acpi_os_table_override (struct acpi_tabl
+> 	return AE_OK;
+> }
+>=20
+>+struct acpi_dev_id {
+>+	acpi_osd_handler handler;
+>+	void *context;
+>+	int irq;
+>+	struct acpi_dev_id *next;
+>+};
+>+
+> static irqreturn_t
+> acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
+> {
+>-	return (*acpi_irq_handler)(acpi_irq_context) ?=20
+>IRQ_HANDLED : IRQ_NONE;
+>+	struct acpi_dev_id *irq_ctx =3D dev_id;
+>+	acpi_osd_handler handler =3D irq_ctx->handler;
+>+	void *context =3D irq_ctx->context;
+>+	return (*handler)(context) ? IRQ_HANDLED : IRQ_NONE;
+>+}
+>+
+>+struct acpi_dev_id *dev_id_list;
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+static?
 
+>+static void *alloc_dev_id(acpi_osd_handler handler, void=20
+>*context, int irq)
+>+{
+>+	struct acpi_dev_id *irq_ctx =3D kmalloc(sizeof(*irq_ctx),=20
+>GFP_KERNEL);
+
+
+Check for return value of kmalloc?
+
+
+>+	irq_ctx->handler =3D handler;
+>+	irq_ctx->context =3D context;
+>+	irq_ctx->irq =3D irq;
+>+	irq_ctx->next =3D dev_id_list;
+>+	dev_id_list =3D irq_ctx;
+>+	return irq_ctx;
+>+}
+>+
+>+/*
+>+ * XXX: Ideally, we would match the context too, but that information
+>+ * isn't passed to the acpi_os_remove_interrupt_handler() function.
+>+ */
+>+static void *find_dev_id(int irq, acpi_osd_handler handler)
+>+{
+>+	struct acpi_dev_id *irq_ctx =3D dev_id_list;
+>+	for (irq_ctx =3D dev_id_list; irq_ctx; irq_ctx =3D irq_ctx->next) {
+>+		if ((irq_ctx->handler =3D=3D handler) &&=20
+>(irq_ctx->irq =3D=3D irq))
+>+			return irq_ctx;
+>+	}
+>+	printk("find_dev_id: handler %p for irq %d not=20
+>found\n", handler, irq);
+>+	return NULL;
+>+}
+>+
+>+static void free_dev_id(struct acpi_dev_id *dev_id)
+>+{
+>+	struct acpi_dev_id **pprev =3D &dev_id_list;
+>+	for (;;) {
+>+		struct acpi_dev_id *irq_ctx =3D *pprev;
+>+		if (!irq_ctx)
+>+			break;
+>+		if (irq_ctx !=3D dev_id) {
+>+			pprev =3D &irq_ctx->next;
+>+			continue;
+>+		}
+>+
+>+		*pprev =3D irq_ctx->next;
+>+		kfree(irq_ctx);
+>+		return;
+>+	}
+>+	printk("free_dev_id: dev_id %p not found\n", dev_id);
+> }
+>=20
+> acpi_status
+> acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler=20
+>handler, void *context)
+> {
+> 	unsigned int irq;
+>+	void *dev_id;
+>=20
+> 	/*
+>-	 * Ignore the GSI from the core, and use the value in=20
+>our copy of the
+>-	 * FADT. It may not be the same if an interrupt source=20
+>override exists
+>-	 * for the SCI.
+>+	 * If this is the FADT interrupt, ignore the GSI from=20
+>the core and
+>+	 * use the value in our copy of the FADT instead.  It=20
+>may not be the
+>+	 * same if an interrupt source override exists for the SCI.
+> 	 */
+>-	gsi =3D acpi_fadt.sci_int;
+>+	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
+>+		gsi =3D acpi_fadt.sci_int;
+
+What's the deail with two copies of the FADT anyway?
+Is the assumption here that acpi_gbl_FADT has
+the original (PIC mode) sci_int value and that acpi_fadt
+has the possibly IOAPIC over-ridden value?
+And the assumption is that we're called always
+with the PIC-mode SCI value?
+
+I'm not really psyched to have two copied of the FADT,
+though that isn't the fault of this patch...
+
+> 	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
+> 		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not=20
+>registered\n",
+> 		       gsi);
+> 		return AE_OK;
+> 	}
+>=20
+>-	acpi_irq_handler =3D handler;
+>-	acpi_irq_context =3D context;
+>-	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
+>+	dev_id =3D alloc_dev_id(handler, context, irq);
+>+	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", dev_id)) {
+> 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation=20
+>failed\n", irq);
+>+		free_dev_id(dev_id);
+> 		return AE_NOT_ACQUIRED;
+> 	}
+>-	acpi_irq_irq =3D irq;
+>=20
+> 	return AE_OK;
+> }
+>=20
+> acpi_status
+>-acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+>+acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler handler)
+> {
+>-	if (irq) {
+>-		free_irq(irq, acpi_irq);
+>-		acpi_irq_handler =3D NULL;
+>-		acpi_irq_irq =3D 0;
+>+	int irq;
+>+	void *dev_id;
+>+
+>+	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
+>+		gsi =3D acpi_fadt.sci_int;
+>+
+>+	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
+>+		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not=20
+>registered\n",
+>+		       gsi);
+>+		return AE_OK;
+> 	}
+>=20
+>+	dev_id =3D find_dev_id(irq, handler);
+>+	free_irq(irq, dev_id);
+>+	free_dev_id(dev_id);
+>+
+> 	return AE_OK;
+>+}
+>+
+>+static void acpi_os_remove_interrupt_handlers(void)
+>+{
+>+	while (dev_id_list) {
+>+		acpi_os_remove_interrupt_handler(dev_id_list->irq,
+>+				dev_id_list->handler);
+>+	}
+> }
+>=20
+> /*
+>
 
 
 -------------------------------------------------------
