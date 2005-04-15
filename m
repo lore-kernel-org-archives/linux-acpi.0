@@ -1,8 +1,10 @@
-From: Nobody <code.autoresponder-iDfIR9u+XuQpAS55Wn97og@public.gmane.org>
-Subject: Automatic reply from di-mgt
-Date: Thu, 14 Apr 2005 19:57:50 -0500
-Message-ID: <200504150057.j3F0voY22012@proteus.host4u.net>
+From: Heinz-Juergen Oertel <oe-pJ9TYRvN+WE@public.gmane.org>
+Subject: Re: hello
+Date: Fri, 15 Apr 2005 07:02:08 +0200
+Message-ID: <200504150502.j3F528n2021819@mailer.port.de>
+References: <200504150447.j3F4l26Z023161@hermes.professional-internet.de>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200504150447.j3F4l26Z023161-9lWXDh0pV9wXNKSWRG3KSDoLv/EZqPAChtQLib2cwYo@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,21 +17,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This mailbox at <code-iDfIR9u+XuQpAS55Wn97og@public.gmane.org> has been closed due to spam.
+Hallo,
 
-If you wish to contact us to report a bug or ask a genuine question, please go to our email message page at
-http://www.di-mgt.com.au/contactmsg.php
+ich bin vom 13. zum 14. Mai nicht erreichbar.
+Senden Sie Ihre Email in dringenden Faellen zu mailto:service-pJ9TYRvN+WE@public.gmane.org
 
-If you are a client of ours, please telephone.
+Hello,
+I received your mail,
+but I'm not at the office from May 13th to 14th.
+I will read your Email when I'm back at office.
 
-If you are receiving this but did not send us an email, someone is spoofing your address or there is a virus on your system sending unwanted messages to us.
+For important things mail to
+mailto:service-pJ9TYRvN+WE@public.gmane.org
 
-This message was generated automatically by an unattended mailbox. Please do not reply. 
 
-Sorry for any inconvenience.
-
-Regards,
-di-mgt
 
 
 -------------------------------------------------------
