@@ -1,13 +1,11 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Portege 7010CT CPU speed
-Date: Fri, 15 Apr 2005 15:17:57 +0200
-Message-ID: <20050415131757.GD2298@poupinou.org>
-References: <20050412035916.GB7304@dbz.icequake.net>
+From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Subject: _CST implementation
+Date: Fri, 15 Apr 2005 22:50:44 +0200
+Message-ID: <1113598244.8367.30.camel@scotchmobil>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050412035916.GB7304-eRi7t0xs5gloIlNlpBNreQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,80 +15,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ryan Underwood <nemesis-lists-RBwgCYbvQ+vk1uMJSBkQmQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 11, 2005 at 10:59:16PM -0500, Ryan Underwood wrote:
-> 
-> Hello,
-> 
-> My friend has a Portege 7010CT that seems to have two ACPI-related
-> problems.  This is under 2.4.27 with ACPI enabled as well as 2.6.11.  I
-> posted the DSDT on the sourceforge site.  ACPI gives some method errors
-> when starting up but seems to otherwise "work".
+Hey, 
+im new to ACPI, so please be patient with my stupid questions ;-)
+I spend a little time in debugging my kernel ACPI and reading the 3.0
+specs... Now I am wondering about some pieces of the implementation. 
+First of all in processor_idle.c in the funktion
+acpi_processor_get_power_info_cst there is a test if the power.count is
+less than 2. Why do you test on 2 and not on 1 ? As far 
+as I can see 1 would be an valid value. 
 
-You hit the (in)famous 'toshiba return bug'.  That should be fixed with
-recent version of ACPI-CA (read: may not work with 2.6.11, but should
-work with upcomming 2.6.12).
+The next question is about these lines : 
+for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
+	memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
+what's the sense in doing this up to 8 times ? 
+shouldn't it be
+for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
+       memset(pr->power.states[i], 0, sizeof(struct acpi_processor_cx));
+?
 
-> The first issue is minor.  In ACPI mode, Cardbus cards don't work unless
-> pci=noacpi is given.  It seems no IRQ is received by the kernel from the
-> Cardbus controller in this case.  After giving pci=noacpi, I notice no
-> problems otherwise with PCI or IRQ routing.
+The next question is about the ACPI_PROCESSOR_MAX_POWER constant.
+The ACPI specification says, that the C states can be expanded "to an
+arbitary number of power states" so why do you limit them ? 
 
-Its due to the return bug.
+And another one about these lines :
+cx.address = (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) ?
+			0 : reg->address;
+Why is the adress set to 0 in case it is a fixed hardware adress ? 
+And why can only C1 have an fixed hardware adress ?
 
-> The second is a huge problem.  The CPU is a PII-300MHz, but after
-> booting Linux, the machine is suddenly only running at 150MHz as shown
-> by bogomips compared to the bogomips of a normal PII-300.  Rebooting
-> into Windows preserves the speed.  I was able to use WCPUID to query the
-> speeds.  It shows that the FSB is only running at 33MHz instead of 66MHz
-> producing a 150MHz CPU clock.  Powering off completely and powering on
-> then booting straight to WinXP has the correct 300MHz speed.
-> 
-> Does anyone have even half a clue what would be going on here?  It's
-> sort of embarassing having to explain to him that it's likely not
-> "Linux" fault but rather the fault of a broken BIOS or DSDT.  How can I
-> figure out what the real problem is?  It is not APIC related because the
-> APIC is not being enabled.  I have attached various logs.
+Okay the last thing I am curious about is how should _CST work, 
+at the moment the code deletes all known power states (or tries it)
+(hm by the way, this could be the reason why the IBM t40 crashes)
+and writes all power states given by the _CST object to the
+acpi_processor structure. Is this the way it is mentioned to be ? 
+I couldn't figure out (of the ACPI Spec), if there could also be a way
+of incremental generation of the C states. 
 
-Don't know, sorry.
+Oh I almost forgot another question : 
+About the validation of the C states. At the moment it is tested if the
+latency of C2 if under 100 and if C3 latency is under 1000 but the
+ACPI-Spec says that "There is no latency restrictions" so why do you do
+this ? (My notebook hat a C3 latency of 1001)
 
-> Also, the sound system is PnP in Windows but for some reason isapnp
-> doesn't pick it up.  I guess this is because it is only announced by
-> PnPBIOS support, which presumably PnP-ACPI should be utilizing, right?
+Greets
+	Janosch Machowinski
 
-ACPI supersed PnPBIOS which means it do not use at all PnPBIOS
-services.
+P.S.: Sorry about my bad english
 
-> Am I correct in presuming that hotplug should automatically load the
-> sound system module if PnP-ACPI is correctly working?  This isn't a big
-> deal because the sound does work, it's just having to manually configure
-> the resources is a pain in the ass (and neither any OSS mixer nor the
-> ALSA driver works on this particular hardware...)
-
-Unfortunately, it seems looking the dmesg that again you hit that
-(in)famous return bug.
-
-> I posted to the linux-toshiba list but nobody replied with any useful
-> information.  I tried using toshset to set the CPU speed to 'fast', but
-> it didn't seem to have any effect on benchmarks, and after rebooting
-> into Windows the system is still at 150MHz.
-> 
-> This is a decent laptop but Linux sucks on it at the moment; I'm hoping
-> to figure out what's going on not only to improve the state of Linux but
-> also because it might end up being a hand-me-down in the future ;)
-> 
-
-You should try the very latest acpi bk-patch and report if that work or
-not.
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
