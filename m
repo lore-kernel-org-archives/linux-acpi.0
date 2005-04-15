@@ -1,10 +1,13 @@
-From: Heinz-Juergen Oertel <oe-pJ9TYRvN+WE@public.gmane.org>
-Subject: Re: hello
-Date: Fri, 15 Apr 2005 07:02:08 +0200
-Message-ID: <200504150502.j3F528n2021819@mailer.port.de>
-References: <200504150447.j3F4l26Z023161@hermes.professional-internet.de>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: LCD does not wake up
+Date: Fri, 15 Apr 2005 11:31:04 +0200
+Message-ID: <20050415093104.GA1797@elf.ucw.cz>
+References: <20050409213110.GA26933@danisch.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200504150447.j3F4l26Z023161-9lWXDh0pV9wXNKSWRG3KSDoLv/EZqPAChtQLib2cwYo@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050409213110.GA26933-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,23 +17,19 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Hadmut Danisch <hadmut-kdZ+H/N/Ve2ELgA04lAiVw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hallo,
+On So 09-04-05 23:31:10, Hadmut Danisch wrote:
+> Hi,
+> 
+> is there any FAQ about ACPI problems?
 
-ich bin vom 13. zum 14. Mai nicht erreichbar.
-Senden Sie Ihre Email in dringenden Faellen zu mailto:service-pJ9TYRvN+WE@public.gmane.org
-
-Hello,
-I received your mail,
-but I'm not at the office from May 13th to 14th.
-I will read your Email when I'm back at office.
-
-For important things mail to
-mailto:service-pJ9TYRvN+WE@public.gmane.org
-
-
+Doc*/power/video.txt
+						Pavel
+-- 
+Boycott Kodak -- for their patent abuse against Java.
 
 
 -------------------------------------------------------
