@@ -1,7 +1,9 @@
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Mail Delivery failed: returning to sender.
-Date: Sat, 16 Apr 2005 07:01:58 +0000
-Message-ID: <E1DMhJW-0004HE-Bd@mailkick-21.mail.nl.demon.net>
+From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Subject: _CST Patches
+Date: Sat, 16 Apr 2005 17:25:41 +0200
+Message-ID: <1113665142.7964.13.camel@scotchmobil>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-DsAJ+Ea1Z3kvUK5BM9D/"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,77 +17,105 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Subject: Mail Delivery failed: returning to sender
 
-This message was created automatically by mail delivery software.
+--=-DsAJ+Ea1Z3kvUK5BM9D/
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-A message that you sent could not be delivered to all of its recipients. 
-The following address(es) failed:
+Hey
+it's the guy with the stupid questions again ;-) 
+And now I got a few answers I think... 
+ACPI specification says, that every processor has a C1
+state, and on page 262 is an example of an _CST package,
+where the first given C state is C2. So I would suggest following patch
+to the processor_idle.c Line: 611
 
-  smcc.demon.nl [212.238.157.128]:
+cx.type = obj->integer.value;
 
-RSET
-250 flushed
-MAIL FROM:<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-250 ok
-RCPT TO:<webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org>
-550 See http://spf.pobox.com/why.html?sender=acpi-devel%40lists.sourceforge.net&ip=194.159.73.159&receiver=0 (#5.7.1)
++//Test if the first entry is a C1 state, if not we fake one
++if ((cx.type != ACPI_STATE_C1) && i == 1) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Faking C1 State"));
++		struct acpi_processor_cx c1_fake;
++		memset(&c1_fake, 0, sizeof(c1_fake));
++
++		c1_fake.address = 0;
++		c1_fake.type = ACPI_STATE_C1;
++		c1_fake.latency = 1; //How long needs a HLT instruction to execute ?
++		c1_fake.power = 0; //We don't know anything about the power
+consumption so we set it to 0
++		//We copy our fake C1 state over to the power states
++		(pr->power.count)++;
++		memcpy(&(pr->power.states[pr->power.count]), &c1_fake,
+sizeof(c1_fake));
++		//Finally we avoid to have morepower 				+		//states than
+ACPI_PROCESSOR_MAX_POWER
++		if(count == ACPI_PROCESSOR_MAX_POWER)
++		count--;
++		
++		//c1_fake should be freed automaticaly
++
++		}
++
 
------ Original Message Follows ------
+		if ((cx.type != ACPI_STATE_C1) &&
 
- Received: from store-22.mail.nl.demon.net by mailstore for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org
- 	id 1DMgtt-000AL4-6Z-000AL6; Sat, 16 Apr 2005 06:35:29 +0000
- Received: from [194.159.73.162] (port=1381 helo=incoming-22.mail.nl.demon.net)
- 	by store-22.mail.nl.demon.net with esmtp (Exim 4.43)
- 	id 1DMgtt-000AL4-6Z
- 	for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Sat, 16 Apr 2005 06:35:29 +0000
- Received: from [202.63.105.231] (port=4729 helo=lists.sourceforge.net)
- 	by incoming-22.mail.nl.demon.net with esmtp (Exim 4.43)
- 	id 1DMgtk-000O0r-Nw
- 	for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Sat, 16 Apr 2005 06:35:29 +0000
- From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
- To: webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org
- Subject: Good day
- Date: Sat, 16 Apr 2005 12:12:04 +0530
- MIME-Version: 1.0
- Content-Type: multipart/mixed;
- 	boundary="----=_NextPart_000_0014_2CDB2CDB.773E773E"
- X-Priority: 3
- X-MSMail-Priority: Normal
- 
- This is a multi-part message in MIME format.
- 
- ------=_NextPart_000_0014_2CDB2CDB.773E773E
- Content-Type: text/plain;
- 	charset="Windows-1252"
- Content-Transfer-Encoding: 7bit
- 
- The message cannot be represented in 7-bit ASCII encoding and has been sent as a binary attachment.
- 
- 
- ------=_NextPart_000_0014_2CDB2CDB.773E773E
- Content-Type: application/octet-stream;
- 	name="text.zip"
- Content-Transfer-Encoding: base64
- Content-Disposition: attachment;
- 	filename="text.zip"
- 
- UEsDBAoAAAAAAEI1kDLd/6ncAAwBAAAMAQAIAAAAdGV4dC5waWZNWgAAAAAAAAAAAABQRQAATAEC
- AAAAAAAAAAAAAAAAAOAADwELAQUMAAIAAAAAAAAAAAAA7AkDAAAQAAAMAAAAAABAAAAQAAAAAgAA
- BAAAAAAAAAAEAAAAAAAAAADwAwAAAgAAAAAAAAIAAAAAABAAABAAAAAAEAAAEAAAAAAAABAAAAAA
- AAAAAAAAAPEJAwAUAAAA4wgDAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
- AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
- AAAAAAAAAAAAAAAAAE1FVwBGEtLDADACAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAMAC0nXb
- ihbr1ACwAQAAQAIABcoAAAACAAAAAAAAAAAAAAAAAADgAADAvhxAQgCL3q2tUK2XsoCktoD/E3P5
- M8n/E3MWM8D/E3MhtoBBsBD/ExLAc/p1Pqrr4Oh2PgIAAvaD2QF1Dv9T/OsmrNHodC8TyesakUjB
- 4Ais/1P8PQB9AABzCoD8BXMGg/h/dwJBQZWLxbYAVov3K/DzpF7rm62FwHWQ6JQKAwCtlq2XVqw8
- AHX7/1PwlVatD8hAWXTseQesPAB1+5FAUFX/U/SrhcB15cMAADPJQf8TE8n/E3L4w84JAwDbCQMA
- AAAAAABAQgAsAUAAXKNAAGE3QgAEOCJBAFdTT0NLMzIcLmRseGYDFAlEAQyJlhQMAQsJcolzEjgk
- CkgDkRIiCUQzFokREg8kAkgOkQgYE/8DHCDB0EtFUk7NTExpgAJHZXRBQ1CuCOd1ch/Pbv97H29j
- XHNKSWQVcFRoxQxhZAcUUXX/ZnlQCDtmb4xtYW5UQ/B12z4eMDJIQnBTaXt6qDdFePWPdm9ktE3Y
- KEZsd3V1aHZp+kLwZuOzXiVTc0zkZGhIiIgwaVZpcv51+eqoXkKdU9hzrm1JaG7QHe2bniZjq5g+
+This patch fakes an C1 state if the given states by the _CST object
+start with anything else than C1 (like on my M6NE here it start's with
+C2)
 
-[snip - Remainder of message]
+By looking throug the code I also discovered some errors :
+on line 492 and 539 
+for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
+memset(pr->power.states, 0, sizeof(struct acpi_processor_cx))
+
+my patch also replaces these lines by 
+for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
+memset(&(pr->power.states[i]), 0, sizeof(struct acpi_processor_cx))
+
+Greets
+	Janosch Machowinski
+
+P.S.: Note the attached file is only a diff to the original
+processor_idle.c
+
+--=-DsAJ+Ea1Z3kvUK5BM9D/
+Content-Disposition: attachment; filename=_CST_fakeC1.patch
+Content-Type: text/x-patch; name=_CST_fakeC1.patch; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+493c493
+< 		memset(&(pr->power.states[i]), 0, sizeof(struct acpi_processor_cx));
+---
+> 		memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
+540c540
+< 		memset(&(pr->power.states[i]), 0, sizeof(struct acpi_processor_cx));
+---
+> 		memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
+612,632d611
+< 		//Test if the first entry is a C1 state, if not we fake one
+< 		if ((cx.type != ACPI_STATE_C1) && i == 1) {
+< 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Faking C1 State"));
+< 				struct acpi_processor_cx c1_fake;
+< 				memset(&c1_fake, 0, sizeof(c1_fake));
+< 
+< 				c1_fake.address = 0;
+< 				c1_fake.type = ACPI_STATE_C1;
+< 				c1_fake.latency = 1; //How long needs a HLT instruction to execute ?
+< 				c1_fake.power = 0; //We don't know anything about the power consumption so we set it to 0
+< 				//We copy our fake C1 state over to the power states
+< 				(pr->power.count)++;
+< 				memcpy(&(pr->power.states[pr->power.count]), &c1_fake, sizeof(c1_fake));
+< 				//Finally we avoid to have more power states than ACPI_PROCESSOR_MAX_POWER
+< 				if(count == ACPI_PROCESSOR_MAX_POWER)
+< 				  count--;
+< 				
+< 				//c1_fake should be freed automaticaly
+< 		}
+< 
+< 
+
+--=-DsAJ+Ea1Z3kvUK5BM9D/--
+
 
 
 -------------------------------------------------------
