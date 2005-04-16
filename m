@@ -1,15 +1,8 @@
-From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
-Subject: Re: [2.6 patch] drivers/serial/8250_acpi.c: fix a warning
-Date: Sat, 16 Apr 2005 04:38:52 +0200
-Message-ID: <20050416023852.GI4831__39562.4660807245$1113620147$gmane$org@stusta.de>
-References: <20050415151053.GM5456@stusta.de> <E1DMTPC-000ASo-00.adobriyan-mail-ru@f13.mail.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Mail Delivery failed: returning to sender.
+Date: Sat, 16 Apr 2005 07:01:58 +0000
+Message-ID: <E1DMhJW-0004HE-Bd@mailkick-21.mail.nl.demon.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Resent-Message-ID: <20050416025712.GK4831-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
-Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Content-Disposition: inline
-In-Reply-To: <E1DMTPC-000ASo-00.adobriyan-mail-ru-NYYus2/DmUsox3rIn2DAYQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,43 +12,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexey Dobriyan <adobriyan-JGs/UdohzUI@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, rmk+serial-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uv+2+P5yyue3@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 15, 2005 at 08:10:54PM +0400, Alexey Dobriyan wrote:
-> On Fri, 15 Apr 2005 17:10:53 +0200, Adrian Bunk wrote:
-> 
-> > This patch fixes the following warning:
-> 
-> >   CC      drivers/serial/8250_acpi.o
-> > drivers/serial/8250_acpi.c: In function `acpi_serial_ext_irq':
-> > drivers/serial/8250_acpi.c:51: warning: implicit declaration of function `acpi_register_gsi'
-> 
-> > --- linux-2.6.12-rc2-mm1-full/drivers/serial/8250_acpi.c.old
-> > +++ linux-2.6.12-rc2-mm1-full/drivers/serial/8250_acpi.c
-> 
-> > +#include <linux/config.h>
-> 
-> drivers/serial/8250_acpi.c doesn't use CONFIG_ symbols.
+Subject: Mail Delivery failed: returning to sender
 
-8250_acpi.c #include's <acpi/acpi_bus.h> which requires config.h .
+This message was created automatically by mail delivery software.
 
-In the Linux kernel, it's more common to put such header dependencies 
-for header files into the C files, but if the ACPI people agree a patch 
-to add the #include <linux/config.h> to acpi_bus.h is the other possble 
-correct solution for this issue.
+A message that you sent could not be delivered to all of its recipients. 
+The following address(es) failed:
 
-cu
-Adrian
+  smcc.demon.nl [212.238.157.128]:
 
--- 
+RSET
+250 flushed
+MAIL FROM:<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+250 ok
+RCPT TO:<webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org>
+550 See http://spf.pobox.com/why.html?sender=acpi-devel%40lists.sourceforge.net&ip=194.159.73.159&receiver=0 (#5.7.1)
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+----- Original Message Follows ------
 
+ Received: from store-22.mail.nl.demon.net by mailstore for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org
+ 	id 1DMgtt-000AL4-6Z-000AL6; Sat, 16 Apr 2005 06:35:29 +0000
+ Received: from [194.159.73.162] (port=1381 helo=incoming-22.mail.nl.demon.net)
+ 	by store-22.mail.nl.demon.net with esmtp (Exim 4.43)
+ 	id 1DMgtt-000AL4-6Z
+ 	for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Sat, 16 Apr 2005 06:35:29 +0000
+ Received: from [202.63.105.231] (port=4729 helo=lists.sourceforge.net)
+ 	by incoming-22.mail.nl.demon.net with esmtp (Exim 4.43)
+ 	id 1DMgtk-000O0r-Nw
+ 	for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Sat, 16 Apr 2005 06:35:29 +0000
+ From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+ To: webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org
+ Subject: Good day
+ Date: Sat, 16 Apr 2005 12:12:04 +0530
+ MIME-Version: 1.0
+ Content-Type: multipart/mixed;
+ 	boundary="----=_NextPart_000_0014_2CDB2CDB.773E773E"
+ X-Priority: 3
+ X-MSMail-Priority: Normal
+ 
+ This is a multi-part message in MIME format.
+ 
+ ------=_NextPart_000_0014_2CDB2CDB.773E773E
+ Content-Type: text/plain;
+ 	charset="Windows-1252"
+ Content-Transfer-Encoding: 7bit
+ 
+ The message cannot be represented in 7-bit ASCII encoding and has been sent as a binary attachment.
+ 
+ 
+ ------=_NextPart_000_0014_2CDB2CDB.773E773E
+ Content-Type: application/octet-stream;
+ 	name="text.zip"
+ Content-Transfer-Encoding: base64
+ Content-Disposition: attachment;
+ 	filename="text.zip"
+ 
+ UEsDBAoAAAAAAEI1kDLd/6ncAAwBAAAMAQAIAAAAdGV4dC5waWZNWgAAAAAAAAAAAABQRQAATAEC
+ AAAAAAAAAAAAAAAAAOAADwELAQUMAAIAAAAAAAAAAAAA7AkDAAAQAAAMAAAAAABAAAAQAAAAAgAA
+ BAAAAAAAAAAEAAAAAAAAAADwAwAAAgAAAAAAAAIAAAAAABAAABAAAAAAEAAAEAAAAAAAABAAAAAA
+ AAAAAAAAAPEJAwAUAAAA4wgDAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ AAAAAAAAAAAAAAAAAE1FVwBGEtLDADACAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAMAC0nXb
+ ihbr1ACwAQAAQAIABcoAAAACAAAAAAAAAAAAAAAAAADgAADAvhxAQgCL3q2tUK2XsoCktoD/E3P5
+ M8n/E3MWM8D/E3MhtoBBsBD/ExLAc/p1Pqrr4Oh2PgIAAvaD2QF1Dv9T/OsmrNHodC8TyesakUjB
+ 4Ais/1P8PQB9AABzCoD8BXMGg/h/dwJBQZWLxbYAVov3K/DzpF7rm62FwHWQ6JQKAwCtlq2XVqw8
+ AHX7/1PwlVatD8hAWXTseQesPAB1+5FAUFX/U/SrhcB15cMAADPJQf8TE8n/E3L4w84JAwDbCQMA
+ AAAAAABAQgAsAUAAXKNAAGE3QgAEOCJBAFdTT0NLMzIcLmRseGYDFAlEAQyJlhQMAQsJcolzEjgk
+ CkgDkRIiCUQzFokREg8kAkgOkQgYE/8DHCDB0EtFUk7NTExpgAJHZXRBQ1CuCOd1ch/Pbv97H29j
+ XHNKSWQVcFRoxQxhZAcUUXX/ZnlQCDtmb4xtYW5UQ/B12z4eMDJIQnBTaXt6qDdFePWPdm9ktE3Y
+ KEZsd3V1aHZp+kLwZuOzXiVTc0zkZGhIiIgwaVZpcv51+eqoXkKdU9hzrm1JaG7QHe2bniZjq5g+
+
+[snip - Remainder of message]
 
 
 -------------------------------------------------------
