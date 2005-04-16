@@ -1,11 +1,15 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: _CST implementation
-Date: Fri, 15 Apr 2005 22:50:44 +0200
-Message-ID: <1113598244.8367.30.camel@scotchmobil>
+From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [2.6 patch] drivers/serial/8250_acpi.c: fix a warning
+Date: Sat, 16 Apr 2005 04:38:52 +0200
+Message-ID: <20050416023852.GI4831__39562.4660807245$1113620147$gmane$org@stusta.de>
+References: <20050415151053.GM5456@stusta.de> <E1DMTPC-000ASo-00.adobriyan-mail-ru@f13.mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Resent-Message-ID: <20050416025712.GK4831-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <E1DMTPC-000ASo-00.adobriyan-mail-ru-NYYus2/DmUsox3rIn2DAYQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,55 +19,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alexey Dobriyan <adobriyan-JGs/UdohzUI@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, rmk+serial-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uv+2+P5yyue3@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hey, 
-im new to ACPI, so please be patient with my stupid questions ;-)
-I spend a little time in debugging my kernel ACPI and reading the 3.0
-specs... Now I am wondering about some pieces of the implementation. 
-First of all in processor_idle.c in the funktion
-acpi_processor_get_power_info_cst there is a test if the power.count is
-less than 2. Why do you test on 2 and not on 1 ? As far 
-as I can see 1 would be an valid value. 
+On Fri, Apr 15, 2005 at 08:10:54PM +0400, Alexey Dobriyan wrote:
+> On Fri, 15 Apr 2005 17:10:53 +0200, Adrian Bunk wrote:
+> 
+> > This patch fixes the following warning:
+> 
+> >   CC      drivers/serial/8250_acpi.o
+> > drivers/serial/8250_acpi.c: In function `acpi_serial_ext_irq':
+> > drivers/serial/8250_acpi.c:51: warning: implicit declaration of function `acpi_register_gsi'
+> 
+> > --- linux-2.6.12-rc2-mm1-full/drivers/serial/8250_acpi.c.old
+> > +++ linux-2.6.12-rc2-mm1-full/drivers/serial/8250_acpi.c
+> 
+> > +#include <linux/config.h>
+> 
+> drivers/serial/8250_acpi.c doesn't use CONFIG_ symbols.
 
-The next question is about these lines : 
-for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
-	memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
-what's the sense in doing this up to 8 times ? 
-shouldn't it be
-for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
-       memset(pr->power.states[i], 0, sizeof(struct acpi_processor_cx));
-?
+8250_acpi.c #include's <acpi/acpi_bus.h> which requires config.h .
 
-The next question is about the ACPI_PROCESSOR_MAX_POWER constant.
-The ACPI specification says, that the C states can be expanded "to an
-arbitary number of power states" so why do you limit them ? 
+In the Linux kernel, it's more common to put such header dependencies 
+for header files into the C files, but if the ACPI people agree a patch 
+to add the #include <linux/config.h> to acpi_bus.h is the other possble 
+correct solution for this issue.
 
-And another one about these lines :
-cx.address = (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) ?
-			0 : reg->address;
-Why is the adress set to 0 in case it is a fixed hardware adress ? 
-And why can only C1 have an fixed hardware adress ?
+cu
+Adrian
 
-Okay the last thing I am curious about is how should _CST work, 
-at the moment the code deletes all known power states (or tries it)
-(hm by the way, this could be the reason why the IBM t40 crashes)
-and writes all power states given by the _CST object to the
-acpi_processor structure. Is this the way it is mentioned to be ? 
-I couldn't figure out (of the ACPI Spec), if there could also be a way
-of incremental generation of the C states. 
+-- 
 
-Oh I almost forgot another question : 
-About the validation of the C states. At the moment it is tested if the
-latency of C2 if under 100 and if C3 latency is under 1000 but the
-ACPI-Spec says that "There is no latency restrictions" so why do you do
-this ? (My notebook hat a C3 latency of 1001)
-
-Greets
-	Janosch Machowinski
-
-P.S.: Sorry about my bad english
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
 
 
