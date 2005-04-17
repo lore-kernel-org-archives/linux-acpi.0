@@ -1,7 +1,7 @@
-From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: hot-addacpi-hotplug-decouple-slot-power-state-changes-from-physical-hotplug.patch
-Date: Sat, 16 Apr 2005 11:46:13 -0700 (PDT)
-Message-ID: <20050416184613.85317.qmail@web50202.mail.yahoo.com>
+From: Johan Braennlund <johan_brn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Savage backlight control
+Date: Sat, 16 Apr 2005 21:49:13 -0700 (PDT)
+Message-ID: <20050417044913.86969.qmail@web50207.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,53 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---- Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-> > Is p2p hotplug in your roadmap (for i386) ?
->
-> I believe others are already working on it. I expect to free up
-> a bit more in a couple of weeks.  If I don't see any patches or
-> indication of activity by then, I'll work on adding this support
-> too.
-> 
-> Rajesh
+Hi! Thanks for indulging me. If you don't mind, I have a last round of
+questions.
 
-Hi Rajesh,
+--- Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> wrote:
 
-While waiting for a p2p bridge hotplug support, I give a try to linux-2.6.12rc2-mm3 which include
-your patch for powering on and off an ACPIPHP controlled PCI slot without actually remove the pci
-card.
-I gave it a try on my IBM thinkpad booted in docking station which has an ACPIPHP slot.
+> It's quite likely that your machine will have acpi methods to control
+> the brightness, and if it does you could hook them up to the /proc
+> interface. 
 
-An echo 0 > /sys/bus/pci/slots/SOME_NUMBER/power is removing some devices ( verified with cat
-/proc/pci ), but gives some kernel errors on console.
-An echo 1 > /sys/bus/pci/slots/SOME_NUMBER/power is not activating the devices again ( again
-tested with cat /proc/pci) but gives some kernel errors on console + some cpu registers and a
-segfault.
+Okay. I disassembled the DSDT and there were a few LCD-related things
+but AML doesn't make enough sense to me to be able to figure out what
+they do. For anyone curious, I've put the DSDT at
+http://nullinfinity.org/dsdt.dsl
 
-In my dock I have a ide controller, 2 yenta pcmcia slots, and a PCI slot where I have a bttv
-supported tv card.
-All drivers needed were compiled in kernel, no modules needed.
+I also discovered the kernel option CONFIG_BACKLIGHT_LCD_SUPPORT but 
+all that seemed to do was to give me an empty directory
+/sys/class/backlight/ and I'm not sufficiently familiar with the kernel
+to figure out the reason for this. Do you know anything about this?
 
-Was this setup supposed to work ?
-I can provide more info if needed.
+Finally: from what I understand, the Fn key combinations are handled by
+the BIOS. How much work would it be to disassemble the BIOS to see
+exactly how the brightness keys are handled?
 
-Thanks,
-Paul
+Regards,
+
+Johan
 
 
 
-
-
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+		
+__________________________________ 
+Do you Yahoo!? 
+Plan great trips with Yahoo! Travel: Now over 17,000 guides!
+http://travel.yahoo.com/p-travelguide
 
 
 -------------------------------------------------------
