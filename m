@@ -1,13 +1,13 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: _CST Patches
-Date: Mon, 18 Apr 2005 13:47:57 +0200
-Message-ID: <20050418114757.GF2298@poupinou.org>
-References: <1113665142.7964.13.camel@scotchmobil>
+Subject: Re: _CST implementation
+Date: Mon, 18 Apr 2005 14:07:44 +0200
+Message-ID: <20050418120744.GG2298@poupinou.org>
+References: <1113598244.8367.30.camel@scotchmobil>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1113665142.7964.13.camel@scotchmobil>
+In-Reply-To: <1113598244.8367.30.camel@scotchmobil>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,82 +21,78 @@ To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Apr 16, 2005 at 05:25:41PM +0200, Janosch Machowinski wrote:
-> Hey
-> it's the guy with the stupid questions again ;-) 
-> And now I got a few answers I think... 
-> ACPI specification says, that every processor has a C1
-> state, and on page 262 is an example of an _CST package,
-> where the first given C state is C2. So I would suggest following patch
-> to the processor_idle.c Line: 611
-> 
-> cx.type = obj->integer.value;
-> 
-> +//Test if the first entry is a C1 state, if not we fake one
-> +if ((cx.type != ACPI_STATE_C1) && i == 1) {
-> +		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Faking C1 State"));
-> +		struct acpi_processor_cx c1_fake;
-> +		memset(&c1_fake, 0, sizeof(c1_fake));
-> +
-> +		c1_fake.address = 0;
-> +		c1_fake.type = ACPI_STATE_C1;
-> +		c1_fake.latency = 1; //How long needs a HLT instruction to execute ?
-> +		c1_fake.power = 0; //We don't know anything about the power
-> consumption so we set it to 0
-> +		//We copy our fake C1 state over to the power states
-> +		(pr->power.count)++;
-> +		memcpy(&(pr->power.states[pr->power.count]), &c1_fake,
-> sizeof(c1_fake));
-> +		//Finally we avoid to have morepower 				+		//states than
-> ACPI_PROCESSOR_MAX_POWER
-> +		if(count == ACPI_PROCESSOR_MAX_POWER)
-> +		count--;
-> +		
-> +		//c1_fake should be freed automaticaly
-> +
-> +		}
-> +
-> 
-> 		if ((cx.type != ACPI_STATE_C1) &&
-> 
-> This patch fakes an C1 state if the given states by the _CST object
-> start with anything else than C1 (like on my M6NE here it start's with
-> C2)
+On Fri, Apr 15, 2005 at 10:50:44PM +0200, Janosch Machowinski wrote:
+> Hey, 
+> im new to ACPI, so please be patient with my stupid questions ;-)
+> I spend a little time in debugging my kernel ACPI and reading the 3.0
+> specs... Now I am wondering about some pieces of the implementation. 
+> First of all in processor_idle.c in the funktion
+> acpi_processor_get_power_info_cst there is a test if the power.count is
+> less than 2. Why do you test on 2 and not on 1 ? As far 
+> as I can see 1 would be an valid value. 
 
-It should not be needed.  I've taken care that it work by testing
-in almost all cases by overriding the DSDT when I wrote this part to
-handle properly almost all cases (I forgot the case when C1 and C3, but
-no C2 though, that why I wrote 'almost').
+No.  It cant be a valid value.  Consider this case:
 
-Normally, we register a C1 state no matter what before we check
-the content of _CST, then we just skip if a C1 type is found.
+Name (_CST, Package{} {
+		1,
+		Package{} {ResourceTemplate{} {Register(SystemIO, 8, 0, 0xXXXX), 2, 40, 750}
+})
 
-If your patch is needed, then the patch I send some times ago have not been
-fully integrated in the original form, or maybe the wrong one was considered
-(the first was buggy in that regard, but the second was OK).
 
-> By looking throug the code I also discovered some errors :
-> on line 492 and 539 
+There are *2* elements in the package, an integer (whose value is 1) and
+a package defining a C2 state.
+
+> The next question is about these lines : 
 > for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
-> memset(pr->power.states, 0, sizeof(struct acpi_processor_cx))
-> 
-> my patch also replaces these lines by 
+> 	memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
+> what's the sense in doing this up to 8 times ? 
+> shouldn't it be
 > for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
-> memset(&(pr->power.states[i]), 0, sizeof(struct acpi_processor_cx))
+>        memset(pr->power.states[i], 0, sizeof(struct acpi_processor_cx));
+> ?
 
-I would prefer
-memset(pr->power.states, 0, ACPI_PROCESSOR_MAX_POWER * sizeof(struct acpi_processor_cx));
-(without the loop)
+indeed
 
 > 
-> Greets
-> 	Janosch Machowinski
+> The next question is about the ACPI_PROCESSOR_MAX_POWER constant.
+> The ACPI specification says, that the C states can be expanded "to an
+> arbitary number of power states" so why do you limit them ? 
 > 
-> P.S.: Note the attached file is only a diff to the original
-> processor_idle.c
+> And another one about these lines :
+> cx.address = (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) ?
+> 			0 : reg->address;
+> Why is the adress set to 0 in case it is a fixed hardware adress ? 
 
-Please post unified patch (diff with option '-u').
+Because if it's different to '0', then actually we should even bail out.
+See ACPI spec (I don't remember exactly which part, but well).
 
+> And why can only C1 have an fixed hardware adress ?
+
+An addr space of type Fixed Hardware means (more or less) that its very
+dependant of the device considered (no IO, no memory mapped, etc).
+In that case, and for an intel ia32, this correspond to 'hlt'.
+For other processors, this maybe totally different.
+
+> Okay the last thing I am curious about is how should _CST work, 
+> at the moment the code deletes all known power states (or tries it)
+> (hm by the way, this could be the reason why the IBM t40 crashes)
+> and writes all power states given by the _CST object to the
+> acpi_processor structure. Is this the way it is mentioned to be ? 
+> I couldn't figure out (of the ACPI Spec), if there could also be a way
+> of incremental generation of the C states. 
+
+Me too.  Therefore all C states are regenerated.
+
+> Oh I almost forgot another question : 
+> About the validation of the C states. At the moment it is tested if the
+> latency of C2 if under 100 and if C3 latency is under 1000 but the
+> ACPI-Spec says that "There is no latency restrictions" so why do you do
+> this ? (My notebook hat a C3 latency of 1001)
+
+Normally you are right, but unfortunately there are still some strange
+misread of the specification by bios writters in that regard.  Therefore
+if for C3 the latency is 1001 even if given by _CST, we should disable
+it.
 
 -- 
 Bruno Ducrot
