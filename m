@@ -1,67 +1,52 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: Re: _CST implementation
-Date: Mon, 18 Apr 2005 19:52:31 +0200
-Message-ID: <1113846751.8914.4.camel@scotchmobil>
-References: <1113598244.8367.30.camel@scotchmobil>
-	 <20050418120744.GG2298@poupinou.org>  <4263EDA2.4030106@suse.de>
+From: Ryan Underwood <nemesis-lists@icequake.net>
+Subject: [tlinux-users:06884] Re: [ACPI] Portege 7010CT CPU speed
+Date: Mon, 18 Apr 2005 13:31:07 -0500
+Message-ID: <20050418183107.GA27407@dbz.icequake.net>
+References: <20050412035916.GB7304@dbz.icequake.net> <20050415131757.GD2298@poupinou.org>
+Reply-To: tlinux-users@linux.toshiba-dme.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4263EDA2.4030106-l3A5Bk7waGM@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Return-path: <tlinux-users-admin@linux.toshiba-dme.co.jp>
+In-Reply-To: <20050415131757.GD2298@poupinou.org>
+List-Software: fml [fml 4.0 STABLE (20021020/4.0.4_ALPHA)]
+List-Post: <mailto:tlinux-users@linux.toshiba-dme.co.jp>
+List-Owner: <mailto:tlinux-users-admin@linux.toshiba-dme.co.jp>
+List-Help: <mailto:tlinux-users-ctl@linux.toshiba-dme.co.jp?body=help>
+List-Unsubscribe: <mailto:tlinux-users-ctl@linux.toshiba-dme.co.jp?body=unsubscribe>
+To: Bruno Ducrot <ducrot@poupinou.org>
+Cc: Ryan Underwood <nemesis-lists@icequake.net>, acpi-devel@lists.sourceforge.net, tlinux-users@linux.toshiba-dme.co.jp
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-04-18 at 19:25 +0200, Thomas Renninger wrote:
-> Bruno Ducrot wrote:
-> > On Fri, Apr 15, 2005 at 10:50:44PM +0200, Janosch Machowinski wrote:
-> ...
-> > 
-> >>Oh I almost forgot another question : 
-> >>About the validation of the C states. At the moment it is tested if the
-> >>latency of C2 if under 100 and if C3 latency is under 1000 but the
-> >>ACPI-Spec says that "There is no latency restrictions" so why do you do
-> >>this ? (My notebook hat a C3 latency of 1001)
-> > 
-> > Normally you are right, but unfortunately there are still some strange
-> > misread of the specification by bios writters in that regard.  Therefore
-> > if for C3 the latency is 1001 even if given by _CST, we should disable
-> > it.
-> > 
+
+On Fri, Apr 15, 2005 at 03:17:57PM +0200, Bruno Ducrot wrote:
 > 
-> My spec says (Revision 3.0, September 2, 2004):
-> The worst-case hardware latency for this state is declared in the FADT
-> (p. 257).
-> 
-> And there they say (p. 98):
-> The worst-case hardware latency, in microseconds, to enter and
-> exit a C2 state. A value > 100 indicates the system does not
-> support a C2 state.
-> The worst-case hardware latency, in microseconds, to enter and
-> exit a C3 state. A value > 1000 indicates the system does not
-> support a C3 state.
-> 
->      Thomas
-Hm this is somehow funny. So we could say, that latency values in the
-FADT are restricted, and latency values from _CST value are not
-restricted (p. 261).  
+> You hit the (in)famous 'toshiba return bug'.  That should be fixed with
+> recent version of ACPI-CA (read: may not work with 2.6.11, but should
+> work with upcomming 2.6.12).
 
-   Janosch  
+I cloned linux-2.6 BK of 2.6.12-rc2, and then pulled ACPI 26-latest into
+it.  Recompiled with stock Debian configuration.  The following problems
+have been fixed for the 7010CT and were previously broken:
 
+- CPU speed is now 300MHz instead of 150MHz
+- ACPI IRQ routing is now working (pci=noacpi not necessary)
+- hotplug picks up internal sound on the 'isapnp' bus as it should from
+  the ACPI-PNP info.  Unfortunately opl3sa2 is blacklisted in default
+  hotplug configuration; I haven't seen yet if it successfully loads the
+  driver.
 
+Unfortunately kernel 2.6.12-rc2 seems to have some bugs - for instance
+unloading opl3sa2 module hangs the system entirely.  Furthermore, there
+is an e100 ethernet which is enabled when the docking station is
+connected at boot (hotplugging docking station does not work as with
+windows).  This works initially, but after some time the transceiver
+seems to stop responding.  Attempting to unload the driver first fails
+and then oopses.  I'm not sure if this is the defective docking station
+or a linux bug.  I only get to interact with this system once per month
+or so, so it is hard to check.
 
+Anyway, the ACPI problems seem to have been solved, so I'd like to see
+the fix(es) into the main kernel soon.  Thanks!
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+-- 
+Ryan Underwood, <nemesis@icequake.net>
