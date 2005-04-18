@@ -1,52 +1,31 @@
-From: Ryan Underwood <nemesis-lists@icequake.net>
-Subject: [tlinux-users:06884] Re: [ACPI] Portege 7010CT CPU speed
-Date: Mon, 18 Apr 2005 13:31:07 -0500
-Message-ID: <20050418183107.GA27407@dbz.icequake.net>
-References: <20050412035916.GB7304@dbz.icequake.net> <20050415131757.GD2298@poupinou.org>
-Reply-To: tlinux-users@linux.toshiba-dme.co.jp
+From: Rajesh Shah <rajesh.shah@intel.com>
+Subject: Re: hot-addacpi-hotplug-decouple-slot-power-state-changes-from-physical-hotplug.patch
+Date: Mon, 18 Apr 2005 16:28:03 -0700
+Message-ID: <20050418162803.B408@unix-os.sc.intel.com>
+References: <20050416184613.85317.qmail@web50202.mail.yahoo.com>
+Reply-To: Rajesh Shah <rajesh.shah@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Return-path: <tlinux-users-admin@linux.toshiba-dme.co.jp>
-In-Reply-To: <20050415131757.GD2298@poupinou.org>
-List-Software: fml [fml 4.0 STABLE (20021020/4.0.4_ALPHA)]
-List-Post: <mailto:tlinux-users@linux.toshiba-dme.co.jp>
-List-Owner: <mailto:tlinux-users-admin@linux.toshiba-dme.co.jp>
-List-Help: <mailto:tlinux-users-ctl@linux.toshiba-dme.co.jp?body=help>
-List-Unsubscribe: <mailto:tlinux-users-ctl@linux.toshiba-dme.co.jp?body=unsubscribe>
-To: Bruno Ducrot <ducrot@poupinou.org>
-Cc: Ryan Underwood <nemesis-lists@icequake.net>, acpi-devel@lists.sourceforge.net, tlinux-users@linux.toshiba-dme.co.jp
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261200AbVDRX2R@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20050416184613.85317.qmail@web50202.mail.yahoo.com>; from i_p_a_u_l@yahoo.com on Sat, Apr 16, 2005 at 11:46:13AM -0700
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Cc: Rajesh Shah <rajesh.shah@intel.com>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-On Fri, Apr 15, 2005 at 03:17:57PM +0200, Bruno Ducrot wrote:
+On Sat, Apr 16, 2005 at 11:46:13AM -0700, Paul Ionescu wrote:
 > 
-> You hit the (in)famous 'toshiba return bug'.  That should be fixed with
-> recent version of ACPI-CA (read: may not work with 2.6.11, but should
-> work with upcomming 2.6.12).
+> Was this setup supposed to work ?
+> 
+Not yet, sorry. This patch was simply decoupling the power state
+of the device from its physical presence in the slot. It had 
+nothing to do about programming p2p bridges and subordinate
+devices correctly.
 
-I cloned linux-2.6 BK of 2.6.12-rc2, and then pulled ACPI 26-latest into
-it.  Recompiled with stock Debian configuration.  The following problems
-have been fixed for the 7010CT and were previously broken:
+I know some folks from Fujitsu are working on this and should
+be sending out patches shortly. Not sure if these will support
+docking stations fully but even if they don't, we'll have a better
+starting base to build on.
 
-- CPU speed is now 300MHz instead of 150MHz
-- ACPI IRQ routing is now working (pci=noacpi not necessary)
-- hotplug picks up internal sound on the 'isapnp' bus as it should from
-  the ACPI-PNP info.  Unfortunately opl3sa2 is blacklisted in default
-  hotplug configuration; I haven't seen yet if it successfully loads the
-  driver.
-
-Unfortunately kernel 2.6.12-rc2 seems to have some bugs - for instance
-unloading opl3sa2 module hangs the system entirely.  Furthermore, there
-is an e100 ethernet which is enabled when the docking station is
-connected at boot (hotplugging docking station does not work as with
-windows).  This works initially, but after some time the transceiver
-seems to stop responding.  Attempting to unload the driver first fails
-and then oopses.  I'm not sure if this is the defective docking station
-or a linux bug.  I only get to interact with this system once per month
-or so, so it is hard to check.
-
-Anyway, the ACPI problems seem to have been solved, so I'd like to see
-the fix(es) into the main kernel soon.  Thanks!
-
--- 
-Ryan Underwood, <nemesis@icequake.net>
+Rajesh
