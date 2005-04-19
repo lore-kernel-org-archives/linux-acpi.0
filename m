@@ -1,10 +1,10 @@
-From: Mailbot <mailbot-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: DSN: failed (HELLO)
-Date: Mon, 18 Apr 2005 18:54:01 -0700
-Message-ID: <UrwTBY510GpnEpDxi02@x>
+From: "ykxwt" <ykxwt-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: About ACPI in the linux2.2.x
+Date: Tue, 19 Apr 2005 09:53:21 +0800
+Message-ID: <BAY19-DAV51BE7DAB2579014A78F43A62A0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status;
-    boundary="2q"
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_003B_01C544C5.9F068D60"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,47 +18,34 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---2q
+------=_NextPart_000_003B_01C544C5.9F068D60
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
+SGksDQogICAgSSB3YW50IHRvIHVzZSBBQ1BJIGluIHRoZSBsaW51eCAyLjIueC4gQnV0IGkgY2Fu
+J3QgZmluZCBhbnkgaW5mb3JtYXRpb24gYWJvdXQgaXQuIENhbiB1IGhlbHAgbWU/IFRoeC4NCg0K
+U2h1dGU=
 
-This is a Delivery Status Notification (DSN).
+------=_NextPart_000_003B_01C544C5.9F068D60
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-I was unable to deliver your message to
-azummo-6oHk9+gzq0RsJHzoak81lQ@public.gmane.org
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
+MC4yOTAwLjI2MjciIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
+Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj4NCjxESVY+PEZPTlQgc2l6
+ZT0yPg0KPERJVj48Rk9OVCBzaXplPTI+SGksPEJSPiZuYnNwOyZuYnNwOyZuYnNwOyBJIHdhbnQg
+dG8gdXNlIEFDUEkgaW4gdGhlIGxpbnV4IA0KMi4yLnguIEJ1dCBpIGNhbid0IGZpbmQgYW55IGlu
+Zm9ybWF0aW9uIGFib3V0IGl0LiBDYW4gdSBoZWxwIG1lPyANClRoeC48L0ZPTlQ+PC9ESVY+DQo8
+RElWPjxGT05UIHNpemU9Mj48QlI+U2h1dGU8L0ZPTlQ+PC9ESVY+PC9GT05UPjwvRElWPjwvRk9O
+VD48L0RJVj48L0JPRFk+PC9IVE1MPg0K
 
-I said 
-  RCPT TO:<azummo-6oHk9+gzq0Q+jrR7i3vcgg@public.gmane.org>
-
-And they gave me the error;
-  550 sorry, no mailbox here by that name (#5.1.1 - chkusr)
-
- 
-
---2q
-Content-Type: message/delivery-status
-
-Reporting-MTA: dns; kroah.com
-Final-Recipient: RFC822; azummo-6oHk9+gzq0Q+jrR7i3vcgg@public.gmane.org
-Action: failed
-Status: 5.0.0
-
---2q
-content-type: Text/RFC822-Headers
-
-Received: from lists.sourceforge.net ([218.107.133.74]) by kroah.com for <omninet-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>; Mon, 18 Apr 2005 18:53:42 -0700
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: omninet-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
-Subject: HELLO
-Date: Tue, 19 Apr 2005 09:55:08 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_822F0149.4864AF45"
-X-Priority: 3
-X-MSMail-Priority: Normal
-
-
---2q--
+------=_NextPart_000_003B_01C544C5.9F068D60--
 
 
 -------------------------------------------------------
