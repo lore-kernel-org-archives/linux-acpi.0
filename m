@@ -1,11 +1,13 @@
-From: "ykxwt" <ykxwt-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: About ACPI in the linux2.2.x
-Date: Tue, 19 Apr 2005 09:53:21 +0800
-Message-ID: <BAY19-DAV51BE7DAB2579014A78F43A62A0@phx.gbl>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] remove obsolete IA64_SGI_SN checks from acpi Kconfig
+Date: 18 Apr 2005 23:52:32 -0400
+Message-ID: <1113882752.14028.22.camel@d845pe>
+References: <200503210947.20559.jbarnes@engr.sgi.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_003B_01C544C5.9F068D60"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200503210947.20559.jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,37 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Applied.
 
-------=_NextPart_000_003B_01C544C5.9F068D60
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+thanks,
+-Len
 
-SGksDQogICAgSSB3YW50IHRvIHVzZSBBQ1BJIGluIHRoZSBsaW51eCAyLjIueC4gQnV0IGkgY2Fu
-J3QgZmluZCBhbnkgaW5mb3JtYXRpb24gYWJvdXQgaXQuIENhbiB1IGhlbHAgbWU/IFRoeC4NCg0K
-U2h1dGU=
+On Mon, 2005-03-21 at 12:47, Jesse Barnes wrote:
+> IA64_SGI_SN hasn't been set for a long time now, so we can remove all
+> references to it.  Noticed this when looking at the recent CONFIG_PM
+> dependency issue (we can keep that dependency if you want, Len, I've
+> sent
+> Tony a fix for the ia64 tree that'll unbreak the build for sn2).
+> 
+> Signed-off-by: Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>
+> 
+> Thanks,
+> Jesse
+> 
+> 
 
-------=_NextPart_000_003B_01C544C5.9F068D60
-Content-Type: text/html;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
-
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
-L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
-dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
-MC4yOTAwLjI2MjciIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
-Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj4NCjxESVY+PEZPTlQgc2l6
-ZT0yPg0KPERJVj48Rk9OVCBzaXplPTI+SGksPEJSPiZuYnNwOyZuYnNwOyZuYnNwOyBJIHdhbnQg
-dG8gdXNlIEFDUEkgaW4gdGhlIGxpbnV4IA0KMi4yLnguIEJ1dCBpIGNhbid0IGZpbmQgYW55IGlu
-Zm9ybWF0aW9uIGFib3V0IGl0LiBDYW4gdSBoZWxwIG1lPyANClRoeC48L0ZPTlQ+PC9ESVY+DQo8
-RElWPjxGT05UIHNpemU9Mj48QlI+U2h1dGU8L0ZPTlQ+PC9ESVY+PC9GT05UPjwvRElWPjwvRk9O
-VD48L0RJVj48L0JPRFk+PC9IVE1MPg0K
-
-------=_NextPart_000_003B_01C544C5.9F068D60--
 
 
 -------------------------------------------------------
