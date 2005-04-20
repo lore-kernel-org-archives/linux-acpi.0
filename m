@@ -1,51 +1,54 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH] Updated: Dynamic Tick version 050408-1 - C-state measures
-Date: Tue, 19 Apr 2005 23:09:58 +0200
-Message-ID: <20050419210958.GE25328@elf.ucw.cz>
-References: <425451A0.7020000@tuxrocks.com> <20050407082136.GF13475@atomide.com> <4255A7AF.8050802@tuxrocks.com> <4255B247.4080906@tuxrocks.com> <20050408062537.GB4477@atomide.com> <20050408075001.GC4477@atomide.com> <42564584.4080606@tuxrocks.com> <42566C22.4040509@suse.de> <20050408115535.GI4477@atomide.com> <42651C38.6090807@suse.de>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Re: _CST implementation
+Date: Wed, 20 Apr 2005 11:45:56 +0200
+Message-ID: <20050420094556.GN2298@poupinou.org>
+References: <1113598244.8367.30.camel@scotchmobil> <20050418120744.GG2298@poupinou.org> <4263EDA2.4030106@suse.de> <20050419092251.GK2298@poupinou.org> <4264F251.5030705@suse.de> <20050419134518.GL2298@poupinou.org> <20050419200505.GE19499@message-id.gmane0305.slipkontur.de> <42656601.3060304@bartol.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261663AbVDSVKf@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <42651C38.6090807@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Tony Lindgren <tony@atomide.com>, Frank Sorenson <frank@tuxrocks.com>, linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Arjan van de Ven <arjan@infradead.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrea Arcangeli <andrea@suse.de>, George Anzinger <george@mvista.com>, Thomas Gleixner <tglx@linutronix.de>, john stultz <johnstul@us.ibm.com>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Lee Revell <rlrevell@joe-job.com>, ML ACPI-devel <acpi-devel@lists.sourceforge.net>, Bodo Bauer <bb@suse.de>, Andi Kleen <ak@suse.de>
+In-Reply-To: <42656601.3060304-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> The machine is a Pentium M 2.00 GHz, supporting C0-C4 processor power states.
-> The machine run at 2.00 GHz all the time.
-..
-> _passing bm_history=0xFFFFFFFF (default) to processor module:_
+On Tue, Apr 19, 2005 at 04:11:45PM -0400, Rich Townsend wrote:
+> Stefan Seyfried wrote:
+> > On Tue, Apr 19, 2005 at 03:45:18PM +0200, Bruno Ducrot wrote:
+> > 
+> > 
+> >>IOW, from spec we should not invalidate, but from "common practice" by
+> >>bios writters, we should invalidate.
+> > 
+> > 
+> > What about a "spec_compliant_but_beware_of_stupid_bios_writers" module
+> > parameter? ;-)
 > 
-> Average current the last 470 seconds: *1986mA* (also measured better
-> values ~1800, does battery level play a role?!?)
-
-Probably yes. If voltage changes, 2000mA means different ammount of power.
-
-
-> (cmp. ftp://ftp.suse.com/pub/people/trenn/dyn_tick_c_states/measures_C4_machine/1000_HZ_bm_history_FFFFFFFF)
+> I fear that would be set to nonzero on every system...
 > 
-> 
-> _passing bm_history=0xFF to processor module:_
-> 
-> Average current the last 190 seconds: *1757mA*
-> (cmp. ftp://ftp.suse.com/pub/people/trenn/dyn_tick_c_states/measures_C4_machine/1000_HZ_bm_history_FF)
-> (Usage count could be bogus, as some invokations could not succeed
-> if bm has currently been active).
 
-Ok.
+That's the case already.  This is the boot parameter
+acpi=strict
 
-> idle_ms == 100, bm_promote_bs == 30
-> Average current the last 80 seconds: *1466mA*
-> (cmp.
-> ftp://ftp.suse.com/pub/people/trenn/dyn_tick_c_states/measures_C4_machine/tony_dyn_tick_processor_idle_100_bm_30)
-
-Very nice indeed. That seems like ~5W saved, right? That might give
-you one more hour of battery life....
-								Pavel
 
 -- 
-Boycott Kodak -- for their patent abuse against Java.
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: New Crystal Reports XI.
+Version 11 adds new functionality designed to reduce time involved in
+creating, integrating, and deploying reporting solutions. Free runtime info,
+new features, or free trial, at: http://www.businessobjects.com/devxi/728
