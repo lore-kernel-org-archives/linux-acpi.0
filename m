@@ -1,87 +1,74 @@
-From: Thomas Renninger <trenn@suse.de>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH] Updated: Dynamic Tick version 050408-1 - C-state measures
-Date: Wed, 20 Apr 2005 14:24:46 +0200
-Message-ID: <42664A0E.3050808@suse.de>
-References: <4255A7AF.8050802@tuxrocks.com> <4255B247.4080906@tuxrocks.com> <20050408062537.GB4477@atomide.com> <20050408075001.GC4477@atomide.com> <42564584.4080606@tuxrocks.com> <42566C22.4040509@suse.de> <20050408115535.GI4477@atomide.com> <42651C38.6090807@suse.de> <20050419152723.GA9509@isilmar.linta.de> <42657222.5080601@suse.de> <20050420114433.GA28362@isilmar.linta.de>
+Date: Wed, 20 Apr 2005 13:01:09 -0700
+Message-ID: <20050420200109.GE16352@atomide.com>
+References: <20050407082136.GF13475@atomide.com> <4255A7AF.8050802@tuxrocks.com> <4255B247.4080906@tuxrocks.com> <20050408062537.GB4477@atomide.com> <20050408075001.GC4477@atomide.com> <42564584.4080606@tuxrocks.com> <42566C22.4040509@suse.de> <20050408115535.GI4477@atomide.com> <42651C38.6090807@suse.de> <20050419210958.GE25328@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261592AbVDTMmA@vger.kernel.org>
-In-Reply-To: <20050420114433.GA28362@isilmar.linta.de>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261796AbVDTUCf@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20050419210958.GE25328@elf.ucw.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Tony Lindgren <tony@atomide.com>, Frank Sorenson <frank@tuxrocks.com>, linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Machek <pavel@suse.cz>, Arjan van de Ven <arjan@infradead.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrea Arcangeli <andrea@suse.de>, George Anzinger <george@mvista.com>, Thomas Gleixner <tglx@linutronix.de>, john stultz <johnstul@us.ibm.com>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Lee Revell <rlrevell@joe-job.com>, ML ACPI-devel <acpi-devel@lists.sourceforge.net>, Bodo Bauer <bb@suse.de>, Andi Kleen <ak@suse.de>
+To: Pavel Machek <pavel@suse.cz>
+Cc: Thomas Renninger <trenn@suse.de>, Frank Sorenson <frank@tuxrocks.com>, linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Arjan van de Ven <arjan@infradead.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrea Arcangeli <andrea@suse.de>, George Anzinger <george@mvista.com>, Thomas Gleixner <tglx@linutronix.de>, john stultz <johnstul@us.ibm.com>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Lee Revell <rlrevell@joe-job.com>, ML ACPI-devel <acpi-devel@lists.sourceforge.net>, Bodo Bauer <bb@suse.de>, Andi Kleen <ak@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Dominik Brodowski wrote:
-> On Tue, Apr 19, 2005 at 11:03:30PM +0200, Thomas Renninger wrote:
->>>"All" we need to do is to update the "diff". Without dynamic ticks, if the
->>>idle loop didn't get called each jiffy, it was a big hint that there was so
->>>much activity in between, and if there is activity, there is most likely
->>>also bus master activity, or at least more work to do, so interrupt activity
->>>is likely. Therefore we assume there was bm_activity even if there was none.
->>>
->>If I understand this right you want at least wait 32 (or whatever value) ms if there was bm activity,
->>before it is allowed to trigger C3/C4?
+* Pavel Machek <pavel@suse.cz> [050419 14:10]:
+> Hi!
 > 
-> That's the theory of operation of the current algorithm. I think that we
-> should do that small change to the current algorithm which allows us to keep
-> C3/C4 working with dyn-idle first, and then think of a very small abstraction
-> layer to test different idle algroithms, and -- possibly -- use different
-> ones for different usages.
+> > The machine is a Pentium M 2.00 GHz, supporting C0-C4 processor power states.
+> > The machine run at 2.00 GHz all the time.
+> ..
+> > _passing bm_history=0xFFFFFFFF (default) to processor module:_
+> > 
+> > Average current the last 470 seconds: *1986mA* (also measured better
+> > values ~1800, does battery level play a role?!?)
 > 
->>I think the problem is (at least I made the experience with this particular
->>machine) that bm activity comes very often and regularly (each 30-150ms?).
->>
->>I think the approach to directly adjust the latency to a deeper sleep state if the
->>average bus master and OS activity is low is very efficient.
->>
->>Because I don't consider whether there was bm_activity the last ms, I only
->>consider the average, it seems to happen that I try to trigger
->>C3/C4 when there is just something copied and some bm active ?!?
-> 
-> I don't think that this is perfect behaviour: if the system is idle, and
-> there is _currently_ bus master activity, the CPU should be put into C1 or
-> C2 type sleep. If you select C3 and actually enter it, you're risking
-> DMA issues, AFAICS.
-> 
-On my system triggering C3/C4 is just ignored (sleep_ticks < 0).
-These ignorings (C3/C4 failures) seem to directly depend on how much bm_activity
-there actually is.
-With the current method (wait at least 30 ms if there was bm activity before
-triggering C3/C4) these failures never happened.
-As mentioned using bm_promotion_ms you can lower the failures, but never reach zero.
-If these failures lead to system freezes on other systems, my next sentence is valid
-(I meant my patch).
+> Probably yes. If voltage changes, 2000mA means different ammount of power.
 
->>The patch is useless if these failures end up in system freezes on
->>other machines...
+Thomas, thanks for doing all the stats and patches to squeeze some
+real power savings out of this! :)
+
+We should display both average mA and average Watts with pmstats.
+BTW, I've posted Thomas' version of pmstats as pmstats-0.2.gz to
+muru.com also.
+
+> > (cmp. ftp://ftp.suse.com/pub/people/trenn/dyn_tick_c_states/measures_C4_machine/1000_HZ_bm_history_FFFFFFFF)
+> > 
+> > 
+> > _passing bm_history=0xFF to processor module:_
+> > 
+> > Average current the last 190 seconds: *1757mA*
+> > (cmp. ftp://ftp.suse.com/pub/people/trenn/dyn_tick_c_states/measures_C4_machine/1000_HZ_bm_history_FF)
+> > (Usage count could be bogus, as some invokations could not succeed
+> > if bm has currently been active).
 > 
-> I know that my patch is useless in its current form, but I wanted to share
-> it as a different way of doing things. 
+> Ok.
 > 
->>The problem with the old approach is, that after (doesn't matter C1-Cx)
->>sleep and dyn_idle_tick, the chance to wake up because of bm activity is
->>very likely.
->>You enter idle() again -> there was bm_activity -> C2. Wake up after e.g.
->>50ms, because of bm_activity again (bm_sts bit set) -> stay in C2, wake up
->>after 40ms -> bm activity... You only have the chance to get into deeper
->>states if the sleeps are interrupted by an interrupt, not bm activity.
+> > idle_ms == 100, bm_promote_bs == 30
+> > Average current the last 80 seconds: *1466mA*
+> > (cmp.
+> > ftp://ftp.suse.com/pub/people/trenn/dyn_tick_c_states/measures_C4_machine/tony_dyn_tick_processor_idle_100_bm_30)
 > 
-> That's a side-effect, indeed. However: if there _is_ bus master activity, we
-> must not enter C3, AFAICS.
-> 
+> Very nice indeed. That seems like ~5W saved, right? That might give
+> you one more hour of battery life....
 
-What about a mixed approach: only reprogram timer if you want to go to deeper
-sleeping states (C3-Cx) when bm activity comes in place?
+Depending on your battery capacity. But looking at the average Watts
+on the first 8 lines of the two stats above:
 
-It's the only way you can say: the last xy ms there was no bm activity (use bm_history),
-now it's safe to sleep and also be efficient: don't sleep forever in C1/C2 -> bm_sts bit
-will probably be set afterwards and you need to wait another xy ms in C1/C2
--> endless loop ...
+1000_HZ_bm_history_FFFFFFFF:
+(21.43 + 23.32 + 23.32 + 21.71 + 21.71 + 23.84 + 23.84 + 22.62) / 8
+= 22.724W
 
-Like that the timer is only disabled where it is really useful, on C3-Cx machines
-(or are there other cases?).
+tony_dyn_tick_processor_idle_100_bm_30:
+(16.07 + 16.07 + 16.00 + 16.00 + 16.08 + 16.08 + 16.29 + 16.29) / 8
+= 16.11W
 
+And then comparing these two:
+22.72 / 16.11 = 1.4103
 
-    Thomas
+So according to my calculations this should provide about 1.4 times
+longer battery life compared to what you were getting earlier...
+That is assuming system is mostly idle, of course.
+
+Tony
