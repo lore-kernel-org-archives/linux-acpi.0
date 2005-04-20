@@ -1,54 +1,64 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: _CST implementation
-Date: Wed, 20 Apr 2005 11:45:56 +0200
-Message-ID: <20050420094556.GN2298@poupinou.org>
-References: <1113598244.8367.30.camel@scotchmobil> <20050418120744.GG2298@poupinou.org> <4263EDA2.4030106@suse.de> <20050419092251.GK2298@poupinou.org> <4264F251.5030705@suse.de> <20050419134518.GL2298@poupinou.org> <20050419200505.GE19499@message-id.gmane0305.slipkontur.de> <42656601.3060304@bartol.udel.edu>
+From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: Re: [PATCH] Updated: Dynamic Tick version 050408-1 - C-state measures
+Date: Wed, 20 Apr 2005 13:44:33 +0200
+Message-ID: <20050420114433.GA28362@isilmar.linta.de>
+References: <4255A7AF.8050802@tuxrocks.com> <4255B247.4080906@tuxrocks.com> <20050408062537.GB4477@atomide.com> <20050408075001.GC4477@atomide.com> <42564584.4080606@tuxrocks.com> <42566C22.4040509@suse.de> <20050408115535.GI4477@atomide.com> <42651C38.6090807@suse.de> <20050419152723.GA9509@isilmar.linta.de> <42657222.5080601@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261338AbVDTLsM@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <42656601.3060304-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <42657222.5080601@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>, Frank Sorenson <frank@tuxrocks.com>, linux-kernel@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Machek <pavel@suse.cz>, Arjan van de Ven <arjan@infradead.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrea Arcangeli <andrea@suse.de>, George Anzinger <george@mvista.com>, Thomas Gleixner <tglx@linutronix.de>, john stultz <johnstul@us.ibm.com>, Zwane Mwaikambo <zwane@arm.linux.org.uk>, Lee Revell <rlrevell@joe-job.com>, ML ACPI-devel <acpi-devel@lists.sourceforge.net>, Bodo Bauer <bb@suse.de>, Andi Kleen <ak@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 19, 2005 at 04:11:45PM -0400, Rich Townsend wrote:
-> Stefan Seyfried wrote:
-> > On Tue, Apr 19, 2005 at 03:45:18PM +0200, Bruno Ducrot wrote:
-> > 
-> > 
-> >>IOW, from spec we should not invalidate, but from "common practice" by
-> >>bios writters, we should invalidate.
-> > 
-> > 
-> > What about a "spec_compliant_but_beware_of_stupid_bios_writers" module
-> > parameter? ;-)
+On Tue, Apr 19, 2005 at 11:03:30PM +0200, Thomas Renninger wrote:
+> > "All" we need to do is to update the "diff". Without dynamic ticks, if the
+> > idle loop didn't get called each jiffy, it was a big hint that there was so
+> > much activity in between, and if there is activity, there is most likely
+> > also bus master activity, or at least more work to do, so interrupt activity
+> > is likely. Therefore we assume there was bm_activity even if there was none.
+> >
+> If I understand this right you want at least wait 32 (or whatever value) ms if there was bm activity,
+> before it is allowed to trigger C3/C4?
+
+That's the theory of operation of the current algorithm. I think that we
+should do that small change to the current algorithm which allows us to keep
+C3/C4 working with dyn-idle first, and then think of a very small abstraction
+layer to test different idle algroithms, and -- possibly -- use different
+ones for different usages.
+
+> I think the problem is (at least I made the experience with this particular
+> machine) that bm activity comes very often and regularly (each 30-150ms?).
 > 
-> I fear that would be set to nonzero on every system...
+> I think the approach to directly adjust the latency to a deeper sleep state if the
+> average bus master and OS activity is low is very efficient.
 > 
+> Because I don't consider whether there was bm_activity the last ms, I only
+> consider the average, it seems to happen that I try to trigger
+> C3/C4 when there is just something copied and some bm active ?!?
 
-That's the case already.  This is the boot parameter
-acpi=strict
+I don't think that this is perfect behaviour: if the system is idle, and
+there is _currently_ bus master activity, the CPU should be put into C1 or
+C2 type sleep. If you select C3 and actually enter it, you're risking
+DMA issues, AFAICS.
 
+> The patch is useless if these failures end up in system freezes on
+> other machines...
 
--- 
-Bruno Ducrot
+I know that my patch is useless in its current form, but I wanted to share
+it as a different way of doing things. 
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+> The problem with the old approach is, that after (doesn't matter C1-Cx)
+> sleep and dyn_idle_tick, the chance to wake up because of bm activity is
+> very likely.
+> You enter idle() again -> there was bm_activity -> C2. Wake up after e.g.
+> 50ms, because of bm_activity again (bm_sts bit set) -> stay in C2, wake up
+> after 40ms -> bm activity... You only have the chance to get into deeper
+> states if the sleeps are interrupted by an interrupt, not bm activity.
 
+That's a side-effect, indeed. However: if there _is_ bus master activity, we
+must not enter C3, AFAICS.
 
--------------------------------------------------------
-This SF.Net email is sponsored by: New Crystal Reports XI.
-Version 11 adds new functionality designed to reduce time involved in
-creating, integrating, and deploying reporting solutions. Free runtime info,
-new features, or free trial, at: http://www.businessobjects.com/devxi/728
+	Dominik
