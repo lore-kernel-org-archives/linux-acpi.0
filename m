@@ -1,123 +1,36 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [RFC/PATCH 1/3] ACPI based I/O APIC hot-plug
-Date: Thu, 21 Apr 2005 22:39:31 +0900
-Message-ID: <4267AD13.5080900@jp.fujitsu.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [ACPI] [RFC/PATCH 1/3] ACPI based I/O APIC hot-plug
+Date: Thu, 21 Apr 2005 11:21:31 -0600
+Message-ID: <1114104091.2784.40.camel@eeyore>
+References: <4267AD13.5080900@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <4267AD13.5080900@jp.fujitsu.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Greg KH <greg@kroah.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+> +++ linux-2.6.12-rc2-mm3-kanesige/arch/ia64/kernel/acpi.c	2005-04-20 10:51:30.136299152 +0900
+> @@ -892,4 +892,21 @@ acpi_map_iosapic (acpi_handle handle, u3
+>  	return AE_OK;
+>  }
+>  #endif /* CONFIG_NUMA */
+> +
+> +int
+> +acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
+> +{
+> +	/* TBD */
+> +	return -EINVAL;
+> +}
+> +EXPORT_SYMBOL(acpi_register_ioapic);
+> +
+> +int
+> +acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
 
-This patch adds the following new interfaces for I/O xAPIC
-hotplug. The implementation of these interfaces depends on each
-architecture.
+Nitpick: these declarations should follow the style of the rest
+of the file, i.e., add a space between the function name and the
+opening parenthesis.
 
-    o int acpi_register_ioapic(acpi_handle handle, u64 phys_addr,
-			       u32 gsi_base);
-
-        This new interface is to add a new I/O xAPIC specified by
-        phys_addr and gsi_base pair. phys_addr is the physical address
-        to which the I/O xAPIC is mapped and gsi_base is global system
-        interrupt base of the I/O xAPIC. acpi_register_ioapic returns
-        0 on success, or negative value on error.
-
-    o int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
-
-        This new interface is to remove a I/O xAPIC specified by
-        gsi_base. acpi_unregister_ioapic returns 0 on success, or
-        negative value on error.
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
-
----
-
- linux-2.6.12-rc2-mm3-kanesige/arch/i386/kernel/acpi/boot.c |   16 ++++++++++++
- linux-2.6.12-rc2-mm3-kanesige/arch/ia64/kernel/acpi.c      |   17 +++++++++++++
- linux-2.6.12-rc2-mm3-kanesige/include/linux/acpi.h         |    3 ++
- 3 files changed, 36 insertions(+)
-
-diff -puN arch/i386/kernel/acpi/boot.c~ioapic_hotplug_acpi arch/i386/kernel/acpi/boot.c
---- linux-2.6.12-rc2-mm3/arch/i386/kernel/acpi/boot.c~ioapic_hotplug_acpi	2005-04-20 10:51:30.128486652 +0900
-+++ linux-2.6.12-rc2-mm3-kanesige/arch/i386/kernel/acpi/boot.c	2005-04-20 10:51:45.876533334 +0900
-@@ -506,6 +506,22 @@ acpi_unmap_lsapic(int cpu)
- EXPORT_SYMBOL(acpi_unmap_lsapic);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
-+int
-+acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
-+{
-+	/* TBD */
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(acpi_register_ioapic);
-+
-+int
-+acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
-+{
-+	/* TBD */
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(acpi_unregister_ioapic);
-+
- static unsigned long __init
- acpi_scan_rsdp (
- 	unsigned long		start,
-diff -puN arch/ia64/kernel/acpi.c~ioapic_hotplug_acpi arch/ia64/kernel/acpi.c
---- linux-2.6.12-rc2-mm3/arch/ia64/kernel/acpi.c~ioapic_hotplug_acpi	2005-04-20 10:51:30.131416339 +0900
-+++ linux-2.6.12-rc2-mm3-kanesige/arch/ia64/kernel/acpi.c	2005-04-20 10:51:30.136299152 +0900
-@@ -892,4 +892,21 @@ acpi_map_iosapic (acpi_handle handle, u3
- 	return AE_OK;
- }
- #endif /* CONFIG_NUMA */
-+
-+int
-+acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base)
-+{
-+	/* TBD */
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(acpi_register_ioapic);
-+
-+int
-+acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base)
-+{
-+	/* TBD */
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(acpi_unregister_ioapic);
-+
- #endif /* CONFIG_ACPI_BOOT */
-diff -puN include/linux/acpi.h~ioapic_hotplug_acpi include/linux/acpi.h
---- linux-2.6.12-rc2-mm3/include/linux/acpi.h~ioapic_hotplug_acpi	2005-04-20 10:51:30.133369464 +0900
-+++ linux-2.6.12-rc2-mm3-kanesige/include/linux/acpi.h	2005-04-20 10:51:30.137275714 +0900
-@@ -408,6 +408,9 @@ int acpi_map_lsapic(acpi_handle handle, 
- int acpi_unmap_lsapic(int cpu);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
-+int acpi_register_ioapic(acpi_handle handle, u64 phys_addr, u32 gsi_base);
-+int acpi_unregister_ioapic(acpi_handle handle, u32 gsi_base);
-+
- extern int acpi_mp_config;
- 
- extern u32 pci_mmcfg_base_addr;
-
-_
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: New Crystal Reports XI.
-Version 11 adds new functionality designed to reduce time involved in
-creating, integrating, and deploying reporting solutions. Free runtime info,
-new features, or free trial, at: http://www.businessobjects.com/devxi/728
