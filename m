@@ -1,51 +1,35 @@
-From: <ravms-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org>
-Subject: RAV AntiVirus scan results.
-Date: Sat, 22 Apr 2005 08:07:05 +0200
-Message-ID: <20050422060705.B75128966@head.netsystem.cz>
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: j.novak_-_netsystem.cz-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [ACPI] [RFC/PATCH 3/3] ACPI based I/O APIC hot-plug
+Date: Fri, 22 Apr 2005 15:38:35 +0900
+Message-ID: <42689BEB.90401@jp.fujitsu.com>
+References: <4267AD21.7040006@jp.fujitsu.com> <1114104131.2784.43.camel@eeyore>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1114104131.2784.43.camel@eeyore>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Greg KH <greg@kroah.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+Bjorn Helgaas wrote:
+> 
+>>+		if ((dev->class >> 8) != PCI_CLASS_SYSTEM_PIC)
+>>+			continue;
+>>+		if ((dev->class & 0xff) == 0x10 || (dev->class & 0xff) == 0x20)
+> 
+> 
+> What are 0x10 and 0x20?  Looks like they should be #defines in
+> include/linux/pci_ids.h.
 
-RAV AntiVirus for Linux i686 version: 8.3.1 (snapshot-20011106)
-Copyright (c) 1996-2001 GeCAD The Software Company. All rights reserved.
-Registered version for 2 domain(s).
-Running on host: head.netsystem.cz
+0x10 and 0x20 are programing interfaces for I/O APIC and I/O xAPIC
+respectively. #define for these values looks good. But I don't know
+if I can put new #defines into pci_ids.h and how to name them because
+I could not find the header file (including pci_ids.h) that #defines
+the values for programming interfaces. So I want to add the comments
+to explain these values (0x10, 0x20) instead of adding new #defines into
+pci_ids.h for now.
 
-CZ: Soubor (part0002:text.zip)->text.scr prilozeny k dopisu (s predmetem: Euxnqqraxmugnlpf) zaslanym acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org pro j.novak_-_netsystem.cz-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org, 
-CZ: je infikovan virem: Win32/Mytob.AF@mm.
-EN: The file (part0002:text.zip)->text.scr attached to mail (with subject: Euxnqqraxmugnlpf) sent by acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org to j.novak_-_netsystem.cz-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org, 
-EN: is infected with virus: Win32/Mytob.AF@mm.
-CZ: Nemohu vycistit tento soubor.
-EN: Cannot clean this file.
-CZ: Nemohu smazat tento soubor (pravdepodobne je soucasti archivu).
-EN: Cannot delete this file (most probably it's in an archive).
-CZ: Soubor nebyl dorucen, protoze obsahuje nebezpecny kod.
-EN: The mail was not delivered because it contained dangerous code.
-
-Scan engine 8.11 for i386.
-Last update: Sun Apr 17 23:05:15 2005
-Scanning for 120994 malwares (viruses, trojans and worms).
-
-To get a free 60-days evaluation version of RAV AntiVirus v8
-(yet fully functional) please visit:
-
-   http://www.ravantivirus.com
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Thanks,
+Kenji Kaneshige
