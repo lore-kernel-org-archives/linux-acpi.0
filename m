@@ -1,39 +1,42 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [ACPI] [RFC/PATCH 3/3] ACPI based I/O APIC hot-plug
-Date: Fri, 22 Apr 2005 08:58:01 -0600
-Message-ID: <1114181881.4902.4.camel@eeyore>
-References: <4267AD21.7040006@jp.fujitsu.com>
-	 <1114104131.2784.43.camel@eeyore>  <42689BEB.90401@jp.fujitsu.com>
+From: "Joe Julian" <joe-Fcm6T8Fmt17HuhbChzYfaQ@public.gmane.org>
+Subject: ACPI gobbling all memory on Compaq Armada 7400 w. kernel 2.6.11 on AC disconnect
+Date: Fri, 22 Apr 2005 08:03:33 -0700
+Message-ID: <000c01c5474c$7745b1f0$6901a8c0@questor>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <42689BEB.90401@jp.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Greg KH <greg@kroah.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-04-22 at 15:38 +0900, Kenji Kaneshige wrote:
-> Bjorn Helgaas wrote:
-> > 
-> >>+		if ((dev->class >> 8) != PCI_CLASS_SYSTEM_PIC)
-> >>+			continue;
-> >>+		if ((dev->class & 0xff) == 0x10 || (dev->class & 0xff) == 0x20)
-> > 
-> > 
-> > What are 0x10 and 0x20?  Looks like they should be #defines in
-> > include/linux/pci_ids.h.
-> 
-> 0x10 and 0x20 are programing interfaces for I/O APIC and I/O xAPIC
-> respectively. #define for these values looks good. But I don't know
-> if I can put new #defines into pci_ids.h and how to name them because
-> I could not find the header file (including pci_ids.h) that #defines
-> the values for programming interfaces. So I want to add the comments
-> to explain these values (0x10, 0x20) instead of adding new #defines into
-> pci_ids.h for now.
+When I unplug my notebook from AC, everything comes to a grinding halt as
+something starts eating up all the memory. I've tried shutting down syslog
+and setting dmesg -n8 but there's nothing to say what's gobbling things up.
+The kernel (after it fills the swap space) starts killing processes to
+release more memory. This does not happen if I set acpi=off.
 
-I think your patch should just add the values to pci_ids.h.  If
-somebody doesn't like that, he or she will complain and you can fall
-back to just using 0x10 and 0x20.  But I suspect it will be fine.
+http://enjoy-the-ride.com/dmesg.txt
+http://enjoy-the-ride.com/acpidmp.txt
+http://enjoy-the-ride.com/lspci.txt
 
+dmidecode:
+# dmidecode 2.6
+# No SMBIOS nor DMI entry point found, sorry.
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
