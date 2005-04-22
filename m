@@ -1,65 +1,51 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [ACPI] [RFC/PATCH 3/3] ACPI based I/O APIC hot-plug
-Date: Thu, 21 Apr 2005 11:22:11 -0600
-Message-ID: <1114104131.2784.43.camel@eeyore>
-References: <4267AD21.7040006@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <4267AD21.7040006@jp.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Greg KH <greg@kroah.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+From: <ravms-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org>
+Subject: RAV AntiVirus scan results.
+Date: Sat, 22 Apr 2005 08:07:05 +0200
+Message-ID: <20050422060705.B75128966@head.netsystem.cz>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: j.novak_-_netsystem.cz-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> +static struct pci_dev *get_apic_pci_info(acpi_handle handle)
 
-Nitpick: follow function declaration style of file.
+RAV AntiVirus for Linux i686 version: 8.3.1 (snapshot-20011106)
+Copyright (c) 1996-2001 GeCAD The Software Company. All rights reserved.
+Registered version for 2 domain(s).
+Running on host: head.netsystem.cz
 
-> +	struct acpi_pci_id id;
-> +	struct pci_bus *bus;
-> +	struct pci_dev *dev;
-> +
-> +	if (ACPI_FAILURE(acpi_get_pci_id(handle, &id)))
-> +		return NULL;
-> +
-> +	bus = pci_find_bus(id.segment, id.bus);
-> +	if (!bus)
-> +		return NULL;
-> +
-> +	list_for_each_entry(dev, &bus->devices, bus_list) {
-> +		if (dev->devfn != PCI_DEVFN(id.device, id.function))
-> +			continue;
+CZ: Soubor (part0002:text.zip)->text.scr prilozeny k dopisu (s predmetem: Euxnqqraxmugnlpf) zaslanym acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org pro j.novak_-_netsystem.cz-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org, 
+CZ: je infikovan virem: Win32/Mytob.AF@mm.
+EN: The file (part0002:text.zip)->text.scr attached to mail (with subject: Euxnqqraxmugnlpf) sent by acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org to j.novak_-_netsystem.cz-QQ2dymyqm1Sq4Zot6Ce35qVXKuFTiq87@public.gmane.org, 
+EN: is infected with virus: Win32/Mytob.AF@mm.
+CZ: Nemohu vycistit tento soubor.
+EN: Cannot clean this file.
+CZ: Nemohu smazat tento soubor (pravdepodobne je soucasti archivu).
+EN: Cannot delete this file (most probably it's in an archive).
+CZ: Soubor nebyl dorucen, protoze obsahuje nebezpecny kod.
+EN: The mail was not delivered because it contained dangerous code.
 
-Use pci_get_slot() here rather than walking bus->devices yourself.
+Scan engine 8.11 for i386.
+Last update: Sun Apr 17 23:05:15 2005
+Scanning for 120994 malwares (viruses, trojans and worms).
 
-> +		if ((dev->class >> 8) != PCI_CLASS_SYSTEM_PIC)
-> +			continue;
-> +		if ((dev->class & 0xff) == 0x10 || (dev->class & 0xff) == 0x20)
+To get a free 60-days evaluation version of RAV AntiVirus v8
+(yet fully functional) please visit:
 
-What are 0x10 and 0x20?  Looks like they should be #defines in
-include/linux/pci_ids.h.
+   http://www.ravantivirus.com
 
-> +static int get_gsi_base(acpi_handle handle, u32 *gsi_base)
-> +{
-> +	acpi_status status;
-> +	int result = -1;
-> +	unsigned long gsb;
-> +	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-> +	union acpi_object *obj;
-> +	void *table;
-> +
-> +	status = acpi_evaluate_integer(handle, "_GSB", NULL, &gsb);
-> +	if (ACPI_SUCCESS(status)) {
-> +		*gsi_base = (u32)gsb;
-> +		return 0;
-> +	}
-> +
-> +	status = acpi_evaluate_object(handle, "_MAT", NULL, &buffer);
-> +	if (ACPI_FAILURE(status) || !buffer.length || !buffer.pointer)
-> +		return result;
 
-Nothing can modify result before this point, so it'd be clearer
-to just "return -1" here.
 
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
