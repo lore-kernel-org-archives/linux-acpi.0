@@ -1,13 +1,16 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Re: _CST implementation
-Date: Fri, 22 Apr 2005 15:00:34 +0200
-Message-ID: <4268F572.4090707@suse.de>
-References: <1113598244.8367.30.camel@scotchmobil> <20050418120744.GG2298@poupinou.org> <4263EDA2.4030106@suse.de> <20050419092251.GK2298@poupinou.org> <4264F251.5030705@suse.de> <20050419134518.GL2298@poupinou.org> <20050419200505.GE19499@message-id.gmane0305.slipkontur.de> <42656601.3060304@bartol.udel.edu> <20050420094556.GN2298@poupinou.org>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [Pcihpd-discuss] Re: [RFC/PATCH 1/3] ACPI based I/O
+	APIC hot-plug
+Date: Fri, 22 Apr 2005 08:56:19 -0600
+Message-ID: <1114181779.4902.1.camel@eeyore>
+References: <4267AD13.5080900@jp.fujitsu.com>
+	 <1114104091.2784.40.camel@eeyore> <42689BE6.4040004@jp.fujitsu.com>
+	 <200504220953.20831@bilbo.math.uni-mannheim.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050420094556.GN2298-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <200504220953.20831-rMKJyNB0tZ8LKYO4ye7UPbyZi+5vbtHrhC4ANOJQIlc@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +20,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>, Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, scotch-cGBD8117FJM@public.gmane.org
+To: Rolf Eike Beer <eike-hotplug-F+mm6HnICJmzQB+pC5nmwQ@public.gmane.org>
+Cc: pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bruno Ducrot wrote:
-> On Tue, Apr 19, 2005 at 04:11:45PM -0400, Rich Townsend wrote:
->>Stefan Seyfried wrote:
->>>On Tue, Apr 19, 2005 at 03:45:18PM +0200, Bruno Ducrot wrote:
->>>
->>>
->>>>IOW, from spec we should not invalidate, but from "common practice" by
->>>>bios writters, we should invalidate.
->>>
->>>What about a "spec_compliant_but_beware_of_stupid_bios_writers" module
->>>parameter? ;-)
->>I fear that would be set to nonzero on every system...
->>
+On Fri, 2005-04-22 at 09:53 +0200, Rolf Eike Beer wrote:
+> Am Freitag, 22. April 2005 08:38 schrieb Kenji Kaneshige:
+> > Hi Bjorn,
 > 
-> That's the case already.  This is the boot parameter
-> acpi=strict
+> > > Nitpick: these declarations should follow the style of the rest
+> > > of the file, i.e., add a space between the function name and the
+> > > opening parenthesis.
+> >
+> > Thank you very much for comments.
+> > I'll update my patches based on your comments.
+> 
+> No, please don't do this. It just causes me to send another patch to kill them 
+> alltogether.
 
-I do not think it is a good idea to make this depend on acpi=strict.
+Don't be silly.  If you want to change the whole file to conform to
+one style, fine.  I even agree with the sentiment that arch/ia64
+would be better off if it were more consistent with the rest of the
+kernel.
 
-Normally !acpi_strict enables features for some broken BIOS.
-In this case !acpi_strict disables them.
+But isolated changes to a file should follow the style of the rest
+of the file.
 
-There still is max_cstates if something goes terribly wrong.
-I never saw such a machine, are there many of them out there?
-
-Janosch: Did you get the 1001 latency state to work?
-
-
-    Thomas
 
 
 -------------------------------------------------------
