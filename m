@@ -1,13 +1,13 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC/PATCH 3/3] ACPI based I/O APIC hot-plug
-Date: Fri, 22 Apr 2005 08:15:17 -0700
-Message-ID: <20050422151517.GA29039@kroah.com>
-References: <4267AD21.7040006@jp.fujitsu.com> <1114104131.2784.43.camel@eeyore> <42689BEB.90401@jp.fujitsu.com> <1114181881.4902.4.camel@eeyore>
+From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Subject: Re: Re: _CST implementation
+Date: Fri, 22 Apr 2005 19:13:44 +0200
+Message-ID: <426930C8.6030101@tzi.de>
+References: <1113598244.8367.30.camel@scotchmobil> <20050418120744.GG2298@poupinou.org> <4263EDA2.4030106@suse.de> <20050419092251.GK2298@poupinou.org> <4264F251.5030705@suse.de> <20050419134518.GL2298@poupinou.org> <20050419200505.GE19499@message-id.gmane0305.slipkontur.de> <42656601.3060304@bartol.udel.edu> <20050420094556.GN2298@poupinou.org> <4268F572.4090707@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1114181881.4902.4.camel@eeyore>
+In-Reply-To: <4268F572.4090707-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 22, 2005 at 08:58:01AM -0600, Bjorn Helgaas wrote:
-> On Fri, 2005-04-22 at 15:38 +0900, Kenji Kaneshige wrote:
-> > Bjorn Helgaas wrote:
-> > > 
-> > >>+		if ((dev->class >> 8) != PCI_CLASS_SYSTEM_PIC)
-> > >>+			continue;
-> > >>+		if ((dev->class & 0xff) == 0x10 || (dev->class & 0xff) == 0x20)
-> > > 
-> > > 
-> > > What are 0x10 and 0x20?  Looks like they should be #defines in
-> > > include/linux/pci_ids.h.
-> > 
-> > 0x10 and 0x20 are programing interfaces for I/O APIC and I/O xAPIC
-> > respectively. #define for these values looks good. But I don't know
-> > if I can put new #defines into pci_ids.h and how to name them because
-> > I could not find the header file (including pci_ids.h) that #defines
-> > the values for programming interfaces. So I want to add the comments
-> > to explain these values (0x10, 0x20) instead of adding new #defines into
-> > pci_ids.h for now.
+Thomas Renninger schrieb:
+> Bruno Ducrot wrote:
 > 
-> I think your patch should just add the values to pci_ids.h.  If
-> somebody doesn't like that, he or she will complain and you can fall
-> back to just using 0x10 and 0x20.  But I suspect it will be fine.
+>>On Tue, Apr 19, 2005 at 04:11:45PM -0400, Rich Townsend wrote:
+>>
+>>>Stefan Seyfried wrote:
+>>>
+>>>>On Tue, Apr 19, 2005 at 03:45:18PM +0200, Bruno Ducrot wrote:
+>>>>
+>>>>
+>>>>
+>>>>>IOW, from spec we should not invalidate, but from "common practice" by
+>>>>>bios writters, we should invalidate.
+>>>>
+>>>>What about a "spec_compliant_but_beware_of_stupid_bios_writers" module
+>>>>parameter? ;-)
+>>>
+>>>I fear that would be set to nonzero on every system...
+>>>
+>>
+>>That's the case already.  This is the boot parameter
+>>acpi=strict
+> 
+> 
+> I do not think it is a good idea to make this depend on acpi=strict.
+> 
+> Normally !acpi_strict enables features for some broken BIOS.
+> In this case !acpi_strict disables them.
+> 
+> There still is max_cstates if something goes terribly wrong.
+> I never saw such a machine, are there many of them out there?
+> 
+> Janosch: Did you get the 1001 latency state to work?
+> 
+The 1001 latency C3 state was in my case from the P_BLK. My Notebook 
+worked fine with it, but actually the power consumption was as high as 
+in the C2 state.
 
-Yes, I have no problem with that.
+I would suggest a parameter for disabling _CST, because it is new (and 
+buggy) code.
 
-thanks,
-
-greg k-h
+   Janosch
 
 
 -------------------------------------------------------
