@@ -1,13 +1,13 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: Re: Re: _CST implementation
-Date: Fri, 22 Apr 2005 19:13:44 +0200
-Message-ID: <426930C8.6030101@tzi.de>
-References: <1113598244.8367.30.camel@scotchmobil> <20050418120744.GG2298@poupinou.org> <4263EDA2.4030106@suse.de> <20050419092251.GK2298@poupinou.org> <4264F251.5030705@suse.de> <20050419134518.GL2298@poupinou.org> <20050419200505.GE19499@message-id.gmane0305.slipkontur.de> <42656601.3060304@bartol.udel.edu> <20050420094556.GN2298@poupinou.org> <4268F572.4090707@suse.de>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [patch 1/1] bk-acpi alpha build fix
+Date: 22 Apr 2005 23:47:33 -0400
+Message-ID: <1114228053.2930.36.camel@d845pe>
+References: <200504021149.j32BnaCk006108@shell0.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4268F572.4090707-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <200504021149.j32BnaCk006108-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,51 +17,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thomas Renninger schrieb:
-> Bruno Ducrot wrote:
-> 
->>On Tue, Apr 19, 2005 at 04:11:45PM -0400, Rich Townsend wrote:
->>
->>>Stefan Seyfried wrote:
->>>
->>>>On Tue, Apr 19, 2005 at 03:45:18PM +0200, Bruno Ducrot wrote:
->>>>
->>>>
->>>>
->>>>>IOW, from spec we should not invalidate, but from "common practice" by
->>>>>bios writters, we should invalidate.
->>>>
->>>>What about a "spec_compliant_but_beware_of_stupid_bios_writers" module
->>>>parameter? ;-)
->>>
->>>I fear that would be set to nonzero on every system...
->>>
->>
->>That's the case already.  This is the boot parameter
->>acpi=strict
-> 
-> 
-> I do not think it is a good idea to make this depend on acpi=strict.
-> 
-> Normally !acpi_strict enables features for some broken BIOS.
-> In this case !acpi_strict disables them.
-> 
-> There still is max_cstates if something goes terribly wrong.
-> I never saw such a machine, are there many of them out there?
-> 
-> Janosch: Did you get the 1001 latency state to work?
-> 
-The 1001 latency C3 state was in my case from the P_BLK. My Notebook 
-worked fine with it, but actually the power consumption was as high as 
-in the C2 state.
+Yeah, that's the right fix.
+Applied.
 
-I would suggest a parameter for disabling _CST, because it is new (and 
-buggy) code.
+thanks,
+-Len
 
-   Janosch
+On Sat, 2005-04-02 at 06:49, akpm-3NddpPZAyC0@public.gmane.org wrote:
+> 
+> ACPI doesn't work on alphas.
+> 
+>   CC      drivers/pci/quirks.o
+> distcc[25816] ERROR: compile on localhost failed
+> In file included from include/acpi/platform/acenv.h:123,
+>                  from include/acpi/acpi.h:53,
+>                  from include/linux/acpi.h:34,
+>                  from drivers/pci/quirks.c:21:
+> include/acpi/platform/aclinux.h:59:22: asm/acpi.h: No such file or
+> directory
+> In file included from include/acpi/acpi.h:54,
+>                  from include/linux/acpi.h:34,
+>                  from drivers/pci/quirks.c:21:
+> include/acpi/actypes.h:110: error: parse error before "INT64"
+> include/acpi/actypes.h:110: warning: type defaults to `int' in
+> declaration of `INT64'
+> include/acpi/actypes.h:110: warning: data definition has no type or
+> storage class
+> include/acpi/actypes.h:111: error: parse error before "UINT64"
+> include/acpi/actypes.h:111: warning: type defaults to `int' in
+> declaration of `UINT64'
+> include/acpi/actypes.h:111: warning: data definition has no type or
+> storage class
+> In file included from drivers/pci/quirks.c:21:
+> include/linux/acpi.h:37:22: asm/acpi.h: No such file or directory
+> 
+> 
+> I chose to fix it in acpi.h.  Seems cleaner than adding an ifdef to
+> quirks.c.
+> 
+> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+> ---
+> 
+>  25-alpha-akpm/include/linux/acpi.h |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff -puN include/linux/acpi.h~bk-acpi-alpha-build-fix
+> include/linux/acpi.h
+> --- 25-alpha/include/linux/acpi.h~bk-acpi-alpha-build-fix      
+> 2005-04-02 01:54:02.000000000 -0800
+> +++ 25-alpha-akpm/include/linux/acpi.h  2005-04-02 01:54:30.000000000
+> -0800
+> @@ -25,6 +25,8 @@
+>  #ifndef _LINUX_ACPI_H
+>  #define _LINUX_ACPI_H
+> 
+> +#ifdef CONFIG_ACPI
+> +
+>  #ifndef _LINUX
+>  #define _LINUX
+>  #endif
+> @@ -536,4 +538,5 @@ static inline int acpi_get_pxm(acpi_hand
+> 
+>  extern int pnpacpi_disabled;
+> 
+> -#endif /*_LINUX_ACPI_H*/
+> +#endif /* CONFIG_ACPI */
+> +#endif /* _LINUX_ACPI_H */
+> _
+> 
+> 
+
 
 
 -------------------------------------------------------
