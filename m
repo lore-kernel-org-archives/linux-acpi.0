@@ -1,48 +1,48 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [ACPI] [RFC/PATCH 3/3] ACPI based I/O APIC hot-plug
-Date: Mon, 25 Apr 2005 18:16:12 +0900
-Message-ID: <426CB55C.2050205@jp.fujitsu.com>
-References: <4267AD21.7040006@jp.fujitsu.com>	 <1114104131.2784.43.camel@eeyore>  <42689BEB.90401@jp.fujitsu.com> <1114181881.4902.4.camel@eeyore>
+From: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
+Subject: Why do I have to set pci=noacpi for network card to work?
+Date: Mon, 25 Apr 2005 18:12:22 -0500
+Message-ID: <200504251812.22111.gkanis@cems.umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1114181881.4902.4.camel@eeyore>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Greg KH <greg@kroah.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bjorn Helgaas wrote:
-> On Fri, 2005-04-22 at 15:38 +0900, Kenji Kaneshige wrote:
-> 
->>Bjorn Helgaas wrote:
->>
->>>>+		if ((dev->class >> 8) != PCI_CLASS_SYSTEM_PIC)
->>>>+			continue;
->>>>+		if ((dev->class & 0xff) == 0x10 || (dev->class & 0xff) == 0x20)
->>>
->>>
->>>What are 0x10 and 0x20?  Looks like they should be #defines in
->>>include/linux/pci_ids.h.
->>
->>0x10 and 0x20 are programing interfaces for I/O APIC and I/O xAPIC
->>respectively. #define for these values looks good. But I don't know
->>if I can put new #defines into pci_ids.h and how to name them because
->>I could not find the header file (including pci_ids.h) that #defines
->>the values for programming interfaces. So I want to add the comments
->>to explain these values (0x10, 0x20) instead of adding new #defines into
->>pci_ids.h for now.
-> 
-> 
-> I think your patch should just add the values to pci_ids.h.  If
-> somebody doesn't like that, he or she will complain and you can fall
-> back to just using 0x10 and 0x20.  But I suspect it will be fine.
-> 
-> 
+Hi,
 
-Thank you for advice. I'll try to add new #defines for I/O APIC
-and I/O xAPIC to pci_ids.h.
+In order for the network card to work I need to load the tg3 module or the 
+bcm5700 module. It is manufactured by broadcom.
+When either of these two modules were loaded, dmesg would show a couple of 
+messages about the network card, but the last message would be that NIC is 
+down. When I would plug the cable, the lights would start flashing, but the 
+command "/etc/init.d/net.eth0 start" could not get the IP.
 
-Thanks,
-Kenji Kaneshige
+After doing some search, I found that I need to add the pci=noacpi in the 
+grub.conf. It seems to me that somehow ACPI was shutting down the nic card, 
+and now that ACPI is disabled, the nic card is working fine.
+
+Is this normal? Is this due to a bug in the ACPI code? Is this due to a faulty 
+device/motherboard?
+What am I missing now that the ACPI is disabled? 
+
+Thank you,
+Vasilis
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
