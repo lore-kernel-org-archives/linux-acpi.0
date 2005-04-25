@@ -1,53 +1,48 @@
-From: Jerry DeLisle <jvdelisle-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: Need help with acpi
-Date: Sun, 24 Apr 2005 20:37:33 -0700
-Message-ID: <426C65FD.60401@verizon.net>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [ACPI] [RFC/PATCH 3/3] ACPI based I/O APIC hot-plug
+Date: Mon, 25 Apr 2005 18:16:12 +0900
+Message-ID: <426CB55C.2050205@jp.fujitsu.com>
+References: <4267AD21.7040006@jp.fujitsu.com>	 <1114104131.2784.43.camel@eeyore>  <42689BEB.90401@jp.fujitsu.com> <1114181881.4902.4.camel@eeyore>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1114181881.4902.4.camel@eeyore>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Greg KH <greg@kroah.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Did this go through.  I got a message from the list server saying there 
-was an error of some sort. This is try 2.
+Bjorn Helgaas wrote:
+> On Fri, 2005-04-22 at 15:38 +0900, Kenji Kaneshige wrote:
+> 
+>>Bjorn Helgaas wrote:
+>>
+>>>>+		if ((dev->class >> 8) != PCI_CLASS_SYSTEM_PIC)
+>>>>+			continue;
+>>>>+		if ((dev->class & 0xff) == 0x10 || (dev->class & 0xff) == 0x20)
+>>>
+>>>
+>>>What are 0x10 and 0x20?  Looks like they should be #defines in
+>>>include/linux/pci_ids.h.
+>>
+>>0x10 and 0x20 are programing interfaces for I/O APIC and I/O xAPIC
+>>respectively. #define for these values looks good. But I don't know
+>>if I can put new #defines into pci_ids.h and how to name them because
+>>I could not find the header file (including pci_ids.h) that #defines
+>>the values for programming interfaces. So I want to add the comments
+>>to explain these values (0x10, 0x20) instead of adding new #defines into
+>>pci_ids.h for now.
+> 
+> 
+> I think your patch should just add the values to pci_ids.h.  If
+> somebody doesn't like that, he or she will complain and you can fall
+> back to just using 0x10 and 0x20.  But I suspect it will be fine.
+> 
+> 
 
-Hello,
+Thank you for advice. I'll try to add new #defines for I/O APIC
+and I/O xAPIC to pci_ids.h.
 
-I am trying to get sleep to work on Intel D865GLC.  I have latest bios 
-loaded.
-
-
-[root@quantum power]# cat state
-standby mem disk
-
-[root@quantum acpi]# cat sleep
-S0 S1 S3 S4 S5
-
-[root@quantum acpi]# uname -a
-Linux quantum.localdomain 2.6.11-1.14_FC3smp #1 SMP Thu Apr 7 19:38:19 
-EDT 2005 i686 i686 i386 GNU/Linux
-
-
-Tried the commands to echo into state suggested at ACPI4Linux.  Does not 
-do anything.  What am I missing here?
-
-Suggestions?
-
-Jerry
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Thanks,
+Kenji Kaneshige
