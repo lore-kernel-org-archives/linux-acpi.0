@@ -1,13 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Why do I have to set pci=noacpi for network card to work?
-Date: Tue, 26 Apr 2005 17:00:58 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501C8AD2D@pdsmsx402.ccr.corp.intel.com>
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC/PATCH 0/3] ACPI based I/O APIC hot-plug
+Date: Tue, 26 Apr 2005 17:03:26 +0300
+Message-ID: <pan.2005.04.26.14.03.23.413590@yahoo.com>
+References: <4267AD0E.3080006@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +16,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->In order for the network card to work I need to load the tg3 module or
-the
->bcm5700 module. It is manufactured by broadcom.
->When either of these two modules were loaded, dmesg would show a couple
-of
->messages about the network card, but the last message would be that NIC
-is
->down. When I would plug the cable, the lights would start flashing, but
-the
->command "/etc/init.d/net.eth0 start" could not get the IP.
->
->After doing some search, I found that I need to add the pci=3Dnoacpi in
-the
->grub.conf. It seems to me that somehow ACPI was shutting down the nic
-card,
->and now that ACPI is disabled, the nic card is working fine.
->
->Is this normal? Is this due to a bug in the ACPI code? Is this due to a
->faulty
->device/motherboard?
->What am I missing now that the ACPI is disabled?
-pci=3Dnoacpi disallow ACPI doing IRQ routing and PCI bus scan. Did
-acpi=3Dnoirq help the system? If yes, it maybe an interrupt issue.
+Hi Kenji,
 
-Thanks,
-Shaohua
+On Thu, 21 Apr 2005 22:39:26 +0900, Kenji Kaneshige wrote:
+
+> Hi,
+>=20
+> Here is a set of patches to support ACPI based I/O APIC hotplug. This c=
+ode
+> consists of the following three patches.
+>=20
+>     - Add the new interfaces for I/O APIC hot-add/hot-remove. The
+>       implementation of these interfaces depends on each architecture.
+>=20
+>     - IA64 implementation of above-mentioned interfeces for I/O APIC
+>       hot-add/hot-remove.
+
+Any plans for i386 implementation ?
+
+>=20
+>     - Add I/O APIC hot-add support to ACPIPHP dirver. PCI root bridge
+>       hot-add will be fully functional with this patch. This will be al=
+so
+>       needed to support hot-add of p2p bridge hierarchy that contains I=
+/O
+>       APICs. This code supports only hot-add for now.
+>=20
+> These patches support I/O APIC hot-plug on ia64 only for now. These are
+> against 2.6.12-rc2-mm3.
+>=20
+> Thanks,
+> Kenji Kaneshige
+
+
 
 
 -------------------------------------------------------
 SF email is sponsored by - The IT Product Guide
 Read honest & candid reviews on hundreds of IT Products from real users.
 Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
