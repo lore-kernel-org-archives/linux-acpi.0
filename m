@@ -1,36 +1,55 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [RFC/PATCH 0/3] ACPI based I/O APIC hot-plug
-Date: Tue, 26 Apr 2005 03:35:03 -0700
-Message-ID: <20050426033503.3fd6b84c.akpm@osdl.org>
-References: <4267AD0E.3080006@jp.fujitsu.com>
-	<20050426025716.142c5726.akpm@osdl.org>
-	<426E15DA.9030800@jp.fujitsu.com>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Why do I have to set pci=noacpi for network card to work?
+Date: Tue, 26 Apr 2005 17:00:58 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501C8AD2D@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <426E15DA.9030800@jp.fujitsu.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: len.brown@intel.com, tony.luck@intel.com, greg@kroah.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> wrote:
+>In order for the network card to work I need to load the tg3 module or
+the
+>bcm5700 module. It is manufactured by broadcom.
+>When either of these two modules were loaded, dmesg would show a couple
+of
+>messages about the network card, but the last message would be that NIC
+is
+>down. When I would plug the cable, the lights would start flashing, but
+the
+>command "/etc/init.d/net.eth0 start" could not get the IP.
 >
-> Andrew Morton wrote:
->  > "Kenji Kaneshige" <kaneshige.kenji@jp.fujitsu.com> wrote:
->  > 
->  >>Here is a set of patches to support ACPI based I/O APIC hotplug.
->  > 
->  > 
->  > OK, with the help of Tony's git tree I managed to get those merged up.
->  > 
-> 
->  Wow, great!
->  But I'm now updating these patches based on the feedbacks.
->  How should I do about this? Should I send these updates as
->  another cleanup patch?
+>After doing some search, I found that I need to add the pci=3Dnoacpi in
+the
+>grub.conf. It seems to me that somehow ACPI was shutting down the nic
+card,
+>and now that ACPI is disabled, the nic card is working fine.
+>
+>Is this normal? Is this due to a bug in the ACPI code? Is this due to a
+>faulty
+>device/motherboard?
+>What am I missing now that the ACPI is disabled?
+pci=3Dnoacpi disallow ACPI doing IRQ routing and PCI bus scan. Did
+acpi=3Dnoirq help the system? If yes, it maybe an interrupt issue.
 
-Replacement patches would be OK at this time.  Incremental patches are
-preferred once the code settles down a bit, so we can see what changed.
+Thanks,
+Shaohua
 
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
