@@ -1,42 +1,95 @@
-From: Dave Royal <Dave-dq3oWbSUDswS+FvcfC7Uqw@public.gmane.org>
-Subject: Albatron PX845PE - can't turn fan off
-Date: Tue, 26 Apr 2005 06:20:36 +0100
-Message-ID: <426DCFA4.3000308@DaveRoyal.com>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [2.6 patch] ACPI: add two missing config.h #include's
+Date: 26 Apr 2005 01:43:40 -0400
+Message-ID: <1114494219.2930.260.camel@d845pe>
+References: <20050415151053.GM5456@stusta.de>
+	 <E1DMTPC-000ASo-00.adobriyan-mail-ru@f13.mail.ru>
+	 <20050416023852.GI4831@stusta.de>
+	 <20050416085923.A10826@flint.arm.linux.org.uk>
+	 <20050417181948.GB3625@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20050417181948.GB3625@stusta.de>
+Sender: linux-serial-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: Alexey Dobriyan <adobriyan@mail.ru>, Andrew Morton <akpm@osdl.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>, Herbert Xu <herbert@gondor.apana.org.au>
 List-Id: linux-acpi@vger.kernel.org
 
-Albatron PX845PE Pro II, Celeron 2.2, running Linux 2.6.8-24.14 (SuSE 
-9.2) ACPI release 20040715
-Problem: The CPU fan is always on - doing echo -n 3 > 
-/proc/acpi/fan/FAN/state has no effect.
+Applied.
 
-I have solved one problem with the DSDT: ACPI was seeing the wrong 
-temperature: using sensor 2 from the Winbond W83627hf rather than sensor 
-3. I have fixed that. ACPI now sees the correct CPU temperature (usually 
-< 30 C) and I can set the trip points. But fan state is always on. 
-Cooling mode is active. Fan speed is correct.
+thanks,
+-Len
 
-I wonder whether (a) there is code missing in the DSDT or (b) ACPI is 
-being overridden by the BIOS. What code should be present in the DSDT 
-for fan control to work? The only method apparent under Device (FAN)is 
-_INI.
+On Sun, 2005-04-17 at 14:19, Adrian Bunk wrote:
+> On Sat, Apr 16, 2005 at 08:59:23AM +0100, Russell King wrote:
+> > On Sat, Apr 16, 2005 at 04:38:52AM +0200, Adrian Bunk wrote:
+> > > In the Linux kernel, it's more common to put such header
+> dependencies
+> > > for header files into the C files, but if the ACPI people agree a
+> patch
+> > > to add the #include <linux/config.h> to acpi_bus.h is the other
+> possble
+> > > correct solution for this issue.
+> >
+> > With the exception of linux/config.h.
+> >
+> > Do a 'make configcheck' and it'll tell you where linux/config.h is
+> missing
+> > and where it shouldn't be.
+> 
+> OK, then the patch below is the correct solution.
+> 
+> cu
+> Adrian
+> 
+> 
+> <--  snip  -->
+> 
+> 
+> This patch fixes the following warning by adding two missing config.h
+> #include's:
+> 
+> <--  snip  -->
+> 
+> ...
+>   CC      drivers/serial/8250_acpi.o
+> drivers/serial/8250_acpi.c: In function `acpi_serial_ext_irq':
+> drivers/serial/8250_acpi.c:51: warning: implicit declaration of
+> function
+> `acpi_register_gsi'
+> ...
+> 
+> <--  snip  -->
+> 
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
+> 
+> --- linux-2.6.12-rc2-mm3-full/include/acpi/acpi_bus.h.old      
+> 2005-04-17 19:05:23.000000000 +0200
+> +++ linux-2.6.12-rc2-mm3-full/include/acpi/acpi_bus.h   2005-04-17
+> 19:05:37.000000000 +0200
+> @@ -26,6 +26,7 @@
+>  #ifndef __ACPI_BUS_H__
+>  #define __ACPI_BUS_H__
+> 
+> +#include <linux/config.h>
+>  #include <linux/kobject.h>
+> 
+>  #include <acpi/acpi.h>
+> --- linux-2.6.12-rc2-mm3-full/include/linux/acpi.h.old  2005-04-17
+> 19:25:51.000000000 +0200
+> +++ linux-2.6.12-rc2-mm3-full/include/linux/acpi.h      2005-04-17
+> 19:24:54.000000000 +0200
+> @@ -25,6 +25,8 @@
+>  #ifndef _LINUX_ACPI_H
+>  #define _LINUX_ACPI_H
+> 
+> +#include <linux/config.h>
+> +
+>  #ifdef CONFIG_ACPI
+> 
+>  #ifndef _LINUX
+> 
+> 
 
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
