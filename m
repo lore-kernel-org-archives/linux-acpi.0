@@ -1,14 +1,12 @@
-From: "Joe Julian" <joe-Fcm6T8Fmt17HuhbChzYfaQ@public.gmane.org>
-Subject: RE: AC Disconnect bug
-Date: Tue, 26 Apr 2005 21:59:46 -0700
-Message-ID: <001101c54ae5$f2007690$6901a8c0@questor>
-References: <16A54BF5D6E14E4D916CE26C9AD3057501CDFCD5@pdsmsx402.ccr.corp.intel.com>
+From: Ron Rechenmacher <ron-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org>
+Subject: RE: Suspend2ram on Toshiba Tecra A3 OR problem with S3 on new 915PM
+ chipset system appears to be with SATA/IDE
+Date: Wed, 27 Apr 2005 17:44:37 -0500
+Message-ID: <200504272244.j3RMibEf032018@fnapcf.fnal.gov>
+Reply-To: ron_-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057501CDFCD5-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,49 +16,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'Li, Shaohua'" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "'Yu, Luming'" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: kojm-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ron-13hema8v3vg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Was RE: [ACPI] Why do I have to set pci=noacpi for network card to work?
+Hi,
 
-I'm far from being an expert, but I don't think so. I've got debug enabled
-and I don't get any errors at all. From what I could find in my searches,
-the EC GPE errors even show up in the logs. ec.c is loaded with printks.
-With the race condition, the system comes to a grinding halt. The kernel's
-so busy swapping that there's not enough cpu cycles to even flush the disk
-cache, so I've stopped syslogd and set dmesg -n8 to get the debug on the
-console to no avail. There are no kernel messages at all that occur when
-this problem does (which makes it very difficult to guess where it's
-happening).
+I'm wondering if I'm having the same problem.
+I was using a Dell M60 w/ 2.6.10 and 2.6.11.7 with no problems.
+The M60 has 855PM chipset with integrated (ICH4) ATA IDE and the disk
+is a parallel IDE disk.
 
-> -----Original Message-----
-> From: Li, Shaohua [mailto:shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-> Sent: Tuesday, April 26, 2005 9:19 PM
-> To: Joe Julian; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Cc: Yu, Luming
-> Subject: RE: [ACPI] Why do I have to set pci=noacpi for 
-> network card to work?
-> 
-> 
-> >So does that mean that if a dsdt file won't compile that the bios is 
-> >inherently broken?
-> No. Some errors can be workaround.
-> 
-> >
-> >I've been trying to track down a race condition on my notebook that
-> makes
-> >the kernel allocate all memory when I unplug the AC adapter, and in
-> trying
-> >to learn how acpi works I looked at the DSDT and found all kinds of
-> errors
-> >and warnings when trying to compile it.
-> It maybe the EC GPE issue. Luming is working on it.
-> 
-> Thanks,
-> Shaohua
-> 
-> 
+The M70 is 915PM based with integrated SATA controller which somehow
+(experts know?) can work with the IDE driver, but slow, but with the
+SATA driver + SCSI works better. Anyway, the disk is still a parallel
+IDE disk, so I suppose there must be some serial <-> parallel magic 
+going on.
+Anywho, when I suspend, all seems well, but when I try to wake, the
+disk doesn't come back and if I wait long enough, I get some:
+     journal commit I/O error
+and sometimes some other disk timeout errors.
+Sometimes the video screen comes pack and the mouse works and I can type,
+but, b/c the disk isn't working, I can't do anything. Sometimes the video
+doesn't come back, but the caps lock still works.
+
+I've tried 2.6.10, 2.6.11.7, and 2.6.12-rc2
+
+So, which driver(s) should I look at?
+Or is there a simple chant to /proc that can wake up the disk correctly?
+Or am I not doing something correctly before/after I
+   echo mem >/sys/power/state
+Or is the 915PM and/or SATA acpi stuff just (too) new and I should help
+get it working?
+
+The system does successfully suspend to RAM and wake up under windows XP :(
+
+Any ideas/suggestions/comments or work for me to do?
+
+Thanks,
+Ron
+
+Tomasz Kojm <tk@lo...> said:
+> Dear power experts,
+>    I"m fighting with S3 on Toshiba Tecra A3 without success for a few
+> days
+>  now. I"ve tried all combinations of acpi_sleep on various kernels
+>  (including -mm ones) down to 2.6.8 and the effect is always the same:
+>  laptop properly(?) suspends but on resume it doesn"t initialize
+> graphics
+>  (LCD is off) and seem to be hanged (at least the keyboard, because
+> the
+>  system doesn"t react on any commands, including ctrl+alt+del). The
+>  computer is based on the Intel 915 GM chipset with integrated
+> graphics.
+>    I hope someone can drive me in a good direction. For the last three
+>  years I was successfully using suspend2ram (via APM) on my old and
+> good
+>  Portege notebook and now suspend to disk doesn"t look as a good
+>  alternative from my point of view.
+>    Thank you in advance,
+>  
+
+
 
 
 
