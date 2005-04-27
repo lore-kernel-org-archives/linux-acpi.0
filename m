@@ -1,13 +1,14 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Joe Julian" <joe-Fcm6T8Fmt17HuhbChzYfaQ@public.gmane.org>
 Subject: RE: Why do I have to set pci=noacpi for network card to work?
-Date: Wed, 27 Apr 2005 11:12:04 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501CDFBAE@pdsmsx402.ccr.corp.intel.com>
+Date: Tue, 26 Apr 2005 21:15:18 -0700
+Message-ID: <001001c54adf$bba9d880$6901a8c0@questor>
+References: <16A54BF5D6E14E4D916CE26C9AD3057501CDFBAE@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057501CDFBAE-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +18,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'Li, Shaohua'" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->You are right, that was the error.
->I do not know how to use the APIC mode, but I do have some instructions
-on
->how
->to tell the kernel to use the new DSDT. I am sorry but I do not know
-that
->many things about the kernel ....
->
->if it is not too much trouble, can you explain to me how this firmware
-bug
->affects my system.
-ACPI get the device's interrupt assignment from LNKA, if it can't find
-LNKA, then the device can't get an interrupt assignment from ACPI. A
-device which hasn't correct interrupt will definitely be broken..
+So does that mean that if a dsdt file won't compile that the bios is
+inherently broken? 
 
-Thanks,
-Shaohua
+I've been trying to track down a race condition on my notebook that makes
+the kernel allocate all memory when I unplug the AC adapter, and in trying
+to learn how acpi works I looked at the DSDT and found all kinds of errors
+and warnings when trying to compile it.
+
 
 
 -------------------------------------------------------
