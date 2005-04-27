@@ -1,15 +1,13 @@
-From: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
-Subject: Re: Why do I have to set pci=noacpi for network card to work?
-Date: Tue, 26 Apr 2005 22:03:49 -0500
-Message-ID: <200504262203.49591.gkanis@cems.umn.edu>
-References: <16A54BF5D6E14E4D916CE26C9AD3057501CDFB4C@pdsmsx402.ccr.corp.intel.com>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Why do I have to set pci=noacpi for network card to work?
+Date: Wed, 27 Apr 2005 11:12:04 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501CDFBAE@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057501CDFB4C-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,27 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Hmm, LNKA's name should be \_SB.PCI0.LPC0.LNKA instead of
-> \_SB.PCI0.LPCB.LNKA. Tell the vendor to fix the ass firmware bug.
-> Before this, you have two choices.
-> 1. use APIC mode.
-> 2. change the dsdt.dsl (replace all LPCB with LPC0), compile it and
-> override the DSDT.
+>You are right, that was the error.
+>I do not know how to use the APIC mode, but I do have some instructions
+on
+>how
+>to tell the kernel to use the new DSDT. I am sorry but I do not know
+that
+>many things about the kernel ....
+>
+>if it is not too much trouble, can you explain to me how this firmware
+bug
+>affects my system.
+ACPI get the device's interrupt assignment from LNKA, if it can't find
+LNKA, then the device can't get an interrupt assignment from ACPI. A
+device which hasn't correct interrupt will definitely be broken..
 
-You are right, that was the error.
-I do not know how to use the APIC mode, but I do have some instructions on how 
-to tell the kernel to use the new DSDT. I am sorry but I do not know that 
-many things about the kernel ....
-
-if it is not too much trouble, can you explain to me how this firmware bug 
-affects my system.
-
-Thank you for your help.
-Vasilis
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
