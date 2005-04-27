@@ -1,11 +1,13 @@
-From: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: What is the status AE_NOT_FOUND mean?
-Date: Tue, 26 Apr 2005 15:15:56 -0700
-Message-ID: <1114553756.14267.1909.camel@knk>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Why do I have to set pci=noacpi for network card to work?
+Date: Wed, 27 Apr 2005 09:44:51 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501CDFA18@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,40 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-  I am working on supporting hot add memory on my box (IBM x445) via the
-memory hot plug work that is going and but I am having some trouble with
-the acpi event itself.  When I trigger the acpi event I get 
-
-acpi_bus-0077 [03] acpi_bus_get_device   : No context for object
-[f5413c68]
-
-I dumped the status from acpi_get_data and it was 00000005,
-AE_NOT_FOUND.  
-
-I am not too sure where to head with this.  What does AE_NOT_FOUND mean?
-
-The call path is 
-
-acpi_bus_get_device 
-acpi_get_data 
-apci_ns_get_attached_data (which returns the AE_NOT_FOUND)
-
-Is the bios not providing some data that is needed to handle the event
-or do I need to set something up before the action happens (registering
-a handler for the event)?  The bios is pre ACPI 2.0.  I am relatively
-new to ACPI and I would be grateful for any input that points be in the
-right direction.
-
-Kernel is 2.6.12-based. 
+>
+>dsdt.dsl   205:     Method (_WAK, 1, NotSerialized)
+>Warning  2026 -                ^ Reserved method must return a value
+(_WAK)
+>
+>dsdt.dsl  1664:                             \_SB.PCI0.LPCB.LNKA,
+>Error    1022 -                         Object does not exist ^
+>(\_SB.PCI0.LPCB.LNKA)
+>
+>How serious this problem is? Could this be the reason for the need to
+use
+>the
+>command acpi=3Dnoirq?
+This problem will cause PCI devices haven't interrupt assignment.
+acpi=3Dnoirq means ACPI will not do interrupt routing, so the error
+message will not affect your box. But this is a firmware bug. A full
+acpidmp output will help us confirm the bug.
 
 Thanks,
-  Keith Mannthey
-  LTC xSeries
-
+Shaohua
 
 
 -------------------------------------------------------
