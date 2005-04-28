@@ -1,15 +1,13 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: Re: [PATCH 6/6]suspend/resume SMP support
-Date: Thu, 28 Apr 2005 11:04:37 +0200
-Message-ID: <200504281104.38702.rjw@sisk.pl>
-References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com> <1114676961.26367.12.camel@sli10-desk.sh.intel.com> <20050428083459.GM1906@elf.ucw.cz>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Suspend2ram on Toshiba Tecra A3 OR problem with S3 on new 915PM chipset system appears to be with SATA/IDE
+Date: Thu, 28 Apr 2005 17:43:26 +0200
+Message-ID: <20050428154326.GA9097@message-id.gmane0305.slipkontur.de>
+References: <200504272244.j3RMibEf032018@fnapcf.fnal.gov>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050428083459.GM1906-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200504272244.j3RMibEf032018-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,33 +18,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Wed, Apr 27, 2005 at 05:44:37PM -0500, Ron Rechenmacher wrote:
 
-On Thursday, 28 of April 2005 10:35, Pavel Machek wrote:
-> Hi!
-> 
-> > > But does setting CONFIG_ACPI_SLEEP cause kernel/power/smp.o to be actually
-> > > compiled and linked?  I don't think so?
-> > > 
-> > > Anyway, please send a tested fix.
-> > Ha, this one should be ok. Only IA32 support SMP suspend now.
-> 
-> Seems okay... Rafael, what is status of x86-64 smp swsusp?
+> So, which driver(s) should I look at?
+> Or is there a simple chant to /proc that can wake up the disk correctly?
+> Or am I not doing something correctly before/after I
+>    echo mem >/sys/power/state
+> Or is the 915PM and/or SATA acpi stuff just (too) new and I should help
+> get it working?
 
-Preliminary, semi-working. ;-)  Actually, I'm waiting for the i386 CPU hotplug
-to settle down a bit to see how much of it I can use on x86-64.
+The SATA drivers have no power-management support (i wonder how this could
+happen, since they are brand new, but this is another story...). Jens Axboe
+is fixing them up right now, you should be able to find patches for them on
+LKML.
 
-Greets,
-Rafael
-
-
+This does affect suspend to disk as well as suspend to RAM. Also, since it
+seems timing sensitive, it works on some machines sometimes.
 -- 
-- Would you tell me, please, which way I ought to go from here?
-- That depends a good deal on where you want to get to.
-		-- Lewis Carroll "Alice's Adventures in Wonderland"
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
