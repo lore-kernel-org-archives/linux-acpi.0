@@ -1,7 +1,7 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 6/6]suspend/resume SMP support
-Date: Thu, 28 Apr 2005 15:28:17 +0800
-Message-ID: <1114673297.26367.3.camel@sli10-desk.sh.intel.com>
+Date: Thu, 28 Apr 2005 15:35:25 +0800
+Message-ID: <1114673725.26367.7.camel@sli10-desk.sh.intel.com>
 References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com>
 	 <20050428002254.461fcf32.akpm@osdl.org>
 Mime-Version: 1.0
@@ -18,15 +18,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 On Thu, 2005-04-28 at 15:22, Andrew Morton wrote:
-> -#ifdef CONFIG_HOTPLUG_CPU
-> +#if defined(CONFIG_HOTPLUG_CPU) && defined(CONFIG_SOFTWARE_SUSPEND)
-ACPI_SLEEP also requires it. So it will be
-#if defined(CONFIG_HOTPLUG_CPU) && (defined(CONFIG_SOFTWARE_SUSPEND) || defined(CONFIG_ACPI_SLEEP))
+> 
+> On ia64, with tiger_defconfig:
+> 
+> kernel/built-in.o(.text+0x59e12): In function `suspend_prepare':
+> : undefined reference to `disable_nonboot_cpus'
+> kernel/built-in.o(.text+0x59e62): In function `suspend_prepare':
+> : undefined reference to `enable_nonboot_cpus'
+> kernel/built-in.o(.text+0x5a222): In function `suspend_finish':
+> : undefined reference to `enable_nonboot_cpus'
+Pavel,
+Could IA64 do software suspend? There possibly are other troubles here.
 
 Thanks,
 Shaohua
