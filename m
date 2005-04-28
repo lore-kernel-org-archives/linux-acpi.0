@@ -1,11 +1,16 @@
-From: "≈‚‡" <cdsable-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Diplom
-Date: Thu, 28 Apr 2005 03:47:29 -0500
-Message-ID: <x6560sSmHBsIKkb.6cb2P.qmail@85.65.153.116>
-Reply-To: <cdsable-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Content-Type: text/plain; charset=windows-1251
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [PATCH 6/6]suspend/resume SMP support
+Date: Thu, 28 Apr 2005 16:11:00 +0800
+Message-ID: <200504281611.00254.luming.yu@intel.com>
+References: <20050428074201.GA1906@elf.ucw.cz>
+Reply-To: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050428074201.GA1906-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,27 +20,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=CF=D0=CE=C4=C0=DE=D2=D1=DF =C4=C8=CF=CB=CE=CC=DB =CE =C2=DB=D1=D8=C5=CC =
-=CE=C1=D0=C0=C7=CE=C2=C0=CD=C8=C8 =C2=D3=C7=CE=C2 =D0=CE=D1=D1=C8=C8 =C8 =
-=C1=DB=C2=D8=C5=C3=CE =D1=D1=D1=D0
-=C0=D2=D2=C5=D1=D2=C0=D2=DB, =C4=C8=CF=CB=CE=CC=DB =D2=C5=D5=CD=C8=CA=D3=CC=
-=CE=C2 =C8 =C4=D0.
-100% =CD=C0=C4=C5=C6=CD=CE=D1=D2=DC =C8 =CA=CE=CD=D4=C8=C4=C5=CD=D6=C8=C0=
-=CB=DC=CD=CE=D1=D2=DC=20
-=C4=CE=D1=D2=C0=C2=CA=C0 =C2 =CB=DE=C1=CE=C9 =D0=C5=C3=C8=CE=CD
-=C2=CE=C7=CC=CE=C6=CD=CE =C1=C5=C7 =CF=D0=C5=C4=CE=CF=CB=C0=D2=DB
-=CF=C8=D8=C8=D2=C5 dipl-7nl8rL9eBqAvJsYlp49lxw@public.gmane.org=20
+On Thursday 28 April 2005 15:42, Pavel Machek wrote:
+> Hi!
+>
+>  > > On ia64, with tiger_defconfig:
+>  > >
+>  > > kernel/built-in.o(.text+0x59e12): In function `suspend_prepare':
+>  > > : undefined reference to `disable_nonboot_cpus'
+>  > >
+>  > > kernel/built-in.o(.text+0x59e62): In function `suspend_prepare':
+>  > > : undefined reference to `enable_nonboot_cpus'
+>  > >
+>  > > kernel/built-in.o(.text+0x5a222): In function `suspend_finish':
+>  > > : undefined reference to `enable_nonboot_cpus'
+>  >
+>  > Pavel,
+>  > Could IA64 do software suspend? There possibly are other troubles here.
+>
+>  Someone would have to write low-level support. Bring me ia64 notebook
+>  and I'll do it ;-)))))))))))))))))))).
+>  =A0=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0 =A0=A0=
+=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=
+=A0=A0 =A0=A0=A0=A0=A0=A0=A0 Pavel
 
-=D1 =D3=C2=C0=C6=C5=CD=C8=C5=CC =C4=E8=EF=EB=EE=EC=FB
+I just checked DSDT on one ia64 box, it has S0, S4, S5 object.
+So, the platform should have sufficient support for sleep-to-disk.
 
-
+Thanks,
+Luming
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by: Tell us your software development plans!
 Take this survey and enter to win a one-year sub to SourceForge.net
 Plus IDC's 2005 look-ahead and a copy of this survey
-Click here to start!  http://www.idcswdc.com/cgi-bin/survey?id=3D105hix
+Click here to start!  http://www.idcswdc.com/cgi-bin/survey?id=105hix
