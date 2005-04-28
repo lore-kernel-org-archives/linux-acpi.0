@@ -1,15 +1,11 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: [PATCH 6/6]suspend/resume SMP support
-Date: Thu, 28 Apr 2005 00:41:08 -0700
-Message-ID: <20050428004108.3c670bf2.akpm@osdl.org>
-References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com>
-	<20050428002254.461fcf32.akpm@osdl.org>
-	<1114673297.26367.3.camel@sli10-desk.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: "≈‚‡" <cdsable-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Diplom
+Date: Thu, 28 Apr 2005 03:47:29 -0500
+Message-ID: <x6560sSmHBsIKkb.6cb2P.qmail@85.65.153.116>
+Reply-To: <cdsable-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1251
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1114673297.26367.3.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,27 +15,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pavel-AlSwsSmVLrQ@public.gmane.org, zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
-> On Thu, 2005-04-28 at 15:22, Andrew Morton wrote:
-> > -#ifdef CONFIG_HOTPLUG_CPU
-> > +#if defined(CONFIG_HOTPLUG_CPU) && defined(CONFIG_SOFTWARE_SUSPEND)
-> ACPI_SLEEP also requires it. So it will be
-> #if defined(CONFIG_HOTPLUG_CPU) && (defined(CONFIG_SOFTWARE_SUSPEND) || defined(CONFIG_ACPI_SLEEP))
-> 
+=CF=D0=CE=C4=C0=DE=D2=D1=DF =C4=C8=CF=CB=CE=CC=DB =CE =C2=DB=D1=D8=C5=CC =
+=CE=C1=D0=C0=C7=CE=C2=C0=CD=C8=C8 =C2=D3=C7=CE=C2 =D0=CE=D1=D1=C8=C8 =C8 =
+=C1=DB=C2=D8=C5=C3=CE =D1=D1=D1=D0
+=C0=D2=D2=C5=D1=D2=C0=D2=DB, =C4=C8=CF=CB=CE=CC=DB =D2=C5=D5=CD=C8=CA=D3=CC=
+=CE=C2 =C8 =C4=D0.
+100% =CD=C0=C4=C5=C6=CD=CE=D1=D2=DC =C8 =CA=CE=CD=D4=C8=C4=C5=CD=D6=C8=C0=
+=CB=DC=CD=CE=D1=D2=DC=20
+=C4=CE=D1=D2=C0=C2=CA=C0 =C2 =CB=DE=C1=CE=C9 =D0=C5=C3=C8=CE=CD
+=C2=CE=C7=CC=CE=C6=CD=CE =C1=C5=C7 =CF=D0=C5=C4=CE=CF=CB=C0=D2=DB
+=CF=C8=D8=C8=D2=C5 dipl-7nl8rL9eBqAvJsYlp49lxw@public.gmane.org=20
 
-But does setting CONFIG_ACPI_SLEEP cause kernel/power/smp.o to be actually
-compiled and linked?  I don't think so?
+=D1 =D3=C2=C0=C6=C5=CD=C8=C5=CC =C4=E8=EF=EB=EE=EC=FB
 
-Anyway, please send a tested fix.
+
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by: Tell us your software development plans!
 Take this survey and enter to win a one-year sub to SourceForge.net
 Plus IDC's 2005 look-ahead and a copy of this survey
-Click here to start!  http://www.idcswdc.com/cgi-bin/survey?id=105hix
+Click here to start!  http://www.idcswdc.com/cgi-bin/survey?id=3D105hix
