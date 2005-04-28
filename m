@@ -1,16 +1,13 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: [PATCH 6/6]suspend/resume SMP support
-Date: Thu, 28 Apr 2005 16:29:22 +0800
-Message-ID: <1114676961.26367.12.camel@sli10-desk.sh.intel.com>
-References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com>
-	 <20050428002254.461fcf32.akpm@osdl.org>
-	 <1114673297.26367.3.camel@sli10-desk.sh.intel.com>
-	 <20050428004108.3c670bf2.akpm@osdl.org>
+Date: Thu, 28 Apr 2005 10:35:00 +0200
+Message-ID: <20050428083459.GM1906@elf.ucw.cz>
+References: <1113283867.27646.434.camel@sli10-desk.sh.intel.com> <20050428002254.461fcf32.akpm@osdl.org> <1114673297.26367.3.camel@sli10-desk.sh.intel.com> <20050428004108.3c670bf2.akpm@osdl.org> <1114676961.26367.12.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050428004108.3c670bf2.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1114676961.26367.12.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,92 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-04-28 at 15:41, Andrew Morton wrote:
-> 
-> But does setting CONFIG_ACPI_SLEEP cause kernel/power/smp.o to be actually
-> compiled and linked?  I don't think so?
-> 
-> Anyway, please send a tested fix.
-Ha, this one should be ok. Only IA32 support SMP suspend now.
+Hi!
 
-Thanks,
-Shaohua
+> > But does setting CONFIG_ACPI_SLEEP cause kernel/power/smp.o to be actually
+> > compiled and linked?  I don't think so?
+> > 
+> > Anyway, please send a tested fix.
+> Ha, this one should be ok. Only IA32 support SMP suspend now.
 
----
-
- linux-2.6.11-root/drivers/acpi/Kconfig    |    2 +-
- linux-2.6.11-root/include/linux/suspend.h |    2 +-
- linux-2.6.11-root/kernel/power/Kconfig    |    6 +++++-
- linux-2.6.11-root/kernel/power/Makefile   |    6 +++---
- 4 files changed, 10 insertions(+), 6 deletions(-)
-
-diff -puN kernel/power/Makefile~kconfig kernel/power/Makefile
---- linux-2.6.11/kernel/power/Makefile~kconfig	2005-04-28 15:47:44.862281448 +0800
-+++ linux-2.6.11-root/kernel/power/Makefile	2005-04-28 16:12:04.285415408 +0800
-@@ -3,9 +3,9 @@ ifeq ($(CONFIG_PM_DEBUG),y)
- EXTRA_CFLAGS	+=	-DDEBUG
- endif
- 
--swsusp-smp-$(CONFIG_SMP)	+= smp.o
--
- obj-y				:= main.o process.o console.o pm.o
--obj-$(CONFIG_SOFTWARE_SUSPEND)	+= swsusp.o $(swsusp-smp-y) disk.o
-+obj-$(CONFIG_SOFTWARE_SUSPEND)	+= swsusp.o disk.o
-+
-+obj-$(CONFIG_SUSPEND_SMP)	+= smp.o
- 
- obj-$(CONFIG_MAGIC_SYSRQ)	+= poweroff.o
-diff -puN kernel/power/Kconfig~kconfig kernel/power/Kconfig
---- linux-2.6.11/kernel/power/Kconfig~kconfig	2005-04-28 15:48:45.195109464 +0800
-+++ linux-2.6.11-root/kernel/power/Kconfig	2005-04-28 16:24:22.821140912 +0800
-@@ -28,7 +28,7 @@ config PM_DEBUG
- 
- config SOFTWARE_SUSPEND
- 	bool "Software Suspend (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && PM && SWAP && (HOTPLUG_CPU || !SMP)
-+	depends on EXPERIMENTAL && PM && SWAP && (SUSPEND_SMP || !SMP)
- 	---help---
- 	  Enable the possibility of suspending the machine.
- 	  It doesn't need APM.
-@@ -72,3 +72,7 @@ config PM_STD_PARTITION
- 	  suspended image to. It will simply pick the first available swap 
- 	  device.
- 
-+config SUSPEND_SMP
-+	bool
-+	depends on HOTPLUG_CPU && X86 && PM
-+	default y
-diff -puN drivers/acpi/Kconfig~kconfig drivers/acpi/Kconfig
---- linux-2.6.11/drivers/acpi/Kconfig~kconfig	2005-04-28 15:52:38.148695136 +0800
-+++ linux-2.6.11-root/drivers/acpi/Kconfig	2005-04-28 15:53:01.707113712 +0800
-@@ -57,7 +57,7 @@ if ACPI_INTERPRETER
- 
- config ACPI_SLEEP
- 	bool "Sleep States (EXPERIMENTAL)"
--	depends on X86 && (!SMP || HOTPLUG_CPU)
-+	depends on X86 && (!SMP || SUSPEND_SMP)
- 	depends on EXPERIMENTAL
- 	default y
- 	---help---
-diff -puN include/linux/suspend.h~kconfig include/linux/suspend.h
---- linux-2.6.11/include/linux/suspend.h~kconfig	2005-04-28 15:53:50.261732288 +0800
-+++ linux-2.6.11-root/include/linux/suspend.h	2005-04-28 15:54:12.928286448 +0800
-@@ -58,7 +58,7 @@ static inline int software_suspend(void)
- }
- #endif
- 
--#ifdef CONFIG_HOTPLUG_CPU
-+#ifdef CONFIG_SUSPEND_SMP
- extern void disable_nonboot_cpus(void);
- extern void enable_nonboot_cpus(void);
- #else
-_
-
-
+Seems okay... Rafael, what is status of x86-64 smp swsusp?
+									Pavel
+-- 
+Boycott Kodak -- for their patent abuse against Java.
 
 
 -------------------------------------------------------
