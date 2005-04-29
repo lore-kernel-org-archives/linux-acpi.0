@@ -1,16 +1,13 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Re: Suspend2ram on Toshiba Tecra A3 OR problem with S3
-	on new 915PM chipset system appears to be with SATA/IDE
-Date: Fri, 29 Apr 2005 16:57:16 +1000
-Message-ID: <1114757836.10883.9.camel@desktop.cunningham.myip.net.au>
-References: <200504272244.j3RMibEf032018@fnapcf.fnal.gov>
-	 <20050429023842.4d927bdf@Wierszokleta.pl>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Re: Suspend2ram on Toshiba Tecra A3 OR problem with S3 on new 915PM chipset system appears to be with SATA/IDE
+Date: Fri, 29 Apr 2005 08:43:22 +0100
+Message-ID: <20050429074321.GA10475@srcf.ucam.org>
+References: <200504272244.j3RMibEf032018@fnapcf.fnal.gov> <20050428154326.GA9097@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050429023842.4d927bdf-c4cg+czvUqh2dnOJU1uSgA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050428154326.GA9097-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,44 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tomasz Kojm <tkojm-Vl9ZkupcxcOsTnJN9+BGXg@public.gmane.org>
-Cc: ron_-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ron-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ron-13hema8v3vg@public.gmane.org
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+On Thu, Apr 28, 2005 at 05:43:26PM +0200, Stefan Seyfried wrote:
 
-On Fri, 2005-04-29 at 10:38, Tomasz Kojm wrote:
-> In my case the video (integrated Intel 915GM graphic chipset) never 
-> resumes correctly. However, I've noticed very similar issues with the
-> disk. Sometimes the hdd led is always on after resume, sometimes not.
-> With the old SATA/IDE driver the disk seems to perform some operations
-> but at the end the system crashes totally and even the caps lock doesn't
-> work.
-> 
-> As an open-source developer I know from autopsy how much such e-mail are
-> frustrating to the developers. However it's impossible to me to prepare
-> a valuable bug report on bugzilla - at the moment I see no way to
-> reenable the LCD after resume (no acpi_sleep flag works on this system)
-> and the system crashes every time eliminating remote access to a
-> console.
+> The SATA drivers have no power-management support (i wonder how this could
+> happen, since they are brand new, but this is another story...). Jens Axboe
+> is fixing them up right now, you should be able to find patches for them on
+> LKML.
 
-Have you tried the various tools to post your video bios after resuming?
-In my case, I needed to use both video_post and vbetool vbestate restore
-to get a working configuration (and even then, it's not perfectly
-reliable yet - I'm running XFree86 4.3, and have been told it's better
-with Xorg. This is an i830, by the way.
+Is SATA supposed to be handled by the _GTF and _GTM/_STM methods in the 
+DSDT, or are those limited to PATA? Either way, we should probably get 
+round to supporting them - I'm coming up against a lot of hardware which 
+doesn't successfully resume IDE.
 
-Regards,
-
-Nigel
 -- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
-
-Maintainer of Suspend2 Kernel Patches http://suspend2.net
-
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
