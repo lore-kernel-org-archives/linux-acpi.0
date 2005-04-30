@@ -1,10 +1,10 @@
 From: Alex Kloss <Klossa-9geRo0GdX4nEGT4LFXijJFAmK9iY6Jt1@public.gmane.org>
 Subject: Erroneous ACPI DSDT in Fujitsu-Siemens Amilo Pro V2020
-Date: Sat, 30 Apr 2005 19:47:52 +0200
-Message-ID: <20050430194752.375cf7ed.Klossa@students.uni-marburg.de>
+Date: Sat, 30 Apr 2005 19:51:04 +0200
+Message-ID: <20050430195104.44c027e2.Klossa@students.uni-marburg.de>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="Multipart=_Sat__30_Apr_2005_19_47_52_+0200_o1vQ2uyOvK_VnnbA"
+ boundary="Multipart=_Sat__30_Apr_2005_19_51_04_+0200_Hs6GxChdBrGZ/Usc"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,7 +20,7 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---Multipart=_Sat__30_Apr_2005_19_47_52_+0200_o1vQ2uyOvK_VnnbA
+--Multipart=_Sat__30_Apr_2005_19_51_04_+0200_Hs6GxChdBrGZ/Usc
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
@@ -35,7 +35,8 @@ Alex
 
 
 
---Multipart=_Sat__30_Apr_2005_19_47_52_+0200_o1vQ2uyOvK_VnnbA
+
+--Multipart=_Sat__30_Apr_2005_19_51_04_+0200_Hs6GxChdBrGZ/Usc
 Content-Type: application/octet-stream;
  name="fujitsu-siemens-amilo-pro-v2020-dsdt.dsl.gz"
 Content-Disposition: attachment;
@@ -227,7 +228,7 @@ ivNWMnreBwDF0nPusPvrMnoIWE6PmprpZVihJvTWHyrU5ENlS3grQ4HR4m9d0P9LSjljxvLy2cpA
 eiUE33BBKCUdKJWseFW011rzDNectvK9PEfTlhMx1NfOeePaocN0oxkQiAsPsnt/cFNuikQ71P/v
 TyjH/wMYKRikFI0BAA==
 
---Multipart=_Sat__30_Apr_2005_19_47_52_+0200_o1vQ2uyOvK_VnnbA--
+--Multipart=_Sat__30_Apr_2005_19_51_04_+0200_Hs6GxChdBrGZ/Usc--
 
 
 -------------------------------------------------------
