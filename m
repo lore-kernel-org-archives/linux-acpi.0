@@ -1,60 +1,70 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Re: Suspend2ram on Toshiba Tecra A3 OR problem with S3
-	on new 915PM chipset system appears to be with SATA/IDE
-Date: Sat, 30 Apr 2005 11:27:10 +1000
-Message-ID: <1114824430.12853.6.camel@desktop.cunningham.myip.net.au>
-References: <200504272244.j3RMibEf032018@fnapcf.fnal.gov>
-	 <20050429023842.4d927bdf@Wierszokleta.pl>
-	 <1114757836.10883.9.camel@desktop.cunningham.myip.net.au>
-	 <20050429210151.7a5d7f03@Wierszokleta.pl>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: Benoit Boissinot <bboissin@gmail.com>
+Subject: Re: [PATCH 1/6]sep initializing rework
+Date: Sat, 30 Apr 2005 14:06:56 +0200
+Message-ID: <40f323d0050430050612fb15c9@mail.gmail.com>
+References: <1113283845.27646.424.camel@sli10-desk.sh.intel.com>
+Reply-To: Benoit Boissinot <bboissin@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050429210151.7a5d7f03-c4cg+czvUqh2dnOJU1uSgA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tomasz Kojm <tkojm-Vl9ZkupcxcOsTnJN9+BGXg@public.gmane.org>
-Cc: ron-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ron-13hema8v3vg@public.gmane.org, tk-/1co0IagGzoYDkwjdqtpGQ@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261203AbVD3MHP@vger.kernel.org>
+In-Reply-To: <1113283845.27646.424.camel@sli10-desk.sh.intel.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Li Shaohua <shaohua.li@intel.com>
+Cc: lkml <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>, Zwane Mwaikambo <zwane@linuxpower.ca>, Andrew Morton <akpm@osdl.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
-
-On Sat, 2005-04-30 at 05:01, Tomasz Kojm wrote:
-> > Have you tried the various tools to post your video bios after
-> > resuming? In my case, I needed to use both video_post and vbetool
-> > vbestate restore to get a working configuration (and even then, it's
-> > not perfectly reliable yet - I'm running XFree86 4.3, and have been
-> > told it's better with Xorg. This is an i830, by the way.
+On 4/12/05, Li Shaohua <shaohua.li@intel.com> wrote:
+> Hi,
+> These patches (together with 5 patches followed this one) are updated
+> suspend/resume SMP patches. The patches fixed some bugs and do clean up
+> as suggested. Now they work for both suspend-to-ram and suspend-to-disk.
+> Patches are against 2.6.12-rc2-mm3.
 > 
-> It's not possible to run external commands because after every resume
-> the system doesn't react on keyboard events at all.
+> Thanks,
+> Shaohua
+> 
+> ---
+> Make SEP init per-cpu, so it is hotplug safed.
+> 
+> Signed-off-by: Li Shaohua<shaohua.li@intel.com>
+> 
+> ---
+> +++ linux-2.6.11-root/arch/i386/power/cpu.c     2005-04-12 10:36:00.175169792 +0800
+> @@ -33,8 +33,6 @@ unsigned long saved_context_esp, saved_c
+>  unsigned long saved_context_esi, saved_context_edi;
+>  unsigned long saved_context_eflags;
+> 
+> -extern void enable_sep_cpu(void *);
+> -
+>  void __save_processor_state(struct saved_context *ctxt)
+>  {
+>         kernel_fpu_begin();
 
-Are you able to tell whether scripts run?
 
-Regards,
+> diff -puN include/asm-i386/smp.h~sep_init_cleanup include/asm-i386/smp.h
+> --- linux-2.6.11/include/asm-i386/smp.h~sep_init_cleanup        2005-04-12 10:36:00.170170552 +0800
+> +++ linux-2.6.11-root/include/asm-i386/smp.h    2005-04-12 10:36:00.176169640 +0800
+> @@ -37,6 +37,9 @@ extern int smp_num_siblings;
+>  extern cpumask_t cpu_sibling_map[];
+>  extern cpumask_t cpu_core_map[];
+> 
+> +extern int sysenter_setup(void);
+> +extern void enable_sep_cpu(void);
+> +
+>  extern void smp_flush_tlb(void);
+>  extern void smp_message_irq(int cpl, void *dev_id, struct pt_regs *regs);
+>  extern void smp_invalidate_rcv(void);          /* Process an NMI */
+> _
 
-Nigel
--- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
+This change adds a warning when CONFIG_SMP is not set:
 
-Maintainer of Suspend2 Kernel Patches http://suspend2.net
+arch/i386/power/cpu.c: In function '__restore_processor_state':
+arch/i386/power/cpu.c:137: warning: implicit declaration of function
+'enable_sep_cpu'
+Maybe those functions should be defined somewhere else.
 
+regards,
 
-
--------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.
-Get your fingers limbered up and give it your best shot. 4 great events, 4
-opportunities to win big! Highest score wins.NEC IT Guy Games. Play to
-win an NEC 61 plasma display. Visit http://www.necitguy.com/?r=20
+Benoit
