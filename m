@@ -1,19 +1,18 @@
-From: Tomasz Kojm <tkojm-Vl9ZkupcxcOsTnJN9+BGXg@public.gmane.org>
+From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
 Subject: Re: Re: Suspend2ram on Toshiba Tecra A3 OR problem with S3
- on new 915PM chipset system appears to be with SATA/IDE
-Date: Sat, 30 Apr 2005 04:00:07 +0200
-Message-ID: <20050430040007.0a90cde4@Wierszokleta.pl>
+	on new 915PM chipset system appears to be with SATA/IDE
+Date: Sat, 30 Apr 2005 11:27:10 +1000
+Message-ID: <1114824430.12853.6.camel@desktop.cunningham.myip.net.au>
 References: <200504272244.j3RMibEf032018@fnapcf.fnal.gov>
-	<20050429023842.4d927bdf@Wierszokleta.pl>
-	<1114757836.10883.9.camel@desktop.cunningham.myip.net.au>
-	<20050429210151.7a5d7f03@Wierszokleta.pl>
-	<1114824430.12853.6.camel@desktop.cunningham.myip.net.au>
+	 <20050429023842.4d927bdf@Wierszokleta.pl>
+	 <1114757836.10883.9.camel@desktop.cunningham.myip.net.au>
+	 <20050429210151.7a5d7f03@Wierszokleta.pl>
+Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed;
- boundary=Signature_Sat__30_Apr_2005_04_00_07_+0200_PvRwtE3Zv8xHxNnP;
- protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1114824430.12853.6.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
+In-Reply-To: <20050429210151.7a5d7f03-c4cg+czvUqh2dnOJU1uSgA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,51 +22,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: ron-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org, ron-13hema8v3vg@public.gmane.org, tk-/1co0IagGzoYDkwjdqtpGQ@public.gmane.org
+To: Tomasz Kojm <tkojm-Vl9ZkupcxcOsTnJN9+BGXg@public.gmane.org>
+Cc: ron-vjLZTnyA75mSFZzDrWHoTA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ron-13hema8v3vg@public.gmane.org, tk-/1co0IagGzoYDkwjdqtpGQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---Signature_Sat__30_Apr_2005_04_00_07_+0200_PvRwtE3Zv8xHxNnP
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi.
 
-On Sat, 30 Apr 2005 11:27:10 +1000
-Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org> wrote:
+On Sat, 2005-04-30 at 05:01, Tomasz Kojm wrote:
+> > Have you tried the various tools to post your video bios after
+> > resuming? In my case, I needed to use both video_post and vbetool
+> > vbestate restore to get a working configuration (and even then, it's
+> > not perfectly reliable yet - I'm running XFree86 4.3, and have been
+> > told it's better with Xorg. This is an i830, by the way.
+> 
+> It's not possible to run external commands because after every resume
+> the system doesn't react on keyboard events at all.
 
-> Hi.
->=20
-> On Sat, 2005-04-30 at 05:01, Tomasz Kojm wrote:
-> > > Have you tried the various tools to post your video bios after
-> > > resuming? In my case, I needed to use both video_post and vbetool
-> > > vbestate restore to get a working configuration (and even then,
-> > > it's not perfectly reliable yet - I'm running XFree86 4.3, and
-> > > have been told it's better with Xorg. This is an i830, by the way.
-> >=20
-> > It's not possible to run external commands because after every
-> > resume the system doesn't react on keyboard events at all.
->=20
-> Are you able to tell whether scripts run?
+Are you able to tell whether scripts run?
 
-They don't. The system crashes during resume at a kernel level.
+Regards,
 
---=20
-   oo    .....         Tomasz Kojm <tkojm-Vl9ZkupcxcOsTnJN9+BGXg@public.gmane.org>
-  (\/)\.........         http://www.ClamAV.net/gpg/tkojm.gpg
-     \..........._         0DCA5A08407D5288279DB43454822DC8985A444B
-       //\   /\              Sat Apr 30 03:58:36 CEST 2005
+Nigel
+-- 
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
+Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
 
---Signature_Sat__30_Apr_2005_04_00_07_+0200_PvRwtE3Zv8xHxNnP
-Content-Type: application/pgp-signature
+Maintainer of Suspend2 Kernel Patches http://suspend2.net
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFCcuanVIItyJhaREsRAm3sAKCPK5FhKHRJr0wtU89xOdu1s1wppgCfY8qy
-sYV35FbxFKoU1IJof0v2ujE=
-=iTvq
------END PGP SIGNATURE-----
-
---Signature_Sat__30_Apr_2005_04_00_07_+0200_PvRwtE3Zv8xHxNnP--
 
 
 -------------------------------------------------------
