@@ -1,13 +1,11 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: Re: Need help interpreting my DSDT
-Date: Tue, 3 May 2005 10:12:22 +0200
-Message-ID: <20050503101222.071a4234@localhost.localdomain>
-References: <1083513325.23963.8.camel@scotchmobil>
+From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Subject: bus master activity must be polled?
+Date: Tue, 03 May 2005 14:08:43 +0200
+Message-ID: <427769CB.4050802@renninger.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1083513325.23963.8.camel@scotchmobil>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,105 +15,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Janosch,
+Hi,
+
+I searched the APCI spec up and down, but couldn't find
+anything where bus master activity can be read out
+through interrupts?
+
+Even something is listed under Fixed ACPI Events as bus master request,
+what sounds like some kind of notification through hardware (p.137, spec 3.0),
+I think it is not possible to get notified?
+
+Is this right, that bm_sts always needs to be polled, then?
+If I understand things right, this is how it is (must be?) done:
+
+  - check bm_sts bit on every idle() call
+  - if bm_sts bit is set wait at least xy ms (32 ms (100Hz), 40 ms (1000Hz))
+    before triggering deeper sleeping states (C3, ...).
+  - this is because bm_sts bit will be set when a bus master transaction
+    started. When it is stopped cannot be detected, therefore it is assumed (cannot not
+    be assured?) that the transaction finished after at least 30 ms. If bm_sts
+    is not set again -> no bm activity -> trigger C3 or deeper states.
 
 
-On Sun, 02 May 2004 17:55:25 +0200 Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org> wrote:
+Playing around a bit with C-states I recognised that bm activity appears to
+be set quite often.
+If there would be the possibility of a notification if all bm transactions finished,
+the efficiency of C-states could probably increased significantly (e.g. a realistic
+average of bm activity appearing on my machine is ~100ms, waiting 40ms means the machine can be in
+deeper sleeping states not more than 60% of total time, even if idle).
+Maybe there are other ways to detect bus master activity than using ACPI interface?
 
-> Hi, 
-> sorry, if you get this mail two times... 
+Could somebody confirm whether this is right or whether I am wrong in some points, please?
+Does somebody have any idea how this could be tweaked?
 
-Are you posting from an outer planet or from the past? Please check your
-system date, it shows 2004 (IIRC we are in 2005). This might help your emails
-to get a reply (otherwise they might not be seen at all).
+Thanks,
 
-
-Regards,
-
-> Okay, I figured out, that my notbeook supports up to 4 C-states. The
-> problem is, that if I boot under Linux the ACPI returns only 1 C-state. 
-> I tracked this to following asl code :
->  If (\_SB.INV7)
->                 {
->                     Return (NOC3)
->                 }
-> 
->                 If (\_SB.BATO)
->                 {
->                     Return (BCST)
->                 }
->                 Else
->                 {
->                     Return (ACST)
->                 }
-> In my case NOC3 is returned. This means that \_SB.INV7 is set. My
-> question now is what exactly is \_SB.INV7 ? 
-> I found one method manupilating \_SB.INV7 :
->   Scope (\_SB)
->     {
->         OperationRegion (GPIO, SystemIO, IO2B, 0x40)
->         Field (GPIO, ByteAcc, NoLock, Preserve)
->         {
->             Offset (0x0C), 
->                 ,   7, 
->             G07S,   1, 
->                 ,   9, 
->             G17S,   1, 
->                 ,   9, 
->             G27S,   1, 
->             G28S,   1, 
->             Offset (0x2C), 
->                 ,   3, 
->             BT1S,   1, 
->                 ,   3, 
->             INV7,   1, 
->                 ,   3, 
->             LIDL,   1, 
->             Offset (0x38), 
->             BKLT,   1, 
->             BAYI,   2
->         }
->     }
-> 
->     Scope (\_GPE)
->     {
->         Method (_L17, 0, NotSerialized)
->         {
->             If (\_SB.INV7)
->             {
->                 Store (0x00, \_SB.INV7)
->             }
->             Else
->             {
->                 Store (0x01, \_SB.INV7)
->             }
-> 
->             Notify (\_PR.CPU1, 0x81)
->         }
-> So has anyone an idea what INV7 could be ? 
-> THX
->    Janosch
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: NEC IT Guy Games.
-> Get your fingers limbered up and give it your best shot. 4 great events, 4
-> opportunities to win big! Highest score wins.NEC IT Guy Games. Play to
-> win an NEC 61 plasma display. Visit http://www.necitguy.com/?r=20
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-
-
--- 
-wwp
-
+     Thomas
 
 
 -------------------------------------------------------
