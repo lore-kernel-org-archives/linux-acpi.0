@@ -1,11 +1,13 @@
-From: Heiko Gerstung <hg-Zwoj8m1Se4ooLuGpnUaJU7NAH6kLmebB@public.gmane.org>
-Subject: weird ACPI problem
-Date: Wed, 04 May 2005 21:44:08 +0200
-Message-ID: <42792608.8040707@heiko-gerstung.de>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: bus master activity must be polled?
+Date: Wed, 4 May 2005 23:51:28 +0200
+Message-ID: <20050504215128.GA7874@isilmar.linta.de>
+References: <426CB990.9030306@renninger.de> <427769CB.4050802@renninger.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <426CB990.9030306-smMupaH/RwJM7kwft8N7nw@public.gmane.org> <427769CB.4050802-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,41 +17,77 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ACPI Gurus ...
+Hi,
 
-I have a weird ACPI related problem with my ACER C100 Laptop/TabletPC.
 
-I'd like to install Gentoo Linux on it and everything seems to work
-flawlessy except power management, namely ACPI. I tried a number of
-different kernel versions (including 2.6.11.7 and 2.6.12-rc3 with ACPI
-patches from acpi.sourceforge.net), configs and parameters but nothing
-helped, the dmesg output always says "ACPI: Interpreter disabled", no
-matter what I tried.
+Reading the ICH4-M spec from intel (doc 252337 rev. 01), p. 371 actually
+increases the confusion, so I tested it:
 
-The strange thing is that ACPI works like a charm if I boot KNOPPIX from
-my external DVD drive. I compiled the same kernel version Knoppix is
-using and I used the same config (only added ReiserFS and the RTL8139
-driver for my NIC) but still no improvement. Klaus Knopper (creator of
-Knoppix) told me that he is using a vanilla kernel version 2.6.11 from
-kernel.org and I even tried that one, nothing seems to help. A small
-number of other Acer C100 Linux users joined me, as no one has a working
-ACPI enabled kernel up and running, despite the fact that Knoppix runs fine.
+a) is the bit _only_ set if the CPU was in C3 and got awakened from there?
 
-It would be really appreciated if you could join the numerous people
-trying to help me, I opened a thread in the Gentoo forum where all my
-tries and log files etc. can be reviewed
-(http://forums.gentoo.org/viewtopic-t-331266.html).
+ANSWER: No. Even if only C2 is used, this bit is updated.
 
-Of course I can prepare a report of what I tried and what the results
-were here on the list, if you prefer that.
+b) will the bit stay at "1" even if there is no bus master activity going
+   on any longer?
 
-Thanks in advance for any hints or tips,
+ANSWER: Yes. It needs to be re-set by echo'ing "1".
 
-kind regards,
-Heiko
+c) if the bus master activity is only continuing (i.e. the transaction just
+   hasn't finished yet), is the bus master status set to zero?
+
+ANSWER: No. 
+
+                if (bm_status) {
+                        pr->power.bm_activity++;
+                        acpi_set_register(ACPI_BITREG_BUS_MASTER_STATUS,
+                                1, ACPI_MTX_DO_NOT_LOCK);
+                        /* instant re-check */
+                        acpi_get_register(ACPI_BITREG_BUS_MASTER_STATUS,
+                        &bm_status, ACPI_MTX_DO_NOT_LOCK);
+                        if (bm_status)
+                                bm_activity2++;
+                }
+
+showed that bm_activity2 was always (almost) equal to bm_activity, at least 
+when I looked ;)
+
+What does this mean?
+
+
+On Tue, May 03, 2005 at 02:08:43PM +0200, Thomas Renninger wrote:
+>   - this is because bm_sts bit will be set when a bus master transaction
+>     started.
+No, also when it hasn't finished yet.
+
+
+I think bm_status should influence how long we disable the idle tick, not
+the other way round:
+
+check bm_status
+	-> if it is not set, and the other requirements are fulfilled,
+		go to C3 or higher
+	-> if it is set => only C2, don't sleep for longer than, lets say, 
+		10 ms.
+
+	alternatively:
+	-> if it is set => only C2, don't sleep for longer than 1 ms, then
+	   re-check; if bus mastering is gone and CPU load and bus master
+	   load is low (some mask-based "weight", possibly?)
+		for (i=0; i<32; i++) {
+			weight += (bm_status & (0x1 << i)) * (33 - i);
+		}
+	   then enter C3 or higher for possibly longer time.
+
+I think we can be more aggressive in entering higher idle states if
+bm_status _was_ present but is no more.
+
+Opinions? Ideas? Test results on non-Intel CPUs/chipsets?
+
+	Dominik
 
 
 -------------------------------------------------------
