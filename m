@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: Call for help: list of machines with working S3
-Date: Wed, 4 May 2005 18:31:59 +0200
-Message-ID: <20050504163159.GA2377@elf.ucw.cz>
-References: <20050214211105.GA12808@elf.ucw.cz> <200503140719.01536.lkml@kcore.org> <20050314080029.GF22635@elf.ucw.cz> <200503141539.14018.lkml@kcore.org> <8764y356o8.fsf@gismo.pca.it>
+From: Heiko Gerstung <hg-Zwoj8m1Se4ooLuGpnUaJU7NAH6kLmebB@public.gmane.org>
+Subject: weird ACPI problem
+Date: Wed, 04 May 2005 21:44:08 +0200
+Message-ID: <42792608.8040707@heiko-gerstung.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8764y356o8.fsf-vpnYUZh4Q8kL5bzFcGmneg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +15,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi ACPI Gurus ...
 
-> Sorry for the late reply, but I made some more tests before.
-> 
-> On Mon 14 Mar 2005 15:39 +0100, Jan De Luyck wrote:
-> > On Monday 14 March 2005 09:00, Pavel Machek wrote:
-> >> Hi!
-> >>
-> >> >   * MySQL (hinders the actual suspension process and kicks the pc back to
-> >> >     where it was)
-> >>
-> >> Try this patch...
-> >
-> > Works nicely. Thanks.
-> 
-> The same happened to me on 2.6.12-rc2, once applied the patch, but
-> I've been using a plain 2.6.12-rc3 for 5 days and I'm getting S3 and
-> S4 without any problem on an IBM ThinkPad T42p (S3 with
-> acpi_sleep=s3_bios, as previously reported).
-> 
-> So, question: is this bug completely solved? In this case, the two
-> bugs [1] and [2] should be closed ;-)
+I have a weird ACPI related problem with my ACER C100 Laptop/TabletPC.
 
-It is not... I have a patch but don't know why it works => bad, not
-going to mainline.
+I'd like to install Gentoo Linux on it and everything seems to work
+flawlessy except power management, namely ACPI. I tried a number of
+different kernel versions (including 2.6.11.7 and 2.6.12-rc3 with ACPI
+patches from acpi.sourceforge.net), configs and parameters but nothing
+helped, the dmesg output always says "ACPI: Interpreter disabled", no
+matter what I tried.
 
-								Pavel
+The strange thing is that ACPI works like a charm if I boot KNOPPIX from
+my external DVD drive. I compiled the same kernel version Knoppix is
+using and I used the same config (only added ReiserFS and the RTL8139
+driver for my NIC) but still no improvement. Klaus Knopper (creator of
+Knoppix) told me that he is using a vanilla kernel version 2.6.11 from
+kernel.org and I even tried that one, nothing seems to help. A small
+number of other Acer C100 Linux users joined me, as no one has a working
+ACPI enabled kernel up and running, despite the fact that Knoppix runs fine.
 
--- 
-Boycott Kodak -- for their patent abuse against Java.
+It would be really appreciated if you could join the numerous people
+trying to help me, I opened a thread in the Gentoo forum where all my
+tries and log files etc. can be reviewed
+(http://forums.gentoo.org/viewtopic-t-331266.html).
+
+Of course I can prepare a report of what I tried and what the results
+were here on the list, if you prefer that.
+
+Thanks in advance for any hints or tips,
+
+kind regards,
+Heiko
 
 
 -------------------------------------------------------
