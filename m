@@ -1,13 +1,11 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Subject: Re: bus master activity must be polled?
-Date: Wed, 4 May 2005 23:51:28 +0200
-Message-ID: <20050504215128.GA7874@isilmar.linta.de>
-References: <426CB990.9030306@renninger.de> <427769CB.4050802@renninger.de>
+From: webshield-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org
+Subject: Spam mail warning notification! (Attachment Removal)
+Date: Thu, 05 May 2005 10:53:53 -0500
+Message-ID: <200505051554.j45Fs39G022060@pwsa1-ext.theocc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_1115308433_B78506032.R82506026"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <426CB990.9030306-smMupaH/RwJM7kwft8N7nw@public.gmane.org> <427769CB.4050802-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,77 +15,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
 
+------=_NextPart_000_1115308433_B78506032.R82506026
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-Reading the ICH4-M spec from intel (doc 252337 rev. 01), p. 371 actually
-increases the confusion, so I tested it:
+**************** eManager Notification *****************
 
-a) is the bit _only_ set if the CPU was in C3 and got awakened from there?
+The following mail was blocked since it contains sensitive content.
 
-ANSWER: No. Even if only C2 is used, this bit is updated.
+Source mailbox: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Destination mailbox(es): anna-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org
+Policy: Attachment Removal
+Attachment file name: doc.zip - application/octet-stream
+Action: Replaced with text
 
-b) will the bit stay at "1" even if there is no bus master activity going
-   on any longer?
+The Options Clearing Corporation does not accept attachments of this type, they are removed.
 
-ANSWER: Yes. It needs to be re-set by echo'ing "1".
+******************* End of message *********************
 
-c) if the bus master activity is only continuing (i.e. the transaction just
-   hasn't finished yet), is the bus master status set to zero?
+------=_NextPart_000_1115308433_B78506032.R82506026
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-ANSWER: No. 
+Received: from lists.sourceforge.net (pspsa1l.theocc.com [192.168.210.168])
+	by pwsa1-ext.theocc.com (8.12.10/Switch-2.0.1) with SMTP id j45FrMAF021948
+	for <anna-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org>; Thu, 5 May 2005 10:53:22 -0500 (CDT)
+Message-Id: <200505051553.j45FrMAF021948-jspvj6RT6LyGbPdl2WG8oVaTQe2KTcn/@public.gmane.org>
+Received: from source ([211.158.26.43]) by pspsa1l ([192.168.210.168]) with SMTP;
+	Thu, 05 May 2005 10:53:20 -0500
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: anna-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org
+Subject: Mail Delivery System
+Date: Thu, 5 May 2005 23:51:40 +0800
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0006_90119DB8.2603D8C9"
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-pstn-levels:     (C:80.0762 M:99.4056 P:95.9108 R:95.9108 S: 3.7691 )
+X-pstn-settings: 4 (0.2500:0.7500) pmCr
+X-pstn-addresses: from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> 
 
-                if (bm_status) {
-                        pr->power.bm_activity++;
-                        acpi_set_register(ACPI_BITREG_BUS_MASTER_STATUS,
-                                1, ACPI_MTX_DO_NOT_LOCK);
-                        /* instant re-check */
-                        acpi_get_register(ACPI_BITREG_BUS_MASTER_STATUS,
-                        &bm_status, ACPI_MTX_DO_NOT_LOCK);
-                        if (bm_status)
-                                bm_activity2++;
-                }
-
-showed that bm_activity2 was always (almost) equal to bm_activity, at least 
-when I looked ;)
-
-What does this mean?
-
-
-On Tue, May 03, 2005 at 02:08:43PM +0200, Thomas Renninger wrote:
->   - this is because bm_sts bit will be set when a bus master transaction
->     started.
-No, also when it hasn't finished yet.
-
-
-I think bm_status should influence how long we disable the idle tick, not
-the other way round:
-
-check bm_status
-	-> if it is not set, and the other requirements are fulfilled,
-		go to C3 or higher
-	-> if it is set => only C2, don't sleep for longer than, lets say, 
-		10 ms.
-
-	alternatively:
-	-> if it is set => only C2, don't sleep for longer than 1 ms, then
-	   re-check; if bus mastering is gone and CPU load and bus master
-	   load is low (some mask-based "weight", possibly?)
-		for (i=0; i<32; i++) {
-			weight += (bm_status & (0x1 << i)) * (33 - i);
-		}
-	   then enter C3 or higher for possibly longer time.
-
-I think we can be more aggressive in entering higher idle states if
-bm_status _was_ present but is no more.
-
-Opinions? Ideas? Test results on non-Intel CPUs/chipsets?
-
-	Dominik
+------=_NextPart_000_1115308433_B78506032.R82506026--
 
 
 -------------------------------------------------------
