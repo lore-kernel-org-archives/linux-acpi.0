@@ -1,11 +1,13 @@
-From: webshield-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org
-Subject: Spam mail warning notification! (Attachment Removal)
-Date: Thu, 05 May 2005 10:53:53 -0500
-Message-ID: <200505051554.j45Fs39G022060@pwsa1-ext.theocc.com>
+From: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
+Subject: ATI Rage Mobility P/M card wont post at resume, 2.6.11 kernel.
+Date: Fri, 6 May 2005 18:32:17 +0900
+Message-ID: <200505061832.18501.linux@celifornia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_1115308433_B78506032.R82506026"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,52 +20,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi
 
-------=_NextPart_000_1115308433_B78506032.R82506026
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+My Sony Vaio PCG-C1VRX can suspend and resume as well correctly, if some 
+modules and PCMCIA is shut off, but when it resumes, the screen wont post 
+anymore. That is funny, because even when suspended (To RAM) the screen is 
+making a very slight funky noise like electric noise, and if I tilt the 
+screen upward, I can see some text on the screen, so it isnt 100% shut off. 
+So it uses energy more than it should even when suspended. Anyways, I can 
+make it wake up by passing a boot argument to the kernel 
+(/boot/grub/menu.1st) This is how the entry looks like
 
-**************** eManager Notification *****************
+title           Debian GNU/Linux, kernel 2.6.11
+root            (hd0,1)
+kernel          /boot/vmlinuz-2.6.11 root=/dev/hda2 ro acpi_sleep=s3_bios
+initrd          /boot/initrd.img-2.6.11
+savedefault
+boot
 
-The following mail was blocked since it contains sensitive content.
+After doing this, the laptop wakes up about 90% of the time, and the remaining 
+10% is when PCMCIA cannot be cleanly removed, so it hangs. (can be recovered 
+though). Overall I am very very happy with ACPI and would like to thank to 
+the developers for the great work. My only question is that is there a way to 
+shut the screen completely off, so even when I am on battery and suspended, 
+it would last for a long time? And, the least important is that is there a 
+way to resume the screen without the kernel boot argument?
 
-Source mailbox: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Destination mailbox(es): anna-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org
-Policy: Attachment Removal
-Attachment file name: doc.zip - application/octet-stream
-Action: Replaced with text
+Thanks a lot
 
-The Options Clearing Corporation does not accept attachments of this type, they are removed.
-
-******************* End of message *********************
-
-------=_NextPart_000_1115308433_B78506032.R82506026
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-Received: from lists.sourceforge.net (pspsa1l.theocc.com [192.168.210.168])
-	by pwsa1-ext.theocc.com (8.12.10/Switch-2.0.1) with SMTP id j45FrMAF021948
-	for <anna-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org>; Thu, 5 May 2005 10:53:22 -0500 (CDT)
-Message-Id: <200505051553.j45FrMAF021948-jspvj6RT6LyGbPdl2WG8oVaTQe2KTcn/@public.gmane.org>
-Received: from source ([211.158.26.43]) by pspsa1l ([192.168.210.168]) with SMTP;
-	Thu, 05 May 2005 10:53:20 -0500
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: anna-Lp2syR6MrZzQT0dZR+AlfA@public.gmane.org
-Subject: Mail Delivery System
-Date: Thu, 5 May 2005 23:51:40 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0006_90119DB8.2603D8C9"
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-pstn-levels:     (C:80.0762 M:99.4056 P:95.9108 R:95.9108 S: 3.7691 )
-X-pstn-settings: 4 (0.2500:0.7500) pmCr
-X-pstn-addresses: from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> 
-
-------=_NextPart_000_1115308433_B78506032.R82506026--
+Benedek Frank
 
 
 -------------------------------------------------------
