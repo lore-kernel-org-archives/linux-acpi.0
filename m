@@ -1,16 +1,13 @@
-From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: wiki vandalisation?
-Date: Sat, 7 May 2005 17:31:16 +0000
-Message-ID: <200505071731.24532.G.Ohrner@post.rwth-aachen.de>
-References: <200505071808.20470.stefandoesinger@gmx.at>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Resume -> higher power drain?
+Date: Sat, 7 May 2005 21:59:46 +0200
+Message-ID: <20050507195946.GA8212@elf.ucw.cz>
+References: <427CC869.1050506@kernelconcepts.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3102187.a51eNKg1ai";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200505071808.20470.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <427CC869.1050506-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,52 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart3102187.a51eNKg1ai
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi!
 
-Am Samstag 07 Mai 2005 18:08 schrieb Stefan D=F6singer:
-> advertising. I don't think that's intended:
+> I just observed a strange phenomenon on my new T42p (latest BIOS).
+> I can successfully suspend and resume to and from S3 and S4!
+> Kernel ist vanilla 2.6.11.8 using ACPI support scripts from the Ubuntu
+> acpi-support package (removes critical modules, does vbe save and
+> restore, etc...)
+> So far very fine and indeed good work.
+> 
+> Before suspend I usually see a power consumption of about 16W including
+> WLAN, which is nicely low.
+> But strangely after resume from either S3 or S4 I have see a power
+> consumption of 19W+. This means ~3W more or in other words, roughly 20%
+> less runtime.
+> This is pretty annoying - not a real show-stoppper but it would be nicer
+> without ;)
+> 
+> I have no idea how to diagnose this. My first guess is that some devices
+> are not resumed correctly but I have no real idea how for example gather
+> device states before and after suspend, or other means to diagnose this.
+> 
+> So, if anyone has an idea how I can diagnose this and help this issue to
+> be solved, let me know. Or is there already a solution floating around?
 
-Seems to have been hijacked, I restored the most recent non-spammed=20
-revision of this page.
+Is cpufreq working correctly after resume?
 
-As it's a Wiki you can do so for yourself, search for the most recent=20
-intact revision in the PageHistory, click "Edit old revision", add a=20
-comment that you're restoring the page, and off you go. ;)
-
-Greetings,
-
-  Gunter
-
-=2D-=20
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+ http://aachen.uni-dsl.de/   -   Der direkte Draht in's Hochschulnetz! +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-And before anyone complains about the grammar, I'm so jetlagged that my=20
-hands aren't even in the same time zone...        -- (Terry Pratchett,=20
-alt.fan.pratchett)
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+                   PGP-verschl=FCsselte Mails bevorzugt!                 +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
---nextPart3102187.a51eNKg1ai
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQBCfPts0ORHvREo8l8RAkAWAKCaefflrcexMR4rMaIuUSjtTGFuDwCdFhdo
-u6/gEGtJfDcymH33TO7MLus=
-=LZCQ
------END PGP SIGNATURE-----
-
---nextPart3102187.a51eNKg1ai--
+									Pavel
+-- 
+Boycott Kodak -- for their patent abuse against Java.
 
 
 -------------------------------------------------------
