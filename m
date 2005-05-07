@@ -1,14 +1,13 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
 Subject: Re: Resume -> higher power drain?
-Date: Sat, 7 May 2005 16:44:17 +0200
-Message-ID: <20050507144417.GA3100@isilmar.linta.de>
-References: <427CC869.1050506@kernelconcepts.de> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <1115475297.10424.4.camel@localhost>
+Date: Sat, 07 May 2005 17:27:55 +0200
+Message-ID: <427CDE7B.5040306@kernelconcepts.de>
+References: <427CC869.1050506@kernelconcepts.de> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <1115475297.10424.4.camel@localhost> <20050507144417.GA3100@isilmar.linta.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <427CC869.1050506-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org> <427CC9B3.7060005-hi6Y0CQ0nG0@public.gmane.org> <1115475297.10424.4.camel@localhost>
+In-Reply-To: <20050507144417.GA3100-JwFqNg2GrOVrgjWwlLH9qw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,71 +17,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hendrik =?iso-8859-1?Q?J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Cc: =?ISO-8859-15?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---u3/rZRmxL6MmkK24
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Dominik Brodowski wrote:
+> On a P35, a friend of mine determined that suspend to mem leads to a higher
+> power consumption if X was running. But only when using the ATI driver. When
+> using the vesa driver, the power consumption is increased to a higher rate 
+> all the time...
 
-Hi,
+You can decrease power with the x.org drivers and using the
+	Option          "DynamicClocks" "on"
+in the device sectio of xorg.conf. This will enable dynamic clock
+scaling in the Radeon Fire GL and save quite some power.
 
-On Sat, May 07, 2005 at 04:14:56PM +0200, Hendrik J=FCrgens wrote:
-> Am Samstag, den 07.05.2005, 15:59 +0200 schrieb Carl-Daniel Hailfinger:
-> > Hi,
-> >=20
-> > Nils Faerber schrieb:
-> > > I just observed a strange phenomenon on my new T42p (latest BIOS).
-> > > [...]
-> > > Before suspend I usually see a power consumption of about 16W includi=
-ng
-> > > WLAN, which is nicely low.
-> > > But strangely after resume from either S3 or S4 I have see a power
-> > > consumption of 19W+. This means ~3W more or in other words, roughly 2=
-0%
-> > > less runtime.
-> >=20
-> > I didn't measure the power consumption of my Samsung P35, but after
-> > resume from S3 it gets hotter under the same load than before suspend.
-> > So I can somewhat confirm your report.
-> >=20
-> I can also confirm this behaviour with my acer tm4002lmi. it also has ja
-> power consumption ~16W and after resuming it has round about 20W.
+> Other than the video driver, you can check whether PCI devices changed their
+> status (they shouldn't) by doing "lspci -vvv > lspci_before.txt" before
+> suspend, "lspci -vvv > lspci_after.txt" after suspend, and checking 
+> "diff -u lspci_before.txt lspci_after.txt".
 
-On a P35, a friend of mine determined that suspend to mem leads to a higher
-power consumption if X was running. But only when using the ATI driver. When
-using the vesa driver, the power consumption is increased to a higher rate=
-=20
-all the time...
+Just did that, no change so it seems PCI is safe.
 
-Other than the video driver, you can check whether PCI devices changed their
-status (they shouldn't) by doing "lspci -vvv > lspci_before.txt" before
-suspend, "lspci -vvv > lspci_after.txt" after suspend, and checking=20
-"diff -u lspci_before.txt lspci_after.txt".
+> Also, does the bus master activity rates typically seen (check 
+> /proc/acpi/processor/*/power every once in a while) differ
+> between pre-suspend and post-suspend?
 
-Also, does the bus master activity rates typically seen (check=20
-/proc/acpi/processor/*/power every once in a while) differ
-between pre-suspend and post-suspend?
+This again is interesting!
+What does this bus master activity indicate?
 
-	Dominik
+Before suspend I see the CPU sporadically changing from C2 to C3 and
+back and bus master activity to have values between 00000000 and some
+higher values on activity, like 00200000 or even f0000000.
 
---u3/rZRmxL6MmkK24
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+After suspend/resume this changed!
+The CPU is now fixed at C2 and does not switch between C2 and C3.
+Also the bus master activity is ffffffff in idle state and changes to
+strange values on activity, like f7ffffff - quite different than before.
 
+So, good spot!
+And where can we go from here?
+Is this already the possible cause?
+
+> 	Dominik
+CU
+  nils faerber
+
+- --
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          Mob: +49-176-21024535
+- --
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Version: GnuPG v1.4.0 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFCfNRBPB5F+WW+qdIRAiYBAKCyb62hB1A42gAC2mRFPLnH3P7JEwCeO7kj
-c1JohSmrEMp/FcdjFvaxIUE=
-=sN+r
+iD8DBQFCfN57JXeIURG1qHgRAuKhAJoDzbAK6oN/2l+1/t6h5/mM3adGGQCfUFBy
+1uLU7TtifkeGf2DVmKqE8K8=
+=hprp
 -----END PGP SIGNATURE-----
-
---u3/rZRmxL6MmkK24--
 
 
 -------------------------------------------------------
