@@ -1,13 +1,11 @@
-From: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
-Subject: ATI Rage Mobility P/M card wont post at resume, 2.6.11 kernel.
-Date: Fri, 6 May 2005 18:32:17 +0900
-Message-ID: <200505061832.18501.linux@celifornia.com>
+From: Heiko Gerstung <hg-Zwoj8m1Se4ooLuGpnUaJU7NAH6kLmebB@public.gmane.org>
+Subject: Something seems to be wrong with my RSDP
+Date: Sat, 07 May 2005 14:28:32 +0200
+Message-ID: <427CB470.4060700@heiko-gerstung.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,35 +18,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Hi!
 
-My Sony Vaio PCG-C1VRX can suspend and resume as well correctly, if some 
-modules and PCMCIA is shut off, but when it resumes, the screen wont post 
-anymore. That is funny, because even when suspended (To RAM) the screen is 
-making a very slight funky noise like electric noise, and if I tilt the 
-screen upward, I can see some text on the screen, so it isnt 100% shut off. 
-So it uses energy more than it should even when suspended. Anyways, I can 
-make it wake up by passing a boot argument to the kernel 
-(/boot/grub/menu.1st) This is how the entry looks like
+I went through the process of cleaning up my DSDT with iasl and fixed it
+for my Acer C100, it went from 47 errors/0 warnings to 0 errors/0
+warnings, but even compiling this into my kernel did not enable ACPI on
+my machine.
 
-title           Debian GNU/Linux, kernel 2.6.11
-root            (hd0,1)
-kernel          /boot/vmlinuz-2.6.11 root=/dev/hda2 ro acpi_sleep=s3_bios
-initrd          /boot/initrd.img-2.6.11
-savedefault
-boot
+I hacked the kernel (drivers/acpi/tables.c) and removed the checksum
+test for my RSDP, now it fails with the error message
+"ACPI: No System Description Table (RSDT/XSDT) specified in RSDP"
 
-After doing this, the laptop wakes up about 90% of the time, and the remaining 
-10% is when PCMCIA cannot be cleanly removed, so it hangs. (can be recovered 
-though). Overall I am very very happy with ACPI and would like to thank to 
-the developers for the great work. My only question is that is there a way to 
-shut the screen completely off, so even when I am on battery and suspended, 
-it would last for a long time? And, the least important is that is there a 
-way to resume the screen without the kernel boot argument?
+Which brings me to the point where I think that the reading of my RSDP
+completely fails (therefore the checksum test fails and no DSDT can be
+found somehow).
 
-Thanks a lot
+Is there any ACPI guru alive who could give me a hint why getting the
+RSDP cannot be read and what I could check/alter to fix this? Remember:
+The Knoppix kernel works fine, and I am currently trying to get an exact
+copy of the source tree for that kernel in order to find out what's the
+difference...
 
-Benedek Frank
+If I get my kernel up and running with ACPI I will check whether my DSDT
+runs fine and contribute it to your database, as there is currently no
+fixed DSDT available for my Acer Travelmate C100 ...
+
+Kind regards,
+Heiko
+
+
+
 
 
 -------------------------------------------------------
