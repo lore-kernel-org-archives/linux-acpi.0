@@ -1,9 +1,9 @@
-From: Heiko Gerstung <hg-Zwoj8m1Se4ooLuGpnUaJU7NAH6kLmebB@public.gmane.org>
-Subject: Something seems to be wrong with my RSDP
-Date: Sat, 07 May 2005 14:28:32 +0200
-Message-ID: <427CB470.4060700@heiko-gerstung.de>
+From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Resume -> higher power drain?
+Date: Sat, 07 May 2005 15:53:45 +0200
+Message-ID: <427CC869.1050506@kernelconcepts.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,39 +15,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
 Hi!
+I just observed a strange phenomenon on my new T42p (latest BIOS).
+I can successfully suspend and resume to and from S3 and S4!
+Kernel ist vanilla 2.6.11.8 using ACPI support scripts from the Ubuntu
+acpi-support package (removes critical modules, does vbe save and
+restore, etc...)
+So far very fine and indeed good work.
 
-I went through the process of cleaning up my DSDT with iasl and fixed it
-for my Acer C100, it went from 47 errors/0 warnings to 0 errors/0
-warnings, but even compiling this into my kernel did not enable ACPI on
-my machine.
+Before suspend I usually see a power consumption of about 16W including
+WLAN, which is nicely low.
+But strangely after resume from either S3 or S4 I have see a power
+consumption of 19W+. This means ~3W more or in other words, roughly 20%
+less runtime.
+This is pretty annoying - not a real show-stoppper but it would be nicer
+without ;)
 
-I hacked the kernel (drivers/acpi/tables.c) and removed the checksum
-test for my RSDP, now it fails with the error message
-"ACPI: No System Description Table (RSDT/XSDT) specified in RSDP"
+I have no idea how to diagnose this. My first guess is that some devices
+are not resumed correctly but I have no real idea how for example gather
+device states before and after suspend, or other means to diagnose this.
 
-Which brings me to the point where I think that the reading of my RSDP
-completely fails (therefore the checksum test fails and no DSDT can be
-found somehow).
+So, if anyone has an idea how I can diagnose this and help this issue to
+be solved, let me know. Or is there already a solution floating around?
 
-Is there any ACPI guru alive who could give me a hint why getting the
-RSDP cannot be read and what I could check/alter to fix this? Remember:
-The Knoppix kernel works fine, and I am currently trying to get an exact
-copy of the source tree for that kernel in order to find out what's the
-difference...
+Thanks!
 
-If I get my kernel up and running with ACPI I will check whether my DSDT
-runs fine and contribute it to your database, as there is currently no
-fixed DSDT available for my Acer Travelmate C100 ...
+CU
+  nils faerber
 
-Kind regards,
-Heiko
+- --
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          Mob: +49-176-21024535
+- --
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-
-
+iD8DBQFCfMhpJXeIURG1qHgRAt/BAKCJezug3PTVtwBwhmXAlowh50V8hQCg3plR
+4XsEhFqbj6KggagEH4L0DK4=
+=1BGX
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
