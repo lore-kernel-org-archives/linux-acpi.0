@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: Resume -> higher power drain?
-Date: Sat, 7 May 2005 21:59:46 +0200
-Message-ID: <20050507195946.GA8212@elf.ucw.cz>
-References: <427CC869.1050506@kernelconcepts.de>
+Date: Sat, 7 May 2005 22:02:25 +0200
+Message-ID: <20050507200225.GB8212@elf.ucw.cz>
+References: <427CC869.1050506@kernelconcepts.de> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <1115475297.10424.4.camel@localhost> <20050507144417.GA3100@isilmar.linta.de> <427CDE7B.5040306@kernelconcepts.de> <427CE3EF.1010005@kernelconcepts.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <427CC869.1050506-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+In-Reply-To: <427CE3EF.1010005-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,36 +18,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, Hendrik =?iso-8859-1?Q?J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I just observed a strange phenomenon on my new T42p (latest BIOS).
-> I can successfully suspend and resume to and from S3 and S4!
-> Kernel ist vanilla 2.6.11.8 using ACPI support scripts from the Ubuntu
-> acpi-support package (removes critical modules, does vbe save and
-> restore, etc...)
-> So far very fine and indeed good work.
+> >>>Also, does the bus master activity rates typically seen (check 
+> >>>/proc/acpi/processor/*/power every once in a while) differ
+> >>>between pre-suspend and post-suspend?
+> > This again is interesting!
+> > What does this bus master activity indicate?
+> > 
+> > Before suspend I see the CPU sporadically changing from C2 to C3 and
+> > back and bus master activity to have values between 00000000 and some
+> > higher values on activity, like 00200000 or even f0000000.
+> > 
+> > After suspend/resume this changed!
+> > The CPU is now fixed at C2 and does not switch between C2 and C3.
+> > Also the bus master activity is ffffffff in idle state and changes to
+> > strange values on activity, like f7ffffff - quite different than before.
 > 
-> Before suspend I usually see a power consumption of about 16W including
-> WLAN, which is nicely low.
-> But strangely after resume from either S3 or S4 I have see a power
-> consumption of 19W+. This means ~3W more or in other words, roughly 20%
-> less runtime.
-> This is pretty annoying - not a real show-stoppper but it would be nicer
-> without ;)
+> OK, just fixed this ;)
 > 
-> I have no idea how to diagnose this. My first guess is that some devices
-> are not resumed correctly but I have no real idea how for example gather
-> device states before and after suspend, or other means to diagnose this.
+> The problem seemed to be related to suspend/resume scripts, so to say. I
+> did enable vbetool to save/restore VESA state and doing vbetool post.
 > 
-> So, if anyone has an idea how I can diagnose this and help this issue to
-> be solved, let me know. Or is there already a solution floating around?
+> Using s3_bios resume this is not necessary!
+> 
+> And after disabling vbetool usage at all the bus master activity is back
+> to normal again after resume!
+> 
+> So at least for my T42p I can recommend NOT to use vbetool at all for
+> suspend/resume but rather to use s3_bios!
 
-Is cpufreq working correctly after resume?
+Can you suggest a patch to Documentation/power/video.txt?
+								Pavel
 
-									Pavel
 -- 
 Boycott Kodak -- for their patent abuse against Java.
 
