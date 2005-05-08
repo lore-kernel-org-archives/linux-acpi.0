@@ -1,13 +1,9 @@
-From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: Re: Resume -> higher power drain?
-Date: Sun, 08 May 2005 00:57:28 +0200
-Message-ID: <427D47D8.60104@kernelconcepts.de>
-References: <427CC869.1050506@kernelconcepts.de> <20050507195946.GA8212@elf.ucw.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Dean Townsley <dean-5NrKhQnM7FRWk0Htik3J/w@public.gmane.org>
+Subject: Re: Something seems to be wrong with my RSDP
+Date: Sun, 08 May 2005 17:59:14 -0500
+Message-ID: <E1DUujy-0003sP-Om@variable.uchicago.edu>
+References: <427CB470.4060700@heiko-gerstung.de>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050507195946.GA8212-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,60 +13,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Heiko Gerstung <hg-Zwoj8m1Se4ooLuGpnUaJU7NAH6kLmebB@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Heiko,
 
-Pavel Machek wrote:
-> Hi!
+I'm glad you've worked on this.  I've never had a chance to fix up the
+dsdt table.  I was able to get the kernel to ignore the RSDP checksum
+error with patch below.
 
-Hi!
+I did this because the 2.4.20 + some old acpi patch that has been
+working for years on the c100 always had this "Invalid checksum"
+error, but worked anyway.  Comparing the code, the old patch didn't
+disable acpi if the RSDP table failed to parse properly, it just
+skipped some stuff and went on.  I don't know if this is right (or a
+really bad idea for that matter) but at least it gets it to load and
+use the DSDT.
 
->>Before suspend I usually see a power consumption of about 16W including
->>WLAN, which is nicely low.
->>But strangely after resume from either S3 or S4 I have see a power
->>consumption of 19W+. This means ~3W more or in other words, roughly 20%
->>less runtime.
->>This is pretty annoying - not a real show-stoppper but it would be nicer
->>without ;)
->>
->>I have no idea how to diagnose this. My first guess is that some devices
->>are not resumed correctly but I have no real idea how for example gather
->>device states before and after suspend, or other means to diagnose this.
->>
->>So, if anyone has an idea how I can diagnose this and help this issue to
->>be solved, let me know. Or is there already a solution floating around?
-> 
-> Is cpufreq working correctly after resume?
+Could you send me the DSDT you've fixed so I could try it out too :)
 
-As to all I can observe, yes.
-I have powernowd running and it nicely changes frequency up and down and
-changes show up in /proc/cpuinfo accordingly (as well as in gkrellm's
-cpu frequency monitor).
-So I guess, yes, it works.
+Thanks,
+-Dean
 
-Any other ideas what to check for?
 
-> 									Pavel
-CU
-  nils faerber
-
-- --
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          Mob: +49-176-21024535
-- --
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFCfUfYJXeIURG1qHgRAoPSAKCBFTkCPSTUyPBCgsV33iwYZSaprQCfWVp/
-6mgly24OKJyMbgcW+twdq54=
-=BQFP
------END PGP SIGNATURE-----
+diff -ur linux-2.6.11-orig/arch/i386/kernel/acpi/boot.c linux-2.6.11/arch/i386/kernel/acpi/boot.c
+--- linux-2.6.11-orig/arch/i386/kernel/acpi/boot.c	Wed Mar  2 01:38:25 2005
++++ linux-2.6.11/arch/i386/kernel/acpi/boot.c	Sun May  8 17:01:44 2005
+@@ -849,7 +849,7 @@
+ 	 */
+ 	error = acpi_table_init();
+ 	if (error) {
+-		disable_acpi();
++		/* disable_acpi(); */ 
+ 		return error;
+ 	}
+ 
+diff -ur linux-2.6.11-orig/arch/i386/kernel/setup.c linux-2.6.11/arch/i386/kernel/setup.c
+--- linux-2.6.11-orig/arch/i386/kernel/setup.c	Wed Mar  2 01:38:08 2005
++++ linux-2.6.11/arch/i386/kernel/setup.c	Sun May  8 17:04:32 2005
+@@ -1461,8 +1461,8 @@
+ 	/*
+ 	 * Parse the ACPI tables for possible boot-time SMP configuration.
+ 	 */
+-	acpi_boot_table_init();
+-	acpi_boot_init();
++	if (acpi_boot_table_init()==0)
++		acpi_boot_init();
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+ 	if (smp_found_config)
 
 
 -------------------------------------------------------
