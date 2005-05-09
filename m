@@ -1,9 +1,13 @@
-From: Dean Townsley <dean-5NrKhQnM7FRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Something seems to be wrong with my RSDP
-Date: Sun, 08 May 2005 17:59:14 -0500
-Message-ID: <E1DUujy-0003sP-Om@variable.uchicago.edu>
-References: <427CB470.4060700@heiko-gerstung.de>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Resume -> higher power drain?
+Date: Mon, 9 May 2005 12:19:30 +0200
+Message-ID: <20050509101930.GB24478@atrey.karlin.mff.cuni.cz>
+References: <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <1115475297.10424.4.camel@localhost> <20050507144417.GA3100@isilmar.linta.de> <427CDE7B.5040306@kernelconcepts.de> <427CE3EF.1010005@kernelconcepts.de> <20050507200225.GB8212@elf.ucw.cz> <427D46DE.7010301@kernelconcepts.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <427D46DE.7010301-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,56 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Heiko Gerstung <hg-Zwoj8m1Se4ooLuGpnUaJU7NAH6kLmebB@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, Hendrik =?iso-8859-2?Q?J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Heiko,
+Hi!
 
-I'm glad you've worked on this.  I've never had a chance to fix up the
-dsdt table.  I was able to get the kernel to ignore the RSDP checksum
-error with patch below.
+> >>The problem seemed to be related to suspend/resume scripts, so to say. I
+> >>did enable vbetool to save/restore VESA state and doing vbetool post.
+> >>
+> >>Using s3_bios resume this is not necessary!
+> >>
+> >>And after disabling vbetool usage at all the bus master activity is back
+> >>to normal again after resume!
+> >>
+> >>So at least for my T42p I can recommend NOT to use vbetool at all for
+> >>suspend/resume but rather to use s3_bios!
+> > 
+> > Can you suggest a patch to Documentation/power/video.txt?
+> 
+> I changed the file a little accordingly, a diff is attached.
+> I think it would be a good idea to start some compatibitlity
+> documentation, i.e. which device is known to work with which
+> options/tricks. I appended a "compatibility matrix" to the end of the file.
+> 
+> Tel me if you find this documentation useful or what can/should be
+> added/changed.
 
-I did this because the 2.4.20 + some old acpi patch that has been
-working for years on the c100 always had this "Invalid checksum"
-error, but worked anyway.  Comparing the code, the old patch didn't
-disable acpi if the RSDP table failed to parse properly, it just
-skipped some stuff and went on.  I don't know if this is right (or a
-really bad idea for that matter) but at least it gets it to load and
-use the DSDT.
+I do not think we should list multiple ways to make it work. Thats
+just too complicated. Just one "best" method should be listed...
 
-Could you send me the DSDT you've fixed so I could try it out too :)
-
-Thanks,
--Dean
-
-
-diff -ur linux-2.6.11-orig/arch/i386/kernel/acpi/boot.c linux-2.6.11/arch/i386/kernel/acpi/boot.c
---- linux-2.6.11-orig/arch/i386/kernel/acpi/boot.c	Wed Mar  2 01:38:25 2005
-+++ linux-2.6.11/arch/i386/kernel/acpi/boot.c	Sun May  8 17:01:44 2005
-@@ -849,7 +849,7 @@
- 	 */
- 	error = acpi_table_init();
- 	if (error) {
--		disable_acpi();
-+		/* disable_acpi(); */ 
- 		return error;
- 	}
- 
-diff -ur linux-2.6.11-orig/arch/i386/kernel/setup.c linux-2.6.11/arch/i386/kernel/setup.c
---- linux-2.6.11-orig/arch/i386/kernel/setup.c	Wed Mar  2 01:38:08 2005
-+++ linux-2.6.11/arch/i386/kernel/setup.c	Sun May  8 17:04:32 2005
-@@ -1461,8 +1461,8 @@
- 	/*
- 	 * Parse the ACPI tables for possible boot-time SMP configuration.
- 	 */
--	acpi_boot_table_init();
--	acpi_boot_init();
-+	if (acpi_boot_table_init()==0)
-+		acpi_boot_init();
- 
- #ifdef CONFIG_X86_LOCAL_APIC
- 	if (smp_found_config)
+Oh and pleas make patches diff -u...
+								Pavel
+-- 
+Boycott Kodak -- for their patent abuse against Java.
 
 
 -------------------------------------------------------
