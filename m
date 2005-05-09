@@ -1,20 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Re: Resume -> higher power drain?
-Date: Mon, 09 May 2005 20:21:12 +0100
-Message-ID: <1115666472.27559.22.camel@elrond.flymine.org>
-References: <427CC9B3.7060005@gmx.net> <427CC869.1050506@kernelconcepts.de>
-	 <427CC9B3.7060005@gmx.net> <1115475297.10424.4.camel@localhost>
-	 <20050507144417.GA3100@isilmar.linta.de>
-	 <427CDE7B.5040306@kernelconcepts.de> <427CE3EF.1010005@kernelconcepts.de>
-	 <20050507200225.GB8212@elf.ucw.cz>
-	 <20050509090724.GA7781@message-id.gmane0305.slipkontur.de>
-	 <1115645886.27560.6.camel@elrond.flymine.org>
-	 <20050509182836.GB25273@message-id.gmane0305.slipkontur.de>
+From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: ACPI for x-scale
+Date: Mon, 09 May 2005 21:31:31 +0200
+Message-ID: <427FBA93.1060309@kernelconcepts.de>
+References: <6EF58BF68042DF4AA46A54994117D64F035A1C81@mercury.mtctech.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050509182836.GB25273-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <6EF58BF68042DF4AA46A54994117D64F035A1C81-x6Fv9fcoW1YgtwCHe4clqUEOCMrvLtNR@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -24,28 +17,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Williams, Richard" <Richard.Williams-RyImI6ggfRp0+Iju73vM4UEOCMrvLtNR@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-05-09 at 20:28 +0200, Stefan Seyfried wrote:
-> On Mon, May 09, 2005 at 02:38:06PM +0100, Matthew Garrett wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> > The main advantage of saving/restoring the VBE state is that the code to
-> > do so is likely to actually be there, which is something that you can't
-> > say about POSTing. As far as I can tell, there shouldn't be any issue in
-> 
-> The radeon X driver apparently knows enough about the chips to re-post them.
-> Excerpt from my X log:
-> (WW) RADEON(0): zero MEMSIZE, probably at D3cold. Re-POSTing via int10.
-> (II) RADEON(0): Primary V_BIOS segment is: 0xc000
+Williams, Richard wrote:
+> Hi,
+Hi!
 
-Right, but that's only possible if the video BIOS code is still there.
-It often isn't, at which point your X server is executing random code.
-That's generally a bad thing.
+> I'm a newbie to the ACPI world.
+> Has anyone ported the Linux 2.6 kernel ACPI to the ARM processors -
+> specifically an Intel X-scale, PXA-270 ?
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+ROTFL ;)
+Sorry... couldn't resist...
 
+> Is this appropriate for an embedded single board computer ?
+
+No, it isn't.
+It starts with the "problem" that the usual ARM/StrongARM/XScale device
+do not own a BIOS as it is known on x86 PCs.
+
+For most embedded platforms implementing huge systems like APM or ACPI
+is simply a waste of time - you simply do it yourself in the specific
+kernel you are using on your platform anyway.
+IMHO ACPI and APM are used as a generic approach, i.e. for situation
+where you do not know specifics of the system you are running on. Then
+ACPI offers for example a method to suspend, resume or power throttle a
+device (put to standby, suspend, ...).
+The more complex systems became the more complex those sophisticated
+system became with ACPI being its current culprit.
+
+The current embedded Linux flavours all do power management to various
+degrees by themselves, expecially using the current Linux device model
+and power state siganlling, i.e. the device drivers have to do their own
+power management.
+
+Or to make it short: No, you do not want to implement ACPI for embedded
+platforms.
+
+> Thanks,
+> Rich
+CU
+  nils faerber
+
+- --
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          Mob: +49-176-21024535
+- --
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFCf7qTJXeIURG1qHgRAlZrAJ0cbKE2ZeckBf2o7qKHQyxAUDsGHwCfcip9
+4+HZrQQfFW8BZW2/RjPK/F0=
+=v0io
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
