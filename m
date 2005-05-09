@@ -1,11 +1,12 @@
-From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: Resum power drain, T42p final conclusion!
-Date: Mon, 09 May 2005 20:31:04 +0200
-Message-ID: <427FAC68.2020106@kernelconcepts.de>
+From: "Williams, Richard" <Richard.Williams-RyImI6ggfRp0+Iju73vM4UEOCMrvLtNR@public.gmane.org>
+Subject: ACPI for x-scale
+Date: Mon, 9 May 2005 14:55:26 -0400
+Message-ID: <6EF58BF68042DF4AA46A54994117D64F035A1C81@mercury.mtctech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C554C8.C3DE8B40"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,54 +19,92 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is a multi-part message in MIME format.
 
-Hi!
-I finally tested everything possible and double/triple checked the
-scripts and it came down to the very simple solution:
+------_=_NextPart_001_01C554C8.C3DE8B40
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-	vbetool is evil is evil is evil
+Hi,
 
-I already had vbetool savestate disabled but there was still a call to
-vbetool dpms in the scripts.
-After removing that too I am back to normal again, i.e. I use s3_bios
-option and nothing else to get video back (BTW: no framebuffer console,
-plain VGA text). According to /proc/acpi/video/VID/POST_info:
-<not supported>
-I have to use s3_bios since the BIOS does ot provide an ACPI video post
-routine, correct?
+I'm a newbie to the ACPI world.
 
-For acpi-support scripts double check to have
-	SAVE_VBE_STATE=false
-	POST_VIDEO=false
-	USE_DPMS=false
-in /etc/default/acpi-support (location from Debian acpi-support package).
+Has anyone ported the Linux 2.6 kernel ACPI to the ARM processors -
+specifically an Intel X-scale, PXA-270 ?
 
-Just to be very sure I did
-	ln -sf /bin/true /usr/sbin/vbetool
+Is this appropriate for an embedded single board computer ?
+
+Thanks,
+
+Rich
+
+----------------------------
+Richard B. Williams
+MTC Technologies, Inc.
+3 Corbett Way
+Eatontown, NJ 07724-2262
+732-389-0244 x29
+Richard.Williams-RyImI6ggfRp0+Iju73vM4UEOCMrvLtNR@public.gmane.org
 
 
-So, many thanks for the good ideas an advice!
-If I can be of any other help please call - I am willing to test and try
-anything suggested (if it does not involve "rm -rf /" :)
+------_=_NextPart_001_01C554C8.C3DE8B40
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-CU
-  nils faerber
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.5.7226.0">
+<TITLE>ACPI for x-scale</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
 
-- --
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          Mob: +49-176-21024535
-- --
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+<P><FONT SIZE=3D2 FACE=3D"Arial">Hi,</FONT>
+</P>
 
-iD8DBQFCf6xoJXeIURG1qHgRAihSAKCH7O0Hh3noAhlzZXwC93QRScCKlgCeMNcT
-N9bXE+8GCYR1XAa8Jh3MUq4=
-=ZJJ/
------END PGP SIGNATURE-----
+<P><FONT SIZE=3D2 FACE=3D"Arial">I'm a newbie to the ACPI world.</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Has anyone ported the Linux 2.6 kernel =
+ACPI to the ARM processors - specifically an Intel X-scale, PXA-270 =
+?</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Is this appropriate for an embedded =
+single board computer ?</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Thanks,</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Rich</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">----------------------------</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">Richard B. Williams</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">MTC Technologies, Inc.</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">3 Corbett Way</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">Eatontown, NJ 07724-2262</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">732-389-0244 x29</FONT>
+
+<BR><FONT SIZE=3D2 =
+FACE=3D"Arial">Richard.Williams-RyImI6ggfRp0+Iju73vM4UEOCMrvLtNR@public.gmane.org</FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C554C8.C3DE8B40--
 
 
 -------------------------------------------------------
