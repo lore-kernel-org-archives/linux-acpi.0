@@ -1,13 +1,13 @@
-From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: Re: ACPI for x-scale
-Date: Mon, 09 May 2005 21:31:31 +0200
-Message-ID: <427FBA93.1060309@kernelconcepts.de>
-References: <6EF58BF68042DF4AA46A54994117D64F035A1C81@mercury.mtctech.com>
+From: "Williams, Richard" <Richard.Williams-RyImI6ggfRp0+Iju73vM4UEOCMrvLtNR@public.gmane.org>
+Subject: RE: ACPI for x-scale
+Date: Mon, 9 May 2005 16:10:38 -0400
+Message-ID: <6EF58BF68042DF4AA46A54994117D64F035A1D3B@mercury.mtctech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <6EF58BF68042DF4AA46A54994117D64F035A1C81-x6Fv9fcoW1YgtwCHe4clqUEOCMrvLtNR@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,19 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Williams, Richard" <Richard.Williams-RyImI6ggfRp0+Iju73vM4UEOCMrvLtNR@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+
+Nils Faerber resisted the easy flame target -)
+
+Thanks, I suspected as much about the overkill of ACPI on an embedded
+platform.
+
+I had done some searching for ACPI on embedded and ARM forums, and had
+found very little. Of course, the minute after I posted the question
+here I found some discussion that matched what you say. Not applicable.
+
+Nils, thanks for being gentle with me.
+
+Rich
+
+
+
 
 Williams, Richard wrote:
 > Hi,
 Hi!
 
 > I'm a newbie to the ACPI world.
-> Has anyone ported the Linux 2.6 kernel ACPI to the ARM processors -
+> Has anyone ported the Linux 2.6 kernel ACPI to the ARM processors -=20
 > specifically an Intel X-scale, PXA-270 ?
 
 ROTFL ;)
@@ -74,8 +87,8 @@ Version: GnuPG v1.4.0 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
 iD8DBQFCf7qTJXeIURG1qHgRAlZrAJ0cbKE2ZeckBf2o7qKHQyxAUDsGHwCfcip9
-4+HZrQQfFW8BZW2/RjPK/F0=
-=v0io
+4+HZrQQfFW8BZW2/RjPK/F0=3D
+=3Dv0io
 -----END PGP SIGNATURE-----
 
 
