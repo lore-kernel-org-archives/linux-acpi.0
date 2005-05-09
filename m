@@ -1,13 +1,11 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: Resuming IDE devices with ACPI
-Date: Mon, 09 May 2005 17:01:33 +0100
-Message-ID: <1115654492.1448.37.camel@localhost.localdomain>
-References: <1115646660.27559.16.camel@elrond.flymine.org>
+From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Resum power drain, T42p final conclusion!
+Date: Mon, 09 May 2005 20:31:04 +0200
+Message-ID: <427FAC68.2020106@kernelconcepts.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1115646660.27559.16.camel-Xmbc1Sz64/5pghhO6/9/sx2eb7JE58TQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +15,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Llu, 2005-05-09 at 14:51, Matthew Garrett wrote:
-> which makes it unsurprising that hardware without working IDE on resume
-> is continuing to appear. In order to resume it, we need to be able to
-> make the appropriate taskfile calls with the output of the _GTF method.
-> For this to be possible, we need to call each IDE controller's _GTF
-> method on resume. How can we associate each IDE controller with a given
-> piece of ACPI namespace?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-We do know the resource allocations of each controller.
+Hi!
+I finally tested everything possible and double/triple checked the
+scripts and it came down to the very simple solution:
 
-You also then have to retune the drives etc and resume operations having
-checked various things like drive model/id to spot cold plugs (otherwise
-if you get the BIOS numbering wrong or something moves you'll do serious
-damage to the
-users data)
+	vbetool is evil is evil is evil
 
-Alan
+I already had vbetool savestate disabled but there was still a call to
+vbetool dpms in the scripts.
+After removing that too I am back to normal again, i.e. I use s3_bios
+option and nothing else to get video back (BTW: no framebuffer console,
+plain VGA text). According to /proc/acpi/video/VID/POST_info:
+<not supported>
+I have to use s3_bios since the BIOS does ot provide an ACPI video post
+routine, correct?
 
+For acpi-support scripts double check to have
+	SAVE_VBE_STATE=false
+	POST_VIDEO=false
+	USE_DPMS=false
+in /etc/default/acpi-support (location from Debian acpi-support package).
+
+Just to be very sure I did
+	ln -sf /bin/true /usr/sbin/vbetool
+
+
+So, many thanks for the good ideas an advice!
+If I can be of any other help please call - I am willing to test and try
+anything suggested (if it does not involve "rm -rf /" :)
+
+CU
+  nils faerber
+
+- --
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          Mob: +49-176-21024535
+- --
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFCf6xoJXeIURG1qHgRAihSAKCH7O0Hh3noAhlzZXwC93QRScCKlgCeMNcT
+N9bXE+8GCYR1XAa8Jh3MUq4=
+=ZJJ/
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
