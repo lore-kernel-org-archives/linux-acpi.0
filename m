@@ -1,13 +1,13 @@
 From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: Resume -> higher power drain?
-Date: Tue, 10 May 2005 10:27:30 +0200
-Message-ID: <42807072.7040005@gmx.net>
-References: <427CC9B3.7060005@gmx.net> <427CC869.1050506@kernelconcepts.de> <427CC9B3.7060005@gmx.net> <1115475297.10424.4.camel@localhost> <20050507144417.GA3100@isilmar.linta.de> <427CDE7B.5040306@kernelconcepts.de> <427CE3EF.1010005@kernelconcepts.de> <20050507200225.GB8212@elf.ucw.cz> <20050509090724.GA7781@message-id.gmane0305.slipkontur.de> <1115645886.27560.6.camel@elrond.flymine.org> <20050509182836.GB25273@message-id.gmane0305.slipkontur.de>
+Subject: Re: Reliable video POSTing on resume
+Date: Tue, 10 May 2005 10:36:25 +0200
+Message-ID: <42807289.8090003@gmx.net>
+References: <4202DF7B.2000506@gmx.net>	 <1107485504.5727.35.camel@desktop.cunninghams>	 <9e4733910502032318460f2c0c@mail.gmail.com>	 <20050204074454.GB1086@elf.ucw.cz>	 <9e473391050204093837bc50d3@mail.gmail.com>	 <20050205093550.GC1158@elf.ucw.cz>	 <1107695583.14847.167.camel@localhost.localdomain>	 <Pine.BSF.4.62.0502062107000.26868@www.missl.cs.umd.edu>	 <42077AC4.5030103@grupopie.com> <42077CFD.7030607@gmx.net>	 <20050207160105.GF8040@elf.ucw.cz> <1107793204.2930.18.camel@logarithm.lanl.gov> <420C0EAF.4000606@gmx.net> <420C68B3.4080509@scitechsoft.com> <420CA2D2.6050003@gmx.net> <420D08F2.3060505@scitechsoft.com> <420D5481.1060402@gmx.net> <420D7B1B.3030503@scitechsoft.com> <421715EB.3020207@gmx.net> <42180D40.1020409@scitechsoft.com> <425907FC.6010504@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050509182836.GB25273-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <425907FC.6010504-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kendall Bennett <kendallb-uto6oM0aG36m1FQbPH9wZw@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Seyfried schrieb:
-> On Mon, May 09, 2005 at 02:38:06PM +0100, Matthew Garrett wrote:
-> 
->>On Mon, 2005-05-09 at 11:07 +0200, Stefan Seyfried wrote:
->>
->>
->>>according to some X guys, vbetool vbestate save/restore is "problematic"
->>>at least and should only be used as a measure of last resort, if everything
->>>else fails.
-> 
-> 
-> Again, to be clear: this is not my wisdom but from people who know the radeon
-> chips prettty good (Matthias Hopf, among others)
-> 
-> 
->>The main advantage of saving/restoring the VBE state is that the code to
->>do so is likely to actually be there, which is something that you can't
->>say about POSTing. As far as I can tell, there shouldn't be any issue in
-> 
-> 
-> The radeon X driver apparently knows enough about the chips to re-post them.
-> Excerpt from my X log:
-> (WW) RADEON(0): zero MEMSIZE, probably at D3cold. Re-POSTing via int10.
-> (II) RADEON(0): Primary V_BIOS segment is: 0xc000
+Hi,
 
-Can you please ask the gurus: What is the difference between POSTing with
-the X driver and POSTing with vbetool, if both versions use int10? And can
-I have the "better int10" of the X driver as an isolated piece of code so
-that resume will eventually work even if X is not running?
+I have been unable to reach Kendall Bennett during the last few
+months. Does anyone know what happened to him?
+It would be really cool if we could POST the video card from the
+kernel and he seemed to have a solution with SNAPBoot.
 
 Regards,
 Carl-Daniel
+
+Carl-Daniel Hailfinger schrieb:
+> Hi Kendall,
+> 
+> could you please send me the debug enabled build of SNAPBoot so
+> we can find out why it's not working for me?
+> 
+> Regards,
+> Carl-Daniel
+> 
+> Kendall Bennett wrote:
+> 
+>>Sorry I have been busy. Remind me in a week as I will be out of the
+>>office all next week. When I return I should be able to send you a debug
+>>enabled version that will spit out a log file so you can find out what
+>>it is doing.
+>>
+>>on 2/19/2005 2:33 AM Carl-Daniel Hailfinger said the following:
+>>
+>>
+>>>Hi Kendall,
+>>>
+>>>Kendall Bennett schrieb:
+>>>
+>>>
+>>>>I should send you a debug build so we can get a trace of
+>>>>what is going on.
+>>>
+>>>
+>>>
+>>>Could you do that, please? I'd like to try it out.
+> 
+> 
+
+
 -- 
 http://www.hailfinger.org/
 
