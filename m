@@ -1,10 +1,13 @@
-From: snapshot-users-request-Ihz76zOu8S21Z/+hSey0Gg@public.gmane.org
-Subject: Re: [PMX:VIRUS] Status
-Date: Tue, 10 May 2005 02:54:26 +0200 (CEST)
-Message-ID: <20050510005426.C188FB64@esparsett.troll.no>
-References: <20050510005317.0FBEAB3E@esparsett.troll.no>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Resuming IDE devices with ACPI
+Date: Tue, 10 May 2005 08:55:21 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501E5F857@pdsmsx402.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050510005317.0FBEAB3E-o4SS52D50xjUKEvoZVlKYW4ykkOk2xyE@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,57 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-You aren't subscribed to this list, and we allow posting only from
-subscribers.
+>http://godmode.ca/bookNref/win/XpFastBootUp.pdf (a copy of a Microsoft
+>document for system integrators) has this to say:
+>
+>Actions for BIOS Wake Improvements
+>
+>...
+>
+>Do not configure IDE drives in BIOS; use the _GTF method in your ASL
+>code.
+>
+>which makes it unsurprising that hardware without working IDE on resume
+>is continuing to appear. In order to resume it, we need to be able to
+>make the appropriate taskfile calls with the output of the _GTF method.
+>For this to be possible, we need to call each IDE controller's _GTF
+>method on resume. How can we associate each IDE controller with a given
+>piece of ACPI namespace?
+Hi Matthew,
+I have an internal patch which can get IDE's ACPI device (currently only
+support PCI IDE controller) and execute _GTF, _GTM and _STM at
+suspend/resume. Unfortunately, I'm not familiar with IDE, so I don't
+know how to invoke the IDE commands returned from _GTF at resume.
+I sent an email to IDE list for help, but got no response :(.
+I believe it's a quite generic suspend/resume bug. Did anybody know
+Linux IDE in the list? If you need more info such as the IDE commands
+from one of my system, please let me know.
 
-Please see http://lists.trolltech.com/ for subscription information.
-
-This is a multi-part message in MIME format.
-
-
-
-------=_NextPart_000_0012_0D13AC35.EC9DFC22
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
-
-The original message was included as an attachment.
-
-
-------=_NextPart_000_0012_0D13AC35.EC9DFC22
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-The original content of this message part has been replaced
-by this text because it tested positive for the following
-virus(es):
-
-    W32/Mytob-R, W32/Mytob-R
-
-The original message has been quarantined pending further
-action by the mail administrator.  For further information
-about the message and its delivery status, please contact
-the undersigned, and include the full content of this
-message.  The identifier for this message is
-'42800642_4930_282_1'.
-
-This notification is being sent to you and any other
-original envelope recipient(s).   To avoid creating a
-nuisance and to keep mail traffic under control, the
-original sender  of the message has NOT been notified.
-However, you may want to notify the sender at your
-discretion.
-
-
-The Management
-PureMessage Admin <postmaster-Ihz76zOu8S21Z/+hSey0Gg@public.gmane.org>
-
-------=_NextPart_000_0012_0D13AC35.EC9DFC22--
-
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
