@@ -1,13 +1,13 @@
-From: Kendall Bennett <kendallb-uto6oM0aG36m1FQbPH9wZw@public.gmane.org>
-Subject: Re: Reliable video POSTing on resume
-Date: Tue, 10 May 2005 09:33:38 -0700
-Message-ID: <4280E262.9020207@scitechsoft.com>
-References: <4202DF7B.2000506@gmx.net>	 <1107485504.5727.35.camel@desktop.cunninghams>	 <9e4733910502032318460f2c0c@mail.gmail.com>	 <20050204074454.GB1086@elf.ucw.cz>	 <9e473391050204093837bc50d3@mail.gmail.com>	 <20050205093550.GC1158@elf.ucw.cz>	 <1107695583.14847.167.camel@localhost.localdomain>	 <Pine.BSF.4.62.0502062107000.26868@www.missl.cs.umd.edu>	 <42077AC4.5030103@grupopie.com> <42077CFD.7030607@gmx.net>	 <20050207160105.GF8040@elf.ucw.cz> <1107793204.2930.18.camel@logarithm.lanl.gov> <420C0EAF.4000606@gmx.net> <420C68B3.4080509@scitechsoft.com> <420CA2D2.6050003@gmx.net> <420D08F2.3060505@scitechsoft.com> <420D5481.1060402@gmx.net> <420D7B1B.3030503@scitechsoft.com> <421715EB.3020207@gmx.net> <42180D40.1020409@scitechsoft.com> <425907FC.6010504@gmx.net> <42807289.8090003@gmx.net>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] PCI: do VIA IRQ fixup always, not just in PIC mode
+Date: Tue, 10 May 2005 10:44:15 -0600
+Message-ID: <200505101044.15654.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42807289.8090003-hi6Y0CQ0nG0@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,75 +17,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org
+Cc: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Carl,
+At least some VIA chipsets require the fixup even in IO-APIC mode.
 
-Carl-Daniel Hailfinger said the following on 5/10/2005 1:36 AM:
-> I have been unable to reach Kendall Bennett during the last few
-> months. Does anyone know what happened to him?
-> It would be really cool if we could POST the video card from the
-> kernel and he seemed to have a solution with SNAPBoot.
+This was found and debugged with the patient assistance of Stian
+Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org> on an Asus CUV266-DLS motherboard.
 
-I am here, but I have just been busy. We have kernel patches for the 2.4 
-and 2.6 kernels that patch in VideoBoot code for ATI cards. Did you not 
-get those patches? I can send them to you if you didn't get them. I 
-think you can enable debug mode in the kernel version also, and the 
-debug messages will go into the kernel log file.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-If you still want a debug enabled version for command line I can try to 
-get one together for you.
-
-Regards,
-
->>Hi Kendall,
->>
->>could you please send me the debug enabled build of SNAPBoot so
->>we can find out why it's not working for me?
->>
->>Regards,
->>Carl-Daniel
->>
->>Kendall Bennett wrote:
->>
->>
->>>Sorry I have been busy. Remind me in a week as I will be out of the
->>>office all next week. When I return I should be able to send you a debug
->>>enabled version that will spit out a log file so you can find out what
->>>it is doing.
->>>
->>>on 2/19/2005 2:33 AM Carl-Daniel Hailfinger said the following:
->>>
->>>
->>>
->>>>Hi Kendall,
->>>>
->>>>Kendall Bennett schrieb:
->>>>
->>>>
->>>>
->>>>>I should send you a debug build so we can get a trace of
->>>>>what is going on.
->>>>
->>>>
->>>>
->>>>Could you do that, please? I'd like to try it out.
->>
->>
-> 
-> 
-
--- 
-Kendall Bennett
-Chief Executive Officer
-SciTech Software, Inc.
-Phone: (530) 894 8400
-http://www.scitechsoft.com
-
-~ SciTech SNAP - The future of device driver technology! ~
-
+--- 2.6.12-rc3-mm3/drivers/pci/quirks.c.orig	2005-05-05 10:52:42.000000000 -0600
++++ 2.6.12-rc3-mm3/drivers/pci/quirks.c	2005-05-10 09:56:18.000000000 -0600
+@@ -460,17 +460,6 @@
+ 
+ 
+ /*
+- * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
+- * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
+- * when written, it makes an internal connection to the PIC.
+- * For these devices, this register is defined to be 4 bits wide.
+- * Normally this is fine.  However for IO-APIC motherboards, or
+- * non-x86 architectures (yes Via exists on PPC among other places),
+- * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
+- * interrupts delivered properly.
+- */
+-
+-/*
+  * FIXME: it is questionable that quirk_via_acpi
+  * is needed.  It shows up as an ISA bridge, and does not
+  * support the PCI_INTERRUPT_LINE register at all.  Therefore
+@@ -492,28 +481,30 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C586_3,	quirk_via_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686_4,	quirk_via_acpi );
+ 
+-static void __devinit quirk_via_irqpic(struct pci_dev *dev)
++/*
++ * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
++ * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
++ * when written, it makes an internal connection to the PIC.
++ * For these devices, this register is defined to be 4 bits wide.
++ * Normally this is fine.  However for IO-APIC motherboards, or
++ * non-x86 architectures (yes Via exists on PPC among other places),
++ * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
++ * interrupts delivered properly.
++ */
++static void __devinit quirk_via_irq(struct pci_dev *dev)
+ {
+ 	u8 irq, new_irq;
+ 
+-#ifdef CONFIG_X86_IO_APIC
+-	if (nr_ioapics && !skip_ioapic_setup)
+-		return;
+-#endif
+-#ifdef CONFIG_ACPI
+-	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
+-		return;
+-#endif
+ 	new_irq = dev->irq & 0xf;
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+ 	if (new_irq != irq) {
+-		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
++		printk(KERN_INFO "PCI: Via IRQ fixup for %s, from %d to %d\n",
+ 			pci_name(dev), irq, new_irq);
+ 		udelay(15);	/* unknown if delay really needed */
+ 		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+ 	}
+ }
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
+ 
+ /*
+  * PIIX3 USB: We have to disable USB interrupts that are
 
 
 -------------------------------------------------------
