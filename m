@@ -1,35 +1,53 @@
-From: Jason Uhlenkott <jasonuhl@sgi.com>
-Subject: [PATCH] arch/ia64/Kconfig shouldn't define CONFIG_ACPI
-Date: Thu, 12 May 2005 16:59:11 -0700
-Message-ID: <20050512235911.GC404742@dragonfly.engr.sgi.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: Re: 2.6.12-rc4-mm1
+Date: Fri, 13 May 2005 13:20:27 -0700
+Message-ID: <20050513132027.239e0af4.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: tony.luck@intel.com
-Cc: linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-arch/ia64/Kconfig shouldn't define CONFIG_ACPI.  drivers/acpi/Kconfig
-also defines it, and that's the right place for it.
-
-Signed-off-by: Jason Uhlenkott <jasonuhl@sgi.com>
 
 
-Index: linux/arch/ia64/Kconfig
-===================================================================
---- linux.orig/arch/ia64/Kconfig	2005-05-12 15:59:33.531196032 -0700
-+++ linux/arch/ia64/Kconfig	2005-05-12 16:17:59.020853156 -0700
-@@ -348,11 +348,6 @@
- 	  will issue the hlt instruction if nothing is to be done, thereby
- 	  sending the processor to sleep and saving power.
- 
--config ACPI
--	bool
--	depends on !IA64_HP_SIM
--	default y
--
- if !IA64_HP_SIM
- 
- source "drivers/acpi/Kconfig"
+Begin forwarded message:
+
+Date: Fri, 13 May 2005 21:40:16 +0200
+From: Johannes Stezenbach <js-dJidKbW2IEtAfugRpC6u6w@public.gmane.org>
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: 2.6.12-rc4-mm1
+
+
+Does not compile for CONFIG_ACPI=n & CONFIG_X86_HT=y (thus CONFIG_ACPI_BOOT=y):
+
+  CC      arch/i386/kernel/setup.o
+arch/i386/kernel/setup.c:97: error: syntax error before "acpi_sci_flags"
+arch/i386/kernel/setup.c:97: warning: type defaults to `int' in declaration of `acpi_sci_flags'
+arch/i386/kernel/setup.c:97: warning: data definition has no type or storage class
+arch/i386/kernel/setup.c: In function `parse_cmdline_early':
+arch/i386/kernel/setup.c:812: error: request for member `trigger' in something not a structure or union
+arch/i386/kernel/setup.c:815: error: request for member `trigger' in something not a structure or union
+arch/i386/kernel/setup.c:818: error: request for member `polarity' in something not a structure or union
+arch/i386/kernel/setup.c:821: error: request for member `polarity' in something not a structure or union
+make[1]: *** [arch/i386/kernel/setup.o] Error 1
+
+
+Johannes
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Oracle Space Sweepstakes
+Want to be the first software developer in space?
+Enter now for the Oracle Space Sweepstakes!
+http://ads.osdn.com/?ad_id=7393&alloc_id=16281&op=click
