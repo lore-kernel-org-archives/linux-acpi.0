@@ -1,12 +1,9 @@
-From: Manuel J.Galan <mjgalan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Whait is CFGD for?
-Date: Sat, 14 May 2005 02:17:31 +0000 (UTC)
-Message-ID: <loom.20050514T041524-961@post.gmane.org>
-References: <42820E57.7030309@altern.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
+Subject: [patch 1/1] drivers/acpi/osl.c : replace direct assignment with set_current_state()
+Date: Sat, 14 May 2005 00:23:00 +0200
+Message-ID: <20050513222259.350112000@nd47.coderock.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline; filename=set_current_state-drivers_acpi_osl
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,39 +13,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>, domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-DJAX <djax@...> writes:
+From: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
 
-> 
-> Hello,
-> I got an Acer Aspire 1694WLMi with bios 3c25.
-> I try to fix the DSDT, but  I don't how to correct the last errors.
-> The compiler tell me about an object CFGD that doesn't exist, but I
-> don't know how and where to declare it and with  which value to
-> initialise it.
-> 
-> Can you help me?
-> 
-> Thank you
-> Didier
-> 
 
-Try this diff:
-============================
---- dsdt.20050509.custom.dsl.orig       2005-05-14 03:12:47.000000000 +0100
-+++ dsdt.20050509.custom.dsl    2005-05-14 03:13:20.000000000 +0100
-@@ -209,6 +209,7 @@
-     Name (\CTYP, 0x00)
-     Name (\L01C, 0x00)
-     Name (\INSX, 0x00)
-+    External (CFGD)
-     Method (\_PIC, 1, NotSerialized)
-     {
-         Store (Arg0, GPIC)
-============================
 
+Use set_current_state() instead of direct assignment of
+current->state.
+
+Signed-off-by: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
+Signed-off-by: Domen Puncer <domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org>
+
+---
+ osl.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+Index: quilt/drivers/acpi/osl.c
+===================================================================
+--- quilt.orig/drivers/acpi/osl.c
++++ quilt/drivers/acpi/osl.c
+@@ -941,7 +941,7 @@ acpi_os_wait_semaphore(
+ 
+ 			ret = down_trylock(sem);
+ 			for (i = timeout; (i > 0 && ret < 0); i -= quantum_ms) {
+-				current->state = TASK_INTERRUPTIBLE;
++				set_current_state(TASK_INTERRUPTIBLE);
+ 				schedule_timeout(1);
+ 				ret = down_trylock(sem);
+ 			}
+
+--
 
 
 -------------------------------------------------------
