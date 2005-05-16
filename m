@@ -1,13 +1,12 @@
-From: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
-Subject: Re: Re: Whait is CFGD for?
-Date: Mon, 16 May 2005 00:20:18 +0200
-Message-ID: <4287CB22.6070306@altern.org>
-References: <42820E57.7030309@altern.org> <loom.20050514T041524-961@post.gmane.org>
+From: Manuel J.Galan <mjgalan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: What is CFGD for?
+Date: Mon, 16 May 2005 00:46:43 +0000 (UTC)
+Message-ID: <loom.20050516T022519-56@post.gmane.org>
+References: <42820E57.7030309@altern.org> <loom.20050514T041524-961@post.gmane.org> <4287CB22.6070306@altern.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <loom.20050514T041524-961-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,65 +19,59 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Manuel J.Galan a =E9crit :
+DJAX <djax@...> writes:
 
->DJAX <djax@...> writes:
->
-> =20
->
->>Hello,
->>I got an Acer Aspire 1694WLMi with bios 3c25.
->>I try to fix the DSDT, but  I don't how to correct the last errors.
->>The compiler tell me about an object CFGD that doesn't exist, but I
->>don't know how and where to declare it and with  which value to
->>initialise it.
->>
->>Can you help me?
->>
->>Thank you
->>Didier
->>
->>   =20
->>
->
->Try this diff:
->=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D
->--- dsdt.20050509.custom.dsl.orig       2005-05-14 03:12:47.000000000 +0=
-100
->+++ dsdt.20050509.custom.dsl    2005-05-14 03:13:20.000000000 +0100
->@@ -209,6 +209,7 @@
->     Name (\CTYP, 0x00)
->     Name (\L01C, 0x00)
->     Name (\INSX, 0x00)
->+    External (CFGD)
->     Method (\_PIC, 1, NotSerialized)
->     {
->         Store (Arg0, GPIC)
->=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D
-> =20
->
+> 
+> --------------------------8<-------------------------
+> ACPI: Processor [CPU0] (supports 8 throttling states)
+> acpi_processor-0484 [07] acpi_processor_get_inf: Error getting cpuindex
+> for acpi
+> id 0x1
+> ACPI: Thermal Zone [THRM] (41 C)
+> -------------------------->8-------------------------
 
-Thank you. It compiles and generates an DSDT.aml to put in my initrd.img =
-.
-Now at boot, I see this error :
---------------------------8<-------------------------
+Hello,
+
+Mine is a Travelmate 8104WLMi and I see this on booting.
+----------------------------------------------------
+ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3] C4[C3])
 ACPI: Processor [CPU0] (supports 8 throttling states)
-acpi_processor-0484 [07] acpi_processor_get_inf: Error getting cpuindex
-for acpi
-id 0x1
-ACPI: Thermal Zone [THRM] (41 C)
--------------------------->8-------------------------
-/Is it an error in my DSDT or somewhere else?
+ACPI: Thermal Zone [THRM] (54 C)
+----------------------------------------------------
 
-Best regards,
-Didier
-/
+I am using kernel 2.6.11-1.1312_FC3 from
+http://people.redhat.com/davej/kernels/Fedora/FC4/SRPMS.kernel/
+compiled for FC3 and also including the two patches that are needed to include
+DSDT.aml into the initrd (urls are broken in two lines...)
+
+http://gaugusch.at/acpi-dsdt-initrd-patches/
+acpi-dsdt-initrd-patch-v0.7d-2.6.9.patch
+
+http://gaugusch.at/acpi-dsdt-initrd-patches/
+acpi-dsdt-initramfs-fix-2.6.10-cleanup.patch
+
+Following the instructions in the page 
+
+http://gaugusch.at/kernel.shtml
+
+to create the initrd.
+
+Your error seems to me that is due to the acpi implementation of the 
+kernel that you are using...
+
+You can get and compare the dsl that I am using from
+
+http://acpi.sourceforge.net/dsdt/tables/ACER/
+Travelmate_8100/ACER-Travelmate_8100-3C22-custom.asl.gz
+
+The only thing that I cannot make work is the O2micro memorycard reader :-(
+
+Rgds.
+
 
 
 -------------------------------------------------------
 This SF.Net email is sponsored by Oracle Space Sweepstakes
 Want to be the first software developer in space?
 Enter now for the Oracle Space Sweepstakes!
-http://ads.osdn.com/?ad_id=3D7393&alloc_id=3D16281&op=3Dclick
+http://ads.osdn.com/?ad_id=7393&alloc_id=16281&op=click
