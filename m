@@ -1,14 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: RE: generic ACPI video and hotkey drivers vs.
-	platform-specificdrivers
-Date: Wed, 18 May 2005 17:51:39 +0100
-Message-ID: <1116435099.10344.58.camel@tyrosine>
-References: <3ACA40606221794F80A5670F0AF15F84041AC149@pdsmsx403>
+From: Alexander Nyberg <alexn-auIyqT/O9BSzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: 2.6.12-rc4-mm2
+Date: Wed, 18 May 2005 22:26:04 +0200
+Message-ID: <1116447964.23209.26.camel@localhost.localdomain>
+References: <20050516021302.13bd285a.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC149@pdsmsx403>
+In-Reply-To: <20050516021302.13bd285a.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,32 +17,78 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2005-03-06 at 22:02 +0800, Yu, Luming wrote:
-> Please take a look at the prototype filed at http://bugzilla.kernel.org/show_bug.cgi?id=3887 
-> The basic idea is to supply interfaces to configure generic hotkey driver to make it work on any specific platform that requires the execution of some specific AML methods.
+m=E5n 2005-05-16 klockan 02:13 -0700 skrev Andrew Morton:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.12-rc4/=
+2.6.12-rc4-mm2/
+>=20
+>=20
+> - davem has set up a mm-commits mailing list so people can review things
+>   which are added to or removed from the -mm tree.  Do
+>=20
+> 	echo subscribe mm-commits | mail majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>=20
+> - x86_64 architecture update from Andi.
+>=20
+> - Everything up to and including `spurious-interrupt-fix.patch' is planne=
+d
+>   for 2.6.12 merging.  Plus a few other things in there.
+>=20
+> - Another DVB subsystem update
+>=20
 
-I've tried playing with this (why does it disable the existing drivers
-all the time, rather than just when it's loaded?), but the documentation
-seems to be lacking - I haven't figured out how to drive it at all. It'd
-be really helpful to have a set of sample configurations to mimic the
-behaviour of existing drivers.
+I need this to be able to compile on x64 without CONFIG_ACPI (yeah it's
+probably wrong all the way, but can someone that knows acpi fix it
+please?). Tested on i386 & x64 w & w/o CONFIG_ACPI.
 
-I'm also not entirely clear on how userspace is meant to interface with
-this. Am I right in thinking that it's something like the following:
 
-a) register hotkey event
-b) this causes event in /proc/acpi/event
-c) userspace picks up on that and then triggers an acpi method that's
-been registered beforehand
+Index: kexec/include/linux/acpi.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- kexec.orig/include/linux/acpi.h	2005-05-18 22:04:11.000000000 +0200
++++ kexec/include/linux/acpi.h	2005-05-18 22:13:13.000000000 +0200
+@@ -25,8 +25,6 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
+=20
+-#ifdef CONFIG_ACPI
+-
+ #ifndef _LINUX
+ #define _LINUX
+ #endif
+@@ -419,6 +417,8 @@
+=20
+ #else	/*!CONFIG_ACPI_BOOT*/
+=20
++static inline int acpi_boot_init (void) { return 0; }
++static inline int acpi_boot_table_init (void) { return 0; }
+ #define acpi_mp_config	0
+=20
+ #endif 	/*!CONFIG_ACPI_BOOT*/
+@@ -531,18 +531,4 @@
+=20
+ extern int pnpacpi_disabled;
+=20
+-#else	/* CONFIG_ACPI */
+-
+-static inline int acpi_boot_init(void)
+-{
+-	return 0;
+-}
+-
+-static inline int acpi_boot_table_init(void)
+-{
+-	return 0;
+-}
+-
+-#endif	/* CONFIG_ACPI */
+-
+ #endif	/* _LINUX_ACPI_H */
 
-?
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
