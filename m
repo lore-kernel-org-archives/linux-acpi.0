@@ -1,14 +1,13 @@
-From: Tomasz Kojm <tkojm-Vl9ZkupcxcOsTnJN9+BGXg@public.gmane.org>
-Subject: Re: Suspend2ram on Toshiba Tecra A3
-Date: Thu, 19 May 2005 00:15:01 +0200
-Message-ID: <20050519001501.342fa080@Wierszokleta.pl>
-References: <20050407032029.4b0c9fea@Wierszokleta.pl>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: syntax error, unexpected PARSEOP_IF
+Date: Wed, 18 May 2005 15:21:04 -0700
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E018C0AE6@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
- boundary=Signature_Thu__19_May_2005_00_15_01_+0200_BDAdkfettzapbMrb;
- protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050407032029.4b0c9fea-c4cg+czvUqh2dnOJU1uSgA@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,51 +17,107 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Jens Axboe <axboe-l3A5Bk7waGM@public.gmane.org>
+To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>, Elliott Martin <johnelliottmartin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---Signature_Thu__19_May_2005_00_15_01_+0200_BDAdkfettzapbMrb
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+This is the infamous "executable code at module level".  This type of
+code became grammatically incorrect as of ACPI 2.0B, but we are looking
+at supporting this type of legacy code.
 
-On Thu, 7 Apr 2005 03:20:29 +0200
-Tomasz Kojm <tk-/1co0IagGzoYDkwjdqtpGQ@public.gmane.org> wrote:
+Please send your DSDT.
+Bob
 
-> I'm fighting with S3 on Toshiba Tecra A3 without success for a few
-> days now. I've tried all combinations of acpi_sleep on various kernels
-> (including -mm ones) down to 2.6.8 and the effect is always the same:
-> laptop properly(?) suspends but on resume it doesn't initialize
-> graphics (LCD is off) and seem to be hanged (at least the keyboard,
-> because the system doesn't react on any commands, including
-> ctrl+alt+del). The computer is based on the Intel 915 GM chipset with
-> integrated graphics.
 
-The following sata suspend/resume patch (manually applied on 2.6.12-rc4)
-from Jens Axboe fixes the problem with S3 on my laptop:
-
-http://lkml.org/lkml/2005/5/2/46
-
-Thanks,
-
---=20
-   oo    .....         Tomasz Kojm <tkojm-Vl9ZkupcxcOsTnJN9+BGXg@public.gmane.org>
-  (\/)\.........         http://www.ClamAV.net/gpg/tkojm.gpg
-     \..........._         0DCA5A08407D5288279DB43454822DC8985A444B
-       //\   /\              Thu May 19 00:13:47 CEST 2005
-
---Signature_Thu__19_May_2005_00_15_01_+0200_BDAdkfettzapbMrb
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFCi75lVIItyJhaREsRAiRwAJ4lLndLUd+PfA+1DZ7w9B8/TmJ7ygCfU734
-YIPYFROSGb7bc1dJPGv0kZA=
-=2Jho
------END PGP SIGNATURE-----
-
---Signature_Thu__19_May_2005_00_15_01_+0200_BDAdkfettzapbMrb--
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Janosch Machowinski
+> Sent: Saturday, May 14, 2005 4:05 PM
+> To: Elliott Martin
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] syntax error, unexpected PARSEOP_IF
+>=20
+> Elliott Martin schrieb:
+> > Hello,
+> >
+> > I am trying to fix up my DSDT for my Averatec 3300 laptop and I have
+> gotten
+> > the ASL errors from 190 down to 1 and I don't know how to fix this
+last
+> > error, so I thought I should ask for help.
+> >
+> > The error from iasl is:
+> >
+> > dsdt.dsl  3674:     If (SS1)
+> > Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
+> >
+> > and the code surronding that line is (with line numbers):
+> >
+> >   3651
+> >   3652          Name (SLPS, 0x00)
+> >   3653          Device (SLPB)
+> >   3654          {
+> >   3655              Name (_HID, EisaId ("PNP0C0E"))
+> >   3656              Method (_STA, 0, NotSerialized)
+> >   3657              {
+> >   3658                  Return (0x0F)
+> >   3659              }
+> >   3660
+> >   3661              Method (\_GPE._L1D, 0, NotSerialized)
+> >   3662              {
+> >   3663                  Notify (\_SB.PWRB, 0x02)
+> >   3664              }
+> >   3665
+> >   3666              Name (_PRW, Package (0x02)
+> >   3667              {
+> >   3668                  0x1D,
+> >   3669                  0x03
+> >   3670              })
+> >   3671          }
+> >   3672      }
+> >   3673
+> >   3674      //If (SS1)
+> >   3675      //{
+> >   3676          Name (\_SB.PCI0._S1D, 0x02)
+> >   3677          Name (\_SB.PCI0.P0P1._S1D, 0x02)
+> >   3678          Name (\_SB.PCI0.USB1._S1D, 0x02)
+> >   3679          Name (\_SB.PCI0.USB2._S1D, 0x02)
+> >   3680          Name (\_SB.PCI0.USB3._S1D, 0x02)
+> >   3681      //}
+> >   3682
+> >   3683      //If (SS3)
+> >   3684      //{
+> >   3685          Name (\_SB.PCI0._S3D, 0x03)
+> >   3686          Name (\_SB.PCI0.P0P1._S3D, 0x03)
+> >   3687          Name (\_SB.PCI0.USB1._S3D, 0x03)
+> >   3688          Name (\_SB.PCI0.USB2._S3D, 0x03)
+> >   3689          Name (\_SB.PCI0.USB3._S3D, 0x03)
+> >   3690      //}
+> >   3691
+> >
+> > It seems like a perfectly reasonable place for an If stmt, so does
+> anyone know
+> > where I should start looking?
+> >
+> > -Elliott
+>=20
+> I added a few // above, that does the trick...
+> But I'm not shure if this is the right way to do it.
+> What exactly should SS1 and SS3 be ? I got similar constructs in
+> my DSDT from an ASUS M6Ne.
+>=20
+>    Janosch
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by Oracle Space Sweepstakes
+> Want to be the first software developer in space?
+> Enter now for the Oracle Space Sweepstakes!
+> http://ads.osdn.com/?ad_id=3D7393&alloc_id=3D16281&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
