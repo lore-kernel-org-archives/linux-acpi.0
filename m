@@ -1,46 +1,68 @@
-From: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc@tiscali.be>
-Subject: ACPI errors with software suspend and smartbattery
-Date: Thu, 19 May 2005 15:39:20 +0200
-Message-ID: <428C9708.8070708@tiscali.be>
+From: Mailbot <mailbot-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: DSN: failed (Hello)
+Date: Thu, 19 May 2005 22:17:08 -0700
+Message-ID: <UrwTBY510GpnEw15C02@x>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <suspend2-users-bounces@lists.suspend2.net>
-List-Unsubscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-users>,
-	<mailto:suspend2-users-request@lists.suspend2.net?subject=unsubscribe>
-List-Archive: <http://lists.suspend2.net/lurker/list/suspend2-users.html>
-List-Post: <mailto:suspend2-users@lists.suspend2.net>
-List-Help: <mailto:suspend2-users-request@lists.suspend2.net?subject=help>
-List-Subscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-users>,
-	<mailto:suspend2-users-request@lists.suspend2.net?subject=subscribe>
-Sender: suspend2-users-bounces@lists.suspend2.net
-Errors-To: suspend2-users-bounces@lists.suspend2.net
-To: suspend2-users@lists.suspend2.net, acpi-devel@lists.sourceforge.net
+Content-Type: multipart/report; report-type=delivery-status;
+    boundary="rt"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello everybody,
-I have a smartbattery and I use therefore the sbs patches made by Rich
-Townsend to obtain the state of my battery. I have a little problem with
-software suspend (release 2.1.8.7 on kernel 2.6.11.10). On resume, I get
-the following errors:
-    ACPI-0405: *** Error: Handler for [EmbeddedControl] returned AE_TIME
-    ACPI-1138: *** Error: Method execution failed [\_TZ_.THRM._TMP]
-(Node dfec9e40), AE_TIME
-    ACPI-0405: *** Error: Handler for [EmbeddedControl] returned AE_TIME
-    ACPI-1138: *** Error: Method execution failed
-[\_SB_.PCI0.LPC0.EC0_.SMB0._SBR] (Node dfec9d20), AE_TIME
-    ACPI-1138: *** Error: Method execution failed
-[\_SB_.PCI0.LPC0.EC0_.SMB0.SBRW] (Node dfeca780), AE_TIME
-    ACPI-1138: *** Error: Method execution failed [\_SB_.ACQB] (Node
-dfeca700), AE_TIME
-    ACPI-1138: *** Error: Method execution failed [\_SB_.BAT0.CKAL]
-(Node dfeca480), AE_TIME
-    ACPI-1138: *** Error: Method execution failed
-[\_SB_.PCI0.LPC0.EC0_._Q09] (Node dfeca120), AE_TIME
-That doesn't seem to be a big problem. After resuming, ACPI seems to
-work without problem and I can still get all ACPI info and events.
-However, does somebody know what these errors mean ?
 
-Thanks in advance for your help,
-Sincerely yours,
-Fran=E7ois Valenduc
+--rt
+
+
+This is a Delivery Status Notification (DSN).
+
+I was unable to deliver your message to
+azummo-6oHk9+gzq0RsJHzoak81lQ@public.gmane.org
+
+I said 
+  RCPT TO:<azummo-6oHk9+gzq0Q+jrR7i3vcgg@public.gmane.org>
+
+And they gave me the error;
+  550 sorry, no mailbox here by that name (#5.1.1 - chkusr)
+
+ 
+
+--rt
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; kroah.com
+Final-Recipient: RFC822; azummo-6oHk9+gzq0Q+jrR7i3vcgg@public.gmane.org
+Action: failed
+Status: 5.0.0
+
+--rt
+content-type: Text/RFC822-Headers
+
+Received: from lists.sourceforge.net ([202.196.188.39]) by kroah.com for <omninet-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>; Thu, 19 May 2005 22:16:55 -0700
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: omninet-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
+Subject: Hello
+Date: Fri, 20 May 2005 13:16:17 +0800
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0000_66575BF1.C99A466F"
+X-Priority: 3
+X-MSMail-Priority: Normal
+
+
+--rt--
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Oracle Space Sweepstakes
+Want to be the first software developer in space?
+Enter now for the Oracle Space Sweepstakes!
+http://ads.osdn.com/?ad_id=7412&alloc_id=16344&op=click
