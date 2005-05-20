@@ -1,11 +1,11 @@
-From: Mailbot <mailbot-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: DSN: failed (Hello)
-Date: Thu, 19 May 2005 22:17:08 -0700
-Message-ID: <UrwTBY510GpnEw15C02@x>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: ASUS M6 has problem with ACPI events being delayed
+Date: Fri, 20 May 2005 11:33:15 +0200
+Message-ID: <20050520093315.GA5268@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status;
-    boundary="rt"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,47 +18,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---rt
+i am sitting in front of an ASUS M6811NEBH and am experiencing an strange
+behaviour wrt ACPI events.
 
+Doing "cat /proc/acpi/event", i immediately get a response on every button
+press, but using acpid or powersaved, they get the events delayed, like if
+they were put into a FIFO or like if the "write" from the kernel to 
+/proc/acpi/event was buffered.
 
-This is a Delivery Status Notification (DSN).
+I got reports that this broke between the 2.6.5 kernel as delivered by
+SUSE 9.1 (where it still worked fine) and 2.6.9pre as delivered by SUSE 9.2.
+It still does not work with 2.6.11.4
 
-I was unable to deliver your message to
-azummo-6oHk9+gzq0RsJHzoak81lQ@public.gmane.org
+/proc/interrupts shows an acpi interrupt is generated for every button press.
+-- 
+Stefan Seyfried
 
-I said 
-  RCPT TO:<azummo-6oHk9+gzq0Q+jrR7i3vcgg@public.gmane.org>
-
-And they gave me the error;
-  550 sorry, no mailbox here by that name (#5.1.1 - chkusr)
-
- 
-
---rt
-Content-Type: message/delivery-status
-
-Reporting-MTA: dns; kroah.com
-Final-Recipient: RFC822; azummo-6oHk9+gzq0Q+jrR7i3vcgg@public.gmane.org
-Action: failed
-Status: 5.0.0
-
---rt
-content-type: Text/RFC822-Headers
-
-Received: from lists.sourceforge.net ([202.196.188.39]) by kroah.com for <omninet-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>; Thu, 19 May 2005 22:16:55 -0700
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: omninet-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
-Subject: Hello
-Date: Fri, 20 May 2005 13:16:17 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0000_66575BF1.C99A466F"
-X-Priority: 3
-X-MSMail-Priority: Normal
-
-
---rt--
 
 
 -------------------------------------------------------
