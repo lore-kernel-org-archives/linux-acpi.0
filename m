@@ -1,14 +1,11 @@
-From: =?iso-8859-1?Q?=C9ric?= Brunet <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
-Subject: Re: Laptop powers off randomly
-Date: Mon, 23 May 2005 21:20:54 +0200
-Message-ID: <20050523192054.GA22927@platane.lps.ens.fr>
-References: <4291C7E4.3030809@fcaglp.unlp.edu.ar>
+From: Mike Waychison <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IO APIC existence check (2.6.11.10)
+Date: Mon, 23 May 2005 15:23:12 -0700
+Message-ID: <429257D0.3020703@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+ boundary="------------060809070805090809060600"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4291C7E4.3030809-Sx9GWwsh3wButJw4YEhYoKkm5W21vHkk@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,40 +15,107 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fabio Zyserman <zyserman-Sx9GWwsh3wButJw4YEhYoKkm5W21vHkk@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 23, 2005 at 09:09:08AM -0300, Fabio Zyserman wrote:
-> I have a Toshiba Satellite A60 laptop since some days ago,
-> with kernel 2.6.10, with acpi enabled; kernel configuration looks
-> like this:
->=20
-> While using the computer, it powers off randomly.
-> That means, using battery (and fully charged) or being plugged in,
-> with X11 activated or not.
+This is a multi-part message in MIME format.
+--------------060809070805090809060600
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I have lived three years with a toshiba satellite X11 with the same
-problem, and I have never been able to fix it. It used to happen about
-once a day.
+Hi,
 
-It also happened with Windows (perhaps more rarely), but as you cannot
-make a step by step way to reproduce the problem, garanty is more or less
-useless, especially if you don't have time to lose and if you cannot
-afford three weeks without laptop.
+We've come across some boards where the MADT will list IO APICs that 
+don't really exist in hardware.
 
-One day, I moved the memory from one slot to another. I had the
-impression that it helped (powerdown less frequent), but I cannot be sure
-it was not wishfull thinking.
+The current 2.6, the kernel will panic in io_apic_get_unique_id because 
+it will fail to force set the APIC id.
 
-If you still have the possibility to exchange it, I would go for it.
+This following patch adds a quick check when registering IO APICs to 
+make sure they exist. We do this by actually checking to see if the data
+register loads the version properly and by examining the index register
+to see that it was actually modified from 0xff after the io_apic_read.
 
-I used to have a good opinion of toshiba laptop. Now, I have an asus and
-I am __so__ happy with it.
+Signed-off-by: Mike Waychison <mikew-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 
-Good luck,
 
-	=C9ric Brunet
+--------------060809070805090809060600
+Content-Type: text/plain;
+ name="check_io_apic_existance.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="check_io_apic_existance.patch"
+
+--- 2.6/include/asm-i386/io_apic.h	2005-05-23 12:45:51.000000000 -0700
++++ 2.6/include/asm-i386/io_apic.h	2005-05-23 12:45:51.000000000 -0700
+@@ -196,6 +196,7 @@ extern int skip_ioapic_setup;
+ #define io_apic_assign_pci_irqs (mp_irq_entries && !skip_ioapic_setup && io_apic_irqs)
+ 
+ #ifdef CONFIG_ACPI_BOOT
++extern unsigned char io_apic_read_index (int ioapic);
+ extern int io_apic_get_unique_id (int ioapic, int apic_id);
+ extern int io_apic_get_version (int ioapic);
+ extern int io_apic_get_redir_entries (int ioapic);
+--- 2.6/arch/i386/kernel/mpparse.c	2005-05-23 13:12:35.000000000 -0700
++++ 2.6/arch/i386/kernel/mpparse.c	2005-05-23 13:12:35.000000000 -0700
+@@ -907,16 +907,34 @@ void __init mp_register_ioapic (
+ 		return;
+ 	}
+ 
+-	idx = nr_ioapics++;
++	/*
++	 * Probe the IO APIC. Set up the ioapic structures so we can do reads,
++	 * but delay incrementing nr_ioapics in case the probe fails
++	 */
++	idx = nr_ioapics;
+ 
+ 	mp_ioapics[idx].mpc_type = MP_IOAPIC;
+ 	mp_ioapics[idx].mpc_flags = MPC_APIC_USABLE;
+ 	mp_ioapics[idx].mpc_apicaddr = address;
+ 
+ 	set_fixmap_nocache(FIX_IO_APIC_BASE_0 + idx, address);
+-	mp_ioapics[idx].mpc_apicid = io_apic_get_unique_id(idx, id);
++
+ 	mp_ioapics[idx].mpc_apicver = io_apic_get_version(idx);
+-	
++	/*
++	 * Probe to see if the io_apic looks good.
++	 * index register should be set as well.
++	 */
++	if (mp_ioapics[idx].mpc_apicver == 0xff) {
++		if (io_apic_read_index(idx) == 0xff) {
++			printk(KERN_ERR "WARNING: Bogus (0x%08x) I/O APIC address"
++				" found in MADT table, skipping!\n", address);
++			return;
++		}
++	}
++	nr_ioapics++;
++
++	mp_ioapics[idx].mpc_apicid = io_apic_get_unique_id(idx, id);
++
+ 	/* 
+ 	 * Build basic GSI lookup table to facilitate gsi->io_apic lookups
+ 	 * and to prevent reprogramming of IOAPIC pins (PCI GSIs).
+--- 2.6/arch/i386/kernel/io_apic.c	2005-05-23 12:48:32.000000000 -0700
++++ 2.6/arch/i386/kernel/io_apic.c	2005-05-23 12:48:32.000000000 -0700
+@@ -2459,6 +2459,15 @@ int __init io_apic_get_unique_id (int io
+ 	return apic_id;
+ }
+ 
++unsigned char __init io_apic_read_index (int ioapic)
++{
++	unsigned long flags;
++	unsigned char index_reg;
++	spin_lock_irqsave(&ioapic_lock, flags);
++	index_reg = *IO_APIC_BASE(ioapic);
++	spin_unlock_irqrestore(&ioapic_lock, flags);
++	return index_reg;
++}
+ 
+ int __init io_apic_get_version (int ioapic)
+ {
+
+--------------060809070805090809060600--
 
 
 -------------------------------------------------------
