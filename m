@@ -1,15 +1,11 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: IDE _GTM/_STM support
-Date: Mon, 23 May 2005 12:08:05 +0100
-Message-ID: <1116846484.5743.34.camel@localhost.localdomain>
-References: <1116801324.29662.50.camel@tyrosine>
-	 <1116802237.5730.29.camel@localhost.localdomain>
-	 <1116814023.3852.6.camel@linux-hp.sh.intel.com>
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: [PATCH] enable acpi_os_allocate() to allocate larger memory
+Date: Mon, 23 May 2005 20:28:17 +0900
+Message-ID: <4291BE51.1090004@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1116814023.3852.6.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,39 +15,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Llu, 2005-05-23 at 03:07, Shaohua Li wrote:
-> > Its waiting for the I/O to finish. The IDE layer needs the request
-> > queues to be running so you probably need to defer the taskfile calls.
-> The ACPI spec the _GTF task should be invoked very early. Eg. before
-> other commands. Deferring the taskfile call possibly can't meet the
-> requirement, can it? Sorry, I don't understand Linux IDE. The generic
-> ide resume routine invokes a 'PM_RESUME' request, could _GTF commands be
-> invoked before the PM_RESUME request?
+Hi,
 
-Linux IDE is entirely request queue driven (almost anyway). If you
-wanted to run a taskfile early you'd really need to go around the IDE
-layer and perform the task file operations directly. For almost all of
-the controllers that should not be a big problem as the register
-addresses, operations and related information are in the IDE hwif
-structure and issuing a polled taskfile is relatively trivial and
-standardised code.
+I encountered the problem that I could not read /proc/acpi/dsdt on my
+machine. It turned out that acpi_os_allocate() was failed to allocate
+buffer. The DSDT on my machine was too large for acpi_os_allocate() to
+allocate the buffer.
 
-ie you can go
-		ACPI -> PCI device
-		PCI device -> IDE hwif
-		IDE hwif -> register addresses, ops
-		Directly issue polled taskfile
-		Poll for completion
+Current acpi_os_allocate() interface is implemented by using kmalloc()
+whose maximum allocation size is limited. So acpi_os_allocate() would
+fail if larger size than maximum allocation size of kmalloc was
+specified. I think this restriction should be removed.
 
-and you can do that even before interrupts are enabled.
+The following patch enables acpi_os_allocate() to allocate larger
+memory.
 
-In the SATA world it gets more complicated but Jeff Garzik's SATA layer
-seems to have the right functions exposed to issue taskfiles directly.
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
+
+---
+
+ linux-2.6.12-rc4-kanesige/drivers/acpi/osl.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
+
+diff -puN drivers/acpi/osl.c~fix_acpi_os_allocate drivers/acpi/osl.c
+--- linux-2.6.12-rc4/drivers/acpi/osl.c~fix_acpi_os_allocate	2005-05-23 20:09:34.000000000 +0900
++++ linux-2.6.12-rc4-kanesige/drivers/acpi/osl.c	2005-05-23 20:09:34.000000000 +0900
+@@ -37,6 +37,7 @@
+ #include <linux/delay.h>
+ #include <linux/workqueue.h>
+ #include <linux/nmi.h>
++#include <linux/vmalloc.h>
+ #include <acpi/acpi.h>
+ #include <asm/io.h>
+ #include <acpi/acpi_bus.h>
+@@ -145,13 +146,20 @@ acpi_os_vprintf(const char *fmt, va_list
+ void *
+ acpi_os_allocate(acpi_size size)
+ {
+-	return kmalloc(size, GFP_KERNEL);
++	void *ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr)
++		ptr = vmalloc(size);
++	return ptr;
+ }
+ 
+ void
+ acpi_os_free(void *ptr)
+ {
+-	kfree(ptr);
++	if (VMALLOC_START <= (unsigned long)ptr &&
++	    (unsigned long)ptr < VMALLOC_END)
++		vfree(ptr);
++	else
++		kfree(ptr);
+ }
+ EXPORT_SYMBOL(acpi_os_free);
+ 
+
+_
 
 
 -------------------------------------------------------
