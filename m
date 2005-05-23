@@ -1,9 +1,10 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [PATCH] enable acpi_os_allocate() to allocate larger memory
-Date: Mon, 23 May 2005 20:28:17 +0900
-Message-ID: <4291BE51.1090004@jp.fujitsu.com>
+From: Fabio Zyserman <zyserman-Sx9GWwsh3wButJw4YEhYoKkm5W21vHkk@public.gmane.org>
+Subject: Laptop powers off randomly
+Date: Mon, 23 May 2005 09:09:08 -0300
+Message-ID: <4291C7E4.3030809@fcaglp.unlp.edu.ar>
+Reply-To: zyserman-Sx9GWwsh3wButJw4YEhYoKkm5W21vHkk@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,68 +16,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi folks,
 
-I encountered the problem that I could not read /proc/acpi/dsdt on my
-machine. It turned out that acpi_os_allocate() was failed to allocate
-buffer. The DSDT on my machine was too large for acpi_os_allocate() to
-allocate the buffer.
+I am a new to this list, I apollogize if my
+question has been already answered.
 
-Current acpi_os_allocate() interface is implemented by using kmalloc()
-whose maximum allocation size is limited. So acpi_os_allocate() would
-fail if larger size than maximum allocation size of kmalloc was
-specified. I think this restriction should be removed.
+I have a Toshiba Satellite A60 laptop since some days ago,
+with kernel 2.6.10, with acpi enabled; kernel configuration looks
+like this:
 
-The following patch enables acpi_os_allocate() to allocate larger
-memory.
+CONFIG_TOSHIBA=y
 
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_INTERPRETER=y
+# CONFIG_ACPI_SLEEP is not set
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_VIDEO=y
+CONFIG_ACPI_FAN=y
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_IBM is not set
+CONFIG_ACPI_TOSHIBA=y
+CONFIG_ACPI_BLACKLIST_YEAR=0
+# CONFIG_ACPI_DEBUG is not set
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SYSTEM=y
+
+While using the computer, it powers off randomly.
+That means, using battery (and fully charged) or being plugged in,
+with X11 activated or not.
+I don't know if this information is useful, but it's the
+almost the only one I am able to give!
+
+Under /proc/acpi I can check the state of the battery and
+the temperature of the processor also.
+
+Any help will be warmly appreciated!!!
+
+Thanks in advance,
+
+Fabio Zyserman
 
 
----
 
- linux-2.6.12-rc4-kanesige/drivers/acpi/osl.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
-
-diff -puN drivers/acpi/osl.c~fix_acpi_os_allocate drivers/acpi/osl.c
---- linux-2.6.12-rc4/drivers/acpi/osl.c~fix_acpi_os_allocate	2005-05-23 20:09:34.000000000 +0900
-+++ linux-2.6.12-rc4-kanesige/drivers/acpi/osl.c	2005-05-23 20:09:34.000000000 +0900
-@@ -37,6 +37,7 @@
- #include <linux/delay.h>
- #include <linux/workqueue.h>
- #include <linux/nmi.h>
-+#include <linux/vmalloc.h>
- #include <acpi/acpi.h>
- #include <asm/io.h>
- #include <acpi/acpi_bus.h>
-@@ -145,13 +146,20 @@ acpi_os_vprintf(const char *fmt, va_list
- void *
- acpi_os_allocate(acpi_size size)
- {
--	return kmalloc(size, GFP_KERNEL);
-+	void *ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr)
-+		ptr = vmalloc(size);
-+	return ptr;
- }
- 
- void
- acpi_os_free(void *ptr)
- {
--	kfree(ptr);
-+	if (VMALLOC_START <= (unsigned long)ptr &&
-+	    (unsigned long)ptr < VMALLOC_END)
-+		vfree(ptr);
-+	else
-+		kfree(ptr);
- }
- EXPORT_SYMBOL(acpi_os_free);
- 
-
-_
 
 
 -------------------------------------------------------
