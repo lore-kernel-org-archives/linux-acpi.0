@@ -1,49 +1,31 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: [PATCH] enable acpi_os_allocate() to allocate larger
-	memory
-Date: Mon, 23 May 2005 14:42:58 +0100
-Message-ID: <1116855778.5744.47.camel@localhost.localdomain>
-References: <4291BE51.1090004@jp.fujitsu.com>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [patch 2/2] x86_64: Collect host bridge resources
+Date: Mon, 23 May 2005 18:15:07 +0200
+Message-ID: <20050523161507.GN16164@wotan.suse.de>
+References: <20050521004239.581618000@csdlinux-1> <20050521004506.842235000@csdlinux-1>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4291BE51.1090004-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261900AbVEWQPN@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20050521004506.842235000@csdlinux-1>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rajesh.shah@intel.com
+Cc: ak@suse.de, len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Llu, 2005-05-23 at 12:28, Kenji Kaneshige wrote:
-> -	return kmalloc(size, GFP_KERNEL);
-> +	void *ptr = kmalloc(size, GFP_KERNEL);
-> +	if (!ptr)
+On Fri, May 20, 2005 at 05:42:41PM -0700, rajesh.shah@intel.com wrote:
+> This patch reads and stores host bridge resources reported by
+> ACPI BIOS for x86_64 systems. This is needed since ACPI hotplug
+> code now uses the PCI core for resource management. This patch
+> simply adds the boot parameter (acpi=root_resources) to enable
+> the functionality that is implemented in arch/i386.
+> 
 
+This means all hot plug users have to pass this strange parameter?
+That does not sound very user friendly. Especially since you usually
+only need pci hotplug in emergencies, and then you likely didnt pass it.
 
-This looks reasonable. Do you think it would be better to use
-GFP_KERNEL|__GFP_NORETRY|__GFP_NOWARN ?
+Cant you find a way to do this without parameters? Any reason
+to not make it default?
 
-Tbe __GFP_NORETRY tells the vm it is ok to fail the kmalloc rather than
-wait
-and try for a long long time. The _NOWARN says "we know this can fail in
-normal
-use so don't log failure". (See include/linux/gfp.h for more
-documentation)
-
-Alan
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by Oracle Space Sweepstakes
-Want to be the first software developer in space?
-Enter now for the Oracle Space Sweepstakes!
-http://ads.osdn.com/?ad_id=7412&alloc_id=16344&op=click
+-Andi
