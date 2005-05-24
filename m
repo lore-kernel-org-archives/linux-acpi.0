@@ -1,43 +1,54 @@
-From: Stefan Seyfried <seife@suse.de>
-Subject: Re: swsusp: Not enough free pages
-Date: Tue, 24 May 2005 18:55:14 +0200
-Message-ID: <42935C72.9030506@suse.de>
-References: <3ACA40606221794F80A5670F0AF15F84041AC1A8@pdsmsx403>
+From: Ivan Kokshaysky <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>
+Subject: Re: [patch 2/2] x86_64: Collect host bridge resources
+Date: Tue, 24 May 2005 20:58:55 +0400
+Message-ID: <20050524205855.A8367@jurassic.park.msu.ru>
+References: <20050521004239.581618000@csdlinux-1> <20050521004506.842235000@csdlinux-1> <20050523161507.GN16164@wotan.suse.de> <20050523175706.A12032@unix-os.sc.intel.com> <20050524120527.GB15326@wotan.suse.de> <20050524185856.A7639@jurassic.park.msu.ru> <20050524084533.A20567@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC1A8@pdsmsx403>
-List-Unsubscribe: <http://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <http://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: "Yu, Luming" <luming.yu@intel.com>
-Cc: ACPI devel <acpi-devel@lists.sourceforge.net>, linux-pm@lists.osdl.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050524084533.A20567-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>; from rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Tue, May 24, 2005 at 08:45:36AM -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yu, Luming wrote:
-> Hi Pavel,
->=20
-> I got this error when I'm hacking suspend-to-disk on my IA64 box with 1=
-G
-> memory.
-> (Pagesize 64K,MemTotal:  1002112 kB ,MemFree:  395008 kB)
-> Do you plan to improve it by compressing pages ?
-> =20
-> swsusp: Need to copy 9878 pages
-> suspend: (pages needed: 9878 + 512 free: 6486)
-> swsusp: Not enough free pages: Have 6486
+On Tue, May 24, 2005 at 08:45:36AM -0700, Rajesh Shah wrote:
+> The concern here isn't just increasing the size of pci_bus. The
+> resource pointers in pci_bus point to resource structures in the
+> corresponding pci_dev structure for p2p bridges. If we want to
+> maintain this scheme, we'd have to increase the number of resources
+> in the pci_dev structure too, which increases it for every single
+> pci device in the system.
 
-I have not seen one of those for a long time (on i386). Does this happen
-every time? Can you tell from the log if free_some_memory actually freed
-some memory?
---=20
-Stefan Seyfried
-QA / R&D Team Mobile Devices        |              "Any ideas, John?"
-SUSE LINUX Products GmbH, N=FCrnberg  | "Well, surrounding them's out."
+No. The pci_bus resource pointers are just pointers to _some_ resources
+and generally aren't tied to particular pci device. For example, the
+root pci buses often don't even have corresponding bus->self structure,
+and bus resources are pointers to global io[mem,port]_resource.
+And definitely we must not touch resource layout in struct pci_dev -
+it's defined by pci specs.
+
+> Probably ok for big server machines, but
+> would others (e.g. embedded folks) complain?
+
+Increasing the size of pci_bus by 8 or 16 bytes shouldn't be a problem -
+I don't think embedded machines have a lot of pci buses. :-)
+Anyway, the default PCI_BUS_NUM_RESOURCES value can be overridden in 
+arch specific headers.
+
+Ivan.
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Yahoo.
+Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+Search APIs Find out how you can build Yahoo! directly into your own
+Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
