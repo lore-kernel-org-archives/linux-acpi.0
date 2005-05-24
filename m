@@ -1,57 +1,50 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [patch 2/2] x86_64: Collect host bridge resources
-Date: Tue, 24 May 2005 14:05:27 +0200
-Message-ID: <20050524120527.GB15326@wotan.suse.de>
-References: <20050521004239.581618000@csdlinux-1> <20050521004506.842235000@csdlinux-1> <20050523161507.GN16164@wotan.suse.de> <20050523175706.A12032@unix-os.sc.intel.com>
+From: Michal =?utf-8?q?=C4=8Ciha=C5=99?= <michal-2IUCcKsTmRkAvxtiuMwx3w@public.gmane.org>
+Subject: Leak in toshiba_acpi
+Date: Tue, 24 May 2005 14:46:34 +0200
+Message-ID: <200505241446.34614.michal@cihar.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262007AbVEXMFi@vger.kernel.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050523175706.A12032@unix-os.sc.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rajesh Shah <rajesh.shah@intel.com>
-Cc: Andi Kleen <ak@suse.de>, len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, acpi-devel@lists.sourceforge.net
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 23, 2005 at 05:57:08PM -0700, Rajesh Shah wrote:
-> On Mon, May 23, 2005 at 06:15:07PM +0200, Andi Kleen wrote:
-> > On Fri, May 20, 2005 at 05:42:41PM -0700, rajesh.shah@intel.com wrote:
-> > > This patch reads and stores host bridge resources reported by
-> > > ACPI BIOS for x86_64 systems. This is needed since ACPI hotplug
-> > > code now uses the PCI core for resource management. This patch
-> > > simply adds the boot parameter (acpi=root_resources) to enable
-> > > the functionality that is implemented in arch/i386.
-> > > 
-> > 
-> > This means all hot plug users have to pass this strange parameter?
-> > That does not sound very user friendly. Especially since you usually
-> > only need pci hotplug in emergencies, and then you likely didnt pass it.
-> > 
-> > Cant you find a way to do this without parameters? Any reason
-> > to not make it default?
-> > 
-> I found several systems in which the host bridge was decoding 6+
-> resource ranges. In the pci_bus structure, I only have room for 4,
-> so I'm forced to drop some ranges that are in fact being passed
+Hi all
 
-How about you allocate an extended structure with kmalloc in this case?
-Or if it is only 6 ranges max (it is not, is it?) you could extend
-the array.
+On my notebook I noticed constant eating of memory of something in kernel,=
+=20
+that allocates slab size-64. After some more testing I found that it is=20
+caused by reading values from toshiba_acpi module (/proc/acpi/toshiba=20
+interface).
 
-I doubt this information will need *that* much memory, so it should
-be reasonable to just teach the PCI subsystem about it.
+However I'm unable to track it better, I don't know ACPI code and I haven't=
+=20
+found much documentation. From what I know it looks to me like it forgets t=
+o=20
+free some memory it gets from ACPI calls. It happens on all read operations=
+,=20
+so it must be some generic error in this module.
 
-> Another option I'd thought of but never really pursued was to
-> implement this as a late_initcall. I'll look into that some more.
-> In that case, we'd continue to think that all host bridges decode
-> all unclaimed resources at boot time and depend on BIOS to program
-> resources for boot time devices correctly. Later, we'd collect the
-> more accurate host bridge resource picture to make hotplug work
-> correctly. Kind of hackish, but I can't think of another way to
-> avoid the boot parameter.
+I'm using kernel 2.6.11.10. Could somebody please point me to useful=20
+documentation or help me with debugging this?
 
-It sounds preferable to me to just give PCI the full picture from
-the beginning instead of using such hacks which will likely
-come back later to hurt us.
+=2D-=20
+    Michal =C4=8Ciha=C5=99 | http://www.cihar.com
 
--Andi
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Oracle Space Sweepstakes
+Want to be the first software developer in space?
+Enter now for the Oracle Space Sweepstakes!
+http://ads.osdn.com/?ad_id=7412&alloc_id=16344&op=click
