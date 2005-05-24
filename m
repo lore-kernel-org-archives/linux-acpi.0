@@ -1,72 +1,32 @@
-From: Luming Yu <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: problem with suspension
-Date: Tue, 24 May 2005 22:50:53 +0800
-Message-ID: <3877989d0505240750749c0125@mail.gmail.com>
-References: <web-47615334@infinito.it>
-Reply-To: Luming Yu <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: Re: [patch 2/2] x86_64: Collect host bridge resources
+Date: Tue, 24 May 2005 18:58:56 +0400
+Message-ID: <20050524185856.A7639@jurassic.park.msu.ru>
+References: <20050521004239.581618000@csdlinux-1> <20050521004506.842235000@csdlinux-1> <20050523161507.GN16164@wotan.suse.de> <20050523175706.A12032@unix-os.sc.intel.com> <20050524120527.GB15326@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <web-47615334-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262074AbVEXPAZ@vger.kernel.org>
 Content-Disposition: inline
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "pj.harvey-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org" <pj.harvey-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20050524120527.GB15326@wotan.suse.de>; from ak@suse.de on Tue, May 24, 2005 at 02:05:27PM +0200
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: Rajesh Shah <rajesh.shah@intel.com>, len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Please send to acpi-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
-Please don't post message large than 80k.
+On Tue, May 24, 2005 at 02:05:27PM +0200, Andi Kleen wrote:
+> How about you allocate an extended structure with kmalloc in this case?
 
-Thanks,
-Luming
+This would lead to quite a few changes in the PCI subsystem.
+Looks good as a long-term solution though.
 
-On 2/16/05, pj.harvey-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org <pj.harvey-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org> wrote:
-> Hi,
->    I have a problem with suspension.
-> When I do
->=20
->  echo disk > /sys/power/state
->=20
-> I have a problem with modules of SCSI controller, aic7xxx.
-> I've tryed to remove the modules with
->=20
->   modprobe -r aic7xxx
->=20
-> but the kernel was in panic. The message is
->=20
->   Kernel Panic - Not syncing: Loop 1
->=20
-> If I don't load the module aic7xxx and I try to do the
-> suspension, all is ok.
->=20
-> What I do?
->=20
-> Sorry for my english.
-> Tnk
-> Luca
-> _______________________________________
-> Connessione ed e-mail gratuita da 10 mb
-> consultabile tramite web e tramite pop.
-> www.infinito.it vieni a scoprire tutti
-> i nostri servizi!
->=20
-> http://www.infinito.it/xmail
->=20
->=20
->
+> Or if it is only 6 ranges max (it is not, is it?) you could extend
+> the array.
+> 
+> I doubt this information will need *that* much memory, so it should
+> be reasonable to just teach the PCI subsystem about it.
 
+Agreed. As a bonus, extending the PCI_BUS_NUM_RESOURCES to 6 would
+cleanly resolve problems with "transparent" PCI bridges - the bus
+might have 3 "native" + 3 parent bus ranges in that case.
 
--------------------------------------------------------
-This SF.Net email is sponsored by Yahoo.
-Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
-Search APIs Find out how you can build Yahoo! directly into your own
-Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
+Ivan.
