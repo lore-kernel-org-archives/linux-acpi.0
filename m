@@ -1,13 +1,13 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: [PATCH] take2: enable acpi_os_allocate() to allocate larger memory
-Date: Tue, 24 May 2005 14:17:28 +0200
-Message-ID: <20050524121728.GA29280@message-id.gmane0305.slipkontur.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300381628C@hdsmsx401.amr.corp.intel.com> <42931252.8000400@jp.fujitsu.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] PCI: do VIA IRQ fixup always, not just in PIC mode (resend)
+Date: Tue, 24 May 2005 09:44:46 -0600
+Message-ID: <200505240944.46633.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <42931252.8000400-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +17,83 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org
+Cc: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 24, 2005 at 08:38:58PM +0900, Kenji Kaneshige wrote:
-> Hi,
-> 
-> Thank you for the information.
-> 
-> Please note that the failure of reading /proc/acpi/dsdt is
-> just an example. I think there will be other cases that
-> acpi_os_allocate() needs to allocate memory larger than the
-> maximum allocation size of kmalloc(). For example, custom
-> DSDT cannot be loaded on my machine without this patch. So
-> I think we need this patch even if /proc/acpi/dsdt will be
-> removed in the future.
+I posted the patch below a few weeks ago.  Greg, would you
+consider putting it in your tree so it trickles into -mm?
 
-But you should not override your DSDT!! You should get your vendor
-to update the BIOS!!
 
-Just kidding.
-Sorry, i really could not resist ;-)
--- 
-Stefan Seyfried
+At least some VIA chipsets require the fixup even in IO-APIC mode.
 
+This was found and debugged with the patient assistance of Stian
+Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org> on an Asus CUV266-DLS motherboard.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+
+--- 2.6.12-rc3-mm3/drivers/pci/quirks.c.orig	2005-05-05 10:52:42.000000000 -0600
++++ 2.6.12-rc3-mm3/drivers/pci/quirks.c	2005-05-10 09:56:18.000000000 -0600
+@@ -460,17 +460,6 @@
+ 
+ 
+ /*
+- * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
+- * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
+- * when written, it makes an internal connection to the PIC.
+- * For these devices, this register is defined to be 4 bits wide.
+- * Normally this is fine.  However for IO-APIC motherboards, or
+- * non-x86 architectures (yes Via exists on PPC among other places),
+- * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
+- * interrupts delivered properly.
+- */
+-
+-/*
+  * FIXME: it is questionable that quirk_via_acpi
+  * is needed.  It shows up as an ISA bridge, and does not
+  * support the PCI_INTERRUPT_LINE register at all.  Therefore
+@@ -492,28 +481,30 @@
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C586_3,	quirk_via_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686_4,	quirk_via_acpi );
+ 
+-static void __devinit quirk_via_irqpic(struct pci_dev *dev)
++/*
++ * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
++ * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
++ * when written, it makes an internal connection to the PIC.
++ * For these devices, this register is defined to be 4 bits wide.
++ * Normally this is fine.  However for IO-APIC motherboards, or
++ * non-x86 architectures (yes Via exists on PPC among other places),
++ * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
++ * interrupts delivered properly.
++ */
++static void __devinit quirk_via_irq(struct pci_dev *dev)
+ {
+ 	u8 irq, new_irq;
+ 
+-#ifdef CONFIG_X86_IO_APIC
+-	if (nr_ioapics && !skip_ioapic_setup)
+-		return;
+-#endif
+-#ifdef CONFIG_ACPI
+-	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
+-		return;
+-#endif
+ 	new_irq = dev->irq & 0xf;
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+ 	if (new_irq != irq) {
+-		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
++		printk(KERN_INFO "PCI: Via IRQ fixup for %s, from %d to %d\n",
+ 			pci_name(dev), irq, new_irq);
+ 		udelay(15);	/* unknown if delay really needed */
+ 		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+ 	}
+ }
+-DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
+ 
+ /*
+  * PIIX3 USB: We have to disable USB interrupts that are
 
 
 -------------------------------------------------------
