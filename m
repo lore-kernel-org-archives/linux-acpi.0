@@ -1,103 +1,53 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] PCI: do VIA IRQ fixup always, not just in PIC mode (resend)
-Date: Tue, 24 May 2005 09:44:46 -0600
-Message-ID: <200505240944.46633.bjorn.helgaas@hp.com>
+From: Rajesh Shah <rajesh.shah@intel.com>
+Subject: Re: [patch 2/2] x86_64: Collect host bridge resources
+Date: Tue, 24 May 2005 08:45:36 -0700
+Message-ID: <20050524084533.A20567@unix-os.sc.intel.com>
+References: <20050521004239.581618000@csdlinux-1> <20050521004506.842235000@csdlinux-1> <20050523161507.GN16164@wotan.suse.de> <20050523175706.A12032@unix-os.sc.intel.com> <20050524120527.GB15326@wotan.suse.de> <20050524185856.A7639@jurassic.park.msu.ru>
+Reply-To: Rajesh Shah <rajesh.shah@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262121AbVEXPu4@vger.kernel.org>
 Content-Disposition: inline
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org
-Cc: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20050524185856.A7639@jurassic.park.msu.ru>; from ink@jurassic.park.msu.ru on Tue, May 24, 2005 at 06:58:56PM +0400
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Andi Kleen <ak@suse.de>, Rajesh Shah <rajesh.shah@intel.com>, len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, acpi-devel@lists.sourceforge.net, gregkh@suse.de
 List-Id: linux-acpi@vger.kernel.org
 
-I posted the patch below a few weeks ago.  Greg, would you
-consider putting it in your tree so it trickles into -mm?
+On Tue, May 24, 2005 at 06:58:56PM +0400, Ivan Kokshaysky wrote:
+> On Tue, May 24, 2005 at 02:05:27PM +0200, Andi Kleen wrote:
+> > How about you allocate an extended structure with kmalloc in this case?
+> 
+> This would lead to quite a few changes in the PCI subsystem.
+> Looks good as a long-term solution though.
+> 
+Yes, I did look at that and this would be a big change that would
+affect almost all architectures. I was thinking something like
+this would be more appropriate as part of the PCI rewrite that
+Adam Belay had proposed.
 
+> > Or if it is only 6 ranges max (it is not, is it?) you could extend
+> > the array.
+> > 
+No, 6 is not guaranteed but would cover a larger percentage of
+systems. 8 would probably cover all but a few special cases.
 
-At least some VIA chipsets require the fixup even in IO-APIC mode.
+> > I doubt this information will need *that* much memory, so it should
+> > be reasonable to just teach the PCI subsystem about it.
+> 
+> Agreed. As a bonus, extending the PCI_BUS_NUM_RESOURCES to 6 would
+> cleanly resolve problems with "transparent" PCI bridges - the bus
+> might have 3 "native" + 3 parent bus ranges in that case.
+> 
+The concern here isn't just increasing the size of pci_bus. The
+resource pointers in pci_bus point to resource structures in the
+corresponding pci_dev structure for p2p bridges. If we want to
+maintain this scheme, we'd have to increase the number of resources
+in the pci_dev structure too, which increases it for every single
+pci device in the system. Probably ok for big server machines, but
+would others (e.g. embedded folks) complain?
 
-This was found and debugged with the patient assistance of Stian
-Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org> on an Asus CUV266-DLS motherboard.
+I just realized that I did not explicitly CC Greg in my original
+post. Doing that now, to see what he thinks.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-
---- 2.6.12-rc3-mm3/drivers/pci/quirks.c.orig	2005-05-05 10:52:42.000000000 -0600
-+++ 2.6.12-rc3-mm3/drivers/pci/quirks.c	2005-05-10 09:56:18.000000000 -0600
-@@ -460,17 +460,6 @@
- 
- 
- /*
-- * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
-- * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
-- * when written, it makes an internal connection to the PIC.
-- * For these devices, this register is defined to be 4 bits wide.
-- * Normally this is fine.  However for IO-APIC motherboards, or
-- * non-x86 architectures (yes Via exists on PPC among other places),
-- * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
-- * interrupts delivered properly.
-- */
--
--/*
-  * FIXME: it is questionable that quirk_via_acpi
-  * is needed.  It shows up as an ISA bridge, and does not
-  * support the PCI_INTERRUPT_LINE register at all.  Therefore
-@@ -492,28 +481,30 @@
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C586_3,	quirk_via_acpi );
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686_4,	quirk_via_acpi );
- 
--static void __devinit quirk_via_irqpic(struct pci_dev *dev)
-+/*
-+ * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
-+ * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
-+ * when written, it makes an internal connection to the PIC.
-+ * For these devices, this register is defined to be 4 bits wide.
-+ * Normally this is fine.  However for IO-APIC motherboards, or
-+ * non-x86 architectures (yes Via exists on PPC among other places),
-+ * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
-+ * interrupts delivered properly.
-+ */
-+static void __devinit quirk_via_irq(struct pci_dev *dev)
- {
- 	u8 irq, new_irq;
- 
--#ifdef CONFIG_X86_IO_APIC
--	if (nr_ioapics && !skip_ioapic_setup)
--		return;
--#endif
--#ifdef CONFIG_ACPI
--	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
--		return;
--#endif
- 	new_irq = dev->irq & 0xf;
- 	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
- 	if (new_irq != irq) {
--		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
-+		printk(KERN_INFO "PCI: Via IRQ fixup for %s, from %d to %d\n",
- 			pci_name(dev), irq, new_irq);
- 		udelay(15);	/* unknown if delay really needed */
- 		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
- 	}
- }
--DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
-+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irq);
- 
- /*
-  * PIIX3 USB: We have to disable USB interrupts that are
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by Yahoo.
-Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
-Search APIs Find out how you can build Yahoo! directly into your own
-Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
+Rajesh
