@@ -1,38 +1,283 @@
-From: Rajesh Shah <rajesh.shah@intel.com>
-Subject: Re: [patch 2/2] x86_64: Collect host bridge resources
-Date: Tue, 24 May 2005 10:37:25 -0700
-Message-ID: <20050524103724.A22049@unix-os.sc.intel.com>
-References: <20050521004239.581618000@csdlinux-1> <20050521004506.842235000@csdlinux-1> <20050523161507.GN16164@wotan.suse.de> <20050523175706.A12032@unix-os.sc.intel.com> <20050524120527.GB15326@wotan.suse.de> <20050524185856.A7639@jurassic.park.msu.ru> <20050524084533.A20567@unix-os.sc.intel.com> <20050524205855.A8367@jurassic.park.msu.ru>
-Reply-To: Rajesh Shah <rajesh.shah@intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: [PATCH 1/2] Allow multiple GPE interrupts
+Date: Wed, 25 May 2005 13:35:24 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840836E7C7@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261799AbVEXRiA@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20050524205855.A8367@jurassic.park.msu.ru>; from ink@jurassic.park.msu.ru on Tue, May 24, 2005 at 08:58:55PM +0400
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Rajesh Shah <rajesh.shah@intel.com>, Andi Kleen <ak@suse.de>, len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, acpi-devel@lists.sourceforge.net, gregkh@suse.de
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Matthew Wilcox <willy-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, matthew-Ztpu424NOJ8@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 24, 2005 at 08:58:55PM +0400, Ivan Kokshaysky wrote:
-> On Tue, May 24, 2005 at 08:45:36AM -0700, Rajesh Shah wrote:
-> > The concern here isn't just increasing the size of pci_bus. The
-> > resource pointers in pci_bus point to resource structures in the
-> > corresponding pci_dev structure for p2p bridges. If we want to
-> > maintain this scheme, we'd have to increase the number of resources
-> > in the pci_dev structure too, which increases it for every single
-> > pci device in the system.
-> 
-> No. The pci_bus resource pointers are just pointers to _some_ resources
-> and generally aren't tied to particular pci device. For example, the
-> root pci buses often don't even have corresponding bus->self structure,
-> and bus resources are pointers to global io[mem,port]_resource.
+ Hi,
 
-For the transparent p2p bridge problem you mentioned, wouldn't you
-be dealing with p2p bridges, and therefore expect the pci_bus
-resource pointers to point to the corresponding pci_dev resources?
-Or are you proposing to decouple pci_bus resource pointers from 
-pci_dev completely? From quick code inspection, that seems to be
-not too much trouble to increase from 4 then.
+Do you have updated patch for the comments below? I'm sorry I jump into =
+a rather old thread.
 
-Rajesh
+Thanks,
+Luming
+
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Brown, Len
+>Sent: 2005=C4=EA4=D4=C214=C8=D5 10:23
+>To: Matthew Wilcox
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; matthew-Ztpu424NOJ8@public.gmane.org
+>Subject: [ACPI] RE: [PATCH 1/2] Allow multiple GPE interrupts
+>
+>=20
+>
+>>-----Original Message-----
+>>From: Matthew Wilcox [mailto:willy-6jwH94ZQLHl74goWV3ctuw@public.gmane.org]=20
+>>Sent: Tuesday, April 12, 2005 5:59 PM
+>>To: Brown, Len
+>>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; matthew-Ztpu424NOJ8@public.gmane.org
+>>Subject: [PATCH 1/2] Allow multiple GPE interrupts
+>>
+>>Allow multiple GPE interrupts
+>>
+>>If we have multiple GPE blocks, they can (and do) have independent
+>>interrupts.  Remove the assumptions in OSL that there is only one GPE
+>>interrupt.
+>>
+>>Index: ./drivers/acpi/osl.c
+>>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>RCS file: /var/cvs/linux-2.6/drivers/acpi/osl.c,v
+>>retrieving revision 1.16
+>>diff -u -p -r1.16 osl.c
+>>--- ./drivers/acpi/osl.c	12 Jan 2005 20:16:09 -0000	1.16
+>>+++ ./drivers/acpi/osl.c	26 Jan 2005 19:16:52 -0000
+>>@@ -71,9 +71,6 @@ EXPORT_SYMBOL(acpi_in_debugger);
+>> extern char line_buf[80];
+>> #endif /*ENABLE_DEBUGGER*/
+>>=20
+>>-static unsigned int acpi_irq_irq;
+>>-static acpi_osd_handler acpi_irq_handler;
+>>-static void *acpi_irq_context;
+>> static struct workqueue_struct *kacpid_wq;
+>>=20
+>> acpi_status
+>>@@ -101,13 +98,12 @@ acpi_os_initialize1(void)
+>> 	return AE_OK;
+>> }
+>>=20
+>>+static void acpi_os_remove_interrupt_handlers(void);
+>>+
+>> acpi_status
+>> acpi_os_terminate(void)
+>> {
+>>-	if (acpi_irq_handler) {
+>>-		acpi_os_remove_interrupt_handler(acpi_irq_irq,
+>>-						 acpi_irq_handler);
+>>-	}
+>>+	acpi_os_remove_interrupt_handlers();
+>>=20
+>> 	destroy_workqueue(kacpid_wq);
+>>=20
+>>@@ -264,50 +260,127 @@ acpi_os_table_override (struct acpi_tabl
+>> 	return AE_OK;
+>> }
+>>=20
+>>+struct acpi_dev_id {
+>>+	acpi_osd_handler handler;
+>>+	void *context;
+>>+	int irq;
+>>+	struct acpi_dev_id *next;
+>>+};
+>>+
+>> static irqreturn_t
+>> acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
+>> {
+>>-	return (*acpi_irq_handler)(acpi_irq_context) ?=20
+>>IRQ_HANDLED : IRQ_NONE;
+>>+	struct acpi_dev_id *irq_ctx =3D dev_id;
+>>+	acpi_osd_handler handler =3D irq_ctx->handler;
+>>+	void *context =3D irq_ctx->context;
+>>+	return (*handler)(context) ? IRQ_HANDLED : IRQ_NONE;
+>>+}
+>>+
+>>+struct acpi_dev_id *dev_id_list;
+>
+>static?
+>
+>>+static void *alloc_dev_id(acpi_osd_handler handler, void=20
+>>*context, int irq)
+>>+{
+>>+	struct acpi_dev_id *irq_ctx =3D kmalloc(sizeof(*irq_ctx),=20
+>>GFP_KERNEL);
+>
+>
+>Check for return value of kmalloc?
+>
+>
+>>+	irq_ctx->handler =3D handler;
+>>+	irq_ctx->context =3D context;
+>>+	irq_ctx->irq =3D irq;
+>>+	irq_ctx->next =3D dev_id_list;
+>>+	dev_id_list =3D irq_ctx;
+>>+	return irq_ctx;
+>>+}
+>>+
+>>+/*
+>>+ * XXX: Ideally, we would match the context too, but that information
+>>+ * isn't passed to the acpi_os_remove_interrupt_handler() function.
+>>+ */
+>>+static void *find_dev_id(int irq, acpi_osd_handler handler)
+>>+{
+>>+	struct acpi_dev_id *irq_ctx =3D dev_id_list;
+>>+	for (irq_ctx =3D dev_id_list; irq_ctx; irq_ctx =3D irq_ctx->next) {
+>>+		if ((irq_ctx->handler =3D=3D handler) &&=20
+>>(irq_ctx->irq =3D=3D irq))
+>>+			return irq_ctx;
+>>+	}
+>>+	printk("find_dev_id: handler %p for irq %d not=20
+>>found\n", handler, irq);
+>>+	return NULL;
+>>+}
+>>+
+>>+static void free_dev_id(struct acpi_dev_id *dev_id)
+>>+{
+>>+	struct acpi_dev_id **pprev =3D &dev_id_list;
+>>+	for (;;) {
+>>+		struct acpi_dev_id *irq_ctx =3D *pprev;
+>>+		if (!irq_ctx)
+>>+			break;
+>>+		if (irq_ctx !=3D dev_id) {
+>>+			pprev =3D &irq_ctx->next;
+>>+			continue;
+>>+		}
+>>+
+>>+		*pprev =3D irq_ctx->next;
+>>+		kfree(irq_ctx);
+>>+		return;
+>>+	}
+>>+	printk("free_dev_id: dev_id %p not found\n", dev_id);
+>> }
+>>=20
+>> acpi_status
+>> acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler=20
+>>handler, void *context)
+>> {
+>> 	unsigned int irq;
+>>+	void *dev_id;
+>>=20
+>> 	/*
+>>-	 * Ignore the GSI from the core, and use the value in=20
+>>our copy of the
+>>-	 * FADT. It may not be the same if an interrupt source=20
+>>override exists
+>>-	 * for the SCI.
+>>+	 * If this is the FADT interrupt, ignore the GSI from=20
+>>the core and
+>>+	 * use the value in our copy of the FADT instead.  It=20
+>>may not be the
+>>+	 * same if an interrupt source override exists for the SCI.
+>> 	 */
+>>-	gsi =3D acpi_fadt.sci_int;
+>>+	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
+>>+		gsi =3D acpi_fadt.sci_int;
+>
+>What's the deail with two copies of the FADT anyway?
+>Is the assumption here that acpi_gbl_FADT has
+>the original (PIC mode) sci_int value and that acpi_fadt
+>has the possibly IOAPIC over-ridden value?
+>And the assumption is that we're called always
+>with the PIC-mode SCI value?
+>
+>I'm not really psyched to have two copied of the FADT,
+>though that isn't the fault of this patch...
+>
+>> 	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
+>> 		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not=20
+>>registered\n",
+>> 		       gsi);
+>> 		return AE_OK;
+>> 	}
+>>=20
+>>-	acpi_irq_handler =3D handler;
+>>-	acpi_irq_context =3D context;
+>>-	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
+>>+	dev_id =3D alloc_dev_id(handler, context, irq);
+>>+	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", dev_id)) {
+>> 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation=20
+>>failed\n", irq);
+>>+		free_dev_id(dev_id);
+>> 		return AE_NOT_ACQUIRED;
+>> 	}
+>>-	acpi_irq_irq =3D irq;
+>>=20
+>> 	return AE_OK;
+>> }
+>>=20
+>> acpi_status
+>>-acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+>>+acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler handler)
+>> {
+>>-	if (irq) {
+>>-		free_irq(irq, acpi_irq);
+>>-		acpi_irq_handler =3D NULL;
+>>-		acpi_irq_irq =3D 0;
+>>+	int irq;
+>>+	void *dev_id;
+>>+
+>>+	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
+>>+		gsi =3D acpi_fadt.sci_int;
+>>+
+>>+	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
+>>+		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not=20
+>>registered\n",
+>>+		       gsi);
+>>+		return AE_OK;
+>> 	}
+>>=20
+>>+	dev_id =3D find_dev_id(irq, handler);
+>>+	free_irq(irq, dev_id);
+>>+	free_dev_id(dev_id);
+>>+
+>> 	return AE_OK;
+>>+}
+>>+
+>>+static void acpi_os_remove_interrupt_handlers(void)
+>>+{
+>>+	while (dev_id_list) {
+>>+		acpi_os_remove_interrupt_handler(dev_id_list->irq,
+>>+				dev_id_list->handler);
+>>+	}
+>> }
+>>=20
+>> /*
+>>
+>
+>
+>-------------------------------------------------------
+>SF email is sponsored by - The IT Product Guide
+>Read honest & candid reviews on hundreds of IT Products from=20
+>real users.
+>Discover which products truly live up to the hype. Start reading now.
+>http://ads.osdn.com/?ad_ide95&alloc_id=14396&op=3Dick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Yahoo.
+Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+Search APIs Find out how you can build Yahoo! directly into your own
+Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
