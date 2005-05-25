@@ -1,7 +1,7 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: [PATCH 1/2] Allow multiple GPE interrupts
-Date: Wed, 25 May 2005 13:35:24 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840836E7C7@pdsmsx403>
+Subject: RE: RE: [PATCH 2/2] GPE block driver
+Date: Wed, 25 May 2005 13:36:57 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840836E7CF@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
@@ -32,234 +32,280 @@ Luming
 >-----Original Message-----
 >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
 >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Brown, Len
->Sent: 2005=C4=EA4=D4=C214=C8=D5 10:23
+>Sent: 2005=C4=EA4=D4=C214=C8=D5 10:52
 >To: Matthew Wilcox
 >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; matthew-Ztpu424NOJ8@public.gmane.org
->Subject: [ACPI] RE: [PATCH 1/2] Allow multiple GPE interrupts
+>Subject: [ACPI] RE: [PATCH 2/2] GPE block driver
 >
->=20
->
->>-----Original Message-----
->>From: Matthew Wilcox [mailto:willy-6jwH94ZQLHl74goWV3ctuw@public.gmane.org]=20
->>Sent: Tuesday, April 12, 2005 5:59 PM
->>To: Brown, Len
->>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; matthew-Ztpu424NOJ8@public.gmane.org
->>Subject: [PATCH 1/2] Allow multiple GPE interrupts
 >>
->>Allow multiple GPE interrupts
+>>GPE block driver
 >>
->>If we have multiple GPE blocks, they can (and do) have independent
->>interrupts.  Remove the assumptions in OSL that there is only one GPE
->>interrupt.
+>>This simple driver sets up the ACPI core to handle GPE blocks that are
+>>not described in the FADT.
 >>
->>Index: ./drivers/acpi/osl.c
+>>Index: ./drivers/acpi/Kconfig
 >>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->>RCS file: /var/cvs/linux-2.6/drivers/acpi/osl.c,v
+>>RCS file: /var/cvs/linux-2.6/drivers/acpi/Kconfig,v
 >>retrieving revision 1.16
->>diff -u -p -r1.16 osl.c
->>--- ./drivers/acpi/osl.c	12 Jan 2005 20:16:09 -0000	1.16
->>+++ ./drivers/acpi/osl.c	26 Jan 2005 19:16:52 -0000
->>@@ -71,9 +71,6 @@ EXPORT_SYMBOL(acpi_in_debugger);
->> extern char line_buf[80];
->> #endif /*ENABLE_DEBUGGER*/
+>>diff -u -p -r1.16 Kconfig
+>>--- ./drivers/acpi/Kconfig	22 Jan 2005 14:59:09 -0000	1.16
+>>+++ ./drivers/acpi/Kconfig	26 Jan 2005 19:16:52 -0000
+>>@@ -134,6 +134,20 @@ config ACPI_FAN
+>> 	  This driver adds support for ACPI fan devices,=20
+>>allowing user-mode=20
+>> 	  applications to perform basic fan control (on, off, status).
 >>=20
->>-static unsigned int acpi_irq_irq;
->>-static acpi_osd_handler acpi_irq_handler;
->>-static void *acpi_irq_context;
->> static struct workqueue_struct *kacpid_wq;
->>=20
->> acpi_status
->>@@ -101,13 +98,12 @@ acpi_os_initialize1(void)
->> 	return AE_OK;
->> }
->>=20
->>+static void acpi_os_remove_interrupt_handlers(void);
+>>+config ACPI_GPE_BLOCK
+>>+	tristate "GPE block"
+>>+	depends on ACPI_INTERPRETER
+>>+	depends on !IA64_SGI_SN
+>>+	default m
+>>+	help
+>>+	  GPE block devices are used to expand the number of ACPI events
+>>+	  available to the system.  Common uses include=20
+>>expansion chassis
+>>+	  and laptop docking stations.  If you don't know whether you
+>>+	  have one or not, it is safe to say Y.
+>>+	 =20
+>>+	  To compile this driver as a module, choose M here: the module
+>>+	  will be called gpe-block.
 >>+
->> acpi_status
->> acpi_os_terminate(void)
->> {
->>-	if (acpi_irq_handler) {
->>-		acpi_os_remove_interrupt_handler(acpi_irq_irq,
->>-						 acpi_irq_handler);
->>-	}
->>+	acpi_os_remove_interrupt_handlers();
->>=20
->> 	destroy_workqueue(kacpid_wq);
->>=20
->>@@ -264,50 +260,127 @@ acpi_os_table_override (struct acpi_tabl
->> 	return AE_OK;
->> }
->>=20
->>+struct acpi_dev_id {
->>+	acpi_osd_handler handler;
->>+	void *context;
->>+	int irq;
->>+	struct acpi_dev_id *next;
+>
+>if this is built as a module, then it looks we have a symbol problem
+>below.
+>
+>> config ACPI_PROCESSOR
+>> 	tristate "Processor"
+>> 	depends on ACPI_INTERPRETER
+>>Index: ./drivers/acpi/Makefile
+>>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>RCS file: /var/cvs/linux-2.6/drivers/acpi/Makefile,v
+>>retrieving revision 1.7
+>>diff -u -p -r1.7 Makefile
+>>--- ./drivers/acpi/Makefile	12 Jan 2005 20:16:09 -0000	1.7
+>>+++ ./drivers/acpi/Makefile	26 Jan 2005 19:16:52 -0000
+>>@@ -42,6 +42,7 @@ obj-$(CONFIG_ACPI_BATTERY)	+=3D battery.o
+>> obj-$(CONFIG_ACPI_BUTTON)	+=3D button.o
+>> obj-$(CONFIG_ACPI_EC)		+=3D ec.o
+>> obj-$(CONFIG_ACPI_FAN)		+=3D fan.o
+>>+obj-$(CONFIG_ACPI_GPE_BLOCK)	+=3D gpe-block.o
+>> obj-$(CONFIG_ACPI_VIDEO)	+=3D video.o
+>> obj-$(CONFIG_ACPI_PCI)		+=3D pci_root.o=20
+>>pci_link.o pci_irq.o pci_bind.o
+>> obj-$(CONFIG_ACPI_POWER)	+=3D power.o
+>>Index: ./drivers/acpi/gpe-block.c
+>>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>RCS file: ./drivers/acpi/gpe-block.c
+>>diff -N ./drivers/acpi/gpe-block.c
+>>--- /dev/null	1 Jan 1970 00:00:00 -0000
+>>+++ ./drivers/acpi/gpe-block.c	26 Jan 2005 19:16:52 -0000
+>>@@ -0,0 +1,163 @@
+>>+/*
+>>+ * drivers/acpi/gpe-block.c
+>>+ *
+>>+ * Copyright (c) Matthew Wilcox for Hewlett Packard 2004
+>>+ *
+>>+ * This program is free software; you can redistribute it=20
+>>and/or modify
+>>+ * it under the terms of the GNU General Public License as=20
+>>published by
+>>+ * the Free Software Foundation; either version 2 of the=20
+>>License, or (at
+>>+ * your option) any later version.
+>>+ */
+>>+
+>>+#include <linux/acpi.h>
+>>+#include <linux/ioport.h>
+>>+#include <linux/module.h>
+>>+#include <acpi/acpi_bus.h>
+>>+#include <acpi/acpi_drivers.h>
+>>+#include <acpi/acpixf.h>
+>>+#include <acpi/acnamesp.h>
+>>+
+>>+MODULE_AUTHOR("Matthew Wilcox <willy-VXdhtT5mjnY@public.gmane.org>");
+>>+MODULE_LICENSE("GPL");
+>>+MODULE_VERSION("0.3");
+>>+
+>>+#define NAME "gpe-block"
+>>+
+>>+struct gpe_block {
+>>+	struct acpi_generic_address address;
+>>+	u32 register_count;
+>>+	u32 interrupt_level;
+>
+>interrupt_number?
+>
+>
 >>+};
 >>+
->> static irqreturn_t
->> acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
->> {
->>-	return (*acpi_irq_handler)(acpi_irq_context) ?=20
->>IRQ_HANDLED : IRQ_NONE;
->>+	struct acpi_dev_id *irq_ctx =3D dev_id;
->>+	acpi_osd_handler handler =3D irq_ctx->handler;
->>+	void *context =3D irq_ctx->context;
->>+	return (*handler)(context) ? IRQ_HANDLED : IRQ_NONE;
+>>+static acpi_status acpi_gpe_block_crs_irq(struct=20
+>>acpi_resource_ext_irq *irq,
+>>+		struct gpe_block *data)
+>>+{
+>>+	acpi_register_gsi(irq->interrupts[0], irq->edge_level,
+>>+			irq->active_high_low);
+>>+	data->interrupt_level =3D irq->interrupts[0];
+>>+	return AE_OK;
 >>+}
 >>+
->>+struct acpi_dev_id *dev_id_list;
->
->static?
->
->>+static void *alloc_dev_id(acpi_osd_handler handler, void=20
->>*context, int irq)
+>>+static acpi_status acpi_gpe_block_crs_addr(struct=20
+>>acpi_resource_address64 *addr,
+>>+		struct gpe_block *data)
 >>+{
->>+	struct acpi_dev_id *irq_ctx =3D kmalloc(sizeof(*irq_ctx),=20
->>GFP_KERNEL);
->
->
->Check for return value of kmalloc?
->
->
->>+	irq_ctx->handler =3D handler;
->>+	irq_ctx->context =3D context;
->>+	irq_ctx->irq =3D irq;
->>+	irq_ctx->next =3D dev_id_list;
->>+	dev_id_list =3D irq_ctx;
->>+	return irq_ctx;
->>+}
+>>+	int size =3D addr->max_address_range -=20
+>>addr->min_address_range + 1;
+>>+	if (addr->resource_type =3D=3D ACPI_MEMORY_RANGE) {
+>>+		data->address.address_space_id =3D=20
+>>ACPI_ADR_SPACE_SYSTEM_MEMORY;
+>>+		if=20
+>>(!request_mem_region(addr->min_address_range, size, NAME))
+>>+			return AE_CTRL_TERMINATE;
 >>+
->>+/*
->>+ * XXX: Ideally, we would match the context too, but that information
->>+ * isn't passed to the acpi_os_remove_interrupt_handler() function.
->>+ */
->>+static void *find_dev_id(int irq, acpi_osd_handler handler)
->>+{
->>+	struct acpi_dev_id *irq_ctx =3D dev_id_list;
->>+	for (irq_ctx =3D dev_id_list; irq_ctx; irq_ctx =3D irq_ctx->next) {
->>+		if ((irq_ctx->handler =3D=3D handler) &&=20
->>(irq_ctx->irq =3D=3D irq))
->>+			return irq_ctx;
+>>+	} else if (addr->resource_type =3D=3D ACPI_IO_RANGE) {
+>>+		data->address.address_space_id =3D=20
+>>ACPI_ADR_SPACE_SYSTEM_IO;
+>>+		if (!request_region(addr->min_address_range,=20
+>>size, NAME))
+>>+			return AE_CTRL_TERMINATE;
+>>+	} else {
+>>+		return AE_CTRL_TERMINATE;
 >>+	}
->>+	printk("find_dev_id: handler %p for irq %d not=20
->>found\n", handler, irq);
->>+	return NULL;
+>>+
+>>+	data->address.register_bit_width =3D ACPI_GPE_REGISTER_WIDTH;
+>>+	data->address.register_bit_offset =3D ACPI_GPE_REGISTER_WIDTH;
+>>+	data->address.address =3D addr->min_address_range;
+>>+	data->register_count =3D size / 2;
+>>+
+>>+	return AE_OK;
 >>+}
 >>+
->>+static void free_dev_id(struct acpi_dev_id *dev_id)
+>>+static acpi_status acpi_gpe_block_crs_add(struct=20
+>>acpi_resource *res, void *data)
 >>+{
->>+	struct acpi_dev_id **pprev =3D &dev_id_list;
->>+	for (;;) {
->>+		struct acpi_dev_id *irq_ctx =3D *pprev;
->>+		if (!irq_ctx)
->>+			break;
->>+		if (irq_ctx !=3D dev_id) {
->>+			pprev =3D &irq_ctx->next;
->>+			continue;
->>+		}
+>>+	if (res->id =3D=3D ACPI_RSTYPE_EXT_IRQ)
+>>+		return=20
+>>acpi_gpe_block_crs_irq(&res->data.extended_irq, data);
 >>+
->>+		*pprev =3D irq_ctx->next;
->>+		kfree(irq_ctx);
->>+		return;
+>>+	if (res->id =3D=3D ACPI_RSTYPE_ADDRESS16 ||
+>>+	    res->id =3D=3D ACPI_RSTYPE_ADDRESS32 ||
+>>+	    res->id =3D=3D ACPI_RSTYPE_ADDRESS64) {
+>>+		struct acpi_resource_address64 address;
+>>+		acpi_resource_to_address64(res, &address);
+>>+		return acpi_gpe_block_crs_addr(&address, data);
 >>+	}
->>+	printk("free_dev_id: dev_id %p not found\n", dev_id);
->> }
->>=20
->> acpi_status
->> acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler=20
->>handler, void *context)
->> {
->> 	unsigned int irq;
->>+	void *dev_id;
->>=20
->> 	/*
->>-	 * Ignore the GSI from the core, and use the value in=20
->>our copy of the
->>-	 * FADT. It may not be the same if an interrupt source=20
->>override exists
->>-	 * for the SCI.
->>+	 * If this is the FADT interrupt, ignore the GSI from=20
->>the core and
->>+	 * use the value in our copy of the FADT instead.  It=20
->>may not be the
->>+	 * same if an interrupt source override exists for the SCI.
->> 	 */
->>-	gsi =3D acpi_fadt.sci_int;
->>+	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
->>+		gsi =3D acpi_fadt.sci_int;
->
->What's the deail with two copies of the FADT anyway?
->Is the assumption here that acpi_gbl_FADT has
->the original (PIC mode) sci_int value and that acpi_fadt
->has the possibly IOAPIC over-ridden value?
->And the assumption is that we're called always
->with the PIC-mode SCI value?
->
->I'm not really psyched to have two copied of the FADT,
->though that isn't the fault of this patch...
->
->> 	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
->> 		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not=20
->>registered\n",
->> 		       gsi);
->> 		return AE_OK;
->> 	}
->>=20
->>-	acpi_irq_handler =3D handler;
->>-	acpi_irq_context =3D context;
->>-	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
->>+	dev_id =3D alloc_dev_id(handler, context, irq);
->>+	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", dev_id)) {
->> 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation=20
->>failed\n", irq);
->>+		free_dev_id(dev_id);
->> 		return AE_NOT_ACQUIRED;
->> 	}
->>-	acpi_irq_irq =3D irq;
->>=20
->> 	return AE_OK;
->> }
->>=20
->> acpi_status
->>-acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
->>+acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler handler)
->> {
->>-	if (irq) {
->>-		free_irq(irq, acpi_irq);
->>-		acpi_irq_handler =3D NULL;
->>-		acpi_irq_irq =3D 0;
->>+	int irq;
->>+	void *dev_id;
 >>+
->>+	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
->>+		gsi =3D acpi_fadt.sci_int;
+>>+	return AE_OK;
+>>+}
 >>+
->>+	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
->>+		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not=20
->>registered\n",
->>+		       gsi);
+>>+static acpi_status acpi_gpe_block_crs_remove(struct=20
+>>acpi_resource *res,
+>>+		void *context)
+>>+{
+>>+	struct acpi_resource_address64 addr;
+>>+	int size;
+>>+
+>>+	if (res->id !=3D ACPI_RSTYPE_ADDRESS16 &&
+>>+	    res->id !=3D ACPI_RSTYPE_ADDRESS32 &&
+>>+	    res->id !=3D ACPI_RSTYPE_ADDRESS64)
 >>+		return AE_OK;
->> 	}
->>=20
->>+	dev_id =3D find_dev_id(irq, handler);
->>+	free_irq(irq, dev_id);
->>+	free_dev_id(dev_id);
+>
+>wouldn't this be an error rather than AE_OK?
+>
 >>+
->> 	return AE_OK;
+>>+	acpi_resource_to_address64(res, &addr);
+>>+
+>>+	size =3D addr.max_address_range - addr.min_address_range + 1;
+>>+	if (addr.resource_type =3D=3D ACPI_MEMORY_RANGE) {
+>>+		release_mem_region(addr.min_address_range, size);
+>>+	} else if (addr.resource_type =3D=3D ACPI_IO_RANGE) {
+>>+		release_region(addr.min_address_range, size);
+>>+	}
+>>+	return AE_OK;
+>
+>perhaps better with a switch statement
+>and if not mem or IO then default return error?
+>
 >>+}
 >>+
->>+static void acpi_os_remove_interrupt_handlers(void)
+>>+static int acpi_gpe_block_add(struct acpi_device *device)
 >>+{
->>+	while (dev_id_list) {
->>+		acpi_os_remove_interrupt_handler(dev_id_list->irq,
->>+				dev_id_list->handler);
->>+	}
->> }
->>=20
->> /*
+>>+	struct gpe_block block;
+>>+
+>>+	memset(&block, 0, sizeof(block));
+>>+	acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+>>+			acpi_gpe_block_crs_add, &block);
+>>+
+>>+	/* Decline to handle GPE blocks with no _CRS. */
+>>+	if (block.register_count =3D=3D 0)
+>>+		return -ENODEV;
+>>+
+>>+	acpi_install_gpe_block(device->handle, &block.address,
+>>+			block.register_count, block.interrupt_level);
+>>+
+>>+	return AE_OK;
+>>+}
+>>+
+>>+static int acpi_gpe_block_remove(struct acpi_device *device,=20
+>int type)
+>>+{
+>>+	struct acpi_namespace_node *node;
+>>+	union acpi_operand_object *obj_desc;
+>>+
+>>+	node =3D acpi_ns_map_handle_to_node(device->handle);
+>
+>this guy isn't exported to modules.
+>
+>>+	if(!node)
+>>+		goto Exit;
+>>+	obj_desc =3D acpi_ns_get_attached_object (node);
+>>+	if(!obj_desc)
+>>+		goto Exit;
+>>+	acpi_hw_disable_gpe_block(NULL, obj_desc->device.gpe_block);
+>>+	acpi_os_sleep(1);
+>
+>comment why we sleep here?
+>
+>probably good to add a comment that we need to wait
+>for the work queues to flush before we remove the block.
+>
+>>+	acpi_os_wait_events_complete(NULL);
+>>+	acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+>>+			acpi_gpe_block_crs_remove, NULL);
+>>+Exit:
+>>+	return acpi_remove_gpe_block(device->handle);
+>>+}
+>>+
+>>+static struct acpi_driver acpi_gpe_block_driver =3D {
+>>+	.name =3D		NAME,
+>>+	.ids =3D		"ACPI0006",
+>
+>we'll #define ACPI0006 soon...
+>
+>>+	.ops =3D	{
+>>+		.add =3D		acpi_gpe_block_add,
+>>+		.remove =3D	acpi_gpe_block_remove,
+>>+	},
+>>+};
+>>+
+>>+static int __init acpi_gpe_block_init(void)
+>>+{
+>>+	int result =3D acpi_bus_register_driver(&acpi_gpe_block_driver);
+>>+	return (result < 0) ? -ENODEV : 0;
+>>+}
+>>+
+>>+static void __exit acpi_gpe_block_exit(void)
+>>+{
+>>+	acpi_bus_unregister_driver(&acpi_gpe_block_driver);
+>>+}
+>>+
+>>+module_init(acpi_gpe_block_init);
+>>+module_exit(acpi_gpe_block_exit);
 >>
 >
 >
