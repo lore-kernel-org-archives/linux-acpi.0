@@ -1,13 +1,14 @@
 From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
-Date: Wed, 25 May 2005 21:23:57 -0700
-Message-ID: <20050525212357.0b28cbb3.akpm@osdl.org>
-References: <200503291156.19112.rjw@sisk.pl>
+Subject: Re: swsusp not working for me on a PREEMPT 2.6.12-rc1 and
+ 2.6.12-rc1-mm3 kernel
+Date: Wed, 25 May 2005 21:25:20 -0700
+Message-ID: <20050525212520.419ee442.akpm@osdl.org>
+References: <20050329110309.GA17744@pern.dea.icai.upco.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200503291156.19112.rjw-KKrjLPT3xs0@public.gmane.org>
+In-Reply-To: <20050329110309.GA17744-NfIQswJzSEaq9fEpoSJUslHdEuJhDOxL@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +18,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
+Cc: pavel-+ZI9xUNit7I@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+Romano Giannetti <romanol-qvIf60buks8@public.gmane.org> wrote:
 >
-> Hi,
+> Hi all,
 > 
-> There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI battery
-> driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery monitor that
-> I use (the kpowersave applet from SUSE 9.2) is no longer able to report the
-> battery status (ie how much % it is loaded).  It can only check if the AC power
-> is connected (if it is connected, kpowersave behaves as though there was
-> no battery in the box, and if it is not connected, kpowersave always shows
-> that the battery is 1% loaded).
+>    swsusp is not working for me with 2.6.12rc1. I compiled the kernel
+>    preempt, I am compiling now without preempt to test it. -mm3 has a
+>    similar behaviour.
+>    
+>    All the configuration, dmesg, lsmod etc is here: 
+>    http://www.dea.icai.upco.es/romano/linux/config-2.6.12-rc1/laptop-config.html   
 > 
-> Also, there are big latencies on loading and accessing the battery module, but
-> the module loads successfully and there's nothing suspicious in dmesg.
+>    
+>    Perfectly working (swsup included) similar data is in: 
+>    http://www.dea.icai.upco.es/romano/linux/config-2.6.11-rg/laptop-config.html
 > 
+>    When suspending, it stops dead with thi two lines (hand copied) 
+>    
+>    ACPI: PCI interrupt 0000:00:07.5 [C] -> GSI 5 (level, low) -> IRQ5
+>    ACPI: PCI interrupt 0000:00:0e.0 [A] -> GSI 9 (level, low) -> IRQ9
+>    
+>    ...and nothing more. 
+>    
 
-Are these problems still present in 2.6.12-rc5 or 2.6.12-rc5-mm1?
+Romano, are you able to tell us whether 2.6.12-rc5 or 2.6.12-rc5-mm1 still
+exhibit this hang?
+
+Thanks.
 
 
 -------------------------------------------------------
