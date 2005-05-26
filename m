@@ -1,97 +1,49 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Fw: Re: 2.6.11.4: ACPI, IRQ 11 disabled, Ethernet/USB stops
- working
-Date: Wed, 25 May 2005 17:15:29 -0700
-Message-ID: <20050525171529.6ab05a86.akpm@osdl.org>
-References: <20050323023704.502ecc6a.akpm@osdl.org>
-	<42418D63.4040507@zogi.de>
+From: Jerry DeLisle <jvdelisle@verizon.net>
+Subject: bug report
+Date: Wed, 25 May 2005 18:09:35 -0700
+Message-ID: <429521CF.4000102@verizon.net>
+Reply-To: For users of Fedora Core releases <fedora-list@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42418D63.4040507-UNdit3cmHfQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: kernel-UNdit3cmHfQ@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <fedora-list-bounces@redhat.com>
+List-Unsubscribe: <http://www.redhat.com/mailman/listinfo/fedora-list>,
+	<mailto:fedora-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/fedora-list>
+List-Post: <mailto:fedora-list@redhat.com>
+List-Help: <mailto:fedora-list-request@redhat.com?subject=help>
+List-Subscribe: <http://www.redhat.com/mailman/listinfo/fedora-list>,
+	<mailto:fedora-list-request@redhat.com?subject=subscribe>
+Sender: fedora-list-bounces@redhat.com
+Errors-To: fedora-list-bounces@redhat.com
+To: acpi-devel@lists.sourceforge.net, Fedora Core List <fedora-list@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Does the following need to be reported?  From dmesg:
 
-Did this get fixed in 2.6.12-rc5?
-
-Thanks.
-
-kernel-UNdit3cmHfQ@public.gmane.org wrote:
->
-> 
-> Hi Andrew,
-> 
-> Andrew Morton wrote:
-> > What could cause this??
-> 
-> I have some more infos:
-> 
-> I still get a bunch of error messages and really strange behavior.
-> 
-> The messages are basically like this:
-> 
-> Mar 22 19:50:46 thetis kernel:      osl-0958 [32] os_wait_semaphore 
-> : Failed to acquire semaphore[df7dd560|1|0], AE_TIME
-> Mar 22 19:50:46 thetis kernel:      osl-0958 [32] os_wait_semaphore 
-> : Failed to acquire semaphore[df7dd560|1|4095], AE_TIME
-> Mar 22 19:50:46 thetis kernel:  exmutex-0272: *** Error: Thread 12 
-> cannot release Mutex [MUT1] acquired by thread 1950
-> Mar 22 19:50:46 thetis kernel:  psparse-1138: *** Error: Method 
-> execution failed [\_SB_.RDEC] (Node c14698a8), AE_AML_NOT_OWNER
-> Mar 22 19:50:46 thetis kernel:  psparse-1138: *** Error: Method 
-> execution failed [\_TZ_.TZCR._TMP] (Node df683c28), AE_AML_NOT_OWNER
-> Mar 22 20:19:10 thetis kernel:      osl-0958 [37] os_wait_semaphore 
-> : Failed to acquire semaphore[df7dd560|1|0], AE_TIME
-> Mar 22 20:19:10 thetis kernel:      osl-0958 [37] os_wait_semaphore 
-> : Failed to acquire semaphore[df7dd560|1|4095], AE_TIME
-> Mar 22 20:19:10 thetis kernel:  exmutex-0272: *** Error: Thread 1950 
-> cannot release Mutex [MUT1] acquired by thread 12
-> Mar 22 20:19:10 thetis kernel:  psparse-1138: *** Error: Method 
-> execution failed [\_SB_.RDEC] (Node c14698a8), AE_AML_NOT_OWNER
-> Mar 22 20:19:10 thetis kernel:  psparse-1138: *** Error: Method 
-> execution failed [\_SB_.BAT1._BIF] (Node df6834e8), AE_AML_NOT_OWNER
-> Mar 22 20:19:10 thetis kernel: acpi_battery-0147 [24] 
-> acpi_battery_get_info : Error evaluating _BIF
-> Mar 22 20:19:10 thetis kernel: acpi_thermal-0463 [12] 
-> acpi_thermal_critical : Critical trip point
-> Mar 22 20:19:10 thetis kernel: Critical temperature reached (204 C), 
-> shutting down.
-> Mar 22 20:19:11 thetis kernel: Critical temperature reached (44 C), 
-> shutting down.
-> 
-> Monitoring for example the temperature, I see that there are spikes in 
-> the distribution, e.g. a jump from 45 to 5 degrees for very short time 
-> period (*one* update cycle ??). Or some times the battery capacity seems 
-> to fall to zero or jump to core-melt ;-)
-> 
-> This happens more likely in the moment I insert an USB device, but also 
-> without any changes...
-> 
-> I am not the only one how is experiencing this problem. The other 
-> persons how tried to install Linux on a Toshiba M45 S331 face the same 
-> problems.
-> 
-> One suggestion was a faulty ACPI / DSDT, which makes the ACPI & USB 
-> system unstable - but none of us is an expert in this field...
-> 
-> Thanks for any help,
-> Andreas
+     ACPI-1138: *** Error: Method execution failed [\MCTH] (Node 
+def2d540), AE_AML_BUFFER_LIMIT
+     ACPI-1138: *** Error: Method execution failed [\OSFL] (Node 
+def2d4c0), AE_AML_BUFFER_LIMIT
+     ACPI-1138: *** Error: Method execution failed [\_SB_.SYSM._CRS] 
+(Node dee81ec0), AE_AML_BUFFER_LIMIT
+     ACPI-0158: *** Error: Method execution failed [\_SB_.SYSM._CRS] 
+(Node dee81ec0), AE_AML_BUFFER_LIMIT
+     ACPI-1138: *** Error: Method execution failed [\MCTH] (Node 
+def2d540), AE_AML_BUFFER_LIMIT
+     ACPI-1138: *** Error: Method execution failed [\OSFL] (Node 
+def2d4c0), AE_AML_BUFFER_LIMIT
+     ACPI-1138: *** Error: Method execution failed 
+[\_SB_.PCI0.SBRG.SYSR._CRS] (Node dee811a0), AE_AML_BUFFER_LIMIT
+     ACPI-0158: *** Error: Method execution failed 
+[\_SB_.PCI0.SBRG.SYSR._CRS] (Node dee811a0), AE_AML_BUFFER_LIMIT
 
 
--------------------------------------------------------
-SF.Net email is sponsored by: GoToMeeting - the easiest way to collaborate
-online with coworkers and clients while avoiding the high cost of travel and
-communications. There is no equipment to buy and you can meet as often as
-you want. Try it free.http://ads.osdn.com/?ad_id=7402&alloc_id=16135&op=click
+[jerry@quantum ~]$ uname -a
+Linux quantum.localdomain 2.6.11-1.27_FC3smp #1 SMP Tue May 17 20:43:11 
+EDT 2005 i686 i686 i386 GNU/Linux
+
+-- 
+fedora-list mailing list
+fedora-list@redhat.com
+To unsubscribe: http://www.redhat.com/mailman/listinfo/fedora-list
