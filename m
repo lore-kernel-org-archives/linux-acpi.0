@@ -1,14 +1,15 @@
-From: Romano Giannetti <romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org>
-Subject: Re: swsusp not working for me on a PREEMPT 2.6.12-rc1 and 2.6.12-rc1-mm3 kernel
-Date: Thu, 26 May 2005 07:56:56 +0200
-Message-ID: <20050526055656.GB26788@pern.dea.icai.upco.es>
-References: <20050329110309.GA17744@pern.dea.icai.upco.es> <20050525212520.419ee442.akpm@osdl.org>
-Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: 2.6.12-rc3-mm2: ACPI problems
+Date: Thu, 26 May 2005 00:08:00 -0700
+Message-ID: <20050526000800.66c42b6b.akpm@osdl.org>
+References: <20050430164303.6538f47c.akpm@osdl.org>
+	<200505011456.38744.rjw@sisk.pl>
+	<4274DC95.6080208@ens-lyon.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050525212520.419ee442.akpm-3NddpPZAyC0@public.gmane.org>
+In-Reply-To: <4274DC95.6080208-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,51 +19,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: pavel-+ZI9xUNit7I@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 25, 2005 at 09:25:20PM -0700, Andrew Morton wrote:
-> Romano Giannetti <romanol-qvIf60buks8@public.gmane.org> wrote:
-> >
-> > Hi all,
-> > 
-> >    swsusp is not working for me with 2.6.12rc1. I compiled the kernel
-> >    preempt, I am compiling now without preempt to test it. -mm3 has a
-> >    similar behaviour.
-> >    
-> >    All the configuration, dmesg, lsmod etc is here: 
-> >    http://www.dea.icai.upco.es/romano/linux/config-2.6.12-rc1/laptop-config.html   
-> > 
-> >    
-> >    Perfectly working (swsup included) similar data is in: 
-> >    http://www.dea.icai.upco.es/romano/linux/config-2.6.11-rg/laptop-config.html
-> > 
-> >    When suspending, it stops dead with thi two lines (hand copied) 
-> >    
-> >    ACPI: PCI interrupt 0000:00:07.5 [C] -> GSI 5 (level, low) -> IRQ5
-> >    ACPI: PCI interrupt 0000:00:0e.0 [A] -> GSI 9 (level, low) -> IRQ9
-> >    
-> >    ...and nothing more. 
-> >    
-> 
-> Romano, are you able to tell us whether 2.6.12-rc5 or 2.6.12-rc5-mm1 still
-> exhibit this hang?
+Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org> wrote:
+>
+> Rafael J. Wysocki a =E9crit :
+> > Hi,
+> >=20
+> > On Sunday, 1 of May 2005 01:43, Andrew Morton wrote:
+> >=20
+> >>ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.12-rc=
+3/2.6.12-rc3-mm2/
+> >=20
+> >=20
+> > I have two ACPI-related problems with this kernel (they have also been =
+present
+> > in the previous -mm, so please treat this report as a "the issue is sti=
+ll there" kind
+> > of thing):
+>=20
+> I'm also seeing a (small) problem with ACPI for a few -mm kernels
+> (at least since -rc2-mm2, IIRC).
+> I don't have a /proc/acpi/button/ anymore.
+> My computer is a Compaq Evo N600c laptop.
+> ACPI is generally working great here.
+>=20
+> In 2.6.12-rc3, I have:
+> /proc/acpi/button/lid/C1A4/info
+> /proc/acpi/button/lid/C1A4/state
+> /proc/acpi/button/power/PWRF/info
+> /proc/acpi/button/sleep/C1A3/info
+> Nothing in rc3-mm1 (even no /proc/acpi/button/ directory).
+>=20
+> I didn't find any interesting difference between dmesg from rc3 and
+> rc3-mm1. Both show these lines:
+> ACPI: Power Button (FF) [PWRF]
+> ACPI: Sleep Button (CM) [C1A3]
+> ACPI: Lid Switch [C1A4]
+>=20
 
-I will try over the weekend (it's a busy period here...). But I have to add
-that this is not a real regression. 2.6.11 will suspend, but it did not
-resume well if PREEMPT is enabled for me (a lot of "scheduling while atomic"
-too). 
-
-There is more data here: 
-
-http://www.dea.icai.upco.es/romano/linux/br/acpi-preempt.txt
-
-                Romano 
-
--- 
-Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
-Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
+Is this one still occurring in 2.6.12-rc5 and/or 2.6.12-rc5-mm1?
 
 
 -------------------------------------------------------
