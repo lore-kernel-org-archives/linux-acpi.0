@@ -1,13 +1,15 @@
-From: Ivan Kokshaysky <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>
-Subject: Re: [patch 2/2] x86_64: Collect host bridge resources
-Date: Thu, 26 May 2005 13:34:44 +0400
-Message-ID: <20050526133444.A14184@jurassic.park.msu.ru>
-References: <20050521004239.581618000@csdlinux-1> <20050521004506.842235000@csdlinux-1> <20050523161507.GN16164@wotan.suse.de> <20050523175706.A12032@unix-os.sc.intel.com> <20050524120527.GB15326@wotan.suse.de> <20050524185856.A7639@jurassic.park.msu.ru> <20050524084533.A20567@unix-os.sc.intel.com> <20050524205855.A8367@jurassic.park.msu.ru> <20050524103724.A22049@unix-os.sc.intel.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
+Date: Thu, 26 May 2005 18:00:56 +0200
+Message-ID: <200505261800.56897.rjw@sisk.pl>
+References: <200503291156.19112.rjw@sisk.pl> <20050525212357.0b28cbb3.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050525212357.0b28cbb3.akpm-3NddpPZAyC0@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050524103724.A22049-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>; from rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Tue, May 24, 2005 at 10:37:25AM -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,60 +19,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 24, 2005 at 10:37:25AM -0700, Rajesh Shah wrote:
-> For the transparent p2p bridge problem you mentioned, wouldn't you
-> be dealing with p2p bridges, and therefore expect the pci_bus
-> resource pointers to point to the corresponding pci_dev resources?
+On Thursday, 26 of May 2005 06:23, Andrew Morton wrote:
+> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+> >
+> > Hi,
+> > 
+> > There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI battery
+> > driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery monitor that
+> > I use (the kpowersave applet from SUSE 9.2) is no longer able to report the
+> > battery status (ie how much % it is loaded).  It can only check if the AC power
+> > is connected (if it is connected, kpowersave behaves as though there was
+> > no battery in the box, and if it is not connected, kpowersave always shows
+> > that the battery is 1% loaded).
+> > 
+> > Also, there are big latencies on loading and accessing the battery module, but
+> > the module loads successfully and there's nothing suspicious in dmesg.
+> > 
+> 
+> Are these problems still present in 2.6.12-rc5 or 2.6.12-rc5-mm1?
 
-The problem is that for subtractive decode bridges we assume
-full "transparency" and completely ignore standard p2p bridge
-resources (i.e. windows) just using first 3 parent bus pointers
-whatever they are.
-This model does work in most cases, but there are potential problems
-with peer-to-peer DMA behind such bridges, poor performance for MMIO
-ranges outside bridge windows, prefetchable vs. non-prefetchable issues
-and so on.
+2.6.12-rc5 is unaffected, as it does not contain the patch that causes
+the problem to appear.
 
-If we had 6 or more resource pointers in struct pci_bus, then the
-appended patch would fix that.
+The problem is still present in 2.6.12-rc5-mm1.  I have created a bugzilla entry
+for it at http://bugzilla.kernel.org/show_bug.cgi?id=4665
 
-> Or are you proposing to decouple pci_bus resource pointers from 
-> pci_dev completely?
+Greets,
+Rafael
 
-Actually no. Low-level bridge drivers (p2p, cardbus or particular
-host bridge) certainly know about resource layout of the respective
-device. But generic resource management code doesn't make any
-assumptions about that and looks only at resource types.
 
-> From quick code inspection, that seems to be
-> not too much trouble to increase from 4 then.
-
-No trouble at all, I guess.
-
-Ivan.
-
---- linux/drivers/pci/probe.c.orig	Sat May  7 09:20:31 2005
-+++ linux/drivers/pci/probe.c	Wed May 25 18:31:34 2005
-@@ -239,9 +239,8 @@ void __devinit pci_read_bridge_bases(str
- 
- 	if (dev->transparent) {
- 		printk(KERN_INFO "PCI: Transparent bridge - %s\n", pci_name(dev));
--		for(i = 0; i < PCI_BUS_NUM_RESOURCES; i++)
--			child->resource[i] = child->parent->resource[i];
--		return;
-+		for(i = 3; i < PCI_BUS_NUM_RESOURCES; i++)
-+			child->resource[i] = child->parent->resource[i - 3];
- 	}
- 
- 	for(i=0; i<3; i++)
+-- 
+- Would you tell me, please, which way I ought to go from here?
+- That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
 
 
 -------------------------------------------------------
-SF.Net email is sponsored by: GoToMeeting - the easiest way to collaborate
-online with coworkers and clients while avoiding the high cost of travel and
-communications. There is no equipment to buy and you can meet as often as
-you want. Try it free.http://ads.osdn.com/?ad_id=7402&alloc_id=16135&op=click
+This SF.Net email is sponsored by Yahoo.
+Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+Search APIs Find out how you can build Yahoo! directly into your own
+Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
