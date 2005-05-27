@@ -1,14 +1,11 @@
-From: klug <klug-90T4dkFmkpLYtjvyW6yDsg@public.gmane.org>
-Subject: Re: Fw: Re: [Linux-fbdev-devel] Fw: [Bugme-new] [Bug 4468] New: Upgrade
- to 2.6.11.6 results in no longer being able to turn the lcd backlight off.
-Date: Thu, 26 May 2005 20:04:43 -0400
-Message-ID: <4296641B.2050106@blarg.org>
-References: <20050525223709.17f8c725.akpm@osdl.org>
+From: Len Brown <lenb-g3qfMnKXm6l/wjb6y0L7XlrsPObopucw0e7PPNI6Mm0@public.gmane.org>
+Subject: [PATCH] VIA IRQ quirk for 2.6.12-rc5
+Date: Fri, 27 May 2005 04:21:50 -0400
+Message-ID: <20050527082150.GA24428@toshiba.hsd1.ma.comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050525223709.17f8c725.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,59 +15,161 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: akpm-3NddpPZAyC0@public.gmane.org
+To: torvalds-3NddpPZAyC0@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-With a little tinkering I discovered that, at least in my case, setting 
-both config_acpi_video=y and config_acpi_toshiba=y seems to build a 
-conflict. With the hardware I was able to test, toshiba satellite 
-5005-S504 & 5005-S507, not setting config_acpi_video=y fixed the 
-backlight problem I was having with 2.6.10->current. I tested 2.6.10, 
-2.6.11.0->10, and 2.6.12-rc1->5 all with success.
+Linus,
+Please apply this patch to 2.6.12-rc5.
+It fixes a 2.6.11 regression in the VIA IRQ quirk
+on machines with mixed vendor chip-sets.
+
+thanks,
+Len
 
 
+Delete quirk_via_bridge(), restore quirk_via_irqpic() --
+but now improved to be invoked upon device ENABLE, and
+now only for VIA devices -- not all devices behind VIA bridges.
 
-Andrew Morton wrote:
-> hm, we seem to have several reports of Tochiba backlight failures.
-> 
-> Is anything likely to get fixed here?  It _used_ to work, but then
-> we broke it.
-> 
-> 
-> 
-> Begin forwarded message:
-> 
-> Date: Thu, 14 Apr 2005 13:51:25 +0800
-> From: "Antonino A. Daplas" <adaplas-ktR7oAotx3zQT0dZR+AlfA@public.gmane.org>
-> To: linux-fbdev-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-> Cc: klug-90T4dkFmkpLYtjvyW6yDsg@public.gmane.org
-> Subject: Re: [Linux-fbdev-devel] Fw: [Bugme-new] [Bug 4468] New: Upgrade to 2.6.11.6 results in no longer being able to turn the lcd backlight off.
-> 
-> 
-> On Monday 11 April 2005 08:28, Andrew Morton wrote:
-> 
-> 
->>Previous to my 2.6.11.6 upgrade I was running 2.6.9. With all unpatched 2.6
->>kernel versions up to and including 2.6.9, I could turn the lcd backlight
->>off by running "echo lcd_out:0 > /proc/acpi/toshiba/video" as root. I
->>upgraded directly from 2.6.9 to 2.6.11.6. With the upgrade I am no longer
->>able to turn the lcd backlight off. There is no effect after running "echo
->>lcd_out:0 >
->>/proc/acpi/toshiba/video" and the /proc/acpi/toshiba/video lcd_out option
-> 
-> 
-> Looks more like an acpi problem than fbdev/backlight.
-> 
-> 
->>remains unchanged as 1. I recompiled the 2.6.11.6 kernel with the new
->>option CONFIG_BACKLIGHT_LCD_SUPPORT=y. Enabling this option did not allow
-> 
-> 
-> Does not matter as intelfb does not use the backlight/lcd architecture yet.
-> 
-> Tony
-> 
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+
+
+diff -uprN -X dontdiff linux-2.6.12-rc5.orig/arch/i386/pci/irq.c linux-2.6.12-rc5/arch/i386/pci/irq.c
+--- linux-2.6.12-rc5.orig/arch/i386/pci/irq.c	2005-05-27 01:42:45.000000000 -0400
++++ linux-2.6.12-rc5/arch/i386/pci/irq.c	2005-05-27 02:31:41.000000000 -0400
+@@ -1029,7 +1029,6 @@ void pcibios_penalize_isa_irq(int irq)
+ static int pirq_enable_irq(struct pci_dev *dev)
+ {
+ 	u8 pin;
+-	extern int via_interrupt_line_quirk;
+ 	struct pci_dev *temp_dev;
+ 
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+@@ -1084,10 +1083,6 @@ static int pirq_enable_irq(struct pci_de
+ 		printk(KERN_WARNING "PCI: No IRQ known for interrupt pin %c of device %s.%s\n",
+ 		       'A' + pin, pci_name(dev), msg);
+ 	}
+-	/* VIA bridges use interrupt line for apic/pci steering across
+-	   the V-Link */
+-	else if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq & 15);
+ 	return 0;
+ }
+ 
+diff -uprN -X dontdiff linux-2.6.12-rc5.orig/drivers/acpi/pci_irq.c linux-2.6.12-rc5/drivers/acpi/pci_irq.c
+--- linux-2.6.12-rc5.orig/drivers/acpi/pci_irq.c	2005-05-27 01:43:08.000000000 -0400
++++ linux-2.6.12-rc5/drivers/acpi/pci_irq.c	2005-05-27 02:31:41.000000000 -0400
+@@ -391,7 +391,6 @@ acpi_pci_irq_enable (
+ 	u8			pin = 0;
+ 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+ 	int			active_high_low = ACPI_ACTIVE_LOW;
+-	extern int		via_interrupt_line_quirk;
+ 	char			*link = NULL;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
+@@ -444,9 +443,6 @@ acpi_pci_irq_enable (
+ 		}
+  	}
+ 
+-	if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq & 15);
+-
+ 	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
+ 
+ 	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
+diff -uprN -X dontdiff linux-2.6.12-rc5.orig/drivers/pci/quirks.c linux-2.6.12-rc5/drivers/pci/quirks.c
+--- linux-2.6.12-rc5.orig/drivers/pci/quirks.c	2005-05-27 01:43:34.000000000 -0400
++++ linux-2.6.12-rc5/drivers/pci/quirks.c	2005-05-27 02:35:27.000000000 -0400
+@@ -18,6 +18,7 @@
+ #include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
++#include <linux/acpi.h>
+ #include "pci.h"
+ 
+ /* Deal with broken BIOS'es that neglect to enable passive release,
+@@ -467,9 +468,6 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AM
+  * non-x86 architectures (yes Via exists on PPC among other places),
+  * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
+  * interrupts delivered properly.
+- *
+- * TODO: When we have device-specific interrupt routers,
+- * quirk_via_irqpic will go away from quirks.
+  */
+ 
+ /*
+@@ -494,6 +492,29 @@ static void __devinit quirk_via_acpi(str
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C586_3,	quirk_via_acpi );
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686_4,	quirk_via_acpi );
+ 
++static void __devinit quirk_via_irqpic(struct pci_dev *dev)
++{
++	u8 irq, new_irq;
++
++#ifdef CONFIG_X86_IO_APIC
++	if (nr_ioapics && !skip_ioapic_setup)
++		return;
++#endif
++#ifdef CONFIG_ACPI
++	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
++		return;
++#endif
++	new_irq = dev->irq & 0xf;
++	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
++	if (new_irq != irq) {
++		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
++			pci_name(dev), irq, new_irq);
++		udelay(15);	/* unknown if delay really needed */
++		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
++	}
++}
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
++
+ /*
+  * PIIX3 USB: We have to disable USB interrupts that are
+  * hardwired to PIRQD# and may be shared with an
+@@ -683,19 +704,6 @@ static void __init quirk_disable_pxb(str
+ }
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82454NX,	quirk_disable_pxb );
+ 
+-/*
+- *	VIA northbridges care about PCI_INTERRUPT_LINE
+- */
+-int via_interrupt_line_quirk;
+-
+-static void __devinit quirk_via_bridge(struct pci_dev *pdev)
+-{
+-	if(pdev->devfn == 0) {
+-		printk(KERN_INFO "PCI: Via IRQ fixup\n");
+-		via_interrupt_line_quirk = 1;
+-	}
+-}
+-DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_ANY_ID,                     quirk_via_bridge );
+ 
+ /*
+  *	Serverworks CSB5 IDE does not fully support native mode
+diff -uprN -X dontdiff linux-2.6.12-rc5.orig/include/linux/acpi.h linux-2.6.12-rc5/include/linux/acpi.h
+--- linux-2.6.12-rc5.orig/include/linux/acpi.h	2005-05-27 01:44:10.000000000 -0400
++++ linux-2.6.12-rc5/include/linux/acpi.h	2005-05-27 02:47:04.000000000 -0400
+@@ -25,6 +25,8 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
+ 
++#ifdef	CONFIG_ACPI
++
+ #ifndef _LINUX
+ #define _LINUX
+ #endif
+@@ -533,4 +535,5 @@ static inline int acpi_get_pxm(acpi_hand
+ 
+ extern int pnpacpi_disabled;
+ 
+-#endif /*_LINUX_ACPI_H*/
++#endif	/* CONFIG_ACPI */
++#endif	/*_LINUX_ACPI_H*/
 
 
 -------------------------------------------------------
