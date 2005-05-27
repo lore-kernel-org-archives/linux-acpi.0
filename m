@@ -1,60 +1,74 @@
-From: Alexander Nyberg <alexn@telia.com>
-Subject: Re: [PATCH] ACPI build fix for 2.6.12-rc5
-Date: Fri, 27 May 2005 12:48:50 +0200
-Message-ID: <1117190930.949.20.camel@localhost.localdomain>
-References: <20050527082150.GA24428@toshiba.hsd1.ma.comcast.net>
-	 <20050527085326.GA29767@toshiba.hsd1.ma.comcast.net>
+From: tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
+Subject: Re: Mail Transaction Failed
+Date: Fri, 27 May 2005 09:09:00 -0400 (EDT)
+Message-ID: <E1DbeaE-0007Ir-00@sbrelay02.mail.atl.earthlink.net>
+Reply-To: nobody-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262433AbVE0Ksz@vger.kernel.org>
-In-Reply-To: <20050527085326.GA29767@toshiba.hsd1.ma.comcast.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <lenb@toshiba.hsd1.ma.comcast.net>
-Cc: ak@suse.de, torvalds@osdl.org, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Content-Type: multipart/alternative; boundary="SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-fre 2005-05-27 klockan 04:53 -0400 skrev Len Brown:
-> Linus,
-> Please apply this CONFIG_ACPI=n build fix to 2.6.12-rc5
-> 
-> thanks,
-> Len
-> 
-> Fix 2.6.12 CONFIG_ACPI=n build regression.
-> CONFIG_ACPI_BOOT shall be set only if CONFIG_ACPI.
->
+--SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
 
-You can still set CONFIG_ACPI_BOOT && !CONFIG_ACPI by choosing
-CONFIG_PCI => CONFIG_PCI_MMCONFIG (doesn't build very well either).
+I apologize for this automatic reply to your email.
 
-Make CONFIG_ACPI_BOOT fully depend on CONFIG_ACPI
+To control spam, I now allow incoming messages only from senders I
+have approved beforehand.
 
-Signed-off-by: Alexander Nyberg <alexn@telia.com>
+If you would like to be added to my list of approved senders, please
+fill out the short request form (see link below). Once I approve you,
+I will receive your original message in my inbox. You do not need to
+resend your message. I apologize for this one-time inconvenience.
 
-Index: linux-2.6/arch/i386/Kconfig
-===================================================================
---- linux-2.6.orig/arch/i386/Kconfig	2005-05-17 23:14:51.000000000 +0200
-+++ linux-2.6/arch/i386/Kconfig	2005-05-27 12:33:42.000000000 +0200
-@@ -1163,7 +1163,7 @@
- 
- config PCI_MMCONFIG
- 	bool
--	depends on PCI && (PCI_GOMMCONFIG || (PCI_GOANY && ACPI))
-+	depends on PCI && ACPI && (PCI_GOMMCONFIG || PCI_GOANY)
- 	select ACPI_BOOT
- 	default y
- 
-Index: linux-2.6/arch/x86_64/Kconfig
-===================================================================
---- linux-2.6.orig/arch/x86_64/Kconfig	2005-05-17 23:14:53.000000000 +0200
-+++ linux-2.6/arch/x86_64/Kconfig	2005-05-27 12:32:59.000000000 +0200
-@@ -421,7 +421,7 @@
- 
- config PCI_MMCONFIG
- 	bool "Support mmconfig PCI config space access"
--	depends on PCI
-+	depends on PCI && ACPI
- 	select ACPI_BOOT
- 
- config UNORDERED_IO
+Click the link below to fill out the request:
+
+https://webmail.atl.earthlink.net/wam/addme?a=tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dBEzZ3iM3Nl3pK0
+
+--SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb
+Content-Type: text/html;
+
+<HTML>
+<BODY>
+<DIV>I apologize for this automatic reply to your email.</DIV>
+<DIV><BR></DIV>
+<DIV>
+To control spam, I now allow incoming messages only from senders I
+have approved beforehand.
+</DIV>
+<DIV><BR></DIV>
+<DIV>
+If you would like to be added to my list of approved senders, please
+fill out the short request form (see link below). Once I approve you,
+I will receive your original message in my inbox. You do not need to
+resend your message. I apologize for this one-time inconvenience.
+</DIV>
+<DIV><BR></DIV>
+<DIV>Click the link below to fill out the request:</DIV>
+<DIV><BR></DIV>
+<DIV>
+<A HREF="https://webmail.atl.earthlink.net/wam/addme?a=tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dBEzZ3iM3Nl3pK0">
+https://webmail.atl.earthlink.net/wam/addme?a=tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dBEzZ3iM3Nl3pK0</A></DIV>
+<DIV><BR></DIV>
+</BODY>
+</HTML>
+
+--SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb--
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Yahoo.
+Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+Search APIs Find out how you can build Yahoo! directly into your own
+Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
