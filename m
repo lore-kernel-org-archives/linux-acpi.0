@@ -1,11 +1,13 @@
-From: tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
-Subject: Re: Mail Transaction Failed
-Date: Fri, 27 May 2005 09:09:00 -0400 (EDT)
-Message-ID: <E1DbeaE-0007Ir-00@sbrelay02.mail.atl.earthlink.net>
-Reply-To: nobody-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org
+From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [PATCH] ACPI build fix for 2.6.12-rc5
+Date: Fri, 27 May 2005 08:27:11 -0700 (PDT)
+Message-ID: <Pine.LNX.4.58.0505270815330.17402@ppc970.osdl.org>
+References: <20050527082150.GA24428@toshiba.hsd1.ma.comcast.net>
+ <20050527085326.GA29767@toshiba.hsd1.ma.comcast.net>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050527085326.GA29767-g3qfMnKXm6l/wjb6y0L7XlrsPObopucw0e7PPNI6Mm0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,56 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <lenb-g3qfMnKXm6l/wjb6y0L7XlrsPObopucw0e7PPNI6Mm0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexander Nyberg <alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain;
 
-I apologize for this automatic reply to your email.
 
-To control spam, I now allow incoming messages only from senders I
-have approved beforehand.
+On Fri, 27 May 2005, Len Brown wrote:
+>
+> Linus,
+> Please apply this CONFIG_ACPI=n build fix to 2.6.12-rc5
 
-If you would like to be added to my list of approved senders, please
-fill out the short request form (see link below). Once I approve you,
-I will receive your original message in my inbox. You do not need to
-resend your message. I apologize for this one-time inconvenience.
+Done.
 
-Click the link below to fill out the request:
+Just a quick note about the Subject line, though (and this is not 
+actually particular to Len at all, it's the second email on this that I 
+send out just today ;)..
 
-https://webmail.atl.earthlink.net/wam/addme?a=tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dBEzZ3iM3Nl3pK0
+Since my automated tools will take the Subject line as the changelog
+entry, and in fact it gets special treatment and ends up being in
+shortlogs and in the gitweb summary pages etc, I like it when the Subject
+line is "clean" in the sense that it makes sense in that context.
 
---SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb
-Content-Type: text/html;
+In particular, it's good for _me_ to know that a patch is against a
+certain release (and not a "-mm" tree for example), so I certainly don't
+mind seeing the the patch is for "2.6.12-rc5". But once it is in the tree,
+that versioning information is pointless, and sometimes even wrong (ie
+maybe I ended up actually applying the patch only after I released the
+next kernel, and now that very public comment just looks strange).
 
-<HTML>
-<BODY>
-<DIV>I apologize for this automatic reply to your email.</DIV>
-<DIV><BR></DIV>
-<DIV>
-To control spam, I now allow incoming messages only from senders I
-have approved beforehand.
-</DIV>
-<DIV><BR></DIV>
-<DIV>
-If you would like to be added to my list of approved senders, please
-fill out the short request form (see link below). Once I approve you,
-I will receive your original message in my inbox. You do not need to
-resend your message. I apologize for this one-time inconvenience.
-</DIV>
-<DIV><BR></DIV>
-<DIV>Click the link below to fill out the request:</DIV>
-<DIV><BR></DIV>
-<DIV>
-<A HREF="https://webmail.atl.earthlink.net/wam/addme?a=tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dBEzZ3iM3Nl3pK0">
-https://webmail.atl.earthlink.net/wam/addme?a=tlewis-mn4gwa5WIIQysxA8WJXlww@public.gmane.org&id=1dBEzZ3iM3Nl3pK0</A></DIV>
-<DIV><BR></DIV>
-</BODY>
-</HTML>
+So unless the version is literally important for the patch itself (ie, it 
+might _be_ about the version numbers in the Makefile, and you send in a 
+patch that changes the all-important NAME field of a particular release), 
+I actually much prefer to see these "meta-comments" inside the [] in the 
+Subject line, which automatically gets pruned off by the scripts.
 
---SPMB1117199340e63d44a08901fdc7f835e6b7f283bcfb--
+IOW, something like this:
+
+	[PATCH -rc5] ACPI build fix
+
+works well (usually the major release is obvious, which is why I shorted 
+it to just that part, but it's all up to you at that point: it will be 
+peeled off and just replaced with [PATCH] by the scripts).
+
+So in general, you can have small messages for the patch recipient in
+there, but don't go overboard. If it's longer than twenty characters, it 
+will usually mean that the _actual_ subject line may not show fully in my 
+mail index, of course..
+
+			Linus
 
 
 -------------------------------------------------------
