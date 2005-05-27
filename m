@@ -1,13 +1,13 @@
-From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Subject: Re: [PATCH] ACPI build fix for 2.6.12-rc5
-Date: Fri, 27 May 2005 08:27:11 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0505270815330.17402@ppc970.osdl.org>
+From: Sergio Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
+Subject: Re: [PATCH] VIA IRQ quirk for 2.6.12-rc5
+Date: Fri, 27 May 2005 16:47:23 +0100
+Message-ID: <4297410B.7050905@sergiomb.no-ip.org>
 References: <20050527082150.GA24428@toshiba.hsd1.ma.comcast.net>
- <20050527085326.GA29767@toshiba.hsd1.ma.comcast.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050527085326.GA29767-g3qfMnKXm6l/wjb6y0L7XlrsPObopucw0e7PPNI6Mm0@public.gmane.org>
+In-Reply-To: <20050527082150.GA24428-g3qfMnKXm6l/wjb6y0L7XlrsPObopucw0e7PPNI6Mm0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,54 +18,187 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Len Brown <lenb-g3qfMnKXm6l/wjb6y0L7XlrsPObopucw0e7PPNI6Mm0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexander Nyberg <alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
+Cc: torvalds-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Len,
+
+Bjorn Helgaas has updated this issue on email [ACPI] [PATCH] PCI: do VIA IRQ fixup always, not just in PIC mode (resend)
+
+My suggestion is reopen the bug 3319 
+http://bugme.osdl.org/show_bug.cgi?id=3319
+for track down better this issue .
+
+thanks, 
 
 
-On Fri, 27 May 2005, Len Brown wrote:
+Len Brown wrote:
+
+>Linus,
+>Please apply this patch to 2.6.12-rc5.
+>It fixes a 2.6.11 regression in the VIA IRQ quirk
+>on machines with mixed vendor chip-sets.
 >
-> Linus,
-> Please apply this CONFIG_ACPI=n build fix to 2.6.12-rc5
+>thanks,
+>Len
+>
+>
+>Delete quirk_via_bridge(), restore quirk_via_irqpic() --
+>but now improved to be invoked upon device ENABLE, and
+>now only for VIA devices -- not all devices behind VIA bridges.
+>
+>Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+>Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+>
+>
+>diff -uprN -X dontdiff linux-2.6.12-rc5.orig/arch/i386/pci/irq.c linux-2.6.12-rc5/arch/i386/pci/irq.c
+>--- linux-2.6.12-rc5.orig/arch/i386/pci/irq.c	2005-05-27 01:42:45.000000000 -0400
+>+++ linux-2.6.12-rc5/arch/i386/pci/irq.c	2005-05-27 02:31:41.000000000 -0400
+>@@ -1029,7 +1029,6 @@ void pcibios_penalize_isa_irq(int irq)
+> static int pirq_enable_irq(struct pci_dev *dev)
+> {
+> 	u8 pin;
+>-	extern int via_interrupt_line_quirk;
+> 	struct pci_dev *temp_dev;
+> 
+> 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+>@@ -1084,10 +1083,6 @@ static int pirq_enable_irq(struct pci_de
+> 		printk(KERN_WARNING "PCI: No IRQ known for interrupt pin %c of device %s.%s\n",
+> 		       'A' + pin, pci_name(dev), msg);
+> 	}
+>-	/* VIA bridges use interrupt line for apic/pci steering across
+>-	   the V-Link */
+>-	else if (via_interrupt_line_quirk)
+>-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq & 15);
+> 	return 0;
+> }
+> 
+>diff -uprN -X dontdiff linux-2.6.12-rc5.orig/drivers/acpi/pci_irq.c linux-2.6.12-rc5/drivers/acpi/pci_irq.c
+>--- linux-2.6.12-rc5.orig/drivers/acpi/pci_irq.c	2005-05-27 01:43:08.000000000 -0400
+>+++ linux-2.6.12-rc5/drivers/acpi/pci_irq.c	2005-05-27 02:31:41.000000000 -0400
+>@@ -391,7 +391,6 @@ acpi_pci_irq_enable (
+> 	u8			pin = 0;
+> 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+> 	int			active_high_low = ACPI_ACTIVE_LOW;
+>-	extern int		via_interrupt_line_quirk;
+> 	char			*link = NULL;
+> 
+> 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
+>@@ -444,9 +443,6 @@ acpi_pci_irq_enable (
+> 		}
+>  	}
+> 
+>-	if (via_interrupt_line_quirk)
+>-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq & 15);
+>-
+> 	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
+> 
+> 	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
+>diff -uprN -X dontdiff linux-2.6.12-rc5.orig/drivers/pci/quirks.c linux-2.6.12-rc5/drivers/pci/quirks.c
+>--- linux-2.6.12-rc5.orig/drivers/pci/quirks.c	2005-05-27 01:43:34.000000000 -0400
+>+++ linux-2.6.12-rc5/drivers/pci/quirks.c	2005-05-27 02:35:27.000000000 -0400
+>@@ -18,6 +18,7 @@
+> #include <linux/pci.h>
+> #include <linux/init.h>
+> #include <linux/delay.h>
+>+#include <linux/acpi.h>
+> #include "pci.h"
+> 
+> /* Deal with broken BIOS'es that neglect to enable passive release,
+>@@ -467,9 +468,6 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AM
+>  * non-x86 architectures (yes Via exists on PPC among other places),
+>  * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
+>  * interrupts delivered properly.
+>- *
+>- * TODO: When we have device-specific interrupt routers,
+>- * quirk_via_irqpic will go away from quirks.
+>  */
+> 
+> /*
+>@@ -494,6 +492,29 @@ static void __devinit quirk_via_acpi(str
+> DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C586_3,	quirk_via_acpi );
+> DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_DEVICE_ID_VIA_82C686_4,	quirk_via_acpi );
+> 
+>+static void __devinit quirk_via_irqpic(struct pci_dev *dev)
+>+{
+>+	u8 irq, new_irq;
+>+
+>+#ifdef CONFIG_X86_IO_APIC
+>+	if (nr_ioapics && !skip_ioapic_setup)
+>+		return;
+>+#endif
+>+#ifdef CONFIG_ACPI
+>+	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
+>+		return;
+>+#endif
+>+	new_irq = dev->irq & 0xf;
+>+	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+>+	if (new_irq != irq) {
+>+		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
+>+			pci_name(dev), irq, new_irq);
+>+		udelay(15);	/* unknown if delay really needed */
+>+		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+>+	}
+>+}
+>+DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
+>+
+> /*
+>  * PIIX3 USB: We have to disable USB interrupts that are
+>  * hardwired to PIRQD# and may be shared with an
+>@@ -683,19 +704,6 @@ static void __init quirk_disable_pxb(str
+> }
+> DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82454NX,	quirk_disable_pxb );
+> 
+>-/*
+>- *	VIA northbridges care about PCI_INTERRUPT_LINE
+>- */
+>-int via_interrupt_line_quirk;
+>-
+>-static void __devinit quirk_via_bridge(struct pci_dev *pdev)
+>-{
+>-	if(pdev->devfn == 0) {
+>-		printk(KERN_INFO "PCI: Via IRQ fixup\n");
+>-		via_interrupt_line_quirk = 1;
+>-	}
+>-}
+>-DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_ANY_ID,                     quirk_via_bridge );
+> 
+> /*
+>  *	Serverworks CSB5 IDE does not fully support native mode
+>diff -uprN -X dontdiff linux-2.6.12-rc5.orig/include/linux/acpi.h linux-2.6.12-rc5/include/linux/acpi.h
+>--- linux-2.6.12-rc5.orig/include/linux/acpi.h	2005-05-27 01:44:10.000000000 -0400
+>+++ linux-2.6.12-rc5/include/linux/acpi.h	2005-05-27 02:47:04.000000000 -0400
+>@@ -25,6 +25,8 @@
+> #ifndef _LINUX_ACPI_H
+> #define _LINUX_ACPI_H
+> 
+>+#ifdef	CONFIG_ACPI
+>+
+> #ifndef _LINUX
+> #define _LINUX
+> #endif
+>@@ -533,4 +535,5 @@ static inline int acpi_get_pxm(acpi_hand
+> 
+> extern int pnpacpi_disabled;
+> 
+>-#endif /*_LINUX_ACPI_H*/
+>+#endif	/* CONFIG_ACPI */
+>+#endif	/*_LINUX_ACPI_H*/
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by Yahoo.
+>Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+>Search APIs Find out how you can build Yahoo! directly into your own
+>Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>  
+>
 
-Done.
-
-Just a quick note about the Subject line, though (and this is not 
-actually particular to Len at all, it's the second email on this that I 
-send out just today ;)..
-
-Since my automated tools will take the Subject line as the changelog
-entry, and in fact it gets special treatment and ends up being in
-shortlogs and in the gitweb summary pages etc, I like it when the Subject
-line is "clean" in the sense that it makes sense in that context.
-
-In particular, it's good for _me_ to know that a patch is against a
-certain release (and not a "-mm" tree for example), so I certainly don't
-mind seeing the the patch is for "2.6.12-rc5". But once it is in the tree,
-that versioning information is pointless, and sometimes even wrong (ie
-maybe I ended up actually applying the patch only after I released the
-next kernel, and now that very public comment just looks strange).
-
-So unless the version is literally important for the patch itself (ie, it 
-might _be_ about the version numbers in the Makefile, and you send in a 
-patch that changes the all-important NAME field of a particular release), 
-I actually much prefer to see these "meta-comments" inside the [] in the 
-Subject line, which automatically gets pruned off by the scripts.
-
-IOW, something like this:
-
-	[PATCH -rc5] ACPI build fix
-
-works well (usually the major release is obvious, which is why I shorted 
-it to just that part, but it's all up to you at that point: it will be 
-peeled off and just replaced with [PATCH] by the scripts).
-
-So in general, you can have small messages for the patch recipient in
-there, but don't go overboard. If it's longer than twenty characters, it 
-will usually mean that the _actual_ subject line may not show fully in my 
-mail index, of course..
-
-			Linus
 
 
 -------------------------------------------------------
