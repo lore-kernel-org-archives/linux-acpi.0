@@ -1,11 +1,13 @@
-From: James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org>
-Subject: question of appropriateness
-Date: Fri, 27 May 2005 18:35:04 -0700
-Message-ID: <1117244104.21648.1.camel@localhost.localdomain>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] PCI: do VIA IRQ fixup always, not just in PIC mode (resend)
+Date: Fri, 27 May 2005 21:18:02 -0700
+Message-ID: <20050528041802.GA5282@kroah.com>
+References: <200505240944.46633.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200505240944.46633.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,19 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-All,
+On Tue, May 24, 2005 at 09:44:46AM -0600, Bjorn Helgaas wrote:
+> I posted the patch below a few weeks ago.  Greg, would you
+> consider putting it in your tree so it trickles into -mm?
 
-   Is this the correct list to receive some guidance on fixing a very
-badly broken dsdt table for my laptop (37 errors 1 warning when trying
-to compile it.) or should I use another list? 
+Hm, this doesn't apply properly to the -mm tree, as it looks like others
+have already touched this function.  Care to rediff it?
 
+thanks,
 
-James
-
-
+greg k-h
 
 
 -------------------------------------------------------
