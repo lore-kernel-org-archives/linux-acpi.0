@@ -1,13 +1,14 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] PCI: do VIA IRQ fixup always, not just in PIC mode (resend)
-Date: Fri, 27 May 2005 21:18:02 -0700
-Message-ID: <20050528041802.GA5282@kroah.com>
-References: <200505240944.46633.bjorn.helgaas@hp.com>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: question of appropriateness
+Date: Sat, 28 May 2005 10:14:50 +0000
+Message-ID: <20050528101450.GA19354@fingerbrecher>
+References: <1117244104.21648.1.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200505240944.46633.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+In-Reply-To: <1117244104.21648.1.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,20 +18,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 24, 2005 at 09:44:46AM -0600, Bjorn Helgaas wrote:
-> I posted the patch below a few weeks ago.  Greg, would you
-> consider putting it in your tree so it trickles into -mm?
 
-Hm, this doesn't apply properly to the -mm tree, as it looks like others
-have already touched this function.  Care to rediff it?
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-thanks,
+hello James...
 
-greg k-h
+* James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org> [2005-05-28 09:19 +0000]:
+>=20
+>    Is this the correct list to receive some guidance on fixing a very
+> badly broken dsdt table for my laptop (37 errors 1 warning when trying
+> to compile it.) or should I use another list?=20
+
+yes, have a try.
+
+cheers,
+ Sebastian
+--=20
+Oo.....................
+ wer ein ganzer mensch ist, braucht keine autoritaet zu sein.
+ OpenPGP key ID: 0x4A1F5E81  Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++
+                                                ..................oO
+
+--YiEDa0DAkWCtVeE4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCmESareHfL3pi+bQRAu51AJ4moRzwSOflshcRbZ+wQ+1KZwBOqQCfcpEn
+oKO9FeX1nUlc2unf7l32QyM=
+=OJXC
+-----END PGP SIGNATURE-----
+
+--YiEDa0DAkWCtVeE4--
 
 
 -------------------------------------------------------
