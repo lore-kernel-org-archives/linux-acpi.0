@@ -1,14 +1,11 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: question of appropriateness
-Date: Sat, 28 May 2005 10:14:50 +0000
-Message-ID: <20050528101450.GA19354@fingerbrecher>
-References: <1117244104.21648.1.camel@localhost.localdomain>
+From: hostmaster-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Notice:***Your email account will be suspended***
+Date: Sat, 28 May 2005 19:57:22 +0300
+Message-ID: <E1Dc4d1-0001mm-Hi@sc8-sf-mx2.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0004_196A853F.A0011CF8"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1117244104.21648.1.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,44 +18,53 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+------=_NextPart_000_0004_196A853F.A0011CF8
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 
-hello James...
+We have suspended some of your email services, to resolve the problem you should read the attached document.
 
-* James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org> [2005-05-28 09:19 +0000]:
->=20
->    Is this the correct list to receive some guidance on fixing a very
-> badly broken dsdt table for my laptop (37 errors 1 warning when trying
-> to compile it.) or should I use another list?=20
 
-yes, have a try.
+------=_NextPart_000_0004_196A853F.A0011CF8
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 
-cheers,
- Sebastian
---=20
-Oo.....................
- wer ein ganzer mensch ist, braucht keine autoritaet zu sein.
- OpenPGP key ID: 0x4A1F5E81  Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++
-                                                ..................oO
 
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+**********************************************************
+**********************************************************
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+WARNING: Panda Antivirus GateDefender has detected a virus in file
+attached to this e-mail message!
 
-iD8DBQFCmESareHfL3pi+bQRAu51AJ4moRzwSOflshcRbZ+wQ+1KZwBOqQCfcpEn
-oKO9FeX1nUlc2unf7l32QyM=
-=OJXC
------END PGP SIGNATURE-----
+The attachment has been automatically removed to
+protect your network.
 
---YiEDa0DAkWCtVeE4--
+Panda Antivirus GateDefender Administrator: unknown
+
+05/28/05 20:00:43 
+Panda Antivirus GateDefender (Version 5.1 R1c (5.0.60.2)) - http://www.pandasoftware.com/
+Antivirus Vendor: Panda Software
+Scan Engine Version: 4.1.4.307
+Pattern File Version: 3.95755 (Timestamp: 28/05/2005 080241)
+
+Machine name: PandaAppliance1
+Machine IP address: 194.219.77.45
+Server: 66.35.250.206
+Client: 194.219.77.41
+Protocol: SMTP
+
+Virus: "W32/Mytob.DE.worm" found!
+Attachment: email-info.zip
+
+**********************************************************
+**********************************************************
+
+
+------=_NextPart_000_0004_196A853F.A0011CF8--
+
+
 
 
 -------------------------------------------------------
