@@ -1,90 +1,83 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: ACPI fan problems on HP pavilion desktop
-Date: Sun, 29 May 2005 08:45:17 -0400
-Message-ID: <20050529124517.GA25934@toshiba.hsd1.ma.comcast.net>
-References: <4298CC82.9010901@gmail.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Broken DSDT on Acer Travelmate 243LC
+Date: Sun, 29 May 2005 22:03:10 +0200
+Message-ID: <20050529200310.GG32472@poupinou.org>
+References: <42997132.2050202@gmx.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261261AbVE2MkW@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4298CC82.9010901@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keenan Pepper <keenanpepper@gmail.com>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+In-Reply-To: <42997132.2050202-RbZlAiThDcE@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Fabian Zeindl <fabian.zeindl-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, May 28, 2005 at 03:54:42PM -0400, Keenan Pepper wrote:
-> I'm trying to set up cpu clock modulation and ACPI fan support on my HP 
-> pavilion  a302x, so it runs quieter when it's not doing anything
-> (the fan is pretty loud).
-> The cpufreq driver works great, but the ACPI fan driver not so good:
-> it can turn the fan off but not back on again.
+On Sun, May 29, 2005 at 09:37:22AM +0200, Fabian Zeindl wrote:
+> Hi
 > 
-> I changed these lines in drivers/acpi/power.c:
+> I decompiled my dsdt on my Acer Laptop and got 4 Errors:
 > 
-> -       if (resource->state != ACPI_POWER_RESOURCE_STATE_OFF)
-> -               return_VALUE(-ENOEXEC);
-> +       if (resource->state != ACPI_POWER_RESOURCE_STATE_OFF) {
-> +               ACPI_DEBUG_PRINT((ACPI_DB_WARN,
-> +                       "Device [%s] says it's still on", resource->name));
-> +               resource->state = ACPI_POWER_RESOURCE_STATE_OFF;
-> +       }
+> dsdt.dsl   918:                         If (UPBI ())
+> Error    1029 - Called method returns no value ^
+> dsdt.dsl   923:                         If (UPBS ())
+> Error    1029 - Called method returns no value ^
+> dsdt.dsl  2513:                     Field (ERAM, AnyAcc, Lock, Preserve)
+> Error    1048 -                               ^ Host Operation Region
+> requires ByteAcc access
+> dsdt.dsl  2611:                             Store (Arg2, DAT3)
+> Error    1014 -    Method argument is not initialized ^  (Arg2)
+> dsdt.dsl  2611:                             Store (Arg2, DAT3)
+> Remark   3041 -   Not a parameter, used as local only ^  (Arg2)
 > 
-> and now I can turn the fan off and on again, so it works for me,
-> but I want to figure out what's actually wrong so other people trying to
-> run linux on this machine can have it Just Work(tm) for them.
-> Is it just buggy hardware that
-> doesn't comply with the ACPI spec? If so, is there some place where all the
-> workarounds for hardware quirks are collected?
+> I fixed the third one by changing "AnyAcc" to "ByteAcc",
 
-This does look like a platform BIOS bug, but
-that doesn't mean Linux shouldn't be able to
-handle it.
+Correct.
 
-Apparently the initial _OFF disabled the fan,
-but the platform did not update _STA 
-to say so.
-The subsequent acpi_power_on() sees this state
-is still on and bails out with
-"Resource [%s] already on"...
+> and the fourth one by changing Store (Arg2, DAT3) to Store (2, DAT3).
+> (is this right?)
 
-But it would be good to examine the ASL before
-leaping to conclusions.  Please open a bug here
-http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
-Component: Power-fan
+Not correct.  I will extend the number of arguments passed to the method
+instead.  But this method is never called, so I wont mind a lot.
+that is:
 
-and attach the output from acpidmp, available in /usr/sbin
-or in pmtools here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+--- dsdt.dsl	2005/05/29 19:50:18	1.1
++++ dsdt.dsl	2005/05/29 19:59:10
+@@ -2586,7 +2586,7 @@
+                         Return (DAT1)
+                     }
+ 
+-                    Method (RAMW, 2, NotSerialized)
++                    Method (RAMW, 3, NotSerialized)
+                     {
+                         Acquire (MUT0, 0xFFFF)
+                         If (LGreater (Arg0, 0x7F))
 
-Also, it will be interesting to see the console output
-when you enable debugging for this component
-and tickle the fan:
+> I don't know what to do with the first two errors, cause I don't which
+> return values to give back in this functions.
 
-# echo 0x00800000 > /proc/acpi/debug_layer
-# echo 0xFFFFFFFF > /proc/acpi/debug_level
+I don't know.  But this method (CHBP()) where those errors happens
+is never called, so I won't mind a lot.  And if really I would
+need to overwritte this dsdt, I would comment this method.
 
-in case there an anything unexpected in the debug output.
 
-We found an analogous issue with PCI Interrupt Link Devices
-a while ago where Linux checked what it did actually took effect.
-However, some platforms never updated _STA -- presumably
-because a popular proprietary OS never checked it.
-We ended up changing Linux to ignore that the spec
-said the platform should do and instead be bug compatible
-with "common industry practice".  Wasn't worth
-bothering with a platform specific quirk.
+-- 
+Bruno Ducrot
 
-Likely we should always let requests to _ON and _OFF
-proceed, not matter what current state -- even if
-we think it would be redundant.
-The question then becomes if we should then update
-resource->state and device->power.sate based
-on what _STA returns, or based on what we just ran.
-(like you did above in the _OFF case)
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
-thanks,
--Len
 
-ps. please include acpi-devel@lists.sourceforge.net on 
-this type of topic.
+-------------------------------------------------------
+This SF.Net email is sponsored by Yahoo.
+Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+Search APIs Find out how you can build Yahoo! directly into your own
+Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
