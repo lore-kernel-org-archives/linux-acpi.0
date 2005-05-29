@@ -1,13 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Broken DSDT on Acer Travelmate 243LC
-Date: Sun, 29 May 2005 22:03:10 +0200
-Message-ID: <20050529200310.GG32472@poupinou.org>
-References: <42997132.2050202@gmx.at>
+From: James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org>
+Subject: Re: question of appropriateness
+Date: Sun, 29 May 2005 13:18:32 -0700
+Message-ID: <1117397912.24721.5.camel@localhost.localdomain>
+References: <1117244104.21648.1.camel@localhost.localdomain>
+	 <20050528101450.GA19354@fingerbrecher>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <42997132.2050202-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <20050528101450.GA19354@fingerbrecher>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,63 +18,74 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fabian Zeindl <fabian.zeindl-RbZlAiThDcE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, May 29, 2005 at 09:37:22AM +0200, Fabian Zeindl wrote:
-> Hi
+After noticing that the reply to on this list doesn't work the way I expected... sorry..
+
+
+On Sat, 2005-05-28 at 10:14 +0000, Sebastian Henschel wrote:
+> hello James...
 > 
-> I decompiled my dsdt on my Acer Laptop and got 4 Errors:
+> * James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org> [2005-05-28 09:19 +0000]:
+> > 
+> >    Is this the correct list to receive some guidance on fixing a very
+> > badly broken dsdt table for my laptop (37 errors 1 warning when trying
+> > to compile it.) or should I use another list? 
 > 
-> dsdt.dsl   918:                         If (UPBI ())
-> Error    1029 - Called method returns no value ^
-> dsdt.dsl   923:                         If (UPBS ())
-> Error    1029 - Called method returns no value ^
-> dsdt.dsl  2513:                     Field (ERAM, AnyAcc, Lock, Preserve)
-> Error    1048 -                               ^ Host Operation Region
-> requires ByteAcc access
-> dsdt.dsl  2611:                             Store (Arg2, DAT3)
-> Error    1014 -    Method argument is not initialized ^  (Arg2)
-> dsdt.dsl  2611:                             Store (Arg2, DAT3)
-> Remark   3041 -   Not a parameter, used as local only ^  (Arg2)
+> yes, have a try.
 > 
-> I fixed the third one by changing "AnyAcc" to "ByteAcc",
+> cheers,
+>  Sebastian
 
-Correct.
+Ok Laptop in question is an Acer Aspire 3000 which other than acpi
+hardware is 100% (nice feeling)  Rather than put up all of the errors
+I'll break them into 3 groups.
 
-> and the fourth one by changing Store (Arg2, DAT3) to Store (2, DAT3).
-> (is this right?)
+1.  1094 error (which I've a feeling if I fix others will follow) of
+which there are 3 types. 
 
-Not correct.  I will extend the number of arguments passed to the method
-instead.  But this method is never called, so I wont mind a lot.
-that is:
+      dsdt.dsl   743:                     0x0100, 0x00,,)
+      Error    1094 -                                   ^ Missing
+ResourceSource string (required)
 
---- dsdt.dsl	2005/05/29 19:50:18	1.1
-+++ dsdt.dsl	2005/05/29 19:59:10
-@@ -2586,7 +2586,7 @@
-                         Return (DAT1)
-                     }
- 
--                    Method (RAMW, 2, NotSerialized)
-+                    Method (RAMW, 3, NotSerialized)
-                     {
-                         Acquire (MUT0, 0xFFFF)
-                         If (LGreater (Arg0, 0x7F))
+      dsdt.dsl   750:                     , AddressRangeMemory,
+TypeStatic)
+      Error    1094 -            Missing ResourceSource string
+(required) ^
 
-> I don't know what to do with the first two errors, cause I don't which
-> return values to give back in this functions.
+The second one I have about 20 of .... each time the Add........ line
+appears so one fix style should get me.
 
-I don't know.  But this method (CHBP()) where those errors happens
-is never called, so I won't mind a lot.  And if really I would
-need to overwritte this dsdt, I would comment this method.
+2.  The other errors I'm not finding docs on are related to PPC 
+
+      dsdt.dsl  2506:                             If (LNot (LEqual
+(\_PR.CPU0._PPC, 0x00)))
+      Error    1022 -                                      Object does
+not exist ^               (\_PR.CPU0._PPC)
+
+      dsdt.dsl  2508:                                 Store (0x00,
+\_PR.CPU0._PPC)
+      Error    1022 -                                     Object does
+not exist ^  (\_PR.CPU0._PPC)
+
+      dsdt.dsl  2516:                             If (LLess
+(\_PR.CPU0._PPC, Local1))
+      Error    1022 -                               Object does not
+exist ^  (\_PR.CPU0._PPC)
+
+There are about 10 of these.    I'd appreciate any tips/pointers/FM's
+etc any one here can give.  I can't find any evidence of an ECTC on this
+one but then again I've just made the decision to dive into this so I'm
+in the process of learning where everything is.  Interesting side note.
+WinXP on this box (keeping it for the warranty grrrr) also has troubles
+with aspects of this DSDT as well.  
+
+James
 
 
--- 
-Bruno Ducrot
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
 
 
 -------------------------------------------------------
