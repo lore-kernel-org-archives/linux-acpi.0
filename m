@@ -1,14 +1,13 @@
-From: James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org>
-Subject: Re: question of appropriateness
-Date: Sun, 29 May 2005 13:18:32 -0700
-Message-ID: <1117397912.24721.5.camel@localhost.localdomain>
-References: <1117244104.21648.1.camel@localhost.localdomain>
-	 <20050528101450.GA19354@fingerbrecher>
+From: Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: partial S3 success with 2.6.12-rc5-mm1 and Dell Precision M70
+Date: Sun, 29 May 2005 15:16:40 -0700
+Message-ID: <9540d010505291516217a7025@mail.gmail.com>
+Reply-To: Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050528101450.GA19354@fingerbrecher>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,74 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-After noticing that the reply to on this list doesn't work the way I expected... sorry..
+Hi,
 
+With 2.6.12-rc4 I've had no luck getting the Precision M70 to enter S3
+suspend; however, with 2.6.12-rc5-mm1 and the scsi suspend/resume
+patch from Jens Axboe at http://lkml.org/lkml/2005/5/3/54 applied, I'm
+able to suspend to S3 and resume provided that:
 
-On Sat, 2005-05-28 at 10:14 +0000, Sebastian Henschel wrote:
-> hello James...
-> 
-> * James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org> [2005-05-28 09:19 +0000]:
-> > 
-> >    Is this the correct list to receive some guidance on fixing a very
-> > badly broken dsdt table for my laptop (37 errors 1 warning when trying
-> > to compile it.) or should I use another list? 
-> 
-> yes, have a try.
-> 
-> cheers,
->  Sebastian
+1) I don't have the tg3 module loaded -- if I suspend with tg3 loaded,
+upon resume it spews that it can't reset firmware/can't find the Power
+Management capability, and then the machine proceeds to enter into a
+cycle where it freezes for 15 seconds or so and then has a burst of
+activity.  lspci after resume reports:
 
-Ok Laptop in question is an Acer Aspire 3000 which other than acpi
-hardware is 100% (nice feeling)  Rather than put up all of the errors
-I'll break them into 3 groups.
+02:00.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5751
+Gigabit Ethernet PCI Express (rev ff) (prog-if ff)
+        !!! Unknown header type 7f
 
-1.  1094 error (which I've a feeling if I fix others will follow) of
-which there are 3 types. 
+2) I don't have the nvidia binary module loaded -- with the module
+loaded, as soon as I see "Back to C!" the LCD backlight goes dark, and
+the machine effectively locks; nothing on the serial console, no
+response to local keyboard.
 
-      dsdt.dsl   743:                     0x0100, 0x00,,)
-      Error    1094 -                                   ^ Missing
-ResourceSource string (required)
+I've mailed nvidia about the second issue; any ideas what could be
+causing the first?  The two issues may even be related, as whatever is
+causing the PCI configuration space for tg3 to be screwed up may also
+be causing the same problem for the nvidia device, prompting a hang.
 
-      dsdt.dsl   750:                     , AddressRangeMemory,
-TypeStatic)
-      Error    1094 -            Missing ResourceSource string
-(required) ^
+Note that without Jens' patch applied, the machine's LCD would never
+come back upon resume (I wouldn't see Back to C or similar), though I
+did have control of the machine before it locked up on HD access -- no
+combination of vbetool/dpms seemed to revive it without the patch.
 
-The second one I have about 20 of .... each time the Add........ line
-appears so one fix style should get me.
+dmesg/full lspci/dsdt/etc. output is at
+http://bugzilla.kernel.org/show_bug.cgi?id=3D4652 (which I originally
+filed for 2.6.12-rc4).
 
-2.  The other errors I'm not finding docs on are related to PPC 
-
-      dsdt.dsl  2506:                             If (LNot (LEqual
-(\_PR.CPU0._PPC, 0x00)))
-      Error    1022 -                                      Object does
-not exist ^               (\_PR.CPU0._PPC)
-
-      dsdt.dsl  2508:                                 Store (0x00,
-\_PR.CPU0._PPC)
-      Error    1022 -                                     Object does
-not exist ^  (\_PR.CPU0._PPC)
-
-      dsdt.dsl  2516:                             If (LLess
-(\_PR.CPU0._PPC, Local1))
-      Error    1022 -                               Object does not
-exist ^  (\_PR.CPU0._PPC)
-
-There are about 10 of these.    I'd appreciate any tips/pointers/FM's
-etc any one here can give.  I can't find any evidence of an ECTC on this
-one but then again I've just made the decision to dive into this so I'm
-in the process of learning where everything is.  Interesting side note.
-WinXP on this box (keeping it for the warranty grrrr) also has troubles
-with aspects of this DSDT as well.  
-
-James
-
-
-
-
+Thanks for any info,
+     - Vlad
 
 
 -------------------------------------------------------
