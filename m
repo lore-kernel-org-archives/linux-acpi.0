@@ -1,13 +1,13 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: question of appropriateness
-Date: Mon, 30 May 2005 19:25:36 +0200
-Message-ID: <20050530172536.GI32472@poupinou.org>
-References: <1117244104.21648.1.camel@localhost.localdomain> <20050528101450.GA19354@fingerbrecher> <1117397912.24721.5.camel@localhost.localdomain> <20050530130147.GH32472@poupinou.org> <1117471738.398.18.camel@localhost.localdomain>
+Date: Mon, 30 May 2005 20:38:58 +0200
+Message-ID: <20050530183858.GK32472@poupinou.org>
+References: <1117244104.21648.1.camel@localhost.localdomain> <20050528101450.GA19354@fingerbrecher> <1117397912.24721.5.camel@localhost.localdomain> <20050530130147.GH32472@poupinou.org> <1117471738.398.18.camel@localhost.localdomain> <20050530172536.GI32472@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1117471738.398.18.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <20050530172536.GI32472-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,93 +21,263 @@ To: James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org>
 Cc: ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 30, 2005 at 09:48:58AM -0700, James Sparenberg wrote:
->    First thanks for the offer of help and yes I'm starting to did into
-> the spec.  Shorter read than the LSB though not by much *grin*
-> 
-> I sent the outputs asked for via a direct mail as you asked.
+On Mon, May 30, 2005 at 07:25:36PM +0200, Bruno Ducrot wrote:
+> But I'm wondering what iasl are you using?  It seems totally broken
+> to me.
 
-Got it.
+Actually I am wrong here.  Later iasl (20050513) is now more
+restrictive.  When the ResourceSourceIndex exist, then ResourceSource
+must exist.
 
-> But I
-> didn't want to post those links into a forum than gets publicly
-> archived.  If anyone else wants the data I'll be glad to let them see it
-> as well.  
-> 
-> The reason for starting this endevor is a set of acpi related error
-> messages that fill up my logs (at the rate of about 1 every 2 seconds) 
-> 
->     ACPI-0352: *** Error: Looking up [Z007] in namespace, AE_NOT_FOUND
-> search_node cbec2e20 start_node cbec2e20 return_node 00000000
->     ACPI-1138: *** Error: Method execution failed [\_SB_.BAT1._BST]
-> (Node cbec2d20), AE_NOT_FOUND
+2 solutions if you want to compile:
+1- patch iasl in order to restore old behaviour (but this is out of
+spec somehow)
+or
+2- eliminate all the ResourceSourceIndex when there is no ResourceSource.
 
-Again that one? Grrr.
-
-> I've noticed 2 rather interesting things ...
-> 
-> 1.  Windows is only slightly better on power management with this DSDT
-> than Linux.  
-> 2.  This DSDT does have the "Windows Only" settings in it.  Surprisingly
-> it doesn't have an entry for WindowsXP.   (I've a feeling somebody cut
-> and pasted an older DSDT.)
-> 
-> I did file a bug so to speak with Acer a prompt "Thank you for the
-> information we are looking into the matter type letter", but somehow it
-> did have a feel about it that it did raise and eyebrow so maybe they can
-> help sometime in the next 6 months to a year.  *grin*
-
->From your acpi dump, the dsdt compile without the first error, so I was
-pretty right to think that your iasl is broken somehow.
-
-In order to get rid off the _PPC things, I checked that the _PPC thing
-was in a SSDT via something like this:
-
-../pmtools/acpidmp/acpixtract SSDT < acpidmp.out > ssdt
-
-Then:
-iasl -d ssdt
-in order to decompile it to ASL.
-
-So you should not worry about those \_PR.CPU0._PPC (for example) by
-defining an external one (see diff below).
-
-Lastly, for the Z007 horror, replace them with Zero or Ones (or any
-other integer values).
-
-But I'm wondering what iasl are you using?  It seems totally broken
-to me.
+For point 2, here is an incremental patch to your asl:
 
 
 --- dsdt.dsl	2005/05/30 17:20:33	1.1
-+++ dsdt.dsl	2005/05/30 17:22:51
-@@ -6,6 +6,7 @@
-  */
- DefinitionBlock ("DSDT.aml", "DSDT", 1, "PTLTD ", "755", 100925440)
- {
-+
-     OperationRegion (P80G, SystemIO, 0x80, 0x01)
-     Field (P80G, ByteAcc, NoLock, Preserve)
-     {
-@@ -146,6 +147,7 @@
-     {
-         Processor (CPU0, 0x00, 0x00008010, 0x06) {}
-     }
-+    External (\_PR.CPU0._PPC)
- 
-     Scope (\_SB)
-     {
-@@ -3007,8 +3009,8 @@
-             Name (PBST, Package (0x04)
-             {
-                 0x00, 
--                Z007, 
--                Z007, 
-+                Ones, 
-+                Ones, 
-                 0x2710
++++ dsdt.dsl	2005/05/30 18:21:40
+@@ -740,188 +742,188 @@
+                     0x0000, // Address Range Minimum
+                     0x00FF, // Address Range Maximum
+                     0x0000, // Address Translation Offset
+-                    0x0100, 0x00,,)
++                    0x0100, ,,)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000A0000, // Address Range Minimum
+                     0x000BFFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00020000, 0x00,,
++                    0x00020000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000C0000, // Address Range Minimum
+                     0x000C1FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000C2000, // Address Range Minimum
+                     0x000C3FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000C4000, // Address Range Minimum
+                     0x000C5FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000C6000, // Address Range Minimum
+                     0x000C7FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000C8000, // Address Range Minimum
+                     0x000C9FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000CA000, // Address Range Minimum
+                     0x000CBFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000CC000, // Address Range Minimum
+                     0x000CDFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000CE000, // Address Range Minimum
+                     0x000CFFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000D0000, // Address Range Minimum
+                     0x000D1FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000D2000, // Address Range Minimum
+                     0x000D3FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000D4000, // Address Range Minimum
+                     0x000D5FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000D6000, // Address Range Minimum
+                     0x000D7FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000D8000, // Address Range Minimum
+                     0x000D9FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000DA000, // Address Range Minimum
+                     0x000DBFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000DC000, // Address Range Minimum
+                     0x000DDFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000DE000, // Address Range Minimum
+                     0x000DFFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000E0000, // Address Range Minimum
+                     0x000E1FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000E2000, // Address Range Minimum
+                     0x000E3FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000E4000, // Address Range Minimum
+                     0x000E5FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000E6000, // Address Range Minimum
+                     0x000E7FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000E8000, // Address Range Minimum
+                     0x000E9FFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000EA000, // Address Range Minimum
+                     0x000EBFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000EC000, // Address Range Minimum
+                     0x000EDFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x000EE000, // Address Range Minimum
+                     0x000EFFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00002000, 0x00,,
++                    0x00002000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 DWordMemory (ResourceProducer, SubDecode, MinFixed, MaxFixed, NonCacheable, ReadWrite,
+                     0x00000000, // Address Space Granularity
+                     0x00000000, // Address Range Minimum
+                     0xFFFFFFFF, // Address Range Maximum
+                     0x00000000, // Address Translation Offset
+-                    0x00000000, 0x00,,
++                    0x00000000, ,,
+                     , AddressRangeMemory, TypeStatic)
+                 IO (Decode16, 0x0CF8, 0x0CF8, 0x01, 0x08)
+                 WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
+@@ -929,14 +931,14 @@
+                     0x0000, // Address Range Minimum
+                     0x0CF7, // Address Range Maximum
+                     0x0000, // Address Translation Offset
+-                    0x0CF8, 0x00,,
++                    0x0CF8, ,,
+                     , TypeStatic)
+                 WordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
+                     0x0000, // Address Space Granularity
+                     0x0D00, // Address Range Minimum
+                     0xFFFF, // Address Range Maximum
+                     0x0000, // Address Translation Offset
+-                    0xF300, 0x00,,
++                    0xF300, ,,
+                     , TypeStatic)
              })
-             Name (ERRC, 0x00)
+             Method (_CRS, 0, Serialized)
+
+
+
+BTW, I'm expecting now some strange iasl error output where it worked
+before...
 
 -- 
 Bruno Ducrot
