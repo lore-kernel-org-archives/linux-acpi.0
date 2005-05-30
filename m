@@ -1,16 +1,16 @@
 From: James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org>
-Subject: Re: question of appropriateness
-Date: Mon, 30 May 2005 09:48:58 -0700
-Message-ID: <1117471738.398.18.camel@localhost.localdomain>
-References: <1117244104.21648.1.camel@localhost.localdomain>
-	 <20050528101450.GA19354@fingerbrecher>
-	 <1117397912.24721.5.camel@localhost.localdomain>
-	 <20050530130147.GH32472@poupinou.org>
+Subject: Re: Re: swsusp: Not enough free pages
+Date: Mon, 30 May 2005 10:01:55 -0700
+Message-ID: <1117472515.398.26.camel@localhost.localdomain>
+References: <3ACA40606221794F80A5670F0AF15F84041AC1A8@pdsmsx403>
+	 <42935C72.9030506@suse.de> <20050525012040.GA6145@linux.sh.intel.com>
+	 <20050530091419.GA7922@linux.sh.intel.com>
+	 <20050530150157.GC2207@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050530130147.GH32472-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20050530150157.GC2207-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,104 +23,45 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-05-30 at 15:01 +0200, Bruno Ducrot wrote:
-> On Sun, May 29, 2005 at 01:18:32PM -0700, James Sparenberg wrote:
-> > Ok Laptop in question is an Acer Aspire 3000 which other than acpi
-> > hardware is 100% (nice feeling)  Rather than put up all of the errors
-> > I'll break them into 3 groups.
+On Mon, 2005-05-30 at 17:01 +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > >    > I got this error when I'm hacking suspend-to-disk on my IA64 box
+> > > >    with 1G
+> > > >    > memory.
+> > > >    > (Pagesize 64K,MemTotal:  1002112 kB ,MemFree:  395008 kB)
+> > > >    > Do you plan to improve it by compressing pages ?
+> > > >    >
+> > > >    > swsusp: Need to copy 9878 pages
+> > > >    > suspend: (pages needed: 9878 + 512 free: 6486)
+> > > >    > swsusp: Not enough free pages: Have 6486
+> > > >    I have not seen one of those for a long time (on i386). Does this
+> > > >    happen
+> > > >    every time? 
+> > > 
+> > > So far, yes. I just tried 2 times.
 > > 
-> > 1.  1094 error (which I've a feeling if I fix others will follow) of
-> > which there are 3 types. 
+> > always. (I check that swap dev is on)
 > > 
-> >       dsdt.dsl   743:                     0x0100, 0x00,,)
-> >       Error    1094 -                                   ^ Missing
-> > ResourceSource string (required)
-> > 
-> >       dsdt.dsl   750:                     , AddressRangeMemory,
-> > TypeStatic)
-> >       Error    1094 -            Missing ResourceSource string
-> > (required) ^
-> > 
-> > The second one I have about 20 of .... each time the Add........ line
-> > appears so one fix style should get me.
-> 
-> 
-> I suspect your iasl is broken somehow: a ResourceSource string is optional.
-> 
-> > 2.  The other errors I'm not finding docs on are related to PPC 
-> > 
-> >       dsdt.dsl  2506:                             If (LNot (LEqual
-> > (\_PR.CPU0._PPC, 0x00)))
-> >       Error    1022 -                                      Object does
-> > not exist ^               (\_PR.CPU0._PPC)
-> > 
-> >       dsdt.dsl  2508:                                 Store (0x00,
-> > \_PR.CPU0._PPC)
-> >       Error    1022 -                                     Object does
-> > not exist ^  (\_PR.CPU0._PPC)
-> > 
-> >       dsdt.dsl  2516:                             If (LLess
-> > (\_PR.CPU0._PPC, Local1))
-> >       Error    1022 -                               Object does not
-> > exist ^  (\_PR.CPU0._PPC)
-> > 
-> > There are about 10 of these.
-> 
-> This node is likely defined under another ACPI table called SSDT.
-> Please get ACPI spec from www.acpi.info but only if you are curious
-> about SSDT and the like..
-> 
-> I will check this but I need a full ACPI dump.
-> 
-> Could you please send a web link or, if you can not, send to me
-> privately the output from acpidmp after doing something like that:
-> 
-> wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
-> tar xjvfp pmtools-20031210.tar.bz2
-> cd pmtools-20031210/acpidmp
-> make
-> sudo ./acpidmp > acpidmp.out
-> bzip2 acpidmp.out 
-> 
-> I will also check if I'm correct with point 1.
-> 
-> Cheers,
-> 
+> > Sometimes, my ia32 laptop free 0 pages too.
+> > I think we should always free some pages 
+> > from various caches. 
 
-Bruce,  
+On other laptops, where ACPI is working for the most part (It does what
+the user needs done.)  I've seen this when the user is suspending for
+the 3rd or 4th time since the last reboot.  At that point I've found
+that if they either 
 
-   First thanks for the offer of help and yes I'm starting to did into
-the spec.  Shorter read than the LSB though not by much *grin*
+1.  Power cycle
+2.  turn off swap.  run mkswap  turn swap back on 
 
-I sent the outputs asked for via a direct mail as you asked.  But I
-didn't want to post those links into a forum than gets publicly
-archived.  If anyone else wants the data I'll be glad to let them see it
-as well.  
-
-The reason for starting this endevor is a set of acpi related error
-messages that fill up my logs (at the rate of about 1 every 2 seconds) 
-
-    ACPI-0352: *** Error: Looking up [Z007] in namespace, AE_NOT_FOUND
-search_node cbec2e20 start_node cbec2e20 return_node 00000000
-    ACPI-1138: *** Error: Method execution failed [\_SB_.BAT1._BST]
-(Node cbec2d20), AE_NOT_FOUND
-
-
-I've noticed 2 rather interesting things ...
-
-1.  Windows is only slightly better on power management with this DSDT
-than Linux.  
-2.  This DSDT does have the "Windows Only" settings in it.  Surprisingly
-it doesn't have an entry for WindowsXP.   (I've a feeling somebody cut
-and pasted an older DSDT.)
-
-I did file a bug so to speak with Acer a prompt "Thank you for the
-information we are looking into the matter type letter", but somehow it
-did have a feel about it that it did raise and eyebrow so maybe they can
-help sometime in the next 6 months to a year.  *grin*
+Then things progress as expected.  The box suspends.  I've also had one
+box that had a "dedicated" suspend swap area (The user created a suspend
+swap because of something he read) and this box rarely seemed to have
+problems of this type.  (Rarely defined as he claims it doesn't happen
+very often.)
 
 James
-
 
 
 
