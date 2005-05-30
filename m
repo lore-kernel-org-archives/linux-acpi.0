@@ -1,67 +1,67 @@
-From: Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: partial S3 success with 2.6.12-rc5-mm1 and Dell Precision M70
-Date: Sun, 29 May 2005 15:16:40 -0700
-Message-ID: <9540d010505291516217a7025@mail.gmail.com>
-Reply-To: Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: Re: swsusp: Not enough free pages
+Date: Mon, 30 May 2005 17:14:19 +0800
+Message-ID: <20050530091419.GA7922@linux.sh.intel.com>
+References: <3ACA40606221794F80A5670F0AF15F84041AC1A8@pdsmsx403>
+	<42935C72.9030506@suse.de>
+	<20050525012040.GA6145@linux.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============54426907670554359=="
+Return-path: <linux-pm-bounces@lists.osdl.org>
+In-Reply-To: <20050525012040.GA6145@linux.sh.intel.com>
+List-Unsubscribe: <http://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.osdl.org>
+List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
+List-Subscribe: <http://lists.osdl.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.osdl.org
+Errors-To: linux-pm-bounces@lists.osdl.org
+To: Stefan Seyfried <seife@suse.de>, ACPI devel <acpi-devel@lists.sourceforge.net>, linux-pm@lists.osdl.org, Pavel Machek <pavel@suse.cz>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+--===============54426907670554359==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-With 2.6.12-rc4 I've had no luck getting the Precision M70 to enter S3
-suspend; however, with 2.6.12-rc5-mm1 and the scsi suspend/resume
-patch from Jens Axboe at http://lkml.org/lkml/2005/5/3/54 applied, I'm
-able to suspend to S3 and resume provided that:
+On 2005.05.25 09:20:41 +0800, Yu, Luming wrote:
+> On 2005.05.25 00:55:14 +0800, Stefan Seyfried wrote:
+> > 
+> >    Yu, Luming wrote:
+> >    > Hi Pavel,
+> >    >
+> >    > I got this error when I'm hacking suspend-to-disk on my IA64 box
+> >    with 1G
+> >    > memory.
+> >    > (Pagesize 64K,MemTotal:  1002112 kB ,MemFree:  395008 kB)
+> >    > Do you plan to improve it by compressing pages ?
+> >    >
+> >    > swsusp: Need to copy 9878 pages
+> >    > suspend: (pages needed: 9878 + 512 free: 6486)
+> >    > swsusp: Not enough free pages: Have 6486
+> >    I have not seen one of those for a long time (on i386). Does this
+> >    happen
+> >    every time? 
+> 
+> So far, yes. I just tried 2 times.
 
-1) I don't have the tg3 module loaded -- if I suspend with tg3 loaded,
-upon resume it spews that it can't reset firmware/can't find the Power
-Management capability, and then the machine proceeds to enter into a
-cycle where it freezes for 15 seconds or so and then has a burst of
-activity.  lspci after resume reports:
+always. (I check that swap dev is on)
 
-02:00.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5751
-Gigabit Ethernet PCI Express (rev ff) (prog-if ff)
-        !!! Unknown header type 7f
+Sometimes, my ia32 laptop free 0 pages too.
+I think we should always free some pages 
+from various caches. 
 
-2) I don't have the nvidia binary module loaded -- with the module
-loaded, as soon as I see "Back to C!" the LCD backlight goes dark, and
-the machine effectively locks; nothing on the serial console, no
-response to local keyboard.
-
-I've mailed nvidia about the second issue; any ideas what could be
-causing the first?  The two issues may even be related, as whatever is
-causing the PCI configuration space for tg3 to be screwed up may also
-be causing the same problem for the nvidia device, prompting a hang.
-
-Note that without Jens' patch applied, the machine's LCD would never
-come back upon resume (I wouldn't see Back to C or similar), though I
-did have control of the machine before it locked up on HD access -- no
-combination of vbetool/dpms seemed to revive it without the patch.
-
-dmesg/full lspci/dsdt/etc. output is at
-http://bugzilla.kernel.org/show_bug.cgi?id=3D4652 (which I originally
-filed for 2.6.12-rc4).
-
-Thanks for any info,
-     - Vlad
+Thanks,
+Luming 
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by Yahoo.
-Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
-Search APIs Find out how you can build Yahoo! directly into your own
-Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
+
+--===============54426907670554359==
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+
+--===============54426907670554359==--
