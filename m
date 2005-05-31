@@ -1,15 +1,17 @@
-From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: no event for /proc/acpi/event with acpi
-Date: Tue, 31 May 2005 20:52:31 +0200
-Message-ID: <200505312052.33319.G.Ohrner@post.rwth-aachen.de>
-References: <IHCYT6$A65ACB979DE9F2ADC9B481D1CAADB66A@laposte.net>
+From: Hannes Diethelm <hannes-diethelm-goEDY2E6dbVyDzI6CaY1VQ@public.gmane.org>
+Subject: Re: Fw: [Bugme-new] [Bug 4496] New: Interrupt-problem
+	depends on sound-playing: irq 10: nobody cared!
+Date: Tue, 31 May 2005 20:57:25 +0200
+Message-ID: <1117565845.4783.7.camel@localhost.localdomain>
+References: <20050525224328.734adc03.akpm@osdl.org>
+	 <200505261546.31915.bjorn.helgaas@hp.com>
+	 <1117486138.4887.19.camel@localhost.localdomain>
+	 <200505310957.28789.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <IHCYT6$A65ACB979DE9F2ADC9B481D1CAADB66A-QFKgK+z4sOrR7s880joybQ@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200505310957.28789.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,53 +21,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, perex-/Fr2/VpizcU@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Dienstag 31 Mai 2005 16:27 schrieb xavier.sinecosa:
-> The file /proc/acpi/event can been accessed only once.
-> When acpid runs,
-> # cat /proc/acpi/event
-> acpid: can't open /proc/acpi/event: Device or resource
-> busy
+Hmm... I found another ting...
 
-Looks ok, acpid is blocking it.
+In the working kernel (2.6.11.7 whithout acpi), ther are this lines in
+dmesg:
 
-> Stoping acpid, and cat'ing /proc/acpi/event, I get
-> # cat /proc/acpi/event
->
-> ....
-
-Looks ok, it waits for an event. Execute this command and try pressind th=
-e=20
-power or suspend button or (un)plugging the ac adapter. The event should=20
-show up.
-
-> It stays like this. In another console I try acpid and
-> get :
-> # acpid
-> acpid: can't open /proc/acpi/event: Device or resource
-> busy
-> #
-
-This seems also ok, the cat is blocking access to the file.
+[drm] Initialized drm 1.0.0 20040925
+PCI: No IRQ known for interrupt pin C of device 0000:02:07.0. Probably
+buggy MP table.
+[drm] Initialized radeon 1.14.0 20050125 on minor 0: ATI Technologies
+Inc RV280 [Radeon 9200 PRO]
+[drm] Loading R200 Microcode
 
 
-Greetings,
+In the buggy kernel:
 
-  Gunter
+[drm] Initialized drm 1.0.0 20040925
+ACPI: PCI Interrupt 0000:02:07.0[A] -> GSI 19 (level, low) -> IRQ 20
+[drm] Initialized radeon 1.16.0 20050311 on minor 0: ATI Technologies
+Inc RV280 [Radeon 9200 PRO]
+[drm] Loading R200 Microcode
 
---=20
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+ http://aachen.uni-dsl.de/   -   Der direkte Draht in's Hochschulnetz! +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-- "Remember -- that which does not kill us can only make us stronger."
-- "And that which *does* kill us leaves us *dead*!"
-        -- (Terry Pratchett, Carpe Jugulum)
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+                   PGP-verschl=FCsselte Mails bevorzugt!                =
- +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+I'll restart and mail you the hole informations...
+
+
 
 
 -------------------------------------------------------
