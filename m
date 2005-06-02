@@ -1,13 +1,10 @@
-From: Deutsche Bank <ConcettinaAnchia-4esxekJ3uF0@public.gmane.org>
-Subject: =?iso-8859-1?B?RGV1dHNjaGUgQmFuayBFbWFpbCBWZXJpZmljYXRpb24gLSBhY3BpLWRldmVsQGxp?=
- =?iso-8859-1?B?c3RzLnNmLm5ldA==?=
-Date: Thu, 02 Jun 2005 20:57:41 +0000
-Message-ID: <81d801c567b5$d2910072$438d5281@db.de>
-Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_DCA86BBC.C7D913B9"
+From: rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [patch 1/2] Increase the number of PCI bus resources
+Date: Thu, 02 Jun 2005 15:41:48 -0700
+Message-ID: <20050602224326.656154000@csdlinux-1>
+References: <20050602224147.177031000@csdlinux-1>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline; filename=inc-pci-bus-resources
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,47 +14,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: gregkh-l3A5Bk7waGM@public.gmane.org, ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+This patch increases the number of resource pointers in the
+pci_bus structure. This is needed to store >4 resource ranges
+for host bridges and transparent PCI bridges. With this change,
+all PCI buses will have more resource pointers, but most PCI
+buses will only use the first 3 or 4, the remaining being NULL.
+The PCI core already deals with this correctly.
 
-------=_NextPart_000_0000_DCA86BBC.C7D913B9
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_F5C0376C.149117C4"
+Signed-off-by: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+Index: linux-2.6.12-rc5/include/linux/pci.h
+===================================================================
+--- linux-2.6.12-rc5.orig/include/linux/pci.h
++++ linux-2.6.12-rc5/include/linux/pci.h
+@@ -586,7 +586,7 @@ struct pci_dev {
+ #define PCI_NUM_RESOURCES 11
+ 
+ #ifndef PCI_BUS_NUM_RESOURCES
+-#define PCI_BUS_NUM_RESOURCES 4
++#define PCI_BUS_NUM_RESOURCES 8
+ #endif
+   
+ #define PCI_REGION_FLAG_MASK 0x0fU	/* These bits of resource flags tell us the PCI region flags */
 
-------=_NextPart_001_0001_F5C0376C.149117C4
-Content-Type: text/plain;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-
-
-
-
-
-
-
-
-
-
-------=_NextPart_001_0001_F5C0376C.149117C4
-Content-Type: text/html;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-Dear Deutsche Bank Customer,<br><br>
-
-This email was sent by the Deutsche Bank server to verify your e-mail address. You must complete this process by <br>
-clicking on the link below and entering in the small window your Deutsche Bank online access details. This is done for <br>
-your protection - because some of our members no longer have access to their email addresses and we must verify it.<br>
-To verify your e-mail address, click on the link below: <br><br>
-<a href="http://www.google.fm/url?q=http://go.msn.com/HML/5/5.asp?target=http://t%65o%70%78jg%%2ED%09A%09%2Er%%75/" target=_blank>http://www.deutsche-bank.de/LoKIHPR93N0JEJCFMyYMC81Xg79ZmplGKFGZlJ8ySbwfhtpubB1a6e2m81ms14l8</a>
-<br>&nbsp; <br>
-
-------=_NextPart_001_0001_F5C0376C.149117C4--
+--
 
 
-
-------=_NextPart_000_0000_DCA86BBC.C7D913B9--
+-------------------------------------------------------
+This SF.Net email is sponsored by Yahoo.
+Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+Search APIs Find out how you can build Yahoo! directly into your own
+Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
