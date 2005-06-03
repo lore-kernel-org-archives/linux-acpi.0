@@ -1,13 +1,13 @@
-From: "Bo Harron (Global American Inc.)" <bharron-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Acer Travelmate 4000LCi - Newbie
-Date: Thu, 2 Jun 2005 18:49:21 -0400
-Message-ID: <650b40eb05060215494772060c@mail.gmail.com>
-Reply-To: "Bo Harron (Global American Inc.)" <bharron-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Acer Travelmate 4000LCi - Newbie
+Date: Fri, 03 Jun 2005 09:43:23 +0200
+Message-ID: <m28y1rj36s.fsf@phoenix.squirrel.nl>
+References: <650b40eb05060215494772060c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <650b40eb05060215494772060c-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org> (Bo Harron's
+ message of "Thu, 2 Jun 2005 18:49:21 -0400")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,16 +20,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Need some serious help. I am a newbie to linux. I am using Suse 9.3
-with Kernel 2.6.11..4-20a on an Acer Travelmate 4000LCi.  It uses the
-smart battery and would realy like to see the status of my battery. it
-is the only thing I have not been able to do just yet.  Everything
-else seems to be just fine.  I could use some help (remember I am a
-newbie) in getting this done, I want to try Rich Townsends fix but am
-afraid that all the work i have done to get everything else working
-would be lost.  A step by step would be great, also I have never
-recompiled a kernel so have no idea where to begin.
-Thanks in advance - Bo
+Hi Bo,
+
+If Suse provides for DSDT overriding upon boot (I've heard some
+rumours on that, but I'm not familiar with Suse) _AND_ someone can
+provide an augmented DSDT for your particular notebook, it would be as
+easy as installing a file and rebooting. But that would require
+assistance of another Travelmate 4000LCi user.
+
+Otherwise, my suggestion would be to consult the Suse mailing lists on
+how to re-create your current (installed) kernel. When you are able to
+do that, I'd advise to take Rich Townsends sbs module that implements
+the classical battery status API.
+
+-- Johan
 
 
 -------------------------------------------------------
