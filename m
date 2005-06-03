@@ -1,13 +1,17 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+From: "Daniel Solsona Moratiel" <dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org>
 Subject: Re: DSDT Problems with Acer Aspire 1691WLMi
-Date: Fri, 03 Jun 2005 15:47:28 +0200
-Message-ID: <42A05F70.6040907@suse.de>
-References: <1117711110.7363.9.camel@localhost.localdomain>	 <429F1315.80600@altern.org> <1117791345.7363.18.camel@localhost.localdomain> <42A0404F.4040207@altern.org>
+Date: Fri, 3 Jun 2005 16:32:14 +0200 (CEST)
+Message-ID: <52930.80.58.36.44.1117809134.squirrel@80.58.36.44>
+References: <1117711110.7363.9.camel@localhost.localdomain>	
+    <429F1315.80600@altern.org>
+    <1117791345.7363.18.camel@localhost.localdomain>
+    <42A0404F.4040207@altern.org> <42A05F70.6040907@suse.de>
+Reply-To: dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42A0404F.4040207-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <42A05F70.6040907-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,62 +21,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
-Cc: ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Daniel Solsona <dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org>
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>, ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Daniel Solsona <dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-DJAX wrote:
-> Daniel Solsona a =E9crit :
->=20
->>Ok, I got a version of iasl taht compiled with no errors the custom dsd=
-t
->>that I got from acpi.sourceforge
+>> You must have ACPI_INITRD=3Dy in your /usr/src/linux/.config ( or
+>> /proc/config.gz if you have enable CONFIG_IKCONFIG_PROC=3Dy)
+
+I'll need to check that, I'm not sure if I have that enabled
+
+
+>> I put my DSDT.aml in my initrd.img that way:
+>> ----------------8<----------------
+>> DSDT=3D/boot/DSDT.aml
 >>
->>I put it on initrd as I read somewhere and restarted computer after
->>changing grub menu to get the new initrd.
->>=20
+>> cp initrd.img-2.6.11 initrd.img-2.6.11-ACPI
+>> echo -n "INITRDDSDT123DSDT123" >> initrd.img-2.6.11-ACPI
+>> cat $DSDT >> initrd.img-2.6.11-ACPI
+>> echo -n "INITRDDSDT321DSDT321" >> initrd.img-2.6.11-ACPI
+>> ---------------->8----------------
+
+Yes, I did that.
+
 >>
-> You must have ACPI_INITRD=3Dy in your /usr/src/linux/.config ( or
-> /proc/config.gz if you have enable CONFIG_IKCONFIG_PROC=3Dy)
->=20
-> I put my DSDT.aml in my initrd.img that way:
-> ----------------8<----------------
-> DSDT=3D/boot/DSDT.aml
->=20
-> cp initrd.img-2.6.11 initrd.img-2.6.11-ACPI
-> echo -n "INITRDDSDT123DSDT123" >> initrd.img-2.6.11-ACPI
-> cat $DSDT >> initrd.img-2.6.11-ACPI
-> echo -n "INITRDDSDT321DSDT321" >> initrd.img-2.6.11-ACPI
-> ---------------->8----------------
->=20
-> In a verbose dmsg, you get something like:
-> ----------------8<----------------
-> ACPI: Looking for DSDT in initrd... found (at offset 4788244)!
->  found customized DSDT with 27352 bytes!
-> ---------------->8----------------
->=20
-> CONFIG_ACPI_DEBUG has to be enable to have this message.
->=20
-> Else I know that it's my DSDT when I can see the battery state.
->=20
->>But there is no change, I have the same problems as before. There is an=
-y
->>way I can confirm that the new dsdt is loaded correctly? maybe getting
->>dsdt from /proc/acpi/dsdt, decompiling and seeing if its the same as th=
-e
->>custom dsdt?
->>=20
+>> In a verbose dmsg, you get something like:
+>> ----------------8<----------------
+>> ACPI: Looking for DSDT in initrd... found (at offset 4788244)!
+>>  found customized DSDT with 27352 bytes!
+>> ---------------->8----------------
+>>
+>> CONFIG_ACPI_DEBUG has to be enable to have this message.
 
-Be aware that this won't work with a plain vanilla kernel.
-You'll need the DSDT in initrd patches from:
-http://gaugusch.at/kernel.shtml
+Will check it too.
 
-Your distribution may already contain this patch.
-Which distribution are you using that already contains the patch?
+> Be aware that this won't work with a plain vanilla kernel.
+> You'll need the DSDT in initrd patches from:
 
-Thanks,
+Yes, I'm using kubuntu hoary, and I read that it has the patches on the
+kernel already.
 
-   Thomas
+Thanks all for the help, gonna check that when I have some time.
+
 
 
 -------------------------------------------------------
