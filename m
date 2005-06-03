@@ -1,17 +1,13 @@
-From: "Daniel Solsona Moratiel" <dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org>
-Subject: Re: DSDT Problems with Acer Aspire 1691WLMi
-Date: Fri, 3 Jun 2005 16:32:14 +0200 (CEST)
-Message-ID: <52930.80.58.36.44.1117809134.squirrel@80.58.36.44>
-References: <1117711110.7363.9.camel@localhost.localdomain>	
-    <429F1315.80600@altern.org>
-    <1117791345.7363.18.camel@localhost.localdomain>
-    <42A0404F.4040207@altern.org> <42A05F70.6040907@suse.de>
-Reply-To: dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: swsusp not working for me on a PREEMPT 2.6.12-rc1 and 2.6.12-rc1-mm3 kernel
+Date: Fri, 3 Jun 2005 17:25:40 +0200
+Message-ID: <20050603152540.GF3867@elf.ucw.cz>
+References: <20050329110309.GA17744@pern.dea.icai.upco.es> <20050525212520.419ee442.akpm@osdl.org> <20050603094448.GA3218@pern.dea.icai.upco.es> <20050603105010.GA7300@pern.dea.icai.upco.es>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42A05F70.6040907-l3A5Bk7waGM@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050603105010.GA7300-NfIQswJzSEaq9fEpoSJUslHdEuJhDOxL@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,47 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>, ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Daniel Solsona <dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org>
+To: Romano Giannetti <romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> You must have ACPI_INITRD=3Dy in your /usr/src/linux/.config ( or
->> /proc/config.gz if you have enable CONFIG_IKCONFIG_PROC=3Dy)
+Hi!
 
-I'll need to check that, I'm not sure if I have that enabled
+> > > Romano, are you able to tell us whether 2.6.12-rc5 or 2.6.12-rc5-mm1 still
+> > > exhibit this hang?
+> > 
+> > 
+> > I have tried vanilla 2.6.11-rc5 WITHOUT preempt. swsusp works OK but the
+> > acpi keys (suspend, change monitor/LCD) are delayed by 8-hit as explained 
+> > in http://bugme.osdl.org/show_bug.cgi?id=4124#c2 
+> > 
+> > I am compiling 2.6.11-rc5 with preempt now. Then I will do the same on -mm2.
+> > Which "style" of preempt should I choose? 
+> 
+> Tried with vanilla-rc5 and preempt. Good news: now it suspends and resumes,
+> with the problem that while resuming I have a lot of "scheduling while
+> atomic" and the resume script segfaults (I do not know why, I didn't find
+> oops). Reloading the modules and restarting usb manually (i.e., doing
+> manually the rest of the script) make it works ok. Sort of, because
+> battery module did not see my battery the first time, only the second time I
+> load it.) After that, it works ok (it is compiling -mm2 now). 
 
-
->> I put my DSDT.aml in my initrd.img that way:
->> ----------------8<----------------
->> DSDT=3D/boot/DSDT.aml
->>
->> cp initrd.img-2.6.11 initrd.img-2.6.11-ACPI
->> echo -n "INITRDDSDT123DSDT123" >> initrd.img-2.6.11-ACPI
->> cat $DSDT >> initrd.img-2.6.11-ACPI
->> echo -n "INITRDDSDT321DSDT321" >> initrd.img-2.6.11-ACPI
->> ---------------->8----------------
-
-Yes, I did that.
-
->>
->> In a verbose dmsg, you get something like:
->> ----------------8<----------------
->> ACPI: Looking for DSDT in initrd... found (at offset 4788244)!
->>  found customized DSDT with 27352 bytes!
->> ---------------->8----------------
->>
->> CONFIG_ACPI_DEBUG has to be enable to have this message.
-
-Will check it too.
-
-> Be aware that this won't work with a plain vanilla kernel.
-> You'll need the DSDT in initrd patches from:
-
-Yes, I'm using kubuntu hoary, and I read that it has the patches on the
-kernel already.
-
-Thanks all for the help, gonna check that when I have some time.
-
+Segfault of bash is expected when preempt counts go wrong. Could you
+look at scheduling while atomic tracebacks, and just fix whatever
+driver causes them? I do preempt swsusp here, and it works okay...
+								Pavel
 
 
 -------------------------------------------------------
