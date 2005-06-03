@@ -1,65 +1,69 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: [patch] Fix up macro abuse in drivers/acpi/sleep/proc.c
-Date: Fri, 3 Jun 2005 12:55:56 +0200
-Message-ID: <20050603105555.GA3867@elf.ucw.cz>
+From: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
+Subject: Re: DSDT Problems with Acer Aspire 1691WLMi
+Date: Fri, 03 Jun 2005 13:34:39 +0200
+Message-ID: <42A0404F.4040207@altern.org>
+References: <1117711110.7363.9.camel@localhost.localdomain>	 <429F1315.80600@altern.org> <1117791345.7363.18.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261212AbVFCK4W@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@zip.com.au>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1117791345.7363.18.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Daniel Solsona <dani-fQczH/8Hd3rnGZpH1ro7E16hYfS7NtTn@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Daniel Solsona a =E9crit :
 
-Macros in proc.c make code both longer *and* less readable; I think
-they should die.
+>Ok, I got a version of iasl taht compiled with no errors the custom dsdt
+>that I got from acpi.sourceforge
+>
+>I put it on initrd as I read somewhere and restarted computer after
+>changing grub menu to get the new initrd.
+> =20
+>
+You must have ACPI_INITRD=3Dy in your /usr/src/linux/.config ( or
+/proc/config.gz if you have enable CONFIG_IKCONFIG_PROC=3Dy)
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
+I put my DSDT.aml in my initrd.img that way:
+----------------8<----------------
+DSDT=3D/boot/DSDT.aml
 
-diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c
-+++ b/drivers/acpi/sleep/proc.c
-@@ -13,10 +13,6 @@
- 
- #include "sleep.h"
- 
--#define ACPI_SYSTEM_FILE_SLEEP		"sleep"
--#define ACPI_SYSTEM_FILE_ALARM		"alarm"
--#define ACPI_SYSTEM_FILE_WAKEUP_DEVICE   "wakeup"
--
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME		("sleep")
- 
-@@ -479,26 +475,23 @@ static u32 rtc_handler(void * context)
- 
- static int acpi_sleep_proc_init(void)
- {
--	struct proc_dir_entry	*entry = NULL;
-+	struct proc_dir_entry *entry = NULL;
- 
- 	if (acpi_disabled)
- 		return 0;
-  
--	/* 'sleep' [R/W]*/
--	entry = create_proc_entry(ACPI_SYSTEM_FILE_SLEEP,
--				  S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
-+	/* 'sleep' [R/W] */
-+	entry = create_proc_entry("sleep", S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
- 	if (entry)
- 		entry->proc_fops = &acpi_system_sleep_fops;
- 
- 	/* 'alarm' [R/W] */
--	entry = create_proc_entry(ACPI_SYSTEM_FILE_ALARM,
--		S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
-+	entry = create_proc_entry("alarm", S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
- 	if (entry)
- 		entry->proc_fops = &acpi_system_alarm_fops;
- 
--	/* 'wakeup device' [R/W]*/
--	entry = create_proc_entry(ACPI_SYSTEM_FILE_WAKEUP_DEVICE,
--				  S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
-+	/* 'wakeup device' [R/W] */
-+	entry = create_proc_entry("wakeup", S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
- 	if (entry)
- 		entry->proc_fops = &acpi_system_wakeup_device_fops;
- 
+cp initrd.img-2.6.11 initrd.img-2.6.11-ACPI
+echo -n "INITRDDSDT123DSDT123" >> initrd.img-2.6.11-ACPI
+cat $DSDT >> initrd.img-2.6.11-ACPI
+echo -n "INITRDDSDT321DSDT321" >> initrd.img-2.6.11-ACPI
+---------------->8----------------
+
+In a verbose dmsg, you get something like:
+----------------8<----------------
+ACPI: Looking for DSDT in initrd... found (at offset 4788244)!
+ found customized DSDT with 27352 bytes!
+---------------->8----------------
+
+CONFIG_ACPI_DEBUG has to be enable to have this message.
+
+Else I know that it's my DSDT when I can see the battery state.
+
+>But there is no change, I have the same problems as before. There is any
+>way I can confirm that the new dsdt is loaded correctly? maybe getting
+>dsdt from /proc/acpi/dsdt, decompiling and seeing if its the same as the
+>custom dsdt?
+> =20
+>
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Yahoo.
+Introducing Yahoo! Search Developer Network - Create apps using Yahoo!
+Search APIs Find out how you can build Yahoo! directly into your own
+Applications - visit http://developer.yahoo.net/?fr=3Doffad-ysdn-ostg-q22=
+005
