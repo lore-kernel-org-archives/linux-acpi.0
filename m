@@ -1,13 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: Acer Travelmate 4000LCi - Newbie
-Date: Fri, 03 Jun 2005 09:43:23 +0200
-Message-ID: <m28y1rj36s.fsf@phoenix.squirrel.nl>
-References: <650b40eb05060215494772060c@mail.gmail.com>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ACPI-bugzilla] ACPI problems with new notebook
+Date: Fri, 03 Jun 2005 15:54:51 +0800
+Message-ID: <1117785291.7618.4.camel@linux-hp.sh.intel.com>
+References: <1117707691.7839.21.camel@Notebook.stud.uni-karlsruhe.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <650b40eb05060215494772060c-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org> (Bo Harron's
- message of "Thu, 2 Jun 2005 18:49:21 -0400")
+In-Reply-To: <1117707691.7839.21.camel-U5vG5gJ1EjE1HQ5cFjkM4zzqfiJFvRaJC3E89q3zG6w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,23 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Tilo Lutz <TiloLutz-Mmb7MZpHnFY@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bo,
+Hi,
+On Thu, 2005-06-02 at 18:21 +0800, Tilo Lutz wrote:
+> Hi
+> 
+> I have some acpi problems with my new acer travelmate 3000. 
+> It uses an intel 915gm chipset. 
+> With pci=noacpi everything works but the sound. 
+Does sound work with acpi=off?
 
-If Suse provides for DSDT overriding upon boot (I've heard some
-rumours on that, but I'm not familiar with Suse) _AND_ someone can
-provide an augmented DSDT for your particular notebook, it would be as
-easy as installing a file and rebooting. But that would require
-assistance of another Travelmate 4000LCi user.
+> With acpi_irq_balance acpi_irq_pci=5,4,7,10 sound 
+> works but firewire,pc-card and one usb port won't :(
+> 
+> I use Suse Linux 9.3, kernel 2.6.11.4 
+> I had to fix the dsdt. 
+> Any idea how I can get everything work?
+> 
+> Heres is the relevant part of dmesg when 
+> acpi_irq_balance acpi_irq_pci=5,4,7,10 is used:
+Please file a bug in bugzilla, so we can track it and please attach the
+acpidmp output and dmesg with differrent boot option. And please send
+email to acpi-dev list instead of acpi-bugzilla list.
 
-Otherwise, my suggestion would be to consult the Suse mailing lists on
-how to re-create your current (installed) kernel. When you are able to
-do that, I'd advise to take Rich Townsends sbs module that implements
-the classical battery status API.
 
--- Johan
+Thanks,
+Shaohua
+
 
 
 -------------------------------------------------------
