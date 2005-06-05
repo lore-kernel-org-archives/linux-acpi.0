@@ -1,56 +1,61 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: acer aspire 3000 after a week.  ACPI report.
-Date: Sun, 5 Jun 2005 20:16:13 +0200
-Message-ID: <20050605181613.GA24335@message-id.gmane0305.slipkontur.de>
-References: <1117244104.21648.1.camel@localhost.localdomain> <20050528101450.GA19354@fingerbrecher> <1117397912.24721.5.camel@localhost.localdomain> <1117956090.18789.16.camel@localhost.localdomain> <1117960258.19210.0.camel@localhost.localdomain>
+From: Hanno =?utf-8?q?B=C3=B6ck?= <mail@hboeck.de>
+Subject: Kernel oops with asus_acpi module
+Date: Sun, 5 Jun 2005 23:40:40 +0200
+Message-ID: <200506052340.41074.mail@hboeck.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261507AbVFEVjs@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1117960258.19210.0.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jun 05, 2005 at 01:30:58AM -0700, James Sparenberg wrote:
+Matthias Hentges has postet this a while ago to the acpi4asus-list:
+http://sourceforge.net/mailarchive/forum.php?thread_id=7214924&forum_id=33295
 
-> > So my question is should  0x0BEFADE4  be changed to 0x0BF395E4  or
-> > should I go all the way (My max ram is 2G on this box) 0x7754D7E4  so
-> > that in the future I don't have to adjust, or is it likely that I would
-> > be best off adjusting it to match ram.  
-> > 
-> > The other chance... is that I'm so totally off base I'm lost *grin*
-> > 
-> > James
-> 
-> Forget what I said above.... testing shows I'm wtfo....  back to the
-> drawing board.
+I have a Samsung P30. The problem happens on both rc and mm-kernels at the 
+moment.
+I hope this can be fixed before 2.6.12.
 
-Assuming you have a diff of the "originial" and the "fixed" DSDT, just
-apply this diff to the "broken" DSDT you get from BIOS after upgrading
-the RAM. The BIOS changes values in the DSDT depending on BIOS settings,
-RAM size etc.pp and you always have to adopt your patched DSDT to those
-changed settings. This is why it is such a pain in the ass when vendors
-ship broken DSDTs: it is not a "fix it once and for all" but a "fix it
-everytime you change your setup" scenario :-(
+The asus_acpi module freezes the system on boot if compiled into the kernel.
 
-At least this is how i understood the issue.
-Good luck.
--- 
-Stefan Seyfried
+If loaded as a module, I get this error:
+
+Asus Laptop ACPI Extras version 0.29
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+ printing eip:
+e19e9391
+*pde = 00000000
+Oops: 0000 [#1]
+PREEMPT
+Modules linked in: asus_acpi eth1394 ipw2100 ohci1394 ieee1394 yenta_socket 
+rsrc_nonstatic pcmcia_core ehci_hcd uhci_hcd usbcore
+CPU:    0
+EIP:    0060:[<e19e9391>]    Not tainted VLI
+EFLAGS: 00210203   (2.6.12-rc5-mm2)
+EIP is at asus_hotk_get_info+0x1aa/0x79a [asus_acpi]
+eax: 00000000   ebx: dfe0d000   ecx: 00000002   edx: 00000003
+esi: 00000000   edi: e19fca60   ebp: d7e9c800   esp: dae19ec0
+ds: 007b   es: 007b   ss: 0068
+Process modprobe (pid: 12174, threadinfo=dae18000 task=d13bf0b0)
+Stack: 00000000 00200296 c011c497 00000000 ffffffd8 dfe0d000 00000000 00000000
+       c05a9c88 c011c273 dae19f6c dfc37c3c 00000000 c0294036 00000000 00000000
+       00000000 dae19f54 00200246 0000002b 00000300 0000030c 00000000 00000000
+Call Trace:
+ [<c011c497>] release_console_sem+0xe7/0x110
+ [<c011c273>] vprintk+0x1f3/0x2b0
+ [<c0294036>] sub_alloc+0xb6/0x1b0
+ [<e19e9a3f>] asus_hotk_add+0x8b/0x143 [asus_acpi]
+ [<c02e0f01>] acpi_bus_driver_init+0x29/0x50
+ [<c02e0fbc>] acpi_driver_attach+0x59/0x9d
+ [<e19e9b41>] asus_acpi_init+0x4a/0x72 [asus_acpi]
+ [<c0138212>] sys_init_module+0xc2/0x200
+ [<c01030d7>] sysenter_past_esp+0x54/0x75
+Code: e1 e8 f4 2c 73 de 5e 5f a1 10 eb 9f e1 ba 03 00 00 00 bf 60 ca 9f e1 89 
+d1 c7 40 14 12 00 00 00 8b 45 08 89 04 24 89 c6 49 78 08 <ac> ae 75 08 84 c0 
+75 f5 31 c0 eb 04 19 c0 0c 01 85 c0 75 11 a1
 
 
-
--------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
-a projector? How fast can you ride your desk chair down the office luge track?
-If you want to score the big prize, get to know the little guy.  
-Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
+If you need further info, please contact me.
