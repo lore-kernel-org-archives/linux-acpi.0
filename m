@@ -1,11 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Receiving ACPI notifications generically
-Date: Sun, 05 Jun 2005 12:59:02 +0100
-Message-ID: <1117972742.6648.122.camel@tyrosine>
+From: Alberto Rossi <alberto.rossi87-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Hi!!
+Date: Sun, 5 Jun 2005 14:13:43 +0200
+Message-ID: <200506051413.43500.alberto.rossi87@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,17 +20,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It seems that Acer laptops send an ACPI notification when bay devices
-are hotplugged (Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x01)). Obviously,
-I /could/ catch this by writing a small driver that hooks the
-notification and then use that to send an ACPI event. Is there any way
-to do this from userspace? Can the generic hotkey driver be subverted in
-this way?
+Hi to all!
+I'm Alberto, 17 yo, from Italy... I'm actually working on Toshiba ACPI Driv=
+er
+improvements to make it works with my Toshiba Satellite A60 (currently not
+supported). If anyone of you would like to help, just contact me!
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-                                
-
+Bye bye, Alberto
+=2D-
+Registered Linux User n.=B0 324313
+MSN ID: wafer_overflow-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+"Sazio =E8 colui cui il bastante =E8 bastevole."
+		(Lao-Ts=E9)
 
 
 -------------------------------------------------------
