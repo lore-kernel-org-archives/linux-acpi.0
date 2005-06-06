@@ -1,15 +1,16 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: Slightly OT: Battery usage
-Date: Mon, 6 Jun 2005 17:29:54 +0000
-Message-ID: <200506061729.54288.stefandoesinger@gmx.at>
-References: <m2br6jx2t1.fsf@phoenix.squirrel.nl> <200506061606.01346.stefandoesinger@gmx.at> <20050606165454.17e1e9c9.acpi@trafficmanager.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: what about the sony_acpi driver?
+Date: Mon, 06 Jun 2005 16:55:14 +0100
+Message-ID: <1118073314.6648.189.camel@tyrosine>
+References: <20050606110952.GA9447@message-id.gmane0305.slipkontur.de>
+	 <20050606132911.GA4633@linux.sh.intel.com>
+	 <20050606151235.GA28528@message-id.s3e.de>
+	 <20050606152829.GA5067@linux.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050606165454.17e1e9c9.acpi-14TN6mYQPXr1AXQ8ov2VOh2eb7JE58TQ@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20050606152829.GA5067-qYCAlGQNbcFrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,19 +21,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Florian =?iso-8859-1?q?H=FChn?= <acpi-14TN6mYQPXr1AXQ8ov2VOh2eb7JE58TQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Mon, 2005-06-06 at 23:28 +0800, Yu, Luming wrote:
 
-> This link may also be interesting for you:
-> http://www.batteryuniversity.com/parttwo-34.htm
-> It's a verny nice site with a lot of infos on batterys.
-Thanks, that's the page I meant. Bookmark set, I hope I'll not lose it any 
-more.
+> Believe me, generic-hotkey-driver and acpi-video-driver can handle these, if this is a acpi system.
 
---
-Stefan
+A fairly large number of machines seem to have brightness control
+methods that aren't exposed via the acpi video device standard. Can
+these still be dealt with?
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
