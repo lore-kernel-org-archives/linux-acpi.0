@@ -1,86 +1,109 @@
-From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: Re: Slightly OT: Battery usage
-Date: Mon, 06 Jun 2005 12:40:44 +0200
-Message-ID: <42A4282C.7070808@kernelconcepts.de>
-References: <m2br6jx2t1.fsf@phoenix.squirrel.nl>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Bizarre oops after suspend to RAM (was: Re: [ACPI] Resume from
+	Suspend to RAM)
+Date: Mon, 06 Jun 2005 12:06:43 +0100
+Message-ID: <1118056003.6648.148.camel@tyrosine>
+References: <200506051456.44810.hugelmopf@web.de>
+	 <1117978635.6648.136.camel@tyrosine>
+	 <200506051732.08854.stefandoesinger@gmx.at>
+	 <1118053578.6648.142.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2br6jx2t1.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261287AbVFFLG5@vger.kernel.org>
+In-Reply-To: <1118053578.6648.142.camel@tyrosine>
+Sender: linux-kernel-owner@vger.kernel.org
+To: acpi-devel@lists.sourceforge.net
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, 2005-06-06 at 11:26 +0100, Matthew Garrett wrote:
+> On Sun, 2005-06-05 at 17:32 +0000, Stefan D=C3=B6singer wrote:
+>=20
+> > I've no idea how to debug a reboot, but if the system hangs it's po=
+ssible to=20
+> > add "lcall $0xffff,$0" early in the wakeup assembler code. If the s=
+ystem=20
+> > reboots immediatly then, the kernels wakeup code was reached and th=
+e kernel=20
+> > hangs later during resume.
+>=20
+> Ok, I've just tried that. The system still just freezes.
 
-Johan Vromans wrote:
-> Thanks to Rich Townsend's work I can now see the astounding speed at
-> which the Li-Ion battery of my Tavelmate degrades :-(.
-> Is there a usage pattern that minimizes this? For example, always keep
-> the batter maximally charged, or --the opposite-- always discharge full=
-y
-> before charging?
+Whoops. May have been a bit too hasty there. I'm not sure why that
+doesn't reset it, but we've now got the following (really rather odd)
+serial output. Does anyone have any idea what might be triggering this?
+Shell builtins work fine, but anything else seems to explode very
+messily. Memory corruption of some description?
 
-That is really OT but anyway interesting to PM so let's continue this.
+^MRestarting tasks... done
+^Mroot@(none):/# ^M
+root@(none):/# ls -la ^M
+Unable to handle kernel NULL pointer dereference at virtual address 000=
+00024
+^M printing eip:
+^Mc015ac62
+^M*pde =3D 00000000
+^MOops: 0002 [#1]
+^MPREEMPT
+^MModules linked in:
+^MCPU:    0
+^MEIP:    0060:[<c015ac62>]    Not tainted VLI
+^MEFLAGS: 00010246   (2.6.12-rc5)
+^MEIP is at filp_open+0x32/0x70
+^Meax: f7ccb000   ebx: 00000000   ecx: 00000003   edx: 00000000
+^Mesi: 00000000   edi: f7ccb000   ebp: f7c5c000   esp: f7c5df48
+^Mds: 007b   es: 007b   ss: 0068
+^MProcess ls (pid: 875, threadinfo=3Df7c5c000 task=3Dc1bbc060)
+^MStack: 00000000 00000001 c015a5d5 f7c5df58 00000000 c0109806 fffffeff=
+ 00000000^M       c1bcf1ec 00000000 f7ccb000 00000003 c18c0c80 f7c5c000=
+ c015af95 c18c0c80^M       00000003 00000003 f7ccb000 00000000 00000003=
+ c015b109 f7ccb000 00000000^MCall Trace:
+^M [<c015a5d5>] sys_access+0x85/0x150
+^M [<c0109806>] old_mmap+0xd6/0x110
+^M [<c015af95>] get_unused_fd+0xa5/0xe0
+^M [<c015b109>] sys_open+0x49/0x90
+^M [<c0103245>] syscall_call+0x7/0xb
+^MCode: 8b 5c 24 5c 8d 43 01 a8 03 0f 44 c3 89 c2 83 ca 02 f6 c4 02 0f =
+45 c2 8d
+54 24 10 89 54 24 0c 8b 54 24 60 89 44 24 04 8b 44 24 58 <89> 56 24 08 =
+89 04 24
+e8 62 19 01 00 85 c0 74 0e 8b 5c 24 50 83
+^M Segmentation fault^M
+root@(none):/# ^M
+root@(none):/# free^M
+<1>Unable to handle kernel NULL pointer dereference at virtual address =
+00000024
+^M printing eip:
+^Mc015ac62
+^M*pde =3D 00000000
+^MOops: 0002 [#2]
+^MPREEMPT
+^MModules linked in:
+^MCPU:    0
+^MEIP:    0060:[<c015ac62>]    Not tainted VLI
+^MEFLAGS: 00010246   (2.6.12-rc5)
+^MEIP is at filp_open+0x32/0x70
+^Meax: f7ce3000   ebx: 00000000   ecx: 00000003   edx: 00000000
+^Mesi: 00000000   edi: f7ce3000   ebp: f7c5c000   esp: f7c5df48
+^Mds: 007b   es: 007b   ss: 0068
+^MProcess free (pid: 876, threadinfo=3Df7c5c000 task=3Dc1bbc560)
+^MStack: 00000000 00000001 c015a5d5 f7c5df58 00000000 c0109806 fffffeff=
+ 00000000^M       c1bcf1ec 00000000 f7ce3000 00000003 c18c0040 f7c5c000=
+ c015af95 c18c0040^M       00000003 00000003 f7ce3000 00000000 00000003=
+ c015b109 f7ce3000 00000000^MCall Trace:
+^M [<c015a5d5>] sys_access+0x85/0x150
+^M [<c0109806>] old_mmap+0xd6/0x110
+^M [<c015af95>] get_unused_fd+0xa5/0xe0
+^M [<c015b109>] sys_open+0x49/0x90
+^M [<c0103245>] syscall_call+0x7/0xb
+^MCode: 8b 5c 24 5c 8d 43 01 a8 03 0f 44 c3 89 c2 83 ca 02 f6 c4 02 0f =
+45 c2 8d
+54 24 10 89 54 24 0c 8b 54 24 60 89 44 24 04 8b 44 24 58 <89> 56 24 08 =
+89 04 24
+e8 62 19 01 00 85 c0 74 0e 8b 5c 24 50 83
+^M Segmentation fault^M
 
-As to all I know about Li-Ion and Li-Poly batteries should:
 
-- - not be stored fully charged, charge to 30%-40% and the store at a coo=
-l
-place, like your food fridge, but always above 0=B0C!
-
-- - not be charged to full all the time. All Li-* batteries like only to
-be recharged after they have discharged for at least 10% or more (i.e.
-max. 90% remaining). Before that they should not be recharged to full
-again. Many notebook charging circuits do not honor this and kill their
-batteries within approx. one year (my Asus L3C did this, my Fujitsu
-Siemens Lifebook B-Series does not, IBM T42p does not, etc.)
-
-- - be charged in at least two phases, first phase up to 75%-80% at full
-charging current, after that only a very weak charging current should be
-applied, like 10% of nominal current.
-
-- - never be discharged completely, i.e. up to the point where the machin=
-e
-switches itself off.
-
-Every charge/discharge discharge cycle reduces your battery's life!
-
-
-> -- Johan
-CU
-  nils faerber
-
-- --
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          Mob: +49-176-21024535
-- --
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFCpCgsJXeIURG1qHgRAj4pAKCVih+uYjJ4tdt9BjZElMhW6YOo6wCdF7Fz
-qG0bA1oDQAEDmmtOZMhLtCQ=3D
-=3D91dq
------END PGP SIGNATURE-----
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you sho=
-tput
-a projector? How fast can you ride your desk chair down the office luge t=
-rack?
-If you want to score the big prize, get to know the little guy. =20
-Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=3D20
+--=20
+Matthew Garrett | mjg59@srcf.ucam.org
