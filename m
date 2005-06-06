@@ -1,16 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: what about the sony_acpi driver?
-Date: Mon, 06 Jun 2005 16:55:14 +0100
-Message-ID: <1118073314.6648.189.camel@tyrosine>
-References: <20050606110952.GA9447@message-id.gmane0305.slipkontur.de>
-	 <20050606132911.GA4633@linux.sh.intel.com>
-	 <20050606151235.GA28528@message-id.s3e.de>
-	 <20050606152829.GA5067@linux.sh.intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Receiving ACPI notifications generically
+Date: Mon, 6 Jun 2005 23:59:13 +0800
+Message-ID: <20050606155913.GB5067@linux.sh.intel.com>
+References: <1117972742.6648.122.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050606152829.GA5067-qYCAlGQNbcFrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1117972742.6648.122.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,20 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-06-06 at 23:28 +0800, Yu, Luming wrote:
-
-> Believe me, generic-hotkey-driver and acpi-video-driver can handle these, if this is a acpi system.
-
-A fairly large number of machines seem to have brightness control
-methods that aren't exposed via the acpi video device standard. Can
-these still be dealt with?
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+On 2005.06.05 12:59:02 +0100, Matthew Garrett wrote:
+> It seems that Acer laptops send an ACPI notification when bay devices
+> are hotplugged (Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x01)). Obviously,
+> I /could/ catch this by writing a small driver that hooks the
+> notification and then use that to send an ACPI event. Is there any way
+> to do this from userspace? Can the generic hotkey driver be subverted in
+> this way?
+Please send me output of acpidmp, then I can show you an example how to configure generic-hotkey-driver for this case. BTW, we need to add battery-hotplug code to respond this event. 
+Thanks,
+Luming
+> 
+> -- 
+> Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+>                                 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
+> a projector? How fast can you ride your desk chair down the office luge track?
+> If you want to score the big prize, get to know the little guy.  
+> Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
