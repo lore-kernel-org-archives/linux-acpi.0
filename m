@@ -1,14 +1,13 @@
 From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Re: Kernel oops with asus_acpi module
-Date: Tue, 7 Jun 2005 00:21:51 +0200
-Message-ID: <20050606222151.GB65@hell.org.pl>
-References: <200506052340.41074.mail@hboeck.de> <20050606135459.7ad699ae.rdunlap@xenotime.net> <20050606213248.GA22238@hell.org.pl> <200506062347.10582.mail@hboeck.de>
+Subject: Re: Slightly OT: Battery usage
+Date: Tue, 7 Jun 2005 00:31:43 +0200
+Message-ID: <20050606223143.GC65@hell.org.pl>
+References: <m2br6jx2t1.fsf@phoenix.squirrel.nl> <42A4282C.7070808@kernelconcepts.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200506062347.10582.mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <42A4282C.7070808-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,47 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hanno =?iso-8859-2?Q?B=F6ck?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
-Cc: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org
+To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Hanno B=F6ck:
-> Am Montag, 6. Juni 2005 23:32 schrieb Karol Kozimor:
-> > May I see the DSDT? The Samsung P30 INIT method referenced in
-> > asus_hotk_get_info() is not supposed to return anything, not even an =
-empty
-> > string. I believe the new ACPICA implicit return might be interfering=
-.
-> > Here's the relevant part of what I based the code on:
+Thus wrote Nils Faerber:
+> - - not be charged to full all the time. All Li-* batteries like only to
+> be recharged after they have discharged for at least 10% or more (i.e.
+> max. 90% remaining). Before that they should not be recharged to full
+> again. Many notebook charging circuits do not honor this and kill their
+> batteries within approx. one year (my Asus L3C did this, my Fujitsu
 
-Thanks. This might also help:
+True, my original L3C battery is now at 25% of design capacity and it's
+a fairly common practice to restart charging every time the power cord is
+plugged in. It's good you name the brands that got it right though.
 
---- a/drivers/acpi/asus_acpi.c	2005-04-26 00:38:20.000000000 +0200
-+++ b/drivers/acpi/asus_acpi.c	2005-06-07 00:18:17.000000000 +0200
-@@ -992,7 +992,7 @@
-=20
- 	/* Samsung P30 has a device with a valid _HID whose INIT does not=20
- 	 * return anything. Catch this one and any similar here */
--	if (buffer.pointer =3D=3D NULL) {
-+	if (buffer.pointer =3D=3D NULL || buffer.length =3D=3D 0) {
- 		if (asus_info && /* Samsung P30 */
- 		    strncmp(asus_info->oem_table_id, "ODEM", 4) =3D=3D 0) {
- 			hotk->model =3D P30;
+> Siemens Lifebook B-Series does not, IBM T42p does not, etc.)
+> 
+> - - never be discharged completely, i.e. up to the point where the machine
+> switches itself off.
 
-But I'd like to get the full oops with the matching asus_acpi.o file also
-(might be off the list).
-
+Except that given current laptop power consumption, the battery is nowhere
+near empty when the voltage drops below the acceptable level and the
+circuit is switched off. That said, any attempts at shorting will damage
+the battery.
 Best regards,
 
---=20
+-- 
 Karol 'sziwan' Kozimor
 sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you sho=
-tput
-a projector? How fast can you ride your desk chair down the office luge t=
-rack?
-If you want to score the big prize, get to know the little guy. =20
-Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=3D20
+This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
+a projector? How fast can you ride your desk chair down the office luge track?
+If you want to score the big prize, get to know the little guy.  
+Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
