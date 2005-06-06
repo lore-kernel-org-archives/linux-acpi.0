@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM)
-Date: Mon, 6 Jun 2005 17:09:09 +0200
-Message-ID: <20050606150909.GA2230@elf.ucw.cz>
-References: <200506051456.44810.hugelmopf@web.de> <1117978635.6648.136.camel@tyrosine> <200506051732.08854.stefandoesinger@gmx.at> <1118053578.6648.142.camel@tyrosine> <1118056003.6648.148.camel@tyrosine> <20050606144501.GB2243@elf.ucw.cz> <20050606145429.GA18396@srcf.ucam.org>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: DSDT problem with Acer Aspire 3002NLC
+Date: Mon, 06 Jun 2005 17:12:08 +0200
+Message-ID: <42A467C8.503@suse.de>
+References: <9a9bfc170506060740547d2bd6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050606145429.GA18396-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+In-Reply-To: <9a9bfc170506060740547d2bd6-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +17,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ramkumar R <andyetitmoves-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > NULL pointer dereference in filp_open; whats that strange about it?
-> > Use printks to debug this one, nothing mysterious.
+Ramkumar R wrote:
+> Hi!
 > 
-> I can't see any way that a null pointer could get to filp_open without 
-> something already being very wrong - the kernel worked fine before 
-> suspend. Unfortunately, that's the one occasion that we've got the 
-> machine (an HP nc4000) to resume. Since then, it simply freezes before 
-> hitting "Back to C" despite having had no kernel or configuration 
-> changes. The behaviour is very non-deterministic, which makes me wonder 
-> about something in the suspend or resume process damaging state.
+> I have a Acer Aspire 3002NLC and the battery was not getting reported.
+> The syslog too was flooded. I checked up the DSDT database and found a
+> fixed table for Aspire 3000 (It reportedly fixed this error, see
+> http://acpi.sourceforge.net/dsdt/view.php?id=377). I merged the
+> changes with the decompiled file I had. I had decompiled with iasl,
+> and on recompilation with the patch 6 errors remained. (Originally 37
+> errors were present). I am using iasl version 20050513.
+> 
+> The compilation cmdline: iasl -oi -of -on -tc dcust.dsl 2>&1 > /tmp/error.log
+> 
+> Error log:
+> 
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler / AML Disassembler version 20050513 [Jun  4 2005]
+> Copyright (C) 2000 - 2005 Intel Corporation
+> Supports ACPI Specification Revision 3.0
+> 
+> dcust.dsl  2506:                             If (LNot (LEqual
+> (\_PR.CPU0._PPC, 0x00)))
+> Error    1022 -                                       Object does not
+> exist ^  (\_PR.CPU0._PPC)
+> 
+> dcust.dsl  2508:                                 Store (0x00, \_PR.CPU0._PPC)
+> Error    1022 -                                      Object does not
+> exist ^  (\_PR.CPU0._PPC)
+> 
+> dcust.dsl  2516:                             If (LLess (\_PR.CPU0._PPC, Local1))
+> Error    1022 -                                Object does not exist ^
+>  (\_PR.CPU0._PPC)
+> 
+> dcust.dsl  2518:                                 Store (Local1, \_PR.CPU0._PPC)
+> Error    1022 -                                        Object does not
+> exist ^  (\_PR.CPU0._PPC)
+> 
+> dcust.dsl  2528:                         If (LNot (LEqual
+> (\_PR.CPU0._PPC, 0x00)))
+> Error    1022 -                                   Object does not
+> exist ^  (\_PR.CPU0._PPC)
+> 
+> dcust.dsl  2530:                             Store (0x00, \_PR.CPU0._PPC)
+> Error    1022 -                                  Object does not exist
+> ^  (\_PR.CPU0._PPC)
+> 
+> ASL Input:  dcust.dsl - 3466 lines, 120769 bytes, 1560 keywords
+> Compilation complete. 6 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
+> 
+The object is defined in your SSDT.
+Try adding:
+External (\_PR.CPU0._PPC)
+in global scope
+or
+External (_PPC)
+in the \_PR.CPU0 scope.
+One of these should work getting your dsdt compiled.
+The kernel interpreter will find the object when the SSDT table is loaded.
 
-Hmm, strange. You may want to test if length of sleep affects it...
+       Thomas
 
-									Pavel
 
 
 -------------------------------------------------------
