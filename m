@@ -1,15 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Resume from Suspend to RAM
-Date: Mon, 06 Jun 2005 11:26:18 +0100
-Message-ID: <1118053578.6648.142.camel@tyrosine>
-References: <200506051456.44810.hugelmopf@web.de>
-	 <1117978635.6648.136.camel@tyrosine>
-	 <200506051732.08854.stefandoesinger@gmx.at>
+From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: Slightly OT: Battery usage
+Date: Mon, 06 Jun 2005 12:40:44 +0200
+Message-ID: <42A4282C.7070808@kernelconcepts.de>
+References: <m2br6jx2t1.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200506051732.08854.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <m2br6jx2t1.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,34 +17,70 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan =?ISO-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2005-06-05 at 17:32 +0000, Stefan D=C3=B6singer wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> I've no idea how to debug a reboot, but if the system hangs it's possible=
- to=20
-> add "lcall $0xffff,$0" early in the wakeup assembler code. If the system=20
-> reboots immediatly then, the kernels wakeup code was reached and the kern=
-el=20
-> hangs later during resume.
+Johan Vromans wrote:
+> Thanks to Rich Townsend's work I can now see the astounding speed at
+> which the Li-Ion battery of my Tavelmate degrades :-(.
+> Is there a usage pattern that minimizes this? For example, always keep
+> the batter maximally charged, or --the opposite-- always discharge full=
+y
+> before charging?
 
-Ok, I've just tried that. The system still just freezes.
+That is really OT but anyway interesting to PM so let's continue this.
 
-> Is it somehow possible to localize and debug the BIOS code?
+As to all I know about Li-Ion and Li-Poly batteries should:
 
-Hmm. It's certainly possible for me to get a dump of the BIOS - is any
-BIOS code actually executed on resume? If so, checking through that may
-well be helpful.
+- - not be stored fully charged, charge to 30%-40% and the store at a coo=
+l
+place, like your food fridge, but always above 0=B0C!
 
---=20
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+- - not be charged to full all the time. All Li-* batteries like only to
+be recharged after they have discharged for at least 10% or more (i.e.
+max. 90% remaining). Before that they should not be recharged to full
+again. Many notebook charging circuits do not honor this and kill their
+batteries within approx. one year (my Asus L3C did this, my Fujitsu
+Siemens Lifebook B-Series does not, IBM T42p does not, etc.)
 
+- - be charged in at least two phases, first phase up to 75%-80% at full
+charging current, after that only a very weak charging current should be
+applied, like 10% of nominal current.
+
+- - never be discharged completely, i.e. up to the point where the machin=
+e
+switches itself off.
+
+Every charge/discharge discharge cycle reduces your battery's life!
+
+
+> -- Johan
+CU
+  nils faerber
+
+- --
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          Mob: +49-176-21024535
+- --
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFCpCgsJXeIURG1qHgRAj4pAKCVih+uYjJ4tdt9BjZElMhW6YOo6wCdF7Fz
+qG0bA1oDQAEDmmtOZMhLtCQ=3D
+=3D91dq
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
-a projector? How fast can you ride your desk chair down the office luge track?
-If you want to score the big prize, get to know the little guy.  
-Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
+This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you sho=
+tput
+a projector? How fast can you ride your desk chair down the office luge t=
+rack?
+If you want to score the big prize, get to know the little guy. =20
+Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=3D20
