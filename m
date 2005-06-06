@@ -1,14 +1,14 @@
-From: Stefan =?utf-8?q?D=C3=B6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM)
-Date: Mon, 6 Jun 2005 15:31:40 +0000
-Message-ID: <200506061531.41132.stefandoesinger@gmx.at>
-References: <200506051456.44810.hugelmopf@web.de> <1118053578.6648.142.camel@tyrosine> <1118056003.6648.148.camel@tyrosine>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Slightly OT: Battery usage
+Date: Mon, 6 Jun 2005 16:06:01 +0000
+Message-ID: <200506061606.01346.stefandoesinger@gmx.at>
+References: <m2br6jx2t1.fsf@phoenix.squirrel.nl> <42A4282C.7070808@kernelconcepts.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1118056003.6648.148.camel@tyrosine>
+In-Reply-To: <42A4282C.7070808-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,24 +20,87 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Am Montag, 6. Juni 2005 11:06 schrieb Matthew Garrett:
-> Whoops. May have been a bit too hasty there. I'm not sure why that
-> doesn't reset it, but we've now got the following (really rather odd)
-> serial output. Does anyone have any idea what might be triggering this?
-> Shell builtins work fine, but anything else seems to explode very
-> messily. Memory corruption of some description?
+Am Montag, 6. Juni 2005 10:40 schrieb Nils Faerber:
+> Johan Vromans wrote:
+> > Thanks to Rich Townsend's work I can now see the astounding speed at
+> > which the Li-Ion battery of my Tavelmate degrades :-(.
+> > Is there a usage pattern that minimizes this? For example, always keep
+> > the batter maximally charged, or --the opposite-- always discharge fully
+> > before charging?
+>
+> That is really OT but anyway interesting to PM so let's continue this.
+>
+> As to all I know about Li-Ion and Li-Poly batteries should:
+>
+> - not be stored fully charged, charge to 30%-40% and the store at a cool
+> place, like your food fridge, but always above 0=B0C!
+>
+> - not be charged to full all the time. All Li-* batteries like only to
+> be recharged after they have discharged for at least 10% or more (i.e.
+> max. 90% remaining). Before that they should not be recharged to full
+> again. Many notebook charging circuits do not honor this and kill their
+> batteries within approx. one year (my Asus L3C did this, my Fujitsu
+> Siemens Lifebook B-Series does not, IBM T42p does not, etc.)
+>
+> - be charged in at least two phases, first phase up to 75%-80% at full
+> charging current, after that only a very weak charging current should be
+> applied, like 10% of nominal current.
+>
+> - never be discharged completely, i.e. up to the point where the machine
+> switches itself off.
+>
+> Every charge/discharge discharge cycle reduces your battery's life!
+I've seen a really good website about LI-Ion batteries, but sadly, I've los=
+t=20
+the link :-(. It basically says the same things as Nils wrote, only with mo=
+re=20
+details.
 
-<snip>
-So it does reach the kernel, right? I don't know if I remembered that call 
-correctly, but "lcall $0xffff,$0" should call the real mode BIOS reset 
-code...
-Anyone else who can correct me here?
+=2D Some Linux-Side hints:
+There's a Howto how to extend battery uptime:=20
+http://www.tldp.org/HOWTO/Battery-Powered/index.html
 
-Perhaps the disk driver is going mad? Has anyone tried to boot a kernel 
-without any disk drivers with a minimal root system on an initrd?
+=2D I've made the experiance(Acer TM 803) that hard drive standby can help =
+A LOT=20
+to improve battery uptime. I can reach up to 5h 30 min with the primary=20
+battery only, compared to the advertised ~4h 30min.
+I've tuned my memory mangement settings to avoid disc access, and I've neve=
+r=20
+had any problems, except with gaming. It's annoying of if the disc goes to=
+=20
+sleep and the game stopps 3 secounds to start the disc and load the sound o=
+f=20
+your enemy appearing.
+
+=2D Lowering the display bightness also helps.
+
+=2D Turn off / remove unnecessary hardware(wlan, bluetooth, cdrom). I like =
+to=20
+leave my DVD drive at home and insert a wight saver module or a secound=20
+battery.
+
+=2D Disable unnecessary logging, and enable DPMS. Lowering the cpufreq also=
+=20
+helps.
+
+=2D Li-Ion batteries are very sensitive to too much heat. This is not only=
+=20
+important for storing the battery, a major factor is also the temperature=20
+inside the laptop while the battery is in use. So if you can configure your=
+=20
+laptop to use less power you have a double payoff: It directly runs longer,=
+=20
+and it's better for your battery because it's much cooler.
+
+=2D My battery shipped with my Travelmate has lost 90% of it's capatiblity =
+after=20
+1 1/2 year after ~500 recharge cycles.I've spent a lot of money into 2 new=
+=20
+batteries(1 primary and one secondary battery), and when tuning your hard=20
+drive keep in mind that hard drives are not more expensive than batteries.
 
 Cheers,
 Stefan
