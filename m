@@ -1,15 +1,11 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: Slightly OT: Battery usage
-Date: Mon, 6 Jun 2005 16:06:01 +0000
-Message-ID: <200506061606.01346.stefandoesinger@gmx.at>
-References: <m2br6jx2t1.fsf@phoenix.squirrel.nl> <42A4282C.7070808@kernelconcepts.de>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH] Avoid loading of ACPI tables twice
+Date: Mon, 06 Jun 2005 16:21:28 +0200
+Message-ID: <42A45BE8.70500@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42A4282C.7070808-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,91 +15,98 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Am Montag, 6. Juni 2005 10:40 schrieb Nils Faerber:
-> Johan Vromans wrote:
-> > Thanks to Rich Townsend's work I can now see the astounding speed at
-> > which the Li-Ion battery of my Tavelmate degrades :-(.
-> > Is there a usage pattern that minimizes this? For example, always keep
-> > the batter maximally charged, or --the opposite-- always discharge fully
-> > before charging?
->
-> That is really OT but anyway interesting to PM so let's continue this.
->
-> As to all I know about Li-Ion and Li-Poly batteries should:
->
-> - not be stored fully charged, charge to 30%-40% and the store at a cool
-> place, like your food fridge, but always above 0=B0C!
->
-> - not be charged to full all the time. All Li-* batteries like only to
-> be recharged after they have discharged for at least 10% or more (i.e.
-> max. 90% remaining). Before that they should not be recharged to full
-> again. Many notebook charging circuits do not honor this and kill their
-> batteries within approx. one year (my Asus L3C did this, my Fujitsu
-> Siemens Lifebook B-Series does not, IBM T42p does not, etc.)
->
-> - be charged in at least two phases, first phase up to 75%-80% at full
-> charging current, after that only a very weak charging current should be
-> applied, like 10% of nominal current.
->
-> - never be discharged completely, i.e. up to the point where the machine
-> switches itself off.
->
-> Every charge/discharge discharge cycle reduces your battery's life!
-I've seen a really good website about LI-Ion batteries, but sadly, I've los=
-t=20
-the link :-(. It basically says the same things as Nils wrote, only with mo=
-re=20
-details.
+Hi,
 
-=2D Some Linux-Side hints:
-There's a Howto how to extend battery uptime:=20
-http://www.tldp.org/HOWTO/Battery-Powered/index.html
+CC'ing Venkatesh as the syslog output and symptoms look
+similar to a speedstep-centrino bug (invoking _PDC twice).
 
-=2D I've made the experiance(Acer TM 803) that hard drive standby can help =
-A LOT=20
-to improve battery uptime. I can reach up to 5h 30 min with the primary=20
-battery only, compared to the advertised ~4h 30min.
-I've tuned my memory mangement settings to avoid disc access, and I've neve=
-r=20
-had any problems, except with gaming. It's annoying of if the disc goes to=
-=20
-sleep and the game stopps 3 secounds to start the disc and load the sound o=
-f=20
-your enemy appearing.
+I have a machine with following DSDT code:
 
-=2D Lowering the display bightness also helps.
+Processor (CPU1, 0x01, 0x00000810, 0x06)
+        {
+            OperationRegion (SSDT, SystemMemory, 0x1DFD4050, 0x03CC)
+            ...
+            Method (_PDC, 1, NotSerialized)
+            {
+                ...
+                Load (SSDT, HNDL)
+                ...
+            }
+        }
 
-=2D Turn off / remove unnecessary hardware(wlan, bluetooth, cdrom). I like =
-to=20
-leave my DVD drive at home and insert a wight saver module or a secound=20
-battery.
+The machine works fine using acpi-cpufreq.
 
-=2D Disable unnecessary logging, and enable DPMS. Lowering the cpufreq also=
-=20
-helps.
+If loading the speedstep-centrino module is tried, the _PDC function is invoked
+and the SSDT is loaded a second time which results in:
 
-=2D Li-Ion batteries are very sensitive to too much heat. This is not only=
-=20
-important for storing the battery, a major factor is also the temperature=20
-inside the laptop while the battery is in use. So if you can configure your=
-=20
-laptop to use less power you have a double payoff: It directly runs longer,=
-=20
-and it's better for your battery because it's much cooler.
+linux kernel: ACPI: CPU0 (power states: C1[C1] C2[C2])
+linux kernel: ACPI: Processor [CPU1] (supports 8 throttling states)
+linux kernel:  dswload-0294: *** Error: Looking up [ACST] in namespace, AE_ALREADY_EXISTS
+linux kernel:  psparse-0601 [20] ps_parse_loop         : During name lookup/catalog, AE_ALREADY_EXISTS
+linux kernel:  psparse-1140: *** Error: Method execution failed [\_PR_.CPU1._PDC] (Node ddfcd3a8), AE_ALREADY_EXISTS
 
-=2D My battery shipped with my Travelmate has lost 90% of it's capatiblity =
-after=20
-1 1/2 year after ~500 recharge cycles.I've spent a lot of money into 2 new=
-=20
-batteries(1 primary and one secondary battery), and when tuning your hard=20
-drive keep in mind that hard drives are not more expensive than batteries.
+and a kernel freeze with different backtraces later:
+linux kernel: Unable to handle kernel paging request at virtual address XYZ
 
-Cheers,
-Stefan
+This patch worksarounds/fixes this problem on this machine.
+Could someone have a look at it, please.
+
+The OEM id of new tables is compared with already loaded once. Loading is
+denied if the table already exists in the kernel's AML namespace.
+
+--- drivers/acpi/namespace/nsload.c.orig        2005-06-03 05:40:58.000000000 -0600
++++ drivers/acpi/namespace/nsload.c     2005-06-06 07:51:24.000000000 -0600
+@@ -45,7 +45,7 @@
+ #include <acpi/acpi.h>
+ #include <acpi/acnamesp.h>
+ #include <acpi/acdispat.h>
+-
++#include <acpi/actables.h>
+
+ #define _COMPONENT          ACPI_NAMESPACE
+         ACPI_MODULE_NAME    ("nsload")
+@@ -72,7 +72,8 @@
+        struct acpi_namespace_node      *node)
+ {
+        acpi_status                     status;
+-
++       struct acpi_table_desc          *table_desc_loaded;
++       int                             count;
+
+        ACPI_FUNCTION_TRACE ("ns_load_table");
+
+@@ -104,6 +105,19 @@
+        }
+
+        /*
++        * Check whether the table already exists - if yes, deny loading it again
++
++       for (count = 0;count < acpi_gbl_table_lists[table_desc->type].count; count++){
++               table_desc_loaded = acpi_gbl_table_lists[table_desc->type].next;
++               if (table_desc_loaded->loaded_into_namespace &&
++                   !memcmp(table_desc_loaded->pointer->oem_table_id, table_desc->pointer->oem_table_id, 8)){
++                       ACPI_REPORT_WARNING (("Table %s has already been loaded (not bad)\n",
++                                             table_desc->pointer->oem_table_id));
++                       return (AE_ALREADY_EXISTS);
++               }
++       }
++
++       /*
+         * Parse the table and load the namespace with all named
+         * objects found within.  Control methods are NOT parsed
+         * at this time.  In fact, the control methods cannot be
+
+
+
+
+
+
+     Thomas
+
 
 
 -------------------------------------------------------
