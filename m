@@ -1,13 +1,15 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: tg3 ethernet not coming back properly after S3 suspend on Dell M70
-Date: Thu, 9 Jun 2005 10:17:18 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750239C2EB@pdsmsx402.ccr.corp.intel.com>
+From: Andrew Haninger <ahaning-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Patch for 2.4.26?
+Date: Mon, 6 Jun 2005 17:53:04 -0400
+Message-ID: <105c793f050606145317885926@mail.gmail.com>
+References: <20050606200245.13334.qmail@web31713.mail.mud.yahoo.com>
+Reply-To: Andrew Haninger <ahaning-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20050606200245.13334.qmail-jpaDZiosULavuULXzWHTWIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,53 +19,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lthurber-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->
->I've been trying to get S3 suspend working on my Dell Precision M70
->without much success for the past few weeks.  This is all now with
->2.6.12-rc6, with Jens Axboe's patch for SATA suspend (as the machine
->has a SATA interface and uses ata_piix).
->
->I tried Shaohua's S3 "test tool" and gave it a shot -- with it I'm
->able to go through a suspend/resume cycle with no problems.  Without
->it, the machine locks up after unsuspend (after we're back in kernel
->code) with the nvidia driver loaded, and is otherwise unstable without
->the nvidia driver loaded.  In particular, the ethernet device is
->completely screwed after coming out of unsuspend.  lspci shows (after
->unsuspend):
->
->02:00.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5751
->Gigabit Ethernet PCI Express (rev ff) (prog-if ff)
->        !!! Unknown header type 7f
->
->and lspci -x reports the entire config space coming back as 0xff.
->
->This does not happen with the fake-S3 test patch.  The device tree, as
->reported by lspci -t for this device looks like:
->
->-[0000:00]-+-1c.0-[0000:02]----00.0
->
->00:1c.0 PCI bridge: Intel Corporation 82801FB/FBM/FR/FW/FRW (ICH6
->Family) PCI Express Port 1 (rev 03)
->
->The other device that's not coming up right is the video hardware, and
->it's on the "PCI Express Root Port".  All the PCI (not PCI Express)
->devices going through a PCI bridge seem to come back through fine, as
->do USB and other bits.  Just the two devices on the PCI Express bus
->seem screwed up post-resume, though lspci is able to read the nvidia
->device's config space post-resume.
->
->Any ideas where to start looking for a cause?  I figure fixing the tg3
->issue should help track down the overall problem.
->
-Is the PCI express bridge's config space ok? Particularly, the bus
-number registers. And can you track down if the tg3 resume routine
-returns ok?
+According to a LKML email, kernel 2.4.26rc4 was released as 2.4.26
+with no changes (see:
+http://www.kernel.org/pub/linux/kernel/v2.4/ChangeLog-2.4.26 at the
+top). Therefore, it could be that the 2.4.26rc4 ACPI patches will work
+fine on 2.4.26 (see:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.4.26=
+-rc4/).
 
-Thanks,
-Shaohua
+Just a thought.
+
+HTH.
+
+--
+Andy
 
 
 -------------------------------------------------------
