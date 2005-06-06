@@ -1,15 +1,15 @@
-From: Norman Urs Baier <normanurs.baier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Slightly OT: Battery usage
-Date: Mon, 6 Jun 2005 11:31:20 +0200
-Message-ID: <200506061131.21236.spiessli@gmx.net>
-References: <m2br6jx2t1.fsf@phoenix.squirrel.nl>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Resume from Suspend to RAM
+Date: Mon, 06 Jun 2005 11:26:18 +0100
+Message-ID: <1118053578.6648.142.camel@tyrosine>
+References: <200506051456.44810.hugelmopf@web.de>
+	 <1117978635.6648.136.camel@tyrosine>
+	 <200506051732.08854.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2br6jx2t1.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200506051732.08854.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,25 +19,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan =?ISO-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Montag 06 Juni 2005 11.16 schrieb Johan Vromans:
-> Thanks to Rich Townsend's work I can now see the astounding speed at
-> which the Li-Ion battery of my Tavelmate degrades :-(.
-> Is there a usage pattern that minimizes this? For example, always keep
-> the batter maximally charged, or --the opposite-- always discharge fully
-> before charging?
->
-> -- Johan
->
+On Sun, 2005-06-05 at 17:32 +0000, Stefan D=C3=B6singer wrote:
 
-You might want to talk to some RC-Car or RC-Flight addicts, if I remember 
-right latest theory is to store them at a third charged. 
-But at what speed does your battery degrade and what is your current usage 
-pattern. When did you do the last full cycle? 
+> I've no idea how to debug a reboot, but if the system hangs it's possible=
+ to=20
+> add "lcall $0xffff,$0" early in the wakeup assembler code. If the system=20
+> reboots immediatly then, the kernels wakeup code was reached and the kern=
+el=20
+> hangs later during resume.
 
-Norman
+Ok, I've just tried that. The system still just freezes.
+
+> Is it somehow possible to localize and debug the BIOS code?
+
+Hmm. It's certainly possible for me to get a dump of the BIOS - is any
+BIOS code actually executed on resume? If so, checking through that may
+well be helpful.
+
+--=20
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
