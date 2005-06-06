@@ -1,101 +1,93 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [linux-pm] Re: swsusp: Not enough free pages
-Date: Mon, 6 Jun 2005 12:39:36 +0200
-Message-ID: <20050606103936.GA2520@elf.ucw.cz>
-References: <3ACA40606221794F80A5670F0AF15F84041AC1A8@pdsmsx403> <20050530091419.GA7922@linux.sh.intel.com> <20050530150157.GC2207@elf.ucw.cz> <200506061439.03023.luming.yu@intel.com>
+From: Ramkumar R <andyetitmoves-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: DSDT problem with Acer Aspire 3002NLC
+Date: Mon, 6 Jun 2005 07:40:23 -0700
+Message-ID: <9a9bfc170506060740547d2bd6@mail.gmail.com>
+Reply-To: Ramkumar R <andyetitmoves-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261477AbVFFOjS@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200506061439.03023.luming.yu@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Yu, Luming" <luming.yu@intel.com>, Andrew Morton <akpm@zip.com.au>
-Cc: Linux Kernel List <linux-kernel@vger.kernel.org>, ACPI devel <acpi-devel@lists.sourceforge.net>, linux-pm@lists.osdl.org
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > > > So far, yes. I just tried 2 times.
-> > >
-> > > always. (I check that swap dev is on)
-> > >
-> > > Sometimes, my ia32 laptop free 0 pages too.
-> > > I think we should always free some pages
-> > > from various caches.
-> >
-> > Try this hack... it is basically mm problem I don't know how to fix,
-> > but this seems to help.
-> > 								Pavel
-> 
-> Thanks Pavel, this hack works.
-> ..
-> Freeing memory...  ^Hdone (0 pages freed)
-> Freeing memory...  ^H-^Hdone (4636 pages freed)
-> Freeing memory...  ^Hdone (0 pages freed)
-> Freeing memory...  ^H-^Hdone (914 pages freed)
-> Freeing memory...  ^Hdone (0 pages freed)
-> Freezing CPUs (at 0)...ok
-> 
-> Any mm guru know how to fix this?
+I have a Acer Aspire 3002NLC and the battery was not getting reported.
+The syslog too was flooded. I checked up the DSDT database and found a
+fixed table for Aspire 3000 (It reportedly fixed this error, see
+http://acpi.sourceforge.net/dsdt/view.php?id=3D377). I merged the
+changes with the decompiled file I had. I had decompiled with iasl,
+and on recompilation with the patch 6 errors remained. (Originally 37
+errors were present). I am using iasl version 20050513.
 
-Andrew, can you help? It seems free_some_memory does not really free
-all reclaimable memory in recent kernels. In fact, it likes to free
-nothing on first invocations....
+The compilation cmdline: iasl -oi -of -on -tc dcust.dsl 2>&1 > /tmp/error.l=
+og
 
-Pausing and trying few times helps, but is *very* ugly.
-								Pavel
+Error log:
 
-> > Index: kernel/power/disk.c
-> > ===================================================================
-> > --- 805a02ec2bcff3671d7b1e701bd1981ad2fa196c/kernel/power/disk.c 
-> > (mode:100644) +++
-> > ecd8559cc08319bb16a42aac06cf7d664157643a/kernel/power/disk.c  (mode:100644)
-> > @@ -88,23 +92,25 @@
-> >
-> >  static void free_some_memory(void)
-> >  {
-> > -	unsigned int i = 0;
-> > -	unsigned int tmp;
-> > -	unsigned long pages = 0;
-> > -	char *p = "-\\|/";
-> > -
-> > -	printk("Freeing memory...  ");
-> > -	while ((tmp = shrink_all_memory(10000))) {
-> > -		pages += tmp;
-> > -		printk("\b%c", p[i]);
-> > -		i++;
-> > -		if (i > 3)
-> > -			i = 0;
-> > +	int i;
-> > +	for (i=0; i<5; i++) {
-> > +		int i = 0, tmp;
-> > +		long pages = 0;
-> > +		char *p = "-\\|/";
-> > +
-> > +		printk("Freeing memory...  ");
-> > +		while ((tmp = shrink_all_memory(10000))) {
-> > +			pages += tmp;
-> > +			printk("\b%c", p[i]);
-> > +			i++;
-> > +			if (i > 3)
-> > +				i = 0;
-> > +		}
-> > +		printk("\bdone (%li pages freed)\n", pages);
-> > +		msleep_interruptible(200);
-> >  	}
-> > -	printk("\bdone (%li pages freed)\n", pages);
-> >  }
-> >
-> > -
-> >  static inline void platform_finish(void)
-> >  {
-> >  	if (pm_disk_mode == PM_DISK_PLATFORM) {
-> 
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20050513 [Jun  4 2005]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
 
-> _______________________________________________
-> linux-pm mailing list
-> linux-pm@lists.osdl.org
-> http://lists.osdl.org/mailman/listinfo/linux-pm
+dcust.dsl  2506:                             If (LNot (LEqual
+(\_PR.CPU0._PPC, 0x00)))
+Error    1022 -                                       Object does not
+exist ^  (\_PR.CPU0._PPC)
+
+dcust.dsl  2508:                                 Store (0x00, \_PR.CPU0._PP=
+C)
+Error    1022 -                                      Object does not
+exist ^  (\_PR.CPU0._PPC)
+
+dcust.dsl  2516:                             If (LLess (\_PR.CPU0._PPC, Loc=
+al1))
+Error    1022 -                                Object does not exist ^
+ (\_PR.CPU0._PPC)
+
+dcust.dsl  2518:                                 Store (Local1, \_PR.CPU0._=
+PPC)
+Error    1022 -                                        Object does not
+exist ^  (\_PR.CPU0._PPC)
+
+dcust.dsl  2528:                         If (LNot (LEqual
+(\_PR.CPU0._PPC, 0x00)))
+Error    1022 -                                   Object does not
+exist ^  (\_PR.CPU0._PPC)
+
+dcust.dsl  2530:                             Store (0x00, \_PR.CPU0._PPC)
+Error    1022 -                                  Object does not exist
+^  (\_PR.CPU0._PPC)
+
+ASL Input:  dcust.dsl - 3466 lines, 120769 bytes, 1560 keywords
+Compilation complete. 6 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
+
+Thanx,
+Ramkumar.
+
+PS: I am new to the list. Tried attaching the dsdt, but the mailist
+list server complained. So, I have mailed without the dsdt (I think
+it's the same as in the url above). If the older mail eventually gets
+approved and comes to this list, sorry for the repetition :)
+
+--=20
+The day Microsoft makes something that doesn't suck
+is probably the day they start making vacuum cleaners.
+                                               -Ernst Jan Plugge
 
 
--- 
+-------------------------------------------------------
+This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
+a projector? How fast can you ride your desk chair down the office luge track?
+If you want to score the big prize, get to know the little guy.  
+Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
