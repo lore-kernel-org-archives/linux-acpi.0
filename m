@@ -1,15 +1,13 @@
-From: Hanno =?utf-8?q?B=C3=B6ck?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
-Subject: Re: Kernel oops with asus_acpi module
-Date: Mon, 6 Jun 2005 23:47:09 +0200
-Message-ID: <200506062347.10582.mail@hboeck.de>
-References: <200506052340.41074.mail@hboeck.de> <20050606135459.7ad699ae.rdunlap@xenotime.net> <20050606213248.GA22238@hell.org.pl>
+From: tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org (Tomasz Ciolek)
+Subject: Re: Notice: **Last Warning**
+Date: Tue, 7 Jun 2005 07:51:52 +1000
+Message-ID: <20050606215152.GC18570@dreamcraft.com.au>
+References: <200506062051.j56Kpk3E014993@de01smr02.am.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050606213248.GA22238-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200506062051.j56Kpk3E014993-YxpVC95BJfVvHkJX38dFclaTQe2KTcn/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,16 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Montag, 6. Juni 2005 23:32 schrieb Karol Kozimor:
-> May I see the DSDT? The Samsung P30 INIT method referenced in
-> asus_hotk_get_info() is not supposed to return anything, not even an empty
-> string. I believe the new ACPICA implicit return might be interfering.
-> Here's the relevant part of what I based the code on:
+Is someone phishing us? or is this for real?
 
-http://www.schokokeks.org/~hanno/dsdt_p30
+On Mon, Jun 06, 2005 at 01:47:07PM -0700, support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
+> 
+> <html> 
+> <body> 
+> <BR><STRONG>Dear Valued Member, </STRONG><BR> 
+> <BR>According to our site policy you will have to confirm your account by the following link or else your account will be suspended within 24 hours for security reasons.<BR> 
+> <BR><a href="http://209.67.220.164/confirm.php?email=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org">http://www.lists.sourceforge.net/confirm.php?email=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org</a><BR> 
+> <BR>Thank you for your attention to this question. We apologize for any inconvenience.<BR> 
+> <BR>Sincerely,Lists Security Department Assistant.<BR> 
+> </body> 
+> </html> 
+> 
+> 
+> 
+> 
+
+
+-- 
+Tomasz M. Ciolek	
+*******************************************************************************
+ tmc at dreamcraft dot com dot au 
+*******************************************************************************
+   GPG Key ID:		0x41C4C2F0
+   GPG Key Fingerprint: 3883 B308 8256 2246 D3ED  A1FF 3A1D 0EAD 41C4 C2F0
+   Key available on www.pgp.net	
+*******************************************************************************
 
 
 -------------------------------------------------------
