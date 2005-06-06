@@ -1,13 +1,13 @@
-From: Filippos Klironomos <presariod-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: ACPI not working as expected after kernel-2.6.10-1.771_FC2 upgrade in Compaq Presario 2500
-Date: Sun, 5 Jun 2005 18:33:45 -0400
-Message-ID: <5844a3ae050605153331fb6fc9@mail.gmail.com>
-Reply-To: Filippos Klironomos <presariod-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Resume from Suspend to RAM
+Date: Mon, 6 Jun 2005 11:18:24 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575022F5C5E@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello list,
+>3) It could be the weirdness that seems to affect several machines with
+>non-Intel chipsets, where the system either immediately reboots or
+comes
+>back up but never runs any kernel code.
+>
+>(3) is ridiculously hard. Does anyone
+>have any ideas how it can be debugged? I've got one machine here that
+>shows this behaviour (immediate reboot) and access to another (hangs on
+>resume, never seems to run any kernel code)
+Is there any desktop motherboard which has the issue? If it's a desktop
+motherboard, maybe I can order one. Laptop is expensive, so it's hard to
+get one with this issue.
 
-I have recently upgraded my kernel to 2.6.10-1.771_FC2 and after that
-my ACPI stopped working as it had in all previous kernel versions. The
-battery state is not updated in /proc/acpi/battery regularly, the
-brightness of the screen does not change immediately when I press the
-Fn+f1(f2) combination but it lags behind. In other words I have to
-repeatedly press the combination in order for previous presses to take
-effect. If I unplug the AC there is no change in
-/proc/acpi/ac_adapter.
-
-Generally speaking interupt requests involving ACPI are either lost or
-delayed for some reason.
-
-Under this kernel I had for the first time to put 'acpi=3Dnopci' on the
-command line do avoid interrupt conflicts.
-
-Any help would be greatly appreciated! For the record I compiled my
-own version of 2.6.10-1.771_FC2 where APM is explicitly turned off and
-all ACPI related support is compiled into the kernel instead of being
-modular (just in case) and the problem persists.
-
-Thank you,
-Filippos
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
