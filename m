@@ -1,13 +1,13 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Receiving ACPI notifications generically
-Date: Tue, 7 Jun 2005 14:38:33 +0800
-Message-ID: <20050607063833.GA3483@linux.sh.intel.com>
-References: <1117972742.6648.122.camel@tyrosine> <20050606155913.GB5067@linux.sh.intel.com> <1118074038.6648.191.camel@tyrosine>
+Subject: Re: what about the sony_acpi driver?
+Date: Tue, 7 Jun 2005 16:01:11 +0800
+Message-ID: <20050607080111.GA3622@linux.sh.intel.com>
+References: <20050606110952.GA9447@message-id.gmane0305.slipkontur.de> <20050606132911.GA4633@linux.sh.intel.com> <20050606151235.GA28528@message-id.s3e.de> <20050606152829.GA5067@linux.sh.intel.com> <20050606162707.GB8555@message-id.s3e.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1118074038.6648.191.camel@tyrosine>
+In-Reply-To: <20050606162707.GB8555-l0tNAEGuAhiXoBlonBaIS7NAH6kLmebB@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2005.06.07 00:07:18 +0800, Matthew Garrett wrote:
+On 2005.06.07 00:27:07 +0800, Stefan Seyfried wrote:
 > 
->    On Mon, 2005-06-06 at 23:59 +0800, Yu, Luming wrote:
->    > Please send me output of acpidmp, then I can show you an example how
->    to configure generic-hotkey-driver for this case. BTW, we need to add
->    battery-hotplug code to respond this event.
+>    On Mon, Jun 06, 2005 at 11:28:29PM +0800, Yu, Luming wrote:
+>    > I admit the so-called generic-acpi-hotkey-driver is hard to use. :-(
+>    > And I'm trying to make it easy to use.
+>    Ok, i will try it out on a hotkey-enabled machine (asus)
+>    > Please try tool: acpidm. And send it to me unless you got zero.
+>    attached
+>    > > yes, but those specific drivers work. Today. And they do even more
+>    than
+>    > > hotkeys (which are non-existent on this machine), e.g. adjusting
+>    LCD backlight
+>    > > or switching the ASUS custom LEDs.
+>    > Believe me, generic-hotkey-driver and acpi-video-driver can handle
+>    these, if this is a acpi system.
+>    Ok. I tried the video driver and got lots of (mostly irritating)
+>    information,
+>    could not do anything with it. After compiling and insmod'ing
+>    sony_acpi, i
+>    could immediately adjust my brightness ;-)
 
-Huh, is this ide-bay-hotplug?
+I went through the DSDT and SSDTs, found that there is a specific ACPI device
+: SNC whose _HID is SNY5001. In the scope of this device, there are several
+Methods defined but no callers. So, I think sony_acpi.c won't give your ability to control things through real hot-keys. right? If you need to use hotkey on
+keyboard to control, you have to try sonypi driver. Because I didn't find any
+GPEs related to hot-key methods, which are must-have for acpi-generic-hotkey-driver. I prefer integrate the quirks of sony_acpi.c into generic hotkey driver.
 
->    I'm afraid I don't have the machine to hand (and so can't send a full
->    acpidmp), but here's the DSDT:
 
-Try this:
-
-echo "0:\\_SB.PCI0.IDE0.SECN.BAY1::\\_SB.PCI0.IDE0.SECN.BAY1::1:1" > event_config 
-
+>    I am willing to try out all kinds of stuff.
 >    --
->    Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+>    Stefan Seyfried
 
 
 
