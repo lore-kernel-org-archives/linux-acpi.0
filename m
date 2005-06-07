@@ -1,14 +1,14 @@
-From: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
+From: Stefan =?iso-8859-2?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Subject: Re: Slightly OT: Battery usage
-Date: Tue, 7 Jun 2005 13:04:30 -0500
-Message-ID: <200506071304.30718.gkanis@cems.umn.edu>
-References: <m2br6jx2t1.fsf@phoenix.squirrel.nl> <42A4282C.7070808@kernelconcepts.de> <20050606223143.GC65@hell.org.pl>
+Date: Tue, 7 Jun 2005 22:20:00 +0000
+Message-ID: <200506072220.01251.stefandoesinger@gmx.at>
+References: <m2br6jx2t1.fsf@phoenix.squirrel.nl> <20050606223143.GC65@hell.org.pl> <200506071304.30718.gkanis@cems.umn.edu>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050606223143.GC65-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <200506071304.30718.gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,54 +19,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>, Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+> Also, I read that the battery should be kept at 30% of its capacity in a
+> relative cool environment. But, does this mean that if the laptop is alwa=
+ys
+> on power I should remove the battery.
+=46rom the battery side of view, yes, but the battery really helps to secur=
+e the=20
+laptop against power failures while on AC power. Keeping the battery in a=20
+cool environment is useful if you have 2 batteries and you want to keep one=
+=20
+for later use in a few years time.
 
-As I am not an expert on batteries usage, I need your expertise.
-I have a laptop with a Li-Ion battery. The company told me that I should at 
-least once a month fully discharge it and then charge it. But, from what I 
-have read this is wrong and will deteriorate the battery.
-Also, I read that the battery should be kept at 30% of its capacity in a 
-relative cool environment. But, does this mean that if the laptop is always 
-on power I should remove the battery.
+See
+http://www.batteryuniversity.com/parttwo-34.htm(general) and
+http://www.tldp.org/HOWTO/Battery-Powered/index.html (more Linux specific)
 
-I too have observed a decrease in the power capacity, but if it drops a lot, 
-the battery will be recharged. I was told that this is normal. Also, I 
-observed that the charging rate is not constant, and initially it is at the 
-maximum value, but then it drops and gets at 10% of the nominal value. 
+> As I am not an expert on batteries usage, I need your expertise.
+> I have a laptop with a Li-Ion battery. The company told me that I should =
+at=20
+> least once a month fully discharge it and then charge it. But, from what =
+I=20
+> have read this is wrong and will deteriorate the battery.
+I can't judge on this, but in most cases, the battery is used at least once=
+ a=20
+month. If not, then the uprising question is if it's needed at all. If you=
+=20
+don't use the battery at present, but you'll need it heavily in, say, 2=20
+years, then it may be best to remove it and store it seperatly. (Depending =
+on=20
+how stable the AC power is). I had one power failure since I own my Laptop,=
+=20
+and this was right at one of the seldom times when I removed the battery.
 
-What is the definition of a cycle? How can I tell how many cycles my battery 
-has? Is it wise to keep the battery on the laptop, when the laptop is on 
-power?
+Keep in mind that companies tell you what's best for them. But on the other=
+=20
+hand, there are other things than battery lifetime, and keeping the battery=
+=20
+in the laptop is a good choice for the avarage users IMO. See above.
 
-Thank you,
-Vasilis
+> What is the definition of a cycle? How can I tell how many cycles my batt=
+ery=20
+> has? Is it wise to keep the battery on the laptop, when the laptop is on=
+=20
+> power?
+I don't know what exactly a cycle is, but AFAIK it means discharging the=20
+battery reasonably and reloading it. I've heard that Li-Ion batteries survi=
+ve=20
+only 200 cycles, and my battery was at 1/3 of it's original capaticity afte=
+r=20
+~400 cycles.
 
-
-On Monday 06 June 2005 05:31 pm, Karol Kozimor wrote:
-> Thus wrote Nils Faerber:
-> > - - not be charged to full all the time. All Li-* batteries like only to
-> > be recharged after they have discharged for at least 10% or more (i.e.
-> > max. 90% remaining). Before that they should not be recharged to full
-> > again. Many notebook charging circuits do not honor this and kill their
-> > batteries within approx. one year (my Asus L3C did this, my Fujitsu
->
-> True, my original L3C battery is now at 25% of design capacity and it's
-> a fairly common practice to restart charging every time the power cord is
-> plugged in. It's good you name the brands that got it right though.
->
-> > Siemens Lifebook B-Series does not, IBM T42p does not, etc.)
-> >
-> > - - never be discharged completely, i.e. up to the point where the
-> > machine switches itself off.
->
-> Except that given current laptop power consumption, the battery is nowhere
-> near empty when the voltage drops below the acceptable level and the
-> circuit is switched off. That said, any attempts at shorting will damage
-> the battery.
-> Best regards,
+Cheers,
+Stefan
 
 
 -------------------------------------------------------
