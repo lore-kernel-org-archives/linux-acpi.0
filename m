@@ -1,56 +1,35 @@
-From: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: Re: Kernel oops with asus_acpi module
-Date: Tue, 7 Jun 2005 15:16:49 -0700
-Message-ID: <20050607151649.4feaa50a.rdunlap@xenotime.net>
-References: <200506052340.41074.mail@hboeck.de>
-	<200506062347.10582.mail@hboeck.de>
-	<20050606222151.GB65@hell.org.pl>
-	<200506071946.20843.mail@hboeck.de>
+From: Bodo Eggert <harvested.in.lkml@posting.7eggert.dyndns.org>
+Subject: Re: Bizarre oops after suspend to RAM (was: Re: [ACPI] Resume from Suspend to RAM)
+Date: Tue, 07 Jun 2005 03:06:08 +0200
+Message-ID: <E1DfSXh-0006lI-39@be1.7eggert.dyndns.org>
+References: <4cnEB-7Y5-13@gated-at.bofh.it> <4cnEB-7Y5-19@gated-at.bofh.it> <4cnEB-7Y5-11@gated-at.bofh.it> <4cpZW-1yL-13@gated-at.bofh.it>
+Reply-To: 7eggert@gmx.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200506071946.20843.mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hanno =?ISO-8859-1?B?QvZjaw==?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262020AbVFGWrb@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stefan =?ISO-8859-1?Q?D=F6singer?= <stefandoesinger@gmx.at>, acpi-devel@lists.sourceforge.net, Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 7 Jun 2005 19:46:17 +0200 Hanno B=F6ck wrote:
+Stefan D=F6singer <stefandoesinger@gmx.at> wrote:
 
-| Am Dienstag, 7. Juni 2005 00:21 schrieb Karol Kozimor:
-| > Thanks. This might also help:
-| Doesn't help (randys fix also didn't).
+> So it does reach the kernel, right? I don't know if I remembered that=
+ call
+> correctly, but "lcall $0xffff,$0" should call the real mode BIOS rese=
+t
+> code...
+> Anyone else who can correct me here?
 
-were there any additional kernel log messages?
-there should have been.
+If it's realmode, it should do a jump to the boot entry point of the BI=
+OS.
+This does not imply a reset, some machines will just hang. Especially a=
+fter
+messing with the interrupts or mapping some RAM over the lower half of =
+the
+BIOS, where the boot code is expected.
 
-| > But I'd like to get the full oops with the matching asus_acpi.o file al=
-so
-| > (might be off the list).
-
-Karol, did you see the beginning of the thread?
-http://lkml.org/lkml/2005/6/5/101
-
-| Can you tell me what a full oops is, how I generate it? Then I can do so =
-(I'm=20
-| not a kernel-dev).
-
-
----
-~Randy
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
-a projector? How fast can you ride your desk chair down the office luge track?
-If you want to score the big prize, get to know the little guy.  
-Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
+Good (=3D=3D long gone) old times with DOS.
+--=20
+Ich danke GMX daf=FCr, die Verwendung meiner Adressen mittels per SPF
+verbreiteten L=FCgen zu sabotieren.
