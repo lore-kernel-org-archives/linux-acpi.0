@@ -1,55 +1,85 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Slightly OT: Battery usage
-Date: Tue, 7 Jun 2005 00:31:43 +0200
-Message-ID: <20050606223143.GC65@hell.org.pl>
-References: <m2br6jx2t1.fsf@phoenix.squirrel.nl> <42A4282C.7070808@kernelconcepts.de>
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was:
+	Re: [ACPI] Resume from Suspend to RAM))
+Date: Tue, 07 Jun 2005 14:23:30 +0800
+Message-ID: <1118125410.3828.12.camel@linux-hp.sh.intel.com>
+References: <200506061531.41132.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <42A4282C.7070808-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261808AbVFGGQJ@vger.kernel.org>
+In-Reply-To: <200506061531.41132.stefandoesinger@gmx.at>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stefandoesinger@gmx.at
+Cc: acpi-dev <acpi-devel@lists.sourceforge.net>, Matthew Garrett <mjg59@srcf.ucam.org>, lkml <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Nils Faerber:
-> - - not be charged to full all the time. All Li-* batteries like only to
-> be recharged after they have discharged for at least 10% or more (i.e.
-> max. 90% remaining). Before that they should not be recharged to full
-> again. Many notebook charging circuits do not honor this and kill their
-> batteries within approx. one year (my Asus L3C did this, my Fujitsu
-
-True, my original L3C battery is now at 25% of design capacity and it's
-a fairly common practice to restart charging every time the power cord is
-plugged in. It's good you name the brands that got it right though.
-
-> Siemens Lifebook B-Series does not, IBM T42p does not, etc.)
+On Mon, 2005-06-06 at 23:31 +0800, stefandoesinger@gmx.at wrote:
+> Am Montag, 6. Juni 2005 11:06 schrieb Matthew Garrett: 
+> > Whoops. May have been a bit too hasty there. I'm not sure why that 
+> > doesn't reset it, but we've now got the following (really rather
+> odd) 
+> > serial output. Does anyone have any idea what might be triggering
+> this? 
+> > Shell builtins work fine, but anything else seems to explode very 
+> > messily. Memory corruption of some description?
 > 
-> - - never be discharged completely, i.e. up to the point where the machine
-> switches itself off.
+> <snip> 
+> So it does reach the kernel, right? I don't know if I remembered that
+> call  
+> correctly, but "lcall $0xffff,$0" should call the real mode BIOS
+> reset  
+> code... 
+> Anyone else who can correct me here?
+> 
+> Perhaps the disk driver is going mad? Has anyone tried to boot a
+> kernel  
+> without any disk drivers with a minimal root system on an initrd?
+For those who suffer from strange S3 resume problem such as resume hang,
+could you please try this debug patch.
+It uses machine_real_restart to switch to real mode, and soon jump to
+the S3 wakeup address. So it simulates how BIOS resume a system from S3,
+but completely bypasses BIOS. If the system lives after S3 with the
+patch, at least we can know the suspend/resume code path is ok and it's
+not a Linux driver issue.
 
-Except that given current laptop power consumption, the battery is nowhere
-near empty when the voltage drops below the acceptable level and the
-circuit is switched off. That said, any attempts at shorting will damage
-the battery.
-Best regards,
+Thanks,
+Shaohua
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
-a projector? How fast can you ride your desk chair down the office luge track?
-If you want to score the big prize, get to know the little guy.  
-Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
+--- a/drivers/acpi/hardware/hwsleep.c	2005-06-07 13:45:04.088273424 +0800
++++ b/drivers/acpi/hardware/hwsleep.c	2005-06-07 13:49:31.858566152 +0800
+@@ -242,6 +242,19 @@ acpi_enter_sleep_state_prep (
+  *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
+  *
+  ******************************************************************************/
++#define S3_DEBUG
++#ifdef S3_DEBUG
++#include <asm/io.h>
++extern void machine_real_restart(unsigned char *code, int length);
++static unsigned char jump_to_pm [] =
++{
++	0xea,
++	0x00,
++	0x00,
++	0x00,
++	0x00		/*    ljmp  $0x0000,$0x0000  */
++};
++#endif
+ 
+ acpi_status asmlinkage
+ acpi_enter_sleep_state (
+@@ -315,6 +328,14 @@ acpi_enter_sleep_state (
+ 	PM1Acontrol |= (acpi_gbl_sleep_type_a << sleep_type_reg_info->bit_position);
+ 	PM1Bcontrol |= (acpi_gbl_sleep_type_b << sleep_type_reg_info->bit_position);
+ 
++#ifdef S3_DEBUG
++	if (sleep_state == ACPI_STATE_S3) {
++		*((short *)&jump_to_pm[3]) =
++			(short)(virt_to_phys((void *)acpi_wakeup_address)) >> 4;
++		/* Directly jump to acpi_wakeup_address */
++		machine_real_restart(jump_to_pm, sizeof(jump_to_pm));
++	}
++#endif
+ 	/*
+ 	 * We split the writes of SLP_TYP and SLP_EN to workaround
+ 	 * poorly implemented hardware.
