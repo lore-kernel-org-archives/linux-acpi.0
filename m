@@ -1,13 +1,15 @@
-From: Martin Michlmayr <tbm-R+vWnYXSFMfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM)
-Date: Tue, 7 Jun 2005 15:14:28 +0100
-Message-ID: <20050607141428.GA5650@deprecation.cyrius.com>
-References: <200506051456.44810.hugelmopf@web.de> <1117978635.6648.136.camel@tyrosine> <200506051732.08854.stefandoesinger@gmx.at> <1118053578.6648.142.camel@tyrosine> <1118056003.6648.148.camel@tyrosine> <20050606144501.GB2243@elf.ucw.cz> <20050606145429.GA18396@srcf.ucam.org> <20050606145429.GA18396@srcf.ucam.org> <20050606150909.GA2230@elf.ucw.cz>
+From: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>
+Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM))
+Date: Tue, 7 Jun 2005 17:32:22 +0200
+Message-ID: <200506071732.23095.hugelmopf@web.de>
+References: <200506061531.41132.stefandoesinger@gmx.at> <1118125410.3828.12.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1118125410.3828.12.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050606150909.GA2230-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,65 +19,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [2005-06-06 15:10]:
-> > machine (an HP nc4000) to resume. Since then, it simply freezes before 
-> > hitting "Back to C" despite having had no kernel or configuration 
-> > changes. The behaviour is very non-deterministic, which makes me wonder 
-> > about something in the suspend or resume process damaging state.
-> 
-> Hmm, strange. You may want to test if length of sleep affects it...
+> For those who suffer from strange S3 resume problem such as resume hang,
+> could you please try this debug patch.
+> It uses machine_real_restart to switch to real mode, and soon jump to
+> the S3 wakeup address. So it simulates how BIOS resume a system from S3,
+> but completely bypasses BIOS. If the system lives after S3 with the
+> patch, at least we can know the suspend/resume code path is ok and it's
+> not a Linux driver issue.
+>
+> Thanks,
+> Shaohua
+>
+> --- a/drivers/acpi/hardware/hwsleep.c	2005-06-07 13:45:04.088273424 +0800
+> +++ b/drivers/acpi/hardware/hwsleep.c	2005-06-07 13:49:31.858566152 +0800
+> @@ -242,6 +242,19 @@ acpi_enter_sleep_state_prep (
+>   *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
+>   *
+>  
 
-I tried to resume immediately when the screen goes blank and got the
-following results.  Out of 9 trials I got:
+Against which kernel version/tree does this patch go? I would be happy to test 
+it, but I am pretty new to kernel patching, so this is not so obvious to me.
 
- - 4x: it would say "Restarting tasks..." but then oops and hang
-   immediately.  See the oops below.
- - 4x: come back and give me a shell - but it hangs
- - 1x: come back, give me a shell and let me type; built-ins worked
-   but commands produced the oops posted by Matthew a few days ago.
-
-So far it has never come back when I don't resume immediately.
-
-The new oops I got is:
-
-root@(none):/# mount -t proc none /proc
-root@(none):/# echo 3 > /proc/acpi/sleep
-Stopping tasks: ===|
-    ACPI-0286: *** Error: No installed handler for fixed event [00000002]
-Restarting tasks... done
-Unable to handle kernel paging request at virtual address 00008265
- printing eip:
-c015ac62
-*pde = 00000000
-Oops: 0002 [#2]
-PREEMPT
-Modules linked in:
-CPU:    0
-EIP:    0060:[<c015ac62>]    Not tainted VLI
-EFLAGS: 00010202   (2.6.12-rc5)
-EIP is at filp_open+0x32/0x70
-eax: f7c7a000   ebx: 00008241   ecx: 00000003   edx: 00000180
-esi: 00008241   edi: f7c7a000   ebp: c191c000   esp: c191df48
-ds: 007b   es: 007b   ss: 0068
-Process bash (pid: 1, threadinfo=c191c000 task=c18bfa20)
-Stack: bfeafcf4 00008242 c191df64 c191df58 c016690b 080f1f48 c191df64 c191df6c
-       00000014 00000000 f7c7a000 00000003 c18c0e40 c191c000 c015af95 c18c0e40
-       00000003 00000003 f7c7a000 00008241 00000003 c015b109 f7c7a000 00008241
-Call Trace:
- [<c016690b>] sys_stat64+0x1b/0x40
- [<c015af95>] get_unused_fd+0xa5/0xe0
- [<c015b109>] sys_open+0x49/0x90
- [<c0103245>] syscall_call+0x7/0xb
-Code: 8b 5c 24 5c 8d 43 01 a8 03 0f 44 c3 89 c2 83 ca 02 f6 c4 02 0f 45 c2 8d 54 24 10 89 54 24 0c 8b 54 24 60 89 44 24 04 8b 44 24 58 <89> 56 24 08 89 04 24 e8 62 19 01 00 85 c0 74 0e 8b 5c 24 50 83
- <0>Kernel panic - not syncing: Attempted to kill init!
-
--- 
-Martin Michlmayr
-http://www.cyrius.com/
+Thanks,
+Frank
 
 
 -------------------------------------------------------
