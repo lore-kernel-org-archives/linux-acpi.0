@@ -1,13 +1,15 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: what about the sony_acpi driver?
-Date: Thu, 9 Jun 2005 15:03:21 +0800
-Message-ID: <20050609070321.GB8009@linux.sh.intel.com>
-References: <20050606110952.GA9447@message-id.gmane0305.slipkontur.de> <20050606132911.GA4633@linux.sh.intel.com> <20050606151235.GA28528@message-id.s3e.de> <20050606152829.GA5067@linux.sh.intel.com> <1118073314.6648.189.camel@tyrosine> <20050606161931.GC5067@linux.sh.intel.com> <20050607140838.GM8899@poupinou.org>
+From: Klaus Muth <muth-5lHx5lHeYlQ@public.gmane.org>
+Subject: Re: ACPI: RSDP - ERROR: Invalid checksum
+Date: Thu, 9 Jun 2005 11:13:13 +0200
+Message-ID: <200506091113.14327.muth@hagos.de>
+References: <200506071546.57120.muth@hagos.de> <200506081529.49355.muth@hagos.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200506081529.49355.muth-5lHx5lHeYlQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050607140838.GM8899-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +19,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2005.06.07 16:08:38 +0200, Bruno Ducrot wrote:
-> On Tue, Jun 07, 2005 at 12:19:31AM +0800, Yu, Luming wrote:
-> > On 2005.06.06 16:55:14 +0100, Matthew Garrett wrote:
-> > > On Mon, 2005-06-06 at 23:28 +0800, Yu, Luming wrote:
-> > > 
-> > > > Believe me, generic-hotkey-driver and acpi-video-driver can handle these, if this is a acpi system.
-> > > 
-> > > A fairly large number of machines seem to have brightness control
-> > > methods that aren't exposed via the acpi video device standard. Can
-> > > these still be dealt with?
-> > If they are ACPI system, I suppose they will rely on ASL method to handle video stuff. Then, I think generic-hotkey-driver can accommodate the quirks.
-> > Please give me some example to prove I'm wrong. (The example should come from ACPI system.) 
-> 
-> On toshiba 3000 (and actually a lot of Compal laptops) LCD brightness is
-> handled via a register in the EC space (sometimes the node is called BLVL,
-> is at 0xb9, first 4 bits).
-> 
-> No ACPI methods (under, say, a video device) handle it, therefore it
-> is necessary to read/write to it directly in order to control brightness
-> as its done with the omke kernel module.
+Am Mittwoch, 8. Juni 2005 15:29 schrieb Klaus Muth:
+> Hi!
+>
+> Ok, I do the Ingrid.
+AAARGH. Another Ingrid. Seems, that the acpi_find_rsdp() is rather optimistic 
+about finding the RSDP [arch/i386/kernel/acpi/boot.c, acpi_scan_rsdp]:
+ /*
+  * Scan all 16-byte boundaries of the physical memory region for the
+  * RSDP signature.
+  */
+ for (offset = 0; offset < length; offset += 16) {
+  if (strncmp((char *) (start + offset), "RSD PTR ", sig_len))
+   continue;
+  return (start + offset);
+ }
 
-Thanks for this info. If there don't have AML-methods and GPEs related to hotkey features on a specific box, then
-I think generic-hotkey-driver cannot help.
+It seems to happen, that the IBM BIOS contains just the string "RSD PTR " 
+exactly at a 16-Byte-Boundary before the real RSDP block, so the wrnog 
+address is returned and acpi_table_init() in drivers/acpi/tables.c fails to 
+checksum this block of course.
 
-> 
-> -- 
-> Bruno Ducrot
-> 
+The patched up RedHat Kernel uses 
+static struct acpi_table_rsdp * __init
+acpi_find_root_pointer(void)
+{
+ struct acpi_table_rsdp * rsdp;
+
+ /*
+  * Physical address is given
+  */
+ /*
+  * Region 1) Search EBDA (low memory) paragraphs
+  */
+ rsdp = acpi_tb_scan_memory_for_rsdp(__va(LO_RSDP_WINDOW_BASE),
+      LO_RSDP_WINDOW_SIZE);
+
+ if (rsdp)
+  return rsdp;
+
+ /*
+  * Region 2) Search upper memory: 16-byte boundaries in E0000h-F0000h
+  */
+ rsdp = acpi_tb_scan_memory_for_rsdp(__va(HI_RSDP_WINDOW_BASE),
+            HI_RSDP_WINDOW_SIZE);
+
+ 
+          
+ if (rsdp)
+  return rsdp;
+
+ printk(KERN_ERR "ACPI: System description tables not found\n");
+ return NULL;
+}
+
+to find the RSDP and seems to find it in Region 2. GRRRR.
+
+Is there any patch to do the same with a vanilla 2.6 Kernel?
+-- 
+Klaus Muth
+HAGOS eG                      Industriestr. 62      fon: (+49) 711 78805-86
+EDV-Programmierung            70565  Stuttgart      fax: (+49) 711 78805-35
+http://www.hagos.de               Germany              mailto:muth-5lHx5lHeYlQ@public.gmane.org
 
 
 -------------------------------------------------------
