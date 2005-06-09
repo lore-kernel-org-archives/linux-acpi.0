@@ -1,13 +1,13 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH] PCI: add proper MCFG table parsing to ACPI core.
-Date: Tue, 14 Jun 2005 11:37:30 +0200
-Message-ID: <20050614093730.GD11898@wotan.suse.de>
-References: <20050614063745.GA19556@kroah.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: /proc/acpi/alarm not working
+Date: Thu, 9 Jun 2005 15:49:39 +0200
+Message-ID: <20050609134938.GA4478@openzaurus.ucw.cz>
+References: <42A7842C.2060207@colitti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050614063745.GA19556-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <42A7842C.2060207-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org
+To: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 13, 2005 at 11:37:46PM -0700, Greg KH wrote:
-> In order to handle the MCFG ACPI table properly, we need to at least
-> parse the thing properly :)  So, here's a patch that adds support for
-> this.  It's against my latest PCI tree (which is included in -mm) but
-> will apply with a bit of fuzz against 2.6.12-rc6.
-> 
-> I've tested this out on boxes that only have 1 MCFG config table, if
-> anyone has access to ones that have more than this, I'd be interested to
-> see how well it works.  Based on the comments in the mmconfig.c file,
-> I'm guessing that various AMD boxes are like this...
+Hi!
 
-All the AMD boxes with PCI-Express. The internal busses of the
-Northbridge don't support MMCONFIG, but the PCI-Express busses
-do. 
+> I am trying to use /proc/acpi/alarm to wake my laptop from S3 and go 
+> into S4 after a fixed amount of time. But I can't get 
+> /proc/acpi/alarm to work.
 
-> 
-> Anyone have any objections to this patch?
+That sounds dangerous to me... drive might spin up during bad time when being
+transported...
 
-Looks good as a first step. Next step will be to query the
-PCI segment group numbers and then assign different pci ops to the different 
-busses based on that.
+Why not enter S3 but save image to disk in case battery runs out?
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
--Andi
 
 
 -------------------------------------------------------
