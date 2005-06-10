@@ -1,16 +1,14 @@
-From: Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: tg3 ethernet not coming back properly after S3 suspendon Dell M70
-Date: Fri, 10 Jun 2005 13:27:09 -0700
-Message-ID: <9540d0105061013275b7e7c76@mail.gmail.com>
-References: <C7AB9DA4D0B1F344BF2489FA165E502408E22FB6@orsmsx404.amr.corp.intel.com>
-	 <200506101418.59154.gkanis@cems.umn.edu>
-Reply-To: Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Sony Vaio PCG-C1VRX/K Picturebook, Suspend to Ram
+	works, but has a strange effect on the idle display
+Date: Sat, 11 Jun 2005 00:08:37 +0100
+Message-ID: <1118444918.6648.438.camel@tyrosine>
+References: <200506102038.31928.linux@celifornia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200506101418.59154.gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200506102038.31928.linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,28 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Nguyen, Tom L" <tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 6/10/05, Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org> wrote:
-> I do not have a Dell and when I resume from suspend the monitor does not =
-come
-> on. I applied the patch, but it did not help. I also have a PCIE card and=
- I
-> have the CONFIG_PCIEBUSPORT enabled.
-> Do I need to unload the tg3 module, before I suspend the system?
+On Fri, 2005-06-10 at 20:38 +0200, Benedek Frank wrote:
 
-I think the PCIE video suspend issues are not related to the tg3
-issues, though there may still be deeper PCIE suspend issues.  I still
-cannot get my video to recover, though debugging is harder because the
-nvidia binary module is involved, and it seems to set the monitor's
-DPMS state to "off" when it goes to suspend.  So, when the system
-resumes, DPMS is still "off", and something wedges before it ever gets
-put back to "on", so I can't see how far I make it in the resume
-process.  (Serial console doesn't seem to be that useful.)
+> Now, I can suspend and resume with the script I wrote for it, but even while 
+> suspended, the screen wont turn 100% off. If I tilt in in a way, about 
+> 160degree angle, I can see some text on the screen. Of course I can barely 
+> see it, but I can for Christ`s sake, while it should be off. For an 
+> "untrained" eye it seems the screen is black of course, but I got suspicious 
+> after a few days of being able to suspend, as the laptop wasnt 100% quiet. 
+> The screen is making a little, very very little scratching noise, that I 
+> cannot really describe its more like an "electric" noise. Its bugging me, as 
+> it must be using some of my battery, while it should not be using anything 
+> other than what the RAM needs to not loose its stored memory.
 
-     - Vlad
+If you don't have a PCI driver bound to your video device, the kernel
+will not actually power it down. This is probably a deficiency in the
+kernel, but still. On most machines the BIOS will power it down anyway,
+but this isn't always the case.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
