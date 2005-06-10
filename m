@@ -1,11 +1,13 @@
-From: Ralph Blach <chipper-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: problems with acpi_tb_validate_rsdt
-Date: Fri, 10 Jun 2005 14:41:03 -0400
-Message-ID: <42A9DEBF.5040404@us.ibm.com>
+From: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
+Subject: Sony Vaio PCG-C1VRX/K Picturebook, Suspend to Ram works, but has a strange effect on the idle display
+Date: Fri, 10 Jun 2005 20:38:30 +0200
+Message-ID: <200506102038.31928.linux@celifornia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,50 +17,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Guys,
+Hi
 
-I have a problem.  I have a bios ACPI 2.0 level Bios that has RSDT table 
-  but NO xsdt table.  This is allowed in the spec,
+This is a repost from the Debian - laptop list, I hope you guys can help me=
+=20
+with some advices, so here it goes:
 
-If you have no XSDT table, then you are to use the RSDT table.
+Hi
 
-If you have both, then it is required that you use the XSDT table, not 
-make a copy of the XSDT from the RSDT table.
+I finally got my Suspend to RAM working with my Picturebook. If interested=
+=20
+how, please go to
 
+www.celifornia.com/documents/sonyvaio.html
 
-Look on page 98 of   ACPIspec-2-0c where  it says that
+But I have got one problem. If I try the suspend with the 2.6.11 kernel tha=
+t I=20
+have, it wil do it beautifuly, but it will not resume from suspend no matte=
+r=20
+what I do. I find it googling, that I need to pass a special boot parameter=
+=20
+with Grub, that looks like this
 
-
-"5.2.7 Extended System Description Table (XSDT)
-
-The XSDT provides identical functionality to the RSDT but accommodates 
-physical addresses of
-DESCRIPTION HEADERs that are larger than 32-bits. Notice that both the 
-XSDT and the RSDT can be
-pointed to by the RSDP structure. An ACPI 2.0-compatible OS must use the 
-XSDT if present."
-
-as it is now, with no XSDT table, the search for the RSDT simple walks 
-memory and fails
-
-Also, if the XSDT table is present, it appears to be deleted and NOT 
-used.  This is incorrect.  It MUST be used over the RSDT.
-
-Any comments on how to fix?
-
-Good, bad, am I wrong? I am open to comments,
+acpi_sleep=3Ds3_bios
 
 
-Chip
--- 
-Ralph "Chip" Blach
-chipper-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
-IBM Linux Technology Center
-Raleigh, North Carolina
-919 543 1207
+After all my Grub entry looks like this:
+
+title =A0 =A0 =A0 =A0 =A0 Debian GNU/Linux, kernel 2.6.11
+root =A0 =A0 =A0 =A0 =A0 =A0(hd0,1)
+kernel =A0 =A0 =A0 =A0 =A0/boot/vmlinuz-2.6.11 root=3D/dev/hda2 ro acpi_sle=
+ep=3Ds3_bios
+initrd =A0 =A0 =A0 =A0 =A0/boot/initrd.img-2.6.11
+savedefault
+boot
+
+Now, I can suspend and resume with the script I wrote for it, but even whil=
+e=20
+suspended, the screen wont turn 100% off. If I tilt in in a way, about=20
+160degree angle, I can see some text on the screen. Of course I can barely=
+=20
+see it, but I can for Christ`s sake, while it should be off. For an=20
+"untrained" eye it seems the screen is black of course, but I got suspiciou=
+s=20
+after a few days of being able to suspend, as the laptop wasnt 100% quiet.=
+=20
+The screen is making a little, very very little scratching noise, that I=20
+cannot really describe its more like an "electric" noise. Its bugging me, a=
+s=20
+it must be using some of my battery, while it should not be using anything=
+=20
+other than what the RAM needs to not loose its stored memory.
+
+Thanks for helping, and let me know if you need any other log or files from=
+ my=20
+lappy.
+
+Bence
 
 
 -------------------------------------------------------
