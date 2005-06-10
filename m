@@ -1,14 +1,14 @@
-From: Frank Siegert <hugelmopf-ANTagKRnAhcb1SvskN2V4Q@public.gmane.org>
-Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM))
-Date: Fri, 10 Jun 2005 20:49:41 +0200
-Message-ID: <200506102049.42313.hugelmopf@vodafone.de>
-References: <200506061531.41132.stefandoesinger@gmx.at> <200506071732.23095.hugelmopf@web.de> <1118193341.3857.4.camel@linux-hp.sh.intel.com>
+From: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
+Subject: Re: tg3 ethernet not coming back properly after S3 suspendon Dell M70
+Date: Fri, 10 Jun 2005 14:18:58 -0500
+Message-ID: <200506101418.59154.gkanis@cems.umn.edu>
+References: <C7AB9DA4D0B1F344BF2489FA165E502408E22FB6@orsmsx404.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1118193341.3857.4.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <C7AB9DA4D0B1F344BF2489FA165E502408E22FB6-sBd4vmA9Se464kNsxIetb7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,54 +20,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Nguyen, Tom L" <tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> > Against which kernel version/tree does this patch go? I would be happy =
-to
-> > test it, but I am pretty new to kernel patching, so this is not so
-> > obvious to me.
+I do not have a Dell and when I resume from suspend the monitor does not come 
+on. I applied the patch, but it did not help. I also have a PCIE card and I 
+have the CONFIG_PCIEBUSPORT enabled.
+Do I need to unload the tg3 module, before I suspend the system?
+
+Vasilis
+
+
+On Friday 10 June 2005 01:17 pm, Nguyen, Tom L wrote:
+> On Thursday, June 09, 2005 7:00 PM Shaohua Li wrote:
+> > Long, is this patch ok to you? PCIE bridge itself requires to
+> > save/restore config space.
 >
-> I think any kernel version should be ok, but please try latest kernel.
-> Please note, this isn't a fix but a test case.
-> If the test failed, then suspend/resume code path or drivers are broken.
-> If the test succeeded, then
-> 	1. Linux forgot doing something BIOS lets it do
-> 	or 2. BIOS is broken.
-
-Sorry for rather being newbish than much of a help, but I'd like to try thi=
-s out=20
-and find out whether it's Linux or my notebook that has the problems.
-
-But it gives me problems.
-1. The patch won't apply or I am doing something wrong:
-| [20:38 frank: ~/downloads/linux-2.6.12-rc6]$ patch -p1 <patch_resume.diff
-| patching file drivers/acpi/hardware/hwsleep.c
-| Hunk #2 FAILED at 328.
-| 1 out of 2 hunks FAILED -- saving rejects to file drivers/acpi/hardware/h=
-wsleep.c.rej
-
-(same for linux-2.6.11.9)
-
-2. I tried to add the patch manually (and can't see where I missed somethin=
-g -- the
-"extern void machine_real_restart(...)" line exists), but kernel compilatio=
-n then fails.
-|   CC      init/version.o
-|   LD      init/built-in.o
-|   LD      .tmp_vmlinux1
-| ld: BFD 2.15 assertion fail ../../bfd/linker.c:619
-| drivers/built-in.o(.text+0x203ef): In function `acpi_enter_sleep_state':
-| : undefined reference to `machine_real_restart'
-| make[1]: *** [.tmp_vmlinux1] Fehler 1
-| make[1]: Verlasse Verzeichnis =BB/usr/src/linux-2.6.12-rc6=AB
-| make: *** [stamp-build] Fehler 2
-
-Would you mind posting the patch as attachment and the exact command I have=
- to=20
-issue in my kernel directory?
-
-Thanks a lot,
-=46rank
+> Great! Would you please also add saving/restoring MSI capability
+> structure if supported?
+>
+> Thanks,
+> Long
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you
+> shotput a projector? How fast can you ride your desk chair down the office
+> luge track? If you want to score the big prize, get to know the little guy.
+> Play to win an NEC 61" plasma display: http://www.necitguy.com/?r
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
