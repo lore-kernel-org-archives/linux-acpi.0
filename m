@@ -1,12 +1,15 @@
-From: Vanessa J.Smith <5georgia-mmjTEX3wXfPQT0dZR+AlfA@public.gmane.org>
-Subject: =?iso-8859-1?B?TWFjcm9tZWRpYSBTdHVkaW8gTVggMjAwNCAtIHdob2xlc2FsZSBwcmljZQ==?=
-Date: Thu, 09 Jun 2005 23:26:06 +0000
-Message-ID: <964001c56d4a$1485309f$9921eb8b@absorb.com>
+From: Bernd Schubert <bernd-schubert-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM))
+Date: Fri, 10 Jun 2005 02:46:45 +0200
+Message-ID: <200506100246.45415.bernd-schubert@gmx.de>
+References: <200506061531.41132.stefandoesinger@gmx.at> <1118125410.3828.12.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_30E27AEF.3407A0AC"
+Content-Type: text/plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1118125410.3828.12.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,88 +19,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_0000_30E27AEF.3407A0AC
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_8BAEE2FA.65A730F2"
+> For those who suffer from strange S3 resume problem such as resume hang,
+> could you please try this debug patch.
+> It uses machine_real_restart to switch to real mode, and soon jump to
+> the S3 wakeup address. So it simulates how BIOS resume a system from S3,
+> but completely bypasses BIOS. If the system lives after S3 with the
+> patch, at least we can know the suspend/resume code path is ok and it's
+> not a Linux driver issue.
 
+Using this patch my thinkpad R31 'resumes' fine. Without the patch the system 
+is more or less a zombie after a resume, no display, no network and no 
+keyboard reactions. 
+Do you have an idea what could I do to make real resume working? 
 
-------=_NextPart_001_0001_8BAEE2FA.65A730F2
-Content-Type: text/plain;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-     Access all the software you ever imagined for prices substantially
-lower than in stores!
-Our software is 2-10 times cheaper than sold by our competitors.
-
-Examples:
-$79.95 Windows XP Professional (Including: Service Pack 2)
-$89.95 Microsoft Office 2003 Professional / $79.95 Office XP Professional
-$99.95 Adobe Photoshop 8.0/CS (Including: ImageReady CS)
-$179.95 Macromedia Studio MX 2004 (Including: Dreamweaver MX + Flash MX
-+ Fireworks MX)
-$79.95 Adobe Acrobat 6.0 Professional
-$69.95 MS Visio 2003 Professional
-
-Special Offers:
-$89.95 Windows XP Professional + Office XP Professional
-$149.95 Adobe Creative Suite Premium (5 CD)
-$129.95 Adobe Photoshop 7 + Adobe Premiere 7 + Adobe Illustrator 10
-
-All main products from Microsoft, Adobe, Macromedia, Corel, etc.
-And many more... To view full list of products go:
-
-http://www.softareus.com
-
-Regards,
-Vanessa Smith
+Thanks,
+	Bernd
 
 
-_____________________________________________________ 
-To be taken out, go: http://www.softareus.com/uns.htm
-_____________________________________________________ 
-
- 
-------=_NextPart_001_0001_8BAEE2FA.65A730F2
-Content-Type: text/html;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
-<META content="MSHTML 6.00.2900.2604" name=GENERATOR></HEAD>
-<BODY>
-<CENTER>
-<TABLE cellSpacing=0 cellPadding=0 width=800 align=center border=0>
-  <TBODY>
-  <TR>
-    <TD>Access all the software you ever imagined for 
-      prices substantially lower than in stores!<BR>Our software is 2-10 times cheaper than sold by 
-      our competitors.<BR><BR>Examples:<BR>$79.95 Windows XP Professional (Including: Service Pack 
-      2)<BR>$89.95 Microsoft Office 2003 Professional / $79.95 Office 
-      XP Professional<BR>$99.95 Adobe Photoshop 8.0/CS (Including: ImageReady 
-      CS)<BR>$179.95 Macromedia Studio MX 2004 (Including: Dreamweaver MX + 
-      Flash MX + Fireworks MX)<BR>$79.95 Adobe Acrobat 6.0 
-      Professional<BR>$69.95 MS Visio 2003 Professional<BR><BR>Special Offers:<BR>$89.95 Windows 
-      XP Professional + Office XP Professional<BR>$149.95 Adobe Creative Suite Premium (5 CD)<BR>$129.95 Adobe Photoshop 7 + Adobe 
-      Premiere 7 + Adobe Illustrator 10<BR><BR>All main products from Microsoft, 
-      Adobe, Macromedia, Corel, etc.<BR>And many more... To view full list of 
-      products go:<BR><BR><A 
-      href="http://www.softareus.com">http://www.softareus.com</A><BR><BR>Regards,<BR>Vanessa Smith<BR><BR><BR>_____________________________________________________ 
-      <BR>To be taken 
-      out, go: <A 
-      href="http://www.softareus.com/uns.htm">http://www.softareus.com/uns.htm</A><BR>_____________________________________________________ 
-
-      <P></P></TD></TR></TBODY></TABLE></CENTER></BODY></HTML>
-
-------=_NextPart_001_0001_8BAEE2FA.65A730F2--
-
-
-
-------=_NextPart_000_0000_30E27AEF.3407A0AC--
+-------------------------------------------------------
+This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
+a projector? How fast can you ride your desk chair down the office luge track?
+If you want to score the big prize, get to know the little guy.  
+Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
