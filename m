@@ -1,12 +1,14 @@
-From: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
-Subject: Sony Vaio PCG-C1VRX/K Picturebook, Suspend to Ram works, but has a strange effect on the idle display
-Date: Fri, 10 Jun 2005 20:38:30 +0200
-Message-ID: <200506102038.31928.linux@celifornia.com>
+From: Frank Siegert <hugelmopf-ANTagKRnAhcb1SvskN2V4Q@public.gmane.org>
+Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM))
+Date: Fri, 10 Jun 2005 20:49:41 +0200
+Message-ID: <200506102049.42313.hugelmopf@vodafone.de>
+References: <200506061531.41132.stefandoesinger@gmx.at> <200506071732.23095.hugelmopf@web.de> <1118193341.3857.4.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1118193341.3857.4.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,66 +19,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+> > Against which kernel version/tree does this patch go? I would be happy =
+to
+> > test it, but I am pretty new to kernel patching, so this is not so
+> > obvious to me.
+>
+> I think any kernel version should be ok, but please try latest kernel.
+> Please note, this isn't a fix but a test case.
+> If the test failed, then suspend/resume code path or drivers are broken.
+> If the test succeeded, then
+> 	1. Linux forgot doing something BIOS lets it do
+> 	or 2. BIOS is broken.
 
-This is a repost from the Debian - laptop list, I hope you guys can help me=
-=20
-with some advices, so here it goes:
+Sorry for rather being newbish than much of a help, but I'd like to try thi=
+s out=20
+and find out whether it's Linux or my notebook that has the problems.
 
-Hi
+But it gives me problems.
+1. The patch won't apply or I am doing something wrong:
+| [20:38 frank: ~/downloads/linux-2.6.12-rc6]$ patch -p1 <patch_resume.diff
+| patching file drivers/acpi/hardware/hwsleep.c
+| Hunk #2 FAILED at 328.
+| 1 out of 2 hunks FAILED -- saving rejects to file drivers/acpi/hardware/h=
+wsleep.c.rej
 
-I finally got my Suspend to RAM working with my Picturebook. If interested=
-=20
-how, please go to
+(same for linux-2.6.11.9)
 
-www.celifornia.com/documents/sonyvaio.html
+2. I tried to add the patch manually (and can't see where I missed somethin=
+g -- the
+"extern void machine_real_restart(...)" line exists), but kernel compilatio=
+n then fails.
+|   CC      init/version.o
+|   LD      init/built-in.o
+|   LD      .tmp_vmlinux1
+| ld: BFD 2.15 assertion fail ../../bfd/linker.c:619
+| drivers/built-in.o(.text+0x203ef): In function `acpi_enter_sleep_state':
+| : undefined reference to `machine_real_restart'
+| make[1]: *** [.tmp_vmlinux1] Fehler 1
+| make[1]: Verlasse Verzeichnis =BB/usr/src/linux-2.6.12-rc6=AB
+| make: *** [stamp-build] Fehler 2
 
-But I have got one problem. If I try the suspend with the 2.6.11 kernel tha=
-t I=20
-have, it wil do it beautifuly, but it will not resume from suspend no matte=
-r=20
-what I do. I find it googling, that I need to pass a special boot parameter=
-=20
-with Grub, that looks like this
+Would you mind posting the patch as attachment and the exact command I have=
+ to=20
+issue in my kernel directory?
 
-acpi_sleep=3Ds3_bios
-
-
-After all my Grub entry looks like this:
-
-title =A0 =A0 =A0 =A0 =A0 Debian GNU/Linux, kernel 2.6.11
-root =A0 =A0 =A0 =A0 =A0 =A0(hd0,1)
-kernel =A0 =A0 =A0 =A0 =A0/boot/vmlinuz-2.6.11 root=3D/dev/hda2 ro acpi_sle=
-ep=3Ds3_bios
-initrd =A0 =A0 =A0 =A0 =A0/boot/initrd.img-2.6.11
-savedefault
-boot
-
-Now, I can suspend and resume with the script I wrote for it, but even whil=
-e=20
-suspended, the screen wont turn 100% off. If I tilt in in a way, about=20
-160degree angle, I can see some text on the screen. Of course I can barely=
-=20
-see it, but I can for Christ`s sake, while it should be off. For an=20
-"untrained" eye it seems the screen is black of course, but I got suspiciou=
-s=20
-after a few days of being able to suspend, as the laptop wasnt 100% quiet.=
-=20
-The screen is making a little, very very little scratching noise, that I=20
-cannot really describe its more like an "electric" noise. Its bugging me, a=
-s=20
-it must be using some of my battery, while it should not be using anything=
-=20
-other than what the RAM needs to not loose its stored memory.
-
-Thanks for helping, and let me know if you need any other log or files from=
- my=20
-lappy.
-
-Bence
+Thanks a lot,
+=46rank
 
 
 -------------------------------------------------------
