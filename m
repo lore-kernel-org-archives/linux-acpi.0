@@ -1,13 +1,13 @@
-From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
-Subject: Re: plans for toshiba_acpi
-Date: Sun, 12 Jun 2005 17:15:16 +0200
-Message-ID: <1118589316.14218.11.camel@nouse.net>
-References: <42AC42E1.50801@neggie.net>
+From: Azael Avalos <coproscefalo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: plans for toshiba_acpi
+Date: Sun, 12 Jun 2005 13:07:36 -0600
+Message-ID: <74962ea30506121207613a2998@mail.gmail.com>
+Reply-To: Azael Avalos <coproscefalo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42AC42E1.50801-wanGne27zNesTnJN9+BGXg@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,32 +18,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>, Jonathan Buzzard <jonathan-kE54VaY6i3ADXYZnReoRVg@public.gmane.org>, Daniel Silverstone <dsilvers-gyMb1R/nBgPUHbNLRunGg9i2O/JbrIOy@public.gmane.org>, Charles Schwieters <charles-65ntjE03WUhD60Wz+7aTrA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Those are great news to hear, but I have a question.
+Is the new /dev/toshiba interface going to have support for HCI only
+or also for SCI?
 
-On Sun, 2005-06-12 at 10:12 -0400, John Belmonte wrote:
+That is because a small program I'm doing for KDE uses both interfaces
+for accesing battery save mode, battery info, display brightness, etc.
+to the user, so it will be great to have an SCI interface also, this
+is just in case the "toshiba" driver fails my program can use
+"toshiba_acpi" driver instead or viceversa.
 
-> Here are my plans for enhancing the "toshiba_acpi" driver, and imploding
-> the "/proc/acpi/toshiba" interface.
-> 
-> * incorporate ACPI hotkeys patch developed by Daniel Silverstone and
-> used in Ubuntu Linux.  Available as a run-time option, this creates a
-> kernel thread which polls the Toshiba firmware for hotkey events, and
-> passes them along to the ACPI subsystem.
-
-Since the hotkey values for brightness up and brightness down are
-identical on Toshiba laptops, it would also make sense to let the kernel
-thread trigger the appropriate SCI command.  This way no user space tool
-would be required for this purpose any longer.
-
-[...]
-
-See you,
-
-   Timo
-
+--=20
+-- El mundo apesta y vosotros apestais tambien --
 
 
 -------------------------------------------------------
