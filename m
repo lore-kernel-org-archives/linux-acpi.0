@@ -1,18 +1,8 @@
-From: "Jason Dagit" <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org>
-Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was:
- Re: Resume from Suspend to RAM))
-Date: Sun, 12 Jun 2005 16:25:01 -0700
-Message-ID: <87fyvni2eq.fsf@www.codersbase.com>
-References: <200506061531.41132.stefandoesinger@gmx.at>
-	<200506122255.38020.chefturner@web.de>
-	<878y1fjltd.fsf@www.codersbase.com>
-	<200506130101.20005.chefturner@web.de>
-	<87k6kzi2o7.fsf@www.codersbase.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "MailScanner at CSE-IMM" <"mailadm_imm@"@imm.dtu.dk>
+Subject: Warning: E-mail viruses detected
+Date: Mon, 13 Jun 2005 03:38:01 +0200
+Message-ID: <200506130138.j5D1c1LO003839@csmail.it.dtu.dk>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <87k6kzi2o7.fsf-mMfbam+mt929kzlf/Hu3QdBPR1lH4CV8@public.gmane.org> (Jason Dagit's message of
- "Sun, 12 Jun 2005 16:19:20 -0700")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,26 +12,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christoph Tavan <chefturner-S0/GAf8tV78@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-"Jason Dagit" <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org> writes:
+Our e-mail content detector has just been triggered by a message you sent:
+  To: jan-xyTdQ8r5u3sU6BWJCfYAFA@public.gmane.org
+  Subject: Error
+  Date: Mon Jun 13 03:38:01 2005
 
-> Christoph Tavan <chefturner-S0/GAf8tV78@public.gmane.org> writes:
->
->> When I boot it with init=/bin/bash without the patch, it also seems to suspend 
->> and resume fine except for the display which stays black. Everything else 
->> seems to work: I can type "reboot" and the machine reboots properly!
->
-> I want to try this on my laptop.  When I add init=/bin/bash, /sys and
-> /proc are empty.  How do I initiate suspend?  I used to use either
-> echo mem >/sys/power/state or echo 3 >/proc/acpi/sleep.
+One or more of the attachments (doc.zip, doc.pif) are on
+the list of unacceptable attachments for this site and will not have
+been delivered.
 
-Oh, figured it out.  mount /proc, then do the echo.
+Consider renaming the files to avoid this constraint.
 
-Sorry for posting before thinking.
-Jason
+The virus detector said this about the message:
+Report: MailScanner: Shortcuts to MS-Dos programs are very dangerous in email (doc.pif)
+Report: MailScanner: Shortcuts to MS-Dos programs are very dangerous in email (doc.pif)
+
+
+-- 
+MailScanner at CSE-IMM
+Email Virus Scanner
+CSE, IMM Mailscanner
+
+
+
 
 
 -------------------------------------------------------
