@@ -1,8 +1,13 @@
-From: "MailScanner at CSE-IMM" <"mailadm_imm@"@imm.dtu.dk>
-Subject: Warning: E-mail viruses detected
-Date: Mon, 13 Jun 2005 03:38:01 +0200
-Message-ID: <200506130138.j5D1c1LO003839@csmail.it.dtu.dk>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: tg3 ethernet not coming back properly after S3 suspendon Dell M70
+Date: Mon, 13 Jun 2005 13:13:32 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750243E650@pdsmsx402.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,32 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Nguyen, Tom L" <tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Vukicevic <vladimirv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Our e-mail content detector has just been triggered by a message you sent:
-  To: jan-xyTdQ8r5u3sU6BWJCfYAFA@public.gmane.org
-  Subject: Error
-  Date: Mon Jun 13 03:38:01 2005
+Hi Long,
+>
+>On Thursday, June 09, 2005 7:00 PM Shaohua Li wrote:
+>> Long, is this patch ok to you? PCIE bridge itself requires to
+>> save/restore config space.
+>
+>Great! Would you please also add saving/restoring MSI capability
+structure
+>if supported?
+Ideally, we should call pci_enable/disable_msi/msix for suspend/resume,
+but I have some troubles to save/restore the MSIx configs. The driver
+doesn't record the msix_entries. Anyway, you are the expert, so it might
+be up to you to add the MSI support.
 
-One or more of the attachments (doc.zip, doc.pif) are on
-the list of unacceptable attachments for this site and will not have
-been delivered.
-
-Consider renaming the files to avoid this constraint.
-
-The virus detector said this about the message:
-Report: MailScanner: Shortcuts to MS-Dos programs are very dangerous in email (doc.pif)
-Report: MailScanner: Shortcuts to MS-Dos programs are very dangerous in email (doc.pif)
-
-
--- 
-MailScanner at CSE-IMM
-Email Virus Scanner
-CSE, IMM Mailscanner
-
-
-
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
