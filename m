@@ -1,35 +1,65 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM
-	(was: Re: [ACPI] Resume from Suspend to RAM))
-Date: Tue, 14 Jun 2005 09:47:21 +0100
-Message-ID: <1118738841.6648.514.camel@tyrosine>
-References: <200506061531.41132.stefandoesinger@gmx.at>
-	 <1118125410.3828.12.camel@linux-hp.sh.intel.com>
-	 <87ll5diemh.fsf@www.codersbase.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM))
+Date: Tue, 14 Jun 2005 11:06:52 +0200
+Message-ID: <20050614090652.GA1863@elf.ucw.cz>
+References: <200506061531.41132.stefandoesinger@gmx.at> <1118125410.3828.12.camel@linux-hp.sh.intel.com> <87ll5diemh.fsf@www.codersbase.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261325AbVFNIrs@vger.kernel.org>
-In-Reply-To: <87ll5diemh.fsf@www.codersbase.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dagit@codersbase.com
-Cc: Shaohua Li <shaohua.li@intel.com>, stefandoesinger@gmx.at, acpi-dev <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87ll5diemh.fsf-mMfbam+mt929kzlf/Hu3QdBPR1lH4CV8@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org
+Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefandoesinger-RbZlAiThDcE@public.gmane.org, acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-06-14 at 00:25 -0700, dagit@codersbase.com wrote:
+Hi!
 
-> The reason for (2) is because if I remove the pushl;popl, boot into
-> windows suspend/resume, and immeditaly boot into linux then the
-> suspend/resume works.  I have screen blanking issues, but I can type
-> blindly and the commands all work just fine (I can startx for
-> example).
+> If you've looked at this bug you will know that myself at and atleast
+> one other person experience a reboot on resume at a specific line in
+> the wakeup code:
+> http://bugme.osdl.org/show_bug.cgi?id=3586
+> 
+> One note about the code in the bug, my code for detecting PM is
+> backwards, so ignore it, what I say in this email is still valid.
+> 
+> Specifically, if I get rid of the pushl;popl then the computer does
+> not reboot.  See the attached diff.  The question is 1) is this
+> pushl;popl the final nail in the coffin? 2) Does windows not clear the
+> flags completely, but instead sets them to some "special value"?
+> 
+> The reason for (1) is because as I understand it, when a certain
+> number of illegal operations (3 iirc) are issued at certain times
+> (real mode iirc) the machine automatically reboots.  That could be
+> what we are seeing here.
 
-Can you do a lspci -vxxx
+You got this wrong. It is three illegal instructions but
+*nested*. Like error, error in fault handler, error in doublefault
+handler.
 
-a) After a cold boot into linux
-b) After a warm boot into linux from Windows
+Try replacing flags manipulation with any stack manipulation to see
+what is wrong.
 
-and see if there's any difference between the two?
+> Also, what flags are being cleared?  What is their meaning?  Can you
+> or someone on this list point me to the approriate documentation?  I'd
+> love to look at it and try to understand my hardware better.
 
+Like perhaps processor docs?
+								Pavel
 -- 
-Matthew Garrett | mjg59@srcf.ucam.org
+teflon -- maybe it is a trademark, but it should not be.
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
+a projector? How fast can you ride your desk chair down the office luge track?
+If you want to score the big prize, get to know the little guy.  
+Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
