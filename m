@@ -1,13 +1,15 @@
-From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: Re: /proc/acpi/alarm not working
-Date: Tue, 14 Jun 2005 20:22:27 +0200
-Message-ID: <42AF2063.3050104@kernelconcepts.de>
-References: <42A7842C.2060207@colitti.com> <20050609134938.GA4478@openzaurus.ucw.cz>
+From: Christoph Tavan <chefturner-S0/GAf8tV78@public.gmane.org>
+Subject: Display black after s3 resume, vbetool not working (was: Re: S3 test tool)
+Date: Tue, 14 Jun 2005 21:38:04 +0200
+Message-ID: <200506142138.04603.chefturner@web.de>
+References: <200506061531.41132.stefandoesinger@gmx.at> <200506130101.20005.chefturner@web.de> <1118618000.6648.459.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050609134938.GA4478-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <1118618000.6648.459.camel@tyrosine>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,67 +19,72 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi again,
 
-Pavel Machek wrote:
-> Hi!
-Hi!
+On Monday 13 June 2005 01:13, Matthew Garrett wrote:
+> On Mon, 2005-06-13 at 01:01 +0200, Christoph Tavan wrote:
+> > My Samsung X30 Laptop "suspends" and "resumes" fine with the patch, so
+> > kernel-code seems to be OK.
+>
+> Try vbetool.
 
->>I am trying to use /proc/acpi/alarm to wake my laptop from S3 and go 
->>into S4 after a fixed amount of time. But I can't get 
->>/proc/acpi/alarm to work.
-> That sounds dangerous to me... drive might spin up during bad time when being
-> transported...
+Thanks for the tip, I've tried that, unfortunately without success. 
 
-I am also missing that functionality!
-My older Lifebook was able to do that automatically using APM. This was
-very convenient because you never had to care about usign one over the
-other suspend method. You simply close the lid - dot.
-When you turn the machine back on it will still have almost the same
-battery power left.
-The idea is that if you do not use the machine for several minutes
-(hour) the probability is high that you will not do so for another
-extended period of time which makes suspend to RAM a bad thing, sucking
-your battery to empty (and we all know that batteries do not like to get
-drained).
-For the short term suspend the machine will simply suspend to RAM and
-come back on quite quickly.
+I'm going to describe, what happens, when I suspend and resume and I would be 
+glad about every help. My laptop is a Samsung X30 with nvidia geforce fx go 
+5200 vga-adapter.
 
-I always had the timeout to 30 minutes and was very hapy with it.
+- Booted normally to console (no framebuffer, no X), only module loaded is 
+evdev.
 
-And I also have not had any problem with my harddisk at all - I just
-sometimes wondered what would happen if I close the lid and the machine
-starts to suspend to disk while sitting in an airplane ;) but that's
-another problem.
+- saved vbestate:
+  # vbetool vbestate save > path/to/vbefile
 
-> Why not enter S3 but save image to disk in case battery runs out?
+- # sync
 
-Two reasons:
-1. Not necessary in most cases (at least it does not give a huge benefit).
-2. Too much battery drain causing battery to wear out too early.
+- suspend to ram:
+  # echo -n mem > /sys/power/state
 
-> 				Pavel
-CU
-  nils faerber
+=== Now the Laptop properly suspends! ===
 
-- --
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          Mob: +49-176-21024535
-- --
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+- wake up the laptop by pressing the appropriate button, now display stays 
+black but I can type commands blindly
 
-iD8DBQFCryBiJXeIURG1qHgRApdTAJsEMKyg2kDioxZyC9/i91PXaONjOgCfcAFm
-ZFPY+mt6fLWST+U0SfBzekc=
-=QpoI
------END PGP SIGNATURE-----
+- # sync
+
+- try to post video-bios
+  # vbetool post
+
+=== Now the screen turns white with strange couloured lines. The white screen 
+slowly gets darker and darker... I took a photo:
+http://bugme.osdl.org/attachment.cgi?id=4029&action=view
+
+- # vbetool vbestate restore < path/to/vbefile
+  has no visible effect :(
+
+Switching terminals and starting X works (according to the logfiles), but has 
+no effect on the display!
+
+Here the last lines of the kernel-log:
+
+Jun 14 20:38:56 spock Stopping tasks: ============================|
+Jun 14 20:38:56 spock hwsleep-0296 [06] acpi_enter_sleep_state: Entering sleep 
+state [S3]
+Jun 14 20:38:56 spock Back to C!
+Jun 14 20:38:56 spock ACPI: PCI Interrupt 0000:00:1f.1[A] -> Link [LNKC] -> 
+GSI 10 (level, low) -> IRQ 10
+Jun 14 20:38:56 spock ACPI: PCI Interrupt 0000:02:05.0[A] -> Link [LNKD] -> 
+GSI 10 (level, low) -> IRQ 10
+Jun 14 20:38:56 spock Restarting tasks... done
+Jun 14 20:38:56 spock Disabling BM access before entering C3
+
+
+Any suggestions how one could find out what's going wrong there?
+
+Thanks in advance, Christoph Tavan
 
 
 -------------------------------------------------------
