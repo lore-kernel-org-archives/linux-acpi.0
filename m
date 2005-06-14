@@ -1,42 +1,68 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was: Re: [ACPI] Resume from Suspend to RAM))
-Date: Tue, 14 Jun 2005 23:37:28 +0200
-Message-ID: <20050614213728.GB2172@elf.ucw.cz>
-References: <200506061531.41132.stefandoesinger@gmx.at> <1118125410.3828.12.camel@linux-hp.sh.intel.com> <87ll5diemh.fsf@www.codersbase.com> <20050614090652.GA1863@elf.ucw.cz> <87aclthr7l.fsf@www.codersbase.com>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: /proc/acpi/alarm not working
+Date: Tue, 14 Jun 2005 23:40:08 +0200
+Message-ID: <20050614214008.GC2172@elf.ucw.cz>
+References: <42A7842C.2060207@colitti.com> <20050609134938.GA4478@openzaurus.ucw.cz> <42AF2063.3050104@kernelconcepts.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261350AbVFNVhv@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <87aclthr7l.fsf@www.codersbase.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dagit@codersbase.com
-Cc: Shaohua Li <shaohua.li@intel.com>, stefandoesinger@gmx.at, acpi-dev <acpi-devel@lists.sourceforge.net>, Matthew Garrett <mjg59@srcf.ucam.org>, lkml <linux-kernel@vger.kernel.org>
+In-Reply-To: <42AF2063.3050104-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > You got this wrong. It is three illegal instructions but
-> > *nested*. Like error, error in fault handler, error in doublefault
-> > handler.
+> >>I am trying to use /proc/acpi/alarm to wake my laptop from S3 and go 
+> >>into S4 after a fixed amount of time. But I can't get 
+> >>/proc/acpi/alarm to work.
+> > That sounds dangerous to me... drive might spin up during bad time when being
+> > transported...
 > 
-> Ah.  Yeah, this isn't an area I know much about :)  Thanks for the
-> correction. 
-> 
-> > Try replacing flags manipulation with any stack manipulation to see
-> > what is wrong.
-> 
-> Do you mean try something like this? Replace the push 0 with push
-> 0x1234 ; push 0x1234 ; pop ; pop and try to figure out which line
-> causes the reboot?
+> I am also missing that functionality!
+> My older Lifebook was able to do that automatically using APM. This was
+> very convenient because you never had to care about usign one over the
+> other suspend method. You simply close the lid - dot.
+...
+> I always had the timeout to 30 minutes and was very hapy with it.
 
-Yep, try pushl $0, popl %eax; if that causes problems, something is
-seriously wrong with stack, otherwise changing flags hurts.
+> And I also have not had any problem with my harddisk at all - I just
+> sometimes wondered what would happen if I close the lid and the machine
+> starts to suspend to disk while sitting in an airplane ;) but that's
+> another problem.
 
-> > Like perhaps processor docs?
+Really? Turning on machine at some random time seems dangerous to
+me. Airplane is one example. Or imagine closing lid than going
+horseback riding with your laptop. Machine can probably survive that
+kind of vibrations when powered down, but I do not think it would
+survive them with disk spinning...
+
+> > Why not enter S3 but save image to disk in case battery runs out?
 > 
-> Is that what I want to look at?  I was the one asking the question. ;)
+> Two reasons:
+> 1. Not necessary in most cases (at least it does not give a huge benefit).
+> 2. Too much battery drain causing battery to wear out too early.
 
-Yes.
+IBM was calling it "redisafe". I'm not sure how fast it killed the
+batteries...
+
 								Pavel
 -- 
 teflon -- maybe it is a trademark, but it should not be.
+
+
+-------------------------------------------------------
+SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+from IBM. Find simple to follow Roadmaps, straightforward articles,
+informative Webcasts and more! Get everything you need to get up to
+speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
