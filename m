@@ -1,12 +1,11 @@
-From: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
-Subject: ACPI+Userspace
-Date: Mon, 13 Jun 2005 19:37:36 -0400
-Message-ID: <1118705856.3814.6.camel@localhost>
-Reply-To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org
+From: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH] PCI: add proper MCFG table parsing to ACPI core.
+Date: Mon, 13 Jun 2005 23:37:46 -0700
+Message-ID: <20050614063745.GA19556@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,27 +15,245 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all--quick question.
+In order to handle the MCFG ACPI table properly, we need to at least
+parse the thing properly :)  So, here's a patch that adds support for
+this.  It's against my latest PCI tree (which is included in -mm) but
+will apply with a bit of fuzz against 2.6.12-rc6.
 
-As bad as it may seem, I was wondering if it is possible to generate
-ACPI events in userspace? That is: propogate any arbitrary "string" up
-through the ACPI subsystem, eventually getting dumped
-to /proc/acpi/event which, in our case, is being watched and acted on by
-the userspace util ACPID.
+I've tested this out on boxes that only have 1 MCFG config table, if
+anyone has access to ones that have more than this, I'd be interested to
+see how well it works.  Based on the comments in the mmconfig.c file,
+I'm guessing that various AMD boxes are like this...
 
-The obvious answer is: "Call /etc/acpi/hander with your string!"--which
-is always an option--but I'd like to know if it's possible simply to use
-for testing/debugging. I could write a driver supporting ioctls to pass
-stuff via acpi_bus_generate_event (I think?), but that's wayyy too much
-work for what I'm wanting this for. I'm sure there are reasons this
-isn't a good idea, and I'd be glad to hear those too (to increase my
-understanding of ACPI!).
+Anyone have any objections to this patch?
 
-Anyway--thanks ahead of time. Weee.
+thanks,
 
+greg k-h
+
+-----------------------
+
+Subject: PCI: add proper MCFG table parsing to ACPI core.
+From: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+
+This patch is the first step in properly handling the MCFG PCI table.
+It defines the structures properly, and saves off the table so that the
+pci mmconfig code can access it.  It moves the parsing of the table a
+little later in the boot process, but still before the information is
+needed.
+
+
+Signed-off-by: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+
+---
+     
+ arch/i386/kernel/acpi/boot.c |   33 +++++++++++++++++++++++++--------
+ arch/i386/pci/mmconfig.c     |   12 +++++++++---
+ arch/x86_64/pci/mmconfig.c   |   18 ++++++++++++------
+ include/linux/acpi.h         |   16 +++++++++++++---
+ 4 files changed, 59 insertions(+), 20 deletions(-)
+
+--- gregkh-2.6.orig/arch/i386/kernel/acpi/boot.c	2005-06-10 23:47:32.000000000 -0700
++++ gregkh-2.6/arch/i386/kernel/acpi/boot.c	2005-06-13 23:25:39.000000000 -0700
+@@ -158,9 +158,10 @@
+ #endif
+ 
+ #ifdef CONFIG_PCI_MMCONFIG
+-static int __init acpi_parse_mcfg(unsigned long phys_addr, unsigned long size)
++int __init acpi_parse_mcfg(unsigned long phys_addr, unsigned long size)
+ {
+ 	struct acpi_table_mcfg *mcfg;
++	unsigned long i;
+ 
+ 	if (!phys_addr || !size)
+ 		return -EINVAL;
+@@ -171,18 +172,35 @@
+ 		return -ENODEV;
+ 	}
+ 
+-	if (mcfg->base_reserved) {
+-		printk(KERN_ERR PREFIX "MMCONFIG not in low 4GB of memory\n");
++	/* how many config structures do we have */
++	pci_mmcfg_config_num = 0;
++	i = size - sizeof(struct acpi_table_mcfg);
++	while (i >= sizeof(struct acpi_table_mcfg_config)) {
++		++pci_mmcfg_config_num;
++		i -= sizeof(struct acpi_table_mcfg_config);
++	};
++	if (pci_mmcfg_config_num == 0) {
++		printk(KERN_ERR PREFIX "MMCONFIG has no entries\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	pci_mmcfg_base_addr = mcfg->base_address;
++	pci_mmcfg_config = kmalloc(pci_mmcfg_config_num * sizeof(*pci_mmcfg_config), GFP_KERNEL);
++	if (!pci_mmcfg_config) {
++		printk(KERN_WARNING PREFIX "No memory for MCFG config tables\n");
++		return -ENOMEM;
++	}
++
++	memcpy(pci_mmcfg_config, &mcfg->config, pci_mmcfg_config_num * sizeof(*pci_mmcfg_config));
++	for (i = 0; i < pci_mmcfg_config_num; ++i) {
++		if (mcfg->config[i].base_reserved) {
++			printk(KERN_ERR PREFIX "MMCONFIG not in low 4GB of memory\n");
++			return -ENODEV;
++		}
++	}
+ 
+ 	return 0;
+ }
+-#else
+-#define	acpi_parse_mcfg NULL
+-#endif /* !CONFIG_PCI_MMCONFIG */
++#endif /* CONFIG_PCI_MMCONFIG */
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+ static int __init
+@@ -923,7 +941,6 @@
+ 	acpi_process_madt();
+ 
+ 	acpi_table_parse(ACPI_HPET, acpi_parse_hpet);
+-	acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
+ 
+ 	return 0;
+ }
+--- gregkh-2.6.orig/include/linux/acpi.h	2005-06-10 23:47:32.000000000 -0700
++++ gregkh-2.6/include/linux/acpi.h	2005-06-13 23:25:39.000000000 -0700
+@@ -342,11 +342,19 @@
+ 
+ /* PCI MMCONFIG */
+ 
++/* Defined in PCI Firmware Specification 3.0 */
++struct acpi_table_mcfg_config {
++	u32				base_address;
++	u32				base_reserved;
++	u16				pci_segment_group_number;
++	u8				start_bus_number;
++	u8				end_bus_number;
++	u8				reserved[4];
++} __attribute__ ((packed));
+ struct acpi_table_mcfg {
+ 	struct acpi_table_header	header;
+ 	u8				reserved[8];
+-	u32				base_address;
+-	u32				base_reserved;
++	struct acpi_table_mcfg_config	config[0];
+ } __attribute__ ((packed));
+ 
+ /* Table Handlers */
+@@ -391,6 +399,7 @@
+ int acpi_get_table_header_early (enum acpi_table_id id, struct acpi_table_header **header);
+ int acpi_table_parse_madt (enum acpi_madt_entry_id id, acpi_madt_entry_handler handler, unsigned int max_entries);
+ int acpi_table_parse_srat (enum acpi_srat_entry_id id, acpi_madt_entry_handler handler, unsigned int max_entries);
++int acpi_parse_mcfg (unsigned long phys_addr, unsigned long size);
+ void acpi_table_print (struct acpi_table_header *header, unsigned long phys_addr);
+ void acpi_table_print_madt_entry (acpi_table_entry_header *madt);
+ void acpi_table_print_srat_entry (acpi_table_entry_header *srat);
+@@ -412,7 +421,8 @@
+ 
+ extern int acpi_mp_config;
+ 
+-extern u32 pci_mmcfg_base_addr;
++extern struct acpi_table_mcfg_config *pci_mmcfg_config;
++extern int pci_mmcfg_config_num;
+ 
+ extern int sbf_port ;
+ 
+--- gregkh-2.6.orig/arch/i386/pci/mmconfig.c	2005-06-06 12:08:31.000000000 -0700
++++ gregkh-2.6/arch/i386/pci/mmconfig.c	2005-06-13 23:25:39.000000000 -0700
+@@ -11,10 +11,12 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include "pci.h"
+ 
+ /* The physical address of the MMCONFIG aperture.  Set from ACPI tables. */
+-u32 pci_mmcfg_base_addr;
++struct acpi_table_mcfg_config *pci_mmcfg_config;
++int pci_mmcfg_config_num;
+ 
+ #define mmcfg_virt_addr ((void __iomem *) fix_to_virt(FIX_PCIE_MCFG))
+ 
+@@ -27,7 +29,7 @@
+ 
+ static inline void pci_exp_set_dev_base(int bus, int devfn)
+ {
+-	u32 dev_base = pci_mmcfg_base_addr | (bus << 20) | (devfn << 12);
++	u32 dev_base = pci_mmcfg_config[0].base_address | (bus << 20) | (devfn << 12);
+ 	if (dev_base != mmcfg_last_accessed_device) {
+ 		mmcfg_last_accessed_device = dev_base;
+ 		set_fixmap_nocache(FIX_PCIE_MCFG, dev_base);
+@@ -101,7 +103,11 @@
+ {
+ 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
+ 		goto out;
+-	if (!pci_mmcfg_base_addr)
++
++	acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
++	if ((pci_mmcfg_config_num == 0) ||
++	    (pci_mmcfg_config == NULL) ||
++	    (pci_mmcfg_config[0].base_address == 0))
+ 		goto out;
+ 
+ 	/* Kludge for now. Don't use mmconfig on AMD systems because
+--- gregkh-2.6.orig/arch/x86_64/pci/mmconfig.c	2005-06-06 12:08:36.000000000 -0700
++++ gregkh-2.6/arch/x86_64/pci/mmconfig.c	2005-06-13 23:25:39.000000000 -0700
+@@ -7,15 +7,17 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include "pci.h"
+ 
+ #define MMCONFIG_APER_SIZE (256*1024*1024)
+ 
+ /* The physical address of the MMCONFIG aperture.  Set from ACPI tables. */
+-u32 pci_mmcfg_base_addr;
++struct acpi_table_mcfg_config *pci_mmcfg_config;
++int pci_mmcfg_config_num;
+ 
+ /* Static virtual mapping of the MMCONFIG aperture */
+-char *pci_mmcfg_virt;
++static char *pci_mmcfg_virt;
+ 
+ static inline char *pci_dev_base(unsigned int bus, unsigned int devfn)
+ {
+@@ -77,8 +79,12 @@
+ {
+ 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
+ 		return 0;
+-	if (!pci_mmcfg_base_addr)
+-		return 0;
++
++	acpi_table_parse(ACPI_MCFG, acpi_parse_mcfg);
++	if ((pci_mmcfg_config_num == 0) ||
++	    (pci_mmcfg_config == NULL) ||
++	    (pci_mmcfg_config[0].base_address == 0))
++		goto out;
+ 
+ 	/* Kludge for now. Don't use mmconfig on AMD systems because
+ 	   those have some busses where mmconfig doesn't work,
+@@ -88,13 +94,13 @@
+ 		return 0; 
+ 
+ 	/* RED-PEN i386 doesn't do _nocache right now */
+-	pci_mmcfg_virt = ioremap_nocache(pci_mmcfg_base_addr, MMCONFIG_APER_SIZE);
++	pci_mmcfg_virt = ioremap_nocache(pci_mmcfg_config[0].base_address, MMCONFIG_APER_SIZE);
+ 	if (!pci_mmcfg_virt) { 
+ 		printk("PCI: Cannot map mmconfig aperture\n");
+ 		return 0;
+ 	}	
+ 
+-	printk(KERN_INFO "PCI: Using MMCONFIG at %x\n", pci_mmcfg_base_addr);
++	printk(KERN_INFO "PCI: Using MMCONFIG at %x\n", pci_mmcfg_config[0].base_address);
+ 	raw_pci_ops = &pci_mmcfg;
+ 	pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
+ 
 
 
 -------------------------------------------------------
