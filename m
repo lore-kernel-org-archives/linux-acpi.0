@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 test tool (was : Re: Bizarre oops after suspend to RAM (was: Re: Resume from Suspend to RAM))
-Date: Tue, 14 Jun 2005 11:06:52 +0200
-Message-ID: <20050614090652.GA1863@elf.ucw.cz>
-References: <200506061531.41132.stefandoesinger@gmx.at> <1118125410.3828.12.camel@linux-hp.sh.intel.com> <87ll5diemh.fsf@www.codersbase.com>
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] PCI: add proper MCFG table parsing to ACPI core.
+Date: Tue, 14 Jun 2005 11:37:30 +0200
+Message-ID: <20050614093730.GD11898@wotan.suse.de>
+References: <20050614063745.GA19556@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <87ll5diemh.fsf-mMfbam+mt929kzlf/Hu3QdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20050614063745.GA19556-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,45 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefandoesinger-RbZlAiThDcE@public.gmane.org, acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> If you've looked at this bug you will know that myself at and atleast
-> one other person experience a reboot on resume at a specific line in
-> the wakeup code:
-> http://bugme.osdl.org/show_bug.cgi?id=3586
+On Mon, Jun 13, 2005 at 11:37:46PM -0700, Greg KH wrote:
+> In order to handle the MCFG ACPI table properly, we need to at least
+> parse the thing properly :)  So, here's a patch that adds support for
+> this.  It's against my latest PCI tree (which is included in -mm) but
+> will apply with a bit of fuzz against 2.6.12-rc6.
 > 
-> One note about the code in the bug, my code for detecting PM is
-> backwards, so ignore it, what I say in this email is still valid.
+> I've tested this out on boxes that only have 1 MCFG config table, if
+> anyone has access to ones that have more than this, I'd be interested to
+> see how well it works.  Based on the comments in the mmconfig.c file,
+> I'm guessing that various AMD boxes are like this...
+
+All the AMD boxes with PCI-Express. The internal busses of the
+Northbridge don't support MMCONFIG, but the PCI-Express busses
+do. 
+
 > 
-> Specifically, if I get rid of the pushl;popl then the computer does
-> not reboot.  See the attached diff.  The question is 1) is this
-> pushl;popl the final nail in the coffin? 2) Does windows not clear the
-> flags completely, but instead sets them to some "special value"?
-> 
-> The reason for (1) is because as I understand it, when a certain
-> number of illegal operations (3 iirc) are issued at certain times
-> (real mode iirc) the machine automatically reboots.  That could be
-> what we are seeing here.
+> Anyone have any objections to this patch?
 
-You got this wrong. It is three illegal instructions but
-*nested*. Like error, error in fault handler, error in doublefault
-handler.
+Looks good as a first step. Next step will be to query the
+PCI segment group numbers and then assign different pci ops to the different 
+busses based on that.
 
-Try replacing flags manipulation with any stack manipulation to see
-what is wrong.
-
-> Also, what flags are being cleared?  What is their meaning?  Can you
-> or someone on this list point me to the approriate documentation?  I'd
-> love to look at it and try to understand my hardware better.
-
-Like perhaps processor docs?
-								Pavel
--- 
-teflon -- maybe it is a trademark, but it should not be.
+-Andi
 
 
 -------------------------------------------------------
