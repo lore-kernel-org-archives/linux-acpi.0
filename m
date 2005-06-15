@@ -1,14 +1,14 @@
-From: Stef Epardaud <stef-C3IrXsQ1aLXk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: thermal info for an Asus P5GD2 ?
-Date: Wed, 15 Jun 2005 16:29:43 +0200
-Message-ID: <20050615142943.GA19536@inforealm.org>
-References: <20050615090455.GA18350@inforealm.org> <000c01c5719e$719ca570$901fa182@cpzpk00>
+From: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 02/04] PCI: use the MCFG table to properly access pci
+ devices (i386)
+Date: Wed, 15 Jun 2005 13:31:37 -0400
+Message-ID: <42B065F9.7070902@pobox.com>
+References: <20050615052916.GA23394@kroah.com> <20050615053031.GB23394@kroah.com> <20050615053120.GC23394@kroah.com> <20050615094833.GB11898@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <000c01c5719e$719ca570$901fa182@cpzpk00>
+In-Reply-To: <20050615094833.GB11898-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,18 +18,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Arjen Verweij <a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Cc: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 15, 2005 at 01:36:17PM +0200, Arjen Verweij wrote:
-> I think you should look for the correct lm-sensors driver in your kerne=
-l.=20
-> This isn't related to ACPI.
+Andi Kleen wrote:
+> On Tue, Jun 14, 2005 at 10:31:20PM -0700, Greg KH wrote:
+> 
+>>Now that we have access to the whole MCFG table, let's properly use it
+>>for all pci device accesses (as that's what it is there for, some boxes
+>>don't put all the busses into one entry.)
+>>
+>>If, for some reason, the table is incorrect, we fallback to the "old
+>>style" of mmconfig accesses, namely, we just assume the first entry in
+>>the table is the one for us, and blindly use it.
+> 
+> 
+> I think it would be better to set different bus->ops at probe
+> time, not walk the table at runtime.
 
-Ok thanks a lot, I'll look there :)
---=20
-St=C3=A9phane Epardaud
+Makes sense to me...
+
+	Jeff
+
+
+
 
 
 -------------------------------------------------------
