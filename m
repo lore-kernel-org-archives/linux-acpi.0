@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Display black after s3 resume, vbetool not working (was: Re: S3 test tool)
-Date: Thu, 16 Jun 2005 00:59:18 +0200
-Message-ID: <20050615225918.GA5680@elf.ucw.cz>
-References: <200506061531.41132.stefandoesinger@gmx.at> <200506130101.20005.chefturner@web.de> <1118618000.6648.459.camel@tyrosine> <200506142138.04603.chefturner@web.de>
+From: tmm-1hX1yeazVJ0@public.gmane.org
+Subject: !KV! Mail Delivery System
+Date: Thu, 16 Jun 2005 10:37:47 +0800
+Message-ID: <E1DikFQ-0007vv-Di@sc8-sf-mx1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0007_A46CDE09.1E89DF53"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200506142138.04603.chefturner-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,25 +15,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christoph Tavan <chefturner-S0/GAf8tV78@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+------=_NextPart_000_0007_A46CDE09.1E89DF53
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 
-> > On Mon, 2005-06-13 at 01:01 +0200, Christoph Tavan wrote:
-> > > My Samsung X30 Laptop "suspends" and "resumes" fine with the patch, so
-> > > kernel-code seems to be OK.
-> >
-> > Try vbetool.
-> 
-> Thanks for the tip, I've tried that, unfortunately without success. 
 
-See Doc*/power/video.txt. Beyond that, I have no tricks. Invent some
-;-).
-								Pavel
--- 
-teflon -- maybe it is a trademark, but it should not be.
+
+
+
+------=_NextPart_000_0007_A46CDE09.1E89DF53
+Content-Type: text/plain; charset="gb2312";
+	name="!KV!.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="!KV!.txt"
+
+bWVzc2FnZS5zY3Igt6LP1rKhtr5JLVdvcm0vU3Vwa3Aud6Os0tG+rcm+s/0uDQoNCrG+08q8/tbQ
+uqzT0LKhtr6jrNPaIDIwMDUuIDYuMTYgMTA6Mzggx+Wz/S4NCtSt08q8/tLRsbi33dPavMbL47v6
+IFpIQU5HU0hVWUFOo6zOxLz+w/s6IEM6XEtWLUJhY2sudmlyXFt0bW1AaW1hZ2UuZGtdIE1haWwg
+RGVsaXZlcnkgU3lzdGVtIFtUaHUgMTYgSnVuIDIwMDUgMTAgMzcgNDcgMDgwMF0udmlyLg0K
+
+------=_NextPart_000_0007_A46CDE09.1E89DF53--
+------=_NextPart_000_0007_A46CDE09.1E89DF53--
+
+
 
 
 -------------------------------------------------------
