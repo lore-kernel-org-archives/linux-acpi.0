@@ -1,11 +1,13 @@
-From: tmm-1hX1yeazVJ0@public.gmane.org
-Subject: !KV! Mail Delivery System
-Date: Thu, 16 Jun 2005 10:37:47 +0800
-Message-ID: <E1DikFQ-0007vv-Di@sc8-sf-mx1.sourceforge.net>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Suspend/resume with ATI binary driver working
+Date: Thu, 16 Jun 2005 14:33:14 +0000
+Message-ID: <200506161433.14756.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0007_A46CDE09.1E89DF53"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,30 +20,23 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-------=_NextPart_000_0007_A46CDE09.1E89DF53
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+Hi,
+I thought it might be interesting for some on this list: Some gentoo user=20
+found a way to make S3/S4 working with ATI's fglrx and with full=20
+accelleration enabled:
 
+http://forums.gentoo.org/viewtopic-t-347522.html
 
+The trick is to save the vbe state with vbetool and to store /dev/vcsa befo=
+re=20
+suspend and to restore /dev/vcsa and vbe after resume. It's yet another tri=
+ck=20
+with might work or might not work on other systems, but it works nice with =
+my=20
+acer TM 803.
 
-
-
-------=_NextPart_000_0007_A46CDE09.1E89DF53
-Content-Type: text/plain; charset="gb2312";
-	name="!KV!.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="!KV!.txt"
-
-bWVzc2FnZS5zY3Igt6LP1rKhtr5JLVdvcm0vU3Vwa3Aud6Os0tG+rcm+s/0uDQoNCrG+08q8/tbQ
-uqzT0LKhtr6jrNPaIDIwMDUuIDYuMTYgMTA6Mzggx+Wz/S4NCtSt08q8/tLRsbi33dPavMbL47v6
-IFpIQU5HU0hVWUFOo6zOxLz+w/s6IEM6XEtWLUJhY2sudmlyXFt0bW1AaW1hZ2UuZGtdIE1haWwg
-RGVsaXZlcnkgU3lzdGVtIFtUaHUgMTYgSnVuIDIwMDUgMTAgMzcgNDcgMDgwMF0udmlyLg0K
-
-------=_NextPart_000_0007_A46CDE09.1E89DF53--
-------=_NextPart_000_0007_A46CDE09.1E89DF53--
-
-
+Greetings,
+Stefan D=F6singer
 
 
 -------------------------------------------------------
