@@ -1,13 +1,15 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+From: Stefan =?utf-8?q?D=C3=B6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Subject: Re: Suspend/resume with ATI binary driver working
-Date: Thu, 16 Jun 2005 14:57:37 +0100
-Message-ID: <1118930257.12491.132.camel@elrond.flymine.org>
-References: <200506161433.14756.stefandoesinger@gmx.at>
+Date: Thu, 16 Jun 2005 16:45:45 +0000
+Message-ID: <200506161645.46116.stefandoesinger@gmx.at>
+References: <200506161433.14756.stefandoesinger@gmx.at> <1118930257.12491.132.camel@elrond.flymine.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200506161433.14756.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <1118930257.12491.132.camel-Xmbc1Sz64/5pghhO6/9/sx2eb7JE58TQ@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,22 +20,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-06-16 at 14:33 +0000, Stefan D=C3=B6singer wrote:
+> And it doesn't work unless you restore /dev/vcsa?
+No, without restoring /dev/vcsa it doesn't work. I have to restore both /dev 
+vcsa and the vbe state. But restoring /dev/vcsa makes restoring the vbe state 
+more reliable. Sometimes(~25% of all attempts) vbestate restore brings the 
+card to an unuseable state. This has never happened since I restore /dev/vcsa
 
-> The trick is to save the vbe state with vbetool and to store /dev/vcsa be=
-fore=20
-> suspend and to restore /dev/vcsa and vbe after resume. It's yet another t=
-rick=20
-> with might work or might not work on other systems, but it works nice wit=
-h my=20
-> acer TM 803.
+Only one thing troubles me: What is /dev/vcsa???
 
-And it doesn't work unless you restore /dev/vcsa?
---=20
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+Stefan
 
 
 -------------------------------------------------------
