@@ -1,13 +1,13 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Suspend/resume with ATI binary driver working
-Date: Thu, 16 Jun 2005 14:33:14 +0000
-Message-ID: <200506161433.14756.stefandoesinger@gmx.at>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Suspend/resume with ATI binary driver working
+Date: Thu, 16 Jun 2005 14:57:37 +0100
+Message-ID: <1118930257.12491.132.camel@elrond.flymine.org>
+References: <200506161433.14756.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200506161433.14756.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,23 +20,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I thought it might be interesting for some on this list: Some gentoo user=20
-found a way to make S3/S4 working with ATI's fglrx and with full=20
-accelleration enabled:
+On Thu, 2005-06-16 at 14:33 +0000, Stefan D=C3=B6singer wrote:
 
-http://forums.gentoo.org/viewtopic-t-347522.html
+> The trick is to save the vbe state with vbetool and to store /dev/vcsa be=
+fore=20
+> suspend and to restore /dev/vcsa and vbe after resume. It's yet another t=
+rick=20
+> with might work or might not work on other systems, but it works nice wit=
+h my=20
+> acer TM 803.
 
-The trick is to save the vbe state with vbetool and to store /dev/vcsa befo=
-re=20
-suspend and to restore /dev/vcsa and vbe after resume. It's yet another tri=
-ck=20
-with might work or might not work on other systems, but it works nice with =
-my=20
-acer TM 803.
+And it doesn't work unless you restore /dev/vcsa?
+--=20
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-Greetings,
-Stefan D=F6singer
 
 
 -------------------------------------------------------
