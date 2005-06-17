@@ -1,13 +1,16 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: /proc/acpi/alarm not working
-Date: Fri, 17 Jun 2005 12:16:05 +0200
-Message-ID: <20050617101604.GA22108@hell.org.pl>
-References: <42A7842C.2060207@colitti.com> <20050609134938.GA4478@openzaurus.ucw.cz>
+From: Hanspeter Kunz <hkunz-IgMVJRJVTl4@public.gmane.org>
+Subject: Re: Display black after s3 resume, vbetool not working
+	(was: Re: S3 test tool)
+Date: Fri, 17 Jun 2005 14:06:45 +0200
+Message-ID: <1119010005.9908.19.camel@localhost.localdomain>
+References: <200506061531.41132.stefandoesinger@gmx.at>
+	 <200506130101.20005.chefturner@web.de> <1118618000.6648.459.camel@tyrosine>
+	 <200506142138.04603.chefturner@web.de>  <20050615225918.GA5680@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050609134938.GA4478-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <20050615225918.GA5680-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +20,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Pavel Machek:
-> > I am trying to use /proc/acpi/alarm to wake my laptop from S3 and go 
-> > into S4 after a fixed amount of time. But I can't get 
-> > /proc/acpi/alarm to work.
-> That sounds dangerous to me... drive might spin up during bad time when being
-> transported...
+On Thu, 2005-06-16 at 00:59 +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > On Mon, 2005-06-13 at 01:01 +0200, Christoph Tavan wrote:
+> > > > My Samsung X30 Laptop "suspends" and "resumes" fine with the patch, so
+> > > > kernel-code seems to be OK.
+> > >
+> > > Try vbetool.
+> > 
+> > Thanks for the tip, I've tried that, unfortunately without success. 
+> 
+> See Doc*/power/video.txt. Beyond that, I have no tricks. Invent some
+> ;-).
+> 								Pavel
 
-Why use S3 if you intend to transport the laptop in the first place?
+I do 
 
-> Why not enter S3 but save image to disk in case battery runs out?
+vbetool post; vbetool dpms on; vbetool post
 
-I believe Nigel's implementation is capable of doing so.
-Best regards,
+this switches on the lcd (I have a different laptop tough).
 
+cheers,
+Hp.
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Hanspeter Kunz                  Artificial Intelligence Laboratory
+Ph.D. Student                   Department of Information Technology
+Email: hkunz-IgMVJRJVTl4@public.gmane.org           University of Zurich
+Tel: +41.(0)44.63-54306         Andreasstrasse 15, Office 2.12
+http://ailab.ch/people/hkunz    CH-8050 Zurich, Switzerland
+
+Spamtraps: hkunz.bogus-IgMVJRJVTl4@public.gmane.org hkunz.bogus-GVP2aXj/gld83/9HYI2aGQ@public.gmane.org
+---
+He who fears the unknown may one day flee from his own backside.
+		-- Sinbad
+
 
 
 -------------------------------------------------------
