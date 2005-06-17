@@ -1,13 +1,10 @@
-From: Adam Olsen <adamo-VDTgcPsuuaZWk0Htik3J/w@public.gmane.org>
-Subject: Re: Help with S3 on an Acer Travelmate c110 [SOLVED]
-Date: Sun, 19 Jun 2005 14:21:21 -0600
-Message-ID: <42B5D3C1.9060604@mindzion.com>
-References: <42B43B7B.8000402@mindzion.com> <200506191425.11398.stefandoesinger@gmx.at> <42B59E95.1070408@mindzion.com> <200506192200.05982.stefandoesinger@gmx.at>
+From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Subject: video module limited after suspend
+Date: Fri, 17 Jun 2005 18:27:11 +0200
+Message-ID: <m28y199cf4.fsf@tnuctip.rychter.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200506192200.05982.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +14,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan D=F6singer wrote:
-> This method should be listed there. Well, it's not listed under this na=
-me, but=20
-> there's a link to my(again outdated) Acer TM 800 howto which lists a fe=
-w=20
-> simmilar tools
+Hi,
 
->>* radeon systems, where X can soft-boot your video card. You'll need
->> patched X, and plain text console (no vesafb or radeonfb), see
->> http://www.doesi.gmxhome.de/linux/tm800s3/s3.html. (Acer TM 800)
+I have ACPI compiled into the kernel and various subsystems as
+modules. The 'video' module seems to have a problem, though -- it works
+great on first boot, but doesn't work correctly after a suspend/resume
+(I'm using suspend2, unloading and reloading the video module after
+resuming).
 
-Hrmm, I never tried this because I thought it was for Radeon only :(
+The symptoms are that all subdirectories of /proc/acpi/video/VGA/
+disappear -- which means I can no longer set the LCD brighness. All I
+have is this:
 
-> Well, it's fine that you got it working!
+total 0
+-r--r--r--  1 root root 0 Jun 17 18:25 DOS
+-r--r--r--  1 root root 0 Jun 17 18:25 POST
+-r--r--r--  1 root root 0 Jun 17 18:25 POST_info
+-r--r--r--  1 root root 0 Jun 17 18:25 ROM
+-r--r--r--  1 root root 0 Jun 17 18:25 info
 
-Yup, and thanks again.
+Any hints?
 
-Adam
+--J.
+
 
 
 -------------------------------------------------------
