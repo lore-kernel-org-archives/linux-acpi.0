@@ -1,13 +1,14 @@
-From: Adam Olsen <adamo-VDTgcPsuuaZWk0Htik3J/w@public.gmane.org>
-Subject: Re: Help with S3 on an Acer Travelmate c110 [SOLVED]
-Date: Sun, 19 Jun 2005 10:34:29 -0600
-Message-ID: <42B59E95.1070408@mindzion.com>
-References: <42B43B7B.8000402@mindzion.com> <200506191425.11398.stefandoesinger@gmx.at>
+From: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
+Subject: Re: ACPI+Userspace
+Date: Sun, 19 Jun 2005 14:05:30 -0400
+Message-ID: <1119204330.4337.13.camel@localhost>
+References: <1118705856.3814.6.camel@localhost>
+Reply-To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200506191425.11398.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <1118705856.3814.6.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +18,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan D=F6singer wrote:
-> Read Documentation/power/video.txt in the kernel's source directory. Th=
-is=20
-> should help you ;-)
+Well, spent some time Friday night and went ahead and did it. README
+included, along with some stuff in the source which may/may not be
+correct. :/ In particular, the sscanf may be hackish... I do mostly C++
+and python code, so I'm not that good C string stuff. All comments are
+welcome.
 
-Thanks for the response.  I followed the documentation, but none of the=20
-methods worked.  I did, however, find something in someone's blog=20
-concerning a Travelmate c300 that mentioned a utility called video_post.=20
-  This works - you have to switch to a VT and back to X to get it to=20
-start working, but this is scriptable with chvt.
+P.S. The Makefile has "make in" and "make out" targets. Any OS that lets
+you type "make out" at a commandline--and then do something
+interesting--is just fine by me. :)
 
-video_post wasn't easy to find via google - there are lots of posts=20
-about it, but most links are broken... a forum post finally led me to=20
-this link: http://bugzilla.kernel.org/show_bug.cgi?id=3D3670 and download=
-=20
-"attachment.cgi", which is actually a .tar.gz package.  I guess this is=20
-just an FYI for anyone who might come accross the archive searching for=20
-Travelmate c110.
+On Mon, 2005-06-13 at 19:37 -0400, Jeremy Moles wrote:
+> Hello all--quick question.
+> 
+> As bad as it may seem, I was wondering if it is possible to generate
+> ACPI events in userspace? That is: propogate any arbitrary "string" up
+> through the ACPI subsystem, eventually getting dumped
+> to /proc/acpi/event which, in our case, is being watched and acted on by
+> the userspace util ACPID.
+> 
+> The obvious answer is: "Call /etc/acpi/hander with your string!"--which
+> is always an option--but I'd like to know if it's possible simply to use
+> for testing/debugging. I could write a driver supporting ioctls to pass
+> stuff via acpi_bus_generate_event (I think?), but that's wayyy too much
+> work for what I'm wanting this for. I'm sure there are reasons this
+> isn't a good idea, and I'd be glad to hear those too (to increase my
+> understanding of ACPI!).
+> 
+> Anyway--thanks ahead of time. Weee.
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
+> a projector? How fast can you ride your desk chair down the office luge track?
+> If you want to score the big prize, get to know the little guy.  
+> Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-Thanks,
-
-Adam
 
 
 -------------------------------------------------------
