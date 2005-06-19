@@ -1,15 +1,15 @@
-From: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
-Subject: Re: ACPI+Userspace
-Date: Sun, 19 Jun 2005 14:19:25 -0400
-Message-ID: <1119205165.4360.23.camel@localhost>
-References: <1118705856.3814.6.camel@localhost>
-	 <1119204330.4337.13.camel@localhost>  <1119204494.4337.15.camel@localhost>
-Reply-To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Help with S3 on an Acer Travelmate c110 [SOLVED]
+Date: Sun, 19 Jun 2005 22:00:05 +0000
+Message-ID: <200506192200.05982.stefandoesinger@gmx.at>
+References: <42B43B7B.8000402@mindzion.com> <200506191425.11398.stefandoesinger@gmx.at> <42B59E95.1070408@mindzion.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1119204494.4337.15.camel@localhost>
+In-Reply-To: <42B59E95.1070408-VDTgcPsuuaZWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,76 +20,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Adam Olsen <adamo-VDTgcPsuuaZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Last thing (not trying to spam), here's a simple usage summation:
+On Sunday 19 June 2005 16:34, Adam Olsen wrote:
+> Stefan D=F6singer wrote:
+> > Read Documentation/power/video.txt in the kernel's source directory. Th=
+is
+> > should help you ;-)
+>
+> Thanks for the response.  I followed the documentation, but none of the
+> methods worked.  I did, however, find something in someone's blog
+> concerning a Travelmate c300 that mentioned a utility called video_post.
+>   This works - you have to switch to a VT and back to X to get it to
+> start working, but this is scriptable with chvt.
+>
+> video_post wasn't easy to find via google - there are lots of posts
+> about it, but most links are broken... a forum post finally led me to
+> this link: http://bugzilla.kernel.org/show_bug.cgi?id=3D3670 and download
+> "attachment.cgi", which is actually a .tar.gz package.  I guess this is
+> just an FYI for anyone who might come accross the archive searching for
+> Travelmate c110.
+This method should be listed there. Well, it's not listed under this name, =
+but=20
+there's a link to my(again outdated) Acer TM 800 howto which lists a few=20
+simmilar tools
 
-1. make
-2. make install
-3. modprobe acpievgen
-3. echo "devicename BUSID 1 2" > /proc/acpi/evgen
+> * radeon systems, where X can soft-boot your video card. You'll need
+>  patched X, and plain text console (no vesafb or radeonfb), see
+>  http://www.doesi.gmxhome.de/linux/tm800s3/s3.html. (Acer TM 800)
 
-The event comes back up through the event interface to be parsed by
-whatever. The echo doesn't have to be exactly an ACPI event string, but
-the arguments get assigned positionally, delimited by spaces.
+Well, it's fine that you got it working!
 
-On Sun, 2005-06-19 at 14:08 -0400, Jeremy Moles wrote:
-> Here's the package.
-> 
-> On Sun, 2005-06-19 at 14:05 -0400, Jeremy Moles wrote:
-> > Well, spent some time Friday night and went ahead and did it. README
-> > included, along with some stuff in the source which may/may not be
-> > correct. :/ In particular, the sscanf may be hackish... I do mostly C++
-> > and python code, so I'm not that good C string stuff. All comments are
-> > welcome.
-> > 
-> > P.S. The Makefile has "make in" and "make out" targets. Any OS that lets
-> > you type "make out" at a commandline--and then do something
-> > interesting--is just fine by me. :)
-> > 
-> > On Mon, 2005-06-13 at 19:37 -0400, Jeremy Moles wrote:
-> > > Hello all--quick question.
-> > > 
-> > > As bad as it may seem, I was wondering if it is possible to generate
-> > > ACPI events in userspace? That is: propogate any arbitrary "string" up
-> > > through the ACPI subsystem, eventually getting dumped
-> > > to /proc/acpi/event which, in our case, is being watched and acted on by
-> > > the userspace util ACPID.
-> > > 
-> > > The obvious answer is: "Call /etc/acpi/hander with your string!"--which
-> > > is always an option--but I'd like to know if it's possible simply to use
-> > > for testing/debugging. I could write a driver supporting ioctls to pass
-> > > stuff via acpi_bus_generate_event (I think?), but that's wayyy too much
-> > > work for what I'm wanting this for. I'm sure there are reasons this
-> > > isn't a good idea, and I'd be glad to hear those too (to increase my
-> > > understanding of ACPI!).
-> > > 
-> > > Anyway--thanks ahead of time. Weee.
-> > > 
-> > > 
-> > > 
-> > > -------------------------------------------------------
-> > > This SF.Net email is sponsored by: NEC IT Guy Games.  How far can you shotput
-> > > a projector? How fast can you ride your desk chair down the office luge track?
-> > > If you want to score the big prize, get to know the little guy.  
-> > > Play to win an NEC 61" plasma display: http://www.necitguy.com/?r=20
-> > > _______________________________________________
-> > > Acpi-devel mailing list
-> > > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > > https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > 
-> > 
-> > 
-> > -------------------------------------------------------
-> > SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
-> > from IBM. Find simple to follow Roadmaps, straightforward articles,
-> > informative Webcasts and more! Get everything you need to get up to
-> > speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
+Stefan
 
 
 -------------------------------------------------------
