@@ -1,9 +1,11 @@
-From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
-Subject: video module limited after suspend
-Date: Fri, 17 Jun 2005 18:27:11 +0200
-Message-ID: <m28y199cf4.fsf@tnuctip.rychter.com>
+From: Rene ONIER <rene-qAWGX91z7iYdbCeoMzGj59i2O/JbrIOy@public.gmane.org>
+Subject: Errors compiling a dstd.dsl on MandrivaLE2005/Acer TravelMate
+ 2304WLMI
+Date: Sun, 19 Jun 2005 16:52:34 -0400
+Message-ID: <1119214354.26427.17.camel@hermes.shanga.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,26 +21,145 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-I have ACPI compiled into the kernel and various subsystems as
-modules. The 'video' module seems to have a problem, though -- it works
-great on first boot, but doesn't work correctly after a suspend/resume
-(I'm using suspend2, unloading and reloading the video module after
-resuming).
+I'm trying to compile a dsdt.dsl patched against the sbs-linux files.
+http://sourceforge.net/projects/sbs-linux/
 
-The symptoms are that all subdirectories of /proc/acpi/video/VGA/
-disappear -- which means I can no longer set the LCD brighness. All I
-have is this:
+I can get the DSDT file from /proc/acpi/dsdt, I patch it
+(successfully) with acer-tm4xxx-sbs-cm.diff bu
+t I fail to compile it.
 
-total 0
--r--r--r--  1 root root 0 Jun 17 18:25 DOS
--r--r--r--  1 root root 0 Jun 17 18:25 POST
--r--r--r--  1 root root 0 Jun 17 18:25 POST_info
--r--r--r--  1 root root 0 Jun 17 18:25 ROM
--r--r--r--  1 root root 0 Jun 17 18:25 info
+I'm a REAL newbie with ACPI, so any help is welcome :)
+Thanks in advance.
+Ren=E9.
 
-Any hints?
+PS: I know, being root is EVIL.
 
---J.
+--------------------------------------------------------
+[root@hermes sbs-cm-20050328]# iasl -d dsdt.dat
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20050513 [Jun 19
+2005]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
+
+Loading Acpi table from file dsdt.dat
+Acpi table [DSDT] successfully installed and loaded
+Pass 1 parse of [DSDT]
+Pass 2 parse of [DSDT]
+Parsing Deferred Opcodes (Methods/Buffers/Packages/Regions)
+.........................................................................=
+.........................................................................=
+.........................................................................=
+........
+Parsing completed
+Disassembly completed, written to "dsdt.dsl"
+
+[root@hermes sbs-cm-20050328]# patch < acer-tm4xxx-sbs-cm.diff
+patching file dsdt.dsl
+Hunk #1 succeeded at 2077 (offset -1178 lines).
+Hunk #2 succeeded at 2105 (offset -1178 lines).
+Hunk #3 succeeded at 3678 (offset -1249 lines).
+[root@hermes sbs-cm-20050328]#
+
+[root@hermes sbs-cm-20050328]# iasl dsdt.dsl
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20050513 [Jun 19
+2005]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
+
+dsdt.dsl   169:     Method (_WAK, 1, NotSerialized)
+Warning  2026 -                ^ Reserved method must return a value
+(_WAK)
+
+dsdt.dsl   331:                     0x0100, 0x00,,)
+Error    1094 -                                   ^ Missing
+ResourceSource string (required)
+
+dsdt.dsl   338:                     , TypeStatic)
+Error    1094 -                                 ^ Missing ResourceSource
+string (required)
+
+dsdt.dsl   346:                     , TypeStatic)
+Error    1094 -                                 ^ Missing ResourceSource
+string (required)
+
+dsdt.dsl   353:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   360:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   367:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   374:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   381:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   388:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   395:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   402:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   409:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   416:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   423:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   430:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   437:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   444:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   451:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl   458:                     , AddressRangeMemory, TypeStatic)
+Error    1094 -            Missing ResourceSource string (required) ^
+
+dsdt.dsl  3176:                         Method (_STA, 0, NotSerialized)
+Warning  2019 -                                    ^ Not all control
+paths return a value (_STA)
+
+dsdt.dsl  3176:                         Method (_STA, 0, NotSerialized)
+Warning  2026 -                                    ^ Reserved method
+must return a value (_STA)
+
+smbus-cm.asl    87:         Method (_SBI, 0, NotSerialized)
+Warning  2033 -  Unknown reserved name ^  (_SBI)
+
+smbus-cm.asl   147:         Method (_SBR, 3, NotSerialized)
+Warning  2033 -  Unknown reserved name ^  (_SBR)
+
+smbus-cm.asl   237:         Method (_SBW, 5, NotSerialized)
+Warning  2033 -  Unknown reserved name ^  (_SBW)
+
+smbus-cm.asl   314:         Method (_SBA, 0, NotSerialized)
+Warning  2033 -  Unknown reserved name ^  (_SBA)
+
+ASL Input:  dsdt.dsl - 3690 lines, 174462 bytes, 2344 keywords
+Compilation complete. 19 Errors, 7 Warnings, 0 Remarks, 611
+Optimizations
+
+
+
 
 
 
