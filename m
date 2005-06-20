@@ -1,84 +1,48 @@
-From: Michael Borohovski <mborohovski@gmail.com>
-Subject: Sony Vaio S480 and ACPI
-Date: Mon, 20 Jun 2005 00:23:27 -0400
-Message-ID: <95531d0a0506192123542e96d1@mail.gmail.com>
-Reply-To: Michael Borohovski <mborohovski@gmail.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Sony Vaio S480 and ACPI
+Date: Mon, 20 Jun 2005 11:47:36 +0200
+Message-ID: <20050620094736.GB3121@elf.ucw.cz>
+References: <95531d0a0506192123542e96d1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_13962_32471051.1119241407624"
-Return-path: <linux-pm-devel-admin@lists.sourceforge.net>
-Sender: linux-pm-devel-admin@lists.sourceforge.net
-Errors-To: linux-pm-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-pm-devel>,
-	<mailto:linux-pm-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-pm-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-pm-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-pm-devel>,
-	<mailto:linux-pm-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-pm-devel>
-To: linux-pm-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <95531d0a0506192123542e96d1-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Michael Borohovski <mborohovski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-------=_Part_13962_32471051.1119241407624
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Po 20-06-05 00:23:27, Michael Borohovski wrote:
+> 
+>    So I just bought this thing and <sarcasm> have been having a lot of
+>    fun with it. </sarcasm>
 
-So I just bought this thing and <sarcasm> have been having a lot of fun wit=
-h=20
-it. </sarcasm>
+Do not post html into conferences.
 
-Long story short, it's new enough that the 2.6.8 in the Debian installer=20
-didn't support it, so I had to go through knoppix 3.9 and debootstrap by=20
-hand. Whatever. It's done.
+>    Long story short, it's new enough that the 2.6.8 in the Debian
+>    installer didn't support it, so I had to go through knoppix 3.9 and
+>    debootstrap by hand. Whatever. It's done.
+>    Except now sleep doesn't work and I can't for the life of me figure
+>    out why.
+>    It goes to sleep just fine, but doesn't come back. As in, it looks
+>    like it's resuming, but video doesn't come back.
+>    Centrino 750 (915PM chipset)
+>    Geforce Go 6200
+>    'nvidia' driver
 
-Except now sleep doesn't work and I can't for the life of me figure out why=
-.
-
-It goes to sleep just fine, but doesn't come back. As in, it looks like it'=
-s=20
-resuming, but video doesn't come back.
-
-Centrino 750 (915PM chipset)
-Geforce Go 6200
-'nvidia' driver
-X.org <http://X.org> (latest version, whatever that is)
-
-I can't figure it out. Any help would be GREATLY appreciated.
-
-Later,
-Mike.
-
-------=_Part_13962_32471051.1119241407624
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-So I just bought this thing and &lt;sarcasm&gt; have been having a lot of f=
-un with it. &lt;/sarcasm&gt;<br>
-<br>
-Long story short, it's new enough that the 2.6.8 in the Debian
-installer didn't support it, so I had to go through knoppix 3.9 and
-debootstrap by hand. Whatever. It's done.<br>
-<br>
-Except now sleep doesn't work and I can't for the life of me figure out why=
-.<br>
-<br>
-It goes to sleep just fine, but doesn't come back. As in, it looks like it'=
-s resuming, but video doesn't come back.<br>
-<br>
-Centrino 750 (915PM chipset)<br>
-Geforce Go 6200<br>
-'nvidia' driver<br>
-<a href=3D"http://X.org">X.org</a> (latest version, whatever that is)<br>
-<br>
-I can't figure it out. Any help would be GREATLY appreciated.<br>
-<br>
-Later,<br>
-Mike.<br>
-
-
-------=_Part_13962_32471051.1119241407624--
+see Doc*/power/video.txt.
+								Pavel
+-- 
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
