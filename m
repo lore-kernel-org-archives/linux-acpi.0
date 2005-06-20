@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Sony Vaio S480 and ACPI
-Date: Mon, 20 Jun 2005 11:47:36 +0200
-Message-ID: <20050620094736.GB3121@elf.ucw.cz>
-References: <95531d0a0506192123542e96d1@mail.gmail.com>
+Subject: Re: Help with S3 on an Acer Travelmate c110 [SOLVED]
+Date: Mon, 20 Jun 2005 11:42:48 +0200
+Message-ID: <20050620094248.GA3121@elf.ucw.cz>
+References: <42B43B7B.8000402@mindzion.com> <200506191425.11398.stefandoesinger@gmx.at> <42B59E95.1070408@mindzion.com> <200506192200.05982.stefandoesinger@gmx.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <95531d0a0506192123542e96d1-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <200506192200.05982.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Borohovski <mborohovski-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan =?iso-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Adam Olsen <adamo-VDTgcPsuuaZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Po 20-06-05 00:23:27, Michael Borohovski wrote:
-> 
->    So I just bought this thing and <sarcasm> have been having a lot of
->    fun with it. </sarcasm>
+Hi!
 
-Do not post html into conferences.
+> > > Read Documentation/power/video.txt in the kernel's source directory. This
+> > > should help you ;-)
+> >
+> > Thanks for the response.  I followed the documentation, but none of the
+> > methods worked.  I did, however, find something in someone's blog
+> > concerning a Travelmate c300 that mentioned a utility called video_post.
+> >   This works - you have to switch to a VT and back to X to get it to
+> > start working, but this is scriptable with chvt.
+> >
+> > video_post wasn't easy to find via google - there are lots of posts
+> > about it, but most links are broken... a forum post finally led me to
+> > this link: http://bugzilla.kernel.org/show_bug.cgi?id=3670 and download
+> > "attachment.cgi", which is actually a .tar.gz package.  I guess this is
+> > just an FYI for anyone who might come accross the archive searching for
+> > Travelmate c110.
+> This method should be listed there. Well, it's not listed under this name, but 
+> there's a link to my(again outdated) Acer TM 800 howto which lists a few 
+> simmilar tools
 
->    Long story short, it's new enough that the 2.6.8 in the Debian
->    installer didn't support it, so I had to go through knoppix 3.9 and
->    debootstrap by hand. Whatever. It's done.
->    Except now sleep doesn't work and I can't for the life of me figure
->    out why.
->    It goes to sleep just fine, but doesn't come back. As in, it looks
->    like it's resuming, but video doesn't come back.
->    Centrino 750 (915PM chipset)
->    Geforce Go 6200
->    'nvidia' driver
+Can you provide documentation patch?
 
-see Doc*/power/video.txt.
-								Pavel
+For now I did:
+
+...but better solution would be welcome.
+
+diff --git a/Documentation/power/video.txt b/Documentation/power/video.txt
+--- a/Documentation/power/video.txt
++++ b/Documentation/power/video.txt
+@@ -64,6 +64,7 @@ Model                           hack (or
+ ------------------------------------------------------------------------------
+ Acer Aspire 1406LC		ole's late BIOS init (7), turn off DRI
+ Acer TM 242FX			vbetool (6)
++Acer TM C110			http://bugzilla.kernel.org/show_bug.cgi?id=3670
+ Acer TM C300                    vga=normal (only suspend on console, not in X), vbetool (6)
+ Acer TM 4052LCi		        s3_bios (2)
+ Acer TM 636Lci			s3_bios vga=normal (2)
+
+									Pavel
 -- 
 teflon -- maybe it is a trademark, but it should not be.
 
