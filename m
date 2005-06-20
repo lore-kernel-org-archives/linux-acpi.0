@@ -1,9 +1,9 @@
 From: domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
-Subject: [patch 4/4] printk: drivers/acpi/pci_link.c
-Date: Mon, 20 Jun 2005 23:50:58 +0200
-Message-ID: <20050620215057.674778000@nd47.coderock.org>
+Subject: [patch 3/4] printk : drivers/block/drivers/acpi/container.c
+Date: Mon, 20 Jun 2005 23:50:57 +0200
+Message-ID: <20050620215056.530554000@nd47.coderock.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline; filename=printk-drivers_acpi_pci_link.patch
+Content-Disposition: inline; filename=printk-drivers_acpi_container.patch
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -26,22 +26,22 @@ printk() calls should include appropriate KERN_* constant.
 Signed-off-by: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
 Signed-off-by: Domen Puncer <domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org>
 ---
- pci_link.c |    2 +-
+ container.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-Index: quilt/drivers/acpi/pci_link.c
+Index: quilt/drivers/acpi/container.c
 ===================================================================
---- quilt.orig/drivers/acpi/pci_link.c
-+++ quilt/drivers/acpi/pci_link.c
-@@ -352,7 +352,7 @@ acpi_pci_link_set (
- 		/* ignore resource_source, it's optional */
- 		break;
- 	default:
--		printk("ACPI BUG: resource_type %d\n", link->irq.resource_type);
-+		printk(KERN_WARNING "ACPI BUG: resource_type %d\n", link->irq.resource_type);
- 		result = -EINVAL;
- 		goto end;
- 
+--- quilt.orig/drivers/acpi/container.c
++++ quilt/drivers/acpi/container.c
+@@ -174,7 +174,7 @@ container_notify_cb(acpi_handle handle, 
+ 	case ACPI_NOTIFY_BUS_CHECK:
+ 		/* Fall through */
+ 	case ACPI_NOTIFY_DEVICE_CHECK:
+-		printk("Container driver received %s event\n",
++		printk(KERN_INFO "Container driver received %s event\n",
+ 			(type == ACPI_NOTIFY_BUS_CHECK)?
+ 			"ACPI_NOTIFY_BUS_CHECK":"ACPI_NOTIFY_DEVICE_CHECK");
+ 		status = acpi_bus_get_device(handle, &device);
 
 --
 
