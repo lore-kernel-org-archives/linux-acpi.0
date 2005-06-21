@@ -1,11 +1,17 @@
-From: Emmanuel <tours-KAPPdhSdhFEfv37vnLkPlQ@public.gmane.org>
-Subject: Once taken its effective for 36 hrs with fewer side effects.
-Date: Tue, 21 Jun 2005 19:08:52 +0900
-Message-ID: <81886115451.6231854541@220.91.220.56>
-Mime-Version: 1.0 (Apple Message framework v728)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Help with S3 on an Acer Travelmate c110 [SOLVED]
+Date: Tue, 21 Jun 2005 12:28:00 +0100
+Message-ID: <1119353280.11066.0.camel@tyrosine>
+References: <42B43B7B.8000402@mindzion.com>
+	 <200506191425.11398.stefandoesinger@gmx.at> <42B59E95.1070408@mindzion.com>
+	 <200506192200.05982.stefandoesinger@gmx.at>
+	 <20050620094248.GA3121@elf.ucw.cz> <42B6DF19.9020103@mindzion.com>
+	 <20050620204515.GB1873@elf.ucw.cz>
+Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050620204515.GB1873-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,18 +21,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Adam Olsen <adamo-VDTgcPsuuaZWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Best prescription generic meds 4 less.
-http://nassws.2zndo3kvzukao32.boondogglemk.com
+On Mon, 2005-06-20 at 22:45 +0200, Pavel Machek wrote:
 
+> +(8) on some systems, you can use the video_post utility mentioned here:
+> +  http://bugzilla.kernel.org/show_bug.cgi?id=3670. Do echo 3 > /sys/power/state
+> +  && /usr/sbin/video_post - which will initialize the display in console mode.
+> +  If  you are in X, you can switch to a virtual terminal and back to X using
+> +  CTRL+ALT+F1 - CTRL+ALT+F7 to get the display working in graphical mode again.
 
+Hmm. There /should/ be no difference between video_post and vbetool
+post.
 
-The future belongs to those who prepare for it today.   
-Now and then an innocent man is sent to the legislature.  
-Discouragement is simply the despair of wounded self-love.     
-
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
