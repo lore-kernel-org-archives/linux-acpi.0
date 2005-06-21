@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: /proc/acpi/alarm miscalculations and RTC century corruption
-Date: Tue, 21 Jun 2005 10:07:41 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575025A17EF@pdsmsx402.ccr.corp.intel.com>
+From: Eran Tromer <acpi2eran-IJe252wrQBYdnm+yROfE0A@public.gmane.org>
+Subject: Re: /proc/acpi/alarm miscalculations and RTC century corruption
+Date: Tue, 21 Jun 2005 06:03:33 +0300
+Message-ID: <42B78385.4080206@tromer.org>
+References: <16A54BF5D6E14E4D916CE26C9AD30575025A17EF@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575025A17EF-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,93 +17,92 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Eran Tromer <acpi2eran-IJe252wrQBYdnm+yROfE0A@public.gmane.org>
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->
->As of kernel 2.6.12, acpi_system_write_alarm() in
->drivers/acpi/sleep/proc.c does the following:
->
->        if (acpi_gbl_FADT->day_alrm)
->                CMOS_WRITE(day, acpi_gbl_FADT->day_alrm);
->        if (acpi_gbl_FADT->mon_alrm)
->                CMOS_WRITE(mo, acpi_gbl_FADT->mon_alrm);
->        if (acpi_gbl_FADT->century)
->                CMOS_WRITE(yr/100, acpi_gbl_FADT->century);
->
->The first two are fine, but the third one changes the "current century"
->field of RTC (there is no alarm century field). It definitely shouldn't
->touch that.
->
->This means that writing a reasonable explicit date (e.g., "2005-06-21
->33:33") to /proc/acpi/alarm happens to work fine, but a silly alarm
-date
->would corrupt your RTC's century setting. A ThinkPad T21, for example,
->would choke on that and refuse to boot until the date is reset in BIOS.
->
->Worse yet, relative form (e.g., "+0000-00-00 00:30") *always* corrupts
->the RTC century (unless you're in the 0th century), because in the "yr"
->variable above is initialized just from RTC_YEAR, without the century.
->Note that acpi_system_alarm_seq_show() did get that part right.
-Century alarm is optional. I didn't find any system which supports
-century alarm at hand. Is there any real hardware support it?
+On 21/06/05 05:07, Li, Shaohua wrote:
+
+> Century alarm is optional. I didn't find any system which supports
+> century alarm at hand. Is there any real hardware support it?
+
+As far as I can tell, there is no century alarm in the ACPI spec. There
+is not even a year alarm. But there is a century field for the real-time
+clock, and /proc/acpi/alarm is overriding *that* one.
+
+I have experimentally verified that this indeed corrupts the RTC CMOS
+date on ThinkPad T21. The laptop will then no longer boot until you
+reset the date through the BIOS (and would behave very strangely,
+requiring multiple boots to recover). And in some plausible scenarios, a
+corrupted RTC could lead to data loss when file dates are mangled.
+
+I stress again that this is the most serious bug in this code, and can
+be solved just by deleting those two lines. The other bugs may only
+cause lost or mistimed wakups, which is less severe. Please get this
+fixed regardless of the rest.
 
 
->Another potential concern:
->acpi_system_write_alarm() performs the following normalization on its
->input, and then again (when adjust=3D=3D1) after adding the relative =
-date
-to
->the RTC date:
->
->        if (sec > 59) {
->                min++;
->                sec -=3D 60;
->        }
->        if (min > 59) {
->                hr++;
->                min -=3D 60;
->        }
->        if (hr > 23) {
->                day++;
->                hr -=3D 24;
->        }
->        if (day > 31) {
->                mo++;
->                day -=3D 31;
->        }
->        if (mo > 12) {
->                yr++;
->                mo -=3D 12;
->        }
->
->No further validation is done. Obviously this won't catch some invalid
-Yes, we should add more check. Please send a patch to Len.
+> Yes, we should add more check. Please send a patch to Len.
 
->dates, but even valid inputs (e.g, RTC "2000-01-31 12:00" and relative
->date "+0000-00-31 12:00") can yield an invalid output ("2000-02-32
->00:00"), and that's before we get to variable month lengths. How safe
-is
->it to let this stuff hit the CMOS?
-No, the format written to alarm is fixed. It's just an interface and so
-it's no reason to let kernel parse the complex string. If you want a
-more user friendly interface, please write a tool.
+I'll leave the actual patch writing and submission to you guys, I'm just
+reporting the bugs.
 
->While at it, there is currently no way to disable the ACPI alarm; at
->most you can set it to a date in the past or in the far future. It
-would
->be nice if writing some special value (maybe "" or "off") to
->/proc/acpi/alarm disabled the alarm, by removing RTC_AIE from the
->RTC_CONTROL CMOS field and/or by disabling ACPI_EVENT_RTC.
-ACPI alarm is disabled by default. It only enabled if you give it alarm
-date. But it is good not enabling it if the alarm date is invalid. In
-addition, a 'off' or a special value like '0000-00-00 00:00.00' to
-disable alarm makes sense to me.
 
-Thanks,
-Shaohua
+>>dates, but even valid inputs (e.g, RTC "2000-01-31 12:00" and relative
+>>date "+0000-00-31 12:00") can yield an invalid output ("2000-02-32
+>>00:00"), and that's before we get to variable month lengths. How safe
+> 
+> is it to let this stuff hit the CMOS?
+> 
+> No, the format written to alarm is fixed. It's just an interface and so
+> it's no reason to let kernel parse the complex string. If you want a
+> more user friendly interface, please write a tool.
+
+The kernel is already parsing and processing the complex string! But
+it's doing it incorrectly. As you say, it's an interface -- so it must
+do what it commits to.
+
+To take another example, consider the following very realistic scenario:
+if I echo "+0000-00-00 01:00" > /proc/acpi/alarm, I expect the machine
+to wake up in an hour, right? That's the interface. Now, what if the
+current time happens to be 2005-02-28 23:30? The alarm will be set to
+2005-02-29 00:30 and probably won't occur until the next leap year.
+Who's fault is that?
+
+The easiest way out is to disable the relative time (adjust=1) interface
+and allow only specification of absolute time, thereby breaking existing
+code; then declare that the provided time string must be valid and blame
+the caller if he feeds you silly data and the sky falls. As for how
+prudent it is to let junk values be written to the CMOS through an
+apparently innocuous kernel interface, I'll leave that to the good
+people of this list.
+
+
+>>While at it, there is currently no way to disable the ACPI alarm; at
+>>most you can set it to a date in the past or in the far future. It
+> would >>be nice if writing some special value (maybe "" or "off") to
+>>/proc/acpi/alarm disabled the alarm, by removing RTC_AIE from the
+>>RTC_CONTROL CMOS field and/or by disabling ACPI_EVENT_RTC.
+> 
+> ACPI alarm is disabled by default. It only enabled if you give it alarm
+> date. 
+
+Right. But suppose an alarm has already been set and now I want to
+cancel it? For example, if something else woke me up early so the alarm
+so it is no longer pertinent. That's basic functionality.
+
+
+> But it is good not enabling it if the alarm date is invalid. In
+> addition, a 'off' or a special value like '0000-00-00 00:00.00' to
+> disable alarm makes sense to me.
+
+Using "0000-00-00 00:00.00" would be pretty dangerous in light of the
+century bug, since on legacy kernels it will silently corrupt the RTC
+(in fact this is how I originally encountered the bug). So I think an
+"off" or the empty string would be better.
+
+
+  Eran
 
 
 -------------------------------------------------------
