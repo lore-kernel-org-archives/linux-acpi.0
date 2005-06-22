@@ -1,10 +1,7 @@
-From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: video module limited after suspend
-Date: Wed, 22 Jun 2005 11:17:09 +0200
-Message-ID: <m2k6kmagyy.fsf@tnuctip.rychter.com>
-References: <m28y199cf4.fsf@tnuctip.rychter.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: long <tlnguyen-T1wkCzuAVFtlwyM8M8X0TNh3ngVCH38I@public.gmane.org>
+Subject: [PATCH] [ACPI]tg3 ethernet not coming back properly after S3 suspendon DellM70
+Date: Wed, 22 Jun 2005 09:09:54 -0700
+Message-ID: <200506221609.j5MG9svZ007179@snoqualmie.dp.intel.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,43 +12,165 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, shaohua-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Hi,
-> I have ACPI compiled into the kernel and various subsystems as
-> modules. The 'video' module seems to have a problem, though -- it works
-> great on first boot, but doesn't work correctly after a suspend/resume
-> (I'm using suspend2, unloading and reloading the video module after
-> resuming).
-> 
-> The symptoms are that all subdirectories of /proc/acpi/video/VGA/
-> disappear -- which means I can no longer set the LCD brighness. All I
-> have is this:
-> 
-> total 0
-> -r--r--r--  1 root root 0 Jun 17 18:25 DOS
-> -r--r--r--  1 root root 0 Jun 17 18:25 POST
-> -r--r--r--  1 root root 0 Jun 17 18:25 POST_info
-> -r--r--r--  1 root root 0 Jun 17 18:25 ROM
-> -r--r--r--  1 root root 0 Jun 17 18:25 info
-> 
-> Any hints?
+This patch, is based on kernel 2.6.12, provides a fix for PCIe
+port bus driver suspend/resume.
 
-To narrow things down a bit: I've found out that it isn't really
-suspending that matters -- just doing 
+Signed-off-by: T. Long Nguyen <tom.l.nguyen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-modprobe video; rmmod video; modprobe video
-
-gets me a system without the CRT, LCD, DVI and TV directories.
-
-As a workaround, I've just compiled video into the kernel (e.g. not
-modularized) and I'm fine.
-
-Is anyone actually interested in those bug reports? Should I bother?
-
---J.
-
+--------------------------------------------------------------
+diff -urpN linux-2.6.12/drivers/pci/pcie/portdrv_core.c patch-2.6.12-pcie-s3/drivers/pci/pcie/portdrv_core.c
+--- linux-2.6.12/drivers/pci/pcie/portdrv_core.c	2005-06-17 15:48:29.000000000 -0400
++++ patch-2.6.12-pcie-s3/drivers/pci/pcie/portdrv_core.c	2005-06-21 09:25:18.000000000 -0400
+@@ -278,10 +278,17 @@ int pcie_port_device_probe(struct pci_de
+ 
+ int pcie_port_device_register(struct pci_dev *dev)
+ {
++	struct pcie_port_device_ext *p_ext;
+ 	int status, type, capabilities, irq_mode, i;
+ 	int vectors[PCIE_PORT_DEVICE_MAXSERVICES];
+ 	u16 reg16;
+ 
++	/* Allocate port device extension */
++	if (!(p_ext = kmalloc(sizeof(struct pcie_port_device_ext), GFP_KERNEL)))
++		return -ENOMEM;
++		
++	pci_set_drvdata(dev, p_ext);
++
+ 	/* Get port type */
+ 	pci_read_config_word(dev, 
+ 		pci_find_capability(dev, PCI_CAP_ID_EXP) + 
+@@ -291,6 +298,7 @@ int pcie_port_device_register(struct pci
+ 	/* Now get port services */
+ 	capabilities = get_port_device_capability(dev);
+ 	irq_mode = assign_interrupt_mode(dev, vectors, capabilities);
++	p_ext->interrupt_mode = irq_mode;
+ 
+ 	/* Allocate child services if any */
+ 	for (i = 0; i < PCIE_PORT_DEVICE_MAXSERVICES; i++) {
+diff -urpN linux-2.6.12/drivers/pci/pcie/portdrv.h patch-2.6.12-pcie-s3/drivers/pci/pcie/portdrv.h
+--- linux-2.6.12/drivers/pci/pcie/portdrv.h	2005-06-17 15:48:29.000000000 -0400
++++ patch-2.6.12-pcie-s3/drivers/pci/pcie/portdrv.h	2005-06-21 09:24:18.000000000 -0400
+@@ -27,6 +27,11 @@
+ 
+ #define get_descriptor_id(type, service) (((type - 4) << 4) | service)
+ 
++struct pcie_port_device_ext {
++	int interrupt_mode;	/* [0:INTx | 1:MSI | 2:MSI-X] */	
++	unsigned int saved_msi_config_space[5]; 
++};
++
+ extern struct bus_type pcie_port_bus_type;
+ extern int pcie_port_device_probe(struct pci_dev *dev);
+ extern int pcie_port_device_register(struct pci_dev *dev);
+diff -urpN linux-2.6.12/drivers/pci/pcie/portdrv_pci.c patch-2.6.12-pcie-s3/drivers/pci/pcie/portdrv_pci.c
+--- linux-2.6.12/drivers/pci/pcie/portdrv_pci.c	2005-06-17 15:48:29.000000000 -0400
++++ patch-2.6.12-pcie-s3/drivers/pci/pcie/portdrv_pci.c	2005-06-21 09:25:48.000000000 -0400
+@@ -29,6 +29,78 @@ MODULE_LICENSE("GPL");
+ /* global data */
+ static const char device_name[] = "pcieport-driver";
+ 
++static void pci_save_msi_state(struct pci_dev *dev)
++{
++	struct pcie_port_device_ext *p_ext = pci_get_drvdata(dev);
++	int i = 0, pos;
++	u16 control;
++
++   	if ((pos = pci_find_capability(dev, PCI_CAP_ID_MSI)) <= 0)
++		return;
++
++	pci_read_config_dword(dev, pos, &p_ext->saved_msi_config_space[i++]);
++	control = p_ext->saved_msi_config_space[0] >> 16;
++	pci_read_config_dword(dev, pos + PCI_MSI_ADDRESS_LO, 
++		&p_ext->saved_msi_config_space[i++]);
++	if (control & PCI_MSI_FLAGS_64BIT) {
++		pci_read_config_dword(dev, pos + PCI_MSI_ADDRESS_HI, 
++			&p_ext->saved_msi_config_space[i++]);
++		pci_read_config_dword(dev, pos + PCI_MSI_DATA_64, 
++			&p_ext->saved_msi_config_space[i++]);
++	} else 
++		pci_read_config_dword(dev, pos + PCI_MSI_DATA_32, 
++			&p_ext->saved_msi_config_space[i++]);
++	if (control & PCI_MSI_FLAGS_MASKBIT) 
++		pci_read_config_dword(dev, pos + PCI_MSI_MASK_BIT, 
++			&p_ext->saved_msi_config_space[i++]);
++}
++
++static void pci_restore_msi_state(struct pci_dev *dev)
++{
++	struct pcie_port_device_ext *p_ext = pci_get_drvdata(dev);
++	int i = 0, pos;
++	u16 control;
++
++   	if ((pos = pci_find_capability(dev, PCI_CAP_ID_MSI)) <= 0)
++		return;
++
++	control = p_ext->saved_msi_config_space[i++] >> 16;
++	pci_write_config_word(dev, pos + PCI_MSI_FLAGS, control);
++	pci_write_config_dword(dev, pos + PCI_MSI_ADDRESS_LO, 
++		p_ext->saved_msi_config_space[i++]);
++	if (control & PCI_MSI_FLAGS_64BIT) {
++		pci_write_config_dword(dev, pos + PCI_MSI_ADDRESS_HI, 
++			p_ext->saved_msi_config_space[i++]);
++		pci_write_config_dword(dev, pos + PCI_MSI_DATA_64, 
++			p_ext->saved_msi_config_space[i++]);
++	} else 
++		pci_write_config_dword(dev, pos + PCI_MSI_DATA_32, 
++			p_ext->saved_msi_config_space[i++]);
++	if (control & PCI_MSI_FLAGS_MASKBIT) 
++		pci_write_config_dword(dev, pos + PCI_MSI_MASK_BIT, 
++			p_ext->saved_msi_config_space[i++]);
++}
++
++static void pcie_portdrv_save_config(struct pci_dev *dev)
++{
++	struct pcie_port_device_ext *p_ext = pci_get_drvdata(dev);
++
++	pci_save_state(dev);	
++	if (p_ext->interrupt_mode == PCIE_PORT_MSI_MODE)
++		pci_save_msi_state(dev);
++}
++
++static void pcie_portdrv_restore_config(struct pci_dev *dev)
++{
++	struct pcie_port_device_ext *p_ext = pci_get_drvdata(dev);
++
++	pci_restore_state(dev);
++	if (p_ext->interrupt_mode == PCIE_PORT_MSI_MODE)
++		pci_restore_msi_state(dev);
++	pci_enable_device(dev);
++	pci_set_master(dev);
++}
++
+ /*
+  * pcie_portdrv_probe - Probe PCI-Express port devices
+  * @dev: PCI-Express port device being probed
+@@ -64,16 +136,21 @@ static int __devinit pcie_portdrv_probe 
+ static void pcie_portdrv_remove (struct pci_dev *dev)
+ {
+ 	pcie_port_device_remove(dev);
++	kfree(pci_get_drvdata(dev));
+ }
+ 
+ #ifdef CONFIG_PM
+ static int pcie_portdrv_suspend (struct pci_dev *dev, pm_message_t state)
+ {
+-	return pcie_port_device_suspend(dev, state);
++	int ret = pcie_port_device_suspend(dev, state);
++
++	pcie_portdrv_save_config(dev);
++	return ret;
+ }
+ 
+ static int pcie_portdrv_resume (struct pci_dev *dev)
+ {
++	pcie_portdrv_restore_config(dev);
+ 	return pcie_port_device_resume(dev);
+ }
+ #endif
 
 
 -------------------------------------------------------
