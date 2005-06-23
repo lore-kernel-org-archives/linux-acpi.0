@@ -1,13 +1,11 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: video module limited after suspend
-Date: Thu, 23 Jun 2005 18:39:36 +0200
-Message-ID: <20050623163936.GH8899@poupinou.org>
-References: <m28y199cf4.fsf@tnuctip.rychter.com> <m2k6kmagyy.fsf@tnuctip.rychter.com>
+From: Andrey Kislyuk <kislyuk-TVLZxgkOlNX2fBVCVOL8/A@public.gmane.org>
+Subject: Problems with lcd/dvi switching with ibm-acpi
+Date: Thu, 23 Jun 2005 10:34:21 -0700
+Message-ID: <42BAF29D.4060604@berkeley.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m2k6kmagyy.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,51 +15,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 22, 2005 at 11:17:09AM +0200, Jan Rychter wrote:
-> > Hi,
-> > I have ACPI compiled into the kernel and various subsystems as
-> > modules. The 'video' module seems to have a problem, though -- it works
-> > great on first boot, but doesn't work correctly after a suspend/resume
-> > (I'm using suspend2, unloading and reloading the video module after
-> > resuming).
-> > 
-> > The symptoms are that all subdirectories of /proc/acpi/video/VGA/
-> > disappear -- which means I can no longer set the LCD brighness. All I
-> > have is this:
-> > 
-> > total 0
-> > -r--r--r--  1 root root 0 Jun 17 18:25 DOS
-> > -r--r--r--  1 root root 0 Jun 17 18:25 POST
-> > -r--r--r--  1 root root 0 Jun 17 18:25 POST_info
-> > -r--r--r--  1 root root 0 Jun 17 18:25 ROM
-> > -r--r--r--  1 root root 0 Jun 17 18:25 info
-> > 
-> > Any hints?
-> 
-> To narrow things down a bit: I've found out that it isn't really
-> suspending that matters -- just doing 
-> 
-> modprobe video; rmmod video; modprobe video
-> 
-> gets me a system without the CRT, LCD, DVI and TV directories.
-> 
-> As a workaround, I've just compiled video into the kernel (e.g. not
-> modularized) and I'm fine.
-> 
-> Is anyone actually interested in those bug reports? Should I bother?
-> 
+Hello,
 
-Me, but don't have time for linux kernel devel ATM
+I'm having problems switching between my LCD and minidock throughput DVI 
+on an IBM Thinkpad T40 using ibm-acpi. DVI always shows up as disabled, 
+and commands like "echo dvi_enable > /proc/acpi/ibm/video" are always 
+ignored (as opposed to commands for switching between LCD and analog 
+HD15). The system does boot fine using DVI if DVI was the active display 
+device at boot, but then it can't switch to LCD.
 
--- 
-Bruno Ducrot
+This is observed on kernel 2.6.11 and 12 and all recent verisons of 
+ibm-acpi. I'm sure this isn't anything related to X since it doesn't 
+work when booting into a rescue CD console, either.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Any suggestions?
+
+Thanks,
+-ak
 
 
 -------------------------------------------------------
