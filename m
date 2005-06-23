@@ -1,14 +1,11 @@
-From: Norbert Federa <norbert.federa-uHwDyaZCXy1BDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Changeset "acpi: disable PCI links at boot again, fix ELCR" ->
- on-board nic adapter not working
-Date: Thu, 23 Jun 2005 09:35:21 +0200
-Message-ID: <42BA6639.9090402@neoware.com>
-References: <42B7CF33.5090501@neoware.com> <Pine.LNX.4.58.0506210901230.2268@ppc970.osdl.org> <42B843F6.7040704@neoware.com> <Pine.LNX.4.58.0506221245370.2353@ppc970.osdl.org>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: 2.6.12 hangs on boot
+Date: Thu, 23 Jun 2005 01:14:23 -0700
+Message-ID: <20050623011423.0f72187f.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0506221245370.2353-gWtpgVMusWVb5UGfqNBoRg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,80 +15,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Alexander Y. Fomichev" <gluk-IEI71MnrQTM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Linus Torvalds wrote:
-> 
-> On Tue, 21 Jun 2005, Norbert Federa wrote:
-> 
->>The difference basically is:
->>2.6.10-rc2-bk7:  ACPI: IRQ9 SCI: Level Trigger.
->>2.6.10-rc2-bk8:  ACPI: setting ELCR to 0200 (from 8a20)
-> 
-> 
-> Ok. The original 8a20 mask is irq's 15, 11, 9, and 5. The new mask starts 
-> out with irq9 (SCI) set up, and we should set the others to level as we 
-> discover them (and enable them) as PCI interrupts.
-> 
-> Looking at your irq list:
-> 
-> 	  0:      54460          XT-PIC  timer
-> 	  1:        168          XT-PIC  i8042
-> 	  2:          0          XT-PIC  cascade
-> **	  5:          0          XT-PIC  ehci_hcd
-> **	  9:          0          XT-PIC  acpi
-> **	 11:          0          XT-PIC  uhci_hcd
-> 	 12:         89          XT-PIC  i8042
-> 	 14:         45          XT-PIC  ide0
-> **	 15:          0          XT-PIC  uhci_hcd, uhci_hcd, eth0
-> 
-> all of those other three irq's should definitely have triggered, and you
-> should have ended up with exactly the same ELCR setting in the end. Sadly,
-> we don't actually print out those changes, but since it's the on-board NIC
-> adapter that's not working, I'll ignore the other irq's and just look at
-> irq15. However, it would be interesting to know if you've tried the USB
-> controllers at all? It sounds like _none_ of those should work either..
-> 
-> The VIA Rhine driver clearly sets up its IRQ and ACPI is happy:
-> 
-> 	via-rhine.c:v1.10-LK1.2.0-2.6 June-10-2004 Written by Donald Becker
-> 	ACPI: PCI interrupt 0000:00:12.0[A]: no GSI - using IRQ 15
-> 
-> (the USB drivers do the same things), and I think the magic note here is 
-> the "no GSI".
-> 
-> That, in turn, causes the code to not call "acpi_register_gsi()", and that 
-> in turn means that it never does the "eisa_set_level_irq()" call either.
-> 
-> I bet this appended one-liner will fix your problem.
-> 
-> Norbert, can you confirm?
-> 
-> Len, ACPI people, any reason not to do this?
-> 
-> 		Linus
-> 
-> ---
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -435,6 +435,7 @@ acpi_pci_irq_enable (
->  		/* Interrupt Line values above 0xF are forbidden */
->  		if (dev->irq >= 0 && (dev->irq <= 0xF)) {
->  			printk(" - using IRQ %d\n", dev->irq);
-> +			eisa_set_level_irq(dev->irq);
->  			return_VALUE(0);
->  		}
->  		else {
-> 
 
-Everything confirmed.
-I've added the one-liner to 2.6.12 and the on-board nic is working
-fine now. Also your assumption wrt the usb-controllers was right.
 
--- Norbert
+Begin forwarded message:
+
+Date: Wed, 22 Jun 2005 18:13:49 +0400
+From: "Alexander Y. Fomichev" <gluk-IEI71MnrQTM@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: admin-QYz/2UuD9VIox3rIn2DAYQ@public.gmane.org
+Subject: 2.6.12 hangs on boot
+
+
+G' day
+
+I've been trying to switch from 2.6.12-rc3 to 2.6.12 on Dual EM64T 2.8 GHz
+[ MoBo: Intel E7520, intel 82801 ]
+but kernel hangs on boot right after records:
+
+Booting processor 2/1 rip 6000 rsp ffff8100023dbf58
+Initializing CPU#2
+
+( below is a link to full boot trace, actually -git3 but no differences)
+http://sysadminday.org.ru/2.6.12-hang-on-boot/2.6.12-git3-hang
+
+An attempt to enable debug:
++CONFIG_ACPI_DEBUG=y
++CONFIG_DEBUG_SLAB=y
++CONFIG_DEBUG_PREEMPT=y
++CONFIG_DEBUG_SPINLOCK=y
++CONFIG_DEBUG_SPINLOCK_SLEEP=y
++CONFIG_DEBUG_KOBJECT=y
++CONFIG_DEBUG_INFO=y
++CONFIG_INIT_DEBUG=y
+gives rather strange result, kernel boots successfully ( with a lot of
+debuging messages of course but i couldn't find something suspicious )
+http://sysadminday.org.ru/2.6.12-hang-on-boot/2.6.12-git3-debug
+
+config for 2.6.12 have been taken from previous one, only
+'make oldconfig' has been made.
+http://sysadminday.org.ru/2.6.12-hang-on-boot/2.6.12-git3.config
+
+Hang 100% reproducible on at least two of my EM64T hosts.
+( actualy the same configuration as of MoBo/CPU )
+
+-- 
+Best regards.
+        Alexander Y. Fomichev <gluk-IEI71MnrQTM@public.gmane.org>
+        Public PGP key: http://sysadminday.org.ru/gluk.asc
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
 
 
 -------------------------------------------------------
