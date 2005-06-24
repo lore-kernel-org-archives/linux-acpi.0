@@ -1,14 +1,11 @@
-From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Re: Changeset "acpi: disable PCI links at boot again,
- fix ELCR" -> on-board nic adapter not working
-Date: Fri, 24 Jun 2005 11:44:29 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0506241143520.11175@ppc970.osdl.org>
-References: <42B7CF33.5090501@neoware.com> <42BA6639.9090402@neoware.com>
- <Pine.LNX.4.58.0506241100290.11175@ppc970.osdl.org> <200506241231.55760.bjorn.helgaas@hp.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: [Bugme-new] [Bug 4791] New: ACPI + SERIO_I8042 bug/conflict
+Date: Fri, 24 Jun 2005 12:21:05 -0700
+Message-ID: <20050624122105.36e4bc64.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200506241231.55760.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,40 +15,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Norbert Federa <norbert.federa-uHwDyaZCXy1BDgjK7y7TUQ@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On Fri, 24 Jun 2005, Bjorn Helgaas wrote:
-> 
-> My preference is to use acpi_register_gsi() rather than
-> calling eisa_set_level_irq() directly.
+Begin forwarded message:
 
-Ok. Norbert, just because I'm anal, can you verify that that version also
-fixes it before I commit it?
+Date: Fri, 24 Jun 2005 09:33:47 -0700
+From: bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+To: bugme-new-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
+Subject: [Bugme-new] [Bug 4791] New: ACPI + SERIO_I8042 bug/conflict
 
-		Linus
 
-> 
-> > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> > --- a/drivers/acpi/pci_irq.c
-> > +++ b/drivers/acpi/pci_irq.c
-> > @@ -435,6 +435,12 @@ acpi_pci_irq_enable (
-> >  		/* Interrupt Line values above 0xF are forbidden */
-> >  		if (dev->irq >= 0 && (dev->irq <= 0xF)) {
-> >  			printk(" - using IRQ %d\n", dev->irq);
-> > +/* Pick one! */
-> > +#if 1
-> > +			acpi_register_gsi(dev->irq, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW);
-> > +#else
-> > +			eisa_set_level_irq(dev->irq);
-> > +#endif
-> >  			return_VALUE(0);
-> >  		}
-> >  		else {
-> 
+http://bugzilla.kernel.org/show_bug.cgi?id=4791
+
+            Summary: ACPI + SERIO_I8042 bug/conflict
 
 
 -------------------------------------------------------
