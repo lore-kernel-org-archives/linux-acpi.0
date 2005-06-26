@@ -1,13 +1,12 @@
-From: nbs_r <nbs_r-gGZFqZ9RcmRmR6Xm/wNWPw@public.gmane.org>
-Subject: Re: NEC RX LR700/8E support
-Date: Sun, 26 Jun 2005 15:37:02 +0900
-Message-ID: <42BE4D0E.1010604@gazeta.pl>
-References: <42B44E9A.5010502@gazeta.pl>
+From: Thomas Perl <thp-MhksZLCqGG5eoWH0uzbU5w@public.gmane.org>
+Subject: hp omnibook xe4500 fan control
+Date: Sun, 26 Jun 2005 09:06:19 +0200
+Message-ID: <42BE53EB.5050601@perli.net>
+Reply-To: thp-MhksZLCqGG5eoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42B44E9A.5010502-gGZFqZ9RcmRmR6Xm/wNWPw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,44 +19,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Is this a valid mailing list for such an end-user support? Where should
-I ask for help?
+Hello, List!
 
-Regards,
-\R.
+I'm having a problem with HP's Omnibook XE4500.
 
-nbs_r wrote:
+I cannot control the fan using its /proc/acpi interface. There is a fan 
+entry and I can try to set some options, however - they are not set 
+effectively (seems like Linux isn't in control of the fan). I'd like to 
+set the trip_points to some values so that the fan doesn't come on so 
+often. Any hints on where to start? Or it is not possible on Linux anyway?
 
-> I have problems with a NEC RX-series's LR700/8E notebook running Linux
-> version 2.6.11-1.27_FC3 (Fedora Core 3).
->
-> The most important one (overheating) was solved by adding
-> acpi_os_name="Windows 2001 SP1" option in grub.conf. Nevertheless,
-> DSDT contains other errors as well:
->
-> ASL Input:  dsdt.dsl - 4064 lines, 146078 bytes, 2275 keywords
-> Compilation complete. 21 Errors, 1 Warnings, 0 Remarks, 494 Optimizations
->
-> Although I'm unable to fix these errors on my own, I'll happily help
-> with testing.
->
-> Attached data:
-> cat /proc/acpi/dsdt > dsdt.dat
-> dmesg -s40000 > dmesg.out
-> dmidecode > dmidecode.out
-> lspci -vv > lspci.out
->
-> Best Regards,
-> \R.
->
->
+There is a fan.exe on the diagnostic partition which switches the fan on 
+and then off for diagnose purposes, so it _should_ be possible to 
+control the fan by software.
 
 
--- 
+Thanks for any information!
+Thomas
 
-Dodawaj ZA DARMO og³oszenia do Aaaby.pl i Gazety Sto³ecznej: Dla dziecka, Fotografia, Hobby, Ksi±¿ki, Odzie¿, RTV i AGD, Meble, Telefony
-
-http://www.aaaby.pl
+PS: Please cc the reply also to me, I'm currently not on the list.
 
 
 -------------------------------------------------------
