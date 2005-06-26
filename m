@@ -1,13 +1,13 @@
-From: Janosch Machowinski <jmachowinski-Mmb7MZpHnFY@public.gmane.org>
+From: Stefan Baums <baums@u.washington.edu>
 Subject: Re: Fw: ACPI and the idle loop - possible bug
-Date: Sun, 26 Jun 2005 02:05:03 +0200
-Message-ID: <1119744303.14822.9.camel@localhost>
-References: <20050625151923.738504b1.akpm@osdl.org>
+Date: Sat, 25 Jun 2005 20:40:55 -0700
+Message-ID: <20050626034055.GA18992@localhost.localdomain>
+References: <20050625151923.738504b1.akpm@osdl.org> <1119744303.14822.9.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050625151923.738504b1.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1119744303.14822.9.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,49 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Baums <baums@u.washington.edu>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> This Problem also occures on a lot of ASUS Laptops, sounds a bit
+> like the morse alpabet ;-)
 
-> Some Lenove (IBM) ThinkPad models (in my case the ThinkPad X41
-> 2528-6NU) produce irritating high-pitch crackling noises under
-> Linux in certain conditions
-This Problem also occures on a lot of ASUS Laptops,
-sounds a bit like the morse alpabet ;-)
+Yes, it does.  It is rather unpleasant.
 
-> This noise only occurs when the processor is not busy (with, e.g.,
-> compiling or video playback), so it seems to be related to the
-> idle loop (see also below about 'idle=halt').  Furthermore, it
-> seems to be caused by something that ACPI is doing to the
-> processor: if the 'processor' module (and its dependants:
-> 'speedstep_centrino'/'acpi_cpufreq' and 'thermal') are not loaded,
-> the high-pitch noise does not occur.
+> My suggestion is that this sounds are created by the
+> powerconverters.  And it only occurs on my ASUS M6 when the
+> processor is in C3.  So the described behaviour is clear, cause
+> if you unload the processor ACPI module, you processor will stop
+> going in C3 and thou the sounds stop.
+
+   [...]
+
+> >    idle=halt
 > 
-My suggestion is that this sounds are created by the powerconverters.
-And it only occurs on my ASUS M6 when the processor is in C3.
-So the described behaviour is clear, cause if you unload the processor
-ACPI module, you processor will stop going in C3 and thou the sounds
-stop. 
+> What exactly does this parameter do ? Using for all C-States the
+> hlt instruction ?
 
+I have no idea.  A contributor to the ThinkWiki page that I
+referred to had heard 'in several forums' that the problem may
+have to do with the '"idle"-state (or "C3") of the processor'.
+That got me googling, I came across the 'idle' kernel boot
+parameter, and tried it out.  The documentation for this parameter
+in linux-2.6.12/Documentation/kernel-parameters.txt is a
+two-liner:
 
-> If the 'processor' module (and its dependants) _are_ loaded, then
-> the noise can be initially avoided by passing the boot parameter
-> 
->    idle=halt
+   idle=           [HW]
+                   Format: idle=poll or idle=halt
 
-What exactly does this parameter do ? Using for all C-States the hlt
-instruction ?
+and I could find no further information about this on the
+Internet.  I guess somebody familiar with that part of the kernel
+code will have to tell us what the parameter does.
 
->    - First, for causing the high-pitch noise to start with, though
->      it could be argued that this is a hardware defect that is
->      just triggered by ACPI.  (However not by Windows XP, on the
->      same computer, so it is definitely avoidable.)
-> 
-Could also be that XP dosen't use C3 as much as Linux does
+Googling revealed that the C3 state seems to have caused another
+(unrelated?) problem with the wireless driver on last year's
+ThinkPad models:
 
+   http://www.thinkwiki.org/wiki/Patch_disabling_ACPI_C3
 
-	Janosch
+That resulted in a patch to disable C3 (but not C2) entirely, but
+I don't know if that patch still works with 2.6.12, and to be
+honest, I'd rather keep my C3.  Whatever it is that idle=halt does
+(until ACPI apparently switches it off) seems preferable.
 
+Stefan
+
+-- 
+Stefan Baums
+Asian Languages and Literature
+University of Washington
 
 
 -------------------------------------------------------
