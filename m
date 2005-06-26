@@ -1,14 +1,13 @@
-From: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
-Subject: Suspend to RAM works, but no wake up. ATI Technologies Inc Rage
- Mobility P/M (rev 64) video card
-Date: Sun, 26 Jun 2005 09:57:08 +0200
-Message-ID: <20050626095708.3649fdff.linux@celifornia.com>
+From: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Subject: Re: Suspend to RAM works, but no wake up. ATI Technologies
+	Inc Rage Mobility P/M (rev 64) video card
+Date: Sun, 26 Jun 2005 10:41:56 +0200
+Message-ID: <1119775316.19781.13.camel@sponge.fungus>
+References: <20050626095708.3649fdff.linux@celifornia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-pW65XBbU1W3ipY0VimS8"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Resent-Message-Id: <20050626101823.324a1ac4.linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
+In-Reply-To: <20050626095708.3649fdff.linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,44 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
 
-On my Sony Vaio laptop (PCG-C1VRX/K picturebook) I use kernel 2.6.11. I
-am on Debian Sarge. When I suspend, the laptop suspends just fine,
-unloads everything it can, what it cannot, I included in the script to
-force to unload, and it sleeps very fine when I close the lid. First
-issue, it wont wake up when I open the lid, only when I press a button.
-Second issue is that it wont come back to live even after button
-pressed, except if I give a boot pharameter to GRUB as follows
+--=-pW65XBbU1W3ipY0VimS8
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-acpi_sleep=s3_bios
+On Sun, 2005-06-26 at 09:57 +0200, Benedek Frank wrote:
+> When I use this option, it does wake up when I hit a key. However, while
+> asleep, the screen isnt completely off. I can hear a buzzing sound,
+> very soflty, but I can definetally hear it. Also, when I open the
+> lid, (it wont wake up yet, only on button press) I can see some text on
+> the screen if I tilt it in the right angle. THe LCD seems off, but it
+> does has some text on it, so it cannot be off, just dimmed to a maximum.
+> ANd the buzzing sound gives it also away. I left the machine suspended
+> at 33% battery yesterday at 2AM, and by 7AM when I woke up, the battery
+> was dead, and the laptop shut down. Usually 33% gives me 40 mintues of
+> work time, I think it should have lasted for a 5 hours suspension, no?
 
-Now my Grub entry looks like this:
+I have an IBM ThinkPad X31 (2672-XXH), also with a ATI Radeon (ATI
+Technologies Inc Radeon Mobility M6 LY).
 
-title           Debian GNU/Linux, kernel 2.6.11 
-root            (hd0,1)
-kernel          /boot/vmlinuz-2.6.11 root=/dev/hda2 ro
-acpi_sleep=s3_bios initrd          /boot/initrd.img-2.6.11
-savedefault
-boot
+While I do not get the high pitched noise, I do see the problem with the
+LCD backlight not powering off during S3. I have to use radeontool [1]
+to power off the LCD backlight before going into S3 and reverse this
+procedure when the laptop wakes up from S3.
 
-When I use this option, it does wake up when I hit a key. However, while
-asleep, the screen isnt completely off. I can hear a buzzing sound,
-very soflty, but I can definetally hear it. Also, when I open the
-lid, (it wont wake up yet, only on button press) I can see some text on
-the screen if I tilt it in the right angle. THe LCD seems off, but it
-does has some text on it, so it cannot be off, just dimmed to a maximum.
-ANd the buzzing sound gives it also away. I left the machine suspended
-at 33% battery yesterday at 2AM, and by 7AM when I woke up, the battery
-was dead, and the laptop shut down. Usually 33% gives me 40 mintues of
-work time, I think it should have lasted for a 5 hours suspension, no?
+Perhaps the in-kernel radeonfb driver could be modified to allow
+powering down the LCD backlight before entering S3?
 
-Thanks for any help
+Sincerely,
+Brix
+[1]: http://fdd.com/software/radeon/
+--=20
+Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Gentoo Metadistribution | Mobile computing herd
 
-Benedek
+--=-pW65XBbU1W3ipY0VimS8
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBCvmpUv+Q4flTiePgRAlJeAJ9krfLM47LUtsomFPi0Qc0c33aoXgCgnJai
+1BFAsPh60RqCKh+b1gxYSSQ=
+=lEWJ
+-----END PGP SIGNATURE-----
+
+--=-pW65XBbU1W3ipY0VimS8--
+
 
 
 -------------------------------------------------------
