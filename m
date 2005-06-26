@@ -1,13 +1,12 @@
-From: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Subject: Re: Suspend to RAM works, but no wake up. ATI Technologies
-	Inc Rage Mobility P/M (rev 64) video card
-Date: Sun, 26 Jun 2005 10:41:56 +0200
-Message-ID: <1119775316.19781.13.camel@sponge.fungus>
-References: <20050626095708.3649fdff.linux@celifornia.com>
+From: Petros Kolyvas <pkolyvas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Suspend to RAM issus on a Dell 700m
+Date: Sun, 26 Jun 2005 12:36:48 -0400
+Message-ID: <BAYC1-PASMTP01AF878251E9C0DF5ECA1BD6EF0@cez.ice>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-pW65XBbU1W3ipY0VimS8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050626095708.3649fdff.linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
+Message-ID: <42BED9A0.9050803@gmail.com>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,54 +19,73 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Folks,
 
---=-pW65XBbU1W3ipY0VimS8
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I finally got the "mem" state to function on my laptop (a state which I 
+use extensively in that "other" OS when I'm working.)
 
-On Sun, 2005-06-26 at 09:57 +0200, Benedek Frank wrote:
-> When I use this option, it does wake up when I hit a key. However, while
-> asleep, the screen isnt completely off. I can hear a buzzing sound,
-> very soflty, but I can definetally hear it. Also, when I open the
-> lid, (it wont wake up yet, only on button press) I can see some text on
-> the screen if I tilt it in the right angle. THe LCD seems off, but it
-> does has some text on it, so it cannot be off, just dimmed to a maximum.
-> ANd the buzzing sound gives it also away. I left the machine suspended
-> at 33% battery yesterday at 2AM, and by 7AM when I woke up, the battery
-> was dead, and the laptop shut down. Usually 33% gives me 40 mintues of
-> work time, I think it should have lasted for a 5 hours suspension, no?
+A few issues though... my cpu, upon return, powers up to full-speed 
+making it impossible to truly conserve power, sort of defeating the 
+whole process.
 
-I have an IBM ThinkPad X31 (2672-XXH), also with a ATI Radeon (ATI
-Technologies Inc Radeon Mobility M6 LY).
+It seems a rogue process (one which I can't kill)... listed only as 'sh 
+-i" is using ~99% of the available CPU cycles. I have no idea where it's 
+coming from.
 
-While I do not get the high pitched noise, I do see the problem with the
-LCD backlight not powering off during S3. I have to use radeontool [1]
-to power off the LCD backlight before going into S3 and reverse this
-procedure when the laptop wakes up from S3.
+Additionally the system gets less and less responsive with each return 
+from the "mem" state. Probably due to many of these rogue processes 
+building up and bogging the system down.
 
-Perhaps the in-kernel radeonfb driver could be modified to allow
-powering down the LCD backlight before entering S3?
+Below is the script I used, which I found online and modified (very 
+little) as needed. Any insight would be greatly appreciated. Oh, I'm 
+using FC4 w/ 2.6.12 (unpatched.)
 
-Sincerely,
-Brix
-[1]: http://fdd.com/software/radeon/
---=20
-Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Gentoo Metadistribution | Mobile computing herd
+Thanks,
+Pk
 
---=-pW65XBbU1W3ipY0VimS8
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+///
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+script to drive the system to S3
+# suspend-to-ram
 
-iD8DBQBCvmpUv+Q4flTiePgRAlJeAJ9krfLM47LUtsomFPi0Qc0c33aoXgCgnJai
-1BFAsPh60RqCKh+b1gxYSSQ=
-=lEWJ
------END PGP SIGNATURE-----
+if [-e /suspending]; then
+	echo "already in the process of suspending. Please be patient."
+else
+	/bin/touch /suspending
 
---=-pW65XBbU1W3ipY0VimS8--
+	# Step 1: preparing sleep
+	/usr/bin/killall -s SIGUSR1 cpuspeed
+	/usr/bin/chvt 1 # necessary to make DRI work
+	/sbin/service anacron stop
+	# USB doesn't suspend without unloading first
+	/sbin/rmmod ehci_hcd
+	/sbin/rmmod uhci_hcd
+	#save the system time
+	/sbin/hwclock --adjust
+	#/sbin/rmmod wacom # only necessary of you have wacom stylus
+	/sbin/rmmod -as
+	/bin/sync
+
+	# Step 2: send sleep command via ACPI
+	echo mem > /sys/power/state
+
+	# Step 3: wake-up and reload
+	# restart the BIOS code for the video card
+	/usr/bin/video_post
+	# restore clock
+	/sbin/hwclock --hctosys
+	# reload USB modules
+	/sbin/modprobe ehci_hcd
+	/sbin/modprobe uhci_hcd
+	# initialise X
+	xinit /bin/false -- :1
+	/usr/bin/chvt 7
+	# restore resvices
+	/sbin/service anacron start
+	/sbin/service cpuspeed restart
+
+	rm /suspending
+fi
 
 
 
