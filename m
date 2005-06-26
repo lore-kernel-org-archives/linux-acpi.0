@@ -1,12 +1,13 @@
-From: Damian <res0d26i-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: acer aspire dsdt error
-Date: Sat, 25 Jun 2005 20:47:16 -0700
-Message-ID: <1119757636.7402.4.camel@localhost.localdomain>
-Reply-To: res0d26i-H+0wwilmMs3R7s880joybQ@public.gmane.org
+From: nbs_r <nbs_r-gGZFqZ9RcmRmR6Xm/wNWPw@public.gmane.org>
+Subject: Re: NEC RX LR700/8E support
+Date: Sun, 26 Jun 2005 15:37:02 +0900
+Message-ID: <42BE4D0E.1010604@gazeta.pl>
+References: <42B44E9A.5010502@gazeta.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <42B44E9A.5010502-gGZFqZ9RcmRmR6Xm/wNWPw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,57 +20,44 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I own an Acer Aspire 3000 which I'm trying to compile a correct dsdt but
-am getting the following errors from the supposed corrected dsdt. I have
-tried fixing the error by adding External (\_OSI) but it created yet
-another error that wasn't documented on the guide. So here is the file
-untouched by me so I can't mess things up even more. This is what
-happens when I try to compile it...Please I don't know what more to do.
-Thanks for your time, any info is highly appreciated.
+Is this a valid mailing list for such an end-user support? Where should
+I ask for help?
 
-Damian
+Regards,
+\R.
 
-damian@opstand:~/ACER$ ./iasl -tc
-ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl
+nbs_r wrote:
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20050513 [Jun 25
-2005]
-Copyright (C) 2000 - 2005 Intel Corporation
-Supports ACPI Specification Revision 3.0
-
-ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2506:          If
-(LNot (LEqual (\_PR.CPU0._PPC, Zero)))
-Error    1022 -                   Object does not exist ^
-(\_PR.CPU0._PPC)
-
-ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2508:
-Store (Zero, \_PR.CPU0._PPC)
-Error    1022 -                  Object does not exist ^
-(\_PR.CPU0._PPC)
-
-ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2516:          If
-(LLess (\_PR.CPU0._PPC, Local1))
-Error    1022 -            Object does not exist ^  (\_PR.CPU0._PPC)
-
-ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2518:
-Store (Local1, \_PR.CPU0._PPC)
-Error    1022 -                    Object does not exist ^
-(\_PR.CPU0._PPC)
-
-ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2528:      If
-(LNot (LEqual (\_PR.CPU0._PPC, Zero)))
-Error    1022 -               Object does not exist ^  (\_PR.CPU0._PPC)
-
-ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2530:
-Store (Zero, \_PR.CPU0._PPC)
-Error    1022 -              Object does not exist ^  (\_PR.CPU0._PPC)
-
-ASL Input:  ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl - 3466
-lines, 119524 bytes, 1556 keywords
-Compilation complete. 6 Errors, 0 Warnings, 0 Remarks, 3 Optimizations
+> I have problems with a NEC RX-series's LR700/8E notebook running Linux
+> version 2.6.11-1.27_FC3 (Fedora Core 3).
+>
+> The most important one (overheating) was solved by adding
+> acpi_os_name="Windows 2001 SP1" option in grub.conf. Nevertheless,
+> DSDT contains other errors as well:
+>
+> ASL Input:  dsdt.dsl - 4064 lines, 146078 bytes, 2275 keywords
+> Compilation complete. 21 Errors, 1 Warnings, 0 Remarks, 494 Optimizations
+>
+> Although I'm unable to fix these errors on my own, I'll happily help
+> with testing.
+>
+> Attached data:
+> cat /proc/acpi/dsdt > dsdt.dat
+> dmesg -s40000 > dmesg.out
+> dmidecode > dmidecode.out
+> lspci -vv > lspci.out
+>
+> Best Regards,
+> \R.
+>
+>
 
 
+-- 
+
+Dodawaj ZA DARMO og³oszenia do Aaaby.pl i Gazety Sto³ecznej: Dla dziecka, Fotografia, Hobby, Ksi±¿ki, Odzie¿, RTV i AGD, Meble, Telefony
+
+http://www.aaaby.pl
 
 
 -------------------------------------------------------
