@@ -1,13 +1,12 @@
-From: Stefan Baums <baums@u.washington.edu>
-Subject: Re: Fw: ACPI and the idle loop - possible bug
-Date: Sat, 25 Jun 2005 20:40:55 -0700
-Message-ID: <20050626034055.GA18992@localhost.localdomain>
-References: <20050625151923.738504b1.akpm@osdl.org> <1119744303.14822.9.camel@localhost>
+From: Damian <res0d26i-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Subject: acer aspire dsdt error
+Date: Sat, 25 Jun 2005 20:47:16 -0700
+Message-ID: <1119757636.7402.4.camel@localhost.localdomain>
+Reply-To: res0d26i-H+0wwilmMs3R7s880joybQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1119744303.14822.9.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,56 +19,57 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> This Problem also occures on a lot of ASUS Laptops, sounds a bit
-> like the morse alpabet ;-)
+I own an Acer Aspire 3000 which I'm trying to compile a correct dsdt but
+am getting the following errors from the supposed corrected dsdt. I have
+tried fixing the error by adding External (\_OSI) but it created yet
+another error that wasn't documented on the guide. So here is the file
+untouched by me so I can't mess things up even more. This is what
+happens when I try to compile it...Please I don't know what more to do.
+Thanks for your time, any info is highly appreciated.
 
-Yes, it does.  It is rather unpleasant.
+Damian
 
-> My suggestion is that this sounds are created by the
-> powerconverters.  And it only occurs on my ASUS M6 when the
-> processor is in C3.  So the described behaviour is clear, cause
-> if you unload the processor ACPI module, you processor will stop
-> going in C3 and thou the sounds stop.
+damian@opstand:~/ACER$ ./iasl -tc
+ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl
 
-   [...]
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20050513 [Jun 25
+2005]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
 
-> >    idle=halt
-> 
-> What exactly does this parameter do ? Using for all C-States the
-> hlt instruction ?
+ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2506:          If
+(LNot (LEqual (\_PR.CPU0._PPC, Zero)))
+Error    1022 -                   Object does not exist ^
+(\_PR.CPU0._PPC)
 
-I have no idea.  A contributor to the ThinkWiki page that I
-referred to had heard 'in several forums' that the problem may
-have to do with the '"idle"-state (or "C3") of the processor'.
-That got me googling, I came across the 'idle' kernel boot
-parameter, and tried it out.  The documentation for this parameter
-in linux-2.6.12/Documentation/kernel-parameters.txt is a
-two-liner:
+ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2508:
+Store (Zero, \_PR.CPU0._PPC)
+Error    1022 -                  Object does not exist ^
+(\_PR.CPU0._PPC)
 
-   idle=           [HW]
-                   Format: idle=poll or idle=halt
+ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2516:          If
+(LLess (\_PR.CPU0._PPC, Local1))
+Error    1022 -            Object does not exist ^  (\_PR.CPU0._PPC)
 
-and I could find no further information about this on the
-Internet.  I guess somebody familiar with that part of the kernel
-code will have to tell us what the parameter does.
+ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2518:
+Store (Local1, \_PR.CPU0._PPC)
+Error    1022 -                    Object does not exist ^
+(\_PR.CPU0._PPC)
 
-Googling revealed that the C3 state seems to have caused another
-(unrelated?) problem with the wireless driver on last year's
-ThinkPad models:
+ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2528:      If
+(LNot (LEqual (\_PR.CPU0._PPC, Zero)))
+Error    1022 -               Object does not exist ^  (\_PR.CPU0._PPC)
 
-   http://www.thinkwiki.org/wiki/Patch_disabling_ACPI_C3
+ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl  2530:
+Store (Zero, \_PR.CPU0._PPC)
+Error    1022 -              Object does not exist ^  (\_PR.CPU0._PPC)
 
-That resulted in a patch to disable C3 (but not C2) entirely, but
-I don't know if that patch still works with 2.6.12, and to be
-honest, I'd rather keep my C3.  Whatever it is that idle=halt does
-(until ACPI apparently switches it off) seems preferable.
+ASL Input:  ACER-Aspire_3002LCI_or_3000-Phoenix_3A16-original.asl - 3466
+lines, 119524 bytes, 1556 keywords
+Compilation complete. 6 Errors, 0 Warnings, 0 Remarks, 3 Optimizations
 
-Stefan
 
--- 
-Stefan Baums
-Asian Languages and Literature
-University of Washington
 
 
 -------------------------------------------------------
