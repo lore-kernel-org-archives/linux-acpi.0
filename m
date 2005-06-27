@@ -1,13 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Suspend to RAM issus on a Dell 700m
-Date: Sun, 26 Jun 2005 23:11:07 +0200
-Message-ID: <20050626211107.GA1315@elf.ucw.cz>
-References: <42BED9A0.9050803@gmail.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Suspend to RAM works, but no wake up. ATI Technologies
+	Inc Rage Mobility P/M (rev 64) video card
+Date: Mon, 27 Jun 2005 02:19:45 +0100
+Message-ID: <1119835185.11066.39.camel@tyrosine>
+References: <20050626095708.3649fdff.linux@celifornia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <42BED9A0.9050803-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20050626095708.3649fdff.linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +18,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Petros Kolyvas <pkolyvas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Sun, 2005-06-26 at 09:57 +0200, Benedek Frank wrote:
 
-> I finally got the "mem" state to function on my laptop (a state which I 
-> use extensively in that "other" OS when I'm working.)
-> 
-> A few issues though... my cpu, upon return, powers up to full-speed 
-> making it impossible to truly conserve power, sort of defeating the 
-> whole process.
-> 
-> It seems a rogue process (one which I can't kill)... listed only as 'sh 
-> -i" is using ~99% of the available CPU cycles. I have no idea where it's 
-> coming from.
-> 
-> Additionally the system gets less and less responsive with each return 
-> from the "mem" state. Probably due to many of these rogue processes 
-> building up and bogging the system down.
-> 
-> Below is the script I used, which I found online and modified (very 
-> little) as needed. Any insight would be greatly appreciated. Oh, I'm 
-> using FC4 w/ 2.6.12 (unpatched.)
+> When I use this option, it does wake up when I hit a key. However, while
+> asleep, the screen isnt completely off. I can hear a buzzing sound,
+> very soflty, but I can definetally hear it. Also, when I open the
+> lid, (it wont wake up yet, only on button press) I can see some text on
+> the screen if I tilt it in the right angle. THe LCD seems off, but it
+> does has some text on it, so it cannot be off, just dimmed to a maximum.
+> ANd the buzzing sound gives it also away. I left the machine suspended
+> at 33% battery yesterday at 2AM, and by 7AM when I woke up, the battery
+> was dead, and the laptop shut down. Usually 33% gives me 40 mintues of
+> work time, I think it should have lasted for a 5 hours suspension, no?
 
-Are you using preempt by chance? See wchan where the sh -i is
-running... then debug it :-).
-								Pavel
+There is no code in the kernel to power down the video chip. This is a
+fairly general problem.
+
 -- 
-teflon -- maybe it is a trademark, but it should not be.
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
