@@ -1,15 +1,13 @@
-From: Danny Kukawka <dkukawka-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: hp omnibook xe4500 fan control
-Date: Mon, 27 Jun 2005 11:41:44 +0200
-Message-ID: <200506271141.45275.dkukawka@suse.de>
-References: <42BE53EB.5050601@perli.net>
+From: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: 2.6.12 crashes X.org after resume
+Date: Mon, 27 Jun 2005 14:01:05 +0200
+Message-ID: <42BFEA81.2080309@kernelconcepts.de>
+References: <200506231151.18713.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42BE53EB.5050601-MhksZLCqGG5eoWH0uzbU5w@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200506231151.18713.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,40 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-15?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday 26 June 2005 09:06, Thomas Perl wrote:
-> I'm having a problem with HP's Omnibook XE4500.
->
-> I cannot control the fan using its /proc/acpi interface. There is a fan
-> entry and I can try to set some options, however - they are not set
-> effectively (seems like Linux isn't in control of the fan). I'd like to
-> set the trip_points to some values so that the fan doesn't come on so
-> often. Any hints on where to start? Or it is not possible on Linux anyway?
->
-> There is a fan.exe on the diagnostic partition which switches the fan on
-> and then off for diagnose purposes, so it _should_ be possible to
-> control the fan by software.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Did you tried the omnibook kernel modules [1] ? They should also support th=
-e =A0
-XE4500. =A0=20
+Stefan D=F6singer schrieb:
+> Hello,
+Hi!
 
-Danny
+> I just upgraded to 2.6.12, and I noticed that Xorg(6.8.2) crashes immed=
+iatly=20
+> after resume. It looks like it's driver independent(radeon or fglrx), a=
+nd I=20
+> don't have to switch to the X11 seesion to crash it.
+> It runs for a _short_ period of time, long enought to post my radeon=20
+> card(radeon driver), but not long enought to rebuild my screen. Anyone =
+else=20
+> seeing this problem? I've attached my dmesg(looks 100% normal) and 2 X=20
+> -verbose 6 logs. xout.bz2 is the resume to console, xout-2 is a resume=20
+> directly to X.
 
-[1] http://sourceforge.net/projects/omke/
+Not on my T42p. It behaves as with 2.6.11.8 and suspend (S3 and S4)
+works perfectly.
 
-=2D-=20
-Danny Kukawka
-dkukawka-l3A5Bk7waGM@public.gmane.org
-Mobile Devices
-SUSE LINUX a Novell Business
-Maxfeldstr. 5, D-90409 Nuernberg, Germany
+> Stefan D=F6singer
+Cheers
+  nils faerber
+
+- --
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          Mob: +49-176-21024535
+- --
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFCv+qBJXeIURG1qHgRAoTgAJ92LLCvQKGEdAoSkilhjmENDMPWfACg0dzA
+7JNGuAg5HpH12A9Yk8DHlLg=3D
+=3DqJZg
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
 from IBM. Find simple to follow Roadmaps, straightforward articles,
 informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+speed, fast. http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclic=
+k
