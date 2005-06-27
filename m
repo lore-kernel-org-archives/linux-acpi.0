@@ -1,14 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Suspend to RAM works, but no wake up. ATI Technologies
-	Inc Rage Mobility P/M (rev 64) video card
-Date: Mon, 27 Jun 2005 02:19:45 +0100
-Message-ID: <1119835185.11066.39.camel@tyrosine>
-References: <20050626095708.3649fdff.linux@celifornia.com>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: hp omnibook xe4500 fan control
+Date: Mon, 27 Jun 2005 09:35:52 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575026989E9@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050626095708.3649fdff.linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,28 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: thp-MhksZLCqGG5eoWH0uzbU5w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2005-06-26 at 09:57 +0200, Benedek Frank wrote:
+Hi,
+>
+>Hello, List!
+>
+>I'm having a problem with HP's Omnibook XE4500.
+>
+>I cannot control the fan using its /proc/acpi interface. There is a fan
+>entry and I can try to set some options, however - they are not set
+>effectively (seems like Linux isn't in control of the fan). I'd like to
+>set the trip_points to some values so that the fan doesn't come on so
+>often. Any hints on where to start? Or it is not possible on Linux
+anyway?
+>
+>There is a fan.exe on the diagnostic partition which switches the fan
+on
+>and then off for diagnose purposes, so it _should_ be possible to
+>control the fan by software.
+IIRC, fan device is a dummy device in many systems. That is acpi can't
+really control fan. Your system might be such one. Sure, it's just my
+guess :), did you see any error messages printed out? fan.exe might use
+other methods like i2c.
 
-> When I use this option, it does wake up when I hit a key. However, while
-> asleep, the screen isnt completely off. I can hear a buzzing sound,
-> very soflty, but I can definetally hear it. Also, when I open the
-> lid, (it wont wake up yet, only on button press) I can see some text on
-> the screen if I tilt it in the right angle. THe LCD seems off, but it
-> does has some text on it, so it cannot be off, just dimmed to a maximum.
-> ANd the buzzing sound gives it also away. I left the machine suspended
-> at 33% battery yesterday at 2AM, and by 7AM when I woke up, the battery
-> was dead, and the laptop shut down. Usually 33% gives me 40 mintues of
-> work time, I think it should have lasted for a 5 hours suspension, no?
-
-There is no code in the kernel to power down the video chip. This is a
-fairly general problem.
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
