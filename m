@@ -1,14 +1,12 @@
-From: Stefan Baums <baums@u.washington.edu>
-Subject: Re: Fw: ACPI and the idle loop - possible bug
-Date: Mon, 27 Jun 2005 15:09:04 -0700
-Message-ID: <20050627220904.GA6846@localhost.localdomain>
-References: <20050625151923.738504b1.akpm@osdl.org> <16A54BF5D6E14E4D916CE26C9AD3057502698BE3@pdsmsx402.ccr.corp.intel.com>
+From: Petros Kolyvas <pkolyvas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: CPU states
+Date: Tue, 28 Jun 2005 00:27:05 -0400
+Message-ID: <BAYC1-PASMTP01DB67ADA9D486B1456C16D6E10@cez.ice>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057502698BE3-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Message-ID: <42C0D199.1000708@gmail.com>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,54 +19,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> processor module has a parameter 'max_cstate', setting it to 2
-> is a better workaround to me if you hate the noise.
+Now that suspend to ram is functioning flawlessly (and I do mean 
+flawlessly - thanks good friends @ acpi-devel!), I'm looking, no 
+hunting, for information regarding cpu throttling under FC4/Linux. My 
+system, a 1.6GHz Pentium-M scales down, under FC4, to 600MHz. My 
+question or curiosity surrounds the fact that under windows, the cpu 
+speed can drop much lower than 600Mhz. Is this a limitation of current 
+software packages (or their states of development) or am I missing some 
+configuration information to take advantage of even lower power consumption.
 
-Thank you very much for pointing out that option.  I am using it
-now, and it is indeed a better workaround than idle=3Dhalt.
+Thanks so much!
 
-But it is a workaround.  On the one hand, it deprives me of C3 and
-C4 and thus shortens my battery life.  On the other, I found it
-exceedingly difficult to even find out about this option and get
-it to work.  (I tried passing it to the module via
-/etc/modprobe.d/ and /etc/modules, but neither one worked, and in
-the end I had to compile the ACPI processor part directly into the
-kernel and pass the option as a boot parameter
-'processor.max_cstate=3D2'.)  But as you can see from the ThinkWiki
-discussion, and Janosch=E2=80=99s post in this thread, there are indeed
-quite a lot of users (of at least ThinkPads and Acer laptops) who
-are affected by this problem and find the noise very unpleasant
-and distracting.  As far as I remember, the noise was not there in
-Windows XP on my machine (sorry, can=E2=80=99t check now, deleted
-Windows), and as far as I know Windows XP does use the C3 state.
-So do you think that you or the ACPI maintainers could try to
-rewrite the Linux ACPI implementation so that it does not cause
-this problem in C3?  I think it is not very good that on the
-laptops concerned, a default Linux installation causes a constant
-irritating noise and the only workaround (not solution) involves
-finding the 'max_cstate' information, recompile the kernel (with
-processor compiled in) and reconfigure the boot loader...  (In
-case you do want to fix this and get a chance to test it out on a
-ThinkPad X41: there the noise emerges from the ventilation vent on
-the left-hand side of the laptop.  You may not hear it clearly in,
-say, a noisy cafe or other public place, but it is very noticeable
-in a quiet room.)
-
-Finally, an unrelated problem is that ACPI apparently only honours
-the idle=3Dhalt boot parameter until the first suspend/resume or
-power state change, and then reenables C2 and above.
-
-Do I need to file a separate formal bug report for these two
-issues, and if so where?  Or is the discussion in this thread
-sufficient for the ACPI maintainers to work with?
-
-Best regards,
-Stefan Baums
-
---=20
-Stefan Baums
-Asian Languages and Literature
-University of Washington
+Petros
 
 
 -------------------------------------------------------
