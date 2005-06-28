@@ -1,13 +1,14 @@
-From: Ivan Kokshaysky <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>
-Subject: Re: [patch 2/2] i386/x86_64: collect host bridge resources v2
-Date: Wed, 29 Jun 2005 00:03:00 +0400
-Message-ID: <20050629000300.A26118@jurassic.park.msu.ru>
-References: <20050602224147.177031000@csdlinux-1> <20050602224327.051278000@csdlinux-1> <20050628155152.A24551@jurassic.park.msu.ru> <1119982914.19258.6.camel@whizzy>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: No fan control on an Acer Aspire 1694WLMi
+Date: Tue, 28 Jun 2005 22:22:09 +0200
+Message-ID: <20050628202209.GA30464@elf.ucw.cz>
+References: <42C07327.3000209@altern.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1119982914.19258.6.camel@whizzy>; from kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Tue, Jun 28, 2005 at 11:21:54AM -0700
+In-Reply-To: <42C07327.3000209-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,25 +18,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kristen Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 28, 2005 at 11:21:54AM -0700, Kristen Accardi wrote:
-> I gave this patch a try (against mm2), and found that I now get many
-> errors on boot up complaining about not being able to allocate PCI
-> resources due to resource collisions, and then the system begins to
-> complain about lost interrupts on hda, and is never able to mount the
-> root filesystem.
+Hi!
 
-Well, I'm not surprised. :-(
-Probably there is a conflict between e820 map and root bus ranges
-reported by ACPI. I think that it would be better to just drop
-gregkh-pci-pci-collect-host-bridge-resources-02.patch rather than
-try to fix it, at least until such conflicts can be resolved in
-a sane way.
+> At the boot, the fan doesn't start immediately, then it start at fisrt
+> speed. After a moment the fan rotates at full speed, but never goes
+> down, even if the temperature is 44=B0C.
+>=20
+> The CPU is not at full speed (max:2000MHz):
 
-Ivan.
+Probably your fan is controlled by hardware... nothing we can solve.
+								Pavel
+--=20
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
