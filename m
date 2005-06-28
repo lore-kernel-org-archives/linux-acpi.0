@@ -1,114 +1,70 @@
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Subject: Re: [patch 2/2] i386/x86_64: collect host bridge resources v2
-Date: Tue, 28 Jun 2005 15:51:52 +0400
-Message-ID: <20050628155152.A24551@jurassic.park.msu.ru>
-References: <20050602224147.177031000@csdlinux-1> <20050602224327.051278000@csdlinux-1>
+From: Benedek Frank <linux-mmCHBaZtUya2oZ/6fjIToQ@public.gmane.org>
+Subject: Re: Suspend to RAM works, but no wake up. ATI Technologies
+ Inc Rage Mobility P/M (rev 64) video card
+Date: Tue, 28 Jun 2005 14:52:35 +0200
+Message-ID: <20050628145235.62366068.linux@celifornia.com>
+References: <20050626095708.3649fdff.linux@celifornia.com>
+	<1119835185.11066.39.camel@tyrosine>
+	<20050627075909.2d44a7c4.linux@celifornia.com>
+	<1119886098.11066.43.camel@tyrosine>
+	<20050627174557.3a47c985.linux@celifornia.com>
+	<1119956002.11066.59.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261169AbVF1LwW@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20050602224327.051278000@csdlinux-1>; from rajesh.shah@intel.com on Thu, Jun 02, 2005 at 03:41:49PM -0700
-Sender: linux-kernel-owner@vger.kernel.org
-To: rajesh.shah@intel.com
-Cc: gregkh@suse.de, ak@suse.de, len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1119956002.11066.59.camel@tyrosine>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[This refers to "gregkh-pci-pci-collect-host-bridge-resources-02.patch"
-which went into 2.6.12-mm1 and -mm2]
+On Tue, 28 Jun 2005 11:53:22 +0100
+Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> wrote:
 
-On Thu, Jun 02, 2005 at 03:41:49PM -0700, rajesh.shah@intel.com wrote:
-> This patch reads and stores host bridge resources reported by
-> ACPI BIOS for i386 and x86_64 systems.  This is needed since
-> ACPI hotplug code now uses the PCI core for resource management. 
+> On Mon, 2005-06-27 at 17:45 +0200, Benedek Frank wrote:
+> 
+> > Can I make my graphic chip power down somehow? I really dont know
+> > how it works, so please forgive me if I am really dumb. I would just
+> > like to conserve the power when suspended.
+> 
+> At the moment? Nope. I'm looking at ways of improving this.
+> -- 
 
-That patch introduces two major problems.
+Thanks, Iwill keep an eye on the mailing list, would you please post it
+here, if you have something? Or you may reach me  linux at celifornia
+dot com.
 
-1. The new root bus resources aren't properly inserted into global
-   resource tree (missing request_resource calls). This leads to
-   completely messed up PCI setup, especially with
-   pci_assign_unassigned_resources() call, as seen in -mm1 (mm2 is
-   also unsafe, though).
+Thanks
 
-2. Transparent bridge handling is broken, no matter is it old code
-   in Linus' tree or the new one in -mm. At the point then
-   pcibios_setup_root_windows() is called, the "transparent"
-   resource pointers have been already set up in pci_read_bridge_bases()
-   (typically to ioport_resource and iomem_resource), so after changing
-   the root bus windows these pointers are wrong.
+Ben
 
-The appended patch fixes that. Just compare /proc/ioports and /proc/iomem
-with and without it. ;-)
+> Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+> 
+> 
+> 
+> -------------------------------------------------------
+> SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+> from IBM. Find simple to follow Roadmaps, straightforward articles,
+> informative Webcasts and more! Get everything you need to get up to
+> speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
+> 
 
-Ivan.
 
---- 2.6.12-mm2/arch/i386/pci/acpi.c	2005-06-28 13:30:24.000000000 +0400
-+++ linux/arch/i386/pci/acpi.c	2005-06-28 14:13:51.000000000 +0400
-@@ -107,10 +107,22 @@ verify_root_windows(struct pci_bus *bus)
- 			continue;
- 		switch (bus->resource[i]->flags & type_mask) {
- 			case IORESOURCE_IO:
--				num_io++;
-+				if (!request_resource(&ioport_resource,
-+						      bus->resource[i]))
-+					num_io++;
-+				else {
-+					kfree(bus->resource[i]);
-+					bus->resource[i] = NULL;
-+				}
- 				break;
- 			case IORESOURCE_MEM:
--				num_mem++;
-+				if (!request_resource(&iomem_resource,
-+						      bus->resource[i]))
-+					num_mem++;
-+				else {
-+					kfree(bus->resource[i]);
-+					bus->resource[i] = NULL;
-+				}
- 				break;
- 			default:
- 				break;
-@@ -126,6 +138,21 @@ verify_root_windows(struct pci_bus *bus)
- }
- 
- static void __devinit
-+fixup_transparent_bridges(struct list_head *bus_list)
-+{
-+	int i;
-+	struct pci_bus *b;
-+
-+	list_for_each_entry(b, bus_list, node) {
-+		if (b->self && b->self->transparent) {
-+			for (i = 3; i < PCI_BUS_NUM_RESOURCES; i++)
-+				b->resource[i] = b->parent->resource[i - 3];
-+		}
-+		fixup_transparent_bridges(&b->children);
-+	}
-+}
-+
-+static void __devinit
- pcibios_setup_root_windows(struct pci_bus *bus, acpi_handle handle)
- {
- 	int i;
-@@ -147,6 +174,21 @@ pcibios_setup_root_windows(struct pci_bu
- 			kfree(bus->resource[i]);
- 			bus->resource[i] = bres[i];
- 		}
-+	} else {
-+		/* Squeeze out unused resource pointers. */
-+		int idx = 0;
-+
-+		for (i = 0; i < PCI_BUS_NUM_RESOURCES; i++) {
-+			if (bus->resource[i])
-+				bus->resource[idx++] = bus->resource[i];
-+		}
-+		for (; idx < PCI_BUS_NUM_RESOURCES; idx++)
-+			bus->resource[idx] = NULL;
-+
-+		/* The root bus resources have been changed. Fix up the
-+		   resource pointers of buses behind "transparent" bridges
-+		   as well. */
-+		fixup_transparent_bridges(&bus->children);
- 	}
- }
- 
+-------------------------------------------------------
+SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+from IBM. Find simple to follow Roadmaps, straightforward articles,
+informative Webcasts and more! Get everything you need to get up to
+speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
