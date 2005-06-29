@@ -1,11 +1,8 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [PATCH] video.c: properly remove notify handlers
-Date: Wed, 29 Jun 2005 19:03:52 +0200
-Message-ID: <20050629170352.GA11807@hell.org.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+From: Perry Hutchison <phutchis-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
+Subject: which processor am I
+Date: Wed, 29 Jun 2005 16:28:04 -0700 (PDT)
+Message-ID: <200506292328.QAA79162@riparian.beaverton.windriver.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,45 +13,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-The video driver doesn't properly remove all the notify handlers on module
-unload. This has a side effect of subdevices failing to register on module
-reload, but sudden death looms if the handlers trigger after the module is
-unloaded (not that I've seen such a machine, but still). Please apply.
-Best regards,
+Suppose the currently-executing processor, on an MP platform which
+provides only ACPI-1.0 tables, has determined that it should put
+itself into C2.  How does it figure out which P_BLK to use, so as
+to stop itself and not the other processor?  (I am assuming that
+it it *possible* for the processor to put only itself into C2,
+granted in 1.0 there is no way for the tables to specify the
+presence or absence of such dependencies.)
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+One way would be to look in \_PR for the Processor object with the
+correct ProcessorId, but that would require a way for a processor
+to determine its own ProcessorId.
 
-Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-
---- a/drivers/acpi/video.c	2005-04-26 00:43:38.000000000 +0200
-+++ b/drivers/acpi/video.c	2005-06-29 18:02:04.000000000 +0200
-@@ -1666,6 +1666,7 @@
- acpi_video_bus_put_one_device(
- 	struct acpi_video_device	*device)
- {
-+	acpi_status status;
- 	struct acpi_video_bus *video;
- 
- 	ACPI_FUNCTION_TRACE("acpi_video_bus_put_one_device");
-@@ -1680,6 +1681,12 @@
- 	up(&video->sem);
- 	acpi_video_device_remove_fs(device->dev);
- 
-+	status = acpi_remove_notify_handler(device->handle,
-+		ACPI_DEVICE_NOTIFY, acpi_video_device_notify);
-+	if (ACPI_FAILURE(status))
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+			"Error removing notify handler\n"));
-+
- 	return_VALUE(0);
- }
- 
+This feels like a question whose answer should be blindingly obvious,
+but I am not finding it in the specification or the 4/18/2003 ACPICA
+Programmer Reference, nor in a brief look through the 20050513
+ACPICA distribution (where I found code to enter S states but not
+C states).  Maybe I'm not looking for the right thing.
 
 
 -------------------------------------------------------
