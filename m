@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: No fan control on an Acer Aspire 1694WLMi
-Date: Tue, 28 Jun 2005 22:22:09 +0200
-Message-ID: <20050628202209.GA30464@elf.ucw.cz>
-References: <42C07327.3000209@altern.org>
+From: employment agency <brian-wo4oW1Pw1HF3vZ0LZ0W7Rg@public.gmane.org>
+Subject: =?iso-8859-1?B?QWRkaXRpb25hbCBlYXJuaW5nISBNb3JlIHRoYW4gNzUwIEVVUk9TICBwZXIgd2Vl?=
+ =?iso-8859-1?B?aw==?=
+Date: Wed, 29 Jun 2005 04:00:51 +0000
+Message-ID: <b91201c57c5f$817ad7ca$263a1da5@poczta.onet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+    format=flowed;
+    charset="iso-8859-1";
+    reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <42C07327.3000209-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,26 +19,14 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Italian Travel Agency seeks for employees from the Germany of the age 21 and older.
+We give you a chance to earn real money without special skills, higher education or investments.
+All you need is a PC, Internet and e-mail. 
+Have a nice day,
+Carlo Chelinni
 
-> At the boot, the fan doesn't start immediately, then it start at fisrt
-> speed. After a moment the fan rotates at full speed, but never goes
-> down, even if the temperature is 44=B0C.
->=20
-> The CPU is not at full speed (max:2000MHz):
-
-Probably your fan is controlled by hardware... nothing we can solve.
-								Pavel
---=20
-teflon -- maybe it is a trademark, but it should not be.
-
-
--------------------------------------------------------
-SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
-from IBM. Find simple to follow Roadmaps, straightforward articles,
-informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+italiantravelinc-YDxpq3io04c@public.gmane.org
+tel\fax for Germany: 49-692-557-7305
