@@ -1,18 +1,13 @@
-From: Fedor Karpelevitch <fedor.karpelevitch-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: AE_NO_MEMORY on ACPI init after memory upgrade and oops
-Date: Thu, 30 Jun 2005 13:19:55 -0700
-Message-ID: <2e3c17f30506301319704f6de0@mail.gmail.com>
-References: <200506300042.22255.fedor@karpelevitch.net>
-	 <20050630084426.GA30436@message-id.gmane0305.slipkontur.de>
-	 <200506300618.15109.fedor@karpelevitch.net>
-	 <20050630194954.GA20844@message-id.s3e.de>
-Reply-To: fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org
+From: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
+Subject: Re: No fan control on an Acer Aspire 1694WLMi
+Date: Thu, 30 Jun 2005 23:33:04 +0200
+Message-ID: <42C46510.8050309@altern.org>
+References: <42C07327.3000209@altern.org> <20050628202209.GA30464@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050630194954.GA20844-l0tNAEGuAhiXoBlonBaIS7NAH6kLmebB@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20050628202209.GA30464-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,36 +17,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-2005/6/30, Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>:
-> On Thu, Jun 30, 2005 at 06:18:13AM -0700, Fedor Karpelevitch wrote:
-> > Stefan Seyfried wrote:
-> > > On Thu, Jun 30, 2005 at 12:42:19AM -0700, Fedor Karpelevitch wrote:
-> > > > I tried to upgrade memory on my laptop from 2 x 128m by replacing
->=20
-> > > Did you override your DSDT?
-> >
-> > Yes, I did.
->=20
-> So you need to modify your _new_ _original_ DSDT again after the memory
-> upgrade.
-> AFAIK the DSDT contains numbers that depend on the amount of memory and
-> is often built dynamically by the BIOS =3D> even changing some BIOS setti=
-ngs
-> may change the DSDT.
-> --
-> Stefan Seyfried
+Pavel Machek a =E9crit :
 
-Thanks! I'll try it out. I thought DSDT was static...
+>Hi!
+>
+> =20
+>
+>>At the boot, the fan doesn't start immediately, then it start at fisrt
+>>speed. After a moment the fan rotates at full speed, but never goes
+>>down, even if the temperature is 44=B0C.
+>>
+>>The CPU is not at full speed (max:2000MHz):
+>>   =20
+>>
+>
+>Probably your fan is controlled by hardware... nothing we can solve.
+>								Pavel
+> =20
+>
+Thank you for answering.
+I don't know how, but under Windows, the fan turns at low speed or at
+high speed. With "cpuburn" active, the fan is at high speed, if I stop
+cpuburn, the fan gets back to low speed. I notice with the program "PC
+Wizard 2005" that the minimum cpu speed was around 661 MHz ( Under
+Linux, the minimum I can get is ~798 MHz):
+----------------8<----------------
 
-Fedor
+Processeur : Intel Pentium M 760 @ 661 MHz
+
+---------------->8----------------
+The temperature seem to be 52=B0C, but the value doesn't vary.
+
+
+So the fan souldn't act differently if only hardware based, should it?
+
+Is there a way to speed down the CPU to 661MHz?
+
+
+Best regards
+Didier
+
+
+
+
+
+
+
+
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
 from IBM. Find simple to follow Roadmaps, straightforward articles,
 informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+speed, fast. http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclic=
+k
