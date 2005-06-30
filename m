@@ -1,13 +1,12 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: EC issue on Acer Aspire 1520
-Date: Thu, 30 Jun 2005 15:06:56 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8408A272E9@pdsmsx403>
+From: marketbonds <armenia-qw6QB7/foO7QT0dZR+AlfA@public.gmane.org>
+Subject: Nice working opportunity
+Date: Thu, 30 Jun 2005 07:15:13 +0000
+Message-ID: <b38501c57d43$a7fbcdec$2fdee1aa@talk21.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/related;
+    type="multipart/alternative";
+    boundary="----=_NextPart_000_0000_271885EF.5BDDCD97"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +16,201 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-All,
-I recall there was bug reports on this ML about slow -ec-access issue on
-Acer Aspire 1520 and ASUS L5D.
-I want to know if it is only observed with sbs-cm package? If so, please
-test 2.6.12-rc4-mm2 without sbs-cm
-package. I just have chance to run 2.6.12-rc4-mm2 with
-burst-mode-ec-patch on a Acer aspire 1520  today.
-And  it looks just ok.
+This is a multi-part message in MIME format.
 
-[root@localhost BAT0]# time cat state
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            unknown
-remaining capacity:      3840 mAh
-present voltage:         14800 mV
-
-real    0m0.151s
-user    0m0.000s
-sys     0m0.035s
-
-Thanks,
-Luming
+------=_NextPart_000_0000_271885EF.5BDDCD97
+Content-Type: multipart/alternative;
+    boundary="----=_NextPart_001_0001_1E04F146.28B14C2A"
 
 
--------------------------------------------------------
-SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
-from IBM. Find simple to follow Roadmaps, straightforward articles,
-informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+------=_NextPart_001_0001_1E04F146.28B14C2A
+Content-Type: text/plain;
+    charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+  
+                                                 Job offer. Good income
+ Due to our continued growth, we are currently accepting resumes for the
+following position: Transfer Manager Background Requirements Successful
+candidate must have an idea of bank transfers and money payment systems
+operations. Customer service related experience along with good leadership
+and organizational skills would be an asset. Ability to work part-time
+at least 1-3 hours a day. • No special education is obligatory. • An ideal
+candidate should have a background in Western Union or other money transfer
+systems operations. • Ability to work with most frequently used e-currency
+and e-payment systems (E-gold, PayPal, E-bullion, etc). • Knowledge and
+understanding of risk based inspection tools and methodologies. • Progressive
+applicable experience in the financial market place preferably with involvement
+in payment transfers assignments. Candidate Profile • Ability to manage
+payments for international and local customers. • Well presented, articulate,
+results oriented, customer and profit focused and highly motivated. • Experience
+with and knowledge of common office software (strong Internet and e-mail
+skills are required). Salary 5% from each transaction. Aprx. 3000-4000
+Euro per month. Send resume in confidence to e-mail germany-VDEpfhqTzCddrTpufXuFBA@public.gmane.org
+to apply to this job 
+
+Best Regards,
+Marketbonds company                   
+------=_NextPart_001_0001_1E04F146.28B14C2A
+Content-Type: text/html;
+    charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>MarketBonds LLC</title>
+<style>
+header
+{
+ font-size: 18px;
+ font-family:Tahoma;
+ color:#C7DDE9;
+ font-weight:normal;
+ text-transform:uppercase;
+}
+body
+{
+ font-size: 11px;
+ font-family:Tahoma;
+ color:#FFF;
+ font-weight:normal;
+}
+</style>
+</head>
+<body>
+<center>
+ <table width="620" cellspacing="0" cellpadding="0" border="0"><br>
+  <tr>
+   <td><img src="http://www.wiescheid-net.de/img/e.gif" width="10" height="10"></td>
+   <td><img src="http://www.wiescheid-net.de/img/e.gif" width="154" height="10"></td>
+   <td><img src="http://www.wiescheid-net.de/img/e.gif" width="10" height="10"></td>
+   <td background="http://www.wiescheid-net.de/img/delim-upper.gif" 
+style="background-repeat: repeat-x"><img src="http://www.wiescheid-net.de/img/e.gif" width="430" 
+height="1"></td>
+   <td><img src="http://www.wiescheid-net.de/img/e.gif" width="10" height="10"></td>
+  </tr>
+  <tr>
+   <td></td>
+   <td valign="top">
+    <table width="154" cellspacing="0" cellpadding="0" border="0">
+     <tr>
+      <td><img src="http://www.wiescheid-net.de/img/logo.gif" 
+width="154" height="99"></td>
+     </tr>
+     <tr>
+      <td><img src="http://www.wiescheid-net.de/img/e.gif" 
+width="10" height="20"></td>
+     </tr>
+     <tr>
+      <td 
+background="http://www.wiescheid-net.de/img/delim-dot.gif" style="background-repeat: repeat-x"><img 
+src="http://www.wiescheid-net.de/img/e.gif" width="154" height="1"></td>
+     </tr>
+     <tr>
+      <td><img 
+src="http://www.wiescheid-net.de/img/label-instant.gif"></td>
+     </tr>
+     <tr>
+      <td 
+background="http://www.wiescheid-net.de/img/delim-dot.gif" style="background-repeat: repeat-x"><img 
+src="http://www.wiescheid-net.de/img/e.gif" width="154" height="1"></td>
+     </tr>
+     <tr>
+      <td><img 
+src="http://www.wiescheid-net.de/img/label-secure.gif"></td>
+     </tr>
+     <tr>
+      <td 
+background="http://www.wiescheid-net.de/img/delim-dot.gif" style="background-repeat: repeat-x"><img 
+src="http://www.wiescheid-net.de/img/e.gif" width="154" height="1"></td>
+     </tr>
+     <tr>
+      <td><img 
+src="http://www.wiescheid-net.de/img/label-private.gif"></td>
+     </tr>
+     <tr>
+      <td 
+background="http://www.wiescheid-net.de/img/delim-dot.gif" style="background-repeat: repeat-x"><img 
+src="http://www.wiescheid-net.de/img/e.gif" width="154" height="1"></td>
+     </tr>
+     <tr>
+      <td><img src="http://www.wiescheid-net.de/img/e.gif" 
+width="10" height="20"></td>
+     </tr>
+    </table>
+   </td>
+   <td></td>
+   <td bgcolor="8DA8B8" valign="top" 
+background="http://www.wiescheid-net.de/img/right-lower-bg.gif" style="background-position:right bottom; 
+background-repeat: no-repeat; ">
+    <table width="100%" cellspacing="2" cellpadding="0" border="0" >
+     <tr>
+      <td 
+background="http://www.wiescheid-net.de/img/left-upper-bg.gif" style="background-position:left top; 
+background-repeat: no-repeat; ">
+       <table width="100%" cellspacing="0" cellpadding="0" 
+border="0" >
+        <tr>
+         <td align="left" 
+style="padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; 
+text-align:justify;">
+          <span class="header">Job 
+offer. Good income</span><br>
+          <span class="body">
+           Due to our continued 
+growth, we are currently accepting resumes for the following position: Transfer Manager
+Background Requirements
+Successful candidate must have an idea of bank transfers and money payment systems operations. Customer 
+service related experience along with good leadership and organizational skills would be an asset. Ability 
+to work part-time at least 1-3 hours a day.
+• No special education is obligatory. 
+• An ideal candidate should have a background in Western Union or other money transfer systems 
+operations.
+• Ability to work with most frequently used e-currency and e-payment systems (E-gold, PayPal, 
+E-bullion, etc).
+• Knowledge and understanding of risk based inspection tools and methodologies.
+• Progressive applicable experience in the financial market place preferably with involvement in 
+payment transfers assignments.
+Candidate Profile
+• Ability to manage payments for international and local customers. 
+• Well presented, articulate, results oriented, customer and profit focused and highly motivated. 
+• Experience with and knowledge of common office software (strong Internet and e-mail skills are 
+required).
+Salary
+5% from each transaction. Aprx. 3000-4000 Euro per month.
+Send resume in confidence to e-mail <a href=mailto:germany-VDEpfhqTzCddrTpufXuFBA@public.gmane.org>germany-VDEpfhqTzCddrTpufXuFBA@public.gmane.org</a> to 
+apply to this job
+<br><br>
+Best Regards,<br>
+Marketbonds company
+          </span>
+         </td>
+        </tr>
+       </table>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+  <tr>
+   <td><img src="http://www.wiescheid-net.de/img/e.gif" width="10" height="10"></td>
+   <td colspan="3" background="http://www.wiescheid-net.de/img/delim-lower.gif" 
+style="background-repeat: repeat-x"><img src="http://www.wiescheid-net.de/img/e.gif" width="584" 
+height="1"></td>
+   <td><img src="http://www.wiescheid-net.de/img/e.gif" width="10" height="10"></td>
+  </tr>
+ </table>
+</center>
+</body>
+</html>
+
+------=_NextPart_001_0001_1E04F146.28B14C2A--
+
+
+
+------=_NextPart_000_0000_271885EF.5BDDCD97--
