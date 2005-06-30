@@ -1,11 +1,11 @@
 From: www.vrbank.de <support-lWj4P3Diq2SzQB+pC5nmwQ@public.gmane.org>
 Subject: vrbank.de
-Date: Thu, 30 Jun 2005 01:48:35 +0000
-Message-ID: <fd0101c57d15$632e9871$15bccb5d@vrbank.de>
+Date: Thu, 30 Jun 2005 05:47:50 +0000
+Message-ID: <3d0101c57d37$4b7c4685$fad4aad9@vrbank.de>
 Mime-Version: 1.0
 Content-Type: multipart/related;
     type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_E217918B.9422A601"
+    boundary="----=_NextPart_000_0000_5C5D1F8D.85295B50"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,17 +16,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0000_E217918B.9422A601
+------=_NextPart_000_0000_5C5D1F8D.85295B50
 Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_6BB18CB0.6D8C6DA2"
+    boundary="----=_NextPart_001_0001_B991DFF6.D0E31FF7"
 
 
-------=_NextPart_001_0001_6BB18CB0.6D8C6DA2
+------=_NextPart_001_0001_B991DFF6.D0E31FF7
 Content-Type: text/plain;
     charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -58,7 +58,7 @@ Administration der VRBank Online Banking
 
 
             
-------=_NextPart_001_0001_6BB18CB0.6D8C6DA2
+------=_NextPart_001_0001_B991DFF6.D0E31FF7
 Content-Type: text/html;
     charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -127,8 +127,8 @@ Administration der VRBank Online Banking
 </body>
 </html>
 
-------=_NextPart_001_0001_6BB18CB0.6D8C6DA2--
+------=_NextPart_001_0001_B991DFF6.D0E31FF7--
 
 
 
-------=_NextPart_000_0000_E217918B.9422A601--
+------=_NextPart_000_0000_5C5D1F8D.85295B50--
