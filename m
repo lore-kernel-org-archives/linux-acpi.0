@@ -1,15 +1,11 @@
-From: Fedor Karpelevitch <fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org>
-Subject: Re: Re: AE_NO_MEMORY on ACPI init after memory upgrade and oops
-Date: Thu, 30 Jun 2005 23:56:44 -0700
-Message-ID: <200506302356.44979.fedor@karpelevitch.net>
-References: <200506300042.22255.fedor@karpelevitch.net> <20050630194954.GA20844@message-id.s3e.de> <2e3c17f30506301319704f6de0@mail.gmail.com>
+From: mikel <mikel1-rdc5FV7LBygPGFelY5Zqew@public.gmane.org>
+Subject: how to re-enable acpi
+Date: Fri, 1 Jul 2005 19:39:01 +1000
+Message-ID: <20057119391.269331@p3200>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <2e3c17f30506301319704f6de0-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,34 +15,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Fedor Karpelevitch wrote:
-> > > > > I tried to upgrade memory on my laptop from 2 x 128m by
-> > > > > replacing
-> > > >
-> > > > Did you override your DSDT?
-> > >
-> > > Yes, I did.
-> >
-> > So you need to modify your _new_ _original_ DSDT again after the
-> > memory upgrade.
-> > AFAIK the DSDT contains numbers that depend on the amount of
-> > memory and is often built dynamically by the BIOS => even
-> > changing some BIOS settings may change the DSDT.
-> > --
-> > Stefan Seyfried
->
-> Thanks! I'll try it out. I thought DSDT was static...
->
-> Fedor
 
-removing custom DSDT worked. Fortunately all fixes in DSDT are 
-non-critical.
+sorry if this has been asked before I do try to follow the list.  
+My friend had to disable ACPI via the option acpi=3Doff
 
-Fedor.
+We had to do this because the USB storage devices were hanging the kernel=
+ during the boot process which again seemed to be related to BIOS.  In=
+ otherwords if we had "usb storage devices" the kernel thinks they are=
+ bootable devices (even though they have no actual media in them) and the=
+ result is a HANG.  For some reason disabling ACPI via the above mentioned=
+ argument worked around the problem.
+
+the question is. If / Once we "disable" acpi via the "acpi=3Doff" option is=
+ there a way to re-enable it at a later point ? He wants/likes ACPI but we=
+ don't know how to re-enable once we have disabled this. Also should we try=
+ to fix the crux of this.. I mean is it related to DSDT issues? 
+thanks.. and sorry for my english I speak american as my native language :)
+
+mikel
+
 
 
 -------------------------------------------------------
