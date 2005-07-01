@@ -1,77 +1,32 @@
-From: DJAX <djax-whniv8GeeGkdnm+yROfE0A@public.gmane.org>
-Subject: Re: No fan control on an Acer Aspire 1694WLMi
-Date: Thu, 30 Jun 2005 23:33:04 +0200
-Message-ID: <42C46510.8050309@altern.org>
-References: <42C07327.3000209@altern.org> <20050628202209.GA30464@elf.ucw.cz>
+From: Rajesh Shah <rajesh.shah@intel.com>
+Subject: Re: [patch 2/2] i386/x86_64: collect host bridge resources v2
+Date: Thu, 30 Jun 2005 17:33:25 -0700
+Message-ID: <20050630173322.A8366@unix-os.sc.intel.com>
+References: <20050602224147.177031000@csdlinux-1> <20050602224327.051278000@csdlinux-1> <20050628155152.A24551@jurassic.park.msu.ru> <1119982914.19258.6.camel@whizzy> <20050629000300.A26118@jurassic.park.msu.ru> <20050630160506.GD6828@kroah.com>
+Reply-To: Rajesh Shah <rajesh.shah@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050628202209.GA30464-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S263133AbVGAAd7@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20050630160506.GD6828@kroah.com>; from greg@kroah.com on Thu, Jun 30, 2005 at 09:05:06AM -0700
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Kristen Accardi <kristen.c.accardi@intel.com>, rajesh.shah@intel.com, gregkh@suse.de, ak@suse.de, len.brown@intel.com, akpm@osdl.org, linux-kernel@vger.kernel.org, linux-pci@atrey.karlin.mff.cuni.cz, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek a =E9crit :
+On Thu, Jun 30, 2005 at 09:05:06AM -0700, Greg KH wrote:
+> > 
+> > Probably there is a conflict between e820 map and root bus ranges
+> > reported by ACPI. I think that it would be better to just drop
+> > gregkh-pci-pci-collect-host-bridge-resources-02.patch rather than
+> > try to fix it, at least until such conflicts can be resolved in
+> > a sane way.
+> 
+> Ok, I'll drop it.  Any objections to me doing this?
+> 
+OK with me. I actually think there are interactions between other
+patches that may also be the cause for some of the problems
+reported recently. However, I'm mostly out for the next 2
+weeks, and will look at this more closely when I return.
 
->Hi!
->
-> =20
->
->>At the boot, the fan doesn't start immediately, then it start at fisrt
->>speed. After a moment the fan rotates at full speed, but never goes
->>down, even if the temperature is 44=B0C.
->>
->>The CPU is not at full speed (max:2000MHz):
->>   =20
->>
->
->Probably your fan is controlled by hardware... nothing we can solve.
->								Pavel
-> =20
->
-Thank you for answering.
-I don't know how, but under Windows, the fan turns at low speed or at
-high speed. With "cpuburn" active, the fan is at high speed, if I stop
-cpuburn, the fan gets back to low speed. I notice with the program "PC
-Wizard 2005" that the minimum cpu speed was around 661 MHz ( Under
-Linux, the minimum I can get is ~798 MHz):
-----------------8<----------------
-
-Processeur : Intel Pentium M 760 @ 661 MHz
-
----------------->8----------------
-The temperature seem to be 52=B0C, but the value doesn't vary.
-
-
-So the fan souldn't act differently if only hardware based, should it?
-
-Is there a way to speed down the CPU to 661MHz?
-
-
-Best regards
-Didier
-
-
-
-
-
-
-
-
-
-
--------------------------------------------------------
-SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
-from IBM. Find simple to follow Roadmaps, straightforward articles,
-informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclic=
-k
+Rajesh
