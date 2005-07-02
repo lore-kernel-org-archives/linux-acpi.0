@@ -1,11 +1,16 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Fw: [Bug 4833] New: ACPI: C2 no longer detected for CPU
-Date: Sat, 2 Jul 2005 10:13:16 -0700
-Message-ID: <20050702101316.4f5f0868.akpm@osdl.org>
+From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Re: Changeset "acpi: disable PCI links at boot again,
+ fix ELCR" -> on-board nic adapter not working
+Date: Sat, 2 Jul 2005 10:33:15 -0700 (PDT)
+Message-ID: <Pine.LNX.4.58.0507021029480.3019@ppc970.osdl.org>
+References: <42B7CF33.5090501@neoware.com> <42BA6639.9090402@neoware.com>
+ <Pine.LNX.4.58.0506241100290.11175@ppc970.osdl.org>  <200506241231.55760.bjorn.helgaas@hp.com>
+  <Pine.LNX.4.58.0506241143520.11175@ppc970.osdl.org>
+ <1120300498.1171.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1120300498.1171.3.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,40 +20,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alexander Nyberg <alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Norbert Federa <norbert.federa-uHwDyaZCXy1BDgjK7y7TUQ@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, al_pavel-aPYA7nAdAYY@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-Begin forwarded message:
+On Sat, 2 Jul 2005, Alexander Nyberg wrote:
+> 
+> It appears this change:
+> 
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -435,6 +435,7 @@ acpi_pci_irq_enable (
+>                 /* Interrupt Line values above 0xF are forbidden */
+>                 if (dev->irq >= 0 && (dev->irq <= 0xF)) {
+>                         printk(" - using IRQ %d\n", dev->irq);
+> +                       acpi_register_gsi(dev->irq, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW);
+>                         return_VALUE(0);
+>                 }
 
-Date: Sat, 2 Jul 2005 07:26:58 -0700
-From: bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-To: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [Bug 4833] New: ACPI: C2 no longer detected for CPU
+Yes, that guy has:
 
 
-http://bugzilla.kernel.org/show_bug.cgi?id=4833
+	ACPI: PCI Interrupt 0000:00:10.0[A]: no GSI - using IRQ 0
 
-           Summary: ACPI: C2 no longer detected for CPU
-    Kernel Version: 2.6.13-rc1-mm1
-            Status: NEW
-          Severity: normal
-             Owner: akpm-3NddpPZAyC0@public.gmane.org
-         Submitter: makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org
+and the fix is obvious: we should _not_ consider "irq 0" to be a valid 
+irq, it's a sign that we don't have any irq at all.
 
+I bet the correct thing to do is to change the "dev->irq >= 0" to 
+"dev->irq > 0".
 
-Distribution: Debian Sid
-Hardware Environment: Athlon XP-M 2600+, EPoX 8K9A3+ (VIA KT400)
-Problem Description:
-
-With 2.6.13-rc1-mm1, ACPI does no longer detect C2 power state for CPU, only C1,
-leaving CPU running full throttle all the time. 2.6.12-mm2 still uses C2.
-
-Steps to reproduce: happens always on my machine. config attached.
-
-------- You are receiving this mail because: -------
-You are the assignee for the bug, or are watching the assignee.
+		Linus
 
 
 -------------------------------------------------------
