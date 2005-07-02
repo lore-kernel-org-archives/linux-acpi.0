@@ -1,10 +1,10 @@
-From: Jindrich Makovicka <makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org>
-Subject: Enable C2 for processors without CST
-Date: Sat, 02 Jul 2005 18:21:37 +0200
-Message-ID: <da6eui$obf$1@sea.gmane.org>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: [Bug 4833] New: ACPI: C2 no longer detected for CPU
+Date: Sat, 2 Jul 2005 10:13:16 -0700
+Message-ID: <20050702101316.4f5f0868.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070704050304070101020308"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,42 +18,37 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070704050304070101020308
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
 
-Hi,
 
-this patch reenables power saving states for CPU when CST isn't
-available. It is needed to make C2 work on my AMD XP-M 2600+ with
-2.6.13-rc1-mm1 kernel.
+Begin forwarded message:
 
-Regards,
--- 
-Jindrich Makovicka
+Date: Sat, 2 Jul 2005 07:26:58 -0700
+From: bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+To: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [Bug 4833] New: ACPI: C2 no longer detected for CPU
 
---------------070704050304070101020308
-Content-Type: text/plain;
- name="processor_idle.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="processor_idle.c.diff"
 
---- processor_idle.c.orig	2005-07-02 18:11:33.186334953 +0200
-+++ processor_idle.c	2005-07-02 18:13:33.735687489 +0200
-@@ -881,7 +881,7 @@
- 	result = acpi_processor_get_power_info_cst(pr);
- 	if ((result) || (acpi_processor_power_verify(pr) < 2)) {
- 		result = acpi_processor_get_power_info_fadt(pr);
--		if (result)
-+		if ((result) || acpi_processor_power_verify(pr) < 2)
- 			result = acpi_processor_get_power_info_default_c1(pr);
- 	}
- 
+http://bugzilla.kernel.org/show_bug.cgi?id=4833
 
---------------070704050304070101020308--
+           Summary: ACPI: C2 no longer detected for CPU
+    Kernel Version: 2.6.13-rc1-mm1
+            Status: NEW
+          Severity: normal
+             Owner: akpm-3NddpPZAyC0@public.gmane.org
+         Submitter: makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org
 
+
+Distribution: Debian Sid
+Hardware Environment: Athlon XP-M 2600+, EPoX 8K9A3+ (VIA KT400)
+Problem Description:
+
+With 2.6.13-rc1-mm1, ACPI does no longer detect C2 power state for CPU, only C1,
+leaving CPU running full throttle all the time. 2.6.12-mm2 still uses C2.
+
+Steps to reproduce: happens always on my machine. config attached.
+
+------- You are receiving this mail because: -------
+You are the assignee for the bug, or are watching the assignee.
 
 
 -------------------------------------------------------
