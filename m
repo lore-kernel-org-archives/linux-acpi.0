@@ -1,16 +1,13 @@
-From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Re: Changeset "acpi: disable PCI links at boot again,
- fix ELCR" -> on-board nic adapter not working
-Date: Sat, 2 Jul 2005 10:33:15 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0507021029480.3019@ppc970.osdl.org>
-References: <42B7CF33.5090501@neoware.com> <42BA6639.9090402@neoware.com>
- <Pine.LNX.4.58.0506241100290.11175@ppc970.osdl.org>  <200506241231.55760.bjorn.helgaas@hp.com>
-  <Pine.LNX.4.58.0506241143520.11175@ppc970.osdl.org>
- <1120300498.1171.3.camel@localhost.localdomain>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: updated ACPI patch against 2.6.13-rc1
+Date: Sun, 3 Jul 2005 22:17:06 +0200
+Message-ID: <20050703201706.GB27204@elf.ucw.cz>
+References: <1120148192.23586.15.camel@d845pe.worldpath.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1120300498.1171.3.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1120148192.23586.15.camel-jRzH0JztI1Dyk6epdUfNT+TW4wlIGRCZ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,39 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexander Nyberg <alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Norbert Federa <norbert.federa-uHwDyaZCXy1BDgjK7y7TUQ@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, al_pavel-aPYA7nAdAYY@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
-
-On Sat, 2 Jul 2005, Alexander Nyberg wrote:
+> This patch includes all the dusty patches that have been
+> waiting in BK me for 2.6.13 to open.
+> It applies against 2.6.13-rc1.
 > 
-> It appears this change:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.13/acpi-20050408-2.6.13-rc1.diff.gz
 > 
-> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-> --- a/drivers/acpi/pci_irq.c
-> +++ b/drivers/acpi/pci_irq.c
-> @@ -435,6 +435,7 @@ acpi_pci_irq_enable (
->                 /* Interrupt Line values above 0xF are forbidden */
->                 if (dev->irq >= 0 && (dev->irq <= 0xF)) {
->                         printk(" - using IRQ %d\n", dev->irq);
-> +                       acpi_register_gsi(dev->irq, ACPI_LEVEL_SENSITIVE, ACPI_ACTIVE_LOW);
->                         return_VALUE(0);
->                 }
-
-Yes, that guy has:
+> Please give it a go, and if nothing explodes I'll git it to Linus for
+> 2.6.13-rc2 and we'll move onto the batch that is waiting in line behind
+> this one:-)
 
 
-	ACPI: PCI Interrupt 0000:00:10.0[A]: no GSI - using IRQ 0
+>  drivers/pci/pci.c                                 |   18 
 
-and the fix is obvious: we should _not_ consider "irq 0" to be a valid 
-irq, it's a sign that we don't have any irq at all.
+Does it still do ugly stuff with placing pci_power_t into u32?
 
-I bet the correct thing to do is to change the "dev->irq >= 0" to 
-"dev->irq > 0".
-
-		Linus
+								Pavel
+-- 
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
