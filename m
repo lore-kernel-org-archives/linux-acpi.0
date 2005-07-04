@@ -1,14 +1,12 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: after resume usb mouse will allow input before unlocking
- screensaver
-Date: Mon, 04 Jul 2005 14:53:37 +0200
-Message-ID: <42C93151.5040107@gmx.net>
-References: <200507020244.46843.johnelliottmartin@gmail.com>
+From: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: EC issue on Acer Aspire 1520
+Date: Mon, 04 Jul 2005 12:45:58 -0300
+Message-ID: <BAY10-F12BCFD8D6707925BC2115AA8E70@phx.gbl>
+References: <3ACA40606221794F80A5670F0AF15F8408A272E9@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200507020244.46843.johnelliottmartin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8408A272E9@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,30 +16,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Elliott Martin <johnelliottmartin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Elliott Martin schrieb:
-> When I restore my pc from suspend to disk and I'm using a USB mouse, I am able 
-> to type and interact with my programs before being prompted for a password. I 
-> normally have a root shell sitting open and I was able to run a couple of 
-> commands before the screensaver popped up for a password asking me to unlock 
-> my KDE session. If I resume with just my laptops touchpad going I get asked 
-> for a password before I can doing anything else, so I think this might be a 
-> problem with acpi, but I'm using suse linux so it could be a problem with 
-> suseplugger.
+Hello
 
-The problem is that suspend does not wait for the screensaver to be active,
-so there is a race condition between the screensaver and suspend. I have no
-idea how to fix it, but as a temporary workaround making this *less* likely
-change POWERSAVE_SCREENSAVER_SIMPLE in /etc/sysconfig/powersave/common to
-POWERSAVE_SCREENSAVER_SIMPLE="yes"
+I've sent an email about the EC confusion I had with an Acer Aspire 1613lmi. 
+I have a few updates.
+First, kernel 2.6.12-rc2-mm2 doesn't show the EC confusion problem. However 
+with this kernel when I resume from S3 the laptop just reboots. I replace 
+the wakeup.S of kernel 2.6.12-rc2-mm2 with the one in kernel 2.6.7. With 
+this new wakeup code, the laptop doesn't reboot, but the ethernet card 
+doesn't work afterwards. I get some WATCHDOG errors.
+I still want to try to find out exaclty which line in the wakeup.S code 
+makes the laptop reboot.
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+Paulo
+
+>From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>To: "ACPI devel" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+>Subject: [ACPI] EC issue on Acer Aspire 1520
+>Date: Thu, 30 Jun 2005 15:06:56 +0800
+>
+>All,
+>I recall there was bug reports on this ML about slow -ec-access issue on
+>Acer Aspire 1520 and ASUS L5D.
+>I want to know if it is only observed with sbs-cm package? If so, please
+>test 2.6.12-rc4-mm2 without sbs-cm
+>package. I just have chance to run 2.6.12-rc4-mm2 with
+>burst-mode-ec-patch on a Acer aspire 1520  today.
+>And  it looks just ok.
+>
+
+_________________________________________________________________
+MSN Messenger: converse online com seus amigos .  
+http://messenger.msn.com.br
+
 
 
 -------------------------------------------------------
