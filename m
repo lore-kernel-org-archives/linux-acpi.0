@@ -1,13 +1,11 @@
-From: "Magenheimer, Dan (HP Labs Fort Collins)" <dan.magenheimer-VXdhtT5mjnY@public.gmane.org>
-Subject: One-line patch for systems with ACPI enabled but incomplete tree
-Date: Tue, 5 Jul 2005 12:11:01 -0700
-Message-ID: <516F50407E01324991DD6D07B0531AD54FA3DF@cacexc12.americas.cpqcorp.net>
+From: Rohit K Jhunjhunwala <agrawal_rocky-IRBnI7/bi/yuj8VC67ciSw@public.gmane.org>
+Subject: not running any scripts
+Date: Wed, 06 Jul 2005 01:54:58 +0530
+Message-ID: <1120595098.4012.3.camel@roxie>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +15,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
+To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The attached patch allows systems for which ACPI is enabled,
-but a full tree is not present, to avoid a horrible kernel crash.
-Systems with this characteristic include the ia64 HP simulator
-(with ACPI enabled) and some future virtualized environments
-(e.g. Xen, specifically Xen/ia64).
+Hi,
+I am running fedora core 2 on a Dell Inspiron 5150. I have acpi
+installed as my kernel version is 2.6.10
+I have written scripts and events in /etc/acpi/events but none of them
+get executed
+the state files in /proc/acpi/button does change when i close my lid
+etc.
+but the scripts are not executed.
+Also, I am not able to put my computer in stand-by mode even manually.
 
-If no objections, please apply.  If discussion ensues, please
-cc me as I am not a subscriber to this list.
+I also tried rebuilding kernel with all acpi support.
+but no use.
+can anyone guide me on this
 
-Thanks,
-Dan Magenheimer
-HP Labs
 
---- 1.6/drivers/acpi/motherboard.c	Wed Nov 10 15:57:35 2004
-+++ 1.7/drivers/acpi/motherboard.c	Fri Apr 22 16:47:41 2005
-@@ -120,6 +120,7 @@
- static void __init
- acpi_reserve_resources (void)
- {
-+	if (!acpi_gbl_FADT) return;
 
 
 -------------------------------------------------------
