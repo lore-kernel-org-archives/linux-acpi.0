@@ -1,11 +1,13 @@
-From: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
-Subject: S3 power drain on Thinkpad R32 (fixed?)
-Date: Wed, 06 Jul 2005 20:50:31 -0400
-Message-ID: <42CC7C57.5060609@netspace.org>
+From: "Haas Ingo" <Ingo.Haas-woH5cNrEj6o@public.gmane.org>
+Subject: WG: ACPI reboot hangs Asus p4b533
+Date: Thu, 7 Jul 2005 09:12:13 +0200
+Message-ID: <795E03B0F1E26C449762C0EDF5F5659101207B8E@Exchange.plg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,29 +20,53 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-So I had essentially been told that the improving the power drain due to 
-the video subsystem during suspend to RAM was a hopeless case (it's a 
-Radeon mobility M6 system).
 
-However, I noticed some interesting comments in the radeonfb module and 
-tried installing it and noticed that it improved battery life 
-dramatically and doesn't need any video_post nonsense. It even seems to 
-play OK with X, which is great.
+> 	Hi,
+>=20
+> 	Referring to this message ID
+> http://sourceforge.net/mailarchive/message.php?msg_id=3D11441947 which
+> meaning has this function?=20
+> 	I mean "acpi_motherboard_init" in "motherboard.c".=20
+>=20
+> 	We have the same problem with P4B533 and init 6 with kernel
+> 2.4.31. And if we use this workaround the problem seems to be fixed.
+> 	I commented the call of the function out within "bus.c".
+>=20
+> 	Can this solution make problems?  And if, which?
+>=20
+> 	Regards=20
+>=20
+> 	Ingo Haas
+>=20
+>=20
 
-I spoke to BenH who said that there may be recent ACPI fixes that 
-address this issue outside of radeonfb.  Does anyone know about this? 
-That would be nice, since I don't quite trust radeon and radeonfb to be 
-reliable together.
 
-The kernel version is apatched 2.6.12-1.1387_FC4 with some minor tweaks 
-and a patch that's supposed to make radeon and radeonfb work better 
-together.
+*************************************************************************=
+******
+Wichtiger Hinweis: Diese Information ist fur den Gebrauch durch die =
+Personen=20
+oder die Firma / Organisation bestimmt, die in der Empfangeradresse =
+benannt ist.=20
+Wenn Sie nicht der angegebene Empfanger sind, nehmen Sie bitte zur =
+Kenntnis,=20
+dass Weitergabe, Kopieren, Verteilung oder Nutzung des Inhaltes dieser =
+E-Mail=20
+unzulassig ist. Falls Sie diese E-Mail irrtumlich erhalten haben, =
+benachrichtigen=20
+Sie den Absender bitte unverzuglich. Vielen Dank fur Ihre Unterstutzung.
 
+Important Note: This e-mail may contain trade secrets or privileged, =
+undisclosed or
+otherwise confidential information. If you have received this e-mail in =
+error, you are
+hereby notified that any review, copying or distribution of its contents =
+is strictly
+prohibited. Please inform us immediately if you have received this =
+e-mail erroneously.
+Thank you for your cooperation.
+*************************************************************************=
+******
 
-
--- 
-Yes, but will it wash my dishes?
-Brian Perkins                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
 
 
 -------------------------------------------------------
