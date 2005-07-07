@@ -1,13 +1,12 @@
-From: "Haas Ingo" <Ingo.Haas-woH5cNrEj6o@public.gmane.org>
-Subject: WG: ACPI reboot hangs Asus p4b533
-Date: Thu, 7 Jul 2005 09:12:13 +0200
-Message-ID: <795E03B0F1E26C449762C0EDF5F5659101207B8E@Exchange.plg.de>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Subject: Clevo 650 Notebook: LCD not working after resume from S3
+Date: Thu, 7 Jul 2005 17:58:39 +0200
+Message-ID: <20050707155839.GA12706@tangens.sinus.cz>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,53 +19,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-> 	Hi,
->=20
-> 	Referring to this message ID
-> http://sourceforge.net/mailarchive/message.php?msg_id=3D11441947 which
-> meaning has this function?=20
-> 	I mean "acpi_motherboard_init" in "motherboard.c".=20
->=20
-> 	We have the same problem with P4B533 and init 6 with kernel
-> 2.4.31. And if we use this workaround the problem seems to be fixed.
-> 	I commented the call of the function out within "bus.c".
->=20
-> 	Can this solution make problems?  And if, which?
->=20
-> 	Regards=20
->=20
-> 	Ingo Haas
->=20
->=20
-
-
-*************************************************************************=
-******
-Wichtiger Hinweis: Diese Information ist fur den Gebrauch durch die =
-Personen=20
-oder die Firma / Organisation bestimmt, die in der Empfangeradresse =
-benannt ist.=20
-Wenn Sie nicht der angegebene Empfanger sind, nehmen Sie bitte zur =
-Kenntnis,=20
-dass Weitergabe, Kopieren, Verteilung oder Nutzung des Inhaltes dieser =
-E-Mail=20
-unzulassig ist. Falls Sie diese E-Mail irrtumlich erhalten haben, =
-benachrichtigen=20
-Sie den Absender bitte unverzuglich. Vielen Dank fur Ihre Unterstutzung.
-
-Important Note: This e-mail may contain trade secrets or privileged, =
-undisclosed or
-otherwise confidential information. If you have received this e-mail in =
-error, you are
-hereby notified that any review, copying or distribution of its contents =
-is strictly
-prohibited. Please inform us immediately if you have received this =
-e-mail erroneously.
-Thank you for your cooperation.
-*************************************************************************=
-******
-
+Hi there!
+  I would like to ask here, because all my semi-amateur attempts to fix the
+problem described below have failed.
+  I have a Mironet notebook, which seems to be relabelled Clevo 650.
+  I can use almost all advantages of its ACPI features, excluding one: the
+"suspend to memory" (S3) feature. To be more precise, suspend itself seems
+to work perfectly, but the following resume fails in a way that it doesn't
+enable the LCD panel. I tried my best to find the problem and fix it, but
+no success yet.
+  My steps included recompiling the DSDT table after fixing one error 
+(AnyAcc instead of ByteAcc) and one warning (_WAK method missing a return
+value). I also tried to fake the OS name by submitting various well-known
+strings to acpi_os_name. However, I cannot find any differences in the system
+behaviour after all this.
+  I also tried to revive the display by switching from X to console and back,
+pressing the LID switch etc. Nothing helps. The rest of the system works.
+  Any help will be greatly appreciated. I can send you any resources necessary
+to analyze the problem (DSDT table, dmesg output etc.), I don't want to spam
+the list by uneccessary junk.
+  The latest kernel I've tried it is 2.6.13-rc2.
+                                     With regards, Pavel Troller
 
 
 -------------------------------------------------------
