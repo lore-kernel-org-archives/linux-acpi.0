@@ -1,9 +1,11 @@
-From: domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
-Subject: [patch 1/1] drivers/acpi/osl.c : replace direct assignment with set_current_state()
-Date: Thu, 07 Jul 2005 23:29:36 +0200
-Message-ID: <20050707212936.351448000@homer>
+From: Markus Demleitner <msdemlei-APKjHxrCF0f0LxEIJ2PtDHqWYbMAw+HU@public.gmane.org>
+Subject: JVC XP-731, display doesn't sleep
+Date: Fri, 8 Jul 2005 11:39:58 +0200
+Message-ID: <20050708093958.GA822@tucana.cl.uni-heidelberg.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline; filename=set_current_state-drivers_acpi_osl
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,39 +15,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>, domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
+Hi,
 
+Like some people before me, I'm having rather unpleasant encounters
+with ACPI on a JVC XP-731.  For other people just wanting the box to
+suspend, let me say that suspending with apm works flawlessly (as far
+as I can tell now).  But of course, having ACPI would be nice anyway.
 
+With kernel 2.6.8 provided by Debian sarge, acpi suspend works once
+one removes the usb drivers (ehci_hci, usb_uhci) that otherwise veto
+the suspend, except for a video problem (yes, I've read
+power/video.txt): The LCD isn't powered off, and lacking an input
+signal it just displays blue streaks flickering all over the place.
 
-Use set_current_state() instead of direct assignment of
-current->state.
+Waking up gets the video back up, but the machine is unresponsive
+(which is probably unrelated and could be fixed rather easily).
 
-Signed-off-by: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
-Signed-off-by: Domen Puncer <domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org>
+I'm not actually surprised this problem occurs, since the LCD appears
+to be attached rather oddly -- the X servers (both x.org and Xfree86)
+can't determine its size to begin with --, so I guess ACPI simply
+doesn't know about the device.
 
----
- osl.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+Are there any trick I could play so ACPI does see the LCD after all?
+Could it be that Linux' ACPI subsystem has trouble parsing the
+respective entries in the device's ACPI tables?  If that were the
+case, what useful data could I provide to facilitate an analysis?
 
-Index: quilt/drivers/acpi/osl.c
-===================================================================
---- quilt.orig/drivers/acpi/osl.c
-+++ quilt/drivers/acpi/osl.c
-@@ -941,7 +941,7 @@ acpi_os_wait_semaphore(
- 
- 			ret = down_trylock(sem);
- 			for (i = timeout; (i > 0 && ret < 0); i -= quantum_ms) {
--				current->state = TASK_INTERRUPTIBLE;
-+				set_current_state(TASK_INTERRUPTIBLE);
- 				schedule_timeout(1);
- 				ret = down_trylock(sem);
- 			}
+Thanks,
 
---
+         Markus
 
 
 -------------------------------------------------------
