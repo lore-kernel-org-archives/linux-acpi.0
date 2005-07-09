@@ -1,11 +1,13 @@
-From: "Gershom Sheffield" <Gershom-ooU5vu6WBpPeFQ3SW5o7Jg@public.gmane.org>
-Subject: Save  70% on your medz
-Date: Fri, 8 Jul 2005 10:01:08 -0500
-Message-ID: <E1DquLq-0006XV-EX@sc8-sf-mx2-new.sourceforge.net>
+From: Markus Demleitner <msdemlei-APKjHxrCF0f0LxEIJ2PtDHqWYbMAw+HU@public.gmane.org>
+Subject: Re: JVC XP-731, display doesn't sleep
+Date: Sat, 9 Jul 2005 10:14:04 +0200
+Message-ID: <20050709081404.GA3606@tucana.cl.uni-heidelberg.de>
+References: <20050709030113.5F3BF13980@sc8-sf-spam2.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0060_01C583CD.DED59200"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050709030113.5F3BF13980-MRDXTZLjjMs8G+1z+Pypc6QD96bmaF075NbjCUgZEJk@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,96 +17,72 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stanimir Lindsey <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+[Sorry to reply to myself, excuse below]
 
-------=_NextPart_000_0060_01C583CD.DED59200
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jul 08, 2005 at 08:00:25PM -0700, msdemlei-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org wrote:
+> Like some people before me, I'm having rather unpleasant encounters
+> with ACPI on a JVC XP-731.  For other people just wanting the box to
+> suspend, let me say that suspending with apm works flawlessly (as far
+> as I can tell now).  But of course, having ACPI would be nice anyway.
+Unfortunately, that doesn't really help, since the device in part
+relies on ACPI to sort out PCI IRQs.
 
-Hello, 
-fifth share surrendered there and then into their own keeping.business on =
-which he had been sent.hinder our sailing hence, we'll hang the doxy =
-first and fight forconfusion in his mind, he found coherent thought =
-impossible.of being able to pick and choose the crews for his augmented =
-fleet,one of your slaves was being murthered by the sun and the =
-flies.beautiful.  He saw her, and with a glad shout sprang towards =
-her.skilled in their use, who was certainly no coward, and a papist =
-onlymore by virtue of his natural grace than by that of tailoring.  =
-Hissapphire starlit night, leaving him standing there before =
-Colonelunderstands.Captain Wolverstone.  It is a matter which I beg you =
-to reverseHe observed her little start and the slight quiver of her =
-lips,open fire or lay us board and board.  Now, we are in no case toyou. =
- I beg that you'll make haste.  We are about to scuttle thisHe was =
-terrific in his menace, in his bulk, and in the power of him.
+So, my interest in getting ACPI suspend to work has suddenly surged :-)
 
-------=_NextPart_000_0060_01C583CD.DED59200
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+> With kernel 2.6.8 provided by Debian sarge, acpi suspend works once
+> one removes the usb drivers (ehci_hci, usb_uhci) that otherwise veto
+> the suspend, except for a video problem (yes, I've read
+> power/video.txt): The LCD isn't powered off, and lacking an input
+> signal it just displays blue streaks flickering all over the place.
+With a self-built 2.6.11.12 kernel, suspend works without a hitch,
+and the display is sent to sleep...
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial>Hello, </FONT><FONT face=3DArial>Welcome to <A 
-href=3D"http://www.vptdqw.esvationhig.com">P<SPAN style=3D"DISPLAY: none"> =
-sciential </SPAN>harmzOnline Sh<SPAN style=3D"DISPLAY: none"> membership =
-</SPAN>op</A></FONT>
-<FONT face=3DArial>- one of the Ie<SPAN style=3D"DISPLAY: none"> berbery =
-</SPAN>ading onIine pharma<SPAN style=3D"DISPLAY: none"> scrutator =
-</SPAN>ceuticaI shops</FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV>
-<TABLE cellSpacing=3D0 cellPadding=3D0 border=3D0>
-  <TR vAlign=3Dbottom>
-    <TD rowSpan=3D2><FONT face=3DArial size=3D4>V<SPAN style=3D"DISPLAY: =
-none"> snifter </SPAN>l</FONT></TD>
-    <TD></TD>
-    <TD rowSpan=3D2><FONT face=3DArial size=3D4>G<SPAN style=3D"DISPLAY: =
-none"> reprobation </SPAN>R</FONT></TD>
-    <TD></TD>
-    <TD rowSpan=3D2><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: =
-none"> metempsychoses </SPAN>L</FONT></TD>
-    <TD></TD>
-    <TD rowSpan=3D2><FONT face=3DArial size=3D4>l<SPAN style=3D"DISPLAY: =
-none"> musical </SPAN>U</FONT></TD>
-    <TD></TD></TR>
-  <TR vAlign=3Dbottom>
-    <TD><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: none"> =
-gynaecological </SPAN>A</FONT></TD>
-    <TD><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: none"> Mauser =
-</SPAN>A&nbsp;Cl<SPAN style=3D"DISPLAY: none"> countercharge =
-</SPAN>A</FONT></TD>
-    <TD><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: none"> reported =
-</SPAN>IS&nbsp;VA<SPAN style=3D"DISPLAY: none"> partisanship =
-</SPAN>L</FONT></TD>
-    <TD><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: none"> =
-mitigation </SPAN>M</FONT></TD>
-    <TD><FONT face=3DArial 
-  size=3D4>&nbsp;and&nbsp;many&nbsp;other.</FONT></TD></TR></TABLE></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial>Total confiden<SPAN style=3D"DISPLAY: none"> natron =
-</SPAN>tiaIity,</FONT></DIV>
-<DIV><FONT face=3DArial>Over 5 milIi<SPAN style=3D"DISPLAY: none"> =
-parameter </SPAN>on customers,</FONT></DIV>
-<DIV><FONT face=3DArial>W<SPAN style=3D"DISPLAY: none"> tiring =
-</SPAN>orldwide SHlPPlNG,</FONT></DIV>
-<DIV><FONT face=3DArial>Save over 60%<SPAN style=3D"DISPLAY: none"> =
-metacarpus </SPAN>!</FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial>Have a nice <SPAN style=3D"DISPLAY: none"> nausea =
-</SPAN>day!</FONT></DIV></DIV></BODY></HTML>
+> Waking up gets the video back up, but the machine is unresponsive
+> (which is probably unrelated and could be fixed rather easily).
+...but now it won't wake up.
 
-------=_NextPart_000_0060_01C583CD.DED59200--
+I've loaded the video extension, and it sees the LCD.  The following
+is present in 
+/proc/acpi/video/VGA/LCDD
 
+LCDD > cat brightness 
+<not supported>
+[Well, that's not a problem, the keys work, it's clearly not a
+software thing]
+
+LCDD > cat EDID
+<not supported>
+[Hm...]
+
+LCDD > cat info 
+device_id:    0x0400
+type:         LCD
+known by bios: no
+
+LCDD > cat state
+state:     0x1f
+query:     0x01
+
+Now, here's the beef: the contents of state is the same before a
+suspend (to memory) as it is after -- in both cases state is 1f, only
+that before a suspend the display is working, and after it's not.  I
+don't understand this, because from what I see in actypes.h, that
+state isn't even defined.  Do I really have to plough through the
+ACPI specs to understand this (please not!)?
+
+In case it's important, I used
+echo mem > /sys/power/state
+to send the machine to sleep.
+
+Any help, hints, debugging aid greatly appreciated -- without
+sleeping capability, the thing is only half as useful.
+
+Thanks,
+
+           Markus
 
 
 -------------------------------------------------------
