@@ -1,8 +1,13 @@
-From: info-0+Tu+zoaDSEAvxtiuMwx3w@public.gmane.org
-Subject: 無料でできる全てを詰め込みました
-Date: 14 Jul 2005 16:31:51 +0900
-Message-ID: <20050714073151.30572.qmail@mail.qsv15.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 test
+Date: Tue, 12 Jul 2005 15:08:53 +0200
+Message-ID: <20050712130853.GA891@openzaurus.ucw.cz>
+References: <1121160149.20699.6.camel@linux-hp.sh.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1121160149.20699.6.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,15 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-通常の有料系のサイトでも高額な請求をされる直電・直メの交換もここでは無料！
-もちろん写メール対応だし、地域やプロフィールで相手を検索するのも完全無料！
-しかも男性会員の解禁前に女性会員を先行登録することにより現在男女比が2：8！
-だからほとんど入れ食い状態！！どんどん直電・直メＧＥＴしちゃってください！
-サイトはこちらから↓
-http://www.ya2dic.com?num=8416
+Hi!
+
+> Somebody in the list suggested we could test S3 with a kernel which
+> doesn't touch any device. Considering there are many broken drivers
+> (especially hard disk driver in some systems), this sounds like a good
+> method to narrow down S3 bugs. For those who want to try it, you can
+> make a kernel without any driver support, and make attached file as your
+> initrd, and see if S3 works. The attached initramfs doesn't touch any
+> device and just does something like below:
+> 
+> echo 'mem' >/sys/power/state
+> echo xxxxxxxx
+> while true; do done
+
+Unfortunately, video is the device least likely to work after resume :-(.
+But users can hit numlock or something to see if machine is still alive.
+
+
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
