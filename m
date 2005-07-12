@@ -1,12 +1,13 @@
-From: Fred Thiele <ferdy_news-Mmb7MZpHnFY@public.gmane.org>
-Subject: Hardware information - what is needed [Toshiba L10]
-Date: Tue, 12 Jul 2005 09:11:05 +0200
-Message-ID: <20050712071105.GA14285@w0t4n.th0r.ath.cx>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: still crap in pci_choose_state
+Date: Tue, 12 Jul 2005 09:53:44 +0200
+Message-ID: <20050712075344.GB1854@elf.ucw.cz>
+References: <16A54BF5D6E14E4D916CE26C9AD30575029F0E1A@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ibTvN161/egqYuK8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575029F0E1A-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,72 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> >This is in drivers/pci/pci.c; and it is still wrong. You can't just
+> >retype int into pm_message_t. Make it pm_message_t &state, and return
+> >only success/failure in platform_pci_choose_state return value. Or add
+> >PCI_POWER_ERROR to pci_power_t enum and use that.
+> >								Pavel
+> >
+> >int (*platform_pci_choose_state)(struct pci_dev *dev, pm_message_t
+> state);
+> >
+> >pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)
+> >{
+> >        int     ret;
+> >        if (!pci_find_capability(dev, PCI_CAP_ID_PM))
+> >                return PCI_D0;
+> >
+> >        if (platform_pci_choose_state) {
+> >                ret = platform_pci_choose_state(dev, state);
+> >                if (ret >= 0)
+> >                        state = ret;
+> >        }
+> >        switch (state) {
+> Ok, I'll do it soon. Is the pm_message_t a structure now? I plan to fix
+> it after pm_message_t structure change (current pm_message_t is really
+> useless for ACPI), but maybe I should fix the bug at hand first.
 
-
-Hello ML,
-
-nobody has answered my previous mail yet and i fear nobody has an
-answer what i can do. I really plan to get the AC/Battery
-Information working on my Toshiba SatPro L10 within linux. Yesterday
-I booted up windows in the hope to get additional hardware
-information, or to know how the battery stuff is treated within
-windows:
-
-Microsoft Smart Battery
-InstanceID: SMBUS\SMBBATT\7&277F0662&0&BATTERY0
-
-Microsoft Smart Battery Subsystem
-InstanceID: ACPI\ACPI0002\6&28CA2229&0
-
-I guess the second one is the battery itself. Can anyone provide me
-background information on what these things mean?=20
-
-Another thing i found in the device manager is some information
-called "energy capacity", this is in several hardware included:
-
-PDCAP_D0_SUPPORTED
-PDCAP_D3_SUPPORTED
-
-Later on this stuff os used like this:
-
-S0: D0
-S1: n/a
-S2: n/a
-S3: D3
-S4: D3
-S5: D3
-
-What is this meant to be, the sleep modes?
-
-If anybody could point me to the right literature to understand this
-better i'd appreciate that.=20
-
---=20
-Best regards,
-
-Fred Thiele=20
-
---ibTvN161/egqYuK8
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC020JEBTrFk9r4jgRArUDAJwJMtwowR4ji6tALZA0XWaVKR2yWACffSId
-sR88rGXpDmHbxXhK85CU8jU=
-=eUW/
------END PGP SIGNATURE-----
-
---ibTvN161/egqYuK8--
+I tried to turn pm_message_t into structure two times already, but
+failed both times :-(. Fixing it after pm_message_t=>structure change
+is a bit too late, because it will cause compile problems to akpm in
+the meantime...
+								Pavel
+-- 
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
