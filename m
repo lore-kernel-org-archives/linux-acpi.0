@@ -1,13 +1,14 @@
-From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+From: Jose Luis Domingo Lopez <linux-kernel-xyiX3/p4JzBDPfheJLI6IQ@public.gmane.org>
 Subject: Re: Linux v2.6.13-rc3
-Date: Wed, 13 Jul 2005 11:53:08 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0507131145310.17536@g5.osdl.org>
-References: <Pine.LNX.4.58.0507122157070.17536@g5.osdl.org>
- <200507131259.04855.rjw@sisk.pl>
+Date: Wed, 13 Jul 2005 21:45:40 +0200
+Message-ID: <20050713194540.GC29529@localhost>
+References: <Pine.LNX.4.58.0507122157070.17536@g5.osdl.org> <200507131259.04855.rjw@sisk.pl> <Pine.LNX.4.58.0507131145310.17536@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="eRtJSFbw+EEWtPj3"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200507131259.04855.rjw-KKrjLPT3xs0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0507131145310.17536-hNm40g4Ew95AfugRpC6u6w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,59 +18,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-Len, ACPI people - can we fix this regression, please?
+--eRtJSFbw+EEWtPj3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Rafael even pinpoints exactly which patches are causing the problem, so 
-why didn't they get reverted before sending them off to me?
+On Wednesday, 13 July 2005, at 11:53:08 -0700,
+Linus Torvalds wrote:
 
-Grumble. I don't like being sent known-bad patches when we're trying to 
-calm things down.
+> Len, ACPI people - can we fix this regression, please?
+>=20
+> Rafael even pinpoints exactly which patches are causing the problem, so=
+=20
+> why didn't they get reverted before sending them off to me?
+>=20
+> Grumble. I don't like being sent known-bad patches when we're trying to=
+=20
+> calm things down.
+>=20
+Also related to ACPI, a patch went in recently that prevents some boxes (at
+least mine) to power off properly via ACPI. The patch is:
+http://www.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
+commitdif
+f;h=3Dcee5dab4856f51c5cad3aecc630ad0a4d2217a85
 
-		Linus
+As the commit log says, this was somewhat expected. I sent a message a
+couple of days ago both to the list and to Eric W. Biederman, with no
+response so far. Message Subject: is:
+[2.6.12-git8] ACPI shutdown fails to power off machine
+http://marc.theaimsgroup.com/?l=3Dlinux-kernel&m=3D112094139204799&w=3D2
+
+Greetings,
+
+--=20
+Jose Luis Domingo Lopez
+Linux Registered User #189436     Debian Linux Sid (Linux 2.6.13-rc2)
 
 
-On Wed, 13 Jul 2005, Rafael J. Wysocki wrote:
->
-> Hi,
-> 
-> On Wednesday, 13 of July 2005 07:05, Linus Torvalds wrote:
-> > 
-> > Yes,
-> >  it's _really_ -rc3 this time, never mind the confusion with the commit 
-> > message last time (when the Makefile clearly said -rc2, but my over-eager 
-> > fingers had typed in a commit message saying -rc3).
-> > 
-> > There's a bit more changes here than I would like, but I'm putting my foot 
-> > down now. Not only are a lot of people going to be gone next week for LKS 
-> > and OLS, but we've gotten enough stuff for 2.6.13, and we need to calm 
-> > down.
-> 
-> FYI, on my box (Asus L5D, Athlon 64 + nForce3, 64-bit kernel) there are two
-> regressions wrt -rc2 related to ACPI.  First, the battery monitor does not work
-> (http://bugzilla.kernel.org/show_bug.cgi?id=4665)
-> and second, the box hangs solid during resume from disk if IO-APIC is not used
-> (http://bugzilla.kernel.org/show_bug.cgi?id=4416).
-> 
-> The problems have been known for quite some time and remain unresolved,
-> but apparently they have made it to mainline nevertheless.  I understand
-> nobody else has reported them, but I also know of some people who run
-> Linux on the same hardware and 2.6.13 will not work for them if these
-> issues are present in it.
-> 
-> Greets,
-> Rafael
-> 
-> 
-> -- 
-> - Would you tell me, please, which way I ought to go from here?
-> - That depends a good deal on where you want to get to.
-> 		-- Lewis Carroll "Alice's Adventures in Wonderland"
-> 
+--eRtJSFbw+EEWtPj3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC1W9kao1/w/yPYI0RAjzUAJoC1fqYNqjEa9DzjjdyvELkDdUWQgCgg/MH
+9awrCGEqA4SqGfkH9fXBQXc=
+=r8FG
+-----END PGP SIGNATURE-----
+
+--eRtJSFbw+EEWtPj3--
 
 
 -------------------------------------------------------
