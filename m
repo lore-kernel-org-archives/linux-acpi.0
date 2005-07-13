@@ -1,13 +1,11 @@
 From: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
 Subject: [01/11] If ACPI doesn't find an irq listed, don't accept 0 as a valid PCI irq.
-Date: Wed, 13 Jul 2005 11:43:02 -0700
-Message-ID: <20050713184302.GE9330@kroah.com>
-References: <20050713184130.GA9330@kroah.com>
+Date: Wed, 13 Jul 2005 11:41:41 -0700
+Message-ID: <20050713184140.GB9330@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050713184130.GA9330-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,8 +18,6 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Justin Forbes <jmforbes-a5Mqy2EUIFVAfugRpC6u6w@public.gmane.org>, Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>, Chuck Wolber <chuckw-lrwSPXAIdEw7YuNMryXyOw@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-
-[resend to get threading correct, sorry]
 
 -stable review patch.  If anyone has any objections, please let us know.
 
