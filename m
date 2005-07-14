@@ -1,13 +1,9 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 test
-Date: Tue, 12 Jul 2005 15:08:53 +0200
-Message-ID: <20050712130853.GA891@openzaurus.ucw.cz>
-References: <1121160149.20699.6.camel@linux-hp.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
+Subject: [patch 1/1] drivers/acpi/system.c : remove unused brackets
+Date: Fri, 15 Jul 2005 00:20:33 +0200
+Message-ID: <20050714222033.509197000@homer>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1121160149.20699.6.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
+Content-Disposition: inline; filename=remove_brackets-drivers_acpi_system
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +13,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>, domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> Somebody in the list suggested we could test S3 with a kernel which
-> doesn't touch any device. Considering there are many broken drivers
-> (especially hard disk driver in some systems), this sounds like a good
-> method to narrow down S3 bugs. For those who want to try it, you can
-> make a kernel without any driver support, and make attached file as your
-> initrd, and see if S3 works. The attached initramfs doesn't touch any
-> device and just does something like below:
-> 
-> echo 'mem' >/sys/power/state
-> echo xxxxxxxx
-> while true; do done
-
-Unfortunately, video is the device least likely to work after resume :-(.
-But users can hit numlock or something to see if machine is still alive.
+From: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
 
 
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Remove not used brackets
 
+Signed-off-by: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
+Signed-off-by: Domen Puncer <domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org>
+---
+ system.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
+
+Index: quilt/drivers/acpi/system.c
+===================================================================
+--- quilt.orig/drivers/acpi/system.c
++++ quilt/drivers/acpi/system.c
+@@ -148,9 +148,8 @@ static int __init acpi_system_init (void
+ 		S_IRUGO, acpi_root_dir);
+ 	if (!entry)
+ 		goto Error;
+-	else {
++	else
+ 		entry->proc_fops = &acpi_system_info_ops;
+-	}
+ 
+ 	/* 'dsdt' [R] */
+ 	name = ACPI_SYSTEM_FILE_DSDT;
+
+--
 
 
 -------------------------------------------------------
