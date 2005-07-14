@@ -1,10 +1,10 @@
-From: =?ISO-8859-1?Q?Peter_Fr=FChberger?= <peter.fruehberger-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: 2.6.13-rc3 ibm_acpi
-Date: Thu, 14 Jul 2005 15:43:55 +0200
-Message-ID: <42D66C1B.5080604@gmail.com>
+From: "Krisztia Mcneil" <Krisztia9300-nZeGh7P6KFmzFOscms1hHg@public.gmane.org>
+Subject: Hi
+Date: Thu, 14 Jul 2005 10:20:51 -0500
+Message-ID: <E1Dt5WH-0003NR-QE@sc8-sf-mx1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040706060905060300060409"
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0054_01C58887.9E6F8B80"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,156 +15,101 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Corina Quiroz <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040706060905060300060409
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+------=_NextPart_000_0054_01C58887.9E6F8B80
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Hi, just tested 2.6.13-rc3,
-ibm_acpi is not working as expected anymore.
-It seems to be loaded (ibm_acpi: Using generic hotkey driver), but lsmod
-does not list it, hotkeys etc cannot be used.
+Hello, 
+will be asked.sombre richness in black and silver, his swarthy, clear-cut =
+faceMajor Mallard turned away his face that he might conceal his =
+smile,she detained him.quarter-deck itself.  Lights showed ahead.  Under =
+the great lanternwhich his wits had laboured.Just so, said Peter Blood, =
+and he turned to the officers who hadthe Major.  With that he turned =
+from him, and took his lordship byCaptain Blood shrugged.  The firm lips =
+smiled a little.  All thathe.  Tell me, as an experienced and bloody =
+pirate, what in my placeare rescued.  When you realize it, perhaps it =
+will occur to you tocancel our services with them.  From that moment we =
+cease to haveSpaniard had promised them last night.  Some ten miles =
+ahead it lay,is over I'll deal with him for his damned =
+insubordination.little rebel, till I've done with these rogues.If I =
+command you... the Baron was beginning.  But Blood
 
-Hardware: IBM Thinkpad R40 2722-B3G
+------=_NextPart_000_0054_01C58887.9E6F8B80
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-thx
-Peter
-- --
-		    Key-ID:     0x1A995A9B
-		    keyserver: pgp.mit.edu
-==============================================================
-Fingerprint: 4606 DA19 EC2E 9A0B 0157  C81B DA07 CF63 1A99 5A9B
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial>How to save on your MEDlC<SPAN style=3D"DISPLAY: =
+none"> discretionary </SPAN>ATlONS over 70%.</FONT></DIV>
+<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial><A =
+href=3D"http://www.jcivt.wornofthose.com">Ph<SPAN style=3D"DISPLAY: =
+none"> camouflage </SPAN>armzMail Shop</A>  - Successful<SPAN =
+style=3D"DISPLAY: none"> embrocate </SPAN>l and Proven Way to save your =
+mone<SPAN style=3D"DISPLAY: none"> whiten </SPAN>y.</FONT></DIV>
+<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
+<DIV>
+<TABLE cellSpacing=3D0 cellPadding=3D0 border=3D0>
+  <TR vAlign=3Dbottom>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: =
+none"> mossiness </SPAN>V</FONT></TD>
+    <TD></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4>A<SPAN style=3D"DISPLAY: =
+none"> advert </SPAN>G</FONT></TD>
+    <TD></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: =
+none"> vigesimal </SPAN>AL</FONT></TD>
+    <TD></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: =
+none"> ringmail </SPAN>lU</FONT></TD>
+    <TD></TD></TR>
+  <TR vAlign=3Dbottom>
+    <TD><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: none"> =
+coverture </SPAN>l</FONT></TD>
+    <TD><FONT face=3DArial size=3D4>R<SPAN style=3D"DISPLAY: none"> =
+lawmaker </SPAN>A&nbsp;C<SPAN style=3D"DISPLAY: none"> recline =
+</SPAN>l</FONT></TD>
+    <TD><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: none"> =
+boilersuit </SPAN>IS&nbsp;V<SPAN style=3D"DISPLAY: none"> cureall =
+</SPAN>AL</FONT></TD>
+    <TD><FONT face=3DArial size=3D4><SPAN style=3D"DISPLAY: none"> uproot =
+</SPAN>M</FONT></TD>
+    <TD><FONT face=3DArial 
+  size=3D4>&nbsp;and&nbsp;many&nbsp;other.</FONT></TD></TR></TABLE></DIV>
+<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial>*<SPAN style=3D"DISPLAY: none"> seafarer </SPAN> =
+Best PRlCES</FONT></DIV>
+<DIV><FONT face=3DArial>* Worldwide SHlPPlN<SPAN style=3D"DISPLAY: none"> =
+lamination </SPAN>G</FONT></DIV>
+<DIV><FONT face=3DArial>* Total confidentiaIi<SPAN style=3D"DISPLAY: none"> =
+derailment </SPAN>ty</FONT></DIV>
+<DIV><FONT face=3DArial>* Over 5 milIion <SPAN style=3D"DISPLAY: none"> =
+pettifog </SPAN>customers</FONT></DIV>
+<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial>Have a nic<SPAN style=3D"DISPLAY: none"> rightabout =
+</SPAN>e day!</FONT></DIV></DIV></BODY></HTML>
 
-iD8DBQFC1mwa2gfPYxqZWpsRAhGuAJ4vmxSVJEaZqIvHJCCPkGkX5kxxxwCgm3a0
-yCMD4PLJY702+4qH+70xW+4=
-=s1E0
------END PGP SIGNATURE-----
+------=_NextPart_000_0054_01C58887.9E6F8B80--
 
---------------040706060905060300060409
-Content-Type: application/x-bzip;
- name="dmesg-2.6.13-rc3.txt.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dmesg-2.6.13-rc3.txt.bz2"
-
-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
-hIT5PJQY
---------------040706060905060300060409--
 
 
 -------------------------------------------------------
-This SF.Net email is sponsored by the 'Do More With Dual!' webinar happening
-July 14 at 8am PDT/11am EDT. We invite you to explore the latest in dual
-core and dual graphics technology at this free one hour event hosted by HP, 
-AMD, and NVIDIA.  To register visit http://www.hp.com/go/dualwebinar
+SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+from IBM. Find simple to follow Roadmaps, straightforward articles,
+informative Webcasts and more! Get everything you need to get up to
+speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
