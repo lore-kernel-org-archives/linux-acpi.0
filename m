@@ -1,7 +1,7 @@
 From: mail.avadm-WsG/16oju2cRmelmmXo44Q@public.gmane.org
-Subject: InterScan NT Alert
+Subject: Failed to clean virus file test.exe
 Date: Thu, 14 Jul 2005 17:50:50 +0100
-Message-ID: <8892.43892529539$1121359910@news.gmane.org>
+Message-ID: <37229.1248095737$1121359911@news.gmane.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,15 +15,8 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Warning, Virus detected in your email by Ttslplex InterScan. Uncleanable viruses are deleted.
-
-Date:  	Thu, 14 Jul 2005 17:50:50 +0100
-Method:	Mail
-From:  	<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To:    	britney-cfCsCdJluQiELgA04lAiVw@public.gmane.org
-File:  	test.exe
-Action:	clean failed - deleted
-Virus: 	WORM_MYTOB.DA 
+The file you have sent was infected with a virus but InterScan E-Mail VirusWall
+could not clean it.
 
 
 -------------------------------------------------------
