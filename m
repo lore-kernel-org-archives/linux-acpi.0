@@ -1,9 +1,8 @@
-From: domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
-Subject: [patch 1/1] drivers/acpi/system.c : remove unused brackets
-Date: Fri, 15 Jul 2005 00:20:33 +0200
-Message-ID: <20050714222033.509197000@homer>
+From: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [patch 3/7] acpi: Disable C2/C3 for _all_ IBM R40e Laptops (Bug #3549)
+Date: Thu, 14 Jul 2005 15:54:41 -0700
+Message-ID: <200507142255.j6EMtOnm010358@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline; filename=remove_brackets-drivers_acpi_system
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,37 +13,78 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>, domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, Thomas.Roesner-gyMb1R/nBgON7a6Aj5WzbLNAH6kLmebB@public.gmane.org, kernel-bugs-gyMb1R/nBgON7a6Aj5WzbLNAH6kLmebB@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
 
+From: Thomas Roesner <Thomas.Roesner-gyMb1R/nBgON7a6Aj5WzbLNAH6kLmebB@public.gmane.org>
 
-Remove not used brackets
+This adds all known BIOS versions of IBM R40e Laptops to the C2/C3
+processor state blacklist and thus prevents them from crashing.  Fixes Bug
+#3549.
 
-Signed-off-by: Christophe Lucas <clucas-FNWCkmgu6Xgh9ZMKESR00Q@public.gmane.org>
-Signed-off-by: Domen Puncer <domen-CvScVCPLwOZg9hUCZPvPmw@public.gmane.org>
+Implementation is probably overly verbose, but DMI_MATCH seems to give us
+no choice.
+
+Signed-off-by: Thomas Roesner <kernel-bugs-gyMb1R/nBgON7a6Aj5WzbLNAH6kLmebB@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
- system.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
 
-Index: quilt/drivers/acpi/system.c
-===================================================================
---- quilt.orig/drivers/acpi/system.c
-+++ quilt/drivers/acpi/system.c
-@@ -148,9 +148,8 @@ static int __init acpi_system_init (void
- 		S_IRUGO, acpi_root_dir);
- 	if (!entry)
- 		goto Error;
--	else {
-+	else
- 		entry->proc_fops = &acpi_system_info_ops;
--	}
- 
- 	/* 'dsdt' [R] */
- 	name = ACPI_SYSTEM_FILE_DSDT;
+ drivers/acpi/processor_idle.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+)
 
---
+diff -puN drivers/acpi/processor_idle.c~acpi-disable-c2-c3-for-_all_-ibm-r40e-laptops-bug-3549 drivers/acpi/processor_idle.c
+--- devel/drivers/acpi/processor_idle.c~acpi-disable-c2-c3-for-_all_-ibm-r40e-laptops-bug-3549	2005-07-14 15:53:34.000000000 -0700
++++ devel-akpm/drivers/acpi/processor_idle.c	2005-07-14 15:53:34.000000000 -0700
+@@ -101,7 +101,46 @@ static int no_c2c3(struct dmi_system_id 
+ static struct dmi_system_id __initdata processor_power_dmi_table[] = {
+ 	{ no_c2c3, "IBM ThinkPad R40e", {
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET32WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET43WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET45WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET47WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET50WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET52WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET55WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET56WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET59WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"1SET60WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET61WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET62WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET64WW") }},
++	{ no_c2c3, "IBM ThinkPad R40e", {
++	  DMI_MATCH(DMI_BIOS_VENDOR,"IBM"),
++	  DMI_MATCH(DMI_BIOS_VERSION,"1SET65WW") }},
+ 	{ no_c2c3, "Medion 41700", {
+ 	  DMI_MATCH(DMI_BIOS_VENDOR,"Phoenix Technologies LTD"),
+ 	  DMI_MATCH(DMI_BIOS_VERSION,"R01-A1J") }},
+_
 
 
 -------------------------------------------------------
