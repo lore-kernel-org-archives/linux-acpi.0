@@ -1,11 +1,13 @@
-From: Jorgen Bodde <solidstl-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Subject: Embedded controller problems
-Date: Thu, 14 Jul 2005 19:16:19 +0200
-Message-ID: <42D69DE3.4010106@xs4all.nl>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.6.13-rc3 ACPI regression and hang on x86-64
+Date: Thu, 14 Jul 2005 15:23:52 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30040CF75E@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,41 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi List,
+>acpi_ec-0217 [04] acpi_ec_leave_burst_mo: ------->status fail
+>
+>on the console, and then the machine is hung hard.
 
-I own an Acer Travelmate 4001WMLi, and after getting the battery readout 
-fixed under linux by patching my DSDT file and appending it to initrd, I 
-am suffering from missing keys.
+2.6.13-rc3 x86_64 failed, but=20
+2.6.13-rc2 x86_64 worked
 
-Now, this phenomenon is not new to me, I knew my laptop has this under 
-Windows as well. I have been trying to minimize this problem to no avail.
+And both of these revisions in the i386 kernel still work?
 
-It just happens that every 20 characters or so, I miss out on one or 
-two,. Very annoying when typing a password, and especially when SETTING 
-passwords.
+>+evxfevnt-0203 [07] acpi_enable_event     : Could not enable
+power_button
+>event
+>+ evxface-0157 [06] acpi_install_fixed_eve: Could not enable fixed
+event.
+>+acpi_button-0224 [05] acpi_button_add       : Error installing notify
+>handler
+>+ACPI: Power Button (CM) [PWRB]
 
-I have read it had to do with the embedded controller and lost 
-interrupts when the battery status is polled. I also read somewhere the 
-polling interval is rediculously high (every 1 second) when windows 
-polls this with a less interval which can be the reason the missing keys 
-are less frequent under windows.
 
-Is there a way to lower the polling interval of the battery, or even 
-better, fix this problem? My system info:
+We're toast at this point, even before the EC message.
 
-Suse 9.3
-Kernel 2.6.11
-Acter travelmate 4001WMLi
-Panasonic battery
+Looks like this failure was reported here
+http://bugzilla.kernel.org/show_bug.cgi?id=3D4534
+and is assigned to Luming.
 
-Any help is very much appreciated as I really would like to use Linux, 
-but the missing keys make it hard to enjoy using it :-(
+Is it possible for you to test the latest ACPI patch?
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
+2.6.13/
 
-Regards,
-- Jorgen
+Also, it would be good to confirm the same failure exists with
+CONFIG_ACPI_DEBUG=3Dn.
+
+thanks,
+-Len
+
 
 
 -------------------------------------------------------
