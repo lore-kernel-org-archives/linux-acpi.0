@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 5/7] ACPI: Re-enable C2/C3 CPU states for systems without CST
-Date: Thu, 14 Jul 2005 15:54:53 -0700
-Message-ID: <200507142255.j6EMtaRa010369@shell0.pdx.osdl.net>
+Subject: [patch 2/7] CONFIG_ACPI=n build fix
+Date: Thu, 14 Jul 2005 15:54:41 -0700
+Message-ID: <200507142255.j6EMtOYd010355@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,37 +13,64 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Jindrich Makovicka <makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 
-Re-enable C2/C3 states for systems without CST.  Fixes a regression after
-the patch for C2/C3 support for multiprocessors
-(http://bugme.osdl.org/show_bug.cgi?id=4401), which accidentally removed
-the acpi_processor_power_verify() call.
+arch/i386/kernel/setup.c: In function `setup_arch':
+arch/i386/kernel/setup.c:1571: warning: implicit declaration of function `acpi_boot_table_init'
+arch/i386/kernel/setup.c:1572: warning: implicit declaration of function `acpi_boot_init'
+arch/i386/kernel/built-in.o(.init.text+0x17c4): In function `setup_sigcontext':
+/usr/src/25/arch/i386/kernel/signal.c:299: undefined reference to `acpi_boot_table_init'
+arch/i386/kernel/built-in.o(.init.text+0x17c9):/usr/src/25/arch/i386/kernel/signal.c:300: undefined reference to `acpi_boot_init'
 
-Signed-off-by: Jindrich Makovicka <makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/acpi/processor_idle.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/acpi.h |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-re-enable-c2-c3-cpu-states-for-systems-without drivers/acpi/processor_idle.c
---- devel/drivers/acpi/processor_idle.c~acpi-re-enable-c2-c3-cpu-states-for-systems-without	2005-07-14 15:53:47.000000000 -0700
-+++ devel-akpm/drivers/acpi/processor_idle.c	2005-07-14 15:53:47.000000000 -0700
-@@ -881,7 +881,7 @@ static int acpi_processor_get_power_info
- 	result = acpi_processor_get_power_info_cst(pr);
- 	if ((result) || (acpi_processor_power_verify(pr) < 2)) {
- 		result = acpi_processor_get_power_info_fadt(pr);
--		if (result)
-+		if ((result) || acpi_processor_power_verify(pr) < 2)
- 			result = acpi_processor_get_power_info_default_c1(pr);
- 	}
+diff -puN include/linux/acpi.h~no-acpi-build-fix include/linux/acpi.h
+--- devel/include/linux/acpi.h~no-acpi-build-fix	2005-07-14 15:53:20.000000000 -0700
++++ devel-akpm/include/linux/acpi.h	2005-07-14 15:53:20.000000000 -0700
+@@ -433,16 +433,6 @@ extern int sbf_port ;
  
+ #define acpi_mp_config	0
+ 
+-static inline int acpi_boot_init(void)
+-{
+-	return 0;
+-}
+-
+-static inline int acpi_boot_table_init(void)
+-{
+-	return 0;
+-}
+-
+ #endif 	/*!CONFIG_ACPI_BOOT*/
+ 
+ unsigned int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
+@@ -553,5 +543,17 @@ static inline int acpi_get_pxm(acpi_hand
+ 
+ extern int pnpacpi_disabled;
+ 
++#else	/* CONFIG_ACPI */
++
++static inline int acpi_boot_init(void)
++{
++	return 0;
++}
++
++static inline int acpi_boot_table_init(void)
++{
++	return 0;
++}
++
+ #endif	/* CONFIG_ACPI */
+ #endif	/*_LINUX_ACPI_H*/
 _
 
 
