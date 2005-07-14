@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/7] acpi-ext build fix
-Date: Thu, 14 Jul 2005 15:54:38 -0700
-Message-ID: <200507142255.j6EMtLOK010352@shell0.pdx.osdl.net>
+Subject: [patch 4/7] acpi: video.c: properly remove notify handlers
+Date: Thu, 14 Jul 2005 15:54:43 -0700
+Message-ID: <200507142255.j6EMtPg7010361@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,34 +13,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 
-In file included from /usr/src/ctest/mm/kernel/drivers/char/agp/hp-agp.c:18:
-include2/asm/acpi-ext.h:15: error: parse error before "hp_acpi_csr_space"
-include2/asm/acpi-ext.h:15: error: parse error before "u64"
-include2/asm/acpi-ext.h:15: warning: type defaults to `int' in declaration of `hp_acpi_csr_space'
+The video driver doesn't properly remove all the notify handlers on module
+unload.  This has a side effect of subdevices failing to register on module
+reload, but sudden death looms if the handlers trigger after the module is
+unloaded (not that I've seen such a machine, but still).
 
-
+Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- include/asm-ia64/acpi-ext.h |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/acpi/video.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN include/asm-ia64/acpi-ext.h~acpi-ext-build-fix include/asm-ia64/acpi-ext.h
---- devel/include/asm-ia64/acpi-ext.h~acpi-ext-build-fix	2005-07-14 15:46:06.000000000 -0700
-+++ devel-akpm/include/asm-ia64/acpi-ext.h	2005-07-14 15:46:06.000000000 -0700
-@@ -11,6 +11,7 @@
- #define _ASM_IA64_ACPI_EXT_H
+diff -puN drivers/acpi/video.c~acpi-videoc-properly-remove-notify-handlers drivers/acpi/video.c
+--- devel/drivers/acpi/video.c~acpi-videoc-properly-remove-notify-handlers	2005-07-14 15:53:43.000000000 -0700
++++ devel-akpm/drivers/acpi/video.c	2005-07-14 15:53:43.000000000 -0700
+@@ -1665,6 +1665,7 @@ static int
+ acpi_video_bus_put_one_device(
+ 	struct acpi_video_device	*device)
+ {
++	acpi_status status;
+ 	struct acpi_video_bus *video;
  
- #include <linux/types.h>
-+#include <acpi/actypes.h>
+ 	ACPI_FUNCTION_TRACE("acpi_video_bus_put_one_device");
+@@ -1679,6 +1680,12 @@ acpi_video_bus_put_one_device(
+ 	up(&video->sem);
+ 	acpi_video_device_remove_fs(device->dev);
  
- extern acpi_status hp_acpi_csr_space (acpi_handle, u64 *base, u64 *length);
++	status = acpi_remove_notify_handler(device->handle,
++		ACPI_DEVICE_NOTIFY, acpi_video_device_notify);
++	if (ACPI_FAILURE(status))
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Error removing notify handler\n"));
++
+ 	return_VALUE(0);
+ }
  
 _
 
