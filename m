@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 4/7] acpi: video.c: properly remove notify handlers
-Date: Thu, 14 Jul 2005 15:54:43 -0700
-Message-ID: <200507142255.j6EMtPg7010361@shell0.pdx.osdl.net>
+Subject: [patch 5/7] ACPI: Re-enable C2/C3 CPU states for systems without CST
+Date: Thu, 14 Jul 2005 15:54:53 -0700
+Message-ID: <200507142255.j6EMtaRa010369@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,47 +13,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Jindrich Makovicka <makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org>
 
-The video driver doesn't properly remove all the notify handlers on module
-unload.  This has a side effect of subdevices failing to register on module
-reload, but sudden death looms if the handlers trigger after the module is
-unloaded (not that I've seen such a machine, but still).
+Re-enable C2/C3 states for systems without CST.  Fixes a regression after
+the patch for C2/C3 support for multiprocessors
+(http://bugme.osdl.org/show_bug.cgi?id=4401), which accidentally removed
+the acpi_processor_power_verify() call.
 
-Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Signed-off-by: Jindrich Makovicka <makovick-/k6j/d2J2EitDQUhxP5w7+MCGPLT8p0O@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/acpi/video.c |    7 +++++++
- 1 files changed, 7 insertions(+)
+ drivers/acpi/processor_idle.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/video.c~acpi-videoc-properly-remove-notify-handlers drivers/acpi/video.c
---- devel/drivers/acpi/video.c~acpi-videoc-properly-remove-notify-handlers	2005-07-14 15:53:43.000000000 -0700
-+++ devel-akpm/drivers/acpi/video.c	2005-07-14 15:53:43.000000000 -0700
-@@ -1665,6 +1665,7 @@ static int
- acpi_video_bus_put_one_device(
- 	struct acpi_video_device	*device)
- {
-+	acpi_status status;
- 	struct acpi_video_bus *video;
- 
- 	ACPI_FUNCTION_TRACE("acpi_video_bus_put_one_device");
-@@ -1679,6 +1680,12 @@ acpi_video_bus_put_one_device(
- 	up(&video->sem);
- 	acpi_video_device_remove_fs(device->dev);
- 
-+	status = acpi_remove_notify_handler(device->handle,
-+		ACPI_DEVICE_NOTIFY, acpi_video_device_notify);
-+	if (ACPI_FAILURE(status))
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+			"Error removing notify handler\n"));
-+
- 	return_VALUE(0);
- }
+diff -puN drivers/acpi/processor_idle.c~acpi-re-enable-c2-c3-cpu-states-for-systems-without drivers/acpi/processor_idle.c
+--- devel/drivers/acpi/processor_idle.c~acpi-re-enable-c2-c3-cpu-states-for-systems-without	2005-07-14 15:53:47.000000000 -0700
++++ devel-akpm/drivers/acpi/processor_idle.c	2005-07-14 15:53:47.000000000 -0700
+@@ -881,7 +881,7 @@ static int acpi_processor_get_power_info
+ 	result = acpi_processor_get_power_info_cst(pr);
+ 	if ((result) || (acpi_processor_power_verify(pr) < 2)) {
+ 		result = acpi_processor_get_power_info_fadt(pr);
+-		if (result)
++		if ((result) || acpi_processor_power_verify(pr) < 2)
+ 			result = acpi_processor_get_power_info_default_c1(pr);
+ 	}
  
 _
 
