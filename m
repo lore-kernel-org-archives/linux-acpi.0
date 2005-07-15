@@ -1,40 +1,55 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: Re: 2.6.13-rc3 ACPI regression and hang on x86-64
-Date: Fri, 15 Jul 2005 11:04:46 +0800
-Message-ID: <200507151104.46790.luming.yu@intel.com>
-References: <200507141036.j6EAaveO029891@harpo.it.uu.se>
-Reply-To: luming.yu@intel.com
+From: Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
+Subject: Re: Embedded controller problems
+Date: Fri, 15 Jul 2005 07:43:03 +0200
+Message-ID: <200507150743.04089.o.jansen@orb-net.de>
+References: <42D69DE3.4010106@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S263182AbVGODFT@vger.kernel.org>
-In-Reply-To: <200507141036.j6EAaveO029891@harpo.it.uu.se>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <42D69DE3.4010106-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mikael Pettersson <mikpe@csd.uu.se>
-Cc: len.brown@intel.com, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 14 July 2005 18:36, Mikael Pettersson wrote:
-> On my x86-64 laptop (Targa Visionary 811: Athlon64 + VIA chipset,
-> Arima OEM:d HW also sold by eMachines and others), ACPI is broken
-> and hangs the x86-64 2.6.13-rc3 kernel.
->
-> During boot, ACPI reduces the screen's brightness (it's always
-> done this in the x86-64 kernels but not the i386 ones), so I
-> have to press a specific key combination (Fn+F8) to increase the
-> brightness. This worked up to and including the 2.6.13-rc2 kernel,
-> but with 2.6.13-rc3 it causes an error message:
->
-> acpi_ec-0217 [04] acpi_ec_leave_burst_mo: ------->status fail
-This message is a warning.
+Hi Jorgen, 
 
->
-> on the console, and then the machine is hung hard.
-If you didn't press that key,   the machine still hung?
+> I own an Acer Travelmate 4001WMLi, and after getting the battery readout
+> fixed under linux by patching my DSDT file and appending it to initrd, I
+> am suffering from missing keys.
 
->
-> With the i386 kernel, both this key combination and the other one
-> for reducing the brightness work as expected.
->
+I've an ACER Extensa 3002WLMI which is said to be the same machine. With the 
+information from 
+
+- https://sourceforge.net/projects/sbs-linux/
+
+especially the "acpi-ec-nospinlock" Patch I have no problems with missing 
+keys. Without the patch i've had the same problems. 
+
+You should also read this:
+
+https://sourceforge.net/tracker/index.php?func=detail&aid=1191536&group_id=129330&atid=714494
+
+If you need more Information please let me know.
+
+Regards
+	Olaf
+
+BTW: have you got suspend to disk / ram working on your machine?
+
+
+-------------------------------------------------------
+SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+from IBM. Find simple to follow Roadmaps, straightforward articles,
+informative Webcasts and more! Get everything you need to get up to
+speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
