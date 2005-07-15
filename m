@@ -1,15 +1,8 @@
-From: Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
-Subject: Re: Embedded controller problems
-Date: Fri, 15 Jul 2005 07:43:03 +0200
-Message-ID: <200507150743.04089.o.jansen@orb-net.de>
-References: <42D69DE3.4010106@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>
+Subject: RE: 2.6.13-rc3 ACPI regression and hang on x86-64
+Date: Fri, 15 Jul 2005 12:51:49 +0200 (MEST)
+Message-ID: <200507151051.j6FApn0N003458@harpo.it.uu.se>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42D69DE3.4010106-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,33 +12,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jorgen, 
+On Thu, 14 Jul 2005 15:23:52 -0400, Brown, Len wrote:
+>>acpi_ec-0217 [04] acpi_ec_leave_burst_mo: ------->status fail
+>>
+>>on the console, and then the machine is hung hard.
+>
+>2.6.13-rc3 x86_64 failed, but 
+>2.6.13-rc2 x86_64 worked
+>
+>And both of these revisions in the i386 kernel still work?
 
-> I own an Acer Travelmate 4001WMLi, and after getting the battery readout
-> fixed under linux by patching my DSDT file and appending it to initrd, I
-> am suffering from missing keys.
+With the i386 kernel, 2.6.13-rc2 works perfectly.
+With the i386 kernel, 2.6.13-rc3 mostly works, but
+it fails to detect the CPU's C2 state.
 
-I've an ACER Extensa 3002WLMI which is said to be the same machine. With the 
-information from 
+>Is it possible for you to test the latest ACPI patch?
+>http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
+>2.6.13/
 
-- https://sourceforge.net/projects/sbs-linux/
+I was going to, but as it was for -rc2 not -rc3 I decided to
+try Venkatesh Pallipadi's C-state FADT regression patch first.
+<http://marc.theaimsgroup.com/?l=linux-kernel&m=112135903100520&w=2>
+Success! That solved all my ACPI issues with -rc3.
 
-especially the "acpi-ec-nospinlock" Patch I have no problems with missing 
-keys. Without the patch i've had the same problems. 
+"Yu, Luming" wrote:
+>> on the console, and then the machine is hung hard.
+>If you didn't press that key,   the machine still hung?
 
-You should also read this:
+No it worked except for having no power management and an
+unusable console due to ACPI having reduced the brightness.
 
-https://sourceforge.net/tracker/index.php?func=detail&aid=1191536&group_id=129330&atid=714494
-
-If you need more Information please let me know.
-
-Regards
-	Olaf
-
-BTW: have you got suspend to disk / ram working on your machine?
+/Mikael
 
 
 -------------------------------------------------------
