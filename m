@@ -1,14 +1,14 @@
-From: Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
-Subject: Re: Embedded controller problems
-Date: Fri, 15 Jul 2005 15:23:07 +0200
-Message-ID: <200507151523.08166.o.jansen@orb-net.de>
-References: <42D69DE3.4010106@xs4all.nl> <200507150743.04089.o.jansen@orb-net.de> <42D7AFF1.4040908@xs4all.nl>
+From: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>
+Subject: Re: S3 test
+Date: Fri, 15 Jul 2005 15:36:21 +0200
+Message-ID: <200507151536.21857.hugelmopf@web.de>
+References: <1121160149.20699.6.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42D7AFF1.4040908-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+In-Reply-To: <1121160149.20699.6.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -22,21 +22,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jorgen, 
+Hi Shaohua,
 
-> Thanks Olaf and Oisin!
+thanks for your efforts on getting S3 to work.
 
-no matter - but I think most work was done by Rich Townsend. 
+Is there anybody on this list, who has tried this initramfs yet and can give a 
+short list of the steps involved? I have never before built a kernel for use 
+with initram, but I would like to test it on my S3-broken laptop.
 
-> score 1:0 for Linux over Windows ;-) It rocks that you can change it
-> yourself to make it working!
-
-because of this I use Linux on nearly all my machines. The only exception is a 
-Mac Mini in the living room which acts as a MYTHTV-frontend and video 
-recorder. But no scores possible for Windows ;-)
-
-regards
-	Olaf
+Thanks,
+Frank
 
 
 -------------------------------------------------------
