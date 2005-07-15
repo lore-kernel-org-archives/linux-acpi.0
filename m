@@ -1,15 +1,11 @@
-From: =?iso-8859-1?q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Subject: Re: Embedded controller problems
-Date: Fri, 15 Jul 2005 16:01:37 +0100
-Message-ID: <200507151601.37825.destynova@esatclear.ie>
-References: <42D69DE3.4010106@xs4all.nl> <42D7AFF1.4040908@xs4all.nl> <200507151523.08166.o.jansen@orb-net.de>
+From: Spam Guard <spamguard-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
+Subject: ACPI4Linux compatibility with Suspend2
+Date: Fri, 15 Jul 2005 10:44:01 -0500
+Message-ID: <42D7D9C1.40907@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200507151523.08166.o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,18 +18,67 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 15 July 2005 14:23, Olaf Jansen-Olliges wrote:
-> no matter - but I think most work was done by Rich Townsend.
-I think Yu Luming wrote that spinlock/semaphore patch actually - Rich Tow=
-nsend=20
-did some great work on smart batteries (ie: getting them supported at all=
-!)=20
-and cheered up a lot of people.
+Hi all,
 
-> because of this I use Linux on nearly all my machines.
-Yep, things just keep getting better!
+I am currently using the 2.6.12.2 kernel.  On previous kernels (2.6.9
+being my last), I was able to install both ACPI4Linux and Suspend2
+without any issues, and my system seemed to work very nicely.
 
-Ois=EDn
+With this new kernel, I installed Suspend2 first (because that's the
+more important patch for me as an end-user).  I then tried to apply the
+ACPI4Linux patch.  Almost everything patched fine, with a few lines that
+were understandably offset from the Suspend2 patch.  But one hunk was
+problematic because of changes Suspend2 had made.
+
+I know a little C, so I resolved the problem as cleanly as I could to
+get a clean compile.  For those interested, here's *my* final version of
+the one function in /drivers/pci/pci.c that was problematic (it
+hybridizes changes between Suspend2 and ACPI4Linux):
+
+
+pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)
+{
+        int     ret;
+        if (!pci_find_capability(dev, PCI_CAP_ID_PM))
+                return PCI_D0;
+
+        if (platform_pci_choose_state) {
+                ret = platform_pci_choose_state(dev, state);
+                if (ret >= 0)
+                        state.event = ret;
+        }
+        switch (state.event) {
+        case EVENT_ON:
+        case EVENT_FREEZE:
+                return PCI_D0;
+        case EVENT_SUSPEND:
+                return PCI_D3hot;
+        default:
+                printk("They asked me for state %d\n", state.event);
+                BUG();
+        }
+        return PCI_D0;
+}
+
+
+Now, I'm noticing that Suspend isn't working quite as gracefully as I
+did in prior kernels, and I've come to wonder if I overstepped
+reasonable boundaries in forcing ACPI4Linux's patch. 
+
+I run a Thinkpad T42.  How behind the curve is the stock 2.6.12.2 kernel
+in regards to this hardware?  How slowly do improvements in ACPI4Linux
+roll down into the stock kernel? 
+
+I appreciate any/all feedback.  In the meantime for the sake of safety,
+I'm going to roll back to the life without ACPI4Linux.  However, I'm
+curious what kind of ACPI features I'll loose in doing so.
+
+Thanks,
+Sukant
+
+p.s. I haven't subscribed to this mailing list, so I'm hoping that
+responses are copied to me.  Please let me know if the proper thing to
+do is to subscribe.
 
 
 -------------------------------------------------------
