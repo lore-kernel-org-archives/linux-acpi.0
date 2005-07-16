@@ -1,13 +1,14 @@
-From: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: Some generall questions...
-Date: Fri, 15 Jul 2005 14:19:04 -0700
-Message-ID: <20050715141904.56bc2ea7.rdunlap@xenotime.net>
-References: <42D81E3F.7060507@tzi.de>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Subject: Re: Compaq Deskpro EN SFF P500 DSDT Compile Error 1022
+Date: Sat, 16 Jul 2005 08:08:25 +0200
+Message-ID: <20050716060825.GA4330@tangens.sinus.cz>
+References: <11957.137.71.23.54.1121461356.squirrel@www.briarhood.com>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42D81E3F.7060507-cGBD8117FJM@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <11957.137.71.23.54.1121461356.squirrel-/xmnpVUFZ0+a+sir6i7KpgC/G2K4zDHf@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +18,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+To: Jared Jones <jared.jones-2fML+01oaiNBDgjK7y7TUQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 15 Jul 2005 22:36:15 +0200 Janosch Machowinski wrote:
-
-> Hey,
-> I got 2 questions :
-> First, are we supporting some architecture, that does not support the 
-> hlt instruction ??
-
-No idea.
-
-> And the second one, is it diswanted to write comments in the kernel 
-> source, or are most programmers just to lazy to do it ?
-
-a.  we don't want comments for obvious language constructs, e.g.,
-don't do this:
-
-	err_count++;		/* increment the error count */
-
-b.  it seems to be a challenge sometimes to get good comments and to
-keep comments and code synchronized.  :(
-But comments are generally a good thing, so that someone can understand
-the intent of some code or how it's accomplished, if it's tricky.
-And when adding new globally-visible functions, please use the
-kerneldoc format for them (see linux/Documentation/kernel-doc-nano-HOWTO.txt).
-
----
-~Randy
+> I am trying to debug two issues on my machine:
+> 1) WOL not working in Linux; maybe ACPI screws it up
+> 2) Poweroff only occurs when acpi=force in Linux kernel option
+> 
+> So I wanted to check the machine's DSDT, which, go figure, was compiled
+> using the Microsoft compiler and fails with the Intel compiler.  Can
+> anyone please assist me in editing the DSDT?  I have never done this
+> before.  Thanks!
+> 
+> 
+> deskpro_en_dsdt.dsl   263:                 Add (MLEN, 0x00100000, RAMT)
+> Error    1022 -              Object does not exist ^  (MLEN)
+Hi!
+  Try to find the MLEN name using Your text editor. Does it occur also at
+another place than in the snippet below ? If yes, post it also here...
+There should be sometihng like Name (MLEN, 0x100) or whatever what defines
+MLEN. If there isn't such a thing, I'm curious how the M$ compiler can
+compile this (maybe some internal symbol ?)
+                                        With regards, Pavel Troller
+> 
+> 
+> This line of code is from the following snippet of the DSDT:
+> 
+>     Scope (\_SB)
+>     {
+>         Device (PCI0)
+>         {
+>             Name (_HID, EisaId ("PNP0A03"))
+>             Name (_ADR, 0x00)
+>             Name (CRES, ResourceTemplate ()
+>             {
+> 
+>             ... a bunch of other code regarding addresses ...
+> 
+>             Method (_CRS, 0, NotSerialized)
+>             {
+>                 CreateDWordField (CRES, 0x76, RAMT)
+>                 CreateDWordField (CRES, 0x82, PCIT)
+>                 Add (MLEN, 0x00100000, RAMT)
+>                 Subtract (0xFFE00000, RAMT, PCIT)
+>                 Return (CRES)
+>             }
+> 
 
 
 -------------------------------------------------------
