@@ -1,15 +1,13 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: 2.6.13-rc3-mm1: a regression
-Date: Sun, 17 Jul 2005 22:11:56 +0200
-Message-ID: <200507172211.56487.rjw@sisk.pl>
-References: <20050715013653.36006990.akpm@osdl.org> <200507162330.18810.rjw@sisk.pl> <20050716143945.735906ce.akpm@osdl.org>
+From: Daniel Smolik <marvin-0pWKB23IDFjrBKCeMvbIDA@public.gmane.org>
+Subject: Re: Thinkpad A21m oops when go to sleep second time
+Date: Mon, 18 Jul 2005 00:18:36 +0200
+Message-ID: <42DAD93C.4060602@mydatex.cz>
+References: <16A54BF5D6E14E4D916CE26C9AD3057502A49971@pdsmsx402.ccr.corp.intel.com> <42D62E48.3030306@mydatex.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050716143945.735906ce.akpm-3NddpPZAyC0@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <42D62E48.3030306-0pWKB23IDFjrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,48 +17,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Smolik <marvin-0pWKB23IDFjrBKCeMvbIDA@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, 16 of July 2005 23:39, Andrew Morton wrote:
-> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
-> >
-> > On Friday, 15 of July 2005 10:36, Andrew Morton wrote:
-> >  > 
-> >  > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.13-rc3/2.6.13-rc3-mm1/
-> >  > 
-> >  > (http://www.zip.com.au/~akpm/linux/patches/stuff/2.6.13-rc3-mm1.gz until
-> >  > kernel.org syncs up)
-> > 
-> >  There seems to be a regression wrt 2.6.13-rc3 which causes my box (Asus L5D,
-> >  Athlon 64 + nForce3) to hang solid during resume from disk on battery power.
-> > 
-> >  First, 2.6.13-rc3-mm1 is affected by the problems described at:
-> >  http://bugzilla.kernel.org/show_bug.cgi?id=4416
-> >  http://bugzilla.kernel.org/show_bug.cgi?id=4665
-> >  These problems go away after applying the two attached patches.  Then, the
-> >  box resumes on AC power but hangs solid during resume on battery power.
-> >  The problem is 100% reproducible and I think it's related to ACPI.
+Daniel Smolik napsal(a):
+> Li, Shaohua napsal(a):
 > 
-> That recent acpi merge seems to have damaged a number of people...
-> 
-> Are you able to test Linus's latest -git spanshot?  See if there's a
-> difference between -linus and -mm behaviour?
+>> Hi,
+>>
+>>>> [<c020c9be>] uart_suspend_port+0xde/0xf0
+>>>
+>>>
+>>> This is in the serial code. The problem seems to be that not all serial
+>>> ports are found on resume. Take a look at the following boot-time dmesg
+>>> output:
+>>>
+>>> [4294670.599000] ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+>>> [4294670.599000] ttyS2 at I/O 0x3e8 (irq = 4) is a 16550A
+>>> [4294670.601000] ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+>>>
+>>> Note that ttyS0 is found twice. After resume, ttyS0 is still available,
+>>> but ttyS2 now gives ENODEV. If the device was held open over suspend,
+>>> then the next suspend explodes when it tries to suspend the second
+>>> serial device.
+>>
+>>
+>> How about disable pnpacpi?
+>>
+>> Thanks,
+>> Shaohua
+>>
+> I disable PNP ACPI ,disable detect Serial port via ACPI. Serial port is 
+> now detected right but system still oops after second sleep.
+I compile 2.6.13-rc3 with ACPI debuging and when I do echo 3 > 
+/proc/acpi/sleep second time system freeze an on console I see this.
 
-I was afraid you would say so. ;-)
+Stopping tasks:=======================|
+osl-961 [35] os_wait_semaphore : Failed to acquire 
+semaphore[cbfee4e0|1|0],AE_TIME
 
-The -rc3-git-[2-4] kernels are unaffected by the problem described, so it seems
-to be specific to -rc3-mm1.
-
-Greets,
-Rafael
+		Dan
 
 
--- 
-- Would you tell me, please, which way I ought to go from here?
-- That depends a good deal on where you want to get to.
-		-- Lewis Carroll "Alice's Adventures in Wonderland"
 
 
 -------------------------------------------------------
