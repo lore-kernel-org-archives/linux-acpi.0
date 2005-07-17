@@ -1,10 +1,15 @@
-From: "RDWestSr-iK5jlJkdgf8Ir3X11T2esw@public.gmane.org" <RDWestSr-iK5jlJkdgf8Ir3X11T2esw@public.gmane.org>
-Subject: 32bit Email Broadcaster Sample Subject
-Date: Sun, 17 Jul 2005 15:41:46 -0400
-Message-ID: <1121629306.317@sourceforge.net>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: 2.6.13-rc3-mm1: a regression
+Date: Sun, 17 Jul 2005 22:11:56 +0200
+Message-ID: <200507172211.56487.rjw@sisk.pl>
+References: <20050715013653.36006990.akpm@osdl.org> <200507162330.18810.rjw@sisk.pl> <20050716143945.735906ce.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050716143945.735906ce.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,32 +19,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Run your own internet business !  (no overhead)
+On Saturday, 16 of July 2005 23:39, Andrew Morton wrote:
+> "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+> >
+> > On Friday, 15 of July 2005 10:36, Andrew Morton wrote:
+> >  > 
+> >  > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.13-rc3/2.6.13-rc3-mm1/
+> >  > 
+> >  > (http://www.zip.com.au/~akpm/linux/patches/stuff/2.6.13-rc3-mm1.gz until
+> >  > kernel.org syncs up)
+> > 
+> >  There seems to be a regression wrt 2.6.13-rc3 which causes my box (Asus L5D,
+> >  Athlon 64 + nForce3) to hang solid during resume from disk on battery power.
+> > 
+> >  First, 2.6.13-rc3-mm1 is affected by the problems described at:
+> >  http://bugzilla.kernel.org/show_bug.cgi?id=4416
+> >  http://bugzilla.kernel.org/show_bug.cgi?id=4665
+> >  These problems go away after applying the two attached patches.  Then, the
+> >  box resumes on AC power but hangs solid during resume on battery power.
+> >  The problem is 100% reproducible and I think it's related to ACPI.
+> 
+> That recent acpi merge seems to have damaged a number of people...
+> 
+> Are you able to test Linus's latest -git spanshot?  See if there's a
+> difference between -linus and -mm behaviour?
 
-Run your own internet business from home.
+I was afraid you would say so. ;-)
 
-Run your own internet business from a business location.
+The -rc3-git-[2-4] kernels are unaffected by the problem described, so it seems
+to be specific to -rc3-mm1.
 
-Let us show you how to save $$$.
-
-We specialize in:::
-	Webservers
-	Websites
-	Custom Graphics
-	Server Administration
-	Website Content Management
-
-Once we get you up and running, NO MORE OVERHEAD !
-
-For more info:::
-http://www.carolina-customs.ath.cx
-RDWestSr
+Greets,
+Rafael
 
 
-
+-- 
+- Would you tell me, please, which way I ought to go from here?
+- That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
 
 
 -------------------------------------------------------
