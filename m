@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: acpi/pci_link.c: clean up whitespace
-Date: Sun, 17 Jul 2005 21:14:20 +0200
-Message-ID: <20050717191420.GA12666@elf.ucw.cz>
+Subject: acpi/sleep/proc.c
+Date: Sun, 17 Jul 2005 21:16:37 +0200
+Message-ID: <20050717191637.GA12674@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,54 +18,84 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This cleans up some whitespace in acpi/pci_link.c. No code changes.
+This cleans up acpi/sleep/proc.c. It removes macros used just
+once. Only code change is removing duplicated code in two branches of
+if().
+
+[As a side note, this should make akpm stop patchbombing you :-)]
 
 Signed-off-by: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -524,8 +524,7 @@ acpi_irq_penalty_init(void)
+diff --git a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c
++++ b/drivers/acpi/sleep/proc.c
+@@ -13,13 +13,6 @@
  
- static int acpi_irq_balance;	/* 0: static, 1: balance */
+ #include "sleep.h"
  
--static int acpi_pci_link_allocate(
--	struct acpi_pci_link	*link)
-+static int acpi_pci_link_allocate(struct acpi_pci_link	*link)
+-#ifdef	CONFIG_ACPI_SLEEP_PROC_SLEEP
+-#define ACPI_SYSTEM_FILE_SLEEP		"sleep"
+-#endif
+-
+-#define ACPI_SYSTEM_FILE_ALARM		"alarm"
+-#define ACPI_SYSTEM_FILE_WAKEUP_DEVICE   "wakeup"
+-
+ #define _COMPONENT		ACPI_SYSTEM_COMPONENT
+ ACPI_MODULE_NAME		("sleep")
+ 
+@@ -378,14 +371,10 @@ acpi_system_wakeup_device_seq_show(struc
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 		spin_unlock(&acpi_device_lock);
+-		if (dev->wakeup.flags.run_wake)
+-			seq_printf(seq, "%4s	%4d		%8s\n",
+-				dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
+-				dev->wakeup.state.enabled ? "*enabled" : "*disabled");
+-		else
+-			seq_printf(seq, "%4s	%4d		%8s\n",
+-				dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
+-				dev->wakeup.state.enabled ? "enabled" : "disabled");
++		seq_printf(seq, "%4s	%4d		%s%8s\n",
++			   dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
++			   dev->wakeup.flags.run_wake ? "*" : "",
++			   dev->wakeup.state.enabled ? "*enabled" : "*disabled");
+ 		spin_lock(&acpi_device_lock);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+@@ -486,28 +475,25 @@ static u32 rtc_handler(void * context)
+ 
+ static int acpi_sleep_proc_init(void)
  {
- 	int			irq;
- 	int			i;
-@@ -653,8 +652,7 @@ acpi_pci_link_get_irq (
-    -------------------------------------------------------------------------- */
+-	struct proc_dir_entry	*entry = NULL;
++	struct proc_dir_entry *entry = NULL;
  
- static int
--acpi_pci_link_add (
--	struct acpi_device *device)
-+acpi_pci_link_add(struct acpi_device *device)
- {
- 	int			result = 0;
- 	struct acpi_pci_link	*link = NULL;
-@@ -720,9 +718,7 @@ end:
- }
+ 	if (acpi_disabled)
+ 		return 0;
+  
+ #ifdef	CONFIG_ACPI_SLEEP_PROC_SLEEP
+-	/* 'sleep' [R/W]*/
+-	entry = create_proc_entry(ACPI_SYSTEM_FILE_SLEEP,
+-				  S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
++	/* 'sleep' [R/W] */
++	entry = create_proc_entry("sleep", S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
+ 	if (entry)
+ 		entry->proc_fops = &acpi_system_sleep_fops;
+ #endif
  
- static int
--irqrouter_suspend(
--	struct sys_device *dev,
--	u32	state)
-+irqrouter_suspend(struct sys_device *dev, u32 state)
- {
- 	struct list_head        *node = NULL;
- 	struct acpi_pci_link    *link = NULL;
-@@ -743,9 +739,7 @@ irqrouter_suspend(
+ 	/* 'alarm' [R/W] */
+-	entry = create_proc_entry(ACPI_SYSTEM_FILE_ALARM,
+-		S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
++	entry = create_proc_entry("alarm", S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
+ 	if (entry)
+ 		entry->proc_fops = &acpi_system_alarm_fops;
  
- 
- static int
--acpi_pci_link_remove (
--	struct acpi_device	*device,
--	int			type)
-+acpi_pci_link_remove(struct acpi_device *device, int type)
- {
- 	struct acpi_pci_link *link = NULL;
+-	/* 'wakeup device' [R/W]*/
+-	entry = create_proc_entry(ACPI_SYSTEM_FILE_WAKEUP_DEVICE,
+-				  S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
++	/* 'wakeup device' [R/W] */
++	entry = create_proc_entry("wakeup", S_IFREG|S_IRUGO|S_IWUSR, acpi_root_dir);
+ 	if (entry)
+ 		entry->proc_fops = &acpi_system_wakeup_device_fops;
  
 
 -- 
