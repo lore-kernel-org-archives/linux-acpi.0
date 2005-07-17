@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: acpi/event.c: whitespace cleanups
-Date: Sun, 17 Jul 2005 21:11:15 +0200
-Message-ID: <20050717191114.GA12650@elf.ucw.cz>
+Subject: acpi/fan.c: fix whitespace and macros used just once
+Date: Sun, 17 Jul 2005 21:12:52 +0200
+Message-ID: <20050717191252.GA12658@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,57 +18,135 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This cleans up some whitespace in acpi/event.c. No code changes.
+This cleans up some whitespace in acpi/fan.c. No code changes.
 
 Signed-off-by: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 
-diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
---- a/drivers/acpi/event.c
-+++ b/drivers/acpi/event.c
-@@ -24,27 +24,23 @@ extern wait_queue_head_t	acpi_bus_event_
+
+diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+--- a/drivers/acpi/fan.c
++++ b/drivers/acpi/fan.c
+@@ -37,11 +37,8 @@
+ 
+ #define ACPI_FAN_COMPONENT		0x00200000
+ #define ACPI_FAN_CLASS			"fan"
+-#define ACPI_FAN_HID			"PNP0C0B"
+ #define ACPI_FAN_DRIVER_NAME		"ACPI Fan Driver"
+-#define ACPI_FAN_DEVICE_NAME		"Fan"
+ #define ACPI_FAN_FILE_STATE		"state"
+-#define ACPI_FAN_NOTIFY_STATUS		0x80
+ 
+ #define _COMPONENT		ACPI_FAN_COMPONENT
+ ACPI_MODULE_NAME		("acpi_fan")
+@@ -56,7 +53,7 @@ static int acpi_fan_remove (struct acpi_
+ static struct acpi_driver acpi_fan_driver = {
+ 	.name =		ACPI_FAN_DRIVER_NAME,
+ 	.class =	ACPI_FAN_CLASS,
+-	.ids =		ACPI_FAN_HID,
++	.ids =		"PNP0C0B",
+ 	.ops =		{
+ 				.add =		acpi_fan_add,
+ 				.remove =	acpi_fan_remove,
+@@ -76,7 +73,7 @@ static struct proc_dir_entry	*acpi_fan_d
+ 
+ 
  static int
- acpi_system_open_event(struct inode *inode, struct file *file)
+-acpi_fan_read_state (struct seq_file *seq, void *offset)
++acpi_fan_read_state(struct seq_file *seq, void *offset)
  {
--	spin_lock_irq (&acpi_system_event_lock);
-+	spin_lock_irq(&acpi_system_event_lock);
- 
--	if(event_is_open)
-+	if (event_is_open)
- 		goto out_busy;
- 
- 	event_is_open = 1;
- 
--	spin_unlock_irq (&acpi_system_event_lock);
-+	spin_unlock_irq(&acpi_system_event_lock);
- 	return 0;
- 
- out_busy:
--	spin_unlock_irq (&acpi_system_event_lock);
-+	spin_unlock_irq(&acpi_system_event_lock);
- 	return -EBUSY;
+ 	struct acpi_fan		*fan = seq->private;
+ 	int			state = 0;
+@@ -99,11 +96,8 @@ static int acpi_fan_state_open_fs(struct
  }
  
  static ssize_t
--acpi_system_read_event (
+-acpi_fan_write_state (
 -	struct file		*file,
--	char			__user *buffer,
+-	const char		__user *buffer,
 -	size_t			count,
 -	loff_t			*ppos)
-+acpi_system_read_event(struct file *file, char __user *buffer, size_t count, loff_t *ppos)
++acpi_fan_write_state(struct file *file, const char __user *buffer, 
++		     size_t count, loff_t *ppos)
  {
  	int			result = 0;
- 	struct acpi_bus_event	event;
-@@ -98,9 +94,7 @@ acpi_system_close_event(struct inode *in
- }
+ 	struct seq_file		*m = (struct seq_file *)file->private_data;
+@@ -138,8 +132,7 @@ static struct file_operations acpi_fan_s
+ };
  
- static unsigned int
--acpi_system_poll_event(
--	struct file		*file,
--	poll_table		*wait)
-+acpi_system_poll_event(struct file *file, poll_table *wait)
+ static int
+-acpi_fan_add_fs (
+-	struct acpi_device	*device)
++acpi_fan_add_fs(struct acpi_device *device)
  {
- 	poll_wait(file, &acpi_bus_event_queue, wait);
- 	if (!list_empty(&acpi_bus_event_list))
+ 	struct proc_dir_entry	*entry = NULL;
+ 
+@@ -174,8 +167,7 @@ acpi_fan_add_fs (
+ 
+ 
+ static int
+-acpi_fan_remove_fs (
+-	struct acpi_device	*device)
++acpi_fan_remove_fs(struct acpi_device *device)
+ {
+ 	ACPI_FUNCTION_TRACE("acpi_fan_remove_fs");
+ 
+@@ -195,8 +187,7 @@ acpi_fan_remove_fs (
+    -------------------------------------------------------------------------- */
+ 
+ static int
+-acpi_fan_add (
+-	struct acpi_device	*device)
++acpi_fan_add(struct acpi_device *device)
+ {
+ 	int			result = 0;
+ 	struct acpi_fan		*fan = NULL;
+@@ -213,7 +204,7 @@ acpi_fan_add (
+ 	memset(fan, 0, sizeof(struct acpi_fan));
+ 
+ 	fan->handle = device->handle;
+-	strcpy(acpi_device_name(device), ACPI_FAN_DEVICE_NAME);
++	strcpy(acpi_device_name(device), "Fan");
+ 	strcpy(acpi_device_class(device), ACPI_FAN_CLASS);
+ 	acpi_driver_data(device) = fan;
+ 
+@@ -241,11 +232,9 @@ end:
+ 
+ 
+ static int
+-acpi_fan_remove (
+-	struct acpi_device	*device,
+-	int			type)
++acpi_fan_remove(struct acpi_device *device, int type)
+ {
+-	struct acpi_fan		*fan = NULL;
++	struct acpi_fan *fan = NULL;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_fan_remove");
+ 
+@@ -263,9 +252,9 @@ acpi_fan_remove (
+ 
+ 
+ static int __init
+-acpi_fan_init (void)
++acpi_fan_init(void)
+ {
+-	int			result = 0;
++	int result = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_fan_init");
+ 
+@@ -285,7 +274,7 @@ acpi_fan_init (void)
+ 
+ 
+ static void __exit
+-acpi_fan_exit (void)
++acpi_fan_exit(void)
+ {
+ 	ACPI_FUNCTION_TRACE("acpi_fan_exit");
+ 
+
+-- 
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
