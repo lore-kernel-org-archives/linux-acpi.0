@@ -1,13 +1,11 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: S3 test
-Date: Mon, 18 Jul 2005 10:36:10 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057502B653B0@pdsmsx402.ccr.corp.intel.com>
+From: MRS.Regina Iglesias (Promotions Coordinator) <loteria-VsqqI1RANlHk1uMJSBkQmQ@public.gmane.org>
+Subject: Lottery Winning Notification (BENEFICIARY)]
+Date: Mon, 18 Jul 2005 11:39:08 +0200
+Message-ID: <E1DuS4Z-0006Zx-Jk@sc8-sf-mx1.sourceforge.net>
+Reply-To: loteria2005aa-06uTv1OE1ibQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="4a675984-fe35-4e8a-bfcb-c9c581751fd7"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,54 +15,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bernd Schubert <bernd-schubert-Mmb7MZpHnFY@public.gmane.org>
-Cc: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->
->> Is there anybody on this list, who has tried this initramfs yet and
-can
->give
->a
->> short list of the steps involved? I have never before built a kernel
-for
->use
->> with initram, but I would like to test it on my S3-broken laptop.
->
->I'm planning to do it over the weekend (there was just too much to do
->over the week). So far I have never used an initramfs myself, but I'm
->rather experienced with initrd's. I guess you only need to specify a
->line 'initrd =3D /path_to_initramfs/initramfs' in lilo, so something
-similar
->to
->this:
->
-># a rescue image that calls a shell in the initrd
->image=3D/boot/linux-2.6.9-tc5
->        label=3D2.6.9_rescue
->        read-only
->        initrd=3D/boot/initrd-lvm-2.6.-amd64-lvm2_32_shell.gz
->
->Recent kernels seem to first check if its an initramfs or initrd and I
-hope
->they will do the proper thing themselves. I'm not sure if the kernel
-needs
->ramdisk support, but I guess it needs it.
->
->Better DON'T do it globally for all kernels, you might have problems to
->boot a
->normal kernel again ;-)
-Absolutely :) !
 
->About grub I don't know how to use/configure it.
-Add something like this in /etc/grub.conf:
+This is a multi-part message in MIME format
 
-title test
-	kernel /boot/kernel-image-name
-	initrd /boot/initramfs-name
+--4a675984-fe35-4e8a-bfcb-c9c581751fd7
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Shaohua
+                      EL GORDO DE LA PRIMITIVA                                =
+                                 
+AVDA. CARLOS GONZALEZ N?16, 5=A1=E3C; 28004 MADRID, SPAIN;    =
+www.elgordomasgordo.com 
+TEL/FAX: 0034 652 40 15 31                                                    =
+         
+                                                            
+REF NUMBER: EAASL/941OYI/05
+TICKET NUMBER: 699-55SPO5
+BATCH: 03/06/MA35  
+                       RE: AWARD NOTIFICATION                                 =
+                      
+ATTN: Beneficiary,
+
+We are pleased to inform you of release of the EURO MILLONES LOTERIA PROGRAM =
+held on 20th of APRIL 2005.Among the 101 participating international =
+finalists playing 6000 full tickets in the fifth series, from a pool of =
+$22,200,000.00 (Twenty two Million Two Hundred Thousand Dollars) in cash, =
+your ticket number 699-55SP05 with serial number 600-45 drew the lucky =
+numbers 06-07-13-28-47 (05?8) which consequently won a prize in the 2nd =
+category. You have therefore been approved for a lump sum payout of ($ 1, =
+000,000.00 (One Million dollars only) in cash credited to a file REF. Number =
+EAASL/941OYI/05.  BATCH number: 03/06/MA35 Congratulations!
+
+Due to the impossibility to reach you, your fund and award certificate has =
+been deposited with a security company registered to your file claim number =
+and insured in your name. Please forward all claims to them as a bond has =
+been placed on your award and they will be responsible for handling and =
+remittance of won prices and funds until they are accurately disbursed. The =
+deadline for this notice is the 30th of August 2005. Non-compliance within =
+this period may result in disqualification and insured prizes will be =
+returned to the MINISTERIO DE ECONOMIA Y HACIENDA as unclaimed. Due to mix up =
+of some numbers and names, we ask that you keep this award from public notice =
+until your claim has been processed and payed out to you, as this is a part =
+of our security protocol to avoid double claiming or unwarranted advantage of =
+this program by participants. All participants were selected through a =
+computer ballot system drawn from 15.000 names world wide as part of our =
+international Promotions Program. We hope your lucky name will draw a bigger =
+cash prize in subsequent programs.
+
+To begin your claim, please contact 
+MR. THOMAS ROMERO SANCHEZ (Foreign operation manager)
+SANTALUCIA SECURITIES S.A. 
+Tel: 0034 618 23 04 45 
+Fax: 0034 654 22 26 44 
+Emails: loteria2005aa-06uTv1OE1ibQT0dZR+AlfA@public.gmane.org 
+
+for handling and payment procedures.
+
+NOTE: In order to avoid unnecessary delays and complications, please remember =
+to quote your reference and batch numbers in every of your correspondence =
+with us or your agent.
+Furthermore, should there be any change of your address, do inform your claim =
+agent as soon as possible. 
+
+Sincerely:
+
+MRS. Regina Iglesias.
+
+Lottery Coordinator.
+
+  
+--4a675984-fe35-4e8a-bfcb-c9c581751fd7--
+
 
 
 -------------------------------------------------------
