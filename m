@@ -1,13 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Compaq Deskpro EN SFF P500 DSDT Compile Error 1022
-Date: Tue, 19 Jul 2005 16:44:25 +0200
-Message-ID: <20050719144425.GG2715@poupinou.org>
-References: <971FCB6690CD0E4898387DBF7552B90E021CB55A@orsmsx403.amr.corp.intel.com>
+From: pumpkin <pumpkin-Mmb7MZpHnFY@public.gmane.org>
+Subject: C2, C3 and bus master activity
+Date: Tue, 19 Jul 2005 20:50:28 +0200
+Message-ID: <200507192050.28343.pumpkin@gmx.de>
+Reply-To: pumpkin-Mmb7MZpHnFY@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E021CB55A-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,42 +21,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 18, 2005 at 09:15:52AM -0700, Moore, Robert wrote:
-> MLEN is probably in another table (an SSDT)
-> 
-> An external declaration for MLEN will allow the file to compile:
-> 
-> External (MLEN)
+Hello
 
-It is probably a field in a system memory region I think, and probably
-in a SSDT as Bob said.
+My CPU does not enter C3 if i run the stock configuration. Way too much bus 
+master activity. I want to find out what is causing it. Any hints how to do 
+that ?
 
-The best way the OP can check is to get those SSDT(s) via
+I found one possible cause for some of the activity. Without X i have a 50:50 
+mix between C2 and C3. Using the vesa-driver the mix stays at 50:50. Using 
+the radeon-driver (dri disabled) the CPU stops using C3.
 
-wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
-tar xjvfp pmtools-20031210.tar.bz2
-cd pmtools-20031210/acpidmp
-make
-sudo ./acpidmp > acpidmp.out
+the facts in case somebody already has a idea:
+- ibm R51
+- PentiumM 725 (1.6GHz)
+- Intel 855PM chipset
+- radeon 7500 mobil
+- xorg 6.8.2
+- kernel 2.6.11-1-686 (debian stock-kernel)
 
-Then
-./acpixtract SSDT < acpidmp.out > ssdt
-
-and decompile them using iasl -d.
-
-The only trouble though is that acpixtract is only able to retrieve the
-first SSDT.
-
-Anyway, if there is no kernel message about a MLEN not found or so, it
-is very likely harmless.
-
-Cheers,
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+thanks.
 
 
 -------------------------------------------------------
