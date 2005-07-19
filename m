@@ -1,13 +1,13 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Compaq Deskpro EN SFF P500 DSDT Compile Error 1022
-Date: Tue, 19 Jul 2005 16:50:30 +0200
-Message-ID: <20050719145030.GH2715@poupinou.org>
-References: <11957.137.71.23.54.1121461356.squirrel@www.briarhood.com>
+Date: Tue, 19 Jul 2005 16:44:25 +0200
+Message-ID: <20050719144425.GG2715@poupinou.org>
+References: <971FCB6690CD0E4898387DBF7552B90E021CB55A@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <11957.137.71.23.54.1121461356.squirrel-/xmnpVUFZ0+a+sir6i7KpgC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E021CB55A-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,29 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jared Jones <jared.jones-2fML+01oaiNBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 15, 2005 at 05:02:36PM -0400, Jared Jones wrote:
-> I am trying to debug two issues on my machine:
-> 1) WOL not working in Linux; maybe ACPI screws it up
-> 2) Poweroff only occurs when acpi=force in Linux kernel option
+On Mon, Jul 18, 2005 at 09:15:52AM -0700, Moore, Robert wrote:
+> MLEN is probably in another table (an SSDT)
+> 
+> An external declaration for MLEN will allow the file to compile:
+> 
+> External (MLEN)
 
-Which means your BIOS is before 2001 or have been blacklisted
-for whatever reason.
+It is probably a field in a system memory region I think, and probably
+in a SSDT as Bob said.
 
-Is there a bios upgrade availble or are you running the latest one?
+The best way the OP can check is to get those SSDT(s) via
 
-> So I wanted to check the machine's DSDT, which, go figure, was compiled
-> using the Microsoft compiler and fails with the Intel compiler.  Can
-> anyone please assist me in editing the DSDT?  I have never done this
-> before.  Thanks!
+wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
+tar xjvfp pmtools-20031210.tar.bz2
+cd pmtools-20031210/acpidmp
+make
+sudo ./acpidmp > acpidmp.out
 
-I don't see no real reason yet to replace DSDT.  Or I missed something?
+Then
+./acpixtract SSDT < acpidmp.out > ssdt
 
-BTW, it would be fine to post somewhere the full dump of the acpidump
-tool (see another post by me).
+and decompile them using iasl -d.
+
+The only trouble though is that acpixtract is only able to retrieve the
+first SSDT.
+
+Anyway, if there is no kernel message about a MLEN not found or so, it
+is very likely harmless.
 
 Cheers,
 
