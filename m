@@ -1,11 +1,13 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: 2.6.13-rc3 Kernel Panic...
-Date: Wed, 20 Jul 2005 23:50:31 +0200
-Message-ID: <42DEC727.6050108@tzi.de>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Linux/ACPI docs from OLS
+Date: Wed, 20 Jul 2005 19:37:53 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30041AC681@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,13 +20,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hey,
-I got an kernel panic in the ACPI system while trying to boot an 
-2.6.13-rc3. The problem is, that I can't see what's causing the panic, 
-because I can't scoll up. Any ideas, how to log this issue ? All I can 
-say is that it is an Null Pointer issue. The system is an ASUS M6Ne.
-Thx
-    Janosch
+The slides from my presentation at the 2005 Ottawa Linux Symposium are
+here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/
+or at least they will be when the mirror updates in an hour or so...
+
+.odp is Open Office 2.0 format, if you need another then
+just let me know and I can probably export it.
+
+cheers,
+-Len
+
+ps. the conference proceedings live here:
+http://www.linuxsymposium.org/2005/
 
 
 -------------------------------------------------------
