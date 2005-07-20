@@ -1,15 +1,14 @@
-From: pumpkin <pumpkin-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: C2, C3 and bus master activity
-Date: Wed, 20 Jul 2005 21:29:33 +0200
-Message-ID: <200507202129.33823.pumpkin@gmx.de>
-References: <200507192050.28343.pumpkin@gmx.de> <42DD85F3.9050300@tzi.de> <200507201921.43576.pumpkin@gmx.de>
-Reply-To: pumpkin-Mmb7MZpHnFY@public.gmane.org
+From: Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
+Subject: Re: Re: C2, C3 and bus master activity
+Date: Wed, 20 Jul 2005 20:31:38 +0100
+Message-ID: <200507202031.38488.bob@diamond.demon.co.uk>
+References: <200507192050.28343.pumpkin@gmx.de> <200507192118.37528.bob@diamond.demon.co.uk> <m23bq98fir.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200507201921.43576.pumpkin-Mmb7MZpHnFY@public.gmane.org>
+In-Reply-To: <m23bq98fir.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -23,71 +22,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello
+I agree with Johan, I think it was the uhci-hcd driver which caused the 
+problem.  I must admit that I don't have wireless running when I shut 
+everything off so that may also be a problem.
 
-i have made some experiments and now i'm scared shitless:
+Unfortunately its the uhci-hcd driver which allows me to use a usb mouse so I 
+would like to know how the usb driver could be used and still have C3/4 (C4 
+on the IBM)
 
-Removing and reinserting ieee1394, eth1394 and ohic1394 stops all bus master 
-activity, even under X. USB and WLAN are active. Now the CPU stays at C4, a 
-mode which didn't even show up before.
+Bob
 
-Now one battery charge should be enough for 4 hours. IBM says 3 and a half 
-hours. That's why i love linux.
-
-Thanks,
-
-On Wednesday 20 July 2005 19:21, pumpkin wrote:
-> Hello
+On Wednesday 20 July 2005 20:05, Johan Vromans wrote:
+> Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org> writes:
+> > In a word USB.  I don't fully understand why, but if I disable USB then
+> > both my laptops will go into C3 or C4, with USB enabled stays in C2.
 >
-> > Sometimes an active WLAN driver causes bus master activity...
+> On my laptop (Acer Travelmate 4001WLMi[1]) it's just the uhci-hcd driver.
+> Unloading it enables C3 again.
 >
-> Inserted USB, removed WLAN and ieee1394. C2/C3-ratio dropps to 10:90 in
-> console-mode. That's better. I don't mind removing ieee1349, but without
-> networking the laptop is more or less useless. So i'm f***ed.
+> -- Johan
 >
-> > You also should not use an USB Mouse...
+> [1] http://www.squirrel.nl/people/jvromans/articles/TM4001WLMi/
 >
-> No USB in use except the 4 root-hubs (the trackpoint is using PS/2).
->
-> > And by the way, what's wrong with 50:50 C2 C3 ?
-> > This seems pretty normal to me.
->
-> I have seen 10:90 on AthlonXP-systems running XFree. That's what i want,
-> even if it is a long way to go.
->
-> So i only have 2 problems left:
->
-> - Is it possible to reconfigure WLAN to cause less Bus Master Activity ? (i
-> will ask the ipw2200 guys and grok the code)
->
-> - and why is the radeon driver causing ffffffff-Activity ?
->
-> Running x without radeon driver is not an option. The radeon driver enables
-> powerplay, which in turn saves quite a bit.
->
->
-> Thanks,
->
-> > > On Tuesday 19 July 2005 22:18, Bob Lees wrote:
-> > >>Hi
-> > >>
-> > >>In a word USB.  I don't fully understand why, but if I disable USB then
-> > >>both my laptops will go into C3 or C4, with USB enabled stays in C2.
-> > >>
-> > >>Laptops are Compaq EVO 800c and IBM T42p both running SUSE 9.3 with a
-> > >> stock SuSE kernel 2.6.11-suse modified
-> > >>
-> > >>Bob
-> >
-> > -------------------------------------------------------
-> > SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
-> > from IBM. Find simple to follow Roadmaps, straightforward articles,
-> > informative Webcasts and more! Get everything you need to get up to
-> > speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
 >
 > -------------------------------------------------------
 > SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
@@ -98,6 +54,7 @@ On Wednesday 20 July 2005 19:21, pumpkin wrote:
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 
 
 -------------------------------------------------------
