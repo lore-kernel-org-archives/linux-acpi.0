@@ -1,14 +1,15 @@
-From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Subject: Re: RE: Linux v2.6.13-rc3
-Date: Thu, 21 Jul 2005 09:49:31 +0200
-Message-ID: <20050721074931.GA31615@tangens.sinus.cz>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30041AC76D@hdsmsx401.amr.corp.intel.com>
-Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+From: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>
+Subject: Re: S3 test
+Date: Wed, 20 Jul 2005 20:59:28 +0200
+Message-ID: <200507202059.28860.hugelmopf@web.de>
+References: <16A54BF5D6E14E4D916CE26C9AD3057502B653B0@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057502B653B0-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30041AC76D-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,65 +19,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bernd Schubert <bernd-schubert-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello there,
-> Re: the EC burst mode regression.
-> This is an extremely important fix that has been nagging
-> many systems for years.  It has been reported to us by
-> distros as well as on kernel.org:
-> http://bugzilla.kernel.org/show_bug.cgi?id=3851
-> There has been a lot of discussion about this on the
-> mailing list and there have been several generations
-> of patches.  We are confident that this approach
-> is the correct solution, but clearly there are
-> some snags.  It is probable that the snags are
-> model specific.
+Li, Shaohua wrote:
+> Add something like this in /etc/grub.conf:
+>
+> title test
+> 	kernel /boot/kernel-image-name
+> 	initrd /boot/initramfs-name
 
-I don't know whether this regression is related to the message
+This causes my kernel to panic, because it doesn't find the root.
 
-Jul 20 21:00:45 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:00:45 miro last message repeated 26 times
-Jul 20 21:00:45 miro kernel:  acpi_ec-0217 [23] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:00:45 miro last message repeated 3 times
-Jul 20 21:00:45 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:00:45 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:23 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:23 miro last message repeated 26 times
-Jul 20 21:05:23 miro kernel:  acpi_ec-0217 [23] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:23 miro last message repeated 3 times
-Jul 20 21:05:23 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:32 miro last message repeated 29 times
-Jul 20 21:05:32 miro kernel:  acpi_ec-0217 [23] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:32 miro last message repeated 3 times
-Jul 20 21:05:32 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:33 miro last message repeated 27 times
-Jul 20 21:05:33 miro kernel:  acpi_ec-0217 [23] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:33 miro last message repeated 3 times
-Jul 20 21:05:33 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:34 miro last message repeated 25 times
-Jul 20 21:05:34 miro kernel:  acpi_ec-0217 [23] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:34 miro last message repeated 3 times
-Jul 20 21:05:34 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:41 miro last message repeated 27 times
-Jul 20 21:05:41 miro kernel:  acpi_ec-0217 [23] acpi_ec_leave_burst_mo: ------->status fail
-Jul 20 21:05:41 miro last message repeated 2 times
-Jul 20 21:05:41 miro kernel:  acpi_ec-0217 [22] acpi_ec_leave_burst_mo: ------->status fail
+I don't know if I did the right thing: I built a new kernel, that I configured 
+with "make allnoconfig" and enabled ACPI support + IDE + reiserfs (because 
+my /boot is on a reiserfs-partition).
 
-As You can see, this message is generated really many times when trying regular
-2.6.13-rc3. I'm reporting it for sure, to let You know that there are more
-models which experience this.
+My Grub line:
 
-The problem occurs on Clevo D610SU, a P4/SiS chipset notebook.
-When I saw such a bunch of messages, I reverted back to -rc2 kernel, which is
-fine.
+title s3test
+	{root (hd0,2)}
+	kernel /boot/bzImage-s3test {root=/dev/hda3}
+	initrd /boot/initramfs.cpio
 
-If You would like to see anything more detailed (dmesg, DSDT etc.) from the
-affected system, let me know.
+I tried with and without the parts in curly bracket.
+Is this enough or the completely wrong way to go?
 
-                       With regards, Pavel Troller
+Thanks,
+Frank
 
 
 -------------------------------------------------------
