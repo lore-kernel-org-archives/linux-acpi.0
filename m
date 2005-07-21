@@ -1,12 +1,14 @@
-From: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Subject: Re: Linux/ACPI docs from OLS
-Date: Thu, 21 Jul 2005 10:36:12 +0200
-Message-ID: <1121934972.13268.0.camel@sponge.fungus>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30041AC681@hdsmsx401.amr.corp.intel.com>
+From: Sebastian =?ISO-8859-15?Q?K=E4rgel?= <mailing-HmhXUwHVxSOoYr4blSSd5g@public.gmane.org>
+Subject: Re: S3 test
+Date: Thu, 21 Jul 2005 12:55:03 +0200
+Message-ID: <20050721125503.0bfb7e6b.mailing@wodkahexe.de>
+References: <16A54BF5D6E14E4D916CE26C9AD3057502B653B0@pdsmsx402.ccr.corp.intel.com>
+	<200507202059.28860.hugelmopf@web.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-wx/f2p9yWPSAE8t9MDJU"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30041AC681-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <200507202059.28860.hugelmopf-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,42 +21,12 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, 20 Jul 2005 20:59:28 +0200
+Frank <hugelmopf-S0/GAf8tV78@public.gmane.org> wrote:
 
---=-wx/f2p9yWPSAE8t9MDJU
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> This causes my kernel to panic, because it doesn't find the root.
 
-On Wed, 2005-07-20 at 19:37 -0400, Brown, Len wrote:
-> The slides from my presentation at the 2005 Ottawa Linux Symposium are
-> here:
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/
-> or at least they will be when the mirror updates in an hour or so...
->=20
-> .odp is Open Office 2.0 format, if you need another then
-> just let me know and I can probably export it.
-
-A PDF would be appreciated :)
-
-Sincerely,
-Brix
---=20
-Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Gentoo Metadistribution | Mobile computing herd
-
---=-wx/f2p9yWPSAE8t9MDJU
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBC3157v+Q4flTiePgRAtt6AJ4nC+aEVoXmnhZ8PxvjSlJhY0kUowCguQct
-wumm1kkXQBpa2HD8iyq42jY=
-=1UMz
------END PGP SIGNATURE-----
-
---=-wx/f2p9yWPSAE8t9MDJU--
-
+I experienced the same probleme here.
 
 
 -------------------------------------------------------
