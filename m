@@ -1,49 +1,41 @@
-From: Romano Giannetti <romanol@upco.es>
-Subject: try acpi -V & acpi -V & acpi -V (was Linux v2.6.13-rc3)
-Date: Thu, 21 Jul 2005 17:30:18 +0200
-Message-ID: <20050721153018.GA31835@pern.dea.icai.upco.es>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30041AC76D@hdsmsx401.amr.corp.intel.com> <200507211209.46039.rjw@sisk.pl>
+From: Volker Braun <volker.braun-DqRHhl98DdeAKZTfuerNgRvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: C2, C3 and bus master activity
+Date: Thu, 21 Jul 2005 12:08:58 -0400
+Message-ID: <pan.2005.07.21.16.08.58.174249@physik.hu-berlin.de>
+References: <200507192050.28343.pumpkin@gmx.de> <200507192359.56553.pumpkin@gmx.de> <42DD85F3.9050300@tzi.de> <200507201921.43576.pumpkin@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261794AbVGUPeX@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200507211209.46039.rjw@sisk.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hmmm... switched today on my Vaio laptop to 2.6.13-rc3. Known 
-(see http://bugme.osdl.org/show_bug.cgi?id=4124) is still here. 
-A fact that could help, or not, chasing it down: when there are problems 
-with acpi events, it happens the following too: 
+> - and why is the radeon driver causing ffffffff-Activity ?
 
-# acpi -V & acpi -V & acpi -V 
-[2] 23884
-[3] 23885
-     Battery 1: charged, 0%
-     Thermal 1: ok, 73.0 degrees C
-  AC Adapter 1: on-line
-[2]  - 23884 done       acpi -V
-rukbat:~/tmp%
-     Battery 1: charged, 0%
-     Thermal 1: ok, 73.0 degrees C
-  AC Adapter 1: on-line
+Disable dri (comment out the 'Load  "dri"' in xorg.conf). Then the radeon
+driver will no longer make pointless bus master transfers. I have no idea
+why dri causes the bus master activity, but it should not.=20
 
-[3]  + 23885 done       acpi -V
+Volker
 
-Battery 1: charging, 93%, 06:22:58 until charged
-     Thermal 1: ok, 73.0 degrees C
-  AC Adapter 1: on-line     
+PS: My CPU switches to C3/C4 even with ipw2200 running (2915a/b/g card).
 
 
-It happens just sometime, bust repeating acpi -V & acpi -V in fast succession 
-it gives a 0% reading in few tries. Kernel is vanilla, no patch applied. 
 
 
-HTH,
-    Romano 
-  
--- 
-Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
-Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
+
+-------------------------------------------------------
+SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+from IBM. Find simple to follow Roadmaps, straightforward articles,
+informative Webcasts and more! Get everything you need to get up to
+speed, fast. http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclic=
+k
