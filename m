@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: C2, C3 and bus master activity
-Date: Thu, 21 Jul 2005 07:24:17 +0200
-Message-ID: <20050721052417.GA7849@elf.ucw.cz>
-References: <200507192050.28343.pumpkin@gmx.de> <200507192118.37528.bob@diamond.demon.co.uk>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Linux v2.6.13-rc3
+Date: Thu, 21 Jul 2005 01:30:51 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30041AC76D@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200507192118.37528.bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +17,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pumpkin-Mmb7MZpHnFY@public.gmane.org
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+>Len, ACPI people - can we fix this regression, please?
+>
+>Rafael even pinpoints exactly which patches are causing the=20
+>problem, so why didn't they get reverted before sending them off to me?
 
-> In a word USB.  I don't fully understand why, but if I disable USB then both 
-> my laptops will go into C3 or C4, with USB enabled stays in C2.
+Linus,
+I'm sorry it was in '-rc3' -- that is as soon as I could
+muster the bk->git transition.  Now that I'm running on git,
+I expect I'll be able to get the development/testing/push
+pipeline moving and back on schedule.
 
-Misdesigned USB controllers do DMA all the time... I think it is
-uhci-specific problem.
-								Pavel
+Yes, we discovered both of these regressions in mm.
+Yes, Rafael has been a sport in filing good bug reports,
+and his Asus L5D has been an interesting case.
 
--- 
-teflon -- maybe it is a trademark, but it should not be.
+Although we broke this system, I do believe that there is
+significant value in keeping these changes in the mainline,
+as I believe that it is the fastest path to improved support
+for all systems.  Specifically...
+
+Re: the EC burst mode regression.
+This is an extremely important fix that has been nagging
+many systems for years.  It has been reported to us by
+distros as well as on kernel.org:
+http://bugzilla.kernel.org/show_bug.cgi?id=3D3851
+There has been a lot of discussion about this on the
+mailing list and there have been several generations
+of patches.  We are confident that this approach
+is the correct solution, but clearly there are
+some snags.  It is probable that the snags are
+model specific.
+
+Ironically, it would be a benefit if more machines
+broke like the Asus L5D because we've had a heck of
+a time trying to reproduce this.  Indeed, I purchased
+an AMD laptop as similar to that model as I could find
+and shipped it to China explicitly for Luming to debug
+this very issue.  Alas, that model, only slightly different,
+works perfectly...
+
+Re: pci_link.c regression on suspend/resume
+This is the issue that Patrick was trying to describe in the KS --
+that we're knowingly breaking some drivers on suspend/resume.
+http://bugzilla.kernel.org/show_bug.cgi?id=3D3469
+We intentionally removed a hack we put in to blindly restore
+PCI interrupt links.  The hack can never be reliable
+because the AML interpreter must run to restore PCI links
+and it must run arbitrary AML code.  But it can sleep on
+memory allocation and semaphores, and thus can't reliably
+run before we have interrupts enabled.
+
+We discussed this on linux-pm and at the PM-summit, and the
+consensus was that making the interrupt restoring process on
+resume more like boot will lead to a more robust design.
+The down-side is that drivers that worked before will break,
+and it is not a quick fix as we work our way through it.
+
+thanks,
+-Len
 
 
 -------------------------------------------------------
