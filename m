@@ -1,13 +1,13 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Changeset "acpi: disable PCI links at boot again, fix ELCR" -> on-board nic adapter not working
-Date: Thu, 21 Jul 2005 00:11:55 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30041AC757@hdsmsx401.amr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: C2, C3 and bus master activity
+Date: Thu, 21 Jul 2005 07:24:17 +0200
+Message-ID: <20050721052417.GA7849@elf.ucw.cz>
+References: <200507192050.28343.pumpkin@gmx.de> <200507192118.37528.bob@diamond.demon.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <200507192118.37528.bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Norbert Federa <norbert.federa-uHwDyaZCXy1BDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pumpkin-Mmb7MZpHnFY@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->+/* Pick one! */
+Hi!
 
-Linus,
-Thanks for responding to this issue -- sorry I didn't earlier.
-Certainly, like Bjorn, I prefer the alternative you checked in
-of the two suggested.
+> In a word USB.  I don't fully understand why, but if I disable USB then both 
+> my laptops will go into C3 or C4, with USB enabled stays in C2.
 
-However, two things concern me about this change to the error-path.
+Misdesigned USB controllers do DMA all the time... I think it is
+uhci-specific problem.
+								Pavel
 
-1. I suspect it will break SGI.
-   IIR their partially ACPI compliant machine sets up its
-   own interrupts and has been depending on us doing nothing
-   to the IOAPIC in the "no GSI" error path.
-
-2. Norbert's machine should not be going down this path
-   in the first place, and we should find out why it is.
-
-Norbert,
-Can I trouble you to open a bug report at bugzilla.kernel.org
-against ACPI/Config-Interrupts?  Please attach the output
-from lspci -vv, full /proc/interrupts, and the output from
-acpidmp, available in pmtools here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-
-My apologies if you sent these earlier, I don't see it in bugzilla
-and my laptop drive crashed a couple of weeks ago so I lost a bunch of
-e-mail.
-
-thanks,
--Len
+-- 
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
