@@ -1,13 +1,14 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: Re: 2.6.13-rc3 Kernel Panic...
-Date: Fri, 22 Jul 2005 23:01:09 +0200
-Message-ID: <42E15E95.70904@tzi.de>
-References: <42DEC727.6050108@tzi.de> <20050722102446.05daf2ae.rdunlap@xenotime.net>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Linux/ACPI docs from OLS
+Date: Fri, 22 Jul 2005 21:57:27 +0000
+Message-ID: <20050722215727.GA3385@fingerbrecher>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30041AC681@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8t9RHnE3ZwKMSgU+"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050722102446.05daf2ae.rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30041AC681-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +18,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> The common ways are:
-> - use a serial console
-My laptop dosen'T have a serial port..., or is there a way to use USB 
-for that ?
-> - use netconsole (kernel config option + netcat on another system)
-it's an ACPI bug, it happens before the networkcard is even initalized
-> - use a smaller console font
-I hacked the Kernel oops mesage, so I could see what was the last 
-message before the oops:
 
-Executing all Device _STA and _INI methodes
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-after this commes a big trace, here a few lines...
+hello Len...
 
-default_wake_function
-acpi_ex_exit_interpreter
-__down_failed
-.text.lock.ec
-acpi_ec_space_handler
-acpi_ec_space_handler
-acpi_ev_address_space_dispatch
+* "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [2005-07-21 01:38 +0000]:
+> The slides from my presentation at the 2005 Ottawa Linux Symposium are
+> here:
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/
+> or at least they will be when the mirror updates in an hour or so...
+>=20
+> .odp is Open Office 2.0 format, if you need another then
+> just let me know and I can probably export it.
 
-If anybody is interested in the full stack trace, say it, then I will 
-type it all in by hand...
+yes. please convert to OpenOffice 1.1, since the other is still
+officially in beta testing. my OO 1.1.3 here is not capable of
+displaying the documents.
 
-    Janosch
+thanks,
+ Sebastian
+--=20
+Oo................................................................
+Es ist mein fester Glauben, dass es falsch ist, einen festen Glauben zu hab=
+en.
+OpenPGP key ID: 0x7A62F9B4  Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++
+=2E...............................................................oO
+
+--8t9RHnE3ZwKMSgU+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC4WvHreHfL3pi+bQRAmA7AKCX9tEYMC/i/7FrlZeilzw5P6eFowCffcUy
+SmW6mJ6yzzSWdwpJx4UTkbU=
+=jiIP
+-----END PGP SIGNATURE-----
+
+--8t9RHnE3ZwKMSgU+--
 
 
 -------------------------------------------------------
