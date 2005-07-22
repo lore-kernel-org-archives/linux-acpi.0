@@ -1,13 +1,13 @@
-From: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: 2.6.13-rc3 Kernel Panic...
-Date: Fri, 22 Jul 2005 10:24:46 -0700
-Message-ID: <20050722102446.05daf2ae.rdunlap@xenotime.net>
-References: <42DEC727.6050108@tzi.de>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: acpi bugzilla
+Date: Fri, 22 Jul 2005 15:03:33 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30041F3BFA@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42DEC727.6050108-cGBD8117FJM@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,25 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+To: bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 20 Jul 2005 23:50:31 +0200 Janosch Machowinski wrote:
+Adrian,
+Thanks for your efforts on bugzilla, I really appreciate it.
 
-> Hey,
-> I got an kernel panic in the ACPI system while trying to boot an 
-> 2.6.13-rc3. The problem is, that I can't see what's causing the panic, 
-> because I can't scoll up. Any ideas, how to log this issue ? All I can 
-> say is that it is an Null Pointer issue. The system is an ASUS M6Ne.
+One thing you (and others) might want to know is that for the=20
+ACPI category, my team at Intel ignores the bugzilla priority fields.
+The reason is that when we used to change them around to
+reflect what we though priority was, it pissed off a bunch
+of submitters (who all think their bug is most important:-)
+and happy submitters are more productive than unhappy submitters...
 
-The common ways are:
-- use a serial console
-- use netconsole (kernel config option + netcat on another system)
-- use a smaller console font
+I know you're aware, but as a reminder to everybody else...
+I do count on the rule that a bug is never CLOSED until
+the fix has shipped in Linus' tree.  Indeed, I usually
+wait for one of his -rc's before I marked bugs CLOSED
+b/c many users don't pull a new tree until the next -rc.
 
----
-~Randy
+Also, any bug that that is marked RESOLVED goes onto
+my list of bug reports to scan to review a patch
+for inclusion.  The patch may be a proposal, it may
+be a hack, but when a patch that works is in the bug
+report, or referenced by the but report, then it
+makes sense to mark the report RESOLVED so the
+patch gets more visibility.  If I the patch doesn't
+make it, then the bug gets marked back to OPEN.
+
+So hopefully we scan every bug and work on them in
+a useful priority.  I admit we haven't don't as good a job
+in the last few months as we did last year -- and much
+of that is my fault.  I'm hopeful that we can get
+the bug reporting/fixing routine working better for
+the rest of this year as we've had it working earlier.
+I'd really like there to be < 100 unresolved bugs
+on the ACPI project, because I can't really keep
+more than that in my head:-)
+
+Thanks for your support,
+-Len
 
 
 -------------------------------------------------------
