@@ -1,10 +1,13 @@
-From: Garry Williams <gtwilliams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: DSDT Error Object does not exist (PDC0)
-Date: Fri, 22 Jul 2005 15:08:02 -0400
-Message-ID: <1122059282.3010.7.camel@localhost>
+From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Subject: Re: 2.6.13-rc3 Kernel Panic...
+Date: Fri, 22 Jul 2005 23:01:09 +0200
+Message-ID: <42E15E95.70904@tzi.de>
+References: <42DEC727.6050108@tzi.de> <20050722102446.05daf2ae.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-qebc4FsOSEfH5lqxs//x"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050722102446.05daf2ae.rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,81 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> The common ways are:
+> - use a serial console
+My laptop dosen'T have a serial port..., or is there a way to use USB 
+for that ?
+> - use netconsole (kernel config option + netcat on another system)
+it's an ACPI bug, it happens before the networkcard is even initalized
+> - use a smaller console font
+I hacked the Kernel oops mesage, so I could see what was the last 
+message before the oops:
 
---=-qebc4FsOSEfH5lqxs//x
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Executing all Device _STA and _INI methodes
 
-On my Sony VGN-FS640/W I have three errors compiling my DSDT
+after this commes a big trace, here a few lines...
 
-  (http://www.zvolve.com/~garry/dsdt.dsl)
+default_wake_function
+acpi_ex_exit_interpreter
+__down_failed
+.text.lock.ec
+acpi_ec_space_handler
+acpi_ec_space_handler
+acpi_ev_address_space_dispatch
 
-dsdt.dsl   506:             If (LEqual (And (PDC0, 0x0A), 0x0A))
-Error    1022 -           Object does not exist ^  (PDC0)
-dsdt.dsl   511:             If (LEqual (And (PDC1, 0x0A), 0x0A))
-Error    1022 -           Object does not exist ^  (PDC1)
-dsdt.dsl   553:                         If (LNot (LEqual (And (PDC1, 0x0A),=
- 0x0A)))
-Error    1022 -                             Object does not exist ^  (PDC1)
+If anybody is interested in the full stack trace, say it, then I will 
+type it all in by hand...
 
-ASL Input:  dsdt.dsl - 4185 lines, 135677 bytes, 1667 keywords
-Compilation complete. 3 Errors, 0 Warnings, 0 Remarks, 1 Optimizations
-
-Does anyone know why this is the case or what to do about it?
-
---=20
-Garry Williams -- +1 (678) 656-4579
-
---=-qebc4FsOSEfH5lqxs//x
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGHDCCAtUw
-ggI+oAMCAQICAw6H9DANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUwNDIwMjI0NDEwWhcNMDYwNDIwMjI0NDEwWjBGMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSMwIQYJKoZIhvcNAQkBFhRndHdpbGxpYW1zQGdtYWls
-LmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKd35xA6MwQlSqPL6gX/Czhm43hT
-8+0h8U6fWOt+pPTWOPTUJxCw12Ec/rqIdpPxQpblB/U+gj8Xgeo5glzIzHXiPKRXXxeew88vH20u
-Cs/wcql652xmUQWZWwK4PjkILOx+X9RUYYDet6lnGoraypsCfTdq/I+5ZsjkjasWk9JClR0PlEaj
-1hQ70hAXmWwHSv4NGFH0Zfcxqjsjgt7KsgxUK9xpgaMFXLaE9QqteWHSrNDorJX9royRLbpkXGNA
-HVc3CJ1j+QXvCqw3qDDzmtgB0s1eiTECcMb2Pmmk4N9/Dfo7BPZPS6J4bydGVfTtbQBHAozFGO3I
-dEf5DwPdKDUCAwEAAaMxMC8wHwYDVR0RBBgwFoEUZ3R3aWxsaWFtc0BnbWFpbC5jb20wDAYDVR0T
-AQH/BAIwADANBgkqhkiG9w0BAQQFAAOBgQBODZ3PrHRH5h/cVjOWdn+3wTXuTkz6OaoXXsgMBzIN
-wTWyLbqpJ/diT5+R5Fhq2ac6q1C0Elmw6yXKWXIM33a+185uCj6AhCXx9FVdek/gilcgN37IFCo5
-C0k17YNghD0pmoEVSgXN8NtvMa00Wdis6Hrd9LEkfGlt1IwJuQYgQjCCAz8wggKooAMCAQICAQ0w
-DQYJKoZIhvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQ
-BgNVBAcTCUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0Nl
-cnRpZmljYXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBG
-cmVlbWFpbCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAe
-Fw0wMzA3MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxU
-aGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJl
-ZW1haWwgSXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065ypla
-HmjAdQRwnd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688
-Cwfn8R+RNiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJg
-t/sCAwEAAaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6
-Ly9jcmwudGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIB
-BjApBgNVHREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEF
-BQADgYEASIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFi
-w9k6GX6EsZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU13
-41YheILcIRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQK
-ExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwg
-RnJlZW1haWwgSXNzdWluZyBDQQIDDof0MAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZI
-hvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNTA3MjIxOTA3NTZaMCMGCSqGSIb3DQEJBDEWBBRfzRdb
-vJyjXTjpi1WhbwrCcwZkvjANBgkqhkiG9w0BAQEFAASCAQAEgZ4IsBzZts2gXMoIz4AM683r/Nod
-C8LKYYIacbyuJUm/3M495pzICGV76MfWF9JP+eAdeqdfm2EgoyOPuBWrgMwMZaoBZvlg1rbMHN5K
-RyTQ0fwwSQwzPlsKyDQ1Kv8WQMsWD5hrQ+czfCDH+QoUGPvplYxe1lyNkWp8jOrp+stBEbpdqttZ
-2baS7X/uygHrI/0cuoBueWjaDSB/3N8DJBWXwpIK0Xqb8pZRuBhiaIawRYvdADVbQQyzothHOwcp
-7DhGol2mCDAxO+iouLm5YY5zHkU72deB1wABgw/Y555ZrZtSJzsmDC+u+rv0GxlFCsELHv6heMBi
-YeXpnCecAAAAAAAA
-
-
---=-qebc4FsOSEfH5lqxs//x--
-
+    Janosch
 
 
 -------------------------------------------------------
