@@ -1,10 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Switching video
-Date: Fri, 22 Jul 2005 17:04:10 +0200
-Message-ID: <m2irz2g9w5.fsf@phoenix.squirrel.nl>
+From: randy_dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: 2.6.13-rc3 Kernel Panic...
+Date: Fri, 22 Jul 2005 10:24:46 -0700
+Message-ID: <20050722102446.05daf2ae.rdunlap@xenotime.net>
+References: <42DEC727.6050108@tzi.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <42DEC727.6050108-cGBD8117FJM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,17 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I see in my DSDT[1] (Acer Travelmate 4001WLMi) code to handle video
-switching, but I haven't been able to switch video from Linux.
+On Wed, 20 Jul 2005 23:50:31 +0200 Janosch Machowinski wrote:
 
-Is there a way to activate this functionality?
+> Hey,
+> I got an kernel panic in the ACPI system while trying to boot an 
+> 2.6.13-rc3. The problem is, that I can't see what's causing the panic, 
+> because I can't scoll up. Any ideas, how to log this issue ? All I can 
+> say is that it is an Null Pointer issue. The system is an ASUS M6Ne.
 
--- Johan
+The common ways are:
+- use a serial console
+- use netconsole (kernel config option + netcat on another system)
+- use a smaller console font
 
-[1] http://www.squirrel.nl/people/jvromans/articles/TM4001WLMi/acpi/dsdt.txt
+---
+~Randy
 
 
 -------------------------------------------------------
