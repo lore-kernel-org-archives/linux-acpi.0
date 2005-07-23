@@ -1,15 +1,8 @@
-From: Iacopo Spalletti <avvisi-m0DhsibC5ZROhR2lhbcafA@public.gmane.org>
-Subject: Re: ASUS hotkeys regression in 2.6.13-rc3
-Date: Sat, 23 Jul 2005 20:35:20 +0200
-Message-ID: <200507232035.20800.avvisi@spalletti.it>
-References: <3ACA40606221794F80A5670F0AF15F84041AC1E8@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="gb2312"
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+Subject: [PATCH] hysteresis for active cooling
+Date: Sat, 23 Jul 2005 14:56:10 -0400
+Message-ID: <E1DwPAQ-0006Oa-FA@approximate.corpus.cam.ac.uk>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC1E8@pdsmsx403>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,24 +12,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alle 19:59, sabato 23 luglio 2005, Yu, Luming ha scritto:
-> sorry , it is kernel boot option: acpi_specific_hotkey.
->
-> Thanks
-> Luming
-BTW: In the next few days (then i'll be on holiday for two weeks) i can do any 
-test you might need.
+My laptop's fan was turning on and off as the temperature crossed the
+active trip point.  The patch below adds hysteresis: It turns off active
+cooling only when the temperature falls, say, 2 C below the trip point.
+Maybe the magic difference should be 5 degrees; I'd be curious what
+setting suits people best.
 
--- 
+Tested and working on my TP 600X (Debian 'etch', kernel 2.6.11.4,
+original DSDT with fixes).  It patches cleanly against 2.6.13-rc3 and is
+conceptually simple, so I'd hope it works there too.
 
-IS
-Iacopo Spalletti
-iacopo-m0DhsibC5ZROhR2lhbcafA@public.gmane.org
-PGP key block: http://www.spalletti.it/pgp
+-Sanjoy
+
+`A society of sheep must in time beget a government of wolves.'
+   - Bertrand de Jouvenal
+
+
+--- linux/drivers/acpi/thermal.c.old	2005-03-17 16:40:04.000000000 -0500
++++ linux/drivers/acpi/thermal.c	2005-07-23 13:44:35.000000000 -0400
+@@ -66,6 +66,8 @@
+ #define ACPI_THERMAL_MAX_ACTIVE	10
+ #define ACPI_THERMAL_MAX_LIMIT_STR_LEN 65
+ 
++#define AC_HYSTERESIS 2		/* active-cooling hysteresis, in C */
++
+ #define KELVIN_TO_CELSIUS(t)    (long)(((long)t-2732>=0) ? ((long)t-2732+5)/10 : ((long)t-2732-5)/10)
+ #define CELSIUS_TO_KELVIN(t)	((t+273)*10)
+ 
+@@ -625,8 +627,14 @@
+ 		 * ----------------
+ 		 * Turn OFF all cooling devices associated with this
+ 		 * threshold.
++                 *
++		 * With hysteresis: Turn off only when temp is
++		 * AC_HYSTERESIS [in C] below threshold.  Safer to
++		 * adjust fan-off rather than fan-on behavior.
+ 		 */
+-		else if (active->flags.enabled) {
++		else if (active->flags.enabled &&
++			 KELVIN_TO_CELSIUS(tz->temperature) <=
++			 KELVIN_TO_CELSIUS(active->temperature) - AC_HYSTERESIS) {
+ 			for (j = 0; j < active->devices.count; j++) {
+ 				result = acpi_bus_set_power(active->devices.handles[j], ACPI_STATE_D3);
+ 				if (result) {
 
 
 -------------------------------------------------------
