@@ -1,8 +1,14 @@
-From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
-Subject: (fwd) [Bug 4928] New: S1 standby produces bizarre patterns on the screen
-Date: Sat, 23 Jul 2005 02:12:09 +0100
-Message-ID: <E1Dw8Yj-00012l-00@skye.ra.phy.cam.ac.uk>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: problems compiling iasl on debian sarge
+Date: Sat, 23 Jul 2005 01:04:20 +0000
+Message-ID: <20050723010420.GA4368@fingerbrecher>
+References: <42E18E6A.8000204@yahoo.de>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <42E18E6A.8000204-LWAfsSFWpa4@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,38 +21,78 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The fixed DSDT I use with my TP 600X is attached to Bug #4926.
 
--Sanjoy
+--cNdxnHkX5QqsyA0e
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Date:    Fri, 22 Jul 2005 13:28:36 -0700
-From:    bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-Subject: [Bug 4928] New: S1 standby produces bizarre patterns on the screen
+* widolo87 <widolo87-LWAfsSFWpa4@public.gmane.org> [2005-07-23 00:47 +0000]:
+>=20
+> I hope that my question is right on this list...
 
-http://bugzilla.kernel.org/show_bug.cgi?id=4928
+yes.
 
-           Summary: S1 standby produces bizarre patterns on the screen
-    Kernel Version: 2.6.13-rc3
-            Status: NEW
-          Severity: normal
-             Owner: acpi_power-sleep-wake-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-         Submitter: sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org
+=20
+> I just downloaded acpica-unix-20050624.tar.gz from
+> http://developer.intel.com/technology/iapc/acpi/downloads.htm to fix the
+> acpi implementation of my new laptop and tried to compile iasl.
+>=20
+>=20
+> Running make in the compiler directory results in
+>=20
+> --snip--
+> cc -Wall -O2 -Wstrict-prototypes -D_LINUX -DACPI_ASL_COMPILER \
+> 	-I../include    -c -o aslcompilerlex.o aslcompilerlex.c
+>=20
+> aslcompiler.l: In function `comment':
+> aslcompiler.l:847: error: `yytext_ptr' undeclared (first use in this  \
+> 	function)
+> aslcompiler.l:847: error: (Each undeclared identifier is reported only \
+> 	once
+> aslcompiler.l:847: error: for each function it appears in.)
+> make: *** [aslcompilerlex.o] Error 1
+> --snap--
+> (gcc-3.3.5, flex 2.5.31, bison 1.875d)
+>=20
+> Unfortunately I have no idea of bison and of what's going on in this
+> source code.
+>=20
+>=20
+> I would be glad to receive any assistance.
 
+try these:
 
-Distribution: Debian testing ('etch')
-Hardware Environment: Thinkpad 600X, Pentium III 650 MHz, 576 MB
-Software Environment: Fixed DSDT from Bug #4926
+http://thread.gmane.org/gmane.linux.acpi.devel/8442
+http://thread.gmane.org/gmane.linux.acpi.devel/8694
+http://www.mail-archive.com/debian-user-german-0aAXYlwwYIJuHlm7Suoebg@public.gmane.org/msg126687.h=
+tml
 
-Problem Description: S1 ('standby') produces growing color patterns on the
-screen.  They start out as a thin horizontal band across the middle of the
-screen, and then more lines and dots develop.
+it should boil down to the installation of the package flex-old.
 
-Steps to reproduce: 
-Boot into X, then
-  echo standby > /sys/power/state
-The colored patterns grow on the screen.  Then press the shift key to wake it u
-p
- and it eventually returns, and works fine.
+cheers,
+ Sebastian
+--=20
+Oo................................................................
+Angestellten ist die Nutzung der Toilette ohne Genehmigung untersagt - Das =
+MGT
+OpenPGP key ID: 0x7A62F9B4 Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++
+=2E...............................................................oO
+
+--cNdxnHkX5QqsyA0e
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC4ZeUreHfL3pi+bQRAmziAJ91WRucQ+FNQIG2X0FQXX+kat5WlwCdG/lF
+XaEMr928WGSG2OoK5dpoh+w=
+=2Ewj
+-----END PGP SIGNATURE-----
+
+--cNdxnHkX5QqsyA0e--
 
 
 -------------------------------------------------------
