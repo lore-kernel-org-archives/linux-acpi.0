@@ -1,13 +1,13 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [GIT PATCH] ACPI for 2.6
-Date: Sat, 23 Jul 2005 00:59:35 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30041F3E37@hdsmsx401.amr.corp.intel.com>
+From: Iacopo Spalletti <avvisi-m0DhsibC5ZROhR2lhbcafA@public.gmane.org>
+Subject: ASUS hotkeys regression in 2.6.13-rc3
+Date: Sat, 23 Jul 2005 09:25:50 +0200
+Message-ID: <200507230925.51612.avvisi@spalletti.it>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +17,19 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+I would like to point out a regression in asus hotkey function in 2.6.13-rc3 
+(filed in kernel bugzilla: http://bugzilla.kernel.org/show_bug.cgi?id=4906).
+Any idea for further investigations?
 
-Please pull from:=20
+-- 
 
-rsync://rsync.kernel.org/pub/scm/linux/kernel/git/lenb/linux-2.6.git/
-
-for a single patch that removes some recently added
-debugging console messages.
-
-thanks!
-
--Len
-
- ec.c |   17 +++--------------
- 1 files changed, 3 insertions(+), 14 deletions(-)
-
-
-commit 668d74c04c16bb69de564e25e85dd94eeb0175d9
-Author: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Sat Jul 23 00:26:33 2005 -0400
-
-    ACPI: delete unnecessary EC console messages
-
-    http://bugzilla.kernel.org/show_bug.cgi?id=3D4534
-
-    Signed-off-by: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-    Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+IS
+Iacopo Spalletti
+iacopo-m0DhsibC5ZROhR2lhbcafA@public.gmane.org
+PGP key block: http://www.spalletti.it/pgp
 
 
 -------------------------------------------------------
