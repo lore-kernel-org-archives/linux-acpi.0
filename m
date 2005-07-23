@@ -1,11 +1,13 @@
-From: widolo87 <widolo87-LWAfsSFWpa4@public.gmane.org>
-Subject: problems compiling iasl on debian sarge
-Date: Sat, 23 Jul 2005 02:25:14 +0200
-Message-ID: <42E18E6A.8000204@yahoo.de>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: acpidump replaces acpidmp
+Date: Fri, 22 Jul 2005 20:35:38 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30041F3DFE@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,45 +18,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: kmannth-gknP4MEHMBDQT0dZR+AlfA@public.gmane.org, "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
+Alexey has provided an improved acpidump.
+Now available in the pmtools archive dated today or later:
+(give it an hour to hit the mirrors)
 
-I hope that my question is right on this list...
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 
+Note that we've returned to the original spelling "acpidump",
+and "acpidmp" has been deleted.  I'm now trying to teach my
+fingers how to spell correctly again:-)
 
-I just downloaded acpica-unix-20050624.tar.gz from
-http://developer.intel.com/technology/iapc/acpi/downloads.htm to fix the
-acpi implementation of my new laptop and tried to compile iasl.
+acpidump with no parameters gives you the same output
+that the previous program gave you.  However, it can
+also take parameters to dump tables from an arbitrary
+address, and it works on 64-bit systems.
 
+Give it a go and do speak up if you have any troubles with it.
+The old version is still in the 2003 pmtools archive if
+you need it.
 
-Running make in the compiler directory results in
+thanks Alexey!
 
---snip--
-cc -Wall -O2 -Wstrict-prototypes -D_LINUX -DACPI_ASL_COMPILER \
-	-I../include    -c -o aslcompilerlex.o aslcompilerlex.c
+-Len
 
-aslcompiler.l: In function `comment':
-aslcompiler.l:847: error: `yytext_ptr' undeclared (first use in this  \
-	function)
-aslcompiler.l:847: error: (Each undeclared identifier is reported only \
-	once
-aslcompiler.l:847: error: for each function it appears in.)
-make: *** [aslcompilerlex.o] Error 1
---snap--
-(gcc-3.3.5, flex 2.5.31, bison 1.875d)
-
-Unfortunately I have no idea of bison and of what's going on in this
-source code.
-
-
-I would be glad to receive any assistance.
-
-
-All the best,
-
-
-Maximilian Mehnert
+ps. I shall delete /proc/fadt and /proc/dsdt when I return
+from Ottawa unless somebody can convince me they should live.
 
 
 -------------------------------------------------------
