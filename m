@@ -1,14 +1,12 @@
 From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Subject: Re: 2.6.13-rc3 Kernel Panic...
-Date: Sat, 23 Jul 2005 06:29:42 +0200
-Message-ID: <20050723042942.GA13851@tangens.sinus.cz>
-References: <42DEC727.6050108@tzi.de> <20050722102446.05daf2ae.rdunlap@xenotime.net> <42E15E95.70904@tzi.de>
+Subject: Clevo D610SU: Immediate wake-up from S1
+Date: Sat, 23 Jul 2005 06:51:12 +0200
+Message-ID: <20050723045112.GA14937@tangens.sinus.cz>
 Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <42E15E95.70904-cGBD8117FJM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,17 +16,19 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> If anybody is interested in the full stack trace, say it, then I will 
-> type it all in by hand...
 Hi!
-Do You have a (digital) camera ? I succeeded several times with submitting an
-oops with a "real" snapshot of the monitor screen. You can't make a mistake
-and if the picture is sharp enough, .jpg is as good as .txt :-).
-                                        Reagrds, Pavel Troller
+  I'm trying to use standby (S1) state on Clevo D610SU notebook. It seems that
+the system tries to enter it, but it is immediately abandoned. In the syslog,
+there is just
+Jul 23 06:38:52 miro kernel: Stopping tasks: ==========================================================================|
+Jul 23 06:38:52 miro kernel: Restarting tasks... done
+  What would you suggest to try to determine what can be causing this problem ?
+  It's 2.6.13-rc2 (rc3 spams the logs with ec_burst_mode messages so I'm not
+using it).
+                                      WIth regards, Pavel Troller
 
 
 -------------------------------------------------------
