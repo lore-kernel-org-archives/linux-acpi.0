@@ -1,7 +1,7 @@
 From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
-Subject: (fwd) [Bug 4930] New: temperatures not updated until 'acpi' client is run
-Date: Sat, 23 Jul 2005 02:09:01 +0100
-Message-ID: <E1Dw8Vh-00011o-00@skye.ra.phy.cam.ac.uk>
+Subject: (fwd) [Bug 4926] New: no wakeup after S3 sleep with Thinkpad 600X
+Date: Sat, 23 Jul 2005 02:10:52 +0100
+Message-ID: <E1Dw8XU-00012O-00@skye.ra.phy.cam.ac.uk>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,89 +15,57 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I just submitted a few reports to the acpi bugzilla, which I'm going
-to forward to acpi-devel.  Apologies if forwarding the submissions is
-inappropriate for this list.
-
--Sanjoy
-
-------- Forwarded Message
-
-Date:    Fri, 22 Jul 2005 15:40:27 -0700
+Date:    Fri, 22 Jul 2005 12:45:23 -0700
 From:    bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-To:      sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org
-Subject: [Bug 4930] New: temperatures not updated until 'acpi' client is run
+Subject: [Bug 4926] New: no wakeup after S3 sleep with Thinkpad 600X
 
-http://bugzilla.kernel.org/show_bug.cgi?id=4930
+http://bugzilla.kernel.org/show_bug.cgi?id=4926
 
-           Summary: temperatures not updated until 'acpi' client is run
+           Summary: no wakeup after S3 sleep with Thinkpad 600X
     Kernel Version: 2.6.13-rc3
             Status: NEW
-          Severity: normal
-             Owner: acpi_power-thermal-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+          Severity: high
+             Owner: acpi_power-sleep-wake-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
          Submitter: sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org
 
 
-Distribution: Debian testing ('etch')
-Hardware Environment: TP 600X Pentium III 650 MHz, 576 MB
-Software Environment: Fixed DSDT attached in Bug #4926
+Distribution: Debian testing (etch)
 
-Problem Description: The temperature in thermal zone 2 (disk?) isn't updated
-automatically even though polling_frequency is set to 10.  It is updated when I
-run the command-line 'acpi' program, though I often have to run it twice.
+Hardware Environment: Thinkpad 600X, Pentium III 650 MHz, 576MB memory
+
+Software Environment: using my hacked DSDT mentioned in Bug #3534 (will attach
+in next msg) that allowed S3 to work with 2.6.11.4.  It's the IBM DSDT with the
+compile errors fixed, though some of my fixes may not be right (but they got S3
+working)!
+
+Problem Description: After going to sleep with 'echo mem > /sys/power/state',
+the system displays 'stopping tasks' and then goes to sleep mostly fine (the
+suspend light goes on, although the disk drive light also goes on even though
+the disk is quiet).  With 2.6.11.4, it would wake up either upon opening the li
+d
+or pressing the 'Fn' key.  With 2.6.13-rc3, nothing wakes it up.  Holding the
+power switch for several seconds turns the machine off, but to turn it back on 
+I
+have to remove the AC cord and the main and spare batteries, then power it back
+on.  Otherwise it just ignores the power on.
 
 Steps to reproduce:
-I set the trip-point for THM2 to 48 C and the polling frequency to 10:
 
-echo 120:0:40:48:0 > THM2/trip_points
-echo 10 > THM2/polling_frequency
+Boot into multi-user mode (which gets all the ACPI modules loaded), then 
 
-Then I ran a process (reindexing the huge wwwoffle cache) that ran the disk a
-lot and drove the temperature over 48 C.  The fan was on (with a bit of proddin
-g
-from acpi -t).  Eventually the process finished and the fan stayed on.  A few
-minutes after it was done I could feel the air coming out was reasonably cool. 
-So I checked the temperature by catting the state files:
-
-/proc/acpi/thermal_zone/THM2# cat temperature trip_points polling_frequency 
-temperature:             49 C
-critical (S5):           120 C
-active[0]:               48 C: devices=0xc1575108
-polling frequency:       10 seconds
-
-It was plenty of time for the 10-second polling to have updated the temperature
-.
- But I didn't believe the 49 C so I ran acpi -t twice right away:
-
-sanjoy:/proc/acpi/thermal_zone/THM2# acpi -t
-     Battery 1: charged, 99%
-     Battery 2: charged, 99%
-     Thermal 1: ok, 43.0 degrees C
-     Thermal 2: active[0], 49.0 degrees C
-     Thermal 3: ok, 35.0 degrees C
-     Thermal 4: ok, 38.0 degrees C
-sanjoy:/proc/acpi/thermal_zone/THM2# acpi -t
-     Battery 1: charged, 99%
-     Battery 2: charged, 99%
-     Thermal 1: ok, 43.0 degrees C
-     Thermal 2: ok, 40.0 degrees C
-     Thermal 3: ok, 35.0 degrees C
-     Thermal 4: ok, 37.0 degrees C
-
-And voila the second acpi produces 40 C for the temperature, which felt about
-right.  And the fan stopped (right before I ran the second acpi).
-
-This lack-of-update problem was there in 2.6.11.4 as well, and perhaps even wor
-se. 
-
-I'm using acpi v0.09 (Debian package), and its the stock 2.6.13-rc3.  Am happy
-to try patches and/or turn on acpi debugging output.
-
-- ------- You are receiving this mail because: -------
-You reported the bug, or are watching the reporter.
+   echo mem > /sys/power/state
 
 ------- End of Forwarded Message
 
+And the correction I submitted:
+
+------- Additional Comments From sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org  2005-07-22 16:40 ------
+-
+Correction: The disk light goes on only after I try to wake it up
+(e.g. by pressing the Fn key).  The screen flashes briefly, the disk
+light turns on (though the disk doesn't spin), then the screen goes
+blank and nothing happens.  In order to reboot, I have to fully power
+cycle by removing the batteries and AC cord.
 
 
 -------------------------------------------------------
