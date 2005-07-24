@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
-Date: Sun, 24 Jul 2005 16:24:32 +0200
-Message-ID: <20050724142432.GC1778@elf.ucw.cz>
-References: <20050723133726.GA2079@miro.sinus.cz>
+From: Garry Williams <gtwilliams-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: DSDT Error Object does not exist (PDC0)
+Date: Sun, 24 Jul 2005 15:33:52 -0400
+Message-ID: <1122233633.3173.66.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050723133726.GA2079-xk5YvUdtsdomyzK0JynY2A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,55 +15,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On my Sony VGN-FS640/W I have three errors compiling my DSDT
+(http://www.zvolve.com/~garry/dsdt.dsl).
 
-> 5) After resume from S4:
-> 
-> irq 10: nobody cared (try booting with the "irqpoll" option)
->  [<c01412aa>] __report_bad_irq+0x2a/0xa0
->  [<c0140a50>] handle_IRQ_event+0x30/0x70
->  [<c01413c0>] note_interrupt+0x80/0xf0
->  [<c0140bc4>] __do_IRQ+0x134/0x140
->  [<c0105f73>] do_IRQ+0x23/0x40
->  [<c0103f16>] common_interrupt+0x1a/0x20
->  [<c0124773>] __do_softirq+0x43/0xb0
->  [<c012480d>] do_softirq+0x2d/0x30
->  [<c01248e7>] irq_exit+0x37/0x40
->  [<c0105f78>] do_IRQ+0x28/0x40
->  [<c0103f16>] common_interrupt+0x1a/0x20
->  [<c039f360>] schedule+0x0/0x650
->  [<c039fa63>] preempt_schedule_irq+0x43/0x80
->  [<c010349e>] need_resched+0x1f/0x21
->  [<c013ee20>] swsusp_suspend+0x50/0xc0
->  [<c013faac>] pm_suspend_disk+0x3c/0x90
->  [<c013d86c>] enter_state+0x6c/0x70
->  [<c013d87f>] software_suspend+0xf/0x20
->  [<c0247322>] acpi_system_write_sleep+0x6a/0x84
->  [<c0162716>] vfs_write+0xb6/0x180
->  [<c01628b1>] sys_write+0x51/0x80
->  [<c0103559>] syscall_call+0x7/0xb
-> handlers:
-> [<dc86e850>] (snd_intel8x0_interrupt+0x0/0x240 [snd_intel8x0])
-> Disabling IRQ #10
-> 
-> ...and then
-> 
-> ohci_hcd 0000:00:02.3: Unlink after no-IRQ?  Controller is probably
-> using the wrong IRQ.
+dsdt.dsl   506:             If (LEqual (And (PDC0, 0x0A), 0x0A))
+Error    1022 -           Object does not exist ^  (PDC0)
+dsdt.dsl   511:             If (LEqual (And (PDC1, 0x0A), 0x0A))
+Error    1022 -           Object does not exist ^  (PDC1)
+dsdt.dsl   553:                         If (LNot (LEqual (And (PDC1, 0x0A), 0x0A)))
+Error    1022 -                             Object does not exist ^  (PDC1)
 
-Okay, can you enable debugging in .../usb/core/hcd-pci.c and see what
-happens? It seems to call request_irq in resume routine, add printk to
-verify that it really does call it.
+ASL Input:  dsdt.dsl - 4185 lines, 135677 bytes, 1667 keywords
+Compilation complete. 3 Errors, 0 Warnings, 0 Remarks, 1 Optimizations
 
-Oh and probably Cc: some usb list, or David Brownell directly.
+Does anyone know why this is the case and what to do about it?
 
-								Pavel
 -- 
-teflon -- maybe it is a trademark, but it should not be.
+Garry Williams -- +1 (678) 656-4579
+
 
 
 -------------------------------------------------------
