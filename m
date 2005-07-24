@@ -1,13 +1,13 @@
-From: "Francisco Figueiredo Jr." <fxjrlists-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
-Subject: Re: [PATCH] hysteresis for active cooling
-Date: Sun, 24 Jul 2005 01:21:37 -0300
-Message-ID: <42E31751.4080802@yahoo.com.br>
-References: <E1DwPAQ-0006Oa-FA@approximate.corpus.cam.ac.uk>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
+Date: Sun, 24 Jul 2005 16:24:32 +0200
+Message-ID: <20050724142432.GC1778@elf.ucw.cz>
+References: <20050723133726.GA2079@miro.sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <E1DwPAQ-0006Oa-FA-BgpFEFc6EmUvjq1vVebcCXE/jYh+Q74khca9k7ZVKlY@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050723133726.GA2079-xk5YvUdtsdomyzK0JynY2A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,83 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi!
 
-Sanjoy Mahajan wrote:
-> My laptop's fan was turning on and off as the temperature crossed the
-> active trip point.  The patch below adds hysteresis: It turns off active
-> cooling only when the temperature falls, say, 2 C below the trip point.
-> Maybe the magic difference should be 5 degrees; I'd be curious what
-> setting suits people best.
+> 5) After resume from S4:
 > 
+> irq 10: nobody cared (try booting with the "irqpoll" option)
+>  [<c01412aa>] __report_bad_irq+0x2a/0xa0
+>  [<c0140a50>] handle_IRQ_event+0x30/0x70
+>  [<c01413c0>] note_interrupt+0x80/0xf0
+>  [<c0140bc4>] __do_IRQ+0x134/0x140
+>  [<c0105f73>] do_IRQ+0x23/0x40
+>  [<c0103f16>] common_interrupt+0x1a/0x20
+>  [<c0124773>] __do_softirq+0x43/0xb0
+>  [<c012480d>] do_softirq+0x2d/0x30
+>  [<c01248e7>] irq_exit+0x37/0x40
+>  [<c0105f78>] do_IRQ+0x28/0x40
+>  [<c0103f16>] common_interrupt+0x1a/0x20
+>  [<c039f360>] schedule+0x0/0x650
+>  [<c039fa63>] preempt_schedule_irq+0x43/0x80
+>  [<c010349e>] need_resched+0x1f/0x21
+>  [<c013ee20>] swsusp_suspend+0x50/0xc0
+>  [<c013faac>] pm_suspend_disk+0x3c/0x90
+>  [<c013d86c>] enter_state+0x6c/0x70
+>  [<c013d87f>] software_suspend+0xf/0x20
+>  [<c0247322>] acpi_system_write_sleep+0x6a/0x84
+>  [<c0162716>] vfs_write+0xb6/0x180
+>  [<c01628b1>] sys_write+0x51/0x80
+>  [<c0103559>] syscall_call+0x7/0xb
+> handlers:
+> [<dc86e850>] (snd_intel8x0_interrupt+0x0/0x240 [snd_intel8x0])
+> Disabling IRQ #10
+> 
+> ...and then
+> 
+> ohci_hcd 0000:00:02.3: Unlink after no-IRQ?  Controller is probably
+> using the wrong IRQ.
 
+Okay, can you enable debugging in .../usb/core/hcd-pci.c and see what
+happens? It seems to call request_irq in resume routine, add printk to
+verify that it really does call it.
 
-Hi Sanjoy.
+Oh and probably Cc: some usb list, or David Brownell directly.
 
-How do I know what temperature active cooling will be turned off?
-
-Currently as I type that, my system starts active cooling when it
-reaches 52 C and turns off when it reaches 44.
-
-
-I have the following as my trip_points:
-
-cat /proc/acpi/thermal_zone/THRM/trip_points
-critical (S5):           93 C
-passive:                 90 C: tc1=2 tc2=3 tsp=100 devices=0xdf6de280
-active[0]:               70 C: devices=0xc147de20
-active[1]:               60 C: devices=0xc147df40
-active[2]:               50 C: devices=0xc147d120
-
-In my system, what your patch would do? Will it turn off fan when it
-reach 42, instead of actual 44?
-
-Thanks in advance. And sorry for boring you with these questions. I'm
-very interested in fan management in my laptop, since I had a challenge
-of knowing how to turn it on and off manually :)
-
-
-
-- --
-Regards,
-
-Francisco Figueiredo Jr.
-Npgsql Lead Developer
-http://gborg.postgresql.org/project/npgsql
-MonoBrasil Project Founder Member
-http://monobrasil.softwarelivre.org
-
-
-- -------------
-"Science without religion is lame;
-religion without science is blind."
-
-                  ~ Albert Einstein
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iQEVAwUBQuMXUf7iFmsNzeXfAQKEMAf+OEVWUHpkgczonoRTn3KX7IOXv3lDjdVz
-25DsFSR7lcMQ6t+6AzX1x1eN8IPtd8jPo2n0uE8Q66t/TNY/7ERtqxpqnDiGLPYr
-p7rXR+BfG3in/ZGdqKOclnfDhEVQLy8LLuyARRwVAlVdbnPeOjLRNkUZ2ElQNKW8
-C/IUU7MzkrmtYutfQZRrwOS/rWA+o2GmnNtGQFTgNDhIM4H3ZnT6Kwt74Ramfsd2
-mXJM9iq7AlBZxwQUBp3nSwVVYUfUX7NX/lPaOIdi7Fx2F3cYCEa+4ww9kUuW2uhs
-9RF29dJf9vAflfrtKzWODU/aAukYTCawqkPxMOcLusodEFPS4k5lbg==
-=ulkU
------END PGP SIGNATURE-----
-
-	
-	
-		
-_______________________________________________________ 
-Yahoo! Acesso Grátis - Internet rápida e grátis. 
-Instale o discador agora! http://br.acesso.yahoo.com/
-
+								Pavel
+-- 
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
