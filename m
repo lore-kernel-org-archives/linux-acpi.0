@@ -1,14 +1,13 @@
-From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
-Date: Mon, 25 Jul 2005 17:26:53 +0200
-Message-ID: <20050725152653.GA18227@tangens.sinus.cz>
-References: <20050723133726.GA2079@miro.sinus.cz> <20050724142432.GC1778@elf.ucw.cz> <20050725084044.GA22944@tangens.sinus.cz> <200507251407.55454.rjw@sisk.pl>
-Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Inconsistent contents of /proc/acpi/sleep and /sys/power/state
+Date: Mon, 25 Jul 2005 18:05:32 +0200
+Message-ID: <20050725160531.GB1046@openzaurus.ucw.cz>
+References: <20050725090421.GA24084@tangens.sinus.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200507251407.55454.rjw-KKrjLPT3xs0@public.gmane.org>
+In-Reply-To: <20050725090421.GA24084-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,33 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Hi,
+Hi!
+
+>   I would like to ask, why the contents of /proc/acpi/sleep and /sys/power/state
+> is different:
 > 
-> The problem you describe is not related to the ec_polling patch (see below).
-I know. Sorry for bad formulation of the subject, I simply wanted to tell
-"more experiences with -rc3 after fixing that one with EC :-)".
+> root@miro:~# cat /proc/acpi/sleep
+> S0 S3 S4 S5
+> root@miro:~# cat /sys/power/state
+> standby mem disk
 > 
+>   The first one corresponds with a real functionality - for example, in dmesg
+> there is the line
+> ACPI: (supports S0 S3 S4 S5)
+> on my notebook.
+>   The second one seems to be wrong: There is "standby", although I have neither
+> S1 nor S2 capable system - and it's really not working, and S5 is missing
+> (should there be something like "off" in /sys/power/state ?).
+>   I'm asking because /proc/acpi/sleep has been obsoletized in latest kernels and
+> IMHO /sys/power/state is not a fully-featured and working replacement.
 > 
-> This happens because the sound card should drop the IRQ during
-> suspend but it doesn't.  Please try to apply the patch at
-> 
-> http://bugzilla.kernel.org/attachment.cgi?id=5371&action=view
-> 
-> and let me know if that helps.
-It seems to help just a little:
-1) The "Nobody cared" message with the backtrace is still there the same
-2) ohci-hcd no more complains about wrong IRQ and inserts/removes OK
-... but nevertheless, neither soundcard now USB is working.
-Of course I verified that the patch is there in the i8x0 code.
-> 
-> Greets,
-> Rafael
-> 
-                      With regards, Pavel Troller
+
+Agreed, feel free to submit a patch.
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
