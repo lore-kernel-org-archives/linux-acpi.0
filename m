@@ -1,13 +1,13 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Fw: [PATCH]: Correctly locate RSDP in EBDA
-Date: Mon, 25 Jul 2005 15:19:57 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E02315A42@orsmsx403.amr.corp.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: ACPI hot-plug notification help needed
+Date: Mon, 25 Jul 2005 17:35:23 -0600
+Message-ID: <200507251735.23394.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,75 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Udo A. Steinberg" <us15-IG//nw+yl+iQIjdd1DhZXWfrygkm6VTR@public.gmane.org>, Alexey Starikovskiy <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are two versions of this code in Linux, the ACPICA version and the
-version in boot.c. It is very cumbersome to maintain two versions of
-this sensitive code, and the version in boot.c should be removed.  The
-ACPICA version (in tbxfroot.c) already handles EBDA and bad checksums
-correctly.
+Can somebody explain how the notification stuff in the ACPI
+memory and container drivers works?
 
-Bob Moore
+The usual ACPI driver registers its IDs and add() and remove()
+functions with acpi_bus_register_driver(), and the ACPI core
+calls the add() function when it finds a device that is present
+(based on _STA) and whose _HID or _CID matches.
 
+The memory and container drivers (acpi_memhotplug.c[1] and container.c)
+also do this.  But in addition, they traverse the entire ACPI namespace
+and attach notify handlers to any devices that match the IDs[2], even
+if the _STA indicates "not present".
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Andrew Morton
-> Sent: Monday, July 25, 2005 3:13 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Cc: Udo A. Steinberg
-> Subject: [ACPI] Fw: [PATCH]: Correctly locate RSDP in EBDA
->=20
->=20
->=20
-> Begin forwarded message:
->=20
-> Date: Wed, 20 Jul 2005 17:42:07 +0200
-> From: "Udo A. Steinberg" <us15-IG//nw+yl+iQIjdd1DhZXWfrygkm6VTR@public.gmane.org>
-> To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> Subject: [PATCH]: Correctly locate RSDP in EBDA
->=20
->=20
->=20
-> ACPI spec. states that the location of the RSDP structure is found by
-> searching
-> * The first 1 KB of the Extended BIOS Data Area (EBDA).
-> * The BIOS read-only memory space between 0E0000h and 0FFFFFh
->=20
-> The EBDA scan looks wrong. The patch below against 2.6.12 should
-correct
-> this.
->=20
-> -Udo.
->=20
-> ---
->=20
-> Calculate correct EBDA address for ACPI RSDP scan. The word at BIOS
-Data
-> Area
-> 40:0E is the segment address of the EBDA.
->=20
-> Signed-off-by: Udo A. Steinberg <us15-IG//nw+yl+iQIjdd1DhZXWfrygkm6VTR@public.gmane.org>
->=20
-> --- linux-2.6.12/arch/i386/kernel/acpi/boot.c.old       2005-07-20
-> 17:28:32.000000000 +0200
-> +++ linux-2.6.12/arch/i386/kernel/acpi/boot.c   2005-07-20
-> 17:31:15.000000000 +0200
-> @@ -648,7 +648,7 @@
->          * Scan memory looking for the RSDP signature. First search
-EBDA
-> (low
->          * memory) paragraphs and then search upper memory
-(E0000-FFFFF).
->          */
-> -       rsdp_phys =3D acpi_scan_rsdp (0, 0x400);
-> +       rsdp_phys =3D acpi_scan_rsdp (*(u16*) 0x40E << 4, 0x400);
->         if (!rsdp_phys)
->                 rsdp_phys =3D acpi_scan_rsdp (0xE0000, 0x20000);
->=20
+It seems strange to attach notify handlers to devices that are
+not present.  Maybe ACPI allows events to be sent to devices that
+don't exist, but it just seems weird.  I'd expect a hotplug add to
+cause events to some previously-present *parent* of the new device.
+The parent's driver could then re-scan its children and add any
+that are newly-added or newly-marked "present".
 
+But these drivers seem to expect hot-add events on the new device
+itself, and then they go through the motions of acpi_bus_add()
+directly.  This seems like it belongs somewhere in the ACPI core.
+
+I just noticed that the processor_core and acpiphp_glue drivers
+do the same thing.  Does this mean that other ACPI drivers that
+want to handle hot-plug will also have to go through this dance
+of attaching notify handlers to non-present devices?  Does ACPI
+have to supply nodes for every possible hot-pluggable device in
+the namespace at boot-time, just to provide places to hang these
+handlers?
+
+Please enlighten me.
+
+[1] "acpi_memhotplug.c" seems redundant.  Wouldn't "memory.c"
+     be just as descriptive?  It's in the ACPI directory, so
+     we don't need "acpi_", and ACPI drivers in general can
+     support hotplug, so it doesn't seem like we need that either.
+
+[2] This match is not as completely implemented as that in the
+    ACPI core, so it doesn't check _CID.  So this seems like a
+    case where duplication of functionality leads to maintenance
+    problems.  Compare is_root_bridge(), is_memory_device(), and
+    container_walk_namespace_cb().
 
 
 -------------------------------------------------------
