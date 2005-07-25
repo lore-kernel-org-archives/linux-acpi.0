@@ -1,11 +1,14 @@
-From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Subject: Cannot take over thermal management
-Date: Mon, 25 Jul 2005 13:22:55 +0200
-Message-ID: <20050725112255.GA968@tangens.sinus.cz>
-Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
+Date: Mon, 25 Jul 2005 14:07:54 +0200
+Message-ID: <200507251407.55454.rjw@sisk.pl>
+References: <20050723133726.GA2079@miro.sinus.cz> <20050724142432.GC1778@elf.ucw.cz> <20050725084044.GA22944@tangens.sinus.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050725084044.GA22944-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,37 +19,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-  I'm here again with a question regarding my notebook Clevo D610SU.
-  I would like to let Linux do the thermal management, but it seems that it's
-totally impossible.
-  It seems that EC is hardly controlling the fans independently on anything I'm
-trying to do.
-  Totally independently on setting trip points or anything else, once the
-temperature increases above 55 C, the fans start (they start at full speed
-and about a second later they slow down to half speed) and they continue
-until the temperature is below 45 C.
-  The DSDT implements a THM0 thermal zone, which allows to read a CPU temp.
-Its contents is the following:
-root@miro:/proc/acpi/thermal_zone/THM0# cat *
-cooling mode:   active
-polling frequency:       5 seconds
-state:                   ok
-temperature:             47 C
-critical (S5):           90 C
-passive:                 80 C: tc1=4 tc2=10 tsp=50 devices=0xdbeedae8
-The polling freq and trip points are set by me but as written above, they
-are ignored. I cannot modify these tc1=4 tc2=10 tsp=50.
-  The DSDT doesn't implement any FAN object. I see fields called FAN0 and
-FAN1 in EC's RAM but they always read as 0 regardless of whether the fans
-are on or off.
-  My friend having the same NB with windoze told me (unverified) that he can
-control the fans and thermal management from windoze.
-  I'm sorry for my maybe naive questions :-).
-                                     With regards, Pavel Troller
+Hi,
+
+The problem you describe is not related to the ec_polling patch (see below).
+
+On Monday, 25 of July 2005 10:40, Pavel Troller wrote:
+> > Hi!
+> > 
+> > > 5) After resume from S4:
+> > > 
+]--snip--[
+> > > Disabling IRQ #10
+> > > 
+> > > ...and then
+> > > 
+> > > ohci_hcd 0000:00:02.3: Unlink after no-IRQ?  Controller is probably
+> > > using the wrong IRQ.
+> > 
+> > Okay, can you enable debugging in .../usb/core/hcd-pci.c and see what
+> > happens? It seems to call request_irq in resume routine, add printk to
+> > verify that it really does call it.
+> > 
+> Hi Pavel,
+>   I'm afraid that You're not getting the exact point:
+>   1) Before S4 is called (4 written to /proc/acpi/sleep), ohci_hcd module is
+> fully unloaded.
+>   2) The problem with "nobody cared" is detected during the wake up phase,
+> even before the suspend/resume script wakes up and tries to reinsert the
+> module. You can see that just the sound card handler is hooked to the irq.
+>   3) After a relatively long time (during which the resume script is awaken
+> and starts to insert various modules (mouse, modem, irda, bluetooth... which
+> were unloaded during suspend to prevent problems), this ohci_hcd tries to
+> be inserted, finds the non-functional interrupt and makes problems. Maybe
+> there is a bug in it, but it is triggered by another problem with that irq,
+> happening just in -rc3.
+
+This happens because the sound card should drop the IRQ during
+suspend but it doesn't.  Please try to apply the patch at
+
+http://bugzilla.kernel.org/attachment.cgi?id=5371&action=view
+
+and let me know if that helps.
+
+Greets,
+Rafael
+
+
+-- 
+- Would you tell me, please, which way I ought to go from here?
+- That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
 
 
 -------------------------------------------------------
