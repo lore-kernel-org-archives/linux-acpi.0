@@ -1,12 +1,14 @@
-From: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
-Subject: S3/S2 Problems
-Date: Mon, 25 Jul 2005 01:47:42 +0200
-Message-ID: <20050724234742.GA18565@schottelius.org>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: S3 test
+Date: Mon, 25 Jul 2005 09:55:58 +0800
+Message-ID: <1122256558.2952.3.camel@linux-hp.sh.intel.com>
+References: <16A54BF5D6E14E4D916CE26C9AD3057502B653B0@pdsmsx402.ccr.corp.intel.com>
+	 <200507202059.28860.hugelmopf@web.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200507202059.28860.hugelmopf-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,72 +18,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>
+Cc: Bernd Schubert <bernd-schubert-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, 2005-07-20 at 20:59 +0200, Frank wrote:
+> Li, Shaohua wrote:
+> > Add something like this in /etc/grub.conf:
+> >
+> > title test
+> > 	kernel /boot/kernel-image-name
+> > 	initrd /boot/initramfs-name
+> 
+> This causes my kernel to panic, because it doesn't find the root.
+> 
+> I don't know if I did the right thing: I built a new kernel, that I configured 
+> with "make allnoconfig" and enabled ACPI support + IDE + reiserfs (because 
+> my /boot is on a reiserfs-partition).
+> 
+> My Grub line:
+> 
+> title s3test
+> 	{root (hd0,2)}
+> 	kernel /boot/bzImage-s3test {root=/dev/hda3}
+> 	initrd /boot/initramfs.cpio
+> 
+> I tried with and without the parts in curly bracket.
+> Is this enough or the completely wrong way to go?
+Don't know what's the matter. The initramfs doesn't try to mount root
+device and it works for me. I even didn't build IDE & reiserfs, since I
+think grub will load the kernel image and initrd image to memory.
 
---/04w6evG8XlLl3ft
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks,
+Shaohua
 
-Moin!
-
-echo -n 2 > /proc/acpi/sleep
--> present with the nice ascii printout that it sleeps, but
-   it awakes immeditally.
-echo -n 3 > /proc/acpi/sleep
--> works partly. System sleeps. But:
-   --> After first sleep, everything is ok.
-   --> After second sleep, the console is broken
-       (many coloured blocks)
-       X is still ok.
-   --> After third and every following sleep:
-      console broken (grey/coloured blocks)
-      X broken (everything seems to be printed doubled like
-      ll)
-
-System:
-   Compaq EVO N400C notebook
-   Linux 2.6.12.3
-
-Btw,
-   o is there any tool to do sleep / a nice frontend to acpi
-     for the console
-   o where can I find the specification of ACPI sleep states?
-
-
-Sincerly,
-
-Nico
-
---=20
-Latest project: cinit (http://linux.schottelius.org/cinit)
-Open Source nutures open minds and free, creative developers.
-
---/04w6evG8XlLl3ft
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iQIVAwUBQuQonbOTBMvCUbrlAQLM3Q//YRnzHApPXVFliU4HPxtBBVr3XwgQfTDU
-LyYt0V7R4+nH8p/cQj9d5+fz4okPZr/TQDk254BPU+3IumJ7GuAR2+CWdzVIlFTp
-cBk8gnkuJce5fzRGCk1lp7ZpwKCJgUBwOTNHgwrQ+LIqQAz3K0bQVLAkvtwY/7YE
-xIfuW8j8tGMH76c2+ebqIAbSuvlJRyTxin+C2JU4GKapotFryysfw4FMiLB1bvDC
-jG1n5Igk7CvI6AcRZXHU8KG0sbz/T1xnAIFtLMHnYwQuf9sSvZQggE5xasGwS1C/
-6sZm/UTKfHGW++hzIutQtsllAJxncIDb2KfvteGkS13uuwvhTCIXxYpQaSz2ltzg
-54/MJmCIc5lYCac2siDht7SVRkHB+zWoJua2lrKX0qXQAK8hy+vXBKXpjC2zec1I
-s6QkOeEh2uJCiDBYcWWHSv5dY2z4+dtaA4c4gEx+d3HAABjwwVW3RTaJs0h9639K
-MyqESGjQbwyTUQagohRUcHY0jMaGOUtQQDrwTKT/2RiSGZQ4Hin42qiccQzUjthj
-9A9vbk6ekyK0T+xLluAgK+91bL7R7v40qv2/w3Hs6hyGx+qwMDX6hpf51nsPdNsd
-DckzbwNoVYKYNf5FHemKG5K8BVC7LcsA2XyVPL6TC4p6vRzIw2nx7R1aA2HxB3kN
-TQK9pSj92qA=
-=IM3/
------END PGP SIGNATURE-----
-
---/04w6evG8XlLl3ft--
 
 
 -------------------------------------------------------
