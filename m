@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Inconsistent contents of /proc/acpi/sleep and /sys/power/state
-Date: Mon, 25 Jul 2005 18:05:32 +0200
-Message-ID: <20050725160531.GB1046@openzaurus.ucw.cz>
-References: <20050725090421.GA24084@tangens.sinus.cz>
+Subject: Re: Cannot take over thermal management
+Date: Mon, 25 Jul 2005 18:10:57 +0200
+Message-ID: <20050725161056.GC1046@openzaurus.ucw.cz>
+References: <20050725112255.GA968@tangens.sinus.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050725090421.GA24084-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
+In-Reply-To: <20050725112255.GA968-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,27 +22,22 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
->   I would like to ask, why the contents of /proc/acpi/sleep and /sys/power/state
-> is different:
-> 
-> root@miro:~# cat /proc/acpi/sleep
-> S0 S3 S4 S5
-> root@miro:~# cat /sys/power/state
-> standby mem disk
-> 
->   The first one corresponds with a real functionality - for example, in dmesg
-> there is the line
-> ACPI: (supports S0 S3 S4 S5)
-> on my notebook.
->   The second one seems to be wrong: There is "standby", although I have neither
-> S1 nor S2 capable system - and it's really not working, and S5 is missing
-> (should there be something like "off" in /sys/power/state ?).
->   I'm asking because /proc/acpi/sleep has been obsoletized in latest kernels and
-> IMHO /sys/power/state is not a fully-featured and working replacement.
-> 
+>   I'm here again with a question regarding my notebook Clevo D610SU.
+>   I would like to let Linux do the thermal management, but it seems that it's
+> totally impossible.
 
-Agreed, feel free to submit a patch.
-				Pavel
+Yep, thats true :-).
+
+You may have some luck with lm_sensors (dangerous!).
+
+>   It seems that EC is hardly controlling the fans independently on anything I'm
+> trying to do.
+>   Totally independently on setting trip points or anything else, once the
+> temperature increases above 55 C, the fans start (they start at full speed
+> and about a second later they slow down to half speed) and they continue
+> until the temperature is below 45 C.
+
+Use passive cooling to make sure it never exceeds 54C :-). 
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
