@@ -1,13 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3/S2 Problems
-Date: Mon, 25 Jul 2005 16:56:33 +0200
-Message-ID: <20050725145633.GA8485@elf.ucw.cz>
-References: <20050724234742.GA18565@schottelius.org>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
+Date: Mon, 25 Jul 2005 17:26:53 +0200
+Message-ID: <20050725152653.GA18227@tangens.sinus.cz>
+References: <20050723133726.GA2079@miro.sinus.cz> <20050724142432.GC1778@elf.ucw.cz> <20050725084044.GA22944@tangens.sinus.cz> <200507251407.55454.rjw@sisk.pl>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050724234742.GA18565-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
+In-Reply-To: <200507251407.55454.rjw-KKrjLPT3xs0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,48 +18,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> echo -n 2 > /proc/acpi/sleep
-> -> present with the nice ascii printout that it sleeps, but
->    it awakes immeditally.
-
-Are you sure your system support S2? (cat /proc/acpi/sleep)
-
-> echo -n 3 > /proc/acpi/sleep
-> -> works partly. System sleeps. But:
->    --> After first sleep, everything is ok.
->    --> After second sleep, the console is broken
->        (many coloured blocks)
->        X is still ok.
->    --> After third and every following sleep:
->       console broken (grey/coloured blocks)
->       X broken (everything seems to be printed doubled like
->       ll)
-
-Strange, see Doc*/power/video.txt, tell me what tricks you are using.
-
-> System:
->    Compaq EVO N400C notebook
->    Linux 2.6.12.3
+> Hi,
 > 
-> Btw,
->    o is there any tool to do sleep / a nice frontend to acpi
->      for the console
-
-no.
-
->    o where can I find the specification of ACPI sleep states?
-
-ACPI spec from intel?
-
-
--- 
-teflon -- maybe it is a trademark, but it should not be.
+> The problem you describe is not related to the ec_polling patch (see below).
+I know. Sorry for bad formulation of the subject, I simply wanted to tell
+"more experiences with -rc3 after fixing that one with EC :-)".
+> 
+> 
+> This happens because the sound card should drop the IRQ during
+> suspend but it doesn't.  Please try to apply the patch at
+> 
+> http://bugzilla.kernel.org/attachment.cgi?id=5371&action=view
+> 
+> and let me know if that helps.
+It seems to help just a little:
+1) The "Nobody cared" message with the backtrace is still there the same
+2) ohci-hcd no more complains about wrong IRQ and inserts/removes OK
+... but nevertheless, neither soundcard now USB is working.
+Of course I verified that the patch is there in the i8x0 code.
+> 
+> Greets,
+> Rafael
+> 
+                      With regards, Pavel Troller
 
 
 -------------------------------------------------------
