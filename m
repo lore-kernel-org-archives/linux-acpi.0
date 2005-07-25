@@ -1,15 +1,13 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
-Date: Mon, 25 Jul 2005 14:07:54 +0200
-Message-ID: <200507251407.55454.rjw@sisk.pl>
-References: <20050723133726.GA2079@miro.sinus.cz> <20050724142432.GC1778@elf.ucw.cz> <20050725084044.GA22944@tangens.sinus.cz>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3/S2 Problems
+Date: Mon, 25 Jul 2005 16:56:33 +0200
+Message-ID: <20050725145633.GA8485@elf.ucw.cz>
+References: <20050724234742.GA18565@schottelius.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050725084044.GA22944-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20050724234742.GA18565-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,60 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-The problem you describe is not related to the ec_polling patch (see below).
+> echo -n 2 > /proc/acpi/sleep
+> -> present with the nice ascii printout that it sleeps, but
+>    it awakes immeditally.
 
-On Monday, 25 of July 2005 10:40, Pavel Troller wrote:
-> > Hi!
-> > 
-> > > 5) After resume from S4:
-> > > 
-]--snip--[
-> > > Disabling IRQ #10
-> > > 
-> > > ...and then
-> > > 
-> > > ohci_hcd 0000:00:02.3: Unlink after no-IRQ?  Controller is probably
-> > > using the wrong IRQ.
-> > 
-> > Okay, can you enable debugging in .../usb/core/hcd-pci.c and see what
-> > happens? It seems to call request_irq in resume routine, add printk to
-> > verify that it really does call it.
-> > 
-> Hi Pavel,
->   I'm afraid that You're not getting the exact point:
->   1) Before S4 is called (4 written to /proc/acpi/sleep), ohci_hcd module is
-> fully unloaded.
->   2) The problem with "nobody cared" is detected during the wake up phase,
-> even before the suspend/resume script wakes up and tries to reinsert the
-> module. You can see that just the sound card handler is hooked to the irq.
->   3) After a relatively long time (during which the resume script is awaken
-> and starts to insert various modules (mouse, modem, irda, bluetooth... which
-> were unloaded during suspend to prevent problems), this ohci_hcd tries to
-> be inserted, finds the non-functional interrupt and makes problems. Maybe
-> there is a bug in it, but it is triggered by another problem with that irq,
-> happening just in -rc3.
+Are you sure your system support S2? (cat /proc/acpi/sleep)
 
-This happens because the sound card should drop the IRQ during
-suspend but it doesn't.  Please try to apply the patch at
+> echo -n 3 > /proc/acpi/sleep
+> -> works partly. System sleeps. But:
+>    --> After first sleep, everything is ok.
+>    --> After second sleep, the console is broken
+>        (many coloured blocks)
+>        X is still ok.
+>    --> After third and every following sleep:
+>       console broken (grey/coloured blocks)
+>       X broken (everything seems to be printed doubled like
+>       ll)
 
-http://bugzilla.kernel.org/attachment.cgi?id=5371&action=view
+Strange, see Doc*/power/video.txt, tell me what tricks you are using.
 
-and let me know if that helps.
+> System:
+>    Compaq EVO N400C notebook
+>    Linux 2.6.12.3
+> 
+> Btw,
+>    o is there any tool to do sleep / a nice frontend to acpi
+>      for the console
 
-Greets,
-Rafael
+no.
+
+>    o where can I find the specification of ACPI sleep states?
+
+ACPI spec from intel?
 
 
 -- 
-- Would you tell me, please, which way I ought to go from here?
-- That depends a good deal on where you want to get to.
-		-- Lewis Carroll "Alice's Adventures in Wonderland"
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
