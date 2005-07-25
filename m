@@ -1,12 +1,12 @@
-From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Subject: Inconsistent contents of /proc/acpi/sleep and /sys/power/state
-Date: Mon, 25 Jul 2005 11:04:21 +0200
-Message-ID: <20050725090421.GA24084@tangens.sinus.cz>
-Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+From: Jamie Lentin <lentinj-aI60gWiEnN8g9ELcbhaJlPXRex20P6io@public.gmane.org>
+Subject: Re: [PATCH] hysteresis for active cooling
+Date: Mon, 25 Jul 2005 10:07:24 +0100 (BST)
+Message-ID: <Pine.LNX.4.58.0507250950540.4364@nacho>
+References: <E1DwtK9-000275-00@skye.ra.phy.cam.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <E1DwtK9-000275-00-KmINTRm7+bkRAIupTkoUWTYRy0cijUJx@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,30 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+Cc: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-  I would like to ask, why the contents of /proc/acpi/sleep and /sys/power/state
-is different:
+> I don't know for sure, since I don't understand why your system starts
+> active cooling at 52 C (instead of 50 C) -- maybe there's hysteresis
+> in the hardware?  And why does it have to get way down to 44 C instead
+> of only 50 C before turning off?
 
-root@miro:~# cat /proc/acpi/sleep
-S0 S3 S4 S5
-root@miro:~# cat /sys/power/state
-standby mem disk
+There is probably hysteresis built into the DSDT.  The ACPI Spec
+suggests doing this (don't have a page # handy tho', sorry), it's how
+hysteresis is implemented on my laptop (as well as yours---atlhough the
+hysteresis code is probably broken as it was on mine.  I'm preparing a
+page in the DSDT fixes/rewrites I've done on my laptop, if you're
+interested.  Your 600x DSDT code seems pretty much identical to my 770x
+code).
 
-  The first one corresponds with a real functionality - for example, in dmesg
-there is the line
-ACPI: (supports S0 S3 S4 S5)
-on my notebook.
-  The second one seems to be wrong: There is "standby", although I have neither
-S1 nor S2 capable system - and it's really not working, and S5 is missing
-(should there be something like "off" in /sys/power/state ?).
-  I'm asking because /proc/acpi/sleep has been obsoletized in latest kernels and
-IMHO /sys/power/state is not a fully-featured and working replacement.
+Basically, whenever there is a change in fan state, the DSDT can trigger
+the OS to re-read the trip-points from the DSDT, and give lower values.
+Again, once the fan turns off, it can tell the OS to re-read, and give
+higher trip-point values.
 
-                              With regards,
-			              Pavel Troller
+The problem with this is I can't really play with my trip-points using
+/proc, because as soon as the fan changes state, my changes get
+overwritten by the DSDT.  It would be interesting if anyone has any ideas
+of getting around this.
+
+Cheers,
 
 
 -------------------------------------------------------
