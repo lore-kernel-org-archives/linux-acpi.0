@@ -1,12 +1,14 @@
 From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: [PATCH] 2.6.13-rc3-git5: fix Bug #4416 (0/2)
-Date: Tue, 26 Jul 2005 12:47:05 +0200
-Message-ID: <200507261247.05684.rjw@sisk.pl>
+Subject: [PATCH] 2.6.13-rc3-git5: fix Bug #4416 (1/2)
+Date: Tue, 26 Jul 2005 12:51:47 +0200
+Message-ID: <200507261251.48291.rjw@sisk.pl>
+References: <200507261247.05684.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200507261247.05684.rjw-KKrjLPT3xs0@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -21,32 +23,38 @@ To: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+The following patch adds free_irq() and request_irq() to the suspend and
+resume, respectively, routines in the snd_intel8x0 driver.
 
-The following two patches are necessary to prevent my box (Asus L5D) from
-hanging solid during resume from disk.
+Signed-off-by: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
 
-The problem is that, apparently, some out-of-order interrupts may be
-generated during resume and if some drivers do not call free_irq() on
-suspend, these interrupts are mishandled.  For reference please see
-http://bugzilla.kernel.org/show_bug.cgi?id=4416
-and
-http://sourceforge.net/mailarchive/message.php?msg_id=12448907
-
-The first patch adds free_irq() and request_irq() to the suspend and resume
-routines, respectively, in the snd_intel8x0 driver.
-
-The second one adds basic suspend/resume support to the sk98lin driver.
-
-Please consider for applying,
-Rafael
-
-
--- 
-- Would you tell me, please, which way I ought to go from here?
-- That depends a good deal on where you want to get to.
-		-- Lewis Carroll "Alice's Adventures in Wonderland"
-
+--- linux-2.6.13-rc3-git5/sound/pci/intel8x0.c	2005-07-23 19:26:43.000000000 +0200
++++ patched/sound/pci/intel8x0.c	2005-07-25 18:21:36.000000000 +0200
+@@ -2373,6 +2373,8 @@ static int intel8x0_suspend(snd_card_t *
+ 	for (i = 0; i < 3; i++)
+ 		if (chip->ac97[i])
+ 			snd_ac97_suspend(chip->ac97[i]);
++	if (chip->irq >= 0)
++		free_irq(chip->irq, (void *)chip);
+ 	pci_disable_device(chip->pci);
+ 	return 0;
+ }
+@@ -2384,7 +2386,14 @@ static int intel8x0_resume(snd_card_t *c
+ 
+ 	pci_enable_device(chip->pci);
+ 	pci_set_master(chip->pci);
+-	snd_intel8x0_chip_init(chip, 0);
++	if (request_irq(chip->irq, snd_intel8x0_interrupt, SA_INTERRUPT|SA_SHIRQ, card->shortname, (void *)chip)) {
++		snd_printk("unable to grab IRQ %d\n", chip->irq);
++		chip->irq = -1;
++		pci_disable_device(chip->pci);
++		return -EBUSY;
++	}
++	synchronize_irq(chip->irq);
++	snd_intel8x0_chip_init(chip, 1);
+ 
+ 	/* refill nocache */
+ 	if (chip->fix_nocache)
 
 
 -------------------------------------------------------
