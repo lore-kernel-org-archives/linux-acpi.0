@@ -1,14 +1,14 @@
 From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
-Date: Tue, 26 Jul 2005 11:36:54 +0200
-Message-ID: <200507261136.54824.rjw@sisk.pl>
-References: <20050723133726.GA2079@miro.sinus.cz> <200507251846.55852.rjw@sisk.pl> <20050725184827.GA30854@tangens.sinus.cz>
+Subject: Re: [PATCH] 2.6.13-rc3-git5: fix Bug #4416 (2/2)
+Date: Tue, 26 Jul 2005 12:54:04 +0200
+Message-ID: <200507261254.05507.rjw@sisk.pl>
+References: <200507261247.05684.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050725184827.GA30854-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
+In-Reply-To: <200507261247.05684.rjw-KKrjLPT3xs0@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,35 +19,102 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, 25 of July 2005 20:48, Pavel Troller wrote:
-> Hi Rafael!
-> > handlers:
-> > [<dc86e850>] (snd_intel8x0_interrupt+0x0/0x240 [snd_intel8x0])
-> > 
-> > still present in the backtrace with the patch?
-> Yes, it was there, but I know why :-), the actual code was patched but it was
-> not running, due to the fact that I have about 4 testing kernel trees, 
-> something went wrong during modules_install and the old, non-patched sound
-> module was used. It works with the modified patch as well as with the original
-> one. I feel like an idiot, sorry for this :-).
-> > 
->  So the interrupt part of -rc3 problems seems to be fixed for me too :-).
+The following patch adds basic suspend/resume support to the sk98lin
+network driver.
 
-Great.
+Signed-off-by: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
 
-BTW, can you please send me the output of dmesg from your machine?
-
-Rafael
-
-
--- 
-- Would you tell me, please, which way I ought to go from here?
-- That depends a good deal on where you want to get to.
-		-- Lewis Carroll "Alice's Adventures in Wonderland"
+--- linux-2.6.13-rc3-git5/drivers/net/sk98lin/skge.c	2005-07-23 19:26:29.000000000 +0200
++++ patched/drivers/net/sk98lin/skge.c	2005-07-25 18:17:57.000000000 +0200
+@@ -5133,6 +5133,75 @@ static void __devexit skge_remove_one(st
+ 	kfree(pAC);
+ }
+ 
++#ifdef CONFIG_PM
++static int skge_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	DEV_NET *pNet = netdev_priv(dev);
++	SK_AC *pAC = pNet->pAC;
++	struct net_device *otherdev = pAC->dev[1];
++
++	if (pNet->Up) {
++		pAC->WasIfUp[0] = SK_TRUE;
++		DoPrintInterfaceChange = SK_FALSE;
++		SkDrvDeInitAdapter(pAC, 0);  /* performs SkGeClose */
++	}
++	if (otherdev != dev) {
++		pNet = netdev_priv(otherdev);
++		if (pNet->Up) {
++			pAC->WasIfUp[1] = SK_TRUE;
++			DoPrintInterfaceChange = SK_FALSE;
++			SkDrvDeInitAdapter(pAC, 1);  /* performs SkGeClose */
++		}
++	}
++
++	pci_save_state(pdev);
++	pci_enable_wake(pdev, pci_choose_state(pdev, state), 0);
++	if (pAC->AllocFlag & SK_ALLOC_IRQ) {
++		free_irq(dev->irq, dev);
++	}
++	pci_disable_device(pdev);
++	pci_set_power_state(pdev, pci_choose_state(pdev, state));
++
++	return 0;
++}
++
++static int skge_resume(struct pci_dev *pdev)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	DEV_NET *pNet = netdev_priv(dev);
++	SK_AC *pAC = pNet->pAC;
++	int ret;
++
++	pci_set_power_state(pdev, PCI_D0);
++	pci_restore_state(pdev);
++	pci_enable_device(pdev);
++	pci_set_master(pdev);
++	if (pAC->GIni.GIMacsFound == 2)
++		ret = request_irq(dev->irq, SkGeIsr, SA_SHIRQ, pAC->Name, dev);
++	else
++		ret = request_irq(dev->irq, SkGeIsrOnePort, SA_SHIRQ, pAC->Name, dev);
++	if (ret) {
++		printk(KERN_WARNING "sk98lin: unable to acquire IRQ %d\n", dev->irq);
++		pAC->AllocFlag &= ~SK_ALLOC_IRQ;
++		dev->irq = 0;
++		pci_disable_device(pdev);
++		return -EBUSY;
++	}
++
++	if (pAC->WasIfUp[0] == SK_TRUE) {
++		DoPrintInterfaceChange = SK_FALSE;
++		SkDrvInitAdapter(pAC, 0);    /* first device  */
++	}
++	if (pAC->dev[1] != dev && pAC->WasIfUp[1] == SK_TRUE) {
++		DoPrintInterfaceChange = SK_FALSE;
++		SkDrvInitAdapter(pAC, 1);    /* second device  */
++	}
++
++	return 0;
++}
++#endif
++
+ static struct pci_device_id skge_pci_tbl[] = {
+ 	{ PCI_VENDOR_ID_3COM, 0x1700, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+ 	{ PCI_VENDOR_ID_3COM, 0x80eb, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+@@ -5158,6 +5227,8 @@ static struct pci_driver skge_driver = {
+ 	.id_table	= skge_pci_tbl,
+ 	.probe		= skge_probe_one,
+ 	.remove		= __devexit_p(skge_remove_one),
++	.suspend	= skge_suspend,
++	.resume		= skge_resume,
+ };
+ 
+ static int __init skge_init(void)
 
 
 -------------------------------------------------------
