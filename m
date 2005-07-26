@@ -1,14 +1,15 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: Problem patching pci.c
-Date: Tue, 26 Jul 2005 09:27:18 +0000
-Message-ID: <20050726092718.GA4339@fingerbrecher>
-References: <42E57D67.1020800@arcoscom.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: More experiences with 2.6.13-rc3 with ec_polling patch
+Date: Tue, 26 Jul 2005 11:36:54 +0200
+Message-ID: <200507261136.54824.rjw@sisk.pl>
+References: <20050723133726.GA2079@miro.sinus.cz> <200507251846.55852.rjw@sisk.pl> <20050725184827.GA30854@tangens.sinus.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050725184827.GA30854-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <42E57D67.1020800-guaFs41aBRpWk0Htik3J/w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,54 +19,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday, 25 of July 2005 20:48, Pavel Troller wrote:
+> Hi Rafael!
+> > handlers:
+> > [<dc86e850>] (snd_intel8x0_interrupt+0x0/0x240 [snd_intel8x0])
+> > 
+> > still present in the backtrace with the patch?
+> Yes, it was there, but I know why :-), the actual code was patched but it was
+> not running, due to the fact that I have about 4 testing kernel trees, 
+> something went wrong during modules_install and the old, non-patched sound
+> module was used. It works with the modified patch as well as with the original
+> one. I feel like an idiot, sorry for this :-).
+> > 
+>  So the interrupt part of -rc3 problems seems to be fixed for me too :-).
 
---cWoXeonUoKmBZSoM
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Great.
 
-hello Samuel...
+BTW, can you please send me the output of dmesg from your machine?
 
-* Samuel D=EDaz Garc=EDa <samueldg-guaFs41aBRpWk0Htik3J/w@public.gmane.org> [2005-07-26 09:18 +0000]:
-> Encountered a patch fail the vanilla kernel 2.6.12.3 in pci.c source file.
->=20
-> The patch command used is:
->=20
-> patch -p1 -t -f -i ..\patches\acpi-20050408-2.6.12.diff
->=20
-> When compiling, fails in pci.c source with a non found symbol.
->=20
-> Any suggestion?
+Rafael
 
-try the latest patch:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6=
-=2E12/acpi-20050708-2.6.12.patch.bz2
 
-hth,
- Sebastian
---=20
-Oo................................................................
-Der naechste Satz ist eine Luege. Der vorhergehende Satz ist wahr.
-OpenPGP key ID: 0x7A62F9B4  Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++
-=2E...............................................................oO
-
---cWoXeonUoKmBZSoM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC5gH2reHfL3pi+bQRAnQiAJ9x3mNXn4lf5VjDKpQVqy2E/R3vXgCfRffX
-uuAx08fIS6GI1sD8jiID9m4=
-=X+4x
------END PGP SIGNATURE-----
-
---cWoXeonUoKmBZSoM--
+-- 
+- Would you tell me, please, which way I ought to go from here?
+- That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
 
 
 -------------------------------------------------------
