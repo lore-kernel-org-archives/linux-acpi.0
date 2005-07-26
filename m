@@ -1,11 +1,13 @@
-From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
-Subject: Re: [PATCH] hysteresis for active cooling
-Date: Tue, 26 Jul 2005 19:59:31 +0100
-Message-ID: <E1DxUeJ-0004YO-00@skye.ra.phy.cam.ac.uk>
-References: <Pine.LNX.4.58.0507250950540.4364@nacho>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI buttons in 2.6.12-rc4-mm2
+Date: Tue, 26 Jul 2005 15:44:39 -0400
+Message-ID: <1122407079.13241.4.camel@toshiba.lenb.intel.com>
+References: <b6d0f5fb0505220425146d481a@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Your message of "Mon, 25 Jul 2005 10:07:24 BST."
-             <Pine.LNX.4.58.0507250950540.4364@nacho>
+In-Reply-To: <b6d0f5fb0505220425146d481a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,34 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jamie Lentin <lentinj-aI60gWiEnN8g9ELcbhaJlPXRex20P6io@public.gmane.org>
-Cc: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Cameron Harris <thecwin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> The problem with this is I can't really play with my trip-points
-> using /proc, because as soon as the fan changes state, my changes
-> get overwritten by the DSDT.
+On Sun, 2005-05-22 at 07:25 -0400, Cameron Harris wrote:
+> I just upgraded from 2.6.11.3 and now my /proc/acpi/button directory
+> doesn't exist...
 
-Hmm, I've noticed that overwriting when the laptop wakes up from
-suspend (S3).  The wakeup script sets the THM2 zone's active trip
-point to 50 C, but after maybe 10 or 15 minutes, it reverts to 34C
-(the default I think) and the fan turns on -- as it did just a minute
-ago.  I haven't noticed this overwriting except after a wakeup;
-normally, the setting made using /proc remains constant.  Maybe I
-should reload the thermal module upon wakeup, then set the
-temperature.
+I deleted /proc/acpi/button on purpose,
+did you have a use for those files?
 
-> I'm preparing a page in the DSDT fixes/rewrites I've done on my
-> laptop, if you're interested.
+Note that over time everything in /proc/acpi is
+going away.  In this case, there didn't seem to be
+a case for making appear in /sys.
 
-Thanks, I'd be interested.  The 600X has the best keyboard of any
-computer I've used, even better than my old 560.  With the maximum
-memory in it, it is plenty fast enough for what I do (TeX/MetaPost,
-computational physics) so I never want to upgrade to a newer and
-shoddier piece of hardware, and would like to fix as much as possible
-with the 600X's power management.
+thanks,
+-Len
 
--Sanjoy
+
 
 
 -------------------------------------------------------
