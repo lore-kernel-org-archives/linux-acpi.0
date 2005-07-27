@@ -1,14 +1,13 @@
-From: Voluspa <voluspa-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: acpidump replaces acpidmp
-Date: Wed, 27 Jul 2005 15:44:58 +0200
-Message-ID: <20050727154458.455d16db.voluspa@telia.com>
-References: <20050726192423.216b4be8.voluspa@telia.com>
-	<42E76A79.2040702@suse.de>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: acpidump replaces acpidmp
+Date: Wed, 27 Jul 2005 11:00:45 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B300428C3AB@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42E76A79.2040702-l3A5Bk7waGM@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,27 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Voluspa <voluspa-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+feel free to send me a patch to fix it.
 
-24 -r--------  1 root root   24136 Jul 27 14:47 dsdt
-28 -rw-r--r--  1 root root   24743 Jul 27 14:52 dsdt.acpidump
+thanks,
+-Len=20
 
-OK, I now know that acpidump gives me both fadt and dsdt and something
-more, hence the difference. But this is usability madness; 1) The
-documentation of program switches, Both README and source, swing between
-mildly accurate and inaccurate; 2) Having to dump/decode in several
-steps here (not really knowing if you've made an error) and then later
-in iasl as well.
-
-Compared to just copying dsdt from /proc and following all the tutorials
-online on how to modify it, this hackery is not sane.
-
-Mvh
-Mats Johannesson
---
+>-----Original Message-----
+>From: Voluspa [mailto:voluspa-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org]=20
+>Sent: Wednesday, July 27, 2005 9:45 AM
+>To: Thomas Renninger
+>Cc: Brown, Len; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] Re: acpidump replaces acpidmp
+>
+>
+>24 -r--------  1 root root   24136 Jul 27 14:47 dsdt
+>28 -rw-r--r--  1 root root   24743 Jul 27 14:52 dsdt.acpidump
+>
+>OK, I now know that acpidump gives me both fadt and dsdt and something
+>more, hence the difference. But this is usability madness; 1) The
+>documentation of program switches, Both README and source,=20
+>swing between
+>mildly accurate and inaccurate; 2) Having to dump/decode in several
+>steps here (not really knowing if you've made an error) and then later
+>in iasl as well.
+>
+>Compared to just copying dsdt from /proc and following all the=20
+>tutorials
+>online on how to modify it, this hackery is not sane.
+>
+>Mvh
+>Mats Johannesson
+>--
+>
 
 
 -------------------------------------------------------
