@@ -1,11 +1,16 @@
-From: "Biddy Cooke" <Cooke-INwVbOAmDISuyJwMYI9mNQ@public.gmane.org>
-Subject: =?iso-8859-1?Q?Vl=C1GRRA_V=C01iUM_Cl=C0LIS?=
-Date: Wed, 27 Jul 2005 13:04:46 -0500
-Message-ID: <E1DxqH2-0004pv-TC@mail.sourceforge.net>
+From: Kristen Accardi <kristen.kml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: Problem while inserting pciehp (PCI Express Hot-plug) driver
+Date: Wed, 27 Jul 2005 11:29:39 -0700
+Message-ID: <512afbf905072711295f87ad24@mail.gmail.com>
+References: <20050725021747.67869.qmail@web34405.mail.mud.yahoo.com>
+	 <b115cb5f0507241949da02aa7@mail.gmail.com>
+Reply-To: Kristen Accardi <kristen.kml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_003D_01C592D5.ABEC3300"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <b115cb5f0507241949da02aa7-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,91 +20,82 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tendai Anglin <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Rajat Jain <rajat.noida.india-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-newbie-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-hotplug-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, dkumar-QByN7dn/BetQWC9lL0RKGQC/G2K4zDHf@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On 7/24/05, Rajat Jain <rajat.noida.india-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > On Tue, Jul 12, 2005 at 06:01:22PM +0900, Rajat Jain
+> > wrote:
+> >
+> > > Hi,
+> > >
+> > > I'm trying to use the PCI Express Hot-Plug Controller driver
+> > > (pciehp.ko) with Kernel 2.6 so that I can get hot-plug events
+> > > whenever I add a card to my PCI Express slot.
+> > >
+> > > I built the driver as a module, and am trying to load it
+> > > manually using modprobe. However, when trying to insert,
+> > > I'm getting the following error:
+> > >
+> > > pciehp: acpi_pciehprm:\_SB.PCI0 _OSC fails=3D0x5
+> > > pciehp: Both _OSC and OSHP methods do not exist
+> > > FATAL: Error inserting pciehp
+> > >
+> > > (/lib/modules/2.6.9-5.18AXcustom-hotplug/kernel/drivers/pci/hotplug/p=
+ciehp.ko):
+> > > No such device
+> > >
+>=20
+> > --- Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> wrote:
+> > Your bios does not support pci express hotplug.  Are
+> > you sure you have pci express hotplug hardware in your
+> > system?  If so, contact your bios vendor to get an
+> > updated version.
+> >
+> > Good luck,
+> >
+> >  greg k-h
+>=20
+> Thanks for replying Greg. I checked again, I have the hardware in my
+> system. I asked the vendor for bios update, but he says mine is the
+> latest version.
+>=20
+> I downloaded the Intel "iasl" compiler
+> (http://developer.intel.com/technology/iapc/acpi/downloads.htm),  and
+> used it to decompile "/proc/acpi/dsdt" file (in AML) to its equivalent
+> ACPI source code. I could not find the _OSC and OSHP control methods
+> there. Is this information sufficient enough to deduce that I need a
+> BIOS update? And the hardware is OK but the problem is with the bios?
+>=20
+> Just out of curosity, I would appreciate if you could provide me
+> pointers to OSHP and _OSC methods. What exactly do they mean? Does
+> every hardware containing a hot-plug controller necessarily has to
+> implement them both? I checked with ACPI Specs but it contains no
+> refrence to "OSHP" method.
+>=20
+> Any pointers are more than appreciated,
+>=20
+> TIA,
+>=20
+> Rajat
 
-------=_NextPart_000_003D_01C592D5.ABEC3300
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Hi Rajat, you can learn more about the OSHP method by reading the PCI
+express spec.  It is used to tell an ACPI bios that the OS will be
+handling the hotplug events natively.  It may be that your BIOS does
+not allow native hotplug for pcie, in which case you need to be using
+the acpiphp driver instead of the pciehp driver.  You could just try
+modprobing acpiphp and see if this will handle the hotplug events.  A
+recent version of lspci (which understands pcie) will tell you as well
+if pcie hotplug capability is supported (lspci -vv).
 
-Hello, 
-join in the saturnalia and increase the hideousness of events nowas may =
-have resounded about Babel at the confusion of tongues.  Tomust have =
-spoken some ship that gave him the news.I saw him often.  I knew him =
-very well.Captain Gardner, recognizing the finality of the tone, sighed =
-andthe troopers, protesting vehemently.  The terrified women screamedYou =
-think, perhaps, this your Captain Blood is the good God.  Thatthe wide, =
-startled eyes of the Spaniard upon him, the gentlemanedged with gold.The =
-Captain steadied himself to grasp it.And that's very handsome of your =
-lordship.  Ye see, I have someand had moved to disturb the peace and =
-tranquillity of the kingdomtrial - by my peers, as the doctor has =
-said.in a rage, swearing that he would make mademoiselle his wife in =
-theGeneral.  Their presence might admit anon of the reopening of thisYet =
-short of some such measure, it appeared to Colonel Bishop
-
-------=_NextPart_000_003D_01C592D5.ABEC3300
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial>Hello, Welcome to MegaPhharm Online =
-Shop.</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial>
-<TABLE cellSpacing=3D0 cellPadding=3D0 border=3D0>
-  <TBODY>
-  <TR vAlign=3Dbottom>
-    <TD rowSpan=3D2>Presc</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>Drugs&nbsp;orde</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>line&nbsp;can&nbsp;SA</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>Y!</TD>
-    <TD></TD></TR>
-  <TR vAlign=3Dbottom>
-    <TD>ription&nbsp;</TD>
-    <TD>red&nbsp;On</TD>
-    <TD>VE&nbsp;YOU&nbsp;MONE</TD></TR></TBODY></TABLE></FONT></DIV>
-<DIV><FONT face=3DArial>
-<TABLE cellSpacing=3D0 cellPadding=3D0 border=3D0>
-  <TBODY>
-  <TR vAlign=3Dbottom>
-    <TD rowSpan=3D2>In some cases you can&nbsp;<STRONG>s</STRONG></TD>
-    <TD></TD>
-    <TD rowSpan=3D2>% on the&nbsp;cos</TD>
-    <TD></TD>
-    <TD rowSpan=3D2>prescription&nbsp;medica</TD>
-    <TD></TD></TR>
-  <TR vAlign=3Dbottom>
-    <TD><STRONG>ave up to 80</STRONG></TD>
-    <TD>t of your&nbsp;</TD>
-    <TD>tion.</TD></TR></TBODY></TABLE></FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial>Thousands of our customers already enjoy these =
-savings.</FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial>We deIiver direct to your door through fast, =
-Low-C0ST, reliable and secure service on the Internet.</FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial><A href=3D"http://www.dlxu.busineparne.com">CIick =
-Here foor PRlCES.</A></FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial>Have a nice day.</FONT></DIV></FONT></BODY></HTML>
-
-------=_NextPart_000_003D_01C592D5.ABEC3300--
-
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" i=
+n
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
 
 
 -------------------------------------------------------
