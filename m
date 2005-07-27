@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 2/7] CONFIG_ACPI=n build fix
-Date: Wed, 27 Jul 2005 01:01:31 -0700
-Message-ID: <200507270802.j6R82R5T009258@shell0.pdx.osdl.net>
+Subject: [patch 4/7] acpi: video.c: properly remove notify handlers
+Date: Wed, 27 Jul 2005 01:01:33 -0700
+Message-ID: <200507270802.j6R82TwZ009264@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,64 +13,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 
-arch/i386/kernel/setup.c: In function `setup_arch':
-arch/i386/kernel/setup.c:1571: warning: implicit declaration of function `acpi_boot_table_init'
-arch/i386/kernel/setup.c:1572: warning: implicit declaration of function `acpi_boot_init'
-arch/i386/kernel/built-in.o(.init.text+0x17c4): In function `setup_sigcontext':
-/usr/src/25/arch/i386/kernel/signal.c:299: undefined reference to `acpi_boot_table_init'
-arch/i386/kernel/built-in.o(.init.text+0x17c9):/usr/src/25/arch/i386/kernel/signal.c:300: undefined reference to `acpi_boot_init'
+The video driver doesn't properly remove all the notify handlers on module
+unload.  This has a side effect of subdevices failing to register on module
+reload, but sudden death looms if the handlers trigger after the module is
+unloaded (not that I've seen such a machine, but still).
 
-
+Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- include/linux/acpi.h |   22 ++++++++++++----------
- 1 files changed, 12 insertions(+), 10 deletions(-)
+ drivers/acpi/video.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN include/linux/acpi.h~no-acpi-build-fix include/linux/acpi.h
---- devel/include/linux/acpi.h~no-acpi-build-fix	2005-07-14 15:53:20.000000000 -0700
-+++ devel-akpm/include/linux/acpi.h	2005-07-14 15:53:20.000000000 -0700
-@@ -433,16 +433,6 @@ extern int sbf_port ;
+diff -puN drivers/acpi/video.c~acpi-videoc-properly-remove-notify-handlers drivers/acpi/video.c
+--- devel/drivers/acpi/video.c~acpi-videoc-properly-remove-notify-handlers	2005-07-14 15:53:43.000000000 -0700
++++ devel-akpm/drivers/acpi/video.c	2005-07-14 15:53:43.000000000 -0700
+@@ -1665,6 +1665,7 @@ static int
+ acpi_video_bus_put_one_device(
+ 	struct acpi_video_device	*device)
+ {
++	acpi_status status;
+ 	struct acpi_video_bus *video;
  
- #define acpi_mp_config	0
+ 	ACPI_FUNCTION_TRACE("acpi_video_bus_put_one_device");
+@@ -1679,6 +1680,12 @@ acpi_video_bus_put_one_device(
+ 	up(&video->sem);
+ 	acpi_video_device_remove_fs(device->dev);
  
--static inline int acpi_boot_init(void)
--{
--	return 0;
--}
--
--static inline int acpi_boot_table_init(void)
--{
--	return 0;
--}
--
- #endif 	/*!CONFIG_ACPI_BOOT*/
- 
- unsigned int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
-@@ -553,5 +543,17 @@ static inline int acpi_get_pxm(acpi_hand
- 
- extern int pnpacpi_disabled;
- 
-+#else	/* CONFIG_ACPI */
++	status = acpi_remove_notify_handler(device->handle,
++		ACPI_DEVICE_NOTIFY, acpi_video_device_notify);
++	if (ACPI_FAILURE(status))
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Error removing notify handler\n"));
 +
-+static inline int acpi_boot_init(void)
-+{
-+	return 0;
-+}
-+
-+static inline int acpi_boot_table_init(void)
-+{
-+	return 0;
-+}
-+
- #endif	/* CONFIG_ACPI */
- #endif	/*_LINUX_ACPI_H*/
+ 	return_VALUE(0);
+ }
+ 
 _
 
 
