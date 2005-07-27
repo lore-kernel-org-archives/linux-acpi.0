@@ -1,14 +1,11 @@
 From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: system freezes for 0.2 to 0.5 seconds when reading
- /proc/acpi/thermal_zone/THRM/temperature
-Date: Wed, 27 Jul 2005 16:16:05 -0700
-Message-ID: <20050727161605.5711fcf7.akpm@osdl.org>
-References: <20050728002244.5163ac4a@localhost>
+Subject: Fw: powersave not working with amd64 on nforce 4 board
+Date: Wed, 27 Jul 2005 16:16:46 -0700
+Message-ID: <20050727161646.05c40b3a.akpm@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050728002244.5163ac4a@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,38 +15,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Florian Engelhardt <flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Florian Engelhardt <flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Florian Engelhardt <flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org> wrote:
->
-> Hello,
-> 
-> first of all, sorry for the long headline.
-> second:
-> Every time, i try to do the following:
-> cat /proc/acpi/thermal_zone/THRM/temperature
-> the whole system looks up for a short period of time (something about
-> 0.5s). realy everything, video and audio encoding, mouse and keyboard
-> input, firefox playing a flash animation, ...
-> I am also getting the following:
-> Losing some ticks... checking if CPU frequency changed.
-> 
-> maybe these two things are belonging to each other.
-> 
-> I am using a 2.6.12-rc3-mm1 kernel on a amd64 with a nvidia nforce4
-> mainboard.
 
-It might help if you were to generate a kernel profile:
+It might help if you were to raise a bugzilla entry for this..
 
-readprofile -r
-for i in $(seq 10)
-do
-	cat /proc/acpi/thermal_zone/THRM/temperature
-done
-readprofile -n -v -m /boot/System.map | sort -n +2 | tail -40
+Begin forwarded message:
 
+Date: Thu, 28 Jul 2005 00:26:18 +0200
+From: Florian Engelhardt <flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: powersave not working with amd64 on nforce 4 board
+
+
+Hello,
+
+powersaving is not working with a 2.6.12-rc3-mm1 kernel and a amd64
+3500+ on a nvidia nforce 4 mainboard.
+syslog tells me the following about it:
+
+...
+ACPI: Processor [CPU0] (supports 8 throttling states)
+...
+powernow-k8: Found 1 AMD Athlon 64 / Opteron processors (version 1.40.2)
+acpi_processor-0252 [04] acpi_processor_get_per: Error evaluating _PSS
+powernow-k8: BIOS error - no PSB or ACPI _PSS objects
+acpi_processor-0252 [04] acpi_processor_get_per: Error evaluating _PSS
+
+kind regards
+
+flo
+
+-- 
+"I may have invented it, but Bill made it famous"
+David Bradley, who invented the (in)famous ctrl-alt-del key combination
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
 
 
 -------------------------------------------------------
