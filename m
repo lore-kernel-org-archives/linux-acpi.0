@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] ACPI: make acpi_bus_register_driver() return zero for success, not device count
-Date: Wed, 27 Jul 2005 16:28:25 -0600
-Message-ID: <200507271628.25844.bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: simplify scan.c coding
+Date: Wed, 27 Jul 2005 16:30:01 -0600
+Message-ID: <200507271630.01700.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -18,100 +18,88 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sziwan-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-pci_register_driver() used to return the number of devices claimed,
-and we made acpi_bus_register_driver() consistent with that.  But
-pci_register_driver() recently changed to return only success/failure
-(because the interface is to register the *driver*, not claim devices,
-and devices may be hot-plugged later).
+acpi_match_ids(): "buffer" is no longer used and its leftover management
+    code is an unnecessary complication.
 
-So let's do the same with acpi_bus_register_driver().
-
-Note that asus_acpi.c used to unregister itself if it didn't claim
-any devices.  Now it will remain registered, like everything else
-in drivers/acpi.
+acpi_bus_unregister_driver(): No functional change, just simplify the
+    control flow.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
 Index: work/drivers/acpi/scan.c
 ===================================================================
---- work.orig/drivers/acpi/scan.c	2005-07-27 10:17:43.000000000 -0600
-+++ work/drivers/acpi/scan.c	2005-07-27 10:17:55.000000000 -0600
-@@ -578,10 +578,9 @@
- 	return_VALUE(result);
- }
- 
--static int acpi_driver_attach(struct acpi_driver * drv)
-+static void acpi_driver_attach(struct acpi_driver * drv)
+--- work.orig/drivers/acpi/scan.c	2005-07-27 10:17:55.000000000 -0600
++++ work/drivers/acpi/scan.c	2005-07-27 10:18:55.000000000 -0600
+@@ -254,30 +254,22 @@
+ 	struct acpi_device	*device,
+ 	char			*ids)
  {
- 	struct list_head * node, * next;
--	int count = 0;
+-	int error = 0;
+-	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+-
+ 	if (device->flags.hardware_id)
+ 		if (strstr(ids, device->pnp.hardware_id))
+-			goto Done;
++			return 0;
  
- 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
+ 	if (device->flags.compatible_ids) {
+ 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
+ 		int i;
  
-@@ -597,7 +596,6 @@
- 			if (!acpi_bus_driver_init(dev, drv)) {
- 				acpi_start_single_object(dev);
- 				atomic_inc(&drv->references);
--				count++;
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
- 						  drv->name, dev->pnp.bus_id));
- 			}
-@@ -605,7 +603,6 @@
- 		spin_lock(&acpi_device_lock);
+ 		/* compare multiple _CID entries against driver ids */
+-		for (i = 0; i < cid_list->count; i++)
+-		{
++		for (i = 0; i < cid_list->count; i++) {
+ 			if (strstr(ids, cid_list->id[i].value))
+-				goto Done;
++				return 0;
+ 		}
  	}
- 	spin_unlock(&acpi_device_lock);
--	return_VALUE(count);
+-	error = -ENOENT;
+ 
+- Done:
+-	if (buffer.pointer)
+-		acpi_os_free(buffer.pointer);
+-	return error;
++	return -ENOENT;
  }
  
- static int acpi_driver_detach(struct acpi_driver * drv)
-@@ -636,16 +633,13 @@
-  * acpi_bus_register_driver 
-  * ------------------------ 
-  * Registers a driver with the ACPI bus.  Searches the namespace for all
-- * devices that match the driver's criteria and binds.  Returns the
-- * number of devices that were claimed by the driver, or a negative
-- * error status for failure.
-+ * devices that match the driver's criteria and binds.  Returns zero for
-+ * success or a negative error status for failure.
-  */
- int
- acpi_bus_register_driver (
+ static acpi_status
+@@ -668,21 +660,19 @@
+ acpi_bus_unregister_driver (
  	struct acpi_driver	*driver)
  {
--	int count;
+-	int error = 0;
 -
- 	ACPI_FUNCTION_TRACE("acpi_bus_register_driver");
+ 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
  
- 	if (acpi_disabled)
-@@ -657,9 +651,9 @@
- 	spin_lock(&acpi_device_lock);
- 	list_add_tail(&driver->node, &acpi_bus_drivers);
- 	spin_unlock(&acpi_device_lock);
--	count = acpi_driver_attach(driver);
-+	acpi_driver_attach(driver);
+-	if (driver) {
+-		acpi_driver_detach(driver);
++	if (!driver)
++		return_VALUE(-EINVAL);
  
--	return_VALUE(count);
+-		if (!atomic_read(&driver->references)) {
+-			spin_lock(&acpi_device_lock);
+-			list_del_init(&driver->node);
+-			spin_unlock(&acpi_device_lock);
+-		} 
+-	} else 
+-		error = -EINVAL;
+-	return_VALUE(error);
++	acpi_driver_detach(driver);
++
++	if (!atomic_read(&driver->references)) {
++		spin_lock(&acpi_device_lock);
++		list_del_init(&driver->node);
++		spin_unlock(&acpi_device_lock);
++	}
 +	return_VALUE(0);
  }
- EXPORT_SYMBOL(acpi_bus_register_driver);
+ EXPORT_SYMBOL(acpi_bus_unregister_driver);
  
-Index: work/drivers/acpi/asus_acpi.c
-===================================================================
---- work.orig/drivers/acpi/asus_acpi.c	2005-07-27 10:17:43.000000000 -0600
-+++ work/drivers/acpi/asus_acpi.c	2005-07-27 10:17:55.000000000 -0600
-@@ -1216,8 +1216,7 @@
- 	asus_proc_dir->owner = THIS_MODULE;
- 
- 	result = acpi_bus_register_driver(&asus_hotk_driver);
--	if (result < 1) {
--		acpi_bus_unregister_driver(&asus_hotk_driver);
-+	if (result < 0) {
- 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
- 		return -ENODEV;
- 	}
 
 
 -------------------------------------------------------
