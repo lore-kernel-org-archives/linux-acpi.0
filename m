@@ -1,13 +1,8 @@
-From: Danny Brow <maillist-z3L/acBEKgLJPO3Kjao2dg@public.gmane.org>
-Subject: Re: Fixed DSDT for Acer 1694
-Date: Tue, 26 Jul 2005 20:24:29 -0400
-Message-ID: <42E6D43D.8000208@fullmotions.com>
-References: <42E677E2.6000707@fullmotions.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [patch 1/7] acpi-ext build fix
+Date: Wed, 27 Jul 2005 01:01:30 -0700
+Message-ID: <200507270802.j6R82QtI009255@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42E677E2.6000707-z3L/acBEKgLJPO3Kjao2dg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +12,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Danny Brow wrote:
 
-> Anyone have a fixed dsdt file for the acer 1694 with 3A18 bios it's 
-> the crane II system.
->
-> Thanks,
-> Dan.
->
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 
-Never mind I fixed mine.
+In file included from /usr/src/ctest/mm/kernel/drivers/char/agp/hp-agp.c:18:
+include2/asm/acpi-ext.h:15: error: parse error before "hp_acpi_csr_space"
+include2/asm/acpi-ext.h:15: error: parse error before "u64"
+include2/asm/acpi-ext.h:15: warning: type defaults to `int' in declaration of `hp_acpi_csr_space'
 
-Dan.
+
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+---
+
+ include/asm-ia64/acpi-ext.h |    1 +
+ 1 files changed, 1 insertion(+)
+
+diff -puN include/asm-ia64/acpi-ext.h~acpi-ext-build-fix include/asm-ia64/acpi-ext.h
+--- devel/include/asm-ia64/acpi-ext.h~acpi-ext-build-fix	2005-07-14 15:46:06.000000000 -0700
++++ devel-akpm/include/asm-ia64/acpi-ext.h	2005-07-14 15:46:06.000000000 -0700
+@@ -11,6 +11,7 @@
+ #define _ASM_IA64_ACPI_EXT_H
+ 
+ #include <linux/types.h>
++#include <acpi/actypes.h>
+ 
+ extern acpi_status hp_acpi_csr_space (acpi_handle, u64 *base, u64 *length);
+ 
+_
 
 
 -------------------------------------------------------
