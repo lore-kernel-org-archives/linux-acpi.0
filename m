@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/7] acpi-ext build fix
-Date: Wed, 27 Jul 2005 01:01:30 -0700
-Message-ID: <200507270802.j6R82QtI009255@shell0.pdx.osdl.net>
+Subject: [patch 2/7] CONFIG_ACPI=n build fix
+Date: Wed, 27 Jul 2005 01:01:31 -0700
+Message-ID: <200507270802.j6R82R5T009258@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,29 +19,58 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 
-In file included from /usr/src/ctest/mm/kernel/drivers/char/agp/hp-agp.c:18:
-include2/asm/acpi-ext.h:15: error: parse error before "hp_acpi_csr_space"
-include2/asm/acpi-ext.h:15: error: parse error before "u64"
-include2/asm/acpi-ext.h:15: warning: type defaults to `int' in declaration of `hp_acpi_csr_space'
+arch/i386/kernel/setup.c: In function `setup_arch':
+arch/i386/kernel/setup.c:1571: warning: implicit declaration of function `acpi_boot_table_init'
+arch/i386/kernel/setup.c:1572: warning: implicit declaration of function `acpi_boot_init'
+arch/i386/kernel/built-in.o(.init.text+0x17c4): In function `setup_sigcontext':
+/usr/src/25/arch/i386/kernel/signal.c:299: undefined reference to `acpi_boot_table_init'
+arch/i386/kernel/built-in.o(.init.text+0x17c9):/usr/src/25/arch/i386/kernel/signal.c:300: undefined reference to `acpi_boot_init'
 
 
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- include/asm-ia64/acpi-ext.h |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/acpi.h |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN include/asm-ia64/acpi-ext.h~acpi-ext-build-fix include/asm-ia64/acpi-ext.h
---- devel/include/asm-ia64/acpi-ext.h~acpi-ext-build-fix	2005-07-14 15:46:06.000000000 -0700
-+++ devel-akpm/include/asm-ia64/acpi-ext.h	2005-07-14 15:46:06.000000000 -0700
-@@ -11,6 +11,7 @@
- #define _ASM_IA64_ACPI_EXT_H
+diff -puN include/linux/acpi.h~no-acpi-build-fix include/linux/acpi.h
+--- devel/include/linux/acpi.h~no-acpi-build-fix	2005-07-14 15:53:20.000000000 -0700
++++ devel-akpm/include/linux/acpi.h	2005-07-14 15:53:20.000000000 -0700
+@@ -433,16 +433,6 @@ extern int sbf_port ;
  
- #include <linux/types.h>
-+#include <acpi/actypes.h>
+ #define acpi_mp_config	0
  
- extern acpi_status hp_acpi_csr_space (acpi_handle, u64 *base, u64 *length);
+-static inline int acpi_boot_init(void)
+-{
+-	return 0;
+-}
+-
+-static inline int acpi_boot_table_init(void)
+-{
+-	return 0;
+-}
+-
+ #endif 	/*!CONFIG_ACPI_BOOT*/
  
+ unsigned int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
+@@ -553,5 +543,17 @@ static inline int acpi_get_pxm(acpi_hand
+ 
+ extern int pnpacpi_disabled;
+ 
++#else	/* CONFIG_ACPI */
++
++static inline int acpi_boot_init(void)
++{
++	return 0;
++}
++
++static inline int acpi_boot_table_init(void)
++{
++	return 0;
++}
++
+ #endif	/* CONFIG_ACPI */
+ #endif	/*_LINUX_ACPI_H*/
 _
 
 
