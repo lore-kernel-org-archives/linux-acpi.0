@@ -1,10 +1,13 @@
-From: Perry Hutchison <phutchis-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>
-Subject: Re: AE_NO_MEMORY <--- What it means, is there a fix?
-Date: Wed, 27 Jul 2005 16:25:34 -0700 (PDT)
-Message-ID: <200507272325.QAA60480@riparian.beaverton.windriver.com>
-References: <200507271815.30711.gkanis@cems.umn.edu>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: ACPI buttons in 2.6.12-rc4-mm2
+Date: Wed, 27 Jul 2005 16:26:04 -0700
+Message-ID: <20050727162604.66efd801.akpm@osdl.org>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300428CA9E@hdsmsx401.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200507271815.30711.gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300428CA9E-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,20 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: thecwin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Vasileios Gkanis <gkanis-4fMUIQ/vbHD2fBVCVOL8/A@public.gmane.org>
-> Date: Wed, 27 Jul 2005 18:15:30 -0500
+"Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 >
-> I have a laptop which came with 2 memory modules 256MB each ...
-> Today, I bought a 1GB at 533Mhz memory module ...  dmesg gives
-> a lot of messages about the "AE_NO_MEMORY" ...
+> 
+> >Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> >> I deleted /proc/acpi/button on purpose,
+> >> did you have a use for those files?
+> >
+> >Can we put it back, please?
+> 
+> of course.
 
-You aren't by any chance using a patched your DSDT?  If so, you
-may need to merge your patches into the new base version that your
-firmware is now providing to describe the additional memory.
+Thanks.
+
+> >We cannot go ripping out stuff which applications and users 
+> >are currently using without quite a lot of preparation.
+> 
+> Agreed.  Although the implementation of the /proc lid status
+> file is fundamentally flawed in that even its name in /proc
+> is able to change and thus it is a totally bogus user-space API,
+> it was not thoughtful to delete it.
+> 
+> I'm open to suggestions on how to approach this transition.
+> I can make ACPI_PROC a static build option -- what else
+> can I do to ease the transition in this, our stable release?
+
+Well I don't know how awkward this would be from an implementation POV, but
+can we just leave the legacy /proc stuff there until the /sys interface is
+all in place and userspace is upgraded?  Then kill all the /proc stuff
+later?
+
+We could also print a rude message the first time someone tries to use a
+deprecated /proc file, just to help push the userspace tool developers
+along.  Although I note that sys_bdflush() is still with us ;)
+
 
 
 -------------------------------------------------------
