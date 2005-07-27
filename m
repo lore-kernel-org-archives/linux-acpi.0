@@ -1,33 +1,49 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: ACPI buttons in 2.6.12-rc4-mm2
-Date: Wed, 27 Jul 2005 16:49:24 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B300428C952@hdsmsx401.amr.corp.intel.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [ACPI] Re: [PATCH] 2.6.13-rc3-git5: fix Bug #4416 (1/2)
+Date: Wed, 27 Jul 2005 22:52:49 +0200
+Message-ID: <20050727205249.GA708@openzaurus.ucw.cz>
+References: <200507261247.05684.rjw@sisk.pl> <200507261251.48291.rjw@sisk.pl> <s5hmzo8ljf6.wl%tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Cc: Cameron Harris <thecwin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <alsa-devel-admin@lists.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <s5hmzo8ljf6.wl%tiwai@suse.de>
+Sender: alsa-devel-admin@lists.sourceforge.net
+Errors-To: alsa-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:alsa-devel@lists.sourceforge.net>
+List-Help: <mailto:alsa-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=alsa-devel>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, LKML <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, Andrew Morton <akpm@osdl.org>, alsa-devel@alsa-project.org
 List-Id: linux-acpi@vger.kernel.org
 
-I agree that the value of _LID can be usefult to user-space
-and I'll be sure it is restored as a property of the lid device
-under sysfs -- available as a simple file read like it
-was under /proc.
+Hi!
 
-thanks,
--Len
+> > The following patch adds free_irq() and request_irq() to the suspend and
+> > resume, respectively, routines in the snd_intel8x0 driver.
+> 
+> The patch looks OK to me although I have some concerns.
+> 
+> - The error in resume can't be handled properly.
+> 
+>   What should we do for the error of request_irq()?
+> 
+> - Adding this to all drivers seem too much.
+
+There's probably no other way. Talk to Len Brown.
+
+>   We just need to stop the irq processing until resume, so something
+>   like suspend_irq(irq, dev_id) and resume_irq(irq, dev_id) would be
+>   more uesful?
+
+Its more complex than that. Irq numbers may change during resume.
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
