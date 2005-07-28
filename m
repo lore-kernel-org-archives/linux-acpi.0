@@ -1,13 +1,13 @@
-From: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Fw: powersave not working with amd64 on nforce 4 board
-Date: Thu, 28 Jul 2005 13:58:37 -0400
-Message-ID: <20050728175837.GA31274@redhat.com>
-References: <20050727161646.05c40b3a.akpm@osdl.org> <200507281025.25183.rjw@sisk.pl> <20050728013416.6cd24d6e.akpm@osdl.org> <20050728162947.GB26599@redhat.com> <20050728104613.17f33c3f.akpm@osdl.org>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: git-acpi.patch failures (AE_NULL_OBJECT)
+Date: Thu, 28 Jul 2005 14:30:13 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30042CFE2F@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050728104613.17f33c3f.akpm-3NddpPZAyC0@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,26 +18,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: rjw-KKrjLPT3xs0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org, davej-rdkfGonbjUTCLXcRTR1eJlpr/1R2p/CL@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jul 28, 2005 at 10:46:13AM -0700, Andrew Morton wrote:
+> For a while now (days, at least) I've been getting a stream of ACPI
+> method execution failures due to the tree which I pull from
+> master.kernel.org:/pub/scm/linux/kernel/git/lenb/to-akpm.git
 
- > >  > Spose so.  Would prefer that Mark himself sends it though.
- > >  > 
- > >  > Dave, does it look sane?
- > > 
- > > Yes it does, I meant to send this along, but got caught up
- > > in the usual OLS-travelling foo. I'll clear the cpufreq
- > > backlog today, as there's 2-3 other bits that really should
- > > make it into .13
- > 
- > OK.  I won't do anything with this patch then.   Please don't lose it ;)
+> This doesn't happen with current -linus.
 
-Its now in cpufreq-git, and I sent Linus a req to pull already.
-Thanks for keeping track of things ;)
+> It's a fairly vanilla x86 PC which Intel is loaning me.
 
-		Dave
+>[\_SB_.PCI0.USB_._S3D] (Node cff9c1a0), AE_NULL_OBJECT
+>    ACPI-0171: *** Error: Method execution failed=20
+
+Is the issue limited to these AE_NULL_OBJECT failure warnings,
+or did something functional break?
+
+Looks like the warnings are all related to _S3D -- which we use to
+determine the appropriate D-state upon suspend-to-ram.
+
+Hmmm, I'm not seeing these -- maybe BIOS dependent.
+Can you check that you've got the latest BIOS for the box?
+If you do, can you stick the output from acpidmp or acpidump
+in a bugzilla?
+
+thanks,
+-Len
 
 
 -------------------------------------------------------
