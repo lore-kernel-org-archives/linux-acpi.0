@@ -1,84 +1,54 @@
-From: Kristen Accardi <kristen.kml@gmail.com>
-Subject: Re: Re: Problem while inserting pciehp (PCI Express Hot-plug) driver
-Date: Thu, 28 Jul 2005 10:00:14 -0700
-Message-ID: <512afbf905072810005f327e3@mail.gmail.com>
-References: <20050725021747.67869.qmail@web34405.mail.mud.yahoo.com>
-	 <b115cb5f0507241949da02aa7@mail.gmail.com>
-	 <512afbf905072711295f87ad24@mail.gmail.com>
-	 <b115cb5f05072803451836055c@mail.gmail.com>
-Reply-To: Kristen Accardi <kristen.kml@gmail.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Fw: powersave not working with amd64 on nforce 4 board
+Date: Thu, 28 Jul 2005 10:46:13 -0700
+Message-ID: <20050728104613.17f33c3f.akpm@osdl.org>
+References: <20050727161646.05c40b3a.akpm@osdl.org>
+	<200507281025.25183.rjw@sisk.pl>
+	<20050728013416.6cd24d6e.akpm@osdl.org>
+	<20050728162947.GB26599@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-hotplug-devel-admin@lists.sourceforge.net>
-In-Reply-To: <b115cb5f05072803451836055c@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-hotplug-devel-admin@lists.sourceforge.net
-Errors-To: linux-hotplug-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
-	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-hotplug-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
-	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-hotplug-devel>
-To: Rajat Jain <rajat.noida.india@gmail.com>
-Cc: greg@kroah.com, linux-kernel@vger.kernel.org, linux-newbie@vger.kernel.org, acpi-devel@lists.sourceforge.net, linux-hotplug-devel@lists.sourceforge.net, dkumar@noida.hcltech.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050728162947.GB26599-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: rjw-KKrjLPT3xs0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org, davej-rdkfGonbjUTCLXcRTR1eJlpr/1R2p/CL@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 7/28/05, Rajat Jain <rajat.noida.india@gmail.com> wrote:
-> >
-> > Hi Rajat, you can learn more about the OSHP method by reading the PCI
-> > express spec.  It is used to tell an ACPI bios that the OS will be
-> > handling the hotplug events natively.  It may be that your BIOS does
-> > not allow native hotplug for pcie, in which case you need to be using
-> > the acpiphp driver instead of the pciehp driver.  You could just try
-> > modprobing acpiphp and see if this will handle the hotplug events.  A
-> > recent version of lspci (which understands pcie) will tell you as well
-> > if pcie hotplug capability is supported (lspci -vv).
-> >
->=20
-> Okay. I'm sorry but I'm not very clear with this. I'm just putting
-> down here my understanding. So basically we have two mutually
-> EXCLUSIVE hotplug drivers I can use for PCI Express:
->=20
-> 1) "pciehp.ko" : We use this PCIE HP driver when our BIOS supports
-> Native Hot-plug for PCI Express (which means that hot-plug will be
-> handled by OS single handedly).
->=20
-> 2) "acpiphp.ko" : We use this "generic" ACPI HP driver when BIOS
-> allows only ITSELF to handle hot-plug events.
+Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> On Thu, Jul 28, 2005 at 01:34:16AM -0700, Andrew Morton wrote:
+>  > "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+>  > >
+>  > > n Thursday, 28 of July 2005 01:16, Andrew Morton wrote:
+>  > >  > 
+>  > >  > It might help if you were to raise a bugzilla entry for this..
+>  > > 
+>  > >  More likely it's BIOS bug.  I ran 2.6.13-rc3-mm1 on a box with nForce4
+>  > >  and it worked fine except I needed to apply the attached patch from
+>  > >  Mark Langsdorf, since the CPU is a dual-core.
+>  > > 
+>  > >  BTW, any chance to include this patch in -mm?
+>  > 
+>  > Spose so.  Would prefer that Mark himself sends it though.
+>  > 
+>  > Dave, does it look sane?
+> 
+> Yes it does, I meant to send this along, but got caught up
+> in the usual OLS-travelling foo. I'll clear the cpufreq
+> backlog today, as there's 2-3 other bits that really should
+> make it into .13
 
-usually this is configurable.  So, you can configure you BIOS to use
-acpi to handle hot-plug, or you can allow the OS to handle it.  Most
-OS (from what I hear) don't actually implement native hotplug support,
-so native hotplug support is probably not as big a priority for bios
-writers as the acpi support.  so, it doesn't surprise me to find some
-that don't support native.
-
-you can run the native hotplug driver on a system who's bios supports
-acpi - if it provides the OSHP method, this tells the bios to allow
-the OS to handle it.
-
->=20
-> Is my understanding correct? I would appreciate if you could help me
-> gain a grip on this.
-
-i'm trying to gain a grip myself, as i've just started learning about
-pcie :).  someone else hopefully will correct me if i'm telling you
-the wrong info.
-
-
->=20
-> Thanks a lot for the useful info you gave. Provided me with a new
-> direction to work on.
->=20
-> Regards,
->=20
-> Rajat
->=20
-
-Kristen
+OK.  I won't do anything with this patch then.   Please don't lose it ;)
 
 
 -------------------------------------------------------
