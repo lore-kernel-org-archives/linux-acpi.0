@@ -1,15 +1,11 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [PATCH] ACPI: make acpi_bus_register_driver() return zero for success, not device count
-Date: Thu, 28 Jul 2005 09:26:41 -0600
-Message-ID: <200507280926.41472.bjorn.helgaas@hp.com>
-References: <200507271628.25844.bjorn.helgaas@hp.com> <20050728115816.GA29744@hell.org.pl>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+Subject: Re: Re: system freezes for 0.2 to 0.5 seconds when reading /proc/acpi/thermal_zone/THRM/temperature
+Date: Thu, 28 Jul 2005 16:45:08 +0100
+Message-ID: <E1DyAZI-0006Mh-00@skye.ra.phy.cam.ac.uk>
+References: <20050727235625.028b7728.akpm@osdl.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050728115816.GA29744-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: Your message of "Wed, 27 Jul 2005 23:56:25 PDT."
+             <20050727235625.028b7728.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,37 +15,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Florian Engelhardt <flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 28 July 2005 5:58 am, Karol Kozimor wrote:
-> Thus wrote Bjorn Helgaas:
-> > pci_register_driver() used to return the number of devices claimed,
-> > and we made acpi_bus_register_driver() consistent with that.  But
-> > pci_register_driver() recently changed to return only success/failure
-> > (because the interface is to register the *driver*, not claim devices,
-> > and devices may be hot-plugged later).
-> > 
-> > So let's do the same with acpi_bus_register_driver().
-> > 
-> > Note that asus_acpi.c used to unregister itself if it didn't claim
-> > any devices.  Now it will remain registered, like everything else
-> > in drivers/acpi.
-> 
-> Ugh, not again... we've been there (early 2.6.x), done that and it was
-> absolutely confusing (I mean users reporting bogus bugs just because the
-> module was loaded type of confusing). Note that there's currently no easy
-> way to probe for a specific HID in ACPI namespace other than
-> acpi_bus_register_driver(), and unlike pci_register_driver() the former
-> has no hotplug mechanism to help. 
+I get the same short freezes with
 
-True.  But your driver can use its own mechanism to determine whether
-it claimed any devices, and if not, call acpi_bus_unregister_driver()
-and then return -ENODEV from the module init function to cause the
-module to be unloaded.
+  cat /proc/acpi/battery/*/{state,info}
 
-Or is there some problem that would prevent that?
+and also with the 'acpi' command-line tool.  I'm about to try the the
+suggested kernel profiling with -mm3 and will report the results.
+
+Meanwhile:
+
+>>> readprofile -r
+>> do i have to activate something special during kernel configuration?
+>Set CONFIG_PROFILING=y
+
+That confuses me.  For readprofile support,
+Documentation/basic_profiling.txt says
+
+  Add "profile=2" to the kernel command line.
+
+For Oprofile support it says:
+
+  Configure with CONFIG_PROFILING=y and CONFIG_OPROFILE=y
+
+The two together suggest that CONFIG_PROFILING shouldn't be needed for
+readprofile.
+
+-Sanjoy
 
 
 -------------------------------------------------------
