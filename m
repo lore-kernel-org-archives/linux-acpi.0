@@ -1,13 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Re: [Alsa-devel] [PATCH] 2.6.13-rc3-git5: fix Bug #4416 (1/2)
-Date: Thu, 28 Jul 2005 10:31:58 +0200
-Message-ID: <20050728083157.GI6529@elf.ucw.cz>
-References: <200507261247.05684.rjw@sisk.pl> <200507261251.48291.rjw@sisk.pl> <s5hmzo8ljf6.wl%tiwai@suse.de> <20050727205249.GA708@openzaurus.ucw.cz> <s5hr7djtkvo.wl%tiwai@suse.de>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Fw: powersave not working with amd64 on nforce 4 board
+Date: Thu, 28 Jul 2005 01:34:16 -0700
+Message-ID: <20050728013416.6cd24d6e.akpm@osdl.org>
+References: <20050727161646.05c40b3a.akpm@osdl.org>
+	<200507281025.25183.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <s5hr7djtkvo.wl%tiwai-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <200507281025.25183.rjw-KKrjLPT3xs0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,43 +18,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, flo-MALAOO1t6vMdnm+yROfE0A@public.gmane.org, Dave Jones <davej-rdkfGonbjUTCLXcRTR1eJlpr/1R2p/CL@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > > > The following patch adds free_irq() and request_irq() to the suspend and
-> > > > resume, respectively, routines in the snd_intel8x0 driver.
-> > > 
-> > > The patch looks OK to me although I have some concerns.
-> > > 
-> > > - The error in resume can't be handled properly.
-> > > 
-> > >   What should we do for the error of request_irq()?
-> > > 
-> > > - Adding this to all drivers seem too much.
-> > 
-> > There's probably no other way. Talk to Len Brown.
-> > 
-> > >   We just need to stop the irq processing until resume, so something
-> > >   like suspend_irq(irq, dev_id) and resume_irq(irq, dev_id) would be
-> > >   more uesful?
-> > 
-> > Its more complex than that. Irq numbers may change during resume.
+"Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+>
+> n Thursday, 28 of July 2005 01:16, Andrew Morton wrote:
+>  > 
+>  > It might help if you were to raise a bugzilla entry for this..
 > 
-> Hmm, then the patch looks wrong.  It assumes that the irq number is
-> as same as before suspend.
+>  More likely it's BIOS bug.  I ran 2.6.13-rc3-mm1 on a box with nForce4
+>  and it worked fine except I needed to apply the attached patch from
+>  Mark Langsdorf, since the CPU is a dual-core.
+> 
+>  BTW, any chance to include this patch in -mm?
 
-> Sorry for ignorance, but, is only irq affected?  Are the other
-> resources like ioport consistent after resume?
+Spose so.  Would prefer that Mark himself sends it though.
 
-I think it is only irq, but Len, please take correct me if I'm
-wrong. Irq number can change during suspend/resume cycle, right?
+Dave, does it look sane?
 
-								Pavel
--- 
-teflon -- maybe it is a trademark, but it should not be.
+--- linux-2.6.12-rc6/arch/i386/kernel/cpu/cpufreq/powernow-k8.c.old	2005-06-12 17:41:55.123651184 -0500
++++ linux-2.6.12-rc6/arch/i386/kernel/cpu/cpufreq/powernow-k8.c	2005-06-12 17:46:32.780440936 -0500
+@@ -44,7 +44,7 @@
+ 
+ #define PFX "powernow-k8: "
+ #define BFX PFX "BIOS error: "
+-#define VERSION "version 1.40.2"
++#define VERSION "version 1.40.4"
+ #include "powernow-k8.h"
+ 
+ /* serialize freq changes  */
+@@ -978,7 +978,7 @@
+ {
+ 	struct powernow_k8_data *data;
+ 	cpumask_t oldmask = CPU_MASK_ALL;
+-	int rc;
++	int rc, i;
+ 
+ 	if (!check_supported_cpu(pol->cpu))
+ 		return -ENODEV;
+@@ -1064,7 +1064,9 @@
+ 	printk("cpu_init done, current fid 0x%x, vid 0x%x\n",
+ 	       data->currfid, data->currvid);
+ 
+-	powernow_data[pol->cpu] = data;
++	for_each_cpu_mask(i, cpu_core_map[pol->cpu]) {
++		powernow_data[i] = data;
++	}
+ 
+ 	return 0;
+ 
+
+
 
 
 -------------------------------------------------------
