@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: acpi_register_gsi-change-acpi_register_gsi-interface.patch added to -mm tree
-Date: Thu, 28 Jul 2005 11:42:10 -0700
-Message-ID: <200507281843.j6SIh8Vv012082@shell0.pdx.osdl.net>
+Subject: acpi_register_gsi-change-acpi-pci-code.patch added to -mm tree
+Date: Thu, 28 Jul 2005 11:42:12 -0700
+Message-ID: <200507281843.j6SIh9Mp012094@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,11 +18,11 @@ List-Id: linux-acpi@vger.kernel.org
 
 The patch titled
 
-     acpi_register_gsi(): change acpi_register_gsi() interface
+     acpi_register_gsi(): change acpi pci code
 
 has been added to the -mm tree.  Its filename is
 
-     acpi_register_gsi-change-acpi_register_gsi-interface.patch
+     acpi_register_gsi-change-acpi-pci-code.patch
 
 Patches currently in -mm which might be from kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org are
 
@@ -37,78 +37,43 @@ acpi_register_gsi-change-ia64-iosapic-code.patch
 
 From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-Current acpi_register_gsi() function has no way to indicate errors to its
-callers even though acpi_register_gsi() can fail to register gsi because of
-some reasons (out of memory, lack of interrupt vectors, incorrect BIOS, and so
-on).  As a result, caller of acpi_register_gsi() cannot handle the case that
-acpi_register_gsi() fails.  I think failure of acpi_register_gsi() should be
-handled properly.
-
-This series of patches changes acpi_register_gsi() to return negative value on
-error, and also changes callers of acpi_register_gsi() to handle failure of
-acpi_register_gsi().
-
-
-
-
-This patch changes the type of return value of acpi_register_gsi() from
-"unsigned int" to "int" to indicate an error.  If acpi_register_gsi() fails to
-register gsi, it returns negative value.
+This patch adds the error check of acpi_register_gsi() into
+acpi_pci_enable_irq().
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- arch/i386/kernel/acpi/boot.c |    6 +++++-
- arch/ia64/kernel/acpi.c      |    6 +++++-
- include/linux/acpi.h         |    2 +-
- 3 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/acpi/pci_irq.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~acpi_register_gsi-change-acpi_register_gsi-interface arch/i386/kernel/acpi/boot.c
---- devel/arch/i386/kernel/acpi/boot.c~acpi_register_gsi-change-acpi_register_gsi-interface	2005-07-28 11:42:08.000000000 -0700
-+++ devel-akpm/arch/i386/kernel/acpi/boot.c	2005-07-28 11:42:08.000000000 -0700
-@@ -484,7 +484,11 @@ int acpi_gsi_to_irq(u32 gsi, unsigned in
- 	return 0;
- }
+diff -puN drivers/acpi/pci_irq.c~acpi_register_gsi-change-acpi-pci-code drivers/acpi/pci_irq.c
+--- devel/drivers/acpi/pci_irq.c~acpi_register_gsi-change-acpi-pci-code	2005-07-28 11:42:11.000000000 -0700
++++ devel-akpm/drivers/acpi/pci_irq.c	2005-07-28 11:42:11.000000000 -0700
+@@ -392,6 +392,7 @@ acpi_pci_irq_enable (
+ 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+ 	int			active_high_low = ACPI_ACTIVE_LOW;
+ 	char			*link = NULL;
++	int			rc;
  
--unsigned int acpi_register_gsi(u32 gsi, int edge_level, int active_high_low)
-+/*
-+ * success: return IRQ number (>=0)
-+ * failure: return < 0
-+ */
-+int acpi_register_gsi(u32 gsi, int edge_level, int active_high_low)
- {
- 	unsigned int irq;
- 	unsigned int plat_gsi = gsi;
-diff -puN arch/ia64/kernel/acpi.c~acpi_register_gsi-change-acpi_register_gsi-interface arch/ia64/kernel/acpi.c
---- devel/arch/ia64/kernel/acpi.c~acpi_register_gsi-change-acpi_register_gsi-interface	2005-07-28 11:42:08.000000000 -0700
-+++ devel-akpm/arch/ia64/kernel/acpi.c	2005-07-28 11:42:08.000000000 -0700
-@@ -563,7 +563,11 @@ acpi_numa_arch_fixup (void)
- }
- #endif /* CONFIG_ACPI_NUMA */
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
  
--unsigned int
-+/*
-+ * success: return IRQ number (>=0)
-+ * failure: return < 0
-+ */
-+int
- acpi_register_gsi (u32 gsi, int edge_level, int active_high_low)
- {
- 	if (has_8259 && gsi < 16)
-diff -puN include/linux/acpi.h~acpi_register_gsi-change-acpi_register_gsi-interface include/linux/acpi.h
---- devel/include/linux/acpi.h~acpi_register_gsi-change-acpi_register_gsi-interface	2005-07-28 11:42:08.000000000 -0700
-+++ devel-akpm/include/linux/acpi.h	2005-07-28 11:42:08.000000000 -0700
-@@ -445,7 +445,7 @@ static inline int acpi_boot_table_init(v
+@@ -444,7 +445,13 @@ acpi_pci_irq_enable (
+ 		}
+  	}
  
- #endif 	/*!CONFIG_ACPI_BOOT*/
+-	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
++	rc = acpi_register_gsi(irq, edge_level, active_high_low);
++	if (rc < 0) {
++		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: failed "
++		       "to register GSI\n", pci_name(dev), ('A' + pin));
++		return_VALUE(rc);
++	}
++	dev->irq = rc;
  
--unsigned int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
-+int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- 
- /*
+ 	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
+ 		pci_name(dev), 'A' + pin);
 _
 
 
