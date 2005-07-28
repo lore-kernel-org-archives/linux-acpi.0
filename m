@@ -1,82 +1,84 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [PATCH] ACPI: make acpi_bus_register_driver() return zero for success, not device count
-Date: Thu, 28 Jul 2005 18:31:06 +0200
-Message-ID: <20050728163106.GA28666@hell.org.pl>
-References: <200507271628.25844.bjorn.helgaas@hp.com> <20050728115816.GA29744@hell.org.pl> <200507280926.41472.bjorn.helgaas@hp.com> <200507281007.53805.bjorn.helgaas@hp.com>
+From: Kristen Accardi <kristen.kml@gmail.com>
+Subject: Re: Re: Problem while inserting pciehp (PCI Express Hot-plug) driver
+Date: Thu, 28 Jul 2005 10:00:14 -0700
+Message-ID: <512afbf905072810005f327e3@mail.gmail.com>
+References: <20050725021747.67869.qmail@web34405.mail.mud.yahoo.com>
+	 <b115cb5f0507241949da02aa7@mail.gmail.com>
+	 <512afbf905072711295f87ad24@mail.gmail.com>
+	 <b115cb5f05072803451836055c@mail.gmail.com>
+Reply-To: Kristen Accardi <kristen.kml@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-hotplug-devel-admin@lists.sourceforge.net>
+In-Reply-To: <b115cb5f05072803451836055c@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200507281007.53805.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-hotplug-devel-admin@lists.sourceforge.net
+Errors-To: linux-hotplug-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
+	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-hotplug-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
+	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-hotplug-devel>
+To: Rajat Jain <rajat.noida.india@gmail.com>
+Cc: greg@kroah.com, linux-kernel@vger.kernel.org, linux-newbie@vger.kernel.org, acpi-devel@lists.sourceforge.net, linux-hotplug-devel@lists.sourceforge.net, dkumar@noida.hcltech.com
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Bjorn Helgaas:
-> > True.  But your driver can use its own mechanism to determine whether
-> > it claimed any devices, and if not, call acpi_bus_unregister_driver()
-> > and then return -ENODEV from the module init function to cause the
-> > module to be unloaded.
-> Here's what I had in mind (untested).  Would something like this
-> address your concern?
+On 7/28/05, Rajat Jain <rajat.noida.india@gmail.com> wrote:
+> >
+> > Hi Rajat, you can learn more about the OSHP method by reading the PCI
+> > express spec.  It is used to tell an ACPI bios that the OS will be
+> > handling the hotplug events natively.  It may be that your BIOS does
+> > not allow native hotplug for pcie, in which case you need to be using
+> > the acpiphp driver instead of the pciehp driver.  You could just try
+> > modprobing acpiphp and see if this will handle the hotplug events.  A
+> > recent version of lspci (which understands pcie) will tell you as well
+> > if pcie hotplug capability is supported (lspci -vv).
+> >
+>=20
+> Okay. I'm sorry but I'm not very clear with this. I'm just putting
+> down here my understanding. So basically we have two mutually
+> EXCLUSIVE hotplug drivers I can use for PCI Express:
+>=20
+> 1) "pciehp.ko" : We use this PCIE HP driver when our BIOS supports
+> Native Hot-plug for PCI Express (which means that hot-plug will be
+> handled by OS single handedly).
+>=20
+> 2) "acpiphp.ko" : We use this "generic" ACPI HP driver when BIOS
+> allows only ITSELF to handle hot-plug events.
 
-It's clunky, but yes, at least until something better (say, sysfs support
-for ACPI) goes in. Note that I'm on vacation till monday, so I won't be able
-to test it either.
-Best regards,
+usually this is configurable.  So, you can configure you BIOS to use
+acpi to handle hot-plug, or you can allow the OS to handle it.  Most
+OS (from what I hear) don't actually implement native hotplug support,
+so native hotplug support is probably not as big a priority for bios
+writers as the acpi support.  so, it doesn't surprise me to find some
+that don't support native.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+you can run the native hotplug driver on a system who's bios supports
+acpi - if it provides the OSHP method, this tells the bios to allow
+the OS to handle it.
 
-Acked-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+>=20
+> Is my understanding correct? I would appreciate if you could help me
+> gain a grip on this.
+
+i'm trying to gain a grip myself, as i've just started learning about
+pcie :).  someone else hopefully will correct me if i'm telling you
+the wrong info.
 
 
-Index: work/drivers/acpi/asus_acpi.c
-===================================================================
---- work.orig/drivers/acpi/asus_acpi.c	2005-07-27 13:52:21.000000000 -0600
-+++ work/drivers/acpi/asus_acpi.c	2005-07-28 09:56:17.000000000 -0600
-@@ -1111,6 +1111,8 @@
- }
- 
- 
-+static int __init asus_found;
-+
- static int __init asus_hotk_add(struct acpi_device *device)
- {
- 	acpi_status status = AE_OK;
-@@ -1168,6 +1170,8 @@
- 		}
- 	}
- 
-+	asus_found = 1;
-+
-       end:
- 	if (result) {
- 		kfree(hotk);
-@@ -1221,6 +1225,12 @@
- 		return -ENODEV;
- 	}
- 
-+	if (!asus_found) {
-+		acpi_bus_unregister_driver(&asus_hotk_driver);
-+		remove_proc_entry(PROC_ASUS, acpi_root_dir);
-+		return -ENODEV;
-+	}
-+
- 	return 0;
- }
- 
+>=20
+> Thanks a lot for the useful info you gave. Provided me with a new
+> direction to work on.
+>=20
+> Regards,
+>=20
+> Rajat
+>=20
 
+Kristen
 
 
 -------------------------------------------------------
