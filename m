@@ -1,13 +1,8 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: git-acpi.patch failures (AE_NULL_OBJECT)
-Date: Thu, 28 Jul 2005 14:30:13 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30042CFE2F@hdsmsx401.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+From: akpm-3NddpPZAyC0@public.gmane.org
+Subject: acpi_register_gsi-change-phpacpi-driver.patch added to -mm tree
+Date: Thu, 28 Jul 2005 11:42:16 -0700
+Message-ID: <200507281843.j6SIhDGK012112@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +12,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, mm-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> For a while now (days, at least) I've been getting a stream of ACPI
-> method execution failures due to the tree which I pull from
-> master.kernel.org:/pub/scm/linux/kernel/git/lenb/to-akpm.git
 
-> This doesn't happen with current -linus.
+The patch titled
 
-> It's a fairly vanilla x86 PC which Intel is loaning me.
+     acpi_register_gsi(): change phpacpi driver
 
->[\_SB_.PCI0.USB_._S3D] (Node cff9c1a0), AE_NULL_OBJECT
->    ACPI-0171: *** Error: Method execution failed=20
+has been added to the -mm tree.  Its filename is
 
-Is the issue limited to these AE_NULL_OBJECT failure warnings,
-or did something functional break?
+     acpi_register_gsi-change-phpacpi-driver.patch
 
-Looks like the warnings are all related to _S3D -- which we use to
-determine the appropriate D-state upon suspend-to-ram.
+Patches currently in -mm which might be from kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org are
 
-Hmmm, I'm not seeing these -- maybe BIOS dependent.
-Can you check that you've got the latest BIOS for the box?
-If you do, can you stick the output from acpidmp or acpidump
-in a bugzilla?
+acpi_register_gsi-change-acpi_register_gsi-interface.patch
+acpi_register_gsi-change-acpi-pci-code.patch
+acpi_register_gsi-change-hpet-driver.patch
+acpi_register_gsi-change-phpacpi-driver.patch
+acpi_register_gsi-change-acpi-based-8250-driver.patch
+acpi_register_gsi-change-ia64-iosapic-code.patch
 
-thanks,
--Len
+
+
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+
+This patch adds the error check of acpi_register_gsi() into pnpacpi driver.
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+---
+
+ drivers/pnp/pnpacpi/rsparser.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/pnp/pnpacpi/rsparser.c~acpi_register_gsi-change-phpacpi-driver drivers/pnp/pnpacpi/rsparser.c
+--- devel/drivers/pnp/pnpacpi/rsparser.c~acpi_register_gsi-change-phpacpi-driver	2005-07-28 11:42:15.000000000 -0700
++++ devel-akpm/drivers/pnp/pnpacpi/rsparser.c	2005-07-28 11:42:15.000000000 -0700
+@@ -81,7 +81,7 @@ pnpacpi_parse_allocated_irqresource(stru
+ 		i++;
+ 	if (i < PNP_MAX_IRQ) {
+ 		res->irq_resource[i].flags = IORESOURCE_IRQ;  //Also clears _UNSET flag
+-		if (irq == -1) {
++		if (irq < 0) {
+ 			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+_
 
 
 -------------------------------------------------------
