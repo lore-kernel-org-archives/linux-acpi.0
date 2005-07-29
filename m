@@ -1,13 +1,11 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: 2.6.13-rc3-mm3
-Date: Fri, 29 Jul 2005 12:42:58 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E023F8527@orsmsx403.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+Subject: Re: RE: Followup on 2.6.13-rc3 ACPI processor C-state regression
+Date: Fri, 29 Jul 2005 22:30:23 +0100
+Message-ID: <E1DycQx-00067Z-00@skye.ra.phy.cam.ac.uk>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3004311B75@hdsmsx401.amr.corp.intel.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: Your message of "Fri, 29 Jul 2005 15:11:29 EDT."
+             <F7DC2337C7631D4386A2DF6E8FB22B3004311B75-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,24 +15,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Michael Thonke <tk-shockwave-S0/GAf8tV78@public.gmane.org>
-Cc: iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Kevin Radloff <radsaq-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-+    ACPI-0287: *** Error: Region SystemMemory(0) has no handler
-+    ACPI-0127: *** Error: acpi_load_tables: Could not load namespace:
-AE_NOT_EXIST
-+    ACPI-0136: *** Error: acpi_load_tables: Could not load tables:
+>Len, Kevin confirms that the below patch fixes the above regression for
+>him.  Should we merge it now?
 
-This looks like a nasty case where some executable code in the table is
-attempting to access a SystemMemory operation region before any OpRegion
-handlers are initialized.
+It also works for me.  Well, I'm not 100% sure it was that patch, but
+2.6.13-rc3 on my TP 600X has the C2/C3 regression:
 
-We certainly want to see the output of acpidump to attempt to diagnose
-and/or reproduce the problem.
+   ACPI: CPU0 (power states: C1[C1])
 
-Bob
+And 2.6.13-rc3-mm2, which includes that patch, works fine:
 
+   ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+
+-Sanjoy
 
 
 -------------------------------------------------------
