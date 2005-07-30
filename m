@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 05/12] acpi_register_gsi(): change acpi based 8250 driver
-Date: Sat, 30 Jul 2005 01:17:31 -0700
-Message-ID: <200507300818.j6U8IVEu017306@shell0.pdx.osdl.net>
+Subject: [patch 02/12] acpi_register_gsi(): change acpi pci code
+Date: Sat, 30 Jul 2005 01:17:29 -0700
+Message-ID: <200507300818.j6U8ITGL017297@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,55 +19,43 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-This patch adds the error check of acpi_register_gsi() into ACPI based 8250
-serial driver.
+This patch adds the error check of acpi_register_gsi() into
+acpi_pci_enable_irq().
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/serial/8250_acpi.c |   20 ++++++++++++++++----
- 1 files changed, 16 insertions(+), 4 deletions(-)
+ drivers/acpi/pci_irq.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_acpi.c~acpi_register_gsi-change-acpi-based-8250-driver drivers/serial/8250_acpi.c
---- devel/drivers/serial/8250_acpi.c~acpi_register_gsi-change-acpi-based-8250-driver	2005-07-28 11:42:17.000000000 -0700
-+++ devel-akpm/drivers/serial/8250_acpi.c	2005-07-28 11:42:17.000000000 -0700
-@@ -47,18 +47,30 @@ static acpi_status acpi_serial_port(stru
- static acpi_status acpi_serial_ext_irq(struct uart_port *port,
- 				       struct acpi_resource_ext_irq *ext_irq)
- {
--	if (ext_irq->number_of_interrupts > 0)
--		port->irq = acpi_register_gsi(ext_irq->interrupts[0],
-+	int rc;
-+
-+	if (ext_irq->number_of_interrupts > 0) {
-+		rc = acpi_register_gsi(ext_irq->interrupts[0],
- 	                   ext_irq->edge_level, ext_irq->active_high_low);
-+		if (rc < 0)
-+			return AE_ERROR;
-+		port->irq = rc;
-+	}
- 	return AE_OK;
- }
+diff -puN drivers/acpi/pci_irq.c~acpi_register_gsi-change-acpi-pci-code drivers/acpi/pci_irq.c
+--- devel/drivers/acpi/pci_irq.c~acpi_register_gsi-change-acpi-pci-code	2005-07-28 11:42:11.000000000 -0700
++++ devel-akpm/drivers/acpi/pci_irq.c	2005-07-28 11:42:11.000000000 -0700
+@@ -392,6 +392,7 @@ acpi_pci_irq_enable (
+ 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+ 	int			active_high_low = ACPI_ACTIVE_LOW;
+ 	char			*link = NULL;
++	int			rc;
  
- static acpi_status acpi_serial_irq(struct uart_port *port,
- 				   struct acpi_resource_irq *irq)
- {
--	if (irq->number_of_interrupts > 0)
--		port->irq = acpi_register_gsi(irq->interrupts[0],
-+	int rc;
-+
-+	if (irq->number_of_interrupts > 0) {
-+		rc = acpi_register_gsi(irq->interrupts[0],
- 	                   irq->edge_level, irq->active_high_low);
-+		if (rc < 0)
-+			return AE_ERROR;
-+		port->irq = rc;
-+	}
- 	return AE_OK;
- }
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
  
+@@ -444,7 +445,13 @@ acpi_pci_irq_enable (
+ 		}
+  	}
+ 
+-	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
++	rc = acpi_register_gsi(irq, edge_level, active_high_low);
++	if (rc < 0) {
++		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: failed "
++		       "to register GSI\n", pci_name(dev), ('A' + pin));
++		return_VALUE(rc);
++	}
++	dev->irq = rc;
+ 
+ 	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
+ 		pci_name(dev), 'A' + pin);
 _
 
 
