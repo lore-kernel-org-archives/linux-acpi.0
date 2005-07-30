@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 04/12] acpi_register_gsi(): change phpacpi driver
-Date: Sat, 30 Jul 2005 01:17:31 -0700
-Message-ID: <200507300818.j6U8IUlt017303@shell0.pdx.osdl.net>
+Subject: [patch 01/12] acpi_register_gsi(): change acpi_register_gsi() interface
+Date: Sat, 30 Jul 2005 01:17:28 -0700
+Message-ID: <200507300818.j6U8IS41017294@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,28 +19,78 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-This patch adds the error check of acpi_register_gsi() into pnpacpi driver.
+Current acpi_register_gsi() function has no way to indicate errors to its
+callers even though acpi_register_gsi() can fail to register gsi because of
+some reasons (out of memory, lack of interrupt vectors, incorrect BIOS, and so
+on).  As a result, caller of acpi_register_gsi() cannot handle the case that
+acpi_register_gsi() fails.  I think failure of acpi_register_gsi() should be
+handled properly.
+
+This series of patches changes acpi_register_gsi() to return negative value on
+error, and also changes callers of acpi_register_gsi() to handle failure of
+acpi_register_gsi().
+
+
+
+
+This patch changes the type of return value of acpi_register_gsi() from
+"unsigned int" to "int" to indicate an error.  If acpi_register_gsi() fails to
+register gsi, it returns negative value.
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/acpi/boot.c |    6 +++++-
+ arch/ia64/kernel/acpi.c      |    6 +++++-
+ include/linux/acpi.h         |    2 +-
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~acpi_register_gsi-change-phpacpi-driver drivers/pnp/pnpacpi/rsparser.c
---- devel/drivers/pnp/pnpacpi/rsparser.c~acpi_register_gsi-change-phpacpi-driver	2005-07-28 11:42:15.000000000 -0700
-+++ devel-akpm/drivers/pnp/pnpacpi/rsparser.c	2005-07-28 11:42:15.000000000 -0700
-@@ -81,7 +81,7 @@ pnpacpi_parse_allocated_irqresource(stru
- 		i++;
- 	if (i < PNP_MAX_IRQ) {
- 		res->irq_resource[i].flags = IORESOURCE_IRQ;  //Also clears _UNSET flag
--		if (irq == -1) {
-+		if (irq < 0) {
- 			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
+diff -puN arch/i386/kernel/acpi/boot.c~acpi_register_gsi-change-acpi_register_gsi-interface arch/i386/kernel/acpi/boot.c
+--- devel/arch/i386/kernel/acpi/boot.c~acpi_register_gsi-change-acpi_register_gsi-interface	2005-07-28 11:42:08.000000000 -0700
++++ devel-akpm/arch/i386/kernel/acpi/boot.c	2005-07-28 11:42:08.000000000 -0700
+@@ -484,7 +484,11 @@ int acpi_gsi_to_irq(u32 gsi, unsigned in
+ 	return 0;
+ }
+ 
+-unsigned int acpi_register_gsi(u32 gsi, int edge_level, int active_high_low)
++/*
++ * success: return IRQ number (>=0)
++ * failure: return < 0
++ */
++int acpi_register_gsi(u32 gsi, int edge_level, int active_high_low)
+ {
+ 	unsigned int irq;
+ 	unsigned int plat_gsi = gsi;
+diff -puN arch/ia64/kernel/acpi.c~acpi_register_gsi-change-acpi_register_gsi-interface arch/ia64/kernel/acpi.c
+--- devel/arch/ia64/kernel/acpi.c~acpi_register_gsi-change-acpi_register_gsi-interface	2005-07-28 11:42:08.000000000 -0700
++++ devel-akpm/arch/ia64/kernel/acpi.c	2005-07-28 11:42:08.000000000 -0700
+@@ -563,7 +563,11 @@ acpi_numa_arch_fixup (void)
+ }
+ #endif /* CONFIG_ACPI_NUMA */
+ 
+-unsigned int
++/*
++ * success: return IRQ number (>=0)
++ * failure: return < 0
++ */
++int
+ acpi_register_gsi (u32 gsi, int edge_level, int active_high_low)
+ {
+ 	if (has_8259 && gsi < 16)
+diff -puN include/linux/acpi.h~acpi_register_gsi-change-acpi_register_gsi-interface include/linux/acpi.h
+--- devel/include/linux/acpi.h~acpi_register_gsi-change-acpi_register_gsi-interface	2005-07-28 11:42:08.000000000 -0700
++++ devel-akpm/include/linux/acpi.h	2005-07-28 11:42:08.000000000 -0700
+@@ -445,7 +445,7 @@ static inline int acpi_boot_table_init(v
+ 
+ #endif 	/*!CONFIG_ACPI_BOOT*/
+ 
+-unsigned int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
++int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
+ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
+ 
+ /*
 _
 
 
