@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 02/12] acpi_register_gsi(): change acpi pci code
-Date: Sat, 30 Jul 2005 01:17:29 -0700
-Message-ID: <200507300818.j6U8ITGL017297@shell0.pdx.osdl.net>
+Subject: [patch 03/12] acpi_register_gsi(): change hpet driver
+Date: Sat, 30 Jul 2005 01:17:30 -0700
+Message-ID: <200507300818.j6U8ITT8017300@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,43 +19,37 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-This patch adds the error check of acpi_register_gsi() into
-acpi_pci_enable_irq().
+This patch adds the error check of acpi_register_gsi() into hpet driver.
 
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/acpi/pci_irq.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/char/hpet.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/pci_irq.c~acpi_register_gsi-change-acpi-pci-code drivers/acpi/pci_irq.c
---- devel/drivers/acpi/pci_irq.c~acpi_register_gsi-change-acpi-pci-code	2005-07-28 11:42:11.000000000 -0700
-+++ devel-akpm/drivers/acpi/pci_irq.c	2005-07-28 11:42:11.000000000 -0700
-@@ -392,6 +392,7 @@ acpi_pci_irq_enable (
- 	int			edge_level = ACPI_LEVEL_SENSITIVE;
- 	int			active_high_low = ACPI_ACTIVE_LOW;
- 	char			*link = NULL;
-+	int			rc;
+diff -puN drivers/char/hpet.c~acpi_register_gsi-change-hpet-driver drivers/char/hpet.c
+--- devel/drivers/char/hpet.c~acpi_register_gsi-change-hpet-driver	2005-07-28 11:42:13.000000000 -0700
++++ devel-akpm/drivers/char/hpet.c	2005-07-28 11:42:13.000000000 -0700
+@@ -906,11 +906,15 @@ static acpi_status hpet_resources(struct
+ 		if (irqp->number_of_interrupts > 0) {
+ 			hdp->hd_nirqs = irqp->number_of_interrupts;
  
- 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
- 
-@@ -444,7 +445,13 @@ acpi_pci_irq_enable (
+-			for (i = 0; i < hdp->hd_nirqs; i++)
+-				hdp->hd_irq[i] =
++			for (i = 0; i < hdp->hd_nirqs; i++) {
++				int rc =
+ 				    acpi_register_gsi(irqp->interrupts[i],
+ 						      irqp->edge_level,
+ 						      irqp->active_high_low);
++				if (rc < 0)
++					return AE_ERROR;
++				hdp->hd_irq[i] = rc;
++			}
  		}
-  	}
+ 	}
  
--	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
-+	rc = acpi_register_gsi(irq, edge_level, active_high_low);
-+	if (rc < 0) {
-+		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: failed "
-+		       "to register GSI\n", pci_name(dev), ('A' + pin));
-+		return_VALUE(rc);
-+	}
-+	dev->irq = rc;
- 
- 	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
- 		pci_name(dev), 'A' + pin);
 _
 
 
