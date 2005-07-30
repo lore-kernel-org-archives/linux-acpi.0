@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI: cleanup scan.c whitespace & coding style
-Date: Sat, 30 Jul 2005 12:35:34 +0200
-Message-ID: <20050730103534.GA26019@elf.ucw.cz>
-References: <200507271630.58757.bjorn.helgaas@hp.com>
+From: kylin <fierykylin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: Problem while inserting pciehp (PCI Express Hot-plug) driver
+Date: Sun, 31 Jul 2005 00:20:30 +0800
+Message-ID: <87ab37ab0507300920570b0ea6@mail.gmail.com>
+Reply-To: kylin <fierykylin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200507271630.58757.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-newbie-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-hotplug-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, dkumar-QByN7dn/BetQWC9lL0RKGQC/G2K4zDHf@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+n the latest update of the Intel's E7520 MCH,the very NOTFIX entry
+caught my eye:
+//////////////////////
+PCI Express Hot-Plug MSI interrupt issue
+////////////////////
+Problem:
+During a link down state, the MCH will not send MSI interrupts to the
+front side bus. In general
+MSI messages need not be delivered when the link is down, but in the
+event that MSI interrupt routing is used on Hot-Plug events, the
+processor will wait indefinitely for this interrupt. Waiting for
+command complete interrupts is a normal part of the steps in the
+orderly removal process, and link down will occur at the point that
+power is removed from the slot. Subsequent accesses to the slot
+control register to update indicators and power control will not
+generate the expected MSI interrupts from the MCH until slot power is
+restored, and the link is back up.
+Implication:
+Hot-Plug software written to wait for command complete interrupts will
+hang in MSI interrupt mode.
+Workaround:
+Run in either of the other two interrupt modes (the "legacy" method
+using the MCHGPE# to signal
+hot-plug interrupts to the ICH or "native" interrupt mode using PCI
+interrupts (INTA#)).
+Alternatively in MSI mode, software may poll for command complete
+rather than wait for MSI, or implement the command complete timeout to
+continue to the next slot control update rather than repeat the
+current slot control update
+I wonder if i can workaround the MSI using the polling way on the
+server geared by E7520 and the firmware with no OSC implemented
 
-> Make whitespace/coding style consistent.  No functional change (produces
-> object code identical to pre-patch version).
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-> 
->  
-> -static void acpi_device_release(struct kobject * kobj)
-> +static void acpi_device_release (
-> +	struct kobject	*kobj)
 
-Pretty please, this is uglyer than original. See CodingStyle:
-
-void fun(int a, int b, int c)
-
-ACPI uses different codingstyle at places, but lets move to the
-Doc*/CodingStyle direction.
-
-							Pavel
--- 
-teflon -- maybe it is a trademark, but it should not be.
+--=20
+we who r about to die,salute u!
 
 
 -------------------------------------------------------
