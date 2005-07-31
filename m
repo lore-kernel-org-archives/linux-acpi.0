@@ -1,13 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI: cleanup scan.c whitespace & coding style
-Date: Sun, 31 Jul 2005 02:29:00 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3004311E42@hdsmsx401.amr.corp.intel.com>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Subject: Re: 2.6.13-rc4: /proc/acpi/event doesn't report any events - SOLVED (ec_polling needed)
+Date: Sun, 31 Jul 2005 09:13:26 +0200
+Message-ID: <20050731071326.GA12293@tangens.sinus.cz>
+References: <20050730190341.GA4108@miro.sinus.cz> <E1DyxVU-000202-00@skye.ra.phy.cam.ac.uk> <20050731052525.GA4649@tangens.sinus.cz>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20050731052525.GA4649-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,16 +18,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm going to Lindent the entire ACPI sub-system
-at the start of 2.6.14 -- so best to hold style
-and whitespace patches till after that hits the tree.
 
-thanks,
--Len
+Hi!
+  I've finally found why I had so strong intuition that the solution is very
+near :-).
+  The problem is that -in -rc4 there is not the famous ec_polling patch which
+I need... After patching it again it started to work again.
+  I've found that the deferred function is really called and that it is
+acpi_ce_gpe_query(). Without the ec_polling patch, a "burst variant" of the
+query is called, which doesn't work here.
+  So I vote for inserting ec_polling patch to 2.6.13-final..
+
+                              WIth regards, Pavel Troller
 
 
 -------------------------------------------------------
