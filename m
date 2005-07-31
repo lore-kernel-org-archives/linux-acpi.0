@@ -1,7 +1,7 @@
 From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [GIT PATCH] ACPI patches for 2.6.13
-Date: Sun, 31 Jul 2005 02:12:44 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3004311E40@hdsmsx401.amr.corp.intel.com>
+Subject: RE: ACPI: cleanup scan.c whitespace & coding style
+Date: Sun, 31 Jul 2005 02:29:00 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3004311E42@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="US-ASCII"
@@ -17,16 +17,13 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->What happened to those cleanups I sent to you in Ottawa?
-
-Don't worry, they're in my to-akpm quilt series.
-I just haven't committed/exported them yet -- as the 2.6.13
-functional stuff is taking priority over cleanups for 2.6.14.
+I'm going to Lindent the entire ACPI sub-system
+at the start of 2.6.14 -- so best to hold style
+and whitespace patches till after that hits the tree.
 
 thanks,
 -Len
