@@ -1,15 +1,14 @@
-From: "Bob Z" <ziuchkov-e94Sedi4moU@public.gmane.org>
-Subject: Re: S3 and S4 broken on Toshiba Satellite 2400-s201
-Date: Sat, 30 Jul 2005 15:54:49 -0500
-Message-ID: <200507301554.49240.ziuchkov@uiuc.edu>
-References: <200507301545.29522.ziuchkov@uiuc.edu>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Subject: Re: 2.6.13-rc4: /proc/acpi/event doesn't report any events - more debugging
+Date: Sun, 31 Jul 2005 07:25:25 +0200
+Message-ID: <20050731052525.GA4649@tangens.sinus.cz>
+References: <20050730190341.GA4108@miro.sinus.cz> <E1DyxVU-000202-00@skye.ra.phy.cam.ac.uk>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200507301545.29522.ziuchkov-e94Sedi4moU@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <E1DyxVU-000202-00-KmINTRm7+bkRAIupTkoUWTYRy0cijUJx@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,75 +18,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+Cc: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I forgot to mention that usually I have the rest of the acpi modules loaded as 
-well (instead of just 'container' as my lsmod output showed), but that 
-particular try, I tried stripping down to the absolute bare minimum.  Here 
-are the acpi modules I *usually* have loaded:
-
-video                  16260  0
-thermal                13576  0
-toshiba_acpi            6164  0
-fan                     4740  0
-processor              22708  1 thermal
-button                  4224  0
-container               4608  0
-ac                      4996  0
-battery                10244  0
-
-
-On Saturday 30 July 2005 03:45 pm, Bob Z wrote:
-> Hello, I am new to this mailing list, so please bear with me.  I've been
-> having a heck of a time getting everything working with my laptop.  It's a
-> Toshiba Satellite 2400-s201.  I finally got my alps touchpad and my wifi
-> card to work after days of fussing around with different kernel and patch
-> versions.  I ended up with version 2.6.11 of the linux kernel because
-> neither 2.6.8(.1) nor 2.6.12 would work with my touchpad.  Now everything
-> works except for suspend to ram and suspend to disk.  All of the rest of
-> the ACPI modules work fine for me.  I can poll my battery, scale my cpu
-> frequency, use my extra function keys, etc.  It's just that whenever I try
-> to suspend, I end up with a weird IRQ error and my computer locks up.  I've
-> tried the built-in swsusp, the swsusp2 patches, the hibernate scripts, and
-> just plain 'echo -n mem > /sys/power/state'.  Nothing works for me.  I've
-> unloaded every module I can except for the acpi ones and I've killed every
-> process except for syslogd, klogd, and my shell.  Still my computer
-> freezes.  If I try to suspend to disk, it freezes with the IRQ error right
-> after the memory image is written to ram but before the computer powers
-> down.  If I try to suspend to memory, it suspends okay, but I get the IRQ
-> error when I try to wake the computer.  It all seems to be a problem
-> relating to IRQ 11, which is the IRQ used by everything that is built-in on
-> this laptop.  I've tried the vanilla acpi from 2.6.11 and I've tried
-> patching my kernel with
-> acpi-20050408-2.6.11.diff.  Always I get the same problem.  I also tried
-> disassembling my computer's DSDT and recompiling with intel's compiler
-> according to instructions I found on the net.  Everything compiled without
-> any errors or warnings.  I only got 3 'remarks'.  I also searched the dsdt
-> for any reference to the windows OS.  It seems to check for windows
-> versions and stores a value to an OSID variable.  I changed the code so
-> that it stored the value as if it were a Windows XP machine and I
-> recompiled my kernel so that it would use my compiled dsdt.  Still I got
-> the same error.  I have attached every single piece of information I could
-> think of that might help in diagnosing the problem.  The contents of the
-> files are as follows:
->
-> dmesg: output of dmesg after my computer boots
-> dsdt.tar.bz2: the disassembled version of my computer's DSDT
-> errormsg: an example output I get when trying to use swsusp (v1).  I tried
-> to copy it as close to verbatim as possible, but some of the spaces may be
-> off, as I had to copy it by hand since at this stage my computer is locked
-> up. interrupts: contents of /proc/interrupts when everything is loaded on
-> my computer
-> modules: the modules I have present when trying to suspend
-> processes: the processes I have present when trying to suspend
->
-> Please forgive me if I have been too verbose.  I just would really like to
-> get suspending to work.  I am really quite new to fiddling with ACPI on
-> linux. Everything I have learned is from trying the past few days to get
-> this to work.  I appreciate any advice that could be offered.  Thank you.
->
-> Bob Z.
+> >  It's exactly as the subject says - /proc/acpi/event is totally dummy
+> 
+> It might be something particular to your configuration or hardware?
+> I've just tried 2.6.13-rc4's /proc/acpi/event on my TP 600X and it's
+> working okay.  'cat /proc/acpi/event' produces lid events, and acpid
+> is reading from it into the /var/log/apcid
+> 
+Hi!
+  I was trying to debug it a bit:
+  1) I put some printk's in drivers/acpi/bus.c, in acpi_bus_generate_event()
+and acpi_bus_receive_event(). They proved that neither of these functions
+is even called.
+  2) I modified /proc/acpi/debug_level. I've found that when I set the
+ACPI_LV_EXEC bit, every event generates a line
+     osl-0698 [04] os_queue_for_execution: Scheduling function [c024bbdd(dbe5a900)] for deferred execution.
+(it is always the same regardless of the event which caused it).
+So the events are generated by hardware and at least osl knows about them.
+It seems that the execution is deferred ad infinitum :-).
+I didn't find any other bit which would generate anything more.
+Now I'm stuck a bit, I don't know how to continue with debugging.
+Any help is greatly appreciated.
+                                 With regards, Pavel Troller
+	       
 
 
 -------------------------------------------------------
