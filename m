@@ -1,7 +1,7 @@
 From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [PATCH 2.6.13-rc4 1/2] fix possible null pointer access - acpi_pci_irq_enable
-Date: Mon, 01 Aug 2005 12:34:08 +0900
-Message-ID: <42ED9830.7060808@jp.fujitsu.com>
+Subject: [PATCH 2.6.13-rc4 2/2] fix possible null pointer access - acpi_pci_irq_disable
+Date: Mon, 01 Aug 2005 12:35:50 +0900
+Message-ID: <42ED9896.7080709@jp.fujitsu.com>
 References: <42ED97C2.7060409@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-2022-JP
@@ -21,7 +21,7 @@ To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2
 Cc: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch fixes possible null pointer access in acpi_pci_irq_enable.
+This patch fixes possible null pointer access in acpi_pci_irq_disable.
 
 The 'bus' field in pci_dev structure should be checked before calling
 pci_read_config_byte() because pci_bus_read_config_byte() called by
@@ -30,36 +30,31 @@ pci_read_config_byte() refers to 'bus' field.
 Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 ---
 
- drivers/acpi/pci_irq.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/pci_irq.c |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_enable drivers/acpi/pci_irq.c
---- linux-2.6.13-rc4/drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_enable	2005-08-01 12:20:26.000000000 +0900
-+++ linux-2.6.13-rc4-kanesige/drivers/acpi/pci_irq.c	2005-08-01 12:20:26.000000000 +0900
-@@ -397,6 +397,11 @@ acpi_pci_irq_enable (
+diff -puN drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_disable drivers/acpi/pci_irq.c
+--- linux-2.6.13-rc4/drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_disable	2005-08-01 12:20:31.000000000 +0900
++++ linux-2.6.13-rc4-kanesige/drivers/acpi/pci_irq.c	2005-08-01 12:20:31.000000000 +0900
+@@ -474,7 +474,7 @@ acpi_pci_irq_disable (
  
- 	if (!dev)
- 		return_VALUE(-EINVAL);
-+
-+	if (!dev->bus) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
-+		return_VALUE(-ENODEV);
-+	}
- 	
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_disable");
+ 
+-	if (!dev)
++	if (!dev || !dev->bus)
+ 		return_VOID;
+ 
  	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
- 	if (!pin) {
-@@ -405,11 +410,6 @@ acpi_pci_irq_enable (
- 	}
+@@ -482,9 +482,6 @@ acpi_pci_irq_disable (
+ 		return_VOID;
  	pin--;
  
--	if (!dev->bus) {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
--		return_VALUE(-ENODEV);
--	}
+-	if (!dev->bus)
+-		return_VOID;
 -
- 	/* 
- 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.  PRT
- 	 * values override any BIOS-assigned IRQs set during boot.
+ 	/*
+ 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.
+ 	 */
 _
 
 
