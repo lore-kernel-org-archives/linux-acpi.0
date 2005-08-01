@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: S3 and sigwait (was Re: 2.6.13-rc3: swsusp works (TP 600X))
-Date: Mon, 1 Aug 2005 20:36:36 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F11308AD@pdsmsx406>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: S3 and S4 broken on Toshiba Satellite 2400-s201
+Date: Mon, 1 Aug 2005 14:01:56 +0100
+Message-ID: <20050801130155.GA14840@srcf.ucam.org>
+References: <200507301545.29522.ziuchkov@uiuc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <200507301545.29522.ziuchkov-e94Sedi4moU@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,65 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bob Z <ziuchkov-e94Sedi4moU@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->> > If you think it is a linux bug, can you produce small test case
-doing
->> > just the sigwait, and post it on l-k with big title "sigwait()
-breaks
->> > when straced, and on suspend"?
->> >
->> > That way it is going to get some attetion, and you'll get either
->> > documentation or kernel fixed.
->> Looks like a linux bug to me. The refrigerator fake signal waked the
->> task up and without restart for the sigwait case. How about below
->> patch:
->
->Is there chance to fix strace case, too? sigwait() is broken in more
->than one way it seems...
-Not sure about it. strace shows sigwait using sigtimedwait, which
-doesn't say it can't return error.
+> ACPI: PCI interrupt    0000:00:1f.1[A] -> GSI 11 (level, low) -> IRQ 11
+>                                      upt    0000     :01:    00.0    
+> [A]   -> 6                                           SI 1    1 (l      
+> evel    , lo   w)
+> IRACPIQ   11: PC   I  in  terr
 
->>  linux-2.6.13-rc4-root/kernel/signal.c |   11 ++++++++++-
->>  1 files changed, 10 insertions(+), 1 deletion(-)
->>
->> diff -puN kernel/signal.c~sigwait-suspend-resume kernel/signal.c
->> --- linux-2.6.13-rc4/kernel/signal.c~sigwait-suspend-resume	2005-08-
->01 14:00:39.089460688 +0800
->> +++ linux-2.6.13-rc4-root/kernel/signal.c	2005-08-01
->14:30:13.821660384 +0800
->> @@ -2188,6 +2188,7 @@ sys_rt_sigtimedwait(const sigset_t __use
->>  	struct timespec ts;
->>  	siginfo_t info;
->>  	long timeout =3D 0;
->> +	int recover =3D 0;
->>
->>  	/* XXX: Don't preclude handling different sized sigset_t's.  */
->>  	if (sigsetsize !=3D sizeof(sigset_t))
->> @@ -2225,15 +2226,23 @@ sys_rt_sigtimedwait(const sigset_t __use
->>  			 * be awakened when they arrive.  */
->>  			current->real_blocked =3D current->blocked;
->>  			sigandsets(&current->blocked, &current->blocked,
-&these);
->> +do_recover:
->>  			recalc_sigpending();
->>  			spin_unlock_irq(&current->sighand->siglock);
->>
->>  			current->state =3D TASK_INTERRUPTIBLE;
->>  			timeout =3D schedule_timeout(timeout);
->>
->> -			try_to_freeze();
->> +			if (try_to_freeze())
->> +				recover =3D 1;
->
->Can't you just goto do_recover here?
-Not sure again.
+I've seen this sort of behaviour before - on the hardware I have where 
+it's exhibited, it's caused by one of the PCI registers being rewritten 
+in the yenta driver. I haven't successfully tracked down /why/ yet. Can 
+you attach the output from lspci?
 
-Thanks,
-Shaohua
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
