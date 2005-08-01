@@ -1,10 +1,13 @@
-From: Thomas Sjolshagen <Thomas.Sjolshagen-VXdhtT5mjnY@public.gmane.org>
-Subject: AE_NOT_FOUND for \_TZ_.THRM in 2.6.12.3(++)
-Date: Sun, 31 Jul 2005 10:33:37 -0400
-Message-ID: <1122820417.26188.16.camel@localhost.zk3.dec.com>
+From: "Francisco Figueiredo Jr." <fxjrlists-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
+Subject: Re: [PATCH] hysteresis for active cooling
+Date: Sun, 31 Jul 2005 22:59:51 -0300
+Message-ID: <42ED8217.5080807@yahoo.com.br>
+References: <E1DwtK9-000275-00@skye.ra.phy.cam.ac.uk> <Pine.LNX.4.58.0507250950540.4364@nacho>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-U8lB0v8bxDlSsTn3Stuy"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.58.0507250950540.4364@nacho>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,107 +17,90 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jamie Lentin <lentinj-aI60gWiEnN8g9ELcbhaJlPXRex20P6io@public.gmane.org>
+Cc: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>, "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---=-U8lB0v8bxDlSsTn3Stuy
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Jamie Lentin wrote:
+>>I don't know for sure, since I don't understand why your system starts
+>>active cooling at 52 C (instead of 50 C) -- maybe there's hysteresis
+>>in the hardware?  And why does it have to get way down to 44 C instead
+>>of only 50 C before turning off?
+> 
+> 
+> There is probably hysteresis built into the DSDT.  The ACPI Spec
+> suggests doing this (don't have a page # handy tho', sorry), it's how
+> hysteresis is implemented on my laptop (as well as yours---atlhough the
+> hysteresis code is probably broken as it was on mine.  I'm preparing a
+> page in the DSDT fixes/rewrites I've done on my laptop, if you're
+> interested.  Your 600x DSDT code seems pretty much identical to my 770x
+> code).
+> 
+> Basically, whenever there is a change in fan state, the DSDT can trigger
+> the OS to re-read the trip-points from the DSDT, and give lower values.
+> Again, once the fan turns off, it can tell the OS to re-read, and give
+> higher trip-point values.
+> 
 
-Hi,
+Ahhhh, nice catch!
 
-Using a HP Pavilion a805n running v2.6.12.3 + a few non-acpi related
-patches (gentoo-sources-2.6.12-r6). Though I've defined \_TZ_.THRM as
-"External" in the dsdt.dsl file (and it compiles w/o any
-warnings/errors) I still get:
-=20
-    ACPI-0352: *** Error: Looking up [\_TZ_.THRM] in namespace,
-AE_NOT_FOUND
-search_node c14731a0 start_node c14731a0 return_node 00000000
-    ACPI-1138: *** Error: Method execution failed [\_GPE._L1C] (Node
-c14731a0), AE_NOT_FOUND
-    ACPI-0552: *** Error: AE_NOT_FOUND while evaluating method [_L1C]
-for GPE[ 0]
+I never watched my trip points when fan was on.
 
-I get this regardless of using a custom dsdt or not.
+This is what I get:
+cat /proc/acpi/thermal_zone/THRM/trip_points
+critical (S5):           93 C
+passive:                 90 C: tc1=2 tc2=3 tsp=100 devices=0xdf6de240
+active[0]:               70 C: devices=0xc147fe00
+active[1]:               60 C: devices=0xc147ff20
+active[2]:               45 C: devices=0xc147ffe0
 
+Indeed, my active[2] was changed to 45 C. As I get my fan turned off
+when it reaches 42, 41C I think it has the hysteresis already in my dsdt
+as Jamie said. This would explain why values when fan is on or off
+changes sometimes. I mean, sometimes my fan starts with 51C, other times
+with 52C. The same happens when turning off.
 
-tia!
-
---=-U8lB0v8bxDlSsTn3Stuy
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIILkzCCBCUw
-ggOOoAMCAQICEFY7bue2cS6UAM17nmK17pQwDQYJKoZIhvcNAQEFBQAwgcExCzAJBgNVBAYTAlVT
-MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xhc3MgMiBQdWJsaWMgUHJpbWFy
-eSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAtIEcyMTowOAYDVQQLEzEoYykgMTk5OCBWZXJpU2ln
-biwgSW5jLiAtIEZvciBhdXRob3JpemVkIHVzZSBvbmx5MR8wHQYDVQQLExZWZXJpU2lnbiBUcnVz
-dCBOZXR3b3JrMB4XDTAxMDQyNDAwMDAwMFoXDTA5MDQyMzIzNTk1OVowgeIxIDAeBgNVBAoTF0hl
-d2xldHQtUGFja2FyZCBDb21wYW55MR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTsw
-OQYDVQQLEzJUZXJtcyBvZiB1c2UgYXQgaHR0cHM6Ly93d3cudmVyaXNpZ24uY29tL3JwYSAoYykw
-MTEwMC4GA1UECxMnQ2xhc3MgMiBPblNpdGUgSW5kaXZpZHVhbCBTdWJzY3JpYmVyIENBMS4wLAYD
-VQQDEyVDb2xsYWJvcmF0aW9uIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MIGfMA0GCSqGSIb3DQEB
-AQUAA4GNADCBiQKBgQDAcFMLBRNrSFtoeiDpMyfh4Tvf3wSPPCAzr0c/4ruQ3JV8VamHbqoEgNgB
-kt5sJi0YhvuT3JOY9FUhYB1gODDby1D5Dxt6WCoRabDOa/0hJOUSAW84Uspz5yAj38UoKJE3ZBbX
-a4ey6AmEoHA0nbXMHswOgR0GMZjUzJjlPX7lOwIDAQABo4H6MIH3MA8GA1UdEwQIMAYBAf8CAQAw
-RAYDVR0gBD0wOzA5BgtghkgBhvhFAQcBATAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy52ZXJp
-c2lnbi5jb20vcnBhMAsGA1UdDwQEAwIBBjARBglghkgBhvhCAQEEBAMCAQYwKQYDVR0RBCIwIKQe
-MBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDEtMzgyMDQGA1UdHwQtMCswKaAnoCWGI2h0dHA6Ly9j
-cmwudmVyaXNpZ24uY29tL3BjYTItZzIuY3JsMB0GA1UdDgQWBBTv7SDNQ0Ufg0dgFZZDckrkxszn
-PTANBgkqhkiG9w0BAQUFAAOBgQBBklFcgEBo2ZBUa4XrycoQyF1r9aXnqu+T0C4diQpXSw//2S27
-Kfsoy4cqIWPi4ArAJkuKrfrCNiqIreOCT0xnlM+QC5/VPJYnUyqegWfr7tZxCT+V4nBtUNO0pXtP
-Rt9M/x8YXntxXyonpJJaJ+kOx5h0qH4KeM/WQjeOQtMnbzCCB2YwggbPoAMCAQICEAe56BdZiLcf
-X+3PSu4/uEowDQYJKoZIhvcNAQEFBQAwgeIxIDAeBgNVBAoTF0hld2xldHQtUGFja2FyZCBDb21w
-YW55MR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTswOQYDVQQLEzJUZXJtcyBvZiB1
-c2UgYXQgaHR0cHM6Ly93d3cudmVyaXNpZ24uY29tL3JwYSAoYykwMTEwMC4GA1UECxMnQ2xhc3Mg
-MiBPblNpdGUgSW5kaXZpZHVhbCBTdWJzY3JpYmVyIENBMS4wLAYDVQQDEyVDb2xsYWJvcmF0aW9u
-IENlcnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTA0MTIwMjAwMDAwMFoXDTA2MTIwMjIzNTk1OVow
-gaAxIDAeBgNVBAoUF0hld2xldHQtUGFja2FyZCBDb21wYW55MSYwJAYDVQQLFB1FbXBsb3ltZW50
-IFN0YXR1cyAtIEVtcGxveWVlczEPMA0GA1UECxQGUy9NSU1FMRowGAYDVQQDExFUaG9tYXMgU2pv
-bHNoYWdlbjEnMCUGCSqGSIb3DQEJARYYdGhvbWFzLnNqb2xzaGFnZW5AaHAuY29tMIIBIjANBgkq
-hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwe9P327MEHghhYNYF/SjEITkyiGOTeCBsxw0Cx/nHosL
-22QTwtpMwCclurcxaP5h/o1uzqNnBQcwONz+fZ6gDhevyuDZnaur6vJx+uDf5HJ0Gt+J4+97gQvJ
-FlfD+dZPtdx+mKX45Ivl8oD/J73faXHxlFRiYoqo2GdA4WhpEl2GnoaGrG/k/ecLK/xDhjafwRa5
-j1g7RZi8IgWW5gckUp/YiYziRVWJi8jAdF3lx3utgGnf0+oxwdgA4ULeHQNKOAr2TEgekN9EqWK/
-1aMgXd3j3DLFT3rlP/BICWxWdLp1L/Qm8IdmXg5pTanxHs2Xpmq+8IgSWaKcOTcGncawPQIDAQAB
-o4ID1zCCA9MwPQYDVR0RBDYwNIEYdGhvbWFzLnNqb2xzaGFnZW5AaHAuY29tgRhUaG9tYXMuU2pv
-bHNoYWdlbkBocC5jb20wDAYDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCBaAwHwYDVR0jBBgwFoAU
-7+0gzUNFH4NHYBWWQ3JK5MbM5z0wHQYDVR0OBBYEFBRYG8CX31Vd+4WlnfznHBdkHHYiMFcGA1Ud
-HwRQME4wTKBKoEiGRmh0dHA6Ly9vbnNpdGVjcmwudmVyaXNpZ24uY29tL0hld2xldHRQYWNrYXJk
-Q29tcGFueVNNSU1FL0xhdGVzdENSTC5jcmwwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwQwggE9BgNV
-HSAEggE0MIIBMDCCASwGC2CGSAGG+EUBBxcCMIIBGzAoBggrBgEFBQcCARYcaHR0cHM6Ly93d3cu
-dmVyaXNpZ24uY29tL0NQUzCB7gYIKwYBBQUHAgIwgeEwHhYXSGV3bGV0dC1QYWNrYXJkIENvbXBh
-bnkwAwIBAhqBvkF1dGhvcml0eSB0byBiaW5kIEhQIGRvZXMgbm90IGNvcnJlc3BvbmQgd2l0aCB1
-c2Ugb3IgcG9zc2Vzc2lvbiBvZiB0aGlzIGNlcnRpZmljYXRlLiBJc3N1ZWQgdG8gZmFjaWxpdGF0
-ZSBjb21tdW5pY2F0aW9uIHdpdGggSFAuIFZlcmlTaWduJ3MgQ1BTIGluY29ycC4gQnkgcmVmZXJl
-bmNlIGxpYWIuIGx0ZC4gKGMpOTcgVmVyaVNpZ24wggEzBggrBgEFBQcBAQSCASUwggEhMCsGCCsG
-AQUFBzABhh9odHRwOi8vb25zaXRlLW9jc3AudmVyaXNpZ24uY29tMIHxBggrBgEFBQcwAqSB5DCB
-4TEuMCwGA1UEAxMlQ29sbGFib3JhdGlvbiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTEwMC4GA1UE
-CxMnQ2xhc3MgMiBPblNpdGUgSW5kaXZpZHVhbCBTdWJzY3JpYmVyIENBMTowOAYDVQQLEzFUZXJt
-cyBvZiB1c2UgYXQgaHR0cHM6Ly93d3cudmVyaXNpZ24uY29tL3JwYShjKTAxMR8wHQYDVQQLExZW
-ZXJpU2lnbiBUcnVzdCBOZXR3b3JrMSAwHgYDVQQKExdIZXdsZXR0LVBhY2thcmQgQ29tcGFueTBL
-BgkqhkiG9w0BCQ8EPjA8MA4GCCqGSIb3DQMCAgIAgDAOBggqhkiG9w0DAgICAEAwDgYIKoZIhvcN
-AwQCAgCAMAoGCCqGSIb3DQMHMA0GCSqGSIb3DQEBBQUAA4GBAJgQWqEvfIWmAMoqf/OS7uR9jf1W
-JIbXmoVGqDgPScWneJqQjPJ7BeMmSMxzfpbHEXAyJFeZZbYptkJk8f2RDm/JiK9/iSQwCOXIMoMJ
-9M4wfKeJR6NGNia6yxGtQWADkY1aOpCyqb/UgKMCuwwVweZyXNSs3iIZZN1QjXJu8XEPMYICfjCC
-AnoCAQEwgfcwgeIxIDAeBgNVBAoTF0hld2xldHQtUGFja2FyZCBDb21wYW55MR8wHQYDVQQLExZW
-ZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTswOQYDVQQLEzJUZXJtcyBvZiB1c2UgYXQgaHR0cHM6Ly93
-d3cudmVyaXNpZ24uY29tL3JwYSAoYykwMTEwMC4GA1UECxMnQ2xhc3MgMiBPblNpdGUgSW5kaXZp
-ZHVhbCBTdWJzY3JpYmVyIENBMS4wLAYDVQQDEyVDb2xsYWJvcmF0aW9uIENlcnRpZmljYXRpb24g
-QXV0aG9yaXR5AhAHuegXWYi3H1/tz0ruP7hKMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJ
-KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNTA3MzExNDMzMzZaMCMGCSqGSIb3DQEJBDEWBBS5
-9bQkIqQfiGjby+XOYJsMfkKlODANBgkqhkiG9w0BAQEFAASCAQArik02AaW73VGf4TFBX8fo6yvv
-wNsh1k09Ta24oNAya/G9uROhPBzGLCZZ/Hx77sVjlS2SGvGAB2+iIfiPlYD1KHjTNdTxXAdZfvGV
-wiVqPAOyefzooIZLjTCFTMnF0r481bDora3+P1tlKkvWYZxhC8Vawp+O0Pisp1qp5JIMpabyuxw9
-ASZX06jWTTyxIKB2QDHELVrsHGpTUASFWBCpguqeqJ0tojJKK7zxNCw/GaUyiYwofgdsWwnmtJDV
-HPQAmE877iKpHXHmft5VlUEXrNZpCCcBJLulpNz8vc+DidCzIicD/UBNBXnQePCGMLrylWHHMiTV
-7uQG36o6s6gWAAAAAAAA
+Thanks guys for this one more information.
 
 
---=-U8lB0v8bxDlSsTn3Stuy--
+
+- --
+Regards,
+
+Francisco Figueiredo Jr.
+Npgsql Lead Developer
+http://gborg.postgresql.org/project/npgsql
+MonoBrasil Project Founder Member
+http://monobrasil.softwarelivre.org
+
+
+- -------------
+"Science without religion is lame;
+religion without science is blind."
+
+                  ~ Albert Einstein
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iQEVAwUBQu2CFv7iFmsNzeXfAQKm9gf/dtcvDM7ijfryGUd9uJr/A5HBA178AQ9J
+MLDUzoVZBcF09SHLk4Oa6b0rqmMpfXiQ4n+Smai9zhwpysY66pcR8JFXHDqXow+K
+xpEAO91aE34VAYObcBS0WTWZd/5AIBDNzztV26Kaykn/Yp8JR618U94kSjU0k/ot
+fMqMKJq8IkvsJINxqst6fbHya/IuPSEg1XR6IwAR1DQML3dmXAWFeJiuYx4hrUDd
+yGU0rR+H369KzGU8Fqexo+aWPLw3beKcF15EGpYea9fwNNGqixEjbB19Cs7vr7z2
+7UAn4ZTIX/aQn8rbsXrcn30jlbXNHIkk3k9ziLBKE6ve1IQxVreeYA==
+=VN0U
+-----END PGP SIGNATURE-----
+
+	
+	
+		
+_______________________________________________________ 
+Yahoo! Acesso Grátis - Internet rápida e grátis. 
+Instale o discador agora! http://br.acesso.yahoo.com/
 
 
 
