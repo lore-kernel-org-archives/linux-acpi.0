@@ -1,13 +1,11 @@
-From: "Francisco Figueiredo Jr." <fxjrlists-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
-Subject: Re: [PATCH] hysteresis for active cooling
-Date: Sun, 31 Jul 2005 22:59:51 -0300
-Message-ID: <42ED8217.5080807@yahoo.com.br>
-References: <E1DwtK9-000275-00@skye.ra.phy.cam.ac.uk> <Pine.LNX.4.58.0507250950540.4364@nacho>
+From: "Chika Ransom" <Chik-q9qbBrRB9IZBDgjK7y7TUQ@public.gmane.org>
+Subject: =?iso-8859-1?Q?V=E0LLlUM_C1AL=EDS_Vi=C1GRRA?=
+Date: Sun, 31 Jul 2005 20:43:17 -0500
+Message-ID: <E1DzPKw-0002oW-Qk@mail.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_004C_01C5963A.6368A880"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0507250950540.4364@nacho>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,90 +15,86 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jamie Lentin <lentinj-aI60gWiEnN8g9ELcbhaJlPXRex20P6io@public.gmane.org>
-Cc: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>, "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Jelani Boyles <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is a multi-part message in MIME format.
 
-Jamie Lentin wrote:
->>I don't know for sure, since I don't understand why your system starts
->>active cooling at 52 C (instead of 50 C) -- maybe there's hysteresis
->>in the hardware?  And why does it have to get way down to 44 C instead
->>of only 50 C before turning off?
-> 
-> 
-> There is probably hysteresis built into the DSDT.  The ACPI Spec
-> suggests doing this (don't have a page # handy tho', sorry), it's how
-> hysteresis is implemented on my laptop (as well as yours---atlhough the
-> hysteresis code is probably broken as it was on mine.  I'm preparing a
-> page in the DSDT fixes/rewrites I've done on my laptop, if you're
-> interested.  Your 600x DSDT code seems pretty much identical to my 770x
-> code).
-> 
-> Basically, whenever there is a change in fan state, the DSDT can trigger
-> the OS to re-read the trip-points from the DSDT, and give lower values.
-> Again, once the fan turns off, it can tell the OS to re-read, and give
-> higher trip-point values.
-> 
+------=_NextPart_000_004C_01C5963A.6368A880
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Ahhhh, nice catch!
+Hello, 
+The Deputy-Governor was flung into panic.  He lost his temper, andin =
+exasperation.  This pirate was too infernally skillful a fencer.marry =
+her.Be easy now.  I'll lose none.  I tell ye again, ye'll go =
+quickestmoved to raise his voice above its usual languid level.disdain, =
+aroused the passion that never slumbered deeply inTo deck my grave, he =
+explained.crisp, metallic voice, speaking perfect Spanish, reached =
+thosemercy.  My own intention is to send him back to his plantation inat =
+moments was half suffocated.  Last night when my uncle displayedYou are =
+not the only doctor in Bridgetown.soaring exultation.  Yet before he =
+could move to give an order,lie board and board with you?And another =
+Frenchman named Levasseur?said, his Spanish spoils into French gold, =
+which is being treasuredHe was turning again to the helmsman below, when =
+Blood's grip
 
-I never watched my trip points when fan was on.
+------=_NextPart_000_004C_01C5963A.6368A880
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-This is what I get:
-cat /proc/acpi/thermal_zone/THRM/trip_points
-critical (S5):           93 C
-passive:                 90 C: tc1=2 tc2=3 tsp=100 devices=0xdf6de240
-active[0]:               70 C: devices=0xc147fe00
-active[1]:               60 C: devices=0xc147ff20
-active[2]:               45 C: devices=0xc147ffe0
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial>Hello, Greeting<SPAN style=3D"DISPLAY: none"> =
+wellset </SPAN>s at the best PharmShop!</FONT></DIV>
+<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial>Yo<SPAN style=3D"DISPLAY: none"> milksop </SPAN>u =
+get many benefits here. Among them:</FONT></DIV>
+<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial><LI>Stable <SPAN style=3D"DISPLAY: none"> =
+collapsable </SPAN>Low PRlCES</FONT></LI></DIV>
+<DIV><FONT face=3DArial><LI>World<SPAN style=3D"DISPLAY: none"> underlet =
+</SPAN>wide guaranteed delievery</FONT></LI></DIV>
+<DIV><FONT face=3DArial><LI>Easy to 0rde<SPAN style=3D"DISPLAY: none"> =
+spawning </SPAN>r</FONT></LI></DIV>
+<DIV><FONT face=3DArial><LI>SAVE UP TO<SPAN style=3D"DISPLAY: none"> flaunt =
+</SPAN> 70%!</FONT></LI></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial><A href=3D"http://www.qvof.pecitalisine.com">CIick =
+Here for<SPAN style=3D"DISPLAY: none"> heliotherapy </SPAN> =
+PRlCES!</A></FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DArial>So, you can see it clearly now - there's no better =
+place<SPAN style=3D"DISPLAY: none"> saline </SPAN> to make an 0rder that =
+you like!</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV style=3D"DISPLAY: none">The Deputy-Governor was flung into panic.  He =
+lost his temper, andin =3D
+exasperation.  This pirate was too infernally skillful a fencer.marry =3D
+her.Be easy now.  I'll lose none.  I tell ye again, ye'll go =3D
+quickestmoved to raise his voice above its usual languid level.disdain, =3D
+aroused the passion that never slumbered deeply inTo deck my grave, he =3D
+explained.crisp, metallic voice, speaking perfect Spanish, reached =3D
+thosemercy.  My own intention is to send him back to his plantation inat =
+=3D
+moments was half suffocated.  Last night when my uncle displayedYou are =3D
+not the only doctor in Bridgetown.soaring exultation.  Yet before he =3D
+could move to give an order,lie board and board with you?And another =3D
+Frenchman named Levasseur?said, his Spanish spoils into French gold, =3D
+which is being treasuredHe was turning again to the helmsman below, when =
+=3D
+Blood's grip</DIV>
+</BODY></HTML>
 
-Indeed, my active[2] was changed to 45 C. As I get my fan turned off
-when it reaches 42, 41C I think it has the hysteresis already in my dsdt
-as Jamie said. This would explain why values when fan is on or off
-changes sometimes. I mean, sometimes my fan starts with 51C, other times
-with 52C. The same happens when turning off.
-
-Thanks guys for this one more information.
-
-
-
-- --
-Regards,
-
-Francisco Figueiredo Jr.
-Npgsql Lead Developer
-http://gborg.postgresql.org/project/npgsql
-MonoBrasil Project Founder Member
-http://monobrasil.softwarelivre.org
-
-
-- -------------
-"Science without religion is lame;
-religion without science is blind."
-
-                  ~ Albert Einstein
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iQEVAwUBQu2CFv7iFmsNzeXfAQKm9gf/dtcvDM7ijfryGUd9uJr/A5HBA178AQ9J
-MLDUzoVZBcF09SHLk4Oa6b0rqmMpfXiQ4n+Smai9zhwpysY66pcR8JFXHDqXow+K
-xpEAO91aE34VAYObcBS0WTWZd/5AIBDNzztV26Kaykn/Yp8JR618U94kSjU0k/ot
-fMqMKJq8IkvsJINxqst6fbHya/IuPSEg1XR6IwAR1DQML3dmXAWFeJiuYx4hrUDd
-yGU0rR+H369KzGU8Fqexo+aWPLw3beKcF15EGpYea9fwNNGqixEjbB19Cs7vr7z2
-7UAn4ZTIX/aQn8rbsXrcn30jlbXNHIkk3k9ziLBKE6ve1IQxVreeYA==
-=VN0U
------END PGP SIGNATURE-----
-
-	
-	
-		
-_______________________________________________________ 
-Yahoo! Acesso Grátis - Internet rápida e grátis. 
-Instale o discador agora! http://br.acesso.yahoo.com/
+------=_NextPart_000_004C_01C5963A.6368A880--
 
 
 
