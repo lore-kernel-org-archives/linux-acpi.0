@@ -1,12 +1,13 @@
-From: Bram Vandoren <brambi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Acer Travelmate 4651lci: freeze 10-20s after resume (S3)
-Date: Mon, 1 Aug 2005 21:34:05 +0200
-Message-ID: <3d64b7f405080112344201642d@mail.gmail.com>
-Reply-To: Bram Vandoren <brambi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] PNPACPI: fix types when decoding ACPI resources [resend]
+Date: Tue, 2 Aug 2005 09:55:54 -0600
+Message-ID: <200508020955.54844.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_14050_30139973.1122924845969"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,93 +17,104 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+Cc: Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-------=_Part_14050_30139973.1122924845969
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Any objections to the patch below?  I posted it last Wednesday,
+but haven't heard anything.  Once we have this fix, 8250_pnp
+should have sufficient functionality that we can get rid of
+8250_acpi.
 
-Hi,=20
-I try to configure suspend to ram on my new Acer TravelMate 4651lci. I adde=
-d=20
-the option acpi_sleep=3Ds3_bios to my boot loader.=20
 
-I can correctly suspend the laptop (echo -n mem > /sys/power/state). When I=
-=20
-enter a key the laptop resumes also. Unfortunately the laptop freezes=20
-approximately 20 seconds later. The system doesn't react any more. I also d=
-o=20
-not get any error message on the screen.=20
 
-I uploaded lspci, dmidecode, acpidmp and lspci -vv and interrupts to my=20
-website:=20
-http://bram.be/lspci.txt=20
-http://bram.be/dmidecode.txt=20
-http://bram.be/acpidump.txt=20
-http://bram.be/interrupts.txt=20
+Use types that match the ACPI resource structures.  Previously
+the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
+which corrupts the value.
 
-I tried it with several kernels (ubuntu 2.6.10 and the latest
-2.6.12.3<http://2.6.12.3>(with and without acpi patch)). They all give
-the same result.
+This is one of the things that prevents 8250_pnp from working
+on HP ia64 boxes.  After 8250_pnp works, we will be able to
+remove 8250_acpi.c.
 
-Any ideas on how to fix this?=20
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-Thanks,=20
-Bram.
-
-------=_Part_14050_30139973.1122924845969
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Hi,
-<br>
-I try to configure suspend to ram on my new Acer TravelMate 4651lci. I=20
-added the option acpi_sleep=3Ds3_bios to my boot loader.
-<br>
-
-<br>
-I can correctly suspend the laptop (echo -n mem &gt; /sys/power/state).
-When I enter a key the laptop resumes also. Unfortunately the laptop
-freezes approximately 20 seconds later. The system doesn't react any
-more. I also do not get any error message on the screen.
-<br>
-
-<br>
-I uploaded lspci, dmidecode, acpidmp and lspci -vv and interrupts to my=20
-website:
-<br>
-<a class=3D"moz-txt-link-freetext" href=3D"http://bram.be/lspci.txt">http:/=
-/bram.be/lspci.txt</a>
-<br>
-<a class=3D"moz-txt-link-freetext" href=3D"http://bram.be/dmidecode.txt">ht=
-tp://bram.be/dmidecode.txt</a>
-<br>
-<a class=3D"moz-txt-link-freetext" href=3D"http://bram.be/acpidump.txt">htt=
-p://bram.be/acpidump.txt</a>
-<br>
-<a class=3D"moz-txt-link-freetext" href=3D"http://bram.be/interrupts.txt">h=
-ttp://bram.be/interrupts.txt</a>
-<br>
-
-<br>
-I tried it with several kernels (ubuntu 2.6.10 and the latest <a href=3D"ht=
-tp://2.6.12.3">2.6.12.3</a>=20
-(with and without acpi patch)). They all give the same result.
-<br>
-
-<br>
-Any ideas on how to fix this?
-<br>
-
-<br>
-Thanks,
-<br>
-Bram.
-
-------=_Part_14050_30139973.1122924845969--
+Index: work/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work.orig/drivers/pnp/pnpacpi/rsparser.c	2005-07-25 15:04:26.000000000 -0600
++++ work/drivers/pnp/pnpacpi/rsparser.c	2005-07-27 10:02:19.000000000 -0600
+@@ -73,7 +73,7 @@
+ }
+ 
+ static void
+-pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
++pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 irq)
+ {
+ 	int i = 0;
+ 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -85,13 +85,13 @@
+ 			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->irq_resource[i].start =(unsigned long) irq;
+-		res->irq_resource[i].end = (unsigned long) irq;
++		res->irq_resource[i].start = irq;
++		res->irq_resource[i].end = irq;
+ 	}
+ }
+ 
+ static void
+-pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
++pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, u32 dma)
+ {
+ 	int i = 0;
+ 	while (i < PNP_MAX_DMA &&
+@@ -103,14 +103,14 @@
+ 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->dma_resource[i].start =(unsigned long) dma;
+-		res->dma_resource[i].end = (unsigned long) dma;
++		res->dma_resource[i].start = dma;
++		res->dma_resource[i].end = dma;
+ 	}
+ }
+ 
+ static void
+ pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
+-	int io, int len)
++	u32 io, u32 len)
+ {
+ 	int i = 0;
+ 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -122,14 +122,14 @@
+ 			res->port_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->port_resource[i].start = (unsigned long) io;
+-		res->port_resource[i].end = (unsigned long)(io + len - 1);
++		res->port_resource[i].start = io;
++		res->port_resource[i].end = io + len - 1;
+ 	}
+ }
+ 
+ static void
+ pnpacpi_parse_allocated_memresource(struct pnp_resource_table * res,
+-	int mem, int len)
++	u64 mem, u64 len)
+ {
+ 	int i = 0;
+ 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -141,8 +141,8 @@
+ 			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->mem_resource[i].start = (unsigned long) mem;
+-		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
++		res->mem_resource[i].start = mem;
++		res->mem_resource[i].end = mem + len - 1;
+ 	}
+ }
+ 
 
 
 -------------------------------------------------------
