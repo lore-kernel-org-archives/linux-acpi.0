@@ -1,14 +1,13 @@
-From: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+From: Marcel Selhorst <selhorst-Un86pfwebVPMYnii8HsYE0T4CPmD8wNEs0AfqQuZ5sE@public.gmane.org>
 Subject: Re: Accessing DSDT entries within a kernel device driver
-Date: Tue, 02 Aug 2005 15:50:12 -0600
-Message-ID: <1123019412.5110.52.camel@tdi>
-References: <42EFC9AD.8060607@selhorst.net> <1123015115.5110.28.camel@tdi>
-	 <42EFE697.8030701@selhorst.net>
+Date: Wed, 03 Aug 2005 00:05:43 +0200
+Message-ID: <42EFEE37.2090500@crypto.rub.de>
+References: <42EFC9AD.8060607@selhorst.net> <1123015115.5110.28.camel@tdi>	 <42EFE697.8030701@selhorst.net> <1123019412.5110.52.camel@tdi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42EFE697.8030701-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <1123019412.5110.52.camel@tdi>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,98 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marcel Selhorst <acpi-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-08-02 at 23:33 +0200, Marcel Selhorst wrote:
+>   Heh, I should pay better attention to who I'm talking to ;^)
 
-> > There's a driver for it in -mm, 
-> 
-> oh I know, I have written it ;-))
+lol, sounds a little like the godfather:
+<italian sound on>
+you better pay attention whom you're talking to
+<italian sound off>
 
-  Heh, I should pay better attention to who I'm talking to ;^)
+:-))
 
-> > but it uses hard coded address (blech) and doesn't work on my laptop.
-> 
-> Thats the point why I am trying to use the ACPI-functions in order to
-> configure the TPM. Until now I assumed, that the ioports are correctly
-> set into the configuration registers of the TPM through the BIOS (at
-> least my prototypes did), but the feedback showed me, that it is not
-> always the case. Currently I am revising the kernel source code to do this
-> automatically and a new release will follow soon including support for
-> Infineons new TPM 1.2 chips.
+>    Very cool.  While you're at it, I think we're going to end up having
+> TPMs that live in MMIO space instead of I/O port space.  I assume the
+> access semantics are pretty similar, readb/writeb vs inb/outb, but it's
+> probably a good time to add that too.
 
-   Very cool.  While you're at it, I think we're going to end up having
-TPMs that live in MMIO space instead of I/O port space.  I assume the
-access semantics are pretty similar, readb/writeb vs inb/outb, but it's
-probably a good time to add that too.
+great idea, I will think about that :)
 
-> 
-> I was looking in the acpi-sourcecode trying to get the "acpi_evaluate_object"-
-> things working, but wasn't succesful :(
-> Nevertheless, could you give a hint how to extract the resources through ACPI?
+>    Completely untested, but based on 8250_pnp, I think you'd need
+> something like this: [...]
 
-   Completely untested, but based on 8250_pnp, I think you'd need
-something like this:
+wow, that was quick, thanks for the fast reply and the detailled examples!
+I will try them out now (hmm, hope this is not going to be an insomnian night).
 
-static int __devinit tpm_inf_probe(struct pnp_dev *dev,
-                                   const struct pnp_device_id *dev_id)
-{
-...
-if (pnp_port_valid(dev, 0) && pnp_port_valid(dev, 1)) {
-	io_control = pnp_port_start(dev, 0)
-	io_address = pnp_port_start(dev, 1)
-} else if (pnp_mem_valid(dev, 0) && pnp_mem_valid(dev, 1)) {
-	mem_control = pnp_mem_start(dev, 0)
-	mem_address = pnp_mem_start(dev, 1)
-}
-...
-}
+> I probably have some scrap
+> code around from when I was trying that approach if you'd like it.
 
-static const struct pnp_device_id tpm_pnp_tbl[] = {
-        /* Infineon TPM */
-        {"IFX0101", 0},
-        {"", 0}
-};
+For the moment I should have enough :)
 
-MODULE_DEVICE_TABLE(pnp, tpm_pnp_tbl);
+>    Cool, sounds like things are on the right track.  Let me know if I
+> can help further. 
 
-static struct pnp_driver inf_pnp_driver = {
-        .name = "tpm_inf_pnp",
-        .id_table = tpm_pnp_tbl,
-        .probe = tpm_inf_probe,
-        .remove = __devexit_p(tpm_remove),
-};
+Yes, thanks, you can test the new code, when its done :-)
 
-static int __init init_inf(void)
-{
-        return pnp_register_driver(&inf_pnp_driver);
-}
+Bye,
 
-static void __exit cleanup_inf(void)
-{
-        pnp_unregister_driver(&inf_pnp_driver);
-}
-
-If you want to use ACPI directly, have a look at 8250_acpi.  The PNP
-stuff does seem easier since all of the complicated ACPI callback stuff
-to fill in resources is handled for you.  I probably have some scrap
-code around from when I was trying that approach if you'd like it.
-
-> In the current release of IBMs generic tpm interface (tpm.c/h), the lpc-stuff has
-> been replaced through pci_enable_device-calls exactly for this reason to make the
-> interface more flexible and LPC-bus-independent. But enhancing it with
-> ACPI-functionality would really be great.
-
-   Cool, sounds like things are on the right track.  Let me know if I
-can help further.  Thanks,
-	
-	Alex
-
--- 
-Alex Williamson                             HP Linux & Open Source Lab
-
+Marcel Selhorst
 
 
 -------------------------------------------------------
