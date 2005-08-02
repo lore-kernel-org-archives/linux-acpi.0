@@ -1,10 +1,10 @@
-From: Andrew Barr <andrew.james.barr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Battery status lost: AE_OWNER_ID_LIMIT errors in syslog
-Date: Tue, 02 Aug 2005 13:32:41 -0400
-Message-ID: <pan.2005.08.02.17.32.40.912783@gmail.com>
+From: Marcel Selhorst <acpi-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>
+Subject: Accessing DSDT entries within a kernel device driver
+Date: Tue, 02 Aug 2005 21:29:49 +0200
+Message-ID: <42EFC9AD.8060607@selhorst.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,51 +18,37 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Dear ACPI-List,
 
-I am having the same problems as this fellow:
+I am pretty new to ACPI and I hope that my question is not offending, but I didn't
+find an answer in the mailing archive.
+I am writing a device driver for a trusted platform module (TPM), which is connected
+to the mainboard via the LPC-bus. The corresponding ioports needed to communicate
+with the chip are written into the ACPI-table (DSDT) through the BIOS.
+So what I would like to do is simply read out the values stored inside the DSDT-table
+and gather the information I need to configure the TPM-chip with the correct ioports.
+The corresponding DSDT-entry looks like this:
 
-http://article.gmane.org/gmane.linux.acpi.devel/14110
+Device (TPM)
+        {
+            Name (_HID, EisaId ("IFX0101"))
+            Name (_UID, 0x01)
+            Name (_CRS, ResourceTemplate ()
+            {
+                IO (Decode16, 0x004E, 0x004E, 0x01, 0x02)
+                IO (Decode16, 0x4700, 0x4700, 0x01, 0x0C)
+            })
+        }
 
-Basically, after my laptop (ThinkPad R51, Intel graphics and chipset) has
-been up for some time messages like these begin to flood the kernel logs:
+Is there a way to get the information (without userspace disassembling through iasl)?
 
-ACPI-0105: *** Error: Could not allocate new owner_id (32 max),
-AE_OWNER_ID_ LIMIT=20
+Thanks a lot,
 
-ACPI-0509: *** Error: Method execution failed
-[\_SB_.PCI0.LPC_.EC__.BAT0._BI F] (Node cf44b820), AE_OWNER_ID_LIMIT
-
-This is certainly a new problem--this never happened before kernel 2.6.12=
-,
-although it was a problem before ACPI 20050729.
-
-And as a result programs can no longer query battery status, the GNOME
-battery panel applet turns to an exclaimation point and (particularly
-annoying) the sleepd[1] daemon attempts to put the laptop to sleep, even
-though the battery is not low. The kernel is 2.6.12.3 with latest ACPI
-patch (20050729) and suspend2 2.1.9.9.
-
-This happens after a session has been active for some time--either if the
-computer has been on for some time or a while after I've resumed from
-suspend-to-disk or suspend-to-RAM.
-
-Any help with this problem would be appreciated.
-
---
-Andrew Barr
-andrew.james.barr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-
-[1] sleepd puts a laptop to sleep after a certain amount of idle time
-(measured by keyboard & mouse interrupts) or if the battery falls below a
-certain threshold. It supports APM *and* ACPI. Homepage here:
-http://kitenet.net/programs/sleepd/
-
+Marcel Selhorst
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
 from IBM. Find simple to follow Roadmaps, straightforward articles,
 informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclic=
-k
+speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
