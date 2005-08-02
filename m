@@ -1,10 +1,10 @@
-From: Florian Schricker <fschricker-S0/GAf8tV78@public.gmane.org>
-Subject: acpi_ec_space_handler flooding logs
-Date: Tue, 02 Aug 2005 18:36:13 +0200
-Message-ID: <1123000573.12447.15.camel@x10>
+From: Andrew Barr <andrew.james.barr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Battery status lost: AE_OWNER_ID_LIMIT errors in syslog
+Date: Tue, 02 Aug 2005 13:32:41 -0400
+Message-ID: <pan.2005.08.02.17.32.40.912783@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,71 +18,45 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello everybody!
+Hi.
 
+I am having the same problems as this fellow:
 
-I have quite some trouble with ACPI / DSDT and with my hddisk - and
-quite frankly I'm a bit lost. :-(
+http://article.gmane.org/gmane.linux.acpi.devel/14110
 
-Well, looong story short: I had previously a self-repaired DSDT in my
-initrd which I suspect of being the cause of quite some trouble. I am
-unsure if this can be possible, but I thought it'd be best to at least
-fall back to the "integrated" one.
+Basically, after my laptop (ThinkPad R51, Intel graphics and chipset) has
+been up for some time messages like these begin to flood the kernel logs:
 
-Although all ACPI modules load fine (I'm on a 2.6.12 kernel), I have
-trouble with my battery - I had this before, and to be honest, I'd very
-much appreciate any professional help on fixing it (I suspect _me_ being
-the cause of troubles first)!
+ACPI-0105: *** Error: Could not allocate new owner_id (32 max),
+AE_OWNER_ID_ LIMIT=20
 
-For that I extracted my DSDT, disassembled it using iasl and, for
-testing purposes, I recompiled it.
+ACPI-0509: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BI F] (Node cf44b820), AE_OWNER_ID_LIMIT
 
-Both files are accessible:
- - raw data from /proc/acpi/dsdt
-     http://www.uni-koblenz.de/~eyerq/dsdt-samsung.dat
- - dissambled DSDT source
-     http://www.uni-koblenz.de/~eyerq/dsdt-samsung.dsl
+This is certainly a new problem--this never happened before kernel 2.6.12=
+,
+although it was a problem before ACPI 20050729.
 
-Recompiling gives:
+And as a result programs can no longer query battery status, the GNOME
+battery panel applet turns to an exclaimation point and (particularly
+annoying) the sleepd[1] daemon attempts to put the laptop to sleep, even
+though the battery is not low. The kernel is 2.6.12.3 with latest ACPI
+patch (20050729) and suspend2 2.1.9.9.
 
--------
-# ./iasl dsdt-samsung.dsl
+This happens after a session has been active for some time--either if the
+computer has been on for some time or a while after I've resumed from
+suspend-to-disk or suspend-to-RAM.
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18
-2003]
-Copyright (C) 2000 - 2003 Intel Corporation
-Supports ACPI Specification Revision 2.0b
+Any help with this problem would be appreciated.
 
-dsdt-samsung.dsl   312:     Method (_WAK, 1, NotSerialized)
-Warning  2026 -                        ^ Reserved method must return a
-value (_WAK)
+--
+Andrew Barr
+andrew.james.barr-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
-dsdt-samsung.dsl  2577:                     Field (ECR, DWordAcc, Lock,
-Preserve)
-Error    1048 -                                      ^ Host Operation
-Region requires ByteAcc access
-
-dsdt-samsung.dsl  2623:                     Method (_GLK, 1,
-NotSerialized)
-Warning  2024 - Reserved method has too many arguments ^  ( _GLK
-requires 0)
-
-ASL Input:  dsdt-samsung.dsl - 3748 lines, 125559 bytes, 1798 keywords
-Compilation complete. 1 Errors, 2 Warnings, 0 Remarks, 410 Optimizations
--------
-
-This broken DSDT is currently active, fails with battery as mentioned -
-and: floods dmesg / /var/log/messages with
-
-  ACPI: acpi_ec_space_handler: bit_width should be 8
-
-Is this something known?
-What would I need to fix the DSDT? Anything I can provide?
-
-
-thank you - and hopefully this the correct list
-Florian Schricker
+[1] sleepd puts a laptop to sleep after a certain amount of idle time
+(measured by keyboard & mouse interrupts) or if the battery falls below a
+certain threshold. It supports APM *and* ACPI. Homepage here:
+http://kitenet.net/programs/sleepd/
 
 
 
@@ -90,4 +64,5 @@ Florian Schricker
 SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
 from IBM. Find simple to follow Roadmaps, straightforward articles,
 informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+speed, fast. http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclic=
+k
