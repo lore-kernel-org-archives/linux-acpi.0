@@ -1,15 +1,10 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: ACPI: cleanup scan.c whitespace & coding style
-Date: Mon, 1 Aug 2005 13:10:13 -0600
-Message-ID: <200508011310.13323.bjorn.helgaas@hp.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3004311E42@hdsmsx401.amr.corp.intel.com>
+From: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: EC Confusion
+Date: Wed, 03 Aug 2005 11:25:39 -0300
+Message-ID: <BAY12-F92E5A9FC6DBB288D14EC8A8C50@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3004311E42-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,15 +14,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday 31 July 2005 12:29 am, Brown, Len wrote:
-> I'm going to Lindent the entire ACPI sub-system
-> at the start of 2.6.14
+Hi,
 
-Nice!  Thanks in advance...
+I am trying one more time to see if I can get ACPI working without any 
+problems in my laptop. When I hit Fn+F4 (Sleep button) nothing happens. If I 
+hit several times it starts working. If I hit Fn+F5 (to turn off the LCD) it 
+confuses with Fn+F4. And if I hit a few times it starts to work.
+The last working kernel versions I had were kernel 2.6.7 and kernel 
+2.6.12-rc2-mm2, but both of them present problems when resuming. The first 
+one resumes but the ethernet card doesn't work properly and the second one 
+reboots when resuming (it's a problem in the wakeup.S file that I couldn't 
+figure out where yet).
+I've also tryed kernel 2.6.12 with the latest patches posted this week in 
+the mailing list. Still the same problem.
+
+Thanks,
+Paulo
+
+_________________________________________________________________
+MSN Messenger: converse online com seus amigos .  
+http://messenger.msn.com.br
+
 
 
 -------------------------------------------------------
