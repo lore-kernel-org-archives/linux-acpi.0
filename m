@@ -1,12 +1,15 @@
-From: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: EC Confusion
-Date: Wed, 03 Aug 2005 18:07:37 -0300
-Message-ID: <BAY12-F16C2CEDB72F72ED1D1A1A0A8C50@phx.gbl>
-References: <200508032243.59524.rjw@sisk.pl>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: ACPI hot-plug notification help needed
+Date: Wed, 3 Aug 2005 15:13:30 -0600
+Message-ID: <200508031513.30570.bjorn.helgaas@hp.com>
+References: <200507251735.23394.bjorn.helgaas@hp.com> <200508031427.11057.bjorn.helgaas@hp.com> <20050803135511.B5010@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200508032243.59524.rjw-KKrjLPT3xs0@public.gmane.org>
+In-Reply-To: <20050803135511.B5010-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,72 +19,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Wednesday 03 August 2005 2:55 pm, Keshavamurthy Anil S wrote:
+> Once we have the
+> core ACPI changes done, we need to clean up the affected drivers
+> and all of this has to get comitted at once. This is going to be
+> a huge efforts in terms of testing:-)
 
-   the kernel command line: ro root=LABEL=/ rhgb quiet acpi=on 
-acpi_dbg_layer=0x14000F acpi_dbg_level=0x1F ec_polling
-   Is this correct ?
-   I still have the same problem. Here is the dmesg important part. I have 
-to hit the sleep button 8 time before it works :
-acpi_ec-0810 [08] acpi_ec_gpe_query     : Evaluating _Q20
-acpi_ec-0810 [09] acpi_ec_gpe_query     : Evaluating _Q20
-acpi_ec-0810 [10] acpi_ec_gpe_query     : Evaluating _Q20
-acpi_ec-0810 [11] acpi_ec_gpe_query     : Evaluating _Q20
-acpi_ec-0810 [12] acpi_ec_gpe_query     : Evaluating _Q20
-acpi_ec-0810 [13] acpi_ec_gpe_query     : Evaluating _Q20
-acpi_ec-0810 [14] acpi_ec_gpe_query     : Evaluating _Q20
-acpi_ec-0810 [15] acpi_ec_gpe_query     : Evaluating _Q0D
-  evmisc-0152 [24] ev_queue_notify_reques: Dispatching Notify(80) on node 
-dff217e8
-  evmisc-0161 [24] ev_queue_notify_reques: Notify value: 0x80 **Device 
-Specific**
-
-  As I said, kernels 2.6.12-rc2-mm2 and kernel 2.6.7 work for me.
-
-Thanks,
-Paulo
-
->From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->CC: "Paulo Vitor Magacho da Silva" 
-><pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>,luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
->Subject: Re: [ACPI] EC Confusion
->Date: Wed, 3 Aug 2005 22:43:59 +0200
->
->On Wednesday, 3 of August 2005 22:05, Paulo Vitor Magacho da Silva wrote:
-> > Hi,
-> >
-> > I've tryed and had the same problem. How do I enable ec_polling ? During
-> > boot with ec_polling=on ?
->
->Just ec_polling,
->
->Rafael
->
->
->--
->- Would you tell me, please, which way I ought to go from here?
->- That depends a good deal on where you want to get to.
->		-- Lewis Carroll "Alice's Adventures in Wonderland"
->
->
->-------------------------------------------------------
->SF.Net email is Sponsored by the Better Software Conference & EXPO
->September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
->Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
->Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-_________________________________________________________________
-MSN Messenger: converse online com seus amigos .  
-http://messenger.msn.com.br
-
+Better now than later then, I guess.  As far as I can see, this
+affects acpi_memhotplug, container, processor_core, and acpiphp.
+Are these widely used yet?  Do distros support them?  These drivers
+seem fairly immature, so I'm curious about why the testing should
+be so onerous.
 
 
 -------------------------------------------------------
