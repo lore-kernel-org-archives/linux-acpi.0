@@ -1,15 +1,14 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: ACPI hot-plug notification help needed
-Date: Wed, 3 Aug 2005 15:13:30 -0600
-Message-ID: <200508031513.30570.bjorn.helgaas@hp.com>
-References: <200507251735.23394.bjorn.helgaas@hp.com> <200508031427.11057.bjorn.helgaas@hp.com> <20050803135511.B5010@unix-os.sc.intel.com>
+From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+Subject: Re: Re: [PATCH] PNPACPI: fix types when decoding ACPI resources
+ [resend]
+Date: Wed, 03 Aug 2005 23:16:43 +0200
+Message-ID: <42F1343B.70707@free.fr>
+References: <200508020955.54844.bjorn.helgaas@hp.com> <1123030861.2937.4.camel@linux-hp.sh.intel.com> <200508030920.13450.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050803135511.B5010-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200508030920.13450.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,21 +18,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 03 August 2005 2:55 pm, Keshavamurthy Anil S wrote:
-> Once we have the
-> core ACPI changes done, we need to clean up the affected drivers
-> and all of this has to get comitted at once. This is going to be
-> a huge efforts in terms of testing:-)
+Hi,
 
-Better now than later then, I guess.  As far as I can see, this
-affects acpi_memhotplug, container, processor_core, and acpiphp.
-Are these widely used yet?  Do distros support them?  These drivers
-seem fairly immature, so I'm curious about why the testing should
-be so onerous.
+Bjorn Helgaas wrote:
+ > On Tuesday 02 August 2005 7:01 pm, Shaohua Li wrote:
+ >
+
+ >
+ >>Did you have plan to remove other
+ >>legacy acpi drivers?
+ >
+ >
+ > No, I didn't -- which ones are you thinking about?  Looking at
+ > the callers of acpi_bus_register_driver(), I see:
+looking for METHOD_NAME__CRS is more acurate.
+ >
+ > 	arch/ia64/hp/common/sba_iommu.c
+ > 		Probably can't be converted because it needs the
+ > 		ACPI handle to extract a vendor-specific data
+ > 		item from _CRS.
+ >
+ > 	drivers/char/hpet.c
+ > 		This probably should be converted to PNP.  I'll
+ > 		look into doing this.
+IIRC, I am not sure that the pnp layer was able to pass the 64 bits 
+memory adress for hpet correctly. But it would be nice if it works.
+
+There are drivers/acpi/motherboard.c that done some stuff already handle 
+by pnp/system.c.
+
+There was an extention of a floppy driver in order to use acpi in -mm, 
+but it seems to have been dropped.
+
+ >
+ > Then of course, there are a bunch of things in drivers/acpi/
+ > (battery, button, fan, ec, etc).  I expect the reason they are
+ > in drivers/acpi/ is because they need ACPI-specific functionality,
+ > so they probably couldn't be converted to PNP.
+yes.
+
+
+Matthieu
+
+PS : I saw in acpi ols paper that you plan once all dupe acpi drivers 
+will be removed to register again the pnp device in acpi layer. Do you 
+plan to add more check and for example add only device that have a CRS 
+in pnp layer ?
+
+PPS : is there any plan to integrate 
+http://marc.theaimsgroup.com/?l=linux-kernel&m=111827568001255&w=2 that 
+seem to fix some init problem ?
 
 
 -------------------------------------------------------
