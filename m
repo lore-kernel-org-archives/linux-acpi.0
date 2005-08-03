@@ -1,13 +1,14 @@
-From: Ivan Kokshaysky <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>
-Subject: [patch 2/2] ACPI: increase PCIBIOS_MIN_IO on x86
-Date: Wed, 3 Aug 2005 03:09:03 +0400
-Message-ID: <20050803030903.E18001@jurassic.park.msu.ru>
-References: <1122976168.4656.3.camel@localhost.localdomain> <20050802103226.GA5501@roarinelk.homelinux.net> <20050802154022.A15794@jurassic.park.msu.ru> <Pine.LNX.4.58.0508020845520.3341@g5.osdl.org> <20050802205023.B16660@jurassic.park.msu.ru> <Pine.LNX.4.58.0508021002300.3341@g5.osdl.org> <20050803011337.A18001@jurassic.park.msu.ru> <20050802212143.GA8738@kroah.com> <20050803014757.B18001@jurassic.park.msu.ru> <Pine.LNX.4.58.0508021456070.3341@g5.osdl.org>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] PNPACPI: fix types when decoding ACPI resources
+ [resend]
+Date: Wed, 03 Aug 2005 09:01:01 +0800
+Message-ID: <1123030861.2937.4.camel@linux-hp.sh.intel.com>
+References: <200508020955.54844.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0508021456070.3341-hNm40g4Ew95AfugRpC6u6w@public.gmane.org>; from torvalds-3NddpPZAyC0@public.gmane.org on Tue, Aug 02, 2005 at 02:57:19PM -0700
+In-Reply-To: <200508020955.54844.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +18,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Manuel Lauss <mano-nEyxjcs6f3Vin2gBucwGBecsttgLyre6@public.gmane.org>, Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Erik Waling <erikw-Z3oqqNSG8ADLoDKTGw+V6w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-We have increased PCIBIOS_MIN_IO to 0x4000, but still want
-motherboard resources to be allocated properly. So we need
-to state 0x1000 (according to the comment) limit explicitely.
+On Tue, 2005-08-02 at 09:55 -0600, Bjorn Helgaas wrote:
+> Any objections to the patch below?  I posted it last Wednesday,
+> but haven't heard anything.  Once we have this fix, 8250_pnp
+> should have sufficient functionality that we can get rid of
+> 8250_acpi.
+> 
+> 
+> 
+> Use types that match the ACPI resource structures.  Previously
+> the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
+> which corrupts the value.
+> 
+> This is one of the things that prevents 8250_pnp from working
+> on HP ia64 boxes.  After 8250_pnp works, we will be able to
+> remove 8250_acpi.c.
+We might always use 'unsigned long'. Did you have plan to remove other
+legacy acpi drivers?
 
-Signed-off-by: Ivan Kokshaysky <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>
+Thanks,
+Shaohua
 
---- 2.5.13-rc5/drivers/acpi/motherboard.c	Fri Jun 17 23:48:29 2005
-+++ linux/drivers/acpi/motherboard.c	Wed Aug  3 02:54:05 2005
-@@ -43,7 +43,7 @@ ACPI_MODULE_NAME		("acpi_motherboard")
-  */
- #define IS_RESERVED_ADDR(base, len) \
- 	(((len) > 0) && ((base) > 0) && ((base) + (len) < IO_SPACE_LIMIT) \
--	&& ((base) + (len) > PCIBIOS_MIN_IO))
-+	&& ((base) + (len) > 0x1000))
- 
- /*
-  * Clearing the flag (IORESOURCE_BUSY) allows drivers to use
 
 
 -------------------------------------------------------
