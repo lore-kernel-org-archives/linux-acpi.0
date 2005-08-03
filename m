@@ -1,13 +1,13 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: Re: ACPI hot-plug notification help needed
-Date: Wed, 03 Aug 2005 13:37:20 +0900
-Message-ID: <42F04A00.8060804@jp.fujitsu.com>
-References: <200507251735.23394.bjorn.helgaas@hp.com> <200508011620.02609.bjorn.helgaas@hp.com> <20050801170345.A16268@unix-os.sc.intel.com> <200508021641.26007.bjorn.helgaas@hp.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 and S4 broken on Toshiba Satellite 2400-s201
+Date: Wed, 3 Aug 2005 07:36:05 +0200
+Message-ID: <20050803053605.GA1399@elf.ucw.cz>
+References: <200507301545.29522.ziuchkov@uiuc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200508021641.26007.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200507301545.29522.ziuchkov-e94Sedi4moU@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bob Z <ziuchkov-e94Sedi4moU@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
->  	ACPI_FUNCTION_TRACE("acpi_bus_check_device");
->  
-> +	/*
-> +	 * If no device exists for this namespace node, a DEVICE_CHECK
-> +	 * notification means the device has appeared.
-> +	 */
-> +	if (acpi_bus_get_device(handle, &device)) {
-> +		result = acpi_bus_add_device(handle);
-> +		if (status_changed && result == 0)
-> +			*status_changed = 1;
-> +		return_VALUE(result);
-> +	}
-> +
->  	if (!device)
+> Hello, I am new to this mailing list, so please bear with me.  I've been 
+> having a heck of a time getting everything working with my laptop.  It's a 
+> Toshiba Satellite 2400-s201.  I finally got my alps touchpad and my wifi card 
+> to work after days of fussing around with different kernel and patch 
+> versions.  I ended up with version 2.6.11 of the linux kernel because neither 
+> 2.6.8(.1) nor 2.6.12 would work with my touchpad.  Now everything works 
+> except for suspend to ram and suspend to disk.  All of the rest of the ACPI 
+> modules work fine for me.  I can poll my battery, scale my cpu
 
-I think acpi_bus_check_device() might be called even though
-device's status was not changed. So I think we should check
-device's current status (_STA value) before doing this.
-
-Thanks,
-Kenji Kaneshige
+You really need to be running latest kernel if you want to do some
+debugging. 2.6.13-rc4 is latest, if alps does not work, talk with
+vojtech about fixing it.
+							Pavel
+-- 
+teflon -- maybe it is a trademark, but it should not be.
 
 
 -------------------------------------------------------
