@@ -1,15 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Re: [PATCH] PNPACPI: fix types when decoding ACPI resources [resend]
-Date: Wed, 3 Aug 2005 15:41:53 -0600
-Message-ID: <200508031541.53777.bjorn.helgaas@hp.com>
-References: <200508020955.54844.bjorn.helgaas@hp.com> <200508030920.13450.bjorn.helgaas@hp.com> <42F1343B.70707@free.fr>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PATCH] ACPI patches for 2.6.13-rc5
+Date: Wed, 03 Aug 2005 19:16:25 -0400
+Message-ID: <1123110985.13136.12.camel@toshiba>
+References: <1122702560.26850.9.camel@toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42F1343B.70707-GANU6spQydw@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1122702560.26850.9.camel@toshiba>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,54 +17,102 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 03 August 2005 3:16 pm, matthieu castet wrote:
-> Bjorn Helgaas wrote:
->  > On Tuesday 02 August 2005 7:01 pm, Shaohua Li wrote:
->  >>Did you have plan to remove other
->  >>legacy acpi drivers?
->  > No, I didn't -- which ones are you thinking about?  Looking at
->  > the callers of acpi_bus_register_driver(), I see:
-> looking for METHOD_NAME__CRS is more acurate.
+Hi Linus,
 
-I didn't see any new ones when I looked for METHOD_NAME__CRS.
+Please pull from:
 
->  > 	drivers/char/hpet.c
->  > 		This probably should be converted to PNP.  I'll
->  > 		look into doing this.
-> IIRC, I am not sure that the pnp layer was able to pass the 64 bits 
-> memory adress for hpet correctly. But it would be nice if it works.
+rsync://rsync.kernel.org/pub/scm/linux/kernel/git/lenb/to-linus.git
 
-You're right, this was broken.  But I've been pushing a PNPACPI
-patch to fix this.
+I reverted several things to 2.6.12 behaviour
+which should result in a higher quality 2.6.13 release:
 
-> There was an extention of a floppy driver in order to use acpi in -mm, 
-> but it seems to have been dropped.
+1. Fixed the PCI Interrupt Link revert you pulled from the list.
+2. Put Embedded Controller back into polling mode by default.
+3. Set CONFIG_ACPI_HOTKEY to 'n' by default (updated driver too).
+4. Lovingly restored the rudely deleted /proc/acpi/button/:-)
 
-Yeah, I did that, and it was a huge mistake.  The point was to avoid
-blind probing for the device, but my concern was for ia64, and no ia64
-boxes have floppy, so it's much easier to just not build the driver.
+thanks,
+-Len
 
-> PS : I saw in acpi ols paper that you plan once all dupe acpi drivers 
-> will be removed to register again the pnp device in acpi layer. Do you 
-> plan to add more check and for example add only device that have a CRS 
-> in pnp layer ?
+p.s.
+Latest ACPI plain patch, including stuff waiting for 2.6.14 is available
+here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12/
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12/broken-out/
 
-If you mean the last paragraph of section 6, I don't really understand
-it.  But it mentions 8250_acpi.c as an obstacle, and I do know that we
-are very close to being able to remove that.  I've already posted two
-patches (one to PNPACPI to fix the 64-bit address problem, and one to
-8250_pnp to add support for MMIO UARTs).  Once those are accepted, we
-should be able to remove 8250_acpi.c.  I think only ia64 really relies
-on it anyway.
 
-> PPS : is there any plan to integrate 
-> http://marc.theaimsgroup.com/?l=linux-kernel&m=111827568001255&w=2
+ drivers/acpi/Kconfig          |    5 
+ drivers/acpi/button.c         |  206 ++++++++
+ drivers/acpi/ec.c             |   24 -
+ drivers/acpi/hotkey.c         |  690 +++++++++++++++++-------------
+ drivers/acpi/pci_link.c       |   11 
+ drivers/acpi/processor_idle.c |    7 
+ 6 files changed, 634 insertions(+), 309 deletions(-)
 
-I'm afraid I don't know anything about this one.
+
+commit 79cda7d0e1c8629996242c036d6fe0466038d8ba
+Author: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Wed Aug 3 18:07:59 2005 -0400
+
+    [ACPI] CONFIG_ACPI_HOTKEY is now "n" by default
+    For 2.6.12 behaviour, this (EXPERIMENTAL) driver
+    should not be built.
+    
+    Update the driver source with latest from Luming.
+    
+    Signed-off-by: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+commit b34a8030eeab4d59dcdd86de38f6927b9edd441f
+Author: Alexey Starikovskiy <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Wed Aug 3 17:55:21 2005 -0400
+
+    [ACPI] restore /proc/acpi/button/ (ala 2.6.12)
+    
+    Signed-off-by Alexey Starikovskiy <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+commit 7b15f5e7bb180ac7bfb8926dbbd8835fecc07fad
+Author: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Wed Aug 3 17:38:04 2005 -0400
+
+    [ACPI] revert Embedded Controller to polling-mode by default (ala
+2.6.12)
+    Burst mode isn't ready for prime time,
+    but can be enabled for test via "ec_burst=1"
+    
+    Signed-off-by: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+commit ecc21ebe603af31f172c43b8b261df79040790ef
+Author: David Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Wed Aug 3 11:00:11 2005 -0400
+
+    [ACPI] PCI interrupt link suspend/resume - revert to 2.6.12
+behaviour
+    
+    This patch disables the PCI Interrupt Link refernece counts,
+    which should not co-exist with the 2.6.12 irq_router.resume
+    method or else a double acpi_pci_link_set() could result
+    on resume.
+    
+    Signed-off-by: David Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+commit 3d35600a9de8e2816d0e3726f64b7271af6fdda4
+Author: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Wed Aug 3 00:22:52 2005 -0400
+
+    [ACPI] fix 64-bit build warning in processor_idle.c
+    
+    Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+
+
 
 
 -------------------------------------------------------
