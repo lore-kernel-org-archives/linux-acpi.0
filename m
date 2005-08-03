@@ -1,15 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Re: [PATCH] PNPACPI: fix types when decoding ACPI resources [resend]
-Date: Wed, 3 Aug 2005 09:20:13 -0600
-Message-ID: <200508030920.13450.bjorn.helgaas@hp.com>
-References: <200508020955.54844.bjorn.helgaas@hp.com> <1123030861.2937.4.camel@linux-hp.sh.intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: EC Confusion
+Date: Thu, 4 Aug 2005 00:04:35 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC1F8@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1123030861.2937.4.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,58 +17,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 02 August 2005 7:01 pm, Shaohua Li wrote:
-> On Tue, 2005-08-02 at 09:55 -0600, Bjorn Helgaas wrote:
-> > Any objections to the patch below?  I posted it last Wednesday,
-> > but haven't heard anything.  Once we have this fix, 8250_pnp
-> > should have sufficient functionality that we can get rid of
-> > 8250_acpi.
-> > 
-> > Use types that match the ACPI resource structures.  Previously
-> > the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
-> > which corrupts the value.
-> > 
-> > This is one of the things that prevents 8250_pnp from working
-> > on HP ia64 boxes.  After 8250_pnp works, we will be able to
-> > remove 8250_acpi.c.
-> We might always use 'unsigned long'.
+Plese test linux-2.6.13-rc5. If you have regression , please try it with =
+kernel option ec_polling.
 
-Do you have a reason for preferring 'unsigned long' over the
-exact types used in the ACPI resource structures?  I thought
-it was useful to use the exact types, because then whatever
-conversion needs to happen is all in one place.
 
-In the existing code, there's implicit conversion when you
-call "pnpacpi_parse_allocated_memresource(..., int mem, int len)"
-and pass u64 values as "mem" and "len".  You have to look both
-at the call site and the called code.  And gcc doesn't even
-complain about this truncation.
+Thanks
+Luming=20
 
-But I guess it doesn't matter much either way.
-
-> Did you have plan to remove other 
-> legacy acpi drivers?
-
-No, I didn't -- which ones are you thinking about?  Looking at
-the callers of acpi_bus_register_driver(), I see:
-
-	arch/ia64/hp/common/sba_iommu.c
-		Probably can't be converted because it needs the
-		ACPI handle to extract a vendor-specific data
-		item from _CRS.
-
-	drivers/char/hpet.c
-		This probably should be converted to PNP.  I'll
-		look into doing this.
-
-Then of course, there are a bunch of things in drivers/acpi/
-(battery, button, fan, ec, etc).  I expect the reason they are
-in drivers/acpi/ is because they need ACPI-specific functionality,
-so they probably couldn't be converted to PNP.
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Paulo Vitor Magacho da Silva
+>Sent: 2005=C4=EA8=D4=C23=C8=D5 22:26
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] EC Confusion
+>
+>Hi,
+>
+>I am trying one more time to see if I can get ACPI working without any=20
+>problems in my laptop. When I hit Fn+F4 (Sleep button) nothing=20
+>happens. If I=20
+>hit several times it starts working. If I hit Fn+F5 (to turn=20
+>off the LCD) it=20
+>confuses with Fn+F4. And if I hit a few times it starts to work.
+>The last working kernel versions I had were kernel 2.6.7 and kernel=20
+>2.6.12-rc2-mm2, but both of them present problems when=20
+>resuming. The first=20
+>one resumes but the ethernet card doesn't work properly and=20
+>the second one=20
+>reboots when resuming (it's a problem in the wakeup.S file=20
+>that I couldn't=20
+>figure out where yet).
+>I've also tryed kernel 2.6.12 with the latest patches posted=20
+>this week in=20
+>the mailing list. Still the same problem.
+>
+>Thanks,
+>Paulo
+>
+>_________________________________________________________________
+>MSN Messenger: converse online com seus amigos . =20
+>http://messenger.msn.com.br
+>
+>
+>
+>-------------------------------------------------------
+>SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+>from IBM. Find simple to follow Roadmaps, straightforward articles,
+>informative Webcasts and more! Get everything you need to get up to
+>speed, fast. =
+http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
