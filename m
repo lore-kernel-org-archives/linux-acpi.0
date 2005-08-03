@@ -1,11 +1,13 @@
-From: Johan Brannlund <johan_brn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: HP Turion ACPI trouble
-Date: Tue, 2 Aug 2005 21:09:06 -0700 (PDT)
-Message-ID: <20050803040906.18906.qmail@web50205.mail.yahoo.com>
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: Re: ACPI hot-plug notification help needed
+Date: Wed, 03 Aug 2005 13:37:20 +0900
+Message-ID: <42F04A00.8060804@jp.fujitsu.com>
+References: <200507251735.23394.bjorn.helgaas@hp.com> <200508011620.02609.bjorn.helgaas@hp.com> <20050801170345.A16268@unix-os.sc.intel.com> <200508021641.26007.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200508021641.26007.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,38 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi. I just got a Turion laptop, an HP nx6125. Unfortunately it seems to
-require some tweaking to work properly with linux. One thing, which
-seems to be ACPI related, is that most of the time the fan gets "stuck"
-on whatever speed it had just before the kernel is loaded, so I can
-either get a system with no cooling at all (so I can only run for a few
-minutes before I have to reboot), or the fan can run at full speed the
-whole time which is quite annoying.
+Hi,
 
-It has happened a few times that the fan control has worked properly,
-but I don't think that I did anything significantly different from the
-other times. I'm not sure what information you need to fix this so I
-didn't include much, but I'll try my best to provide anything you need.
+>  	ACPI_FUNCTION_TRACE("acpi_bus_check_device");
+>  
+> +	/*
+> +	 * If no device exists for this namespace node, a DEVICE_CHECK
+> +	 * notification means the device has appeared.
+> +	 */
+> +	if (acpi_bus_get_device(handle, &device)) {
+> +		result = acpi_bus_add_device(handle);
+> +		if (status_changed && result == 0)
+> +			*status_changed = 1;
+> +		return_VALUE(result);
+> +	}
+> +
+>  	if (!device)
 
-Thank you in advance,
+I think acpi_bus_check_device() might be called even though
+device's status was not changed. So I think we should check
+device's current status (_STA value) before doing this.
 
-Johan
-
-
-
-	=09
-____________________________________________________
-Start your day with Yahoo! - make it your home page=20
-http://www.yahoo.com/r/hs=20
-=20
+Thanks,
+Kenji Kaneshige
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
 from IBM. Find simple to follow Roadmaps, straightforward articles,
 informative Webcasts and more! Get everything you need to get up to
-speed, fast. http://ads.osdn.com/?ad_id=3D7477&alloc_id=3D16492&op=3Dclic=
-k
+speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
