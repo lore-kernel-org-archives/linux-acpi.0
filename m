@@ -1,14 +1,13 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [PATCH] PNPACPI: fix types when decoding ACPI resources
- [resend]
-Date: Thu, 04 Aug 2005 14:18:56 +0900
-Message-ID: <42F1A540.2050909@jp.fujitsu.com>
-References: <200508020955.54844.bjorn.helgaas@hp.com> <42F0185A.7060901@jp.fujitsu.com> <200508031229.05343.bjorn.helgaas@hp.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: EC Confusion
+Date: Thu, 4 Aug 2005 15:48:11 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8409038A2E@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200508031229.05343.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,168 +17,109 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
+ Please try debug patch filed at =
+http://bugzilla.kernel.org/show_bug.cgi?id=3D3851#c71
+which is against linux-2.6.13-rc5.
 
-Thank you very much for the new patch
-and I'm very sorry for troubling you.
+Thanks
+Luming
 
-The patch looks very good to me.
-
-Thanks,
-Kenji Kaneshige
-
-
-Bjorn Helgaas wrote:
-> On Tuesday 02 August 2005 7:05 pm, Kenji Kaneshige wrote:
-> 
->>This breaks the following patch that is already included into -mm
->>tree.
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Paulo Vitor Magacho da Silva
+>Sent: 2005=C4=EA8=D4=C24=C8=D5 5:08
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] EC Confusion
+>
+>Hello,
+>
+>   the kernel command line: ro root=3DLABEL=3D/ rhgb quiet acpi=3Don=20
+>acpi_dbg_layer=3D0x14000F acpi_dbg_level=3D0x1F ec_polling
+>   Is this correct ?
+>   I still have the same problem. Here is the dmesg important=20
+>part. I have=20
+>to hit the sleep button 8 time before it works :
+>acpi_ec-0810 [08] acpi_ec_gpe_query     : Evaluating _Q20
+>acpi_ec-0810 [09] acpi_ec_gpe_query     : Evaluating _Q20
+>acpi_ec-0810 [10] acpi_ec_gpe_query     : Evaluating _Q20
+>acpi_ec-0810 [11] acpi_ec_gpe_query     : Evaluating _Q20
+>acpi_ec-0810 [12] acpi_ec_gpe_query     : Evaluating _Q20
+>acpi_ec-0810 [13] acpi_ec_gpe_query     : Evaluating _Q20
+>acpi_ec-0810 [14] acpi_ec_gpe_query     : Evaluating _Q20
+>acpi_ec-0810 [15] acpi_ec_gpe_query     : Evaluating _Q0D
+>  evmisc-0152 [24] ev_queue_notify_reques: Dispatching=20
+>Notify(80) on node=20
+>dff217e8
+>  evmisc-0161 [24] ev_queue_notify_reques: Notify value: 0x80 **Device=20
+>Specific**
+>
+>  As I said, kernels 2.6.12-rc2-mm2 and kernel 2.6.7 work for me.
+>
+>Thanks,
+>Paulo
+>
+>>From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+>>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>CC: "Paulo Vitor Magacho da Silva"=20
+>><pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>,luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+>>Subject: Re: [ACPI] EC Confusion
+>>Date: Wed, 3 Aug 2005 22:43:59 +0200
 >>
->>http://sourceforge.net/mailarchive/forum.php?thread_id=7844247&forum_id=6102
+>>On Wednesday, 3 of August 2005 22:05, Paulo Vitor Magacho da=20
+>Silva wrote:
+>> > Hi,
+>> >
+>> > I've tryed and had the same problem. How do I enable=20
+>ec_polling ? During
+>> > boot with ec_polling=3Don ?
 >>
->>I think we need to check if acpi_register_gsi() succeeded or not.
-> 
-> 
-> You're absolutely right.  I was just based off a Linus tree, non -mm,
-> and didn't notice that your patch conflicted.  How about the following
-> (based on 2.6.13-rc4-mm1)?  I moved the acpi_register_gsi() into
-> pnpacpi_parse_allocated_irqresource(), which I think is nice because
-> the test for failure is right next to the call.
-> 
-> 
-> 
-> PNPACPI: fix types when decoding ACPI resources
-> 
-> Use types that match the ACPI resource structures.  Previously
-> the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
-> which corrupts the value.
-> 
-> This is one of the things that prevents 8250_pnp from working
-> on HP ia64 boxes.  After 8250_pnp works, we will be able to
-> remove 8250_acpi.c.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-> 
-> Index: work-mm/drivers/pnp/pnpacpi/rsparser.c
-> ===================================================================
-> --- work-mm.orig/drivers/pnp/pnpacpi/rsparser.c	2005-08-02 09:39:25.000000000 -0600
-> +++ work-mm/drivers/pnp/pnpacpi/rsparser.c	2005-08-03 09:31:05.000000000 -0600
-> @@ -73,25 +73,28 @@
->  }
->  
->  static void
-> -pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
-> +pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 gsi,
-> +	int edge_level, int active_high_low)
->  {
->  	int i = 0;
-> +	int irq;
->  	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
->  			i < PNP_MAX_IRQ)
->  		i++;
->  	if (i < PNP_MAX_IRQ) {
->  		res->irq_resource[i].flags = IORESOURCE_IRQ;  //Also clears _UNSET flag
-> +		irq = acpi_register_gsi(gsi, edge_level, active_high_low);
->  		if (irq < 0) {
->  			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
->  			return;
->  		}
-> -		res->irq_resource[i].start =(unsigned long) irq;
-> -		res->irq_resource[i].end = (unsigned long) irq;
-> +		res->irq_resource[i].start = irq;
-> +		res->irq_resource[i].end = irq;
->  	}
->  }
->  
->  static void
-> -pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
-> +pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, u32 dma)
->  {
->  	int i = 0;
->  	while (i < PNP_MAX_DMA &&
-> @@ -103,14 +106,14 @@
->  			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
->  			return;
->  		}
-> -		res->dma_resource[i].start =(unsigned long) dma;
-> -		res->dma_resource[i].end = (unsigned long) dma;
-> +		res->dma_resource[i].start = dma;
-> +		res->dma_resource[i].end = dma;
->  	}
->  }
->  
->  static void
->  pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
-> -	int io, int len)
-> +	u32 io, u32 len)
->  {
->  	int i = 0;
->  	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
-> @@ -122,14 +125,14 @@
->  			res->port_resource[i].flags |= IORESOURCE_DISABLED;
->  			return;
->  		}
-> -		res->port_resource[i].start = (unsigned long) io;
-> -		res->port_resource[i].end = (unsigned long)(io + len - 1);
-> +		res->port_resource[i].start = io;
-> +		res->port_resource[i].end = io + len - 1;
->  	}
->  }
->  
->  static void
->  pnpacpi_parse_allocated_memresource(struct pnp_resource_table * res,
-> -	int mem, int len)
-> +	u64 mem, u64 len)
->  {
->  	int i = 0;
->  	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
-> @@ -141,8 +144,8 @@
->  			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
->  			return;
->  		}
-> -		res->mem_resource[i].start = (unsigned long) mem;
-> -		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
-> +		res->mem_resource[i].start = mem;
-> +		res->mem_resource[i].end = mem + len - 1;
->  	}
->  }
->  
-> @@ -156,10 +159,10 @@
->  	case ACPI_RSTYPE_IRQ:
->  		if ((res->data.irq.number_of_interrupts > 0) &&
->  			valid_IRQ(res->data.irq.interrupts[0])) {
-> -			pnpacpi_parse_allocated_irqresource(res_table, 
-> -				acpi_register_gsi(res->data.irq.interrupts[0],
-> -					res->data.irq.edge_level,
-> -					res->data.irq.active_high_low));
-> +			pnpacpi_parse_allocated_irqresource(res_table,
-> +				res->data.irq.interrupts[0],
-> +				res->data.irq.edge_level,
-> +				res->data.irq.active_high_low);
->  			pcibios_penalize_isa_irq(res->data.irq.interrupts[0], 1);
->  		}
->  		break;
-> @@ -167,10 +170,10 @@
->  	case ACPI_RSTYPE_EXT_IRQ:
->  		if ((res->data.extended_irq.number_of_interrupts > 0) &&
->  			valid_IRQ(res->data.extended_irq.interrupts[0])) {
-> -			pnpacpi_parse_allocated_irqresource(res_table, 
-> -				acpi_register_gsi(res->data.extended_irq.interrupts[0],
-> -					res->data.extended_irq.edge_level,
-> -					res->data.extended_irq.active_high_low));
-> +			pnpacpi_parse_allocated_irqresource(res_table,
-> +				res->data.extended_irq.interrupts[0],
-> +				res->data.extended_irq.edge_level,
-> +				res->data.extended_irq.active_high_low);
->  			pcibios_penalize_isa_irq(res->data.extended_irq.interrupts[0], 1);
->  		}
->  		break;
-> 
-
+>>Just ec_polling,
+>>
+>>Rafael
+>>
+>>
+>>--
+>>- Would you tell me, please, which way I ought to go from here?
+>>- That depends a good deal on where you want to get to.
+>>		-- Lewis Carroll "Alice's Adventures in Wonderland"
+>>
+>>
+>>-------------------------------------------------------
+>>SF.Net email is Sponsored by the Better Software Conference & EXPO
+>>September 19-22, 2005 * San Francisco, CA * Development=20
+>Lifecycle Practices
+>>Agile & Plan-Driven Development * Managing Projects & Teams *=20
+>Testing & QA
+>>Security * Process Improvement & Measurement *=20
+>http://www.sqe.com/bsce5sf
+>>_______________________________________________
+>>Acpi-devel mailing list
+>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>_________________________________________________________________
+>MSN Messenger: converse online com seus amigos . =20
+>http://messenger.msn.com.br
+>
+>
+>
+>-------------------------------------------------------
+>SF.Net email is Sponsored by the Better Software Conference & EXPO
+>September 19-22, 2005 * San Francisco, CA * Development=20
+>Lifecycle Practices
+>Agile & Plan-Driven Development * Managing Projects & Teams *=20
+>Testing & QA
+>Security * Process Improvement & Measurement *=20
+>http://www.sqe.com/bsce5sf
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
