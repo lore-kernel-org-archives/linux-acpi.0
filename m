@@ -1,14 +1,11 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [GIT PATCH] ACPI patches for 2.6.13-rc5+
-Date: Thu, 04 Aug 2005 13:11:19 -0400
-Message-ID: <1123175479.13136.21.camel@toshiba>
-References: <1122702560.26850.9.camel@toshiba>
-	 <1123110985.13136.12.camel@toshiba>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: 2.6.13-rc5 - ACPI regression
+Date: Thu, 4 Aug 2005 11:30:48 -0700
+Message-ID: <20050804113048.1ce41cae.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1123110985.13136.12.camel@toshiba>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,58 +15,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
 
-Please pull from:
+Quite a list of problems over on linux-kernel.  I suspect we've
+fixed some of them post-2.6.13-rc5.  Could someone take a look, please?
 
-rsync://rsync.kernel.org/pub/scm/linux/kernel/git/lenb/to-linus.git
+Begin forwarded message:
 
-Two additional patches to remove some rough edges for 2.6.13.
-
-thanks,
--Len
-
-p.s.
-Latest ACPI plain patch, including stuff waiting for 2.6.14 is available
-here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12/
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12/broken-out/
-
- drivers/acpi/dispatcher/dswload.c |    6 ------
- drivers/acpi/osl.c                |    6 +++++-
- drivers/acpi/pci_link.c           |    7 +++++++
- 3 files changed, 12 insertions(+), 7 deletions(-)
-
-commit 11e981f1e02c2a36465cbb208b21cb8b6480f399
-Author: David Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Wed Aug 3 23:46:33 2005 -0400
-
-    [ACPI] S3 resume: avoid kmalloc() might_sleep oops symptom
-    
-    ACPI now uses kmalloc(...,GPF_ATOMIC) during suspend/resume.
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=3469
-    
-    Signed-off-by: David Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-    Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-commit d4ab025b73a2d10548e17765eb76f3b7351dc611
-Author: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Wed Aug 3 23:20:58 2005 -0400
-
-    [ACPI] delete Warning: Encountered executable code at module level,
-[AE_NOT_CONFIGURED]
-    
-    http://bugzilla.kernel.org/show_bug.cgi?id=4923
-    
-    Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date: Tue, 2 Aug 2005 19:53:36 +0200
+From: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: 2.6.13-rc5 - ACPI regression
 
 
+Hello,
 
+newly with 2.6.13-rc5 (previous -rc1 was quite ok)
+
+$ time cat /proc/acpi/battery/BAT0/info =20
+present:                 yes
+design capacity:         6000 mAh
+last full capacity:      6000 mAh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 600 mAh
+design capacity low:     300 mAh
+capacity granularity 1:  60 mAh
+capacity granularity 2:  60 mAh
+model number:            M6A
+serial number:           =20
+battery type:            LIon
+OEM info:                ASUSTEK
+
+real    0m32.521s
+user    0m0.001s
+sys     0m0.015s
+
+--=20
+Luk=E1__ Hejtm=E1nek
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
 
 
 -------------------------------------------------------
