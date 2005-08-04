@@ -1,14 +1,13 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Re: 2.6.13-rc3-mm3
-Date: Thu, 4 Aug 2005 15:55:13 -0700
-Message-ID: <20050804155513.727a3894.akpm@osdl.org>
-References: <971FCB6690CD0E4898387DBF7552B90E023F8527@orsmsx403.amr.corp.intel.com>
-	<42EAC9DB.9010702@gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] PNPACPI: fix IRQ and 64-bit address decoding
+Date: Thu, 4 Aug 2005 17:26:19 -0600
+Message-ID: <200508041726.19336.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42EAC9DB.9010702-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,57 +17,174 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tk-shockwave-S0/GAf8tV78@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+Cc: Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
-> Moore, Robert schrieb:
-> 
-> >+    ACPI-0287: *** Error: Region SystemMemory(0) has no handler
-> >+    ACPI-0127: *** Error: acpi_load_tables: Could not load namespace:
-> >AE_NOT_EXIST
-> >+    ACPI-0136: *** Error: acpi_load_tables: Could not load tables:
-> >
-> >This looks like a nasty case where some executable code in the table is
-> >attempting to access a SystemMemory operation region before any OpRegion
-> >handlers are initialized.
-> >
-> >We certainly want to see the output of acpidump to attempt to diagnose
-> >and/or reproduce the problem.
-> >
-> >Bob
-> >
-> >
-> >  
-> >
-> Sorry for double post.
-> 
-> With this mail I hand over the acpidump output with the pmtools
-> Andrew pointed me to.
-> 
-> And a dmesg output with CONFIG_KALLSYMS=y.
-> 
-> 
-> I attached them in bz2 format, because of the length.
-> 
-> I hope we find the problem.
-> 
+Maybe the third time's the charm :-)  Added a bugfix
+(pcibios_penalize_isa_irq()) and a workaround for HP
+HPET firmware description since last time.  The workaround
+accepts stuff that is illegal according to the spec,
+so speak up if you think this is a problem.  It seems
+fairly safe to me.
 
-Michael, I'm assuming that a) this problem remains in those -mm kernels
-which include git-acpi.patch and that b) the problems are not present in
-2.6.13-rc5 or 2.6.13-rc6, yes?
 
-So I think we have a bug in git-acpi.patch?
 
-If that's all correct then can you please test the next -mm (which will
-include git-acpi.patch - the most recent -mm did not) and if the bug's
-still there can you raise a bugzilla.kernel.org entry for it?
+Use types that match the ACPI resource structures.  Previously
+the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
+which corrupts the value.
 
-We seem to have a handful of bug reports against the -mm acpi patch.
+Move pcibios_penalize_isa_irq() to pnpacpi_parse_allocated_irqresource().
+Previously we passed the GSI, not the IRQ, and we did it even if parsing
+the IRQ resource failed.
 
-Thanks.
+Parse IRQ descriptors that contain multiple interrupts.  This violates
+the spec (in _CRS, only one interrupt per descriptor is allowed), but
+some firmware, e.g., HP rx7620 and rx8620 descriptions of HPET, has this
+bug.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+
+Index: work-mm/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work-mm.orig/drivers/pnp/pnpacpi/rsparser.c	2005-08-04 16:41:04.000000000 -0600
++++ work-mm/drivers/pnp/pnpacpi/rsparser.c	2005-08-04 16:42:52.000000000 -0600
+@@ -73,25 +73,35 @@
+ }
+ 
+ static void
+-pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
++pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 gsi,
++	int edge_level, int active_high_low)
+ {
+ 	int i = 0;
++	int irq;
++
++	if (!valid_IRQ(gsi))
++		return;
++
+ 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
+ 			i < PNP_MAX_IRQ)
+ 		i++;
+-	if (i < PNP_MAX_IRQ) {
+-		res->irq_resource[i].flags = IORESOURCE_IRQ;  //Also clears _UNSET flag
+-		if (irq < 0) {
+-			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->irq_resource[i].start =(unsigned long) irq;
+-		res->irq_resource[i].end = (unsigned long) irq;
++	if (i >= PNP_MAX_IRQ)
++		return;
++
++	res->irq_resource[i].flags = IORESOURCE_IRQ;  // Also clears _UNSET flag
++	irq = acpi_register_gsi(gsi, edge_level, active_high_low);
++	if (irq < 0) {
++		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
++		return;
+ 	}
++
++	res->irq_resource[i].start = irq;
++	res->irq_resource[i].end = irq;
++	pcibios_penalize_isa_irq(irq, 1);
+ }
+ 
+ static void
+-pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
++pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, u32 dma)
+ {
+ 	int i = 0;
+ 	while (i < PNP_MAX_DMA &&
+@@ -103,14 +113,14 @@
+ 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->dma_resource[i].start =(unsigned long) dma;
+-		res->dma_resource[i].end = (unsigned long) dma;
++		res->dma_resource[i].start = dma;
++		res->dma_resource[i].end = dma;
+ 	}
+ }
+ 
+ static void
+ pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
+-	int io, int len)
++	u32 io, u32 len)
+ {
+ 	int i = 0;
+ 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -122,14 +132,14 @@
+ 			res->port_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->port_resource[i].start = (unsigned long) io;
+-		res->port_resource[i].end = (unsigned long)(io + len - 1);
++		res->port_resource[i].start = io;
++		res->port_resource[i].end = io + len - 1;
+ 	}
+ }
+ 
+ static void
+ pnpacpi_parse_allocated_memresource(struct pnp_resource_table * res,
+-	int mem, int len)
++	u64 mem, u64 len)
+ {
+ 	int i = 0;
+ 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -141,8 +151,8 @@
+ 			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->mem_resource[i].start = (unsigned long) mem;
+-		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
++		res->mem_resource[i].start = mem;
++		res->mem_resource[i].end = mem + len - 1;
+ 	}
+ }
+ 
+@@ -151,27 +161,28 @@
+ 	void *data)
+ {
+ 	struct pnp_resource_table * res_table = (struct pnp_resource_table *)data;
++	int i;
+ 
+ 	switch (res->id) {
+ 	case ACPI_RSTYPE_IRQ:
+-		if ((res->data.irq.number_of_interrupts > 0) &&
+-			valid_IRQ(res->data.irq.interrupts[0])) {
+-			pnpacpi_parse_allocated_irqresource(res_table, 
+-				acpi_register_gsi(res->data.irq.interrupts[0],
+-					res->data.irq.edge_level,
+-					res->data.irq.active_high_low));
+-			pcibios_penalize_isa_irq(res->data.irq.interrupts[0], 1);
++		/*
++		 * Per spec, only one interrupt per descriptor is allowed in
++		 * _CRS, but some firmware violates this, so parse them all.
++		 */
++		for (i = 0; i < res->data.irq.number_of_interrupts; i++) {
++			pnpacpi_parse_allocated_irqresource(res_table,
++				res->data.irq.interrupts[i],
++				res->data.irq.edge_level,
++				res->data.irq.active_high_low);
+ 		}
+ 		break;
+ 
+ 	case ACPI_RSTYPE_EXT_IRQ:
+-		if ((res->data.extended_irq.number_of_interrupts > 0) &&
+-			valid_IRQ(res->data.extended_irq.interrupts[0])) {
+-			pnpacpi_parse_allocated_irqresource(res_table, 
+-				acpi_register_gsi(res->data.extended_irq.interrupts[0],
+-					res->data.extended_irq.edge_level,
+-					res->data.extended_irq.active_high_low));
+-			pcibios_penalize_isa_irq(res->data.extended_irq.interrupts[0], 1);
++		for (i = 0; i < res->data.extended_irq.number_of_interrupts; i++) {
++			pnpacpi_parse_allocated_irqresource(res_table,
++				res->data.extended_irq.interrupts[i],
++				res->data.extended_irq.edge_level,
++				res->data.extended_irq.active_high_low);
+ 		}
+ 		break;
+ 	case ACPI_RSTYPE_DMA:
 
 
 -------------------------------------------------------
