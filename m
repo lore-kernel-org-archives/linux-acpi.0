@@ -1,13 +1,15 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH 2.6.13-rc4 1/2] fix possible null pointer access - acpi_pci_irq_enable
-Date: Wed, 3 Aug 2005 13:36:37 +0200
-Message-ID: <20050803113637.GB4038@elf.ucw.cz>
-References: <42ED97C2.7060409@jp.fujitsu.com> <42ED9830.7060808@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: Fw: 2.6.13-rc5 - ACPI regression
+Date: Thu, 4 Aug 2005 22:28:52 +0200
+Message-ID: <200508042228.52975.rjw@sisk.pl>
+References: <20050804113048.1ce41cae.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050804113048.1ce41cae.akpm-3NddpPZAyC0@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <42ED9830.7060808-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,76 +19,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Thursday, 4 of August 2005 20:30, Andrew Morton wrote:
+>=20
+> Quite a list of problems over on linux-kernel.  I suspect we've
+> fixed some of them post-2.6.13-rc5.  Could someone take a look, please?
 
-> This patch fixes possible null pointer access in acpi_pci_irq_enable.
-> 
-> The 'bus' field in pci_dev structure should be checked before calling
-> pci_read_config_byte() because pci_bus_read_config_byte() called by
-> pci_read_config_byte() refers to 'bus' field.
+AFAIRC, the ec_polling patch helped in this case and the EC burst mode is n=
+ow
+disabled by default, so this should be fixed.
 
-Should people be passing NULLs here, anyway? Is not the right fix to
-remove the check, and remove the (!dev) check, too, and just fix the
-callers? People are going to fix the oops, but noone is going to see
-that ACPI_DEBUG_PRINT...
+Greets,
+Rafael
 
-
-								Pavel
-
-
-> Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-> ---
-> 
->  drivers/acpi/pci_irq.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff -puN drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_enable drivers/acpi/pci_irq.c
-> --- linux-2.6.13-rc4/drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_enable	2005-08-01 12:20:26.000000000 +0900
-> +++ linux-2.6.13-rc4-kanesige/drivers/acpi/pci_irq.c	2005-08-01 12:20:26.000000000 +0900
-> @@ -397,6 +397,11 @@ acpi_pci_irq_enable (
->  
->  	if (!dev)
->  		return_VALUE(-EINVAL);
-> +
-> +	if (!dev->bus) {
-> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
-> +		return_VALUE(-ENODEV);
-> +	}
->  	
->  	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
->  	if (!pin) {
-> @@ -405,11 +410,6 @@ acpi_pci_irq_enable (
->  	}
->  	pin--;
->  
-> -	if (!dev->bus) {
-> -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
-> -		return_VALUE(-ENODEV);
-> -	}
+=20
+> Begin forwarded message:
+>=20
+> Date: Tue, 2 Aug 2005 19:53:36 +0200
+> From: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>
+> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: 2.6.13-rc5 - ACPI regression
+>=20
+>=20
+> Hello,
+>=20
+> newly with 2.6.13-rc5 (previous -rc1 was quite ok)
+>=20
+> $ time cat /proc/acpi/battery/BAT0/info =20
+> present:                 yes
+> design capacity:         6000 mAh
+> last full capacity:      6000 mAh
+> battery technology:      rechargeable
+> design voltage:          14800 mV
+> design capacity warning: 600 mAh
+> design capacity low:     300 mAh
+> capacity granularity 1:  60 mAh
+> capacity granularity 2:  60 mAh
+> model number:            M6A
+> serial number:           =20
+> battery type:            LIon
+> OEM info:                ASUSTEK
+>=20
+> real    0m32.521s
+> user    0m0.001s
+> sys     0m0.015s
+>=20
+> --=20
+> Luk=E1__ Hejtm=E1nek
 > -
->  	/* 
->  	 * First we check the PCI IRQ routing table (PRT) for an IRQ.  PRT
->  	 * values override any BIOS-assigned IRQs set during boot.
-> _
-> 
-> 
-> 
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>=20
+>=20
 > -------------------------------------------------------
-> SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
-> from IBM. Find simple to follow Roadmaps, straightforward articles,
-> informative Webcasts and more! Get everything you need to get up to
-> speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+> SF.Net email is Sponsored by the Better Software Conference & EXPO
+> September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practic=
+es
+> Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+> Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
 > _______________________________________________
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
+>=20
 
--- 
-teflon -- maybe it is a trademark, but it should not be.
+=2D-=20
+=2D Would you tell me, please, which way I ought to go from here?
+=2D That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
 
 
 -------------------------------------------------------
