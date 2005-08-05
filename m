@@ -1,14 +1,13 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: latest ACPI patch based on 2.6.13
-Date: Thu, 4 Aug 2005 22:41:35 -0700
-Message-ID: <20050804224135.6faeaf59.akpm@osdl.org>
-References: <1123214969.13136.51.camel@toshiba>
-	<1123220125.13136.77.camel@toshiba>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH 2.6.13-rc4 1/2] fix possible null pointer access - acpi_pci_irq_enable
+Date: Fri, 5 Aug 2005 09:19:18 +0200
+Message-ID: <20050805071918.GG1780@elf.ucw.cz>
+References: <42ED97C2.7060409@jp.fujitsu.com> <42ED9830.7060808@jp.fujitsu.com> <20050803113637.GB4038@elf.ucw.cz> <42F2C20F.4050807@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1123220125.13136.77.camel@toshiba>
+Content-Disposition: inline
+In-Reply-To: <42F2C20F.4050807-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,30 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
-> The Latest ACPI patch based on 2.6.13 is available here:
+Hi!
+
+> >Should people be passing NULLs here, anyway? Is not the right fix to
+> >remove the check, and remove the (!dev) check, too, and just fix the
+> >callers? People are going to fix the oops, but noone is going to see
+> >that ACPI_DEBUG_PRINT...
 > 
->  http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12/acpi-20050729-2.6.13-rc6.patch
-> 
->  These patches are exported to-akpm for inclusion in -mm
->  with the intent to integrate into 2.6.14.
+> As you said, I think people should not pass NULLs here, and we should
+> fix the caller. But I think it is not bad to check (!dev) and (!dev->bus)
+> in these functions instead of panic. How about using WARN_ON here to
+> notify people of badness?
 
-Thanks, Len.
+No, just read l-k archives. Just dereference it. It wil oops in a nice
+way, and developer *will* see and fix it.
 
-We do have a number of -mm-only acpi bugs which should be fixed before
-we can send this on to Linus.
-
-http://bugzilla.kernel.org/show_bug.cgi?id=4867
-http://bugzilla.kernel.org/show_bug.cgi?id=4964
-http://bugzilla.kernel.org/show_bug.cgi?id=4977
-http://bugzilla.kernel.org/show_bug.cgi?id=4980
-
-are the one's I've kept a record of.
+								Pavel
+-- 
+if you have sharp zaurus hardware you don't need... you know my address
 
 
 -------------------------------------------------------
