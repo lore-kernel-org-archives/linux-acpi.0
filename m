@@ -1,16 +1,13 @@
-From: Avuton Olrich <avuton-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: latest ACPI patch based on 2.6.13
-Date: Fri, 5 Aug 2005 02:58:28 -0700
-Message-ID: <3aa654a405080502583d7de3dd@mail.gmail.com>
-References: <1123214969.13136.51.camel@toshiba>
-	 <1123220125.13136.77.camel@toshiba>
-Reply-To: Avuton Olrich <avuton-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Michael Thonke <iogl64nx-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: 2.6.13-rc3-mm3
+Date: Fri, 05 Aug 2005 14:00:31 +0200
+Message-ID: <42F354DF.2050402@googlemail.com>
+References: <971FCB6690CD0E4898387DBF7552B90E023F8527@orsmsx403.amr.corp.intel.com>	<42EAC9DB.9010702@gmail.com> <20050804155513.727a3894.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1123220125.13136.77.camel@toshiba>
-Content-Disposition: inline
+In-Reply-To: <20050804155513.727a3894.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,23 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 8/4/05, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> The Latest ACPI patch based on 2.6.13 is available here:
->=20
->http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.=
-6.12/acpi-20050729-2.6.13-rc6.patch
 
-Corrected link:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6=
-.13/acpi-20050729-2.6.13-rc6.diff.bz2
 
-avuton
---=20
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+Hello Andrew,
+> Andrew Morton wrote:
+> Michael, I'm assuming that a) this problem remains in those -mm kernels
+> which include git-acpi.patch and that b) the problems are not present in
+> 2.6.13-rc5 or 2.6.13-rc6, yes?
+>   
+a.) I don't have any problems in 2.6.13-rc5-git[1-3] and 2.6.13-rc4-mm1 
+they are working quite fantastic.
+Good work :-)
+> So I think we have a bug in git-acpi.patch?
+>   
+I reverted them and left them in..no problems with kernels I said above.
+Again good work :-)
+> If that's all correct then can you please test the next -mm (which will
+> include git-acpi.patch - the most recent -mm did not) and if the bug's
+> still there can you raise a bugzilla.kernel.org entry for it?
+>   
+I would, but the motherboard is dropped from my hardware test approval. 
+Maybe I can get it back to test again
+if it helps to solve some acpi issues.
+> We seem to have a handful of bug reports against the -mm acpi patch.
+>   
+Well, I noticed that there are a lots of bugs and I'm willing to find 
+search and reproduce them.
+
+> Thanks.
+I have to say thanks for the great help/feedback.
+
+Greets and
+Best regards
+
+--
+_Michael Thonke
+IT-Systemintegrator /
+System- and Softwareanalyist
+
 
 
 -------------------------------------------------------
