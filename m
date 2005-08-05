@@ -1,13 +1,14 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] PNPACPI: fix IRQ and 64-bit address decoding
-Date: Thu, 4 Aug 2005 17:26:19 -0600
-Message-ID: <200508041726.19336.bjorn.helgaas@hp.com>
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [PATCH 2.6.13-rc4 1/2] fix possible null pointer access
+ - acpi_pci_irq_enable
+Date: Fri, 05 Aug 2005 10:34:07 +0900
+Message-ID: <42F2C20F.4050807@jp.fujitsu.com>
+References: <42ED97C2.7060409@jp.fujitsu.com> <42ED9830.7060808@jp.fujitsu.com> <20050803113637.GB4038@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20050803113637.GB4038-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,174 +18,107 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
-Cc: Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Maybe the third time's the charm :-)  Added a bugfix
-(pcibios_penalize_isa_irq()) and a workaround for HP
-HPET firmware description since last time.  The workaround
-accepts stuff that is illegal according to the spec,
-so speak up if you think this is a problem.  It seems
-fairly safe to me.
+Hi,
+
+> Should people be passing NULLs here, anyway? Is not the right fix to
+> remove the check, and remove the (!dev) check, too, and just fix the
+> callers? People are going to fix the oops, but noone is going to see
+> that ACPI_DEBUG_PRINT...
+
+As you said, I think people should not pass NULLs here, and we should
+fix the caller. But I think it is not bad to check (!dev) and (!dev->bus)
+in these functions instead of panic. How about using WARN_ON here to
+notify people of badness?
+
+	if (!dev) {
+		WARN_ON(1);
+		return_VALUE(-EINVAL);
+	}
+
+	if (!dev->bus) {
+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
+		WARN_ON(1);
+		return_VALUE(-ENODEV);
+	}
+
+Thanks,
+Kenji Kaneshige
 
 
+Pavel Machek wrote:
+> Hi!
+> 
+> 
+>>This patch fixes possible null pointer access in acpi_pci_irq_enable.
+>>
+>>The 'bus' field in pci_dev structure should be checked before calling
+>>pci_read_config_byte() because pci_bus_read_config_byte() called by
+>>pci_read_config_byte() refers to 'bus' field.
+> 
+> 
+> Should people be passing NULLs here, anyway? Is not the right fix to
+> remove the check, and remove the (!dev) check, too, and just fix the
+> callers? People are going to fix the oops, but noone is going to see
+> that ACPI_DEBUG_PRINT...
+> 
+> 
+> 								Pavel
+> 
+> 
+> 
+>>Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+>>---
+>>
+>> drivers/acpi/pci_irq.c |   10 +++++-----
+>> 1 files changed, 5 insertions(+), 5 deletions(-)
+>>
+>>diff -puN drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_enable drivers/acpi/pci_irq.c
+>>--- linux-2.6.13-rc4/drivers/acpi/pci_irq.c~fix-possible-null-pointer-access-acpi_pci_irq_enable	2005-08-01 12:20:26.000000000 +0900
+>>+++ linux-2.6.13-rc4-kanesige/drivers/acpi/pci_irq.c	2005-08-01 12:20:26.000000000 +0900
+>>@@ -397,6 +397,11 @@ acpi_pci_irq_enable (
+>> 
+>> 	if (!dev)
+>> 		return_VALUE(-EINVAL);
+>>+
+>>+	if (!dev->bus) {
+>>+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
+>>+		return_VALUE(-ENODEV);
+>>+	}
+>> 	
+>> 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+>> 	if (!pin) {
+>>@@ -405,11 +410,6 @@ acpi_pci_irq_enable (
+>> 	}
+>> 	pin--;
+>> 
+>>-	if (!dev->bus) {
+>>-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
+>>-		return_VALUE(-ENODEV);
+>>-	}
+>>-
+>> 	/* 
+>> 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.  PRT
+>> 	 * values override any BIOS-assigned IRQs set during boot.
+>>_
+>>
+>>
+>>
+>>-------------------------------------------------------
+>>SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+>>from IBM. Find simple to follow Roadmaps, straightforward articles,
+>>informative Webcasts and more! Get everything you need to get up to
+>>speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
+>>_______________________________________________
+>>Acpi-devel mailing list
+>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
+> 
 
-Use types that match the ACPI resource structures.  Previously
-the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
-which corrupts the value.
-
-Move pcibios_penalize_isa_irq() to pnpacpi_parse_allocated_irqresource().
-Previously we passed the GSI, not the IRQ, and we did it even if parsing
-the IRQ resource failed.
-
-Parse IRQ descriptors that contain multiple interrupts.  This violates
-the spec (in _CRS, only one interrupt per descriptor is allowed), but
-some firmware, e.g., HP rx7620 and rx8620 descriptions of HPET, has this
-bug.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-
-Index: work-mm/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work-mm.orig/drivers/pnp/pnpacpi/rsparser.c	2005-08-04 16:41:04.000000000 -0600
-+++ work-mm/drivers/pnp/pnpacpi/rsparser.c	2005-08-04 16:42:52.000000000 -0600
-@@ -73,25 +73,35 @@
- }
- 
- static void
--pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
-+pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 gsi,
-+	int edge_level, int active_high_low)
- {
- 	int i = 0;
-+	int irq;
-+
-+	if (!valid_IRQ(gsi))
-+		return;
-+
- 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
- 			i < PNP_MAX_IRQ)
- 		i++;
--	if (i < PNP_MAX_IRQ) {
--		res->irq_resource[i].flags = IORESOURCE_IRQ;  //Also clears _UNSET flag
--		if (irq < 0) {
--			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
--			return;
--		}
--		res->irq_resource[i].start =(unsigned long) irq;
--		res->irq_resource[i].end = (unsigned long) irq;
-+	if (i >= PNP_MAX_IRQ)
-+		return;
-+
-+	res->irq_resource[i].flags = IORESOURCE_IRQ;  // Also clears _UNSET flag
-+	irq = acpi_register_gsi(gsi, edge_level, active_high_low);
-+	if (irq < 0) {
-+		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
-+		return;
- 	}
-+
-+	res->irq_resource[i].start = irq;
-+	res->irq_resource[i].end = irq;
-+	pcibios_penalize_isa_irq(irq, 1);
- }
- 
- static void
--pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
-+pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, u32 dma)
- {
- 	int i = 0;
- 	while (i < PNP_MAX_DMA &&
-@@ -103,14 +113,14 @@
- 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->dma_resource[i].start =(unsigned long) dma;
--		res->dma_resource[i].end = (unsigned long) dma;
-+		res->dma_resource[i].start = dma;
-+		res->dma_resource[i].end = dma;
- 	}
- }
- 
- static void
- pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
--	int io, int len)
-+	u32 io, u32 len)
- {
- 	int i = 0;
- 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
-@@ -122,14 +132,14 @@
- 			res->port_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->port_resource[i].start = (unsigned long) io;
--		res->port_resource[i].end = (unsigned long)(io + len - 1);
-+		res->port_resource[i].start = io;
-+		res->port_resource[i].end = io + len - 1;
- 	}
- }
- 
- static void
- pnpacpi_parse_allocated_memresource(struct pnp_resource_table * res,
--	int mem, int len)
-+	u64 mem, u64 len)
- {
- 	int i = 0;
- 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
-@@ -141,8 +151,8 @@
- 			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->mem_resource[i].start = (unsigned long) mem;
--		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
-+		res->mem_resource[i].start = mem;
-+		res->mem_resource[i].end = mem + len - 1;
- 	}
- }
- 
-@@ -151,27 +161,28 @@
- 	void *data)
- {
- 	struct pnp_resource_table * res_table = (struct pnp_resource_table *)data;
-+	int i;
- 
- 	switch (res->id) {
- 	case ACPI_RSTYPE_IRQ:
--		if ((res->data.irq.number_of_interrupts > 0) &&
--			valid_IRQ(res->data.irq.interrupts[0])) {
--			pnpacpi_parse_allocated_irqresource(res_table, 
--				acpi_register_gsi(res->data.irq.interrupts[0],
--					res->data.irq.edge_level,
--					res->data.irq.active_high_low));
--			pcibios_penalize_isa_irq(res->data.irq.interrupts[0], 1);
-+		/*
-+		 * Per spec, only one interrupt per descriptor is allowed in
-+		 * _CRS, but some firmware violates this, so parse them all.
-+		 */
-+		for (i = 0; i < res->data.irq.number_of_interrupts; i++) {
-+			pnpacpi_parse_allocated_irqresource(res_table,
-+				res->data.irq.interrupts[i],
-+				res->data.irq.edge_level,
-+				res->data.irq.active_high_low);
- 		}
- 		break;
- 
- 	case ACPI_RSTYPE_EXT_IRQ:
--		if ((res->data.extended_irq.number_of_interrupts > 0) &&
--			valid_IRQ(res->data.extended_irq.interrupts[0])) {
--			pnpacpi_parse_allocated_irqresource(res_table, 
--				acpi_register_gsi(res->data.extended_irq.interrupts[0],
--					res->data.extended_irq.edge_level,
--					res->data.extended_irq.active_high_low));
--			pcibios_penalize_isa_irq(res->data.extended_irq.interrupts[0], 1);
-+		for (i = 0; i < res->data.extended_irq.number_of_interrupts; i++) {
-+			pnpacpi_parse_allocated_irqresource(res_table,
-+				res->data.extended_irq.interrupts[i],
-+				res->data.extended_irq.edge_level,
-+				res->data.extended_irq.active_high_low);
- 		}
- 		break;
- 	case ACPI_RSTYPE_DMA:
 
 
 -------------------------------------------------------
