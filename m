@@ -1,19 +1,13 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: [PATCH 2.6.13-rc4 1/2] fix possible null pointer access
- - acpi_pci_irq_enable
-Date: Sun, 7 Aug 2005 22:07:36 -0700
-Message-ID: <20050807220736.4aef15ee.akpm@osdl.org>
-References: <42ED97C2.7060409@jp.fujitsu.com>
-	<42ED9830.7060808@jp.fujitsu.com>
-	<20050803113637.GB4038@elf.ucw.cz>
-	<42F2C20F.4050807@jp.fujitsu.com>
-	<20050805071918.GG1780@elf.ucw.cz>
-	<42F6DE69.5090101@jp.fujitsu.com>
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: latest ACPI patch based on 2.6.13
+Date: Mon, 08 Aug 2005 15:19:03 +0900
+Message-ID: <42F6F957.7020508@jp.fujitsu.com>
+References: <1123214969.13136.51.camel@toshiba>	<1123220125.13136.77.camel@toshiba> <20050808.134133.41727261.maeda.naoaki@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42F6DE69.5090101-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+In-Reply-To: <20050808.134133.41727261.maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,39 +17,92 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: pavel-+ZI9xUNit7I@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: MAEDA Naoaki <maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org> wrote:
->
-> Hi,
+Hi,
+
+> In addition, assign_irq_vector_nopanic() called by iosapic_register_intr()
+> is missing. Shouldn't be assign_irq_vector()?
+
+As you pointed out, it should be assign_irq_vector()
+because assign_irq_vector_nopanic() has been already
+removed at 2.6.13-rc3.
+
+Thanks,
+Kenji Kaneshige
+
+
+MAEDA Naoaki wrote:
+> Hi Len and Kenji,
 > 
-> >>>Should people be passing NULLs here, anyway? Is not the right fix to
-> >>>remove the check, and remove the (!dev) check, too, and just fix the
-> >>>callers? People are going to fix the oops, but noone is going to see
-> >>>that ACPI_DEBUG_PRINT...
-> >>
-> >>As you said, I think people should not pass NULLs here, and we should
-> >>fix the caller. But I think it is not bad to check (!dev) and (!dev->bus)
-> >>in these functions instead of panic. How about using WARN_ON here to
-> >>notify people of badness?
-> > 
-> > 
-> > No, just read l-k archives. Just dereference it. It wil oops in a nice
-> > way, and developer *will* see and fix it.
+> From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Subject: [ACPI] latest ACPI patch based on 2.6.13
+> Date: Fri, 05 Aug 2005 01:35:25 -0400
 > 
-> OK. I'll make a new patch that removes the check.
 > 
-> Andrew, could you please drop the following two patches from -mm tree?
+>>The Latest ACPI patch based on 2.6.13 is available here:
+>>
+>>http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12/acpi-20050729-2.6.13-rc6.patch
+>>
+>>These patches are exported to-akpm for inclusion in -mm
+>>with the intent to integrate into 2.6.14.
+>>
+>>http://ftp.kernel.org/pub/scm/linux/kernel/git/lenb/to-akpm.git/
+>>
+>>Please give it a go and speak up and file bugs if you run into
+>>any issues.
 > 
->     o fix-possible-null-pointer-access-acpi_pci_irq_enable.patch
->     o fix-possible-null-pointer-access-acpi_pci_irq_disable.patch
+> 
+> It cannot be compiled on ia64, due to some typos in ia64 specific files.
+> The following patch fixes the typos. 
+> 
+> In addition, assign_irq_vector_nopanic() called by iosapic_register_intr()
+> is missing. Shouldn't be assign_irq_vector()?
+> 
+> Thanks,
+> MAEDA Naoaki
+> 
+> Index: linux-2.6.13-rc5-mm1/arch/ia64/kernel/acpi.c
+> ===================================================================
+> --- linux-2.6.13-rc5-mm1.orig/arch/ia64/kernel/acpi.c
+> +++ linux-2.6.13-rc5-mm1/arch/ia64/kernel/acpi.c
+> @@ -74,7 +74,7 @@ unsigned int acpi_cpei_override;
+>  unsigned int acpi_cpei_phys_cpuid;
+>  
+>  #define MAX_SAPICS 256
+> -u16 ia64_acpiid_to_sapicid[MAX_SAPICS] = {[0...MAX_SAPICS - 1] = -1 };
+> +u16 ia64_acpiid_to_sapicid[MAX_SAPICS] = {[0 ... MAX_SAPICS - 1] = -1 };
+>  
+>  EXPORT_SYMBOL(ia64_acpiid_to_sapicid);
+>  
+> @@ -138,7 +138,7 @@ const char *acpi_get_sysname(void)
+>  
+>  /* Array to record platform interrupt vectors for generic interrupt routing. */
+>  int platform_intr_list[ACPI_MAX_PLATFORM_INTERRUPTS] = {
+> -	[0...ACPI_MAX_PLATFORM_INTERRUPTS - 1] = -1
+> +	[0 ... ACPI_MAX_PLATFORM_INTERRUPTS - 1] = -1
+>  };
+>  
+>  enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_IOSAPIC;
+> Index: linux-2.6.13-rc5-mm1/arch/ia64/kernel/iosapic.c
+> ===================================================================
+> --- linux-2.6.13-rc5-mm1.orig/arch/ia64/kernel/iosapic.c
+> +++ linux-2.6.13-rc5-mm1/arch/ia64/kernel/iosapic.c
+> @@ -739,7 +739,7 @@ again:
+>  	if (vector < 0) {
+>  		vector = iosapic_find_sharable_vector(trigger, polarity);
+>    		if (vector < 0)
+> -			Return -ENOSPC;
+> +			return -ENOSPC;
+>  	}
+>  
+>  	spin_lock_irqsave(&irq_descp(vector)->lock, flags);
+> 
+> 
 > 
 
-They're not in -mm any more.  Either they've been merged into Len's tree or
-I accidentally dropped them, assuming they were in Len's tree due to them
-throwing rejects.
 
 
 
