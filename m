@@ -1,13 +1,13 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: latest ACPI patch based on 2.6.13
-Date: Mon, 08 Aug 2005 15:19:03 +0900
-Message-ID: <42F6F957.7020508@jp.fujitsu.com>
-References: <1123214969.13136.51.camel@toshiba>	<1123220125.13136.77.camel@toshiba> <20050808.134133.41727261.maeda.naoaki@jp.fujitsu.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: EC Confusion
+Date: Mon, 8 Aug 2005 21:29:09 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC1F9@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050808.134133.41727261.maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,93 +17,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: MAEDA Naoaki <maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+To: Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
+Could you try acpi_dbg_layer=3D0x10000  acpi_dbg_level =3D0xFFFFFFFF,
+If you press sleep button, you should see=20
+"Received DEVICE WAKE notification for device [SLPB]"
 
-> In addition, assign_irq_vector_nopanic() called by iosapic_register_intr()
-> is missing. Shouldn't be assign_irq_vector()?
+If yes, I don't think sleep button was confused by EC.
 
-As you pointed out, it should be assign_irq_vector()
-because assign_irq_vector_nopanic() has been already
-removed at 2.6.13-rc3.
+Thanks
+Luming=20
 
-Thanks,
-Kenji Kaneshige
-
-
-MAEDA Naoaki wrote:
-> Hi Len and Kenji,
-> 
-> From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Subject: [ACPI] latest ACPI patch based on 2.6.13
-> Date: Fri, 05 Aug 2005 01:35:25 -0400
-> 
-> 
->>The Latest ACPI patch based on 2.6.13 is available here:
+>-----Original Message-----
+>From: Paulo Vitor Magacho da Silva [mailto:pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org]=20
+>Sent: 2005=C4=EA8=D4=C25=C8=D5 12:52
+>To: Yu, Luming
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] EC Confusion
+>
+>Hi,
+>
+>I am sending the files. There are two. One for kernel=20
+>2.6.12-rc2-mm2, which=20
+>works for me. And the second one for kernel 2.6.13-rc5, with=20
+>your patch.
+>Both with acpi_dbg_layer=3D0x100006 acpi_dbg_level_0xFFFFFFFF?
+>Hope it helps.
+>
+>Thanks,
+>Paulo
+>
 >>
->>http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12/acpi-20050729-2.6.13-rc6.patch
 >>
->>These patches are exported to-akpm for inclusion in -mm
->>with the intent to integrate into 2.6.14.
+>>On Friday 05 August 2005 09:57, Paulo Vitor Magacho da Silva wrote:
+>> > Hello,
+>> >
+>> > I've tryed with this patch, but still doesn't work. I am=20
+>sending the=20
+>>dmesg
+>> > so you can take a look.
+>>Yes, the log file is  pretty  good.  Everything seems to work.
 >>
->>http://ftp.kernel.org/pub/scm/linux/kernel/git/lenb/to-akpm.git/
+>> > The kernel command line: ro root=3DLABEL=3D/ rhgb quiet acpi=3Don
+>> > acpi_dbg_layer=3D0x100002 acpi_dbg_level=3D0xFFFFFFFF
+>>Could you try acpi_dbg_layer=3D0x100006 acpi_dbg_level_0xFFFFFFFF?
+>>reproduce the wrong behaviour, then capture dmesg and send to me.
 >>
->>Please give it a go and speak up and file bugs if you run into
->>any issues.
-> 
-> 
-> It cannot be compiled on ia64, due to some typos in ia64 specific files.
-> The following patch fixes the typos. 
-> 
-> In addition, assign_irq_vector_nopanic() called by iosapic_register_intr()
-> is missing. Shouldn't be assign_irq_vector()?
-> 
-> Thanks,
-> MAEDA Naoaki
-> 
-> Index: linux-2.6.13-rc5-mm1/arch/ia64/kernel/acpi.c
-> ===================================================================
-> --- linux-2.6.13-rc5-mm1.orig/arch/ia64/kernel/acpi.c
-> +++ linux-2.6.13-rc5-mm1/arch/ia64/kernel/acpi.c
-> @@ -74,7 +74,7 @@ unsigned int acpi_cpei_override;
->  unsigned int acpi_cpei_phys_cpuid;
->  
->  #define MAX_SAPICS 256
-> -u16 ia64_acpiid_to_sapicid[MAX_SAPICS] = {[0...MAX_SAPICS - 1] = -1 };
-> +u16 ia64_acpiid_to_sapicid[MAX_SAPICS] = {[0 ... MAX_SAPICS - 1] = -1 };
->  
->  EXPORT_SYMBOL(ia64_acpiid_to_sapicid);
->  
-> @@ -138,7 +138,7 @@ const char *acpi_get_sysname(void)
->  
->  /* Array to record platform interrupt vectors for generic interrupt routing. */
->  int platform_intr_list[ACPI_MAX_PLATFORM_INTERRUPTS] = {
-> -	[0...ACPI_MAX_PLATFORM_INTERRUPTS - 1] = -1
-> +	[0 ... ACPI_MAX_PLATFORM_INTERRUPTS - 1] = -1
->  };
->  
->  enum acpi_irq_model_id acpi_irq_model = ACPI_IRQ_MODEL_IOSAPIC;
-> Index: linux-2.6.13-rc5-mm1/arch/ia64/kernel/iosapic.c
-> ===================================================================
-> --- linux-2.6.13-rc5-mm1.orig/arch/ia64/kernel/iosapic.c
-> +++ linux-2.6.13-rc5-mm1/arch/ia64/kernel/iosapic.c
-> @@ -739,7 +739,7 @@ again:
->  	if (vector < 0) {
->  		vector = iosapic_find_sharable_vector(trigger, polarity);
->    		if (vector < 0)
-> -			Return -ENOSPC;
-> +			return -ENOSPC;
->  	}
->  
->  	spin_lock_irqsave(&irq_descp(vector)->lock, flags);
-> 
-> 
-> 
-
-
+>> >
+>> > Thanks,
+>> > Paulo
+>>
+>>Thanks,
+>>Luming
+>>
+>> > >
+>
+>_________________________________________________________________
+>Chegou o que faltava: MSN Acesso Gr=A8=A2tis. Instale J=A8=A2!=20
+>http://www.msn.com.br/discador
+>
 
 
 -------------------------------------------------------
