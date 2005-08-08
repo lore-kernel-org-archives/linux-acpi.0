@@ -1,14 +1,11 @@
-From: Avuton Olrich <avuton-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Problem suspending ASUS A7V8X based desktop
-Date: Mon, 8 Aug 2005 10:38:24 -0700
-Message-ID: <3aa654a405080810381c8153f1@mail.gmail.com>
-References: <20050807062525.GA17750@tangens.sinus.cz>
-	 <20050808142857.GB1913@elf.ucw.cz>
+From: Pablo Bullian <pablo.bullian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Acer battery problem
+Date: Mon, 8 Aug 2005 15:02:35 -0300
+Message-ID: <14a648fa0508081102668fdd26@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050808142857.GB1913-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,22 +16,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 8/8/05, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+Hi!, well I'm new here, and i have a problem i bought a Acer Aspire
+3002LCi and I install a Mandrake or Mandriva 10.1, the thing is that
+my Xserver don't work if I use the laptop with the battery, it frezze
+when it start, and also my battery monitor doesn't work if i have the
+laptop plugged in, otherwise, like i said before it doesn't start X.
+when I put:=20
+# cat /proc/acpi/battery/BAT1/state
+present:                 yes
+ERROR: Unable to read battery status
 
-> Anything mentioning nvidia proprietary drivers is off-topic here. Try
-> again with open-source drivers.
+the info is:
+# cat /proc/acpi/battery/BAT1/info
+present:                 yes
+design capacity:         2000 mAh
+last full capacity:      1798 mAh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 200 mAh
+design capacity low:     71 mAh
+capacity granularity 1:  32 mAh
+capacity granularity 2:  32 mAh
+model number:            11ZL
+serial number:           3027
+battery type:            LION
+OEM info:                SIMPLO
 
-I understand that wasn't directed at me, but I have personally tried
-the open-source drivers with this motherboard and the result is no
-different (as stated in the bugzilla report).
-
-avuton
---=20
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+can someone help me? :(
 
 
 -------------------------------------------------------
