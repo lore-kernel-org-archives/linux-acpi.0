@@ -1,14 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [PATCH] PNPACPI: fix IRQ and 64-bit address decoding
-Date: Tue, 9 Aug 2005 17:32:52 -0600
-Message-ID: <200508091732.52575.bjorn.helgaas@hp.com>
-References: <200508041726.19336.bjorn.helgaas@hp.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Problem suspending ASUS A7V8X based desktop
+Date: Tue, 9 Aug 2005 00:25:33 +0200
+Message-ID: <20050808222533.GC1821@elf.ucw.cz>
+References: <20050807062525.GA17750@tangens.sinus.cz> <20050808142857.GB1913@elf.ucw.cz> <3aa654a405080810381c8153f1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_k0T+Cum5+RUg0MY"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200508041726.19336.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <3aa654a405080810381c8153f1-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,207 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Avuton Olrich <avuton-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---Boundary-00=_k0T+Cum5+RUg0MY
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi!
 
-On Thursday 04 August 2005 5:26 pm, Bjorn Helgaas wrote:
-> Maybe the third time's the charm :-)  Added a bugfix
-> (pcibios_penalize_isa_irq()) and a workaround for HP
-> HPET firmware description since last time.  The workaround
-> accepts stuff that is illegal according to the spec,
-> so speak up if you think this is a problem.  It seems
-> fairly safe to me.
+> > Anything mentioning nvidia proprietary drivers is off-topic here. Try
+> > again with open-source drivers.
+> 
+> I understand that wasn't directed at me, but I have personally tried
+> the open-source drivers with this motherboard and the result is no
+> different (as stated in the bugzilla report).
 
-This patch is in 2.6.13-rc5-mm1 as
-	pnpacpi-fix-irq-and-64-bit-address-decoding.patch
-and it works fine for me.
+Ok, see bugzilla.
 
-But plain 2.6.13-rc5, with CONFIG_PNPACPI turned on, hangs
-at boot on HP ia64 boxes.  This is because 8250_pnp now
-knows about MMIO UARTs, so it tries to poke one using a
-64-bit address corrupted by PNPACPI.
-
-CONFIG_PNPACPI is still marked experimental, but we may
-want to consider putting the PNPACPI patch in 2.6.14
-to fix the hang.
-
-The patch in -mm doesn't apply cleanly, so I rediffed
-it against 2.6.13-rc5 and attached it.
-
-
---Boundary-00=_k0T+Cum5+RUg0MY
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="pnpacpi"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="pnpacpi"
-
-PNPACPI: fix IRQ and 64-bit address decoding
-
-Use types that match the ACPI resource structures.  Previously
-the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
-which corrupts the value.
-
-Move pcibios_penalize_isa_irq() to pnpacpi_parse_allocated_irqresource().
-Previously we passed the GSI, not the IRQ, and we did it even if parsing
-the IRQ resource failed.
-
-Parse IRQ descriptors that contain multiple interrupts.  This violates
-the spec (in _CRS, only one interrupt per descriptor is allowed), but
-some firmware does this.  HP rx7620 and rx8620 HPETs have this bug.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-
-Index: work-vga/drivers/pnp/pnpacpi/rsparser.c
-===================================================================
---- work-vga.orig/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 16:54:57.000000000 -0600
-+++ work-vga/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 16:55:50.000000000 -0600
-@@ -73,25 +73,35 @@
- }
- 
- static void
--pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
-+pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 gsi,
-+	int edge_level, int active_high_low)
- {
- 	int i = 0;
-+	int irq;
-+
-+	if (!valid_IRQ(gsi))
-+		return;
-+
- 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
- 			i < PNP_MAX_IRQ)
- 		i++;
--	if (i < PNP_MAX_IRQ) {
--		res->irq_resource[i].flags = IORESOURCE_IRQ;  //Also clears _UNSET flag
--		if (irq == -1) {
--			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
--			return;
--		}
--		res->irq_resource[i].start =(unsigned long) irq;
--		res->irq_resource[i].end = (unsigned long) irq;
-+	if (i >= PNP_MAX_IRQ)
-+		return;
-+
-+	res->irq_resource[i].flags = IORESOURCE_IRQ;  // Also clears _UNSET flag
-+	irq = acpi_register_gsi(gsi, edge_level, active_high_low);
-+	if (irq < 0) {
-+		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
-+		return;
- 	}
-+
-+	res->irq_resource[i].start = irq;
-+	res->irq_resource[i].end = irq;
-+	pcibios_penalize_isa_irq(irq, 1);
- }
- 
- static void
--pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
-+pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, u32 dma)
- {
- 	int i = 0;
- 	while (i < PNP_MAX_DMA &&
-@@ -103,14 +113,14 @@
- 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->dma_resource[i].start =(unsigned long) dma;
--		res->dma_resource[i].end = (unsigned long) dma;
-+		res->dma_resource[i].start = dma;
-+		res->dma_resource[i].end = dma;
- 	}
- }
- 
- static void
- pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
--	int io, int len)
-+	u32 io, u32 len)
- {
- 	int i = 0;
- 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
-@@ -122,14 +132,14 @@
- 			res->port_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->port_resource[i].start = (unsigned long) io;
--		res->port_resource[i].end = (unsigned long)(io + len - 1);
-+		res->port_resource[i].start = io;
-+		res->port_resource[i].end = io + len - 1;
- 	}
- }
- 
- static void
- pnpacpi_parse_allocated_memresource(struct pnp_resource_table * res,
--	int mem, int len)
-+	u64 mem, u64 len)
- {
- 	int i = 0;
- 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
-@@ -141,8 +151,8 @@
- 			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
- 			return;
- 		}
--		res->mem_resource[i].start = (unsigned long) mem;
--		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
-+		res->mem_resource[i].start = mem;
-+		res->mem_resource[i].end = mem + len - 1;
- 	}
- }
- 
-@@ -151,27 +161,28 @@
- 	void *data)
- {
- 	struct pnp_resource_table * res_table = (struct pnp_resource_table *)data;
-+	int i;
- 
- 	switch (res->id) {
- 	case ACPI_RSTYPE_IRQ:
--		if ((res->data.irq.number_of_interrupts > 0) &&
--			valid_IRQ(res->data.irq.interrupts[0])) {
--			pnpacpi_parse_allocated_irqresource(res_table, 
--				acpi_register_gsi(res->data.irq.interrupts[0],
--					res->data.irq.edge_level,
--					res->data.irq.active_high_low));
--			pcibios_penalize_isa_irq(res->data.irq.interrupts[0], 1);
-+		/*
-+		 * Per spec, only one interrupt per descriptor is allowed in
-+		 * _CRS, but some firmware violates this, so parse them all.
-+		 */
-+		for (i = 0; i < res->data.irq.number_of_interrupts; i++) {
-+			pnpacpi_parse_allocated_irqresource(res_table,
-+				res->data.irq.interrupts[i],
-+				res->data.irq.edge_level,
-+				res->data.irq.active_high_low);
- 		}
- 		break;
- 
- 	case ACPI_RSTYPE_EXT_IRQ:
--		if ((res->data.extended_irq.number_of_interrupts > 0) &&
--			valid_IRQ(res->data.extended_irq.interrupts[0])) {
--			pnpacpi_parse_allocated_irqresource(res_table, 
--				acpi_register_gsi(res->data.extended_irq.interrupts[0],
--					res->data.extended_irq.edge_level,
--					res->data.extended_irq.active_high_low));
--			pcibios_penalize_isa_irq(res->data.extended_irq.interrupts[0], 1);
-+		for (i = 0; i < res->data.extended_irq.number_of_interrupts; i++) {
-+			pnpacpi_parse_allocated_irqresource(res_table,
-+				res->data.extended_irq.interrupts[i],
-+				res->data.extended_irq.edge_level,
-+				res->data.extended_irq.active_high_low);
- 		}
- 		break;
- 	case ACPI_RSTYPE_DMA:
-
---Boundary-00=_k0T+Cum5+RUg0MY--
+-- 
+if you have sharp zaurus hardware you don't need... you know my address
 
 
 -------------------------------------------------------
