@@ -1,13 +1,14 @@
-From: Alexander Nyberg <alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Subject: Re: sluggish/very slow usb mouse on hp nx6110 notebook => acpi problem
-Date: Sun, 7 Aug 2005 23:15:05 +0200
-Message-ID: <20050807211505.GA1864@localhost.localdomain>
-References: <20050805195243.4e9df3de@x90.0x4a47.net> <20050805205651.2cd22f1b@x90.0x4a47.net>
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [PATCH 2.6.13-rc4 1/2] fix possible null pointer access
+ - acpi_pci_irq_enable
+Date: Mon, 08 Aug 2005 13:24:09 +0900
+Message-ID: <42F6DE69.5090101@jp.fujitsu.com>
+References: <42ED97C2.7060409@jp.fujitsu.com> <42ED9830.7060808@jp.fujitsu.com> <20050803113637.GB4038@elf.ucw.cz> <42F2C20F.4050807@jp.fujitsu.com> <20050805071918.GG1780@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050805205651.2cd22f1b-g0SnQ0LDSf/kT7Lueh3tMA@public.gmane.org>
+In-Reply-To: <20050805071918.GG1780-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +18,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: JG <jg-9fI4heB6ewM@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Aug 05, 2005 at 08:56:51PM +0200 JG wrote:
+Hi,
 
-> hm, i currently have "acpi=off noacpi noapic reboot=b" as kernel
-> parameter.
+>>>Should people be passing NULLs here, anyway? Is not the right fix to
+>>>remove the check, and remove the (!dev) check, too, and just fix the
+>>>callers? People are going to fix the oops, but noone is going to see
+>>>that ACPI_DEBUG_PRINT...
+>>
+>>As you said, I think people should not pass NULLs here, and we should
+>>fix the caller. But I think it is not bad to check (!dev) and (!dev->bus)
+>>in these functions instead of panic. How about using WARN_ON here to
+>>notify people of badness?
 > 
-> if i remove the acpi stuff and enable acpi, the usb mouse works fine..
-> but after some time (5-10min) the kacpid process goes havoc and eats
-> all cpu and the whole system is unresponsive- that's the reason i added
-> those acpi=off parameters the first time when installing gentoo..
 > 
-> i tested with gentoo-2.6.12-r7 and vanilla-2.6.13rc5
-> 
+> No, just read l-k archives. Just dereference it. It wil oops in a nice
+> way, and developer *will* see and fix it.
 
-Indicates a bug in kacpid or similar. Could you make sure you compile in
-"Magic SysRq key" under "Kernel Hacking" and boot the vanilla-2.6.13-rc6
-(some recent acpi changes have gone in) and then wait for kacpid
-to go nuts and do
+OK. I'll make a new patch that removes the check.
 
-Alt+Sysrq+t 4 times and then run 'dmesg -s 100000 > logfile' and
-send logfile over here so that we can see what kacpid is up to.
+Andrew, could you please drop the following two patches from -mm tree?
 
-If the box becomes so unresponsive you can't extract the log information
-it would be good if you could use either network console 
-Documentation/networking/netconsole.txt or serial console at
-Documentation/serial-console.txt, both require an extra computer
-though...
+    o fix-possible-null-pointer-access-acpi_pci_irq_enable.patch
+    o fix-possible-null-pointer-access-acpi_pci_irq_disable.patch
+
+Thanks,
+Kenji Kaneshige
 
 
 -------------------------------------------------------
