@@ -1,14 +1,14 @@
-From: jurriaan <thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Subject: Re: A8N-SLI Deluxe: poweroff OK with 1006 bios, fails with 1011 and later bioses
-Date: Tue, 9 Aug 2005 21:40:22 +0200
-Message-ID: <20050809194022.GA3289@amd64.of.nowhere>
-References: <20050807064802.GA4188@amd64.of.nowhere>
-Reply-To: Jurriaan <thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [PATCH] PNPACPI: fix IRQ and 64-bit address decoding
+Date: Tue, 9 Aug 2005 17:32:52 -0600
+Message-ID: <200508091732.52575.bjorn.helgaas@hp.com>
+References: <200508041726.19336.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_k0T+Cum5+RUg0MY"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200508041726.19336.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050807064802.GA4188-9lYvA+wzQ+BL6ehbpA6KYA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,41 +18,207 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: jurriaan <thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: jurriaan <thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
-Date: Sun, Aug 07, 2005 at 08:48:02AM +0200
-X-XS4All-To: 
-> My Asus A8N-SLI Deluxe motherboard doesn't power off when shutting down
-> with a bios later than the original 1006.
-> 
-> I would like to use a newer bios, since they support X2 chips, for
-> example.
-> 
-> I have decompiled the 1006 dsdt and the 1011 dsdt, and somewhere there
-> must be a difference that causes this.
-> 
-> I've tried to read the acpi specification to find out where I should
-> start, but I'm not getting it. What parts in the dsdt have to do with
-> powering off the system? Where do I look?
-> 
-For the record (and for future google searchers, this is a popular
-motherboard), recompiling the dsdt into the kernel after fixing a number
-of compilation errors fixed this, both for bios version 1007 and for
-1013-002, so I'm confident it's the fixing of the dsdt that's important
-here.
+--Boundary-00=_k0T+Cum5+RUg0MY
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Jurriaan
--- 
-"I know what that cost you," the Serra continued. "And I understand the
-price you pay to bear it thus."
-"You did not, when last we met."
-"No. And I would have cursed you. Or killed you. I cannot yet, with grace,
-thank you for my life."
-	Michelle West - The Sun Sword
-Debian (Unstable) GNU/Linux 2.6.13-rc5-mm1 5505 bogomips load 0.88
+On Thursday 04 August 2005 5:26 pm, Bjorn Helgaas wrote:
+> Maybe the third time's the charm :-)  Added a bugfix
+> (pcibios_penalize_isa_irq()) and a workaround for HP
+> HPET firmware description since last time.  The workaround
+> accepts stuff that is illegal according to the spec,
+> so speak up if you think this is a problem.  It seems
+> fairly safe to me.
+
+This patch is in 2.6.13-rc5-mm1 as
+	pnpacpi-fix-irq-and-64-bit-address-decoding.patch
+and it works fine for me.
+
+But plain 2.6.13-rc5, with CONFIG_PNPACPI turned on, hangs
+at boot on HP ia64 boxes.  This is because 8250_pnp now
+knows about MMIO UARTs, so it tries to poke one using a
+64-bit address corrupted by PNPACPI.
+
+CONFIG_PNPACPI is still marked experimental, but we may
+want to consider putting the PNPACPI patch in 2.6.14
+to fix the hang.
+
+The patch in -mm doesn't apply cleanly, so I rediffed
+it against 2.6.13-rc5 and attached it.
+
+
+--Boundary-00=_k0T+Cum5+RUg0MY
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="pnpacpi"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="pnpacpi"
+
+PNPACPI: fix IRQ and 64-bit address decoding
+
+Use types that match the ACPI resource structures.  Previously
+the u64 value from an RSTYPE_ADDRESS64 was passed as an int,
+which corrupts the value.
+
+Move pcibios_penalize_isa_irq() to pnpacpi_parse_allocated_irqresource().
+Previously we passed the GSI, not the IRQ, and we did it even if parsing
+the IRQ resource failed.
+
+Parse IRQ descriptors that contain multiple interrupts.  This violates
+the spec (in _CRS, only one interrupt per descriptor is allowed), but
+some firmware does this.  HP rx7620 and rx8620 HPETs have this bug.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+
+Index: work-vga/drivers/pnp/pnpacpi/rsparser.c
+===================================================================
+--- work-vga.orig/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 16:54:57.000000000 -0600
++++ work-vga/drivers/pnp/pnpacpi/rsparser.c	2005-08-09 16:55:50.000000000 -0600
+@@ -73,25 +73,35 @@
+ }
+ 
+ static void
+-pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
++pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, u32 gsi,
++	int edge_level, int active_high_low)
+ {
+ 	int i = 0;
++	int irq;
++
++	if (!valid_IRQ(gsi))
++		return;
++
+ 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
+ 			i < PNP_MAX_IRQ)
+ 		i++;
+-	if (i < PNP_MAX_IRQ) {
+-		res->irq_resource[i].flags = IORESOURCE_IRQ;  //Also clears _UNSET flag
+-		if (irq == -1) {
+-			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
+-			return;
+-		}
+-		res->irq_resource[i].start =(unsigned long) irq;
+-		res->irq_resource[i].end = (unsigned long) irq;
++	if (i >= PNP_MAX_IRQ)
++		return;
++
++	res->irq_resource[i].flags = IORESOURCE_IRQ;  // Also clears _UNSET flag
++	irq = acpi_register_gsi(gsi, edge_level, active_high_low);
++	if (irq < 0) {
++		res->irq_resource[i].flags |= IORESOURCE_DISABLED;
++		return;
+ 	}
++
++	res->irq_resource[i].start = irq;
++	res->irq_resource[i].end = irq;
++	pcibios_penalize_isa_irq(irq, 1);
+ }
+ 
+ static void
+-pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
++pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, u32 dma)
+ {
+ 	int i = 0;
+ 	while (i < PNP_MAX_DMA &&
+@@ -103,14 +113,14 @@
+ 			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->dma_resource[i].start =(unsigned long) dma;
+-		res->dma_resource[i].end = (unsigned long) dma;
++		res->dma_resource[i].start = dma;
++		res->dma_resource[i].end = dma;
+ 	}
+ }
+ 
+ static void
+ pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res,
+-	int io, int len)
++	u32 io, u32 len)
+ {
+ 	int i = 0;
+ 	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -122,14 +132,14 @@
+ 			res->port_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->port_resource[i].start = (unsigned long) io;
+-		res->port_resource[i].end = (unsigned long)(io + len - 1);
++		res->port_resource[i].start = io;
++		res->port_resource[i].end = io + len - 1;
+ 	}
+ }
+ 
+ static void
+ pnpacpi_parse_allocated_memresource(struct pnp_resource_table * res,
+-	int mem, int len)
++	u64 mem, u64 len)
+ {
+ 	int i = 0;
+ 	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) &&
+@@ -141,8 +151,8 @@
+ 			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
+ 			return;
+ 		}
+-		res->mem_resource[i].start = (unsigned long) mem;
+-		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
++		res->mem_resource[i].start = mem;
++		res->mem_resource[i].end = mem + len - 1;
+ 	}
+ }
+ 
+@@ -151,27 +161,28 @@
+ 	void *data)
+ {
+ 	struct pnp_resource_table * res_table = (struct pnp_resource_table *)data;
++	int i;
+ 
+ 	switch (res->id) {
+ 	case ACPI_RSTYPE_IRQ:
+-		if ((res->data.irq.number_of_interrupts > 0) &&
+-			valid_IRQ(res->data.irq.interrupts[0])) {
+-			pnpacpi_parse_allocated_irqresource(res_table, 
+-				acpi_register_gsi(res->data.irq.interrupts[0],
+-					res->data.irq.edge_level,
+-					res->data.irq.active_high_low));
+-			pcibios_penalize_isa_irq(res->data.irq.interrupts[0], 1);
++		/*
++		 * Per spec, only one interrupt per descriptor is allowed in
++		 * _CRS, but some firmware violates this, so parse them all.
++		 */
++		for (i = 0; i < res->data.irq.number_of_interrupts; i++) {
++			pnpacpi_parse_allocated_irqresource(res_table,
++				res->data.irq.interrupts[i],
++				res->data.irq.edge_level,
++				res->data.irq.active_high_low);
+ 		}
+ 		break;
+ 
+ 	case ACPI_RSTYPE_EXT_IRQ:
+-		if ((res->data.extended_irq.number_of_interrupts > 0) &&
+-			valid_IRQ(res->data.extended_irq.interrupts[0])) {
+-			pnpacpi_parse_allocated_irqresource(res_table, 
+-				acpi_register_gsi(res->data.extended_irq.interrupts[0],
+-					res->data.extended_irq.edge_level,
+-					res->data.extended_irq.active_high_low));
+-			pcibios_penalize_isa_irq(res->data.extended_irq.interrupts[0], 1);
++		for (i = 0; i < res->data.extended_irq.number_of_interrupts; i++) {
++			pnpacpi_parse_allocated_irqresource(res_table,
++				res->data.extended_irq.interrupts[i],
++				res->data.extended_irq.edge_level,
++				res->data.extended_irq.active_high_low);
+ 		}
+ 		break;
+ 	case ACPI_RSTYPE_DMA:
+
+--Boundary-00=_k0T+Cum5+RUg0MY--
 
 
 -------------------------------------------------------
