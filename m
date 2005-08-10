@@ -1,13 +1,11 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: EC Confusion
-Date: Wed, 10 Aug 2005 16:57:32 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8409172BBB@pdsmsx403>
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH] Disable slow duplicate object tracking in ACPI_DEBUG
+Date: Wed, 10 Aug 2005 13:32:55 +0200
+Message-ID: <20050810113255.GK19772@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,59 +15,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
-I just update burst ec patch against 2.6.13-rc6
-at http://bugzilla.kernel.org/show_bug.cgi?id=3D3851
-Could you test it?
 
-Thanks,
-Luming
+The current SUSE 10.0 beta has CONFIG_ACPI_DEBUG enabled. That lead
+to severe slowdowns on several machines. One issue was the different
+default for ec_burst_mode. Another one was that the object tracking
+would always walk the full list of all objects, which lead to kacpid
+needing up to 25% of the total CPU time.
 
->-----Original Message-----
->From: Thomas Renninger [mailto:trenn-l3A5Bk7waGM@public.gmane.org]=20
->Sent: 2005=C4=EA8=D4=C210=C8=D5 14:55
->To: Paulo Vitor Magacho da Silva
->Cc: Yu, Luming; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] EC Confusion
->
->Paulo Vitor Magacho da Silva wrote:
->
->> Hi,
->>=20
->> I hit seven times the sleep button and I get the same message :
->> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST]=20
->(Node c14d52e8)
->> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR]=20
->(Node c14d5168)
->> Then, in the 8th time I get:
->> kernel:  Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d5f28)
->> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST]=20
->(Node c14d52e8)
->> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR]=20
->(Node c14d5168)
->>=20
->
->Seems as if the ACPI events are buffered?
->I had a very similar bug report:
->________________________________________
->The ACPI events, which are triggered by keyboard (via Fn key,=20
->eg. to switch
->WiFi card on/off) are somehow buffered in the kernel. I have=20
->to push the key
->combination 8 times until acpi_listen (or cat=20
->/proc/acpi/event) gets the first
->event, then, if I push other combinations, I get the events=20
->from the "buffer".
->________________________________________
->
->EC burst mode did solve this problem on that machine.
->
->      Thomas
->
+This patch disables the slow list walking. It could be probably
+replaced with a hash or similar too, but I don't think the duplicate
+object tracking is too useful anaywys so I just disabled it.
+
+-Andi
+
+From: ak-l3A5Bk7waGM@public.gmane.org
+Subject: Disable linear search in ACPI debugging
+Suse-bugzilla: 102565
+
+Looking through all the memory objects all the time is just too slow.
+Don't do it.
+
+
+Signed-off-by: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+
+Index: linux-2.6.13rc5/drivers/acpi/utilities/utalloc.c
+===================================================================
+--- linux-2.6.13rc5.orig/drivers/acpi/utilities/utalloc.c
++++ linux-2.6.13rc5/drivers/acpi/utilities/utalloc.c
+@@ -674,6 +674,9 @@ acpi_ut_find_allocation (
+ {
+ 	struct acpi_debug_mem_block     *element;
+ 
++	/* too slow to be usable */
++	return NULL;
++
+ 
+ 	ACPI_FUNCTION_ENTRY ();
+ 
 
 
 -------------------------------------------------------
