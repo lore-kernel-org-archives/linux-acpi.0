@@ -1,7 +1,7 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: EC Confusion
-Date: Wed, 10 Aug 2005 16:51:44 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8409172B9D@pdsmsx403>
+Date: Wed, 10 Aug 2005 16:57:32 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8409172BBB@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
@@ -17,99 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- Hmm, I need to have your DSDT a look.
-Your box got a lot of notify on AC, or BAT.
+=20
+I just update burst ec patch against 2.6.13-rc6
+at http://bugzilla.kernel.org/show_bug.cgi?id=3D3851
+Could you test it?
 
 Thanks,
 Luming
 
 >-----Original Message-----
->From: Paulo Vitor Magacho da Silva [mailto:pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org]=20
->Sent: 2005=C4=EA8=D4=C210=C8=D5 11:59
->To: Yu, Luming; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: RE: [ACPI] EC Confusion
+>From: Thomas Renninger [mailto:trenn-l3A5Bk7waGM@public.gmane.org]=20
+>Sent: 2005=C4=EA8=D4=C210=C8=D5 14:55
+>To: Paulo Vitor Magacho da Silva
+>Cc: Yu, Luming; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] EC Confusion
 >
+>Paulo Vitor Magacho da Silva wrote:
 >
->Hi,
+>> Hi,
+>>=20
+>> I hit seven times the sleep button and I get the same message :
+>> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST]=20
+>(Node c14d52e8)
+>> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR]=20
+>(Node c14d5168)
+>> Then, in the 8th time I get:
+>> kernel:  Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d5f28)
+>> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST]=20
+>(Node c14d52e8)
+>> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR]=20
+>(Node c14d5168)
+>>=20
 >
->I hit seven times the sleep button and I get the same message :
->kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node=20
->c14d52e8)
->kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node=20
->c14d5168)
->Then, in the 8th time I get:
->kernel:  Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d5f28)
->kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node=20
->c14d52e8)
->kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node=20
->c14d5168)
+>Seems as if the ACPI events are buffered?
+>I had a very similar bug report:
+>________________________________________
+>The ACPI events, which are triggered by keyboard (via Fn key,=20
+>eg. to switch
+>WiFi card on/off) are somehow buffered in the kernel. I have=20
+>to push the key
+>combination 8 times until acpi_listen (or cat=20
+>/proc/acpi/event) gets the first
+>event, then, if I push other combinations, I get the events=20
+>from the "buffer".
+>________________________________________
 >
->Thanks,
->Paulo
+>EC burst mode did solve this problem on that machine.
 >
->>From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>To: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
->>CC: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
->>Subject: RE: [ACPI] EC Confusion
->>Date: Tue, 9 Aug 2005 14:14:16 +0800
->>
->>To clearly illustrate the problem, please try acpi_dbg_layer=3D0x10
->>acpi_dbg_layer=3D0x10,
->>and retest kernel. If you press key,  you should immediately see
->>messages like:
->>"Execute Method: [\_SB_PCI0.LPCB.EC__._Q0D] "
->>That means EC works for this time.
->>
->>Thanks,
->>Luming
->>
->> >Hi,
->> >
->> >I all I got was :
->> >**** Context Switch from TID EEC to TID 7 ****
->> >acpi_bus-0306 [0007] [17] acpi_bus_generate_even: ----Entry
->> >acpi_bus-0330 [0007] [17] acpi_bus_generate_even: ----Exit-
->> >0000000000000000
->> >**** Context Switch from TID 7 to TID EEC ****
->> >acpi_bus-0376 [0EEC] [14] acpi_bus_receive_event: ----Exit-
->> >0000000000000000
->> >acpi_bus-0343 [0EEC] [14] acpi_bus_receive_event: ----Entry
->> >
->> >
->> >Thanks,
->> >Paulo
->> >
->> >>From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> >>To: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
->> >>CC: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
->> >>Subject: RE: [ACPI] EC Confusion
->> >>Date: Mon, 8 Aug 2005 21:29:09 +0800
->> >>
->> >>Hi,
->> >>Could you try acpi_dbg_layer=3D0x10000  acpi_dbg_level =
-=3D0xFFFFFFFF,
->> >>If you press sleep button, you should see
->> >>"Received DEVICE WAKE notification for device [SLPB]"
->> >>
->> >>If yes, I don't think sleep button was confused by EC.
->> >>
->> >>Thanks
->> >>Luming
->> >>
->> >
->> >_________________________________________________________________
->> >MSN Messenger: converse online com seus amigos .
->> >http://messenger.msn.com.br
->> >
->> >
->
->_________________________________________________________________
->Chegou o que faltava: MSN Acesso Gr=A8=A2tis. Instale J=A8=A2!=20
->http://www.msn.com.br/discador
->
+>      Thomas
 >
 
 
