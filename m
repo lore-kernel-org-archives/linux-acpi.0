@@ -1,13 +1,13 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: EC Confusion
-Date: Wed, 10 Aug 2005 08:55:20 +0200
-Message-ID: <42F9A4D8.1090703@suse.de>
-References: <BAY12-F48160AB3D3ABB69E3A006A8BA0@phx.gbl>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: help
+Date: Wed, 10 Aug 2005 09:28:15 +0200
+Message-ID: <20050810072815.GJ852@poupinou.org>
+References: <000001c59d07$3a9ee170$a14a3d0a@vgmz.local> <105c793f05080910595ceb4199@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BAY12-F48160AB3D3ABB69E3A006A8BA0-MsuGFMq8XAE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <105c793f05080910595ceb4199-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Cc: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Paulo Vitor Magacho da Silva wrote:
-
-> Hi,
+On Tue, Aug 09, 2005 at 01:59:25PM -0400, Andrew Haninger wrote:
+> On 8/9/05, androsov <androsov-aPYA7nAdAYY@public.gmane.org> wrote:
+> > help 
+> With?
 > 
-> I hit seven times the sleep button and I get the same message :
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
-> Then, in the 8th time I get:
-> kernel:  Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d5f28)
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
+> Or is this a cleverly-disguised valid-email collector for spamming?
 > 
 
-Seems as if the ACPI events are buffered?
-I had a very similar bug report:
-________________________________________
-The ACPI events, which are triggered by keyboard (via Fn key, eg. to switch
-WiFi card on/off) are somehow buffered in the kernel. I have to push the key
-combination 8 times until acpi_listen (or cat /proc/acpi/event) gets the first
-event, then, if I push other combinations, I get the events from the "buffer".
-________________________________________
+The answer is always the same anyway :)
 
-EC burst mode did solve this problem on that machine.
+Could you send me the output of acpidmp, please ?
 
-      Thomas
+wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
+tar xjvfp pmtools-20031210.tar.bz2
+cd pmtools-20031210/acpidmp
+make
+sudo ./acpidmp > acpidmp.out
+bzip2 acpidmp.out 
+
+Then mail me the acpidmp.out.bz2
+
+Cheers,
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
