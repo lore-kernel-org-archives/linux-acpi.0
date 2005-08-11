@@ -1,13 +1,11 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch 09/12] acpi: video.c: properly remove notify handlers
-Date: Thu, 11 Aug 2005 18:59:36 -0400
-Message-ID: <1123801177.6574.13.camel@toshiba>
-References: <200507300818.j6U8IYKd017318@shell0.pdx.osdl.net>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: NX6125 has insane thermal trip values
+Date: Fri, 12 Aug 2005 00:48:36 +0100
+Message-ID: <20050811234836.GA32021@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200507300818.j6U8IYKd017318-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +15,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: akpm-3NddpPZAyC0@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andrew,
-Please exclude acpi-videoc-properly-remove-notify-handlers.patch
-from the -mm patch.
+Booting a 64-bit kernel on an HP nx6125, the thermal trip values are set 
+to 16 degrees centigrate by default. This seems to be due to the 
+following block of code:
 
-While it was correct to include it earlier, it is now
-included in the git-acpi.patch and the version you've got in
-2.6.13-rc5-mm1 appears to have been refreshed
-such that it patches the wrong routine.
-http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.13-rc5/2.6.13-rc5-mm1/broken-out/acpi-videoc-properly-remove-notify-handlers.patch
+            If (LAnd (LEqual (\_SB.C031, 0x01), LAnd (LEqual (Arg0, 
+0x00), LEqu\al (Arg1, 0x00))))
+            {
+                If (\_SB.C046.C0AD.C110.C164 ())
+                {
+                    Store (0x0B4B, Local2)
+                }
+            }
 
-acpi_video_bus_remove_fs() instead of acpi_video_bus_put_one_device()
+            If (LEqual (\_SB.C046.C054.C055, 0x01))
+            {
+                Store (0x0B4B, Local2)
+            }
 
-thanks,
--Len
+            Return (Local2)
 
+which appears to explicitly set those temperatures. I'm assuming that 
+this is only supposed to be triggered under a certain set of conditions, 
+but HP's insistence on replacing all of their object names with crap 
+makes me weep bitter tears of loathing and I really can't be bothered 
+tracking this down. I've attached the DSDT - can anyone see any obvious 
+reason why this code path should be triggered? I'll get in touch with HP 
+anyway, and see if they can fix it in a newer BIOS revision.
 
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
