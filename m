@@ -1,13 +1,13 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: ACPI hangs on boot with ACER Travelmate 3002WTCi
-Date: Thu, 11 Aug 2005 18:31:04 +0200
-Message-ID: <42FB7D48.5020008@suse.de>
-References: <30543d6b050811090060039664@mail.gmail.com>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: S3 wakeup broken by one commit (was Re: bisect gives strange answer)
+Date: Thu, 11 Aug 2005 10:40:55 -0700
+Message-ID: <20050811174055.GB14955@kroah.com>
+References: <20050811183008.A18655@jurassic.park.msu.ru> <E1E3E98-0007D2-00@skye.ra.phy.cam.ac.uk> <20050811185759.A18818@jurassic.park.msu.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <30543d6b050811090060039664-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050811185759.A18818-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,49 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bao Tran <bqtran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ivan Kokshaysky <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>
+Cc: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bao Tran wrote:
-> First off, just wanted to say thanks for everything so far.
+On Thu, Aug 11, 2005 at 06:57:59PM +0400, Ivan Kokshaysky wrote:
+> On Thu, Aug 11, 2005 at 03:35:02PM +0100, Sanjoy Mahajan wrote:
+> > Right, it is fixed.
 > 
-> Secondly, I just got an Acer Travelmate 3002wtci, and the first thing
-> I did was rip out the hard drive and tried to put linux on it.  I've
-> had it for a couple of days now, and I've gotten most of it working,
-> but I noticed that if ACPI support is enabled on any of my kernels
-> (currently running mm-sources 2.6.13-rc5-mm1), the computer will hang
-> right after I press enter in grub, showing up no messages and giving
-> me a blank black screen.
-> 
-> I am thinking like most Acer laptops, it has a buggy DSDT and ECDT
-> problems, so I've considered fixing it, but I can't even run a cat
-> /proc/acpi since acpi has to be disabled in order to boot, so I am
-> stuck.
-> 
-> I would post technical specs, but I am currently at work. I will post
-> more when I get home,but for now, here is what i remember off the top
-> of my head:
-> 
-> ACPI "compliant" 1.0b
-> PhoenixBIOS
-> Winbond (Nat Semi) PC87591 sensor
-> Pentium M 740 (1.73 GHz)
-> ICH6 Controller (i2c-i801 + eeprom loaded)
-> 
-> 
-> Is there anything I can do to diagnose/fix the problem more?
-> 
-Have you tried:
-noapic
-pci=noacpi
-options?
-If it comes up you can have a look at your DSDT.
+> Maybe Greg didn't know that - if so, I don't think this
+> test is necessary.
 
-early_printk=vga
-could give you a hint where it hangs.
+Yes, I didn't realize this was already fixed.  Very sorry about that, no
+tests are needed at all.
 
-     Thomas
+thanks,
+
+greg k-h
 
 
 -------------------------------------------------------
