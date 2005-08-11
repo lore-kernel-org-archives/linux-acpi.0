@@ -1,10 +1,10 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Acer battery problem
-Date: Thu, 11 Aug 2005 08:30:54 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8409172ED4@pdsmsx403>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] Disable slow duplicate object tracking in ACPI_DEBUG
+Date: Wed, 10 Aug 2005 22:14:43 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30044D213E@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
@@ -17,52 +17,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pablo Bullian <pablo.bullian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Please try 2.6.13-rc6 and option ec_burst=3D1
-The patch at http://bugzilla.kernel.org/show_bug.cgi?id=3D3851=20
-could help.
+Maybe it is time to figure out why SLES has ACPI_DEBUG enabled.
+If it is certain warnings and error messages, then perhaps
+we should enable those but not all the other misc debug
+and paranoia checks that come with ACPI_DEBUG?
+
+thanks,
+-Len
+
+ps. ec-burst should be disabled by default in 2.6.12
+and 2.6.13-rc6.  there is an option to enable it at boot-time
+in -mm, and hopefully we'll get it working there (very) soon
+so we can experiment again with ec-burst enabled by default.=20
 
 >-----Original Message-----
 >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
->[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Pablo Bullian
->Sent: 2005=C4=EA8=D4=C211=C8=D5 8:13
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Andi Kleen
+>Sent: Wednesday, August 10, 2005 7:33 AM
 >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] Acer battery problem
+>Subject: [ACPI] [PATCH] Disable slow duplicate object tracking=20
+>in ACPI_DEBUG
 >
->no one can help me with that???
 >
->On 8/8/05, Pablo Bullian <pablo.bullian-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> Hi!, well I'm new here, and i have a problem i bought a Acer Aspire
->> 3002LCi and I install a Mandrake or Mandriva 10.1, the thing is that
->> my Xserver don't work if I use the laptop with the battery, it frezze
->> when it start, and also my battery monitor doesn't work if i have the
->> laptop plugged in, otherwise, like i said before it doesn't start X.
->> when I put:
->> # cat /proc/acpi/battery/BAT1/state
->> present:                 yes
->> ERROR: Unable to read battery status
->>=20
->> the info is:
->> # cat /proc/acpi/battery/BAT1/info
->> present:                 yes
->> design capacity:         2000 mAh
->> last full capacity:      1798 mAh
->> battery technology:      rechargeable
->> design voltage:          14800 mV
->> design capacity warning: 200 mAh
->> design capacity low:     71 mAh
->> capacity granularity 1:  32 mAh
->> capacity granularity 2:  32 mAh
->> model number:            11ZL
->> serial number:           3027
->> battery type:            LION
->> OEM info:                SIMPLO
->>=20
->> can someone help me? :(
->>
+>The current SUSE 10.0 beta has CONFIG_ACPI_DEBUG enabled. That lead
+>to severe slowdowns on several machines. One issue was the different
+>default for ec_burst_mode. Another one was that the object tracking
+>would always walk the full list of all objects, which lead to kacpid
+>needing up to 25% of the total CPU time.
+>
+>This patch disables the slow list walking. It could be probably
+>replaced with a hash or similar too, but I don't think the duplicate
+>object tracking is too useful anaywys so I just disabled it.
+>
+>-Andi
+>
+>From: ak-l3A5Bk7waGM@public.gmane.org
+>Subject: Disable linear search in ACPI debugging
+>Suse-bugzilla: 102565
+>
+>Looking through all the memory objects all the time is just too slow.
+>Don't do it.
+>
+>
+>Signed-off-by: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+>
+>Index: linux-2.6.13rc5/drivers/acpi/utilities/utalloc.c
+>=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>--- linux-2.6.13rc5.orig/drivers/acpi/utilities/utalloc.c
+>+++ linux-2.6.13rc5/drivers/acpi/utilities/utalloc.c
+>@@ -674,6 +674,9 @@ acpi_ut_find_allocation (
+> {
+> 	struct acpi_debug_mem_block     *element;
+>=20
+>+	/* too slow to be usable */
+>+	return NULL;
+>+
+>=20
+> 	ACPI_FUNCTION_ENTRY ();
+>=20
 >
 >
 >-------------------------------------------------------
