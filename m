@@ -1,13 +1,13 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: EC Confusion
-Date: Fri, 12 Aug 2005 19:37:58 +0200
-Message-ID: <20050812173758.GB11307@message-id.gmane0305.slipkontur.de>
-References: <3ACA40606221794F80A5670F0AF15F8409130912@pdsmsx403> <BAY12-F48160AB3D3ABB69E3A006A8BA0@phx.gbl>
+Subject: Re: Problem suspending ASUS A7V8X based desktop
+Date: Fri, 12 Aug 2005 19:34:55 +0200
+Message-ID: <20050812173455.GA11307@message-id.gmane0305.slipkontur.de>
+References: <20050807062525.GA17750@tangens.sinus.cz> <20050808142857.GB1913@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <BAY12-F48160AB3D3ABB69E3A006A8BA0-MsuGFMq8XAE@public.gmane.org>
+In-Reply-To: <20050808142857.GB1913-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,18 +20,22 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 10, 2005 at 12:58:38AM -0300, Paulo Vitor Magacho da Silva wrote:
-> Hi,
+On Mon, Aug 08, 2005 at 04:28:57PM +0200, Pavel Machek wrote:
+> Hi!
+>  
+> >   Video card used:
+> > 01:00.0 VGA compatible controller: nVidia Corporation NV31 [GeForce FX 5600] (rev a1)
+> > operated with Nvidia driver (build 7667). This drivers seems to be PM-aware.
+> > Happens identically on all the recent kernels including 2.6.13-rc5.
+> >   Any ideas ?
 > 
-> I hit seven times the sleep button and I get the same message :
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
-> Then, in the 8th time I get:
-> kernel:  Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d5f28)
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
-> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
+> Anything mentioning nvidia proprietary drivers is off-topic here. Try
+> again with open-source drivers.
 
-is this an ASUS M6N?
+The problem here is, that the NVidia drivers can bring the card back from
+suspend while the open source nv driver can't.
+
+Life is hard.
 -- 
 Stefan Seyfried
 
