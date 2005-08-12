@@ -1,13 +1,13 @@
-From: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [patch] Feature removal: ACPI S4bios support
-Date: Fri, 12 Aug 2005 19:58:23 +0200
-Message-ID: <42FCE33F.2060909__49129.9315974631$1123875945$gmane$org@suse.de>
-References: <200508111417.47499.blaisorblade@yahoo.it> <20050812132444.GH1826@elf.ucw.cz>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: EC Confusion
+Date: Fri, 12 Aug 2005 19:37:58 +0200
+Message-ID: <20050812173758.GB11307@message-id.gmane0305.slipkontur.de>
+References: <3ACA40606221794F80A5670F0AF15F8409130912@pdsmsx403> <BAY12-F48160AB3D3ABB69E3A006A8BA0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050812132444.GH1826-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BAY12-F48160AB3D3ABB69E3A006A8BA0-MsuGFMq8XAE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,25 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> Remove S4BIOS support. It is pretty useless, and only ever worked for
-> _me_ once. (I do not think anyone else ever tried it). It was in
+On Wed, Aug 10, 2005 at 12:58:38AM -0300, Paulo Vitor Magacho da Silva wrote:
+> Hi,
+> 
+> I hit seven times the sleep button and I get the same message :
+> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
+> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
+> Then, in the 8th time I get:
+> kernel:  Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d5f28)
+> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
+> kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
 
-I tried it. It did not work. And IIRC, i once dug through the code paths
-and found out, that it could not work, since at least ~2.6.5 (that's
-when i looked, the code was broken long before, i assume).
-
-> feature-removal for a long time, and it should have been removed before=
-.
---=20
-Stefan Seyfried                  \ "I didn't want to write for pay. I
-QA / R&D Team Mobile Devices      \ wanted to be paid for what I write."
-SUSE LINUX Products GmbH, N=FCrnberg \                    -- Leonard Cohe=
-n
+is this an ASUS M6N?
+-- 
+Stefan Seyfried
 
 
 
