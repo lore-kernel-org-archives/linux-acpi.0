@@ -1,15 +1,8 @@
-From: Bao Tran <bqtran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI hangs on boot with ACER Travelmate 3002WTCi
-Date: Thu, 11 Aug 2005 22:54:00 -0500
-Message-ID: <30543d6b050811205474e45db3@mail.gmail.com>
-References: <30543d6b050811090060039664@mail.gmail.com>
-	 <42FB7D48.5020008@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: Sanjoy Mahajan <sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org>
+Subject: (fwd) [Bug 5049] New: doubled keystrokes especially with 'acpi'
+Date: Fri, 12 Aug 2005 05:25:02 +0100
+Message-ID: <E1E3R6M-0001ys-00@skye.ra.phy.cam.ac.uk>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <42FB7D48.5020008-l3A5Bk7waGM@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,75 +12,72 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Preliminary Results:
+[Is it good form to post new bug reports to bugzilla (I know Andrew
+ M. likes them to go there) and to the acpi-devel list, so that more
+ eyes have a look?  -S]
 
-early_printk didn't work, but both noapic or pci=3Dnoacpi worked.
+------- Forwarded Message
 
-I've been able to fix the DSDT completely for this laptop (0 errs, 0
-warn, 0 rem, 883 opt), and compiled it with iasl 20050309 (the latest
-ver gave me a lot of missing Resource String errs for some reason). I
-will be posting it to the dsdt db shortly. Thanks a lot for the hints.
+Date:    Thu, 11 Aug 2005 20:56:51 -0700
+From:    bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+To:      sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org
+Subject: [Bug 5049] New: doubled keystrokes especially with 'acpi'
 
-One note that I still had trouble booting even with a fixed DSDT and
-had to use 'acpi=3Dnoirq', or if I wanted to use the 'noapic' setting, I
-had to add 'irqpoll' also or else peripherals like the nic would
-refuse to work properly. My guess is that this laptop still has
-firmware issues with irq.
+http://bugzilla.kernel.org/show_bug.cgi?id=5049
 
-In the mean time, from what I can tell, it detects *everything* (APIC
-LAPIC HPET PCI0 ELCR EC0 ACAD BAT1 PWRF LID PWRB SLPB CPU0 USB* RP0*
-LANC AZAL GFX0 C* S* THRM).
+           Summary: doubled keystrokes especially with 'acpi'
+    Kernel Version: 2.6.13-rc6
+            Status: NEW
+          Severity: normal
+             Owner: acpi_other-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+         Submitter: sanjoy-Bhlo64W4KxTQzY9nttDBhA@public.gmane.org
 
-Anyway, back to more laptop hacking. This 3lb laptop rocks once acpi
-starts working its magic. ^_^
 
-bao
+Latest kernel w/o this: It's old, at least back to 2.6.11
+Distribution: Debian testing
+Hardware Environment: TP 600X
+Software Environment:  See Bug #4989 for acpidmp output.
 
-On 8/11/05, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org> wrote:
-> Bao Tran wrote:
-> > First off, just wanted to say thanks for everything so far.
-> >
-> > Secondly, I just got an Acer Travelmate 3002wtci, and the first thing
-> > I did was rip out the hard drive and tried to put linux on it.  I've
-> > had it for a couple of days now, and I've gotten most of it working,
-> > but I noticed that if ACPI support is enabled on any of my kernels
-> > (currently running mm-sources 2.6.13-rc5-mm1), the computer will hang
-> > right after I press enter in grub, showing up no messages and giving
-> > me a blank black screen.
-> >
-> > I am thinking like most Acer laptops, it has a buggy DSDT and ECDT
-> > problems, so I've considered fixing it, but I can't even run a cat
-> > /proc/acpi since acpi has to be disabled in order to boot, so I am
-> > stuck.
-> >
-> > I would post technical specs, but I am currently at work. I will post
-> > more when I get home,but for now, here is what i remember off the top
-> > of my head:
-> >
-> > ACPI "compliant" 1.0b
-> > PhoenixBIOS
-> > Winbond (Nat Semi) PC87591 sensor
-> > Pentium M 740 (1.73 GHz)
-> > ICH6 Controller (i2c-i801 + eeprom loaded)
-> >
-> >
-> > Is there anything I can do to diagnose/fix the problem more?
-> >
-> Have you tried:
-> noapic
-> pci=3Dnoacpi
-> options?
-> If it comes up you can have a look at your DSDT.
->=20
-> early_printk=3Dvga
-> could give you a hint where it hangs.
->=20
->      Thomas
->
+Problem Description: Quite often my keystrokes are doubled.  If I'm
+typing in emacs, that shows up as "mainn () {" for example.  At first
+I thought my typing had got sloppy, or my autorepeat delay was too
+low, but I doubt it because I can reproduce the problem using 'acpi':
+
+# acpi
+
+     Battery 1: charged, 100%
+     Battery 2: charged, 100%
+# 
+# 
+
+Notice the blank line after running acpi, which I think is a doubling
+of the <RETURN> at the end of the 'acpi' line.  And the shell grabs
+the second <RETURN> and produces the last # line.
+
+I think, but don't swear to it, that the problem went away when I
+compiled the kernel with preempts; and maybe also when EC burst mode
+was enabled.
+
+The reason I suspect it's related to acpi and/or EC is that I just got
+rid of the problem of doubling keystrokes in Emacs (unless I run
+'acpi', which always gives me the doubling): by setting the
+thermal-zone polling intervals to 0 (no polling).  Whereas I usually
+set it to 10 seconds.
+
+So my guess is that when acpi either polls for new temperatures, or
+asks for the battery state (via 'acpi'), the system will double
+whatever key I have typed in that narrow time slice.
+
+Steps to reproduce: Run 'acpi'
+
+- ------- You are receiving this mail because: -------
+You reported the bug, or are watching the reporter.
+
+------- End of Forwarded Message
+
 
 
 -------------------------------------------------------
