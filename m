@@ -1,11 +1,12 @@
-From: Antonio Distante <antonio.distante-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: S4 and radeon dri
-Date: Sun, 14 Aug 2005 17:16:58 +0200
-Message-ID: <1124032619.10075.2.camel@localhost.localdomain>
+From: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: EC Confusion
+Date: Sun, 14 Aug 2005 14:59:11 -0300
+Message-ID: <BAY12-F21A14B5E00C5B017812285A8BE0@phx.gbl>
+References: <20050812173758.GB11307@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050812173758.GB11307-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,31 +16,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all!
- 
-I have some problems with suspend to disk (S4) and X:
- 
- Notebook: 	Compaq Presario 2532EA
- Graphic card:	Radeon IGP345m [RS200]
- linux kernel:	2.6.XX latest
- Distribution:	Ubuntu Breezy/Hoary
- X:		Xorg 6.8.2
 
-Suspend goes well, after resume I get a messed up screen and the laptop
-freezes:
- * no entry in the log files
- * no ssh/network working
->From console or with DRI disabled I can suspend/resume laptop without
-problems.
-Is this an ACPI related problem? I think so because swsusp2 works well
-even with DRI enabled.
-How can I debug this to give you useful information?
-Thanks,
-Antonio 
+>On Wed, Aug 10, 2005 at 12:58:38AM -0300, Paulo Vitor Magacho da Silva 
+>wrote:
+> > Hi,
+> >
+> > I hit seven times the sleep button and I get the same message :
+> > kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
+> > kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
+> > Then, in the 8th time I get:
+> > kernel:  Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d5f28)
+> > kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d52e8)
+> > kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d5168)
+>
+>is this an ASUS M6N?
 
+No, it's an Acer Aspire 1613lmi.
+
+>--
+>Stefan Seyfried
+>
+>
+>
+
+_________________________________________________________________
+MSN Messenger: converse online com seus amigos .  
+http://messenger.msn.com.br
 
 
 
