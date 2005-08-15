@@ -1,13 +1,13 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: [patch] Feature removal: ACPI S4bios support
-Date: Mon, 15 Aug 2005 18:35:20 +0200
-Message-ID: <20050815163520.GG20363@alpha.home.local>
-References: <200508111417.47499.blaisorblade@yahoo.it> <20050812132444.GH1826@elf.ucw.cz> <20050815160007.GA3614@stusta.de> <20050815162638.GA2379@elf.ucw.cz>
+From: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: [-mm PATCH 15/32] drivers/acpi: fix-up schedule_timeout() usage
+Date: Mon, 15 Aug 2005 11:16:59 -0700
+Message-ID: <20050815181659.GR2854@us.ibm.com>
+References: <20050815180514.GC2854@us.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050815162638.GA2379-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20050815180514.GC2854-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,44 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>, Blaisorblade <blaisorblade-whZMOeQn8C0@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pavel,
+Description: Use schedule_timeout_interruptible() instead of
+set_current_state()/schedule_timeout() to reduce kernel size. Also use
+msecs_to_jiffies() instead of direct HZ division to avoid rounding
+errors.
 
-On Mon, Aug 15, 2005 at 06:26:38PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > > Remove S4BIOS support. It is pretty useless, and only ever worked for
-> > > _me_ once. (I do not think anyone else ever tried it). It was in
-> > > feature-removal for a long time, and it should have been removed before.
-> > >...
-> > 
-> > You've forgotten to remove the feature-removal-schedule.txt entry in 
-> > your patch.  ;-)
-> 
-> Well, that can always be done later. There are probably other small
-> pieces that can be removed now. But I got neither ACK nor NAK on the
-> patch :-(.
+Signed-off-by: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 
-Oh, it's a good sign. There are so many people loudly complaining when a
-feature is removed (including me). That means you found nobody to disagree
-with you. The fact that nobody either ACKed your patch may be because nobody
-is able to tell better than you if it will break anything. Maybe it's time
-to repost and ask for an ACK ?
+---
 
-> 								Pavel
+ drivers/acpi/osl.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-Willy
-
-> -- 
-> if you have sharp zaurus hardware you don't need... you know my address
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+diff -urpN 2.6.13-rc5-mm1/drivers/acpi/osl.c 2.6.13-rc5-mm1-dev/drivers/acpi/osl.c
+--- 2.6.13-rc5-mm1/drivers/acpi/osl.c	2005-08-07 10:05:19.000000000 -0700
++++ 2.6.13-rc5-mm1-dev/drivers/acpi/osl.c	2005-08-12 13:20:41.000000000 -0700
+@@ -315,8 +315,7 @@ acpi_status acpi_os_remove_interrupt_han
+ 
+ void acpi_os_sleep(acpi_integer ms)
+ {
+-	current->state = TASK_INTERRUPTIBLE;
+-	schedule_timeout(((signed long)ms * HZ) / 1000);
++	schedule_timeout_interruptible(msecs_to_jiffies(ms));
+ }
+ 
+ EXPORT_SYMBOL(acpi_os_sleep);
+@@ -866,8 +865,7 @@ acpi_status acpi_os_wait_semaphore(acpi_
+ 
+ 			ret = down_trylock(sem);
+ 			for (i = timeout; (i > 0 && ret < 0); i -= quantum_ms) {
+-				current->state = TASK_INTERRUPTIBLE;
+-				schedule_timeout(1);
++				schedule_timeout_interruptible(1);
+ 				ret = down_trylock(sem);
+ 			}
+ 
 
 
 -------------------------------------------------------
