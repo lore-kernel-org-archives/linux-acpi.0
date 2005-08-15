@@ -1,12 +1,13 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Fw: [Bugme-new] [Bug 5067] New: [Patch] Hotkeys do not work on
- Samsung P30
-Date: Mon, 15 Aug 2005 08:46:18 -0700
-Message-ID: <20050815084618.50f3cceb.akpm@osdl.org>
+From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [patch] Feature removal: ACPI S4bios support
+Date: Mon, 15 Aug 2005 18:00:07 +0200
+Message-ID: <20050815160007.GA3614@stusta.de>
+References: <200508111417.47499.blaisorblade@yahoo.it> <20050812132444.GH1826@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050812132444.GH1826-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,46 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: siprbaum-t+0fs1LuQyGVdxy9aTz+TW+fIWL0DMyzU2kT9rkj4NY@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Blaisorblade <blaisorblade-whZMOeQn8C0@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Aug 12, 2005 at 03:24:44PM +0200, Pavel Machek wrote:
 
-This seems fairly serious.  Is that patch appropriate to 2.6.13?
+> Remove S4BIOS support. It is pretty useless, and only ever worked for
+> _me_ once. (I do not think anyone else ever tried it). It was in
+> feature-removal for a long time, and it should have been removed before.
+>...
 
+You've forgotten to remove the feature-removal-schedule.txt entry in 
+your patch.  ;-)
 
+cu
+Adrian
 
-Begin forwarded message:
+-- 
 
-Date: Mon, 15 Aug 2005 07:26:54 -0700
-From: bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-To: bugme-new-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
-Subject: [Bugme-new] [Bug 5067] New: [Patch] Hotkeys do not work on Samsung P30
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
-
-http://bugzilla.kernel.org/show_bug.cgi?id=5067
-
-           Summary: [Patch] Hotkeys do not work on Samsung P30
-    Kernel Version: 2.6.13-rc5
-            Status: NEW
-          Severity: normal
-             Owner: other_modules-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-         Submitter: siprbaum-t+0fs1LuQyGVdxy9aTz+TW+fIWL0DMyzU2kT9rkj4NY@public.gmane.org
-                CC: siprbaum-t+0fs1LuQyGVdxy9aTz+TW+fIWL0DMyzU2kT9rkj4NY@public.gmane.org
-
-
-Distribution: debian sarge
-Hardware Environment: Samsung P30
-Software Environment:
-Problem Description:
-I get an OOPS if I try to load asus_acpi as modul. After a little googling I find 
-this link with the a patch wich solved my problem. Applying this made my hotkeys
-work again.
-
-http://sourceforge.net/mailarchive/message.php?msg_id=12203231
-
-------- You are receiving this mail because: -------
-You are on the CC list for the bug, or are watching someone who is.
 
 
 -------------------------------------------------------
