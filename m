@@ -1,11 +1,14 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: ACPI resume fails on HP nx6125 with 64 bit kernel
-Date: Mon, 15 Aug 2005 20:38:48 +0100
-Message-ID: <20050815193848.GB17525@srcf.ucam.org>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PATCH] ACPI patch for 2.6.13-rc6
+Date: Mon, 15 Aug 2005 16:35:59 -0400
+Message-ID: <1124138159.17245.4.camel@toshiba>
+References: <1122702560.26850.9.camel@toshiba>
+	 <1123110985.13136.12.camel@toshiba>  <1123175479.13136.21.camel@toshiba>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1123175479.13136.21.camel@toshiba>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,22 +18,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Attempting to resume an HP nx6125 results in the system hanging with a
-blank screen. Hacking serial setup code into wakeup.S so I can get
-serial console on resume gives me:
+Hi Linus, please pull from: 
 
-Back to C!
-arch/x86)64/mm/init.c:146: bad pte ffff810001543f38(80000000fec01173)
+rsync://rsync.kernel.org/pub/scm/linux/kernel/git/lenb/to-linus.git
 
-and no further output. The kernel never seems to get to device resume,
-so I guess the error is where it's blowing up. Any ideas? It seems to be
-independent of how long I leave the machine suspended. (This is a 64 bit
-kernel)
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+This patch allows the platform-specific drivers, such as toshiba_acpi
+and asus_acpi to run w/o any cmdline flags -- like they did in 2.6.12.
+
+thanks,
+-Len
+
+ps. The latest ACPI patch, including this and more lives here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.12
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.13
+
+This will update the following files:
+
+ Documentation/acpi-hotkey.txt       |    3 +++
+ Documentation/kernel-parameters.txt |    5 +++++
+ drivers/acpi/osl.c                  |    6 +++---
+ 3 files changed, 11 insertions(+), 3 deletions(-)
+
+through these commits:
+
+--------------------------
+commit 30e332f3307e9f7718490a706e5ce99f0d3a7b26
+tree 39054cfaf058a369f2b75bd89265e83522c02b49
+parent d4ab025b73a2d10548e17765eb76f3b7351dc611
+author Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> 1123821060 -0400
+committer Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> 1124135218 -0400
+
+[ACPI] re-enable platform-specific hotkey drivers by default
+
+When both platform-specific and generic drivers exist,
+enable generic over-ride with "acpi_generic_hotkey".
+
+http://bugzilla.kernel.org/show_bug.cgi?id=4953
+
+Signed-off-by: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+--------------------------
+
+
 
 
 -------------------------------------------------------
