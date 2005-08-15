@@ -1,13 +1,11 @@
-From: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: [-mm PATCH 15/32] drivers/acpi: fix-up schedule_timeout() usage
-Date: Mon, 15 Aug 2005 11:16:59 -0700
-Message-ID: <20050815181659.GR2854@us.ibm.com>
-References: <20050815180514.GC2854@us.ibm.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: ACPI resume fails on HP nx6125 with 64 bit kernel
+Date: Mon, 15 Aug 2005 20:38:48 +0100
+Message-ID: <20050815193848.GB17525@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050815180514.GC2854-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,45 +15,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Description: Use schedule_timeout_interruptible() instead of
-set_current_state()/schedule_timeout() to reduce kernel size. Also use
-msecs_to_jiffies() instead of direct HZ division to avoid rounding
-errors.
+Attempting to resume an HP nx6125 results in the system hanging with a
+blank screen. Hacking serial setup code into wakeup.S so I can get
+serial console on resume gives me:
 
-Signed-off-by: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Back to C!
+arch/x86)64/mm/init.c:146: bad pte ffff810001543f38(80000000fec01173)
 
----
-
- drivers/acpi/osl.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
-
-diff -urpN 2.6.13-rc5-mm1/drivers/acpi/osl.c 2.6.13-rc5-mm1-dev/drivers/acpi/osl.c
---- 2.6.13-rc5-mm1/drivers/acpi/osl.c	2005-08-07 10:05:19.000000000 -0700
-+++ 2.6.13-rc5-mm1-dev/drivers/acpi/osl.c	2005-08-12 13:20:41.000000000 -0700
-@@ -315,8 +315,7 @@ acpi_status acpi_os_remove_interrupt_han
- 
- void acpi_os_sleep(acpi_integer ms)
- {
--	current->state = TASK_INTERRUPTIBLE;
--	schedule_timeout(((signed long)ms * HZ) / 1000);
-+	schedule_timeout_interruptible(msecs_to_jiffies(ms));
- }
- 
- EXPORT_SYMBOL(acpi_os_sleep);
-@@ -866,8 +865,7 @@ acpi_status acpi_os_wait_semaphore(acpi_
- 
- 			ret = down_trylock(sem);
- 			for (i = timeout; (i > 0 && ret < 0); i -= quantum_ms) {
--				current->state = TASK_INTERRUPTIBLE;
--				schedule_timeout(1);
-+				schedule_timeout_interruptible(1);
- 				ret = down_trylock(sem);
- 			}
- 
+and no further output. The kernel never seems to get to device resume,
+so I guess the error is where it's blowing up. Any ideas? It seems to be
+independent of how long I leave the machine suspended. (This is a 64 bit
+kernel)
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
