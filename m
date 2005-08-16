@@ -1,73 +1,45 @@
-From: Alan Stern <stern@rowland.harvard.edu>
+From: Erik Slagter <erik@slagter.name>
 Subject: Re: [linux-usb-devel] PCI quirks not handled and config space
- differences on resume from S3
-Date: Tue, 16 Aug 2005 11:37:03 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0508161131240.18233-100000@iolanthe.rowland.org>
-References: <4301DF63.1020605@gmx.net>
+	differences on resume from S3
+Date: Tue, 16 Aug 2005 17:42:37 +0200
+Message-ID: <1124206957.19419.12.camel@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0508161131240.18233-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-jro+3TF4/ZrHnav1OL7T"
 Return-path: <linux-ide-owner@vger.kernel.org>
-In-Reply-To: <4301DF63.1020605@gmx.net>
+In-Reply-To: <Pine.LNX.4.44L0.0508161131240.18233-100000@iolanthe.rowland.org>
 Sender: linux-ide-owner@vger.kernel.org
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-Cc: acpi-devel <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, linux-usb-devel@lists.sourceforge.net
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, acpi-devel <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ide@vger.kernel.org, linux-usb-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 16 Aug 2005, Carl-Daniel Hailfinger wrote:
 
-> Hi,
-> 
-> it seems that PCI quirks are not handled on resume which results
-> in all kinds of strange effects, like disappeared PCI devices.
+--=-jro+3TF4/ZrHnav1OL7T
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-> Besides that, a number of drivers do not restore the pci config
-> space of their associated devices properly on resume from S3.
-> 
-> These drivers (and associated devices) are:
-> - intel_agp (Host bridge: Intel Corp. 82855PM Processor to I/O Controller)
-> - ? (PCI bridge: Intel Corp. 82855PM Processor to AGP Controller)
-> - uhci_hcd (USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller)
-> - ? (PCI bridge: Intel Corp. 82801 PCI Bridge)
-> - ? (ISA bridge: Intel Corp. 82801DBM LPC Interface Controller)
-> - piix_ide (IDE interface: Intel Corp. 82801DBM (ICH4) Ultra ATA Storage Controller)
-> 
-> Diff between "lspci -vvvxxx" before and after resume for all
-> problematic devices on my machine is attached.
-> 
-> Are there any patches I can try?
+On Tue, 2005-08-16 at 11:37 -0400, Alan Stern wrote:
+> > Diff between "lspci -vvvxxx" before and after resume for all
+> > problematic devices on my machine is attached.
+> >=20
+> > Are there any patches I can try?
+>=20
+> The uhci-hcd driver _does_ restore the config space for its devices=20
+> properly.
 
-The uhci-hcd driver _does_ restore the config space for its devices 
-properly.
+Apparently something is sort of wrong though, because I need to rmmod
+uhci_hcd and hci_usb before suspending, otherwise nasty things happen.
 
+--=-jro+3TF4/ZrHnav1OL7T
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-> USB UHCI Controller #1 (rev 03) (prog-if 00 [UHCI])
->         Subsystem: Samsung Electronics Co Ltd: Unknown device c00c
->         Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-Stepping- SERR- FastB2B-
->         Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-<TAbort- <MAbort- >SERR- <PERR-
->         Latency: 0
->         Interrupt: pin A routed to IRQ 5
->         Region 4: I/O ports at 1800 [size=32]
->  00: 86 80 c2 24 05 00 80 02 03 00 03 0c 00 00 80 00
->  10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  20: 01 18 00 00 00 00 00 00 00 00 00 00 4d 14 0c c0
->  30: 00 00 00 00 00 00 00 00 00 00 00 00 05 01 00 00
->  40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> -c0: 00 25 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> +c0: 00 2f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Just because the before and after values are different doesn't mean 
-anything is wrong.  Those particular bits are set by the hardware in 
-response to various events.  They are used only by the BIOS, to provide 
-USB keyboard and mouse services.  They don't affect the device's function 
-or the Linux driver at all.
+iD8DBQBDAgltJgD/6j32wUYRAj6yAKCBe9wp/GTLkPJFhh2vvAD9VOe0WQCeMz3a
+4LZvEXud+p1awbBKInhi1d4=
+=1+po
+-----END PGP SIGNATURE-----
 
-Alan Stern
-
+--=-jro+3TF4/ZrHnav1OL7T--
