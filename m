@@ -1,13 +1,13 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpidump replaces acpidmp
-Date: Tue, 16 Aug 2005 14:23:25 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B300456A26A@hdsmsx401.amr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACPI resume fails on HP nx6125 with 64 bit kernel
+Date: Tue, 16 Aug 2005 17:11:42 +0200
+Message-ID: <20050816151142.GA516@openzaurus.ucw.cz>
+References: <20050815193848.GB17525@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20050815193848.GB17525-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,68 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Voluspa <voluspa-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Mats,
-Does the latest acpidump work for you now?
-can we obsolete /proc/acpi/fadt,dsdt?
+Hi!
 
-thanks,
--Len=20
+> Attempting to resume an HP nx6125 results in the system hanging with a
+> blank screen. Hacking serial setup code into wakeup.S so I can get
+> serial console on resume gives me:
 
->-----Original Message-----
->From: Voluspa [mailto:voluspa-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org]=20
->Sent: Tuesday, July 26, 2005 1:24 PM
->To: Brown, Len
->Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: acpidump replaces acpidmp
->
->
->On 2005-07-23 0:35:38 Len Brown wrote:
->
->>ps. I shall delete /proc/fadt and /proc/dsdt when I return
->>from Ottawa unless somebody can convince me they should live.
->
->Please do not! Not until a reliable userspace program can be easily
->found for retrieving the dsdt on my pure X86_64 AMD system:
->
->loke:sleipner:/home/net/acer/acpi/len_brown/pmtools-20050722$ uname -r
->2.6.13-rc3
->loke:sleipner:/home/net/acer/acpi/len_brown/pmtools-20050722$ make
->for i in acpidump; do make -C $i all; done
->make[1]: Entering directory
->`/home/net/acer/acpi/len_brown/pmtools-20050722/acpidump'
->cc -Wall -Wstrict-prototypes -O2 -D_LINUX -DDEFINE_ALTERNATE_TYPES
->-I../include  acpidump.c -o acpidump
->In file included from acpidump.c:49:
->../include/acpi/actypes.h:115: error: parse error before
->"acpi_native_int"
->../include/acpi/actypes.h:115: warning: type defaults to `int' in
->declaration of `acpi_native_int'
->../include/acpi/actypes.h:115: warning: data definition has no type or
->storage class
->acpidump.c: In function `acpi_dump_RSDT':
->acpidump.c:222: warning: cast to pointer from integer of different size
->acpidump.c:246: warning: cast to pointer from integer of different size
->acpidump.c:259: warning: cast to pointer from integer of different size
->acpidump.c:266: warning: cast to pointer from integer of different size
->acpidump.c:308: warning: cast to pointer from integer of different size
->acpidump.c:350: warning: cast to pointer from integer of different size
->acpidump.c:357: warning: cast to pointer from integer of different size
->acpidump.c: In function `acpi_dump_XSDT':
->acpidump.c:425: warning: cast to pointer from integer of different size
->acpidump.c:438: warning: cast to pointer from integer of different size
->make[1]: *** [acpidump] Error 1
->make[1]: Leaving directory
->`/home/net/acer/acpi/len_brown/pmtools-20050722/acpidump'
->make: *** [all] Error 2
->
->Mvh
->Mats Johannesson
->--
->
+Can we get copy of those hacks?
+
+> Back to C!
+> arch/x86)64/mm/init.c:146: bad pte ffff810001543f38(80000000fec01173)
+> 
+> and no further output. The kernel never seems to get to device resume,
+> so I guess the error is where it's blowing up. Any ideas? It seems to be
+> independent of how long I leave the machine suspended. (This is a 64 bit
+> kernel)
+
+Does it work ok 32-bit?
+				Pavel
+
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
