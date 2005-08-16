@@ -1,15 +1,13 @@
-From: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
-Subject: Re: Re: Centrino not scaling to lowest frequency
-Date: Tue, 16 Aug 2005 11:28:20 +0200
-Message-ID: <200508161128.20966.fexpop@onlinehome.de>
-References: <200508152344.11572.fexpop@onlinehome.de> <m2u0hqqni1.fsf@phoenix.squirrel.nl>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: Centrino not scaling to lowest frequency
+Date: Tue, 16 Aug 2005 10:06:25 +0200
+Message-ID: <20050816080625.GE9150@dominikbrodowski.de>
+References: <200508152344.11572.fexpop@onlinehome.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2u0hqqni1.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200508152344.11572.fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,37 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks Johan,
+On Mon, Aug 15, 2005 at 11:44:11PM +0200, Felix Homann wrote:
+> Hi,
+> 
+> on my Acer Extensa 4100 (BIOS S3C11) with a 1.60GHz Centrino I'm running a 
+> custom Linux kernel 2.6.12.3 with acpi-dsdt-patch applied and the custom DSDT 
+> "ACER-Aspire_1691WLMi-S3C11-custom.asl" from acpi.sourceforge.net.
+> 
+> Almost everything is working fine, except that the CPU can't be scaled down to 
+> 600 MHz as it should (should it?).
+> 
+> Can anybody give me a hint how to get to 600 MHz on my system?
 
-actually I'm quite sure that the CPU frequencies in the DSDT are wrong. 
-Unfortunately I can't figure out where they are defined in the DSDT. 
+The patched DSDT does not provide the necessary values for 600MHz --
+possibly because your CPU does not support 600 MHz.
 
-Neither the dissassembled original DSDT nor the custom one (which adds battery 
-read-out support) contain any _PSS entries. Isn't that what I should be 
-looking for?
-
-Where else might frequencies be defined in the DSDT?
-
-Thanks again,
-
-Felix
-
-On Tuesday 16 August 2005 10:44, Johan Vromans wrote:
-> Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org> writes:
-> > $ cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
-> > 1600000 1333000 1067000 800000
->
-> On my Acer Travelmate 4001WLMi the CPU frequencies in the DSDT were
-> wrong. Did you check you have the right DSDT and frequencies?
->
-> -- Johan
->
-> See also:
-> http://www.squirrel.nl/people/jvromans/articles/TM4001WLMi/acpi/speedstep.h
->tml
+	Dominik
 
 
 -------------------------------------------------------
