@@ -1,13 +1,15 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: ACPI resume fails on HP nx6125 with 64 bit kernel
-Date: Tue, 16 Aug 2005 23:02:28 +0200
-Message-ID: <43025464.2010004@gmx.net>
-References: <20050815193848.GB17525@srcf.ucam.org> <20050816151142.GA516@openzaurus.ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: RE: acpidump replaces acpidmp
+Date: Tue, 16 Aug 2005 15:32:34 -0600
+Message-ID: <200508161532.34578.bjorn.helgaas@hp.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300456A26A@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030606070200050400000905"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050816151142.GA516-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300456A26A-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,222 +19,178 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Voluspa <voluspa-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030606070200050400000905
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Tuesday 16 August 2005 12:23 pm, Brown, Len wrote:
+> Mats,
+> Does the latest acpidump work for you now?
+> can we obsolete /proc/acpi/fadt,dsdt?
 
-Pavel Machek schrieb:
-> Hi!
-> 
-> 
->>Attempting to resume an HP nx6125 results in the system hanging with a
->>blank screen. Hacking serial setup code into wakeup.S so I can get
->>serial console on resume gives me:
-> 
-> 
-> Can we get copy of those hacks?
+pmtools-20050804 doesn't work at all on ia64, because
+the RSDP doesn't live where you expect it.  We export
+/sys/firmware/efi/systab with the addresses you want.
 
-I did create such a patch some time ago because I had the same problem.
-Russell King said it should work out of the box, so I'm now working
-together with him to get it debugged.
+The attached patch adds this, fixes a bunch of
+documentation errors, and fixes some broken if/else
+blocking.  There are still a number of warnings when
+building on ia64; I didn't bother to fix those, sorry.
 
-
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
-
---------------030606070200050400000905
-Content-Type: text/x-patch;
- name="serial_early_abuse.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="serial_early_abuse.diff"
-
-diff -urp linux-2.6.11.8-orig/drivers/acpi/sleep/main.c linux-2.6.11.8/drivers/acpi/sleep/main.c
---- linux-2.6.11.8-orig/drivers/acpi/sleep/main.c	2005-04-30 03:22:59.000000000 +0200
-+++ linux-2.6.11.8/drivers/acpi/sleep/main.c	2005-05-12 04:34:15.000000000 +0200
-@@ -23,6 +23,7 @@ u8 sleep_states[ACPI_S_STATE_COUNT];
+diff -u -ur pmtools-20050804/README pmtools/README
+--- pmtools-20050804/README	2005-07-21 23:19:03.000000000 -0600
++++ pmtools/README	2005-08-16 15:02:25.000000000 -0600
+@@ -8,37 +8,38 @@
+ -----------------
+ This utility dumps a system's ACPI tables to an ASCII file.
  
- static struct pm_ops acpi_pm_ops;
+-Typically it is used to grab all the ACPI tables
+-to attach to a bug report for later examination.
++Typically it is used to dump all the ACPI tables
++to attach to a bug report for later examination:
  
-+extern void emerg_uart_setup(char *options);
- extern void do_suspend_lowlevel_s4bios(void);
- extern void do_suspend_lowlevel(void);
+-# acpidump > acpidump.out
++    # ./acpidump > acpidump.out
  
-@@ -126,6 +127,8 @@ static int acpi_pm_enter(suspend_state_t
- 	if (pm_state > PM_SUSPEND_STANDBY)
- 		acpi_restore_state_mem();
+-It can also grab a specific binary table
++It can also dump a specific table:
  
-+	emerg_uart_setup("io,0x3f8,115200n8");
+-# acpidump DSDT > DSDT
++    # ./acpidump -t DSDT > DSDT
 +
++./acpidump/acpixtract
++--------------------
++Convert ASCII acpidump output to raw binary table:
++
++    # ./acpidump -t DSDT | ./acpixtract > DSDT
++    $ cat email | ./acpixtract DSDT > DSDT
  
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
-diff -urp linux-2.6.11.8-orig/drivers/serial/8250_early.c linux-2.6.11.8/drivers/serial/8250_early.c
---- linux-2.6.11.8-orig/drivers/serial/8250_early.c	2005-04-30 03:27:09.000000000 +0200
-+++ linux-2.6.11.8/drivers/serial/8250_early.c	2005-05-12 04:34:15.000000000 +0200
-@@ -26,6 +26,7 @@
-  * matching ttyS device and start a console there.
-  */
+ ./acpidump/acpitbl
+ -----------------
+-Perl script to dump the table header or contents
+-of a binary ACPI table.  eg.
++Dump the table header or contents of a raw ACPI table:
  
-+#include <linux/module.h>
- #include <linux/tty.h>
- #include <linux/init.h>
- #include <linux/console.h>
-@@ -41,10 +42,10 @@ struct early_uart_device {
- 	unsigned int baud;
- };
+-# acpidump FACP | acpitbl
+-
+-./acpidump/acpixtract
+---------------------
+-Perl script to extract raw table from ASCII acpidump output eg. 
+-$ cat acpidump.out | acpixtract DSDT > DSDT
+-or
++    # ./acpidump -t FACP | ./acpixtract | ./acpitbl
++    $ cat email | ./acpixtract FACP | ./acpitbl
  
--static struct early_uart_device early_device __initdata;
--static int early_uart_registered __initdata;
-+static struct early_uart_device early_device;
-+static int early_uart_registered;
+ Disassembler
+ ------------
+-Note that the acpidisasm has been deleted, in favor of iasl:
++Note that acpidisasm has been deleted, in favor of iasl:
+ http://www.intel.com/technology/IAPC/acpi/downloads.htm
  
--static unsigned int __init serial_in(struct uart_port *port, int offset)
-+static unsigned int serial_in(struct uart_port *port, int offset)
- {
- 	if (port->iotype == UPIO_MEM)
- 		return readb(port->membase + offset);
-@@ -52,7 +53,7 @@ static unsigned int __init serial_in(str
- 		return inb(port->iobase + offset);
- }
+ Which creates DSDT.dsl this way:
  
--static void __init serial_out(struct uart_port *port, int offset, int value)
-+static void serial_out(struct uart_port *port, int offset, int value)
- {
- 	if (port->iotype == UPIO_MEM)
- 		writeb(value, port->membase + offset);
-@@ -62,7 +63,7 @@ static void __init serial_out(struct uar
+-$ acpixtract DSDT acpidump.out
+-$ iasl -d DSDT
++    # ./acpidump -t DSDT | ./acpixtract > DSDT
++    $ iasl -d DSDT
  
- #define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
  
--static void __init wait_for_xmitr(struct uart_port *port)
-+static void wait_for_xmitr(struct uart_port *port)
- {
- 	unsigned int status;
+ pmtest -- does not work
+diff -u -ur pmtools-20050804/acpidump/acpidump.c pmtools/acpidump/acpidump.c
+--- pmtools-20050804/acpidump/acpidump.c	2005-08-04 11:03:32.000000000 -0600
++++ pmtools/acpidump/acpidump.c	2005-08-16 15:51:29.000000000 -0600
+@@ -65,6 +65,18 @@
+ static int connect;
+ static u8 select_sig[4];
  
-@@ -74,13 +75,13 @@ static void __init wait_for_xmitr(struct
- 	}
- }
- 
--static void __init putc(struct uart_port *port, unsigned char c)
-+static void putc(struct uart_port *port, unsigned char c)
- {
- 	wait_for_xmitr(port);
- 	serial_out(port, UART_TX, c);
- }
- 
--static void __init early_uart_write(struct console *console, const char *s, unsigned int count)
-+static void early_uart_write(struct console *console, const char *s, unsigned int count)
- {
- 	struct uart_port *port = &early_device.port;
- 	unsigned int ier;
-@@ -101,7 +102,7 @@ static void __init early_uart_write(stru
- 	serial_out(port, UART_IER, ier);
- }
- 
--static unsigned int __init probe_baud(struct uart_port *port)
-+static unsigned int probe_baud(struct uart_port *port)
- {
- 	unsigned char lcr, dll, dlm;
- 	unsigned int quot;
-@@ -116,7 +117,7 @@ static unsigned int __init probe_baud(st
- 	return (port->uartclk / 16) / quot;
- }
- 
--static void __init init_port(struct early_uart_device *device)
-+static void init_port(struct early_uart_device *device)
- {
- 	struct uart_port *port = &device->port;
- 	unsigned int divisor;
-@@ -135,7 +136,7 @@ static void __init init_port(struct earl
- 	serial_out(port, UART_LCR, c & ~UART_LCR_DLAB);
- }
- 
--static int __init parse_options(struct early_uart_device *device, char *options)
-+static int parse_options(struct early_uart_device *device, char *options)
- {
- 	struct uart_port *port = &device->port;
- 	int mapsize = 64;
-@@ -173,14 +174,16 @@ static int __init parse_options(struct e
- 			device->baud);
- 	}
- 
-+	/* This screws up the console during emergency restore
- 	printk(KERN_INFO "Early serial console at %s 0x%lx (options '%s')\n",
- 		mmio ? "MMIO" : "I/O port",
- 		mmio ? port->mapbase : (unsigned long) port->iobase,
- 		device->options);
-+	*/
- 	return 0;
- }
- 
--static int __init early_uart_setup(struct console *console, char *options)
-+static int early_uart_setup(struct console *console, char *options)
- {
- 	struct early_uart_device *device = &early_device;
- 	int err;
-@@ -195,7 +198,15 @@ static int __init early_uart_setup(struc
- 	return 0;
- }
- 
--static struct console early_uart_console __initdata = {
-+void emerg_uart_setup(char *options)
++static void read_efi_systab(unsigned long *base)
 +{
-+	memset(&early_device, 0, sizeof(struct early_uart_device));
-+	early_uart_setup(NULL, options);
-+	early_uart_write(NULL, "\n", 1);
++	FILE *f = fopen("/sys/firmware/efi/systab", "r");
++	if (!f)
++		return;
++	unsigned long addr;
++	int n = fscanf(f, "ACPI20=0x%lx", &addr);
++	if (n == 1)
++		*base = addr;
++	fclose(f);
 +}
-+EXPORT_SYMBOL(emerg_uart_setup);
 +
-+static struct console early_uart_console = {
- 	.name	= "uart",
- 	.write	= early_uart_write,
- 	.setup	= early_uart_setup,
-@@ -203,7 +214,7 @@ static struct console early_uart_console
- 	.index	= -1,
- };
- 
--static int __init early_uart_console_init(void)
-+static int early_uart_console_init(void)
+ static u8 *acpi_map_memory(unsigned long where, unsigned length)
  {
- 	if (!early_uart_registered) {
- 		register_console(&early_uart_console);
-@@ -213,7 +224,7 @@ static int __init early_uart_console_ini
+ 	int fd = open("/dev/mem", O_RDONLY);
+@@ -552,18 +564,17 @@
+ 	printf
+ 	    ("%s [--addr 0x1234][--table DSDT][--output filename][--binary][--length 0x456][--help]\n",
+ 	     progname);
+-	puts("\t--addr 0x1234 or -a 0x1234 -- look for tables at this phisical address");
++	puts("\t--addr 0x1234 or -a 0x1234 -- look for tables at this physical address");
+ 	puts("\t--table DSDT or -t DSDT -- only dump table with DSDT signature");
+ 	puts("\t--output filename or -o filename -- redirect output from stdin to filename");
+ 	puts("\t--binary or -b -- dump data in binary form rather than in hex-dump format");
+-	puts("\t--length 0x456 or -l 0x456 -- works only with --addr, dump phisical memory\n\t\tregion without trying to understand it's contents");
++	puts("\t--length 0x456 or -l 0x456 -- works only with --addr, dump physical memory\n\t\tregion without trying to understand its contents");
+ 	puts("\t--help or -h -- this help message");
+ 	exit(0);
  }
- console_initcall(early_uart_console_init);
- 
--int __init early_serial_console_init(char *cmdline)
-+int early_serial_console_init(char *cmdline)
+ struct rsdp_descriptor rsdpx;
+ int main(int argc, char **argv)
  {
- 	char *options;
- 	int err;
-@@ -222,13 +233,15 @@ int __init early_serial_console_init(cha
- 	if (!options)
- 		return -ENODEV;
+-
+ 	memset(select_sig, 0, 4);
+ 	unsigned long addr = 0;
+ 	unsigned long length = 0;
+@@ -637,9 +648,16 @@
+ 		connect = 1;
+ 	}
+ 	psz = sysconf(_SC_PAGESIZE);
+-	unsigned long base = (addr) ? addr : ACPI_HI_RSDP_WINDOW_BASE;
++	unsigned long base = 0;
++	if (addr)
++		base = addr;
++	else {
++		read_efi_systab(&base);
++		if (!base)
++			base = ACPI_HI_RSDP_WINDOW_BASE;
++	}
+ 	unsigned long size =
+-	    (addr) ? sizeof(struct rsdp_descriptor) : ACPI_HI_RSDP_WINDOW_SIZE;
++		    (addr) ? sizeof(struct rsdp_descriptor) : ACPI_HI_RSDP_WINDOW_SIZE;
+ 	size = (length) ? length : size;
+ 	u8 *raw = acpi_map_memory(base, size);
+ 	if (!raw)
+@@ -670,7 +688,8 @@
+ 		if (rsdpx.rsdt_physical_address) {
+ 			if (acpi_dump_RSDT(fd, &rsdpx) == AE_OK)
+ 				success = 1;
+-		if (!success && rsdpx.revision > 1)
++		}
++		if (!success && rsdpx.revision > 1) {
+ 			if (acpi_dump_XSDT(fd, &rsdpx) == AE_OK)
+ 				success = 1;
+ 		}
+diff -u -ur pmtools-20050804/acpidump/acpitbl pmtools/acpidump/acpitbl
+--- pmtools-20050804/acpidump/acpitbl	2001-07-30 19:04:59.000000000 -0600
++++ pmtools/acpidump/acpitbl	2005-08-16 14:55:26.000000000 -0600
+@@ -2,7 +2,7 @@
+ #
+ # acpitbl - ACPI table dumper
+ #
+-# Example: ./acpidmp FACP | ./acpitbl
++# Example: ./acpidump -t FACP | ./acpixtract | ./acpitbl
+ #
  
--	options = strchr(cmdline, ',') + 1;
-+	//FIXME: This was wrong. Submit as separate fix.
-+	//options = strchr(cmdline, ',') + 1;
-+	options = strchr(options, ',') + 1;
- 	if ((err = early_uart_setup(NULL, options)) < 0)
- 		return err;
- 	return early_uart_console_init();
- }
- 
--static int __init early_uart_console_switch(void)
-+static int early_uart_console_switch(void)
- {
- 	struct early_uart_device *device = &early_device;
- 	struct uart_port *port = &device->port;
-
---------------030606070200050400000905--
+ ($ME = $0) =~ s|.*/||;
+diff -u -ur pmtools-20050804/acpidump/acpixtract pmtools/acpidump/acpixtract
+--- pmtools-20050804/acpidump/acpixtract	2003-12-10 09:50:40.000000000 -0700
++++ pmtools/acpidump/acpixtract	2005-08-16 14:31:09.000000000 -0600
+@@ -1,6 +1,6 @@
+ #!/usr/bin/perl
+ #
+-# acpixtract - extract raw table from acpidmp output
++# acpixtract - extract raw table from acpidump output
+ #
+ # Example: cat mail.txt | ./acpixtract DSDT > DSDT
+ # iasl -d DSDT
 
 
 -------------------------------------------------------
