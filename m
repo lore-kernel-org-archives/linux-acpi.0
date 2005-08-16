@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI resume fails on HP nx6125 with 64 bit kernel
-Date: Tue, 16 Aug 2005 17:11:42 +0200
-Message-ID: <20050816151142.GA516@openzaurus.ucw.cz>
-References: <20050815193848.GB17525@srcf.ucam.org>
+From: Florian Schricker <fschricker-S0/GAf8tV78@public.gmane.org>
+Subject: Re: acpi_ec_space_handler flooding logs
+Date: Tue, 16 Aug 2005 22:37:43 +0200
+Message-ID: <1124224663.28295.13.camel@x10>
+References: <1123000573.12447.15.camel@x10>  <42FC5C0D.4010907@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050815193848.GB17525-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+In-Reply-To: <42FC5C0D.4010907-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Fri, 2005-08-12 at 10:21 +0200, Thomas Renninger wrote:
 
-> Attempting to resume an HP nx6125 results in the system hanging with a
-> blank screen. Hacking serial setup code into wakeup.S so I can get
-> serial console on resume gives me:
+[DSDT fixes]
 
-Can we get copy of those hacks?
-
-> Back to C!
-> arch/x86)64/mm/init.c:146: bad pte ffff810001543f38(80000000fec01173)
+> > This broken DSDT is currently active, fails with battery as mentioned -
+> > and: floods dmesg / /var/log/messages with
+> > 
+> >   ACPI: acpi_ec_space_handler: bit_width should be 8
 > 
-> and no further output. The kernel never seems to get to device resume,
-> so I guess the error is where it's blowing up. Any ideas? It seems to be
-> independent of how long I leave the machine suspended. (This is a 64 bit
-> kernel)
+> Could you try whether the above suggestions fix your battery?
 
-Does it work ok 32-bit?
-				Pavel
+They did - everything seems to be just fine now.
+Thanks a lot!
+
+
+> I thought this one is workarounded?
+
+Well, uhmm... */me is puzzled
+
+
+> At least it is tried: ACPI: acpi_ec_space_handler: bit_width should be 8
+> but maybe it does not work as expected?
+
+Anything I could check, provide, test?
+
+
+> You do use the latest kernel?
+
+I use 2.6.12-suspend2-r3; a kernel patched with the common Gentoo
+patchset incl. Suspend2 (which I use a lot).
+
+> If not please try your unfixed DSDT with the latest kernel, this
+> should be workarounded correctly since (about 2.6.11?), better use
+> the latest.
+
+As said above, I'm already running "something" > 2.6.11...
+
+
+regards,
+Florian Schricker
 
 -- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+A most overlooked advantage to owning a computer is: if they foul up
+there's no law against wacking them around a bit.
 
 
 
