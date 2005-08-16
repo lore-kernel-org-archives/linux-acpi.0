@@ -1,13 +1,13 @@
-From: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
-Subject: Centrino not scaling to lowest frequency
-Date: Mon, 15 Aug 2005 23:44:11 +0200
-Message-ID: <200508152344.11572.fexpop@onlinehome.de>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: EC Confusion
+Date: Tue, 16 Aug 2005 09:46:13 +0800
+Message-ID: <20050816014613.GA3311@linux.sh.intel.com>
+References: <BAY12-F2711CD5182CD93A4DCDAADA8B10@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <BAY12-F2711CD5182CD93A4DCDAADA8B10-MsuGFMq8XAE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,55 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+On 2005.08.16 00:49:52 +0800, Paulo Vitor Magacho da Silva wrote:
+> 
+>    Hi,
+>    I've tryed this new patch and I still have the same problem. I think
+>    my
+>    laptop has some feature that only kernel 2.6.12-rc2-mm2 was able to
+>    address.
+>    I am sending attached my DSDT.
+>    Thanks,
+>    Paulo
 
 Hi,
 
-on my Acer Extensa 4100 (BIOS S3C11) with a 1.60GHz Centrino I'm running a 
-custom Linux kernel 2.6.12.3 with acpi-dsdt-patch applied and the custom DSDT 
-"ACER-Aspire_1691WLMi-S3C11-custom.asl" from acpi.sourceforge.net.
+Could you set debug_level and debug_layer to 0x10, then press sleep button, and dump the log for 2.6.12-rc2-mm2 , and compare it with latest kernel?
 
-Almost everything is working fine, except that the CPU can't be scaled down to 
-600 MHz as it should (should it?).
-
-Can anybody give me a hint how to get to 600 MHz on my system?
-
-Here's some maybe relevant information about my system:
-
-$ cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
-1600000 1333000 1067000 800000
-
-$ cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_driver
-centrino
-
-$ cat /proc/cpuinfo
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 13
-model name      : Intel(R) Pentium(R) M processor 1.60GHz
-stepping        : 8
-cpu MHz         : 798.157
-cache size      : 2048 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 2
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca 
-cmov pat clflush dts acpi mmx fxsr sse sse2 ss tm pbe nx est tm2
-bogomips        : 1576.96
-
-
-Thanks in advance,
-
-Felix
-
-
+Thanks,
+Luming
 
 
 -------------------------------------------------------
