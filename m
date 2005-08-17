@@ -1,8 +1,13 @@
-From: info-requests-admin-1k/dSJ7MB0b7DIwshTg5JkEOCMrvLtNR@public.gmane.org
-Subject: Your message to info-requests awaits moderator approval
-Date: Wed, 17 Aug 2005 04:01:01 -0400
-Message-ID: <20050817080101.19400.4710.Mailman@lists.clusterfs.com>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: acpi_ec_space_handler flooding logs
+Date: Wed, 17 Aug 2005 11:44:54 +0200
+Message-ID: <43030716.9000105@suse.de>
+References: <1123000573.12447.15.camel@x10>  <42FC5C0D.4010907@suse.de> <1124224663.28295.13.camel@x10>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1124224663.28295.13.camel@x10>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,21 +17,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Florian Schricker <fschricker-S0/GAf8tV78@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Your mail to 'info-requests' with the subject
+Florian Schricker wrote:
+> On Fri, 2005-08-12 at 10:21 +0200, Thomas Renninger wrote:
+> 
+> [DSDT fixes]
+> 
+>>>This broken DSDT is currently active, fails with battery as mentioned -
+>>>and: floods dmesg / /var/log/messages with
+>>>
+>>>  ACPI: acpi_ec_space_handler: bit_width should be 8
+>>Could you try whether the above suggestions fix your battery?
+> 
+> They did - everything seems to be just fine now.
+> Thanks a lot!
+> 
+> 
+>>I thought this one is workarounded?
+> 
+> Well, uhmm... */me is puzzled
+> 
+> 
+>>At least it is tried: ACPI: acpi_ec_space_handler: bit_width should be 8
+>>but maybe it does not work as expected?
+> 
+> Anything I could check, provide, test?
 
-    Re: Its me
+It would be worth to test whether latest EC burst mode implementations
+still walks this code path. If, you probably still have battery problems.
 
-Is being held until the list moderator can review it for approval.
+You could try latest 2.6.13-rcX patches and enable ec_burst=1 (with the
+unfixed DSDT).
+If this works, you will have to boot with this option a few kernels.
+But it shouldn't be worth to look at any further as this will get default
+sooner or later.
 
-The reason it is being held:
+If you still have battery problems, you should open a bug at:
+http://bugzilla.kernel.org
+assign it to the ACPI component and take me into CC.
 
-    Message body is too big: 43543 bytes but there's a limit of 40 KB
+....
 
-Either the message will get posted to the list, or you will receive
-notification of the moderator's decision.
+Thanks for digging into this,
+
+    Thomas
 
 
 -------------------------------------------------------
