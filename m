@@ -1,15 +1,13 @@
-From: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
-Subject: Re: Centrino not scaling to lowest frequency
-Date: Thu, 18 Aug 2005 18:47:48 +0200
-Message-ID: <200508181847.48291.fexpop@onlinehome.de>
-References: <200508152344.11572.fexpop@onlinehome.de> <20050816080625.GE9150@dominikbrodowski.de>
+From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Subject: Re: [linux-usb-devel] PCI quirks not handled and config space
+ differences on resume from S3
+Date: Thu, 18 Aug 2005 11:34:27 +0200
+Message-ID: <1124357667.12771.2.camel@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0508161148570.18302-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-xo5GigcqJYD6lrpw2eiU"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050816080625.GE9150-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0508161148570.18302-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,41 +17,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, USB development list <linux-usb-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
 
-in the meantime I found out that although my system claims (sticker) to 
-contain a Pentium M 725  (a Dothan) in fact is does contain a Pentium M 730J 
-(a Sonoma). 
+--=-xo5GigcqJYD6lrpw2eiU
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-A look into Intel's documentation 30220913.pdf then reveals (Table 1) a Lowest 
-Freq. Mode at 800 MHz. Hence it seems that Dominik is right and my CPU 
-doesn't support 600 MHz  (if I get it right). So everything seems to be OK.
+On Tue, 2005-08-16 at 11:52 -0400, Alan Stern wrote:
+> > > The uhci-hcd driver _does_ restore the config space for its devices=20
+> > > properly.
+> >=20
+> > Apparently something is sort of wrong though, because I need to rmmod
+> > uhci_hcd and hci_usb before suspending, otherwise nasty things happen.
+>=20
+> Can you be more specific?  Start with the kernel version you're using. =20
+> What happens if you rmmod hci_usb and leave uhci_hcd alone?  What shows u=
+p=20
+> in dmesg?  What shows up if you set CONFIG_USB_DEBUG?
 
-On the other hand, in Windows I _do_ get 600 MHz without any further trickery. 
-And at 600 MHz it seems to give me a lot more battery life, too. How does 
-that work?
+Hmm, it DOES seem to work with UHCI_HCD (in other words, it works if I
+only have USB1.1 devices connected).
 
-(Actually, I initially wondered why Windows reported so much more battery time 
-as opposed to Linux, and then found out that Windows can run the CPU at 600 
-MHz.) 
+Then probably I've had problems with USB2.0 devices connected, so maybe
+the EHCI_HCD driver is not suspend-safe? I will try that when at home.
 
-Furthermore, are there really only 4 frequencies specified for the Sonoma?
+--=-xo5GigcqJYD6lrpw2eiU
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-Thanks again,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Felix
+iD8DBQBDBFYjJgD/6j32wUYRAgHGAJ4wB+zgIr2uJpx/MDzff5+rzGveHACeJ/4A
+5Ym4uHYbF/aB/i2Eu34GB9g=
+=GVh/
+-----END PGP SIGNATURE-----
 
-On Tuesday 16 August 2005 10:06, Dominik Brodowski wrote:
-> > Can anybody give me a hint how to get to 600 MHz on my system?
->
-> The patched DSDT does not provide the necessary values for 600MHz --
-> possibly because your CPU does not support 600 MHz.
->
-> 	Dominik
+--=-xo5GigcqJYD6lrpw2eiU--
 
 
 -------------------------------------------------------
