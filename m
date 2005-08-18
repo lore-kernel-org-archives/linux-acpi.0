@@ -1,13 +1,15 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: EC Confusion
-Date: Wed, 17 Aug 2005 21:10:10 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC1FE@pdsmsx403>
+From: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
+Subject: Re: Centrino not scaling to lowest frequency
+Date: Thu, 18 Aug 2005 18:47:48 +0200
+Message-ID: <200508181847.48291.fexpop@onlinehome.de>
+References: <200508152344.11572.fexpop@onlinehome.de> <20050816080625.GE9150@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20050816080625.GE9150-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +19,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
 
->> EC burst mode did solve this problem on that machine.
->>=20
->Seems there is a regression in the EC burst mode code:
->EC burst mode does not solve the problem for this guy in=20
->current kernels any more.
->
->I used one of the patches applied to:
->http://bugzilla.kernel.org/show_bug.cgi?id=3D3851
->(Sorry don't know the exact one any more, was about a month or=20
->a bit more ago).
->With that one the buffered key issue was gone.
->
->He now retested with current kernels: 2.6.13-rc6-git1-2 and=20
->the problem exists again.
->
->Maybe Paolo should raise a new bug for that issue if not already done?
->Please CC me.
+in the meantime I found out that although my system claims (sticker) to 
+contain a Pentium M 725  (a Dothan) in fact is does contain a Pentium M 730J 
+(a Sonoma). 
 
-Please grep dmesg if you find "burst-mode-ec-10-Aug", then there has
-right patch.=20
+A look into Intel's documentation 30220913.pdf then reveals (Table 1) a Lowest 
+Freq. Mode at 800 MHz. Hence it seems that Dominik is right and my CPU 
+doesn't support 600 MHz  (if I get it right). So everything seems to be OK.
 
+On the other hand, in Windows I _do_ get 600 MHz without any further trickery. 
+And at 600 MHz it seems to give me a lot more battery life, too. How does 
+that work?
+
+(Actually, I initially wondered why Windows reported so much more battery time 
+as opposed to Linux, and then found out that Windows can run the CPU at 600 
+MHz.) 
+
+Furthermore, are there really only 4 frequencies specified for the Sonoma?
+
+Thanks again,
+
+Felix
+
+On Tuesday 16 August 2005 10:06, Dominik Brodowski wrote:
+> > Can anybody give me a hint how to get to 600 MHz on my system?
 >
->Thanks,
+> The patched DSDT does not provide the necessary values for 600MHz --
+> possibly because your CPU does not support 600 MHz.
 >
->    Thomas
->
+> 	Dominik
 
 
 -------------------------------------------------------
