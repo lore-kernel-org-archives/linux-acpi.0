@@ -1,16 +1,12 @@
-From: Hanno =?utf-8?q?B=C3=B6ck?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
-Subject: Re: oops with asus_acpi on P30/P35
-Date: Fri, 19 Aug 2005 17:49:13 +0200
-Message-ID: <200508191749.18016.mail@hboeck.de>
-References: <20050618004506.GE3690@orest.greek0.net> <42C2BA01.2060806@gmx.net> <20050629155015.GB14659@hell.org.pl>
+From: Avuton Olrich <avuton-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Asus A7N8X not resuming with 2.6.13-rc6-mm1, worked with 2.6.13-rc5-mm1
+Date: Fri, 19 Aug 2005 11:37:41 -0700
+Message-ID: <3aa654a4050819113778c4d4b0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1793571.Ed2gZYfgjS";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050629155015.GB14659-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,60 +16,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart1793571.Ed2gZYfgjS
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hello,
 
-Am Mittwoch, 29. Juni 2005 17:50 schrieb Karol Kozimor:
-> Thus wrote Carl-Daniel Hailfinger:
-> >> Bob, is the implicit return code supposed to trigger also when using
-> >> acpi_evaluate_object()? FYI, this is what we currently do:
-> >>
-> >> write_acpi_int(hotk->handle, "INIT", 0, &buffer)
-> >> (drivers/acpi/asus_acpi.c)
-> >>
-> >> which is fine if the INIT method returns a string (the usual), but
-> >> apparently not if there is no return statement in the method (the P30
-> >> case). The old code assumed the buffer will be null in this case.
-> >>
-> >> Is that a bug in the ACPICA or should the asus_acpi code cover for oth=
-er
-> >> cases of buffer.type?
-> >
-> > Will the fix for this be submitted to stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org? I can't upgrade
-> > to 2.6.12.1 because of this oops.
->
-> This should fix ya for now, but I can't sign it off until I get a comment
-> from Bob.
+My Asus A7N8X worked previously with the 2.6.13-rc5-mm1, as was the
+subject of the thread:
 
-This is still not fixed within 2.6.13_rc6. As 2.6.13 seems to be on the way=
-=20
-and this bug is really grave/makes a piece of hardware unusable, can this b=
-e=20
-pushed to the kernel tree as soon as possible?
+http://marc.theaimsgroup.com/?t=3D112339603900001&r=3D1&w=3D2
 
-cu,
+and the bugzilla bug:
 
-Hanno
+http://bugzilla.kernel.org/show_bug.cgi?id=3D4723
 
---nextPart1793571.Ed2gZYfgjS
-Content-Type: application/pgp-signature
+With linux-2.6.13-rc6-mm1 resume has stopped working again. For any
+information you need to know about the system, I put very verbose logs
+at the bugzilla link and they are all still valid.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+What happens is:
+Here's my script to sucessfully shutdown and resume in 2.6.13-rc5-mm1,
+all of the following must be done with X stopped and the nvidia module
+unloaded.
 
-iD8DBQBDBf99r2QksT29OyARAgmZAJ4g8I8RgJ/cQup0PPHTBLFc597WkgCeKmCv
-G37USmBrhYQHhG5G7hCBejA=
-=7/DK
------END PGP SIGNATURE-----
+# sync
+# echo "mem" > /sys/power/state
+# vbetool post
 
---nextPart1793571.Ed2gZYfgjS--
+And like magic it just works.
+
+What happens with 2.6.13-rc6-mm1:
+
+(the 3 lines from before), I can ping the machine for 8 seconds, (I
+could probably ssh into it if I were quick) then I can hear the
+harddrives stop and the computer and power supply continue to run as
+if it went into standby (echo standby > /sys/power/state). I see no
+messages in the syslog.
+
+How can I help?
+
+thanks,
+avuton
+
+--=20
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
 
 
 -------------------------------------------------------
