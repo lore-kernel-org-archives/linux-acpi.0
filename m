@@ -1,11 +1,13 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Thinkpads running hot
-Date: Sat, 20 Aug 2005 20:53:48 +0200
-Message-ID: <43077C3C.5030501@suse.de>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Thinkpads running hot
+Date: Sat, 20 Aug 2005 23:59:52 +0200
+Message-ID: <20050820215952.GM516@openzaurus.ucw.cz>
+References: <43077C3C.5030501@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <43077C3C.5030501-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,44 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-I got several reports of Thinkpads shutting down due critical temp limit.
-Here are some more:
-http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/2005-August/th=
-read.html
+> I got several reports of Thinkpads shutting down due critical temp limit.
+> Here are some more:
 
-I have no idea yet, but it seems as if the fan control does not work as e=
-xpected.
+What models are affected?
 
-I got a good hint that helps a bit for some models (Xorg.conf - graphics =
-card tweaking):
-____________________________________________________
->Could you please tell me the card and how to solve it
-> (just curious)?
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-ATI FireGL mobility T2, Option "DynamicClocks" "on". This way the tempera=
-ture
-of the gfx card goes down from ~ 98=B0C to 56=B0C, when idling over night=
- it goes
-down to 48=B0C and the fan stops completely.
-____________________________________________________
-
-
-Still when the processor is on load the critical temperature is reached q=
-uickly
-(1-3 minutes?).
-
-Thinkpads are widespread and I wonder whether others have experienced tha=
-t problem
-and whether it only exists on current kernels or got it solved somehow.
-
-Thanks,
-
-     Thomas
 
 
 -------------------------------------------------------
