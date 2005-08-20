@@ -1,13 +1,11 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI objects in containers not added to namespace?
-Date: Sat, 20 Aug 2005 19:53:07 +0100
-Message-ID: <20050820185307.GA10903@srcf.ucam.org>
-References: <20050820184616.GA10878@srcf.ucam.org>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Thinkpads running hot
+Date: Sat, 20 Aug 2005 20:53:48 +0200
+Message-ID: <43077C3C.5030501@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050820184616.GA10878-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,18 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Aug 20, 2005 at 07:46:16PM +0100, Matthew Garrett wrote:
-> I have a machine with some devices (a serial port and an IR interface)
-> that don't show up in /sys/bus/pnp if acpipnp is used. Looking at the
-> DSDT, it seems that they're children of a generic container object
-> (PNP0A06). Should they be showing up in /sys/bus/pnp?
+Hi,
 
-Sorry, please ignore that - I'd picked up the wrong laptop. Doh.
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+I got several reports of Thinkpads shutting down due critical temp limit.
+Here are some more:
+http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/2005-August/th=
+read.html
+
+I have no idea yet, but it seems as if the fan control does not work as e=
+xpected.
+
+I got a good hint that helps a bit for some models (Xorg.conf - graphics =
+card tweaking):
+____________________________________________________
+>Could you please tell me the card and how to solve it
+> (just curious)?
+
+ATI FireGL mobility T2, Option "DynamicClocks" "on". This way the tempera=
+ture
+of the gfx card goes down from ~ 98=B0C to 56=B0C, when idling over night=
+ it goes
+down to 48=B0C and the fan stops completely.
+____________________________________________________
+
+
+Still when the processor is on load the critical temperature is reached q=
+uickly
+(1-3 minutes?).
+
+Thinkpads are widespread and I wonder whether others have experienced tha=
+t problem
+and whether it only exists on current kernels or got it solved somehow.
+
+Thanks,
+
+     Thomas
 
 
 -------------------------------------------------------
