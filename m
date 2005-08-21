@@ -1,14 +1,13 @@
-From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
-Subject: Re: oops with asus_acpi on P30/P35
-Date: Sun, 21 Aug 2005 16:36:17 +0200
-Message-ID: <1124634977.4952.9.camel@nouse.net>
-References: <20050618004506.GE3690@orest.greek0.net>
-	 <42C2BA01.2060806@gmx.net> <20050629155015.GB14659@hell.org.pl>
-	 <200508191749.18016.mail@hboeck.de>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Thinkpads running hot
+Date: Sun, 21 Aug 2005 17:55:18 +0200
+Message-ID: <4308A3E6.7080002@suse.de>
+References: <43077C3C.5030501@suse.de> <43083B55.4000700@xms.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-u1DeK9cSEzEeKb5RtEJQ"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200508191749.18016.mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <43083B55.4000700-7RBX4Gk6oWI@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,62 +17,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hanno =?ISO-8859-1?Q?B=F6ck?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
+To: Jonas Petersson <zap-7RBX4Gk6oWI@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Jonas Petersson wrote:
+> Hi Thomas,
+> 
+> Thomas Renninger wrote:
+>>I got several reports of Thinkpads shutting down due critical temp limit.
+>>Here are some more:
+>>[...]
+>>Still when the processor is on load the critical temperature is reached quickly
+>>(1-3 minutes?).
+>>
+>>Thinkpads are widespread and I wonder whether others have experienced that problem
+>>and whether it only exists on current kernels or got it solved somehow.
+> 
+> Have these Thinkpads been in use for a while? My 1.5 year old ASUS would
+> occasionally turn off like that and initially I assumed it was either a
+> bug or my hardware being close to death. However, when I pulled it apart
+> I found that the way out from the fans were partially blocked by a layer
+> of dust.  After I cleaned that out it runs ~20 degrees cooler which
+> seems to solve the problem (and it is less noisy too).
+> 
+No. The fans are clean. I also heard about this and it is the first thing
+I asked. Those machines are even too new to have a dirty fan.
 
---=-u1DeK9cSEzEeKb5RtEJQ
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+There seem to exist Thinkpad models (T42p, 53e, ...) that do not have a
+perfekt thermal design (Or Pentium Ms are now also hitting their heat prod.
+limit).
 
-Hi,
+The graphics card tuning seems to help a bit (another report):
+________________________
+Ok, I tried now Option "DynamicClocks" "on".
 
-On Fri, 2005-08-19 at 17:49 +0200, Hanno B=F6ck wrote:
+Where there is no significant change when the system is idle it seems that
+applications with high graphics activity no longer trigger the alert.
+________________________
 
-[...]
+Still the critical trip point can be reached on permanent high load.
+I expect that these reports are also poping up lately because of this
+embedded controller firmware update:
+_______________
+Symptom corrected by version 3.03 - 1RHT70WW
+Reduced Fan noise in some models
+_______________
 
-> This is still not fixed within 2.6.13_rc6. As 2.6.13 seems to be on the=
- way=20
-> and this bug is really grave/makes a piece of hardware unusable, can th=
-is be=20
-> pushed to the kernel tree as soon as possible?
+But even I could find the EC address and value to set the fan on full speed
+(echo 0x2f 0x50 >/proc/acpi/ibm/ecdump - with ibm_acpi module)
+(>5000 instead of ~3700 rpm) , the machine still run very hot.
 
-This patch does fix the Samsung P30 but this fix will also break support
-for other systems (like the ASUS W5A), too.  To get the W5A working
-again, it needs something like the attached patch.
+However, when passive cooling works well, people shouldn't notice much.
+It seems as if these machines are designed to work with OS thermal management.
+The userspace governor works nicely and temperature stays at passive trip point
+with 1200 instead of 1700 MHz (even on 70 C passive tp limit it stays at 1200 MHz
+poking around 70 C - default is 92 C).
 
-I assume that other models will stop working, too.
-
-> cu,
->=20
-> Hanno
-
-See you,
-
-   Timo
-
---=-u1DeK9cSEzEeKb5RtEJQ
-Content-Disposition: attachment; filename=asus_w5a.patch
-Content-Type: text/x-patch; name=asus_w5a.patch; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
---- acpi_asus.c	2005-08-21 16:33:15.000000000 +0100
-+++ acpu_asus.c	2005-08-21 16:33:41.000000000 +0100
-@@ -1088,6 +1089,9 @@
- 	 * return anything. Catch this one and any similar here */
- 	if (model->type == ACPI_TYPE_STRING) {
- 		printk(KERN_NOTICE "  %s model detected, ", model->string.pointer);
-+	} else if (asus_info && /* Asus W5A needs this. Maybe others? */
-+			strncmp(asus_info->oem_table_id, "0AAAA000", 8) == 0) {
-+			printk(KERN_NOTICE "Found Asus ACPI without model type?\n");
- 	} else {
- 		if (asus_info && /* Samsung P30 */
- 		    strncmp(asus_info->oem_table_id, "ODEM", 4) == 0) {
+The ondemand govenor and I also expect the conservative governor do not consider
+thermal limits yet, but this should be fixed soon and those critcal alert reports
+will disappear.
 
 
---=-u1DeK9cSEzEeKb5RtEJQ--
-
+     Thomas
 
 
 -------------------------------------------------------
