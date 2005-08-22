@@ -1,11 +1,14 @@
-From: "Jeffrey Y. A. Perry" <jeffperry_2003-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: S3 sleep, resume hang - DSDT bad?? Averatec 3270-EE1
-Date: Sun, 21 Aug 2005 17:41:40 -0700 (PDT)
-Message-ID: <20050822004140.26440.qmail@web50504.mail.yahoo.com>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: S3 sleep, resume hang - DSDT bad?? Averatec 3270-EE1
+Date: Mon, 22 Aug 2005 09:20:21 +0200
+Message-ID: <20050822072021.GA3690@fuchi>
+References: <20050822004140.26440.qmail@web50504.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050822004140.26440.qmail-HoayJ7sz99KA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,66 +21,56 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am having problems getting my new laptop to resume
-from suspend. I have tried many things including newer
-kernels (2.6.12) and vbetool...all to no avail
 
-I suspect I may have a bad DSDT. ALthough it says
-INTL in the dmesg line (I believe implying that
-its was compiled with the intel compiler), I have
-decompiled then recompiled my DSDT and am getting
-1 error (initially it was 3 but for some reason the
-second time I extracted and decompiled then compiled
-now I only see one error).
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Several warnings appear during boot=20
-(see the kernel bug I filed) Most functionality works
-- it's suspend to ram that is not resuming properly
-for me - some flurry of activity but no video and the
-system is still nonresponsive to commands like
-find /
+hello Jeffrey...
 
-ACPI4Linux does not seem to have a DSDT for my model
-of Laptop - although it has several Averatec DSDTs
+* "Jeffrey Y. A. Perry" <jeffperry_2003-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> [2005-08-22 08:55 +0200]:
 
-Question: Am I right to assume all ACPI4Linux patches
-are incorporated into the kernel releases frequently?
-I have not applied any of these to my 2.6.12 kernel
-figuring they were already present - which is weird
-since there is actually a patch on the acpi4linux site
-for kernel 2.6.12
+> Question: Am I right to assume all ACPI4Linux patches
+> are incorporated into the kernel releases frequently?
 
-I have created a kernel bug in case this turns out to
-be a kernel issue - it includes all the info likely
-needed to sort out this issue. Rather than reproduce
-it here I will just place a link=20
+yes...
 
-See: bug#5107
-http://bugzilla.kernel.org/show_bug.cgi?id=3D5107
+> I have not applied any of these to my 2.6.12 kernel
+> figuring they were already present - which is weird
+> since there is actually a patch on the acpi4linux site
+> for kernel 2.6.12
 
-This is probably an easy fix for you DSDT gurus
+but development continues and often patches introduced later are applicable
+to older (current) kernels. so the patch against 2.6.12 contains fixes added
+after the release of the kernel.
 
-I thank you in advance for any assistance you can
-provide in getting Suspend to Ram working by fixing
-the DSDT.
+cheers,
+ Sebastian
+--=20
+Oo................................................................
+Der naechste Satz ist eine Luege. Der vorhergehende Satz ist wahr.
+OpenPGP key ID: 0x7A62F9B4  Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++
+=2E...............................................................oO
 
-Please let me know if you need any additional data to
-help you debug this probelm.
+--EeQfGwPcQSOJBaQU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Thanks again! I appreciate your help.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
---Jeff Perry
+iD8DBQFDCXy1reHfL3pi+bQRAoJMAJ4lREkuvypgq9VUeB/aODpwtucjQACfa48h
+VXt8EHuvOuj1kchjqvnoXqY=
+=MhL1
+-----END PGP SIGNATURE-----
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around=20
-http://mail.yahoo.com=20
+--EeQfGwPcQSOJBaQU--
 
 
 -------------------------------------------------------
 SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practic=
-es
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & Q=
-A
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
 Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
