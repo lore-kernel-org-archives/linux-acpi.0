@@ -1,15 +1,11 @@
-From: =?iso-8859-1?q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Subject: Re: S3 sleep, resume hang - DSDT bad?? Averatec 3270-EE1
-Date: Mon, 22 Aug 2005 17:42:11 +0100
-Message-ID: <200508221742.11951.destynova@esatclear.ie>
-References: <20050822004140.26440.qmail@web50504.mail.yahoo.com>
+From: Antonio Distante <antonio.distante-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: presario 2500 hangs on resume s3
+Date: Mon, 22 Aug 2005 19:02:08 +0200
+Message-ID: <1124730128.10429.5.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050822004140.26440.qmail-HoayJ7sz99KA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,23 +18,58 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 22 August 2005 01:41, Jeffrey Y. A. Perry wrote:
-> Question: Am I right to assume all ACPI4Linux patches
-> are incorporated into the kernel releases frequently?
-> I have not applied any of these to my 2.6.12 kernel
-> figuring they were already present - which is weird
-> since there is actually a patch on the acpi4linux site
-> for kernel 2.6.12
+Notebook:      Compaq Presario 2532EA
+Graphic card:  ATI igp 345m
 
-Well, the 2.6.12 kernel release will stay the same as it was the moment i=
-t was=20
-released - there aren't any "hidden" updates to already released kernels =
--=20
-they are sent for inclusion in the next development release. The ACPI pat=
-ches=20
-are updated often.
+My laptop goes into S3 well but hangs on resume. I can hear cdrom spin up,
+but nothing more. The screen is off, I can't login with ssh and sometimes the
+fan starts up as in high load. I tried alla suggestion from
+Documentation/power/video.txt without luck, I think the problem is not video
+card. Searching in acpi-devel mailinglist's archive I found this 
+Pavel Machek's patch that should play a beep on resume:
 
-Ois=EDn
+ --- clean/arch/i386/kernel/acpi/wakeup.S	2005-01-22 21:24:51.000000000 +0100
+ +++ linux/arch/i386/kernel/acpi/wakeup.S	2004-12-25 15:51:04.000000000 +0100
+ @@ -11,7 +11,22 @@
+  #
+  # If physical address of wakeup_code is 0x12345, BIOS should call us with
+  # cs = 0x1234, eip = 0x05
+ -# 
+ +#
+ +
+ +#define BEEP \
+ +	inb	$97, %al; 	\
+ +	outb	%al, $0x80; 	\
+ +	movb	$3, %al; 	\
+ +	outb	%al, $97; 	\
+ +	outb	%al, $0x80; 	\
+ +	movb	$-74, %al; 	\
+ +	outb	%al, $67; 	\
+ +	outb	%al, $0x80; 	\
+ +	movb	$-119, %al; 	\
+ +	outb	%al, $66; 	\
+ +	outb	%al, $0x80; 	\
+ +	movb	$15, %al; 	\
+ +	outb	%al, $66;
+  
+  ALIGN
+  	.align	4096
+ @@ -20,6 +35,7 @@
+  	wakeup_code_start = .
+  	.code16
+  
+ +	BEEP
+   	movw	$0xb800, %ax
+  	movw	%ax,%fs
+  	movw	$0x0e00 + "L", %fs:(0x10)
+
+I applied it to a 2.6.13-rc5 vanilla kernel and build it without framebuffer
+support. I booted the new kernel with "init=/bin/sh" and then tried to S3. On
+resume system hangs and I can't hear no beep. I hope this helps. Just ask if you
+need some other informations.
+Thanks,
+Antonio
+
 
 
 -------------------------------------------------------
