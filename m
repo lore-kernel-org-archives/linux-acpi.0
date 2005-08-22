@@ -1,12 +1,11 @@
-From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
-Subject: Re: S3 sleep, resume hang - DSDT bad?? Averatec 3270-EE1
-Date: Mon, 22 Aug 2005 10:14:42 +0200
-Message-ID: <1124698482.16833.73.camel@localhost.localdomain>
-References: <20050822004140.26440.qmail@web50504.mail.yahoo.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: [patch] only compile kernel/power when neccessary
+Date: Mon, 22 Aug 2005 10:26:49 +0200
+Message-ID: <20050822082649.GA5614@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-P9KdEV+tdyNnSGLzxi8+"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050822004140.26440.qmail-HoayJ7sz99KA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,71 +15,75 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Jeffrey Y. A. Perry" <jeffperry_2003-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Only compile kernel/power if sleep support is going to be used.
 
---=-P9KdEV+tdyNnSGLzxi8+
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 
-On Sun, 2005-08-21 at 17:41 -0700, Jeffrey Y. A. Perry wrote:
-> Several warnings appear during boot=20
-> (see the kernel bug I filed) Most functionality works
-> - it's suspend to ram that is not resuming properly
-> for me - some flurry of activity but no video and the
-> system is still nonresponsive to commands like
-> find /
+---
+commit 847ddd5de8a88b2d47e759bc94186a77140bc673
+tree 5b7cb15723ef57e4cf3f72124c92176e394566b0
+parent 790df7223ac29afec81e7201adc879973311f27e
+author <pavel@amd.(none)> Mon, 22 Aug 2005 10:25:05 +0200
+committer <pavel@amd.(none)> Mon, 22 Aug 2005 10:25:05 +0200
 
-Are you by any chance using a sata harddisk?
+ drivers/acpi/Kconfig |    1 +
+ kernel/Makefile      |    2 +-
+ kernel/power/Kconfig |    7 ++++++-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
---=-P9KdEV+tdyNnSGLzxi8+
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -57,6 +57,7 @@ config ACPI_SLEEP
+ 	bool "Sleep States (EXPERIMENTAL)"
+ 	depends on X86 && (!SMP || SUSPEND_SMP)
+ 	depends on EXPERIMENTAL && PM
++	select SLEEP
+ 	default y
+ 	---help---
+ 	  This option adds support for ACPI suspend states. 
+diff --git a/kernel/Makefile b/kernel/Makefile
+--- a/kernel/Makefile
++++ b/kernel/Makefile
+@@ -15,7 +15,7 @@ obj-$(CONFIG_SMP) += cpu.o spinlock.o
+ obj-$(CONFIG_UID16) += uid16.o
+ obj-$(CONFIG_MODULES) += module.o
+ obj-$(CONFIG_KALLSYMS) += kallsyms.o
+-obj-$(CONFIG_PM) += power/
++obj-$(CONFIG_SLEEP) += power/
+ obj-$(CONFIG_BSD_PROCESS_ACCT) += acct.o
+ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_COMPAT) += compat.o
+diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
+@@ -18,6 +18,10 @@ config PM
+ 	  will issue the hlt instruction if nothing is to be done, thereby
+ 	  sending the processor to sleep and saving power.
+ 
++config SLEEP
++	bool
++	depends on PM
++
+ config PM_DEBUG
+ 	bool "Power Management Debug Support"
+ 	depends on PM
+@@ -28,7 +32,8 @@ config PM_DEBUG
+ 
+ config SOFTWARE_SUSPEND
+ 	bool "Software Suspend"
+-	depends on EXPERIMENTAL && PM && SWAP && ((X86 && SMP) || ((FVR || PPC32 || X86) && !SMP))
++	depends on PM && SWAP && (X86 || ((FVR || PPC32) && !SMP))
++	select SLEEP
+ 	---help---
+ 	  Enable the possibility of suspending the machine.
+ 	  It doesn't need APM.
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFjCCAs8w
-ggI4oAMCAQICAw9TczANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUwODE4MTE1NDA1WhcNMDYwODE4MTE1NDA1WjBDMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFt
-ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANAMKW15OgreNb+Wd++Xcw6uNJUXXIfX
-56u1rtTObMmbbDY2wNc4Iqwbuwaysvox3z+YElXBibE8BAyV1iMjhee4mOfAy38dGHtWDxhOGke8
-VpkyY8DSWgMN5p4egTiT6YNdHW75iiQ+Vh5zMHju1UXnIqgf5zkUGkNuxYp15jLZvRDbfA5H+Sil
-jbZGB2fiPOJHpyI61ZidcMgdow31qm70/oe6vXxhSZLzo7OLvExE+mQHwbCSIJMN/hPTK1z0lmQ1
-kkaEjHrefqIgoF9Dk/WfOtulzvR3xBzDL50GZ32BxT/OhXYe1SHEJpSM1S/aq8TBQJYwjzREWyDh
-0OYsmr0CAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFndGVyLm5hbWUwDAYDVR0TAQH/BAIw
-ADANBgkqhkiG9w0BAQQFAAOBgQCCpzoneRQIKsUO8zSnwQ7yhJTrS/EaDibiIVrkkCbzXwCiHFAi
-7nmTRF0DlLVF3Ssf97ITWT/RSdkj9Xke0OHH7724PJdfpA6OglMnx2i7IcJLzPgPjB+fOmfR0nYX
-UYKuzGxTOXmshLmPcwKdpFuRLLk7n+vrTAwJYJI++crhJzCCAz8wggKooAMCAQICAQ0wDQYJKoZI
-hvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcT
-CUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmlj
-YXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
-bCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3
-MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUg
-Q29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
-SXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRw
-nd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+R
-NiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEA
-AaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwu
-dGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNV
-HREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEA
-SIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6E
-sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
-IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
-aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
-MBwGCSqGSIb3DQEJBTEPFw0wNTA4MjIwODE0NDJaMCMGCSqGSIb3DQEJBDEWBBTqvbGwcNaPtTXn
-5PJ7NfRxRbpDoDANBgkqhkiG9w0BAQEFAASCAQBDy/LYkHQJxssxA/8NOrdL0maYyToXF+57O54Y
-xt2wgYRVtFt4Vu2ULSgsJK9kKun0aoKE/a+/qjlsxRkSMKJN8n9L6Jc2wwktCtETYJrPbBt0Rgkf
-uka5d3IJxT+bGmrnHI6M3SRgNLWnx+ek1Xpslj0oagMYleIpIUmsLwmqRXYmbztAGGqcRDjokIvW
-tbQLazTLyw+E8RWOoG8YvBkNQpvXA4hrqn2WLaXkI2EFRM3x+cbQzDhfcOr6JFhMMX1pTI1XSbYR
-AW6nLmIyZEQewrY9LASEy/AIoMUNm8qzNr0UQAFoh5fOLOIYgytFw3dPjOZ0UiKNr71r/krO3WWr
-AAAAAAAA
-
-
---=-P9KdEV+tdyNnSGLzxi8+--
+-- 
+if you have sharp zaurus hardware you don't need... you know my address
 
 
 -------------------------------------------------------
