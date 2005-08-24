@@ -1,13 +1,11 @@
-From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: utmisc-0131: *** Error: Invalid owner_id: 00
-Date: Wed, 24 Aug 2005 14:51:38 +0400
-Message-ID: <6694B22B6436BC43B429958787E454983CB7B8@mssmsx402nb>
+From: "Rodolfo" <Leland-Gv3nlvDKkQg@public.gmane.org>
+Subject: Otc stock Newsletter presents just the facts
+Date: Wed, 24 Aug 2005 16:39:12 +0200
+Message-ID: <12060611293.54109119817@p5499AC89.dip0.t-ipconnect.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,157 +15,121 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mattia Dongili <malattia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: ACPI Devel Maling List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mattia,
+Looking for a company with some good news?  Here's one!
+***** CDGT ***** CDGT ***** CDGT ***** CDGT ***** CDGT ***** CDGT *****
+Major Financial NEWS
 
-Thanks for helping with this issue...
-There are can be two causes to this -- we either overwrite allocated
-owner_id (this can be checked with the WARN_ON (owner_id !=3D 0)
-in acpi_ut_allocate_owner_id -- we never copy owner_id) or we give just
-released owner_id location instead of right one to release_owner_id
-function.
-Could you please try suggested check in acpi_ut_allocate_owner_id ?
-Also it can be extremely helpful if you can print the name of the AML
-method there this fault accurs, for this you need to turn the check
-above into return error code.
+CDGT has more News that came.
+Looks like CDGT is not willing to miss a beat!
 
-Thanks again,
-	Alex.
+SYMBOL: CDGT
+CURRENT PRICE: $2.20 
+Short-Term : $6 
 
 
+China Digital Media Corporation Announces 
+Launch of IP Based Set-Top-Box In China
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Mattia
-Dongili
-Sent: Sunday, August 21, 2005 9:42 PM
-To: Thomas Renninger
-Cc: ACPI Devel Maling List
-Subject: Re: [ACPI] utmisc-0131: *** Error: Invalid owner_id: 00
+Monday August 22, 8:00 am ET 
+HONG KONG, Aug. 22 /Xinhua-PRNewswire-FirstCall/ -- 
+China Digital Media Corporation ("Digimedia") (OTC Bulletin Board: CDGT - News) 
+today announced the launch of a trial for a new IP based Set-Top-Box ("STB") in Nanhai, 
+a city in Guangdong province with 400,000 Cable TV subscribers. The Company is one 
+of the first digital TV operators in China to deploy the trial of IP based STB 
+with its high-end users. The new STB in trial is equipped with an Ethernet port 
+which could facilitate various Internet based services to end users; 
+such as video-on-demand, online shopping channels, online games 
+and interactive education services. The new STB is developed in coordination 
+with Shenzhen Coship Electronics Co. Ltd. ("Coship") that could transform 
+a television set into an interactive and a multimedia platform.
 
-On Sat, Aug 20, 2005 at 07:13:42PM +0200, Thomas Renninger wrote:
-> Mattia Dongili wrote:
-> > On Thu, Aug 18, 2005 at 08:21:53PM +0200, Mattia Dongili wrote:
-> >>Hello,
-> >>
-> >>I'm seeing the error (almost randomly and at with a varying
-frequence)
-> >>utmisc-0131: *** Error: Invalid owner_id: 00
-> >>
-> >>It seems completely harmless but after some hours of work however
-this
-> >>other related warning appears when reading the battery state:
-> >>psparse-0509: *** Error: Method execution failed [\_SB_.PCI0.LPC0.EC
-> >>0_.ACAD._PSR] (Node c126e7c8), AE_OWNER_ID_LIMIT
+"Partnering with Coship in developing the IP based STB is our strategy 
+in advancing the quality of our broadcasting services. We believe the provision 
+of value-added services through digitalized network will be a new business model 
+in digital TV operation and this new IP based STB will give us a head start," 
+said Mr. Daniel Ng, Chairman and CEO of China Digital Media Corporation. 
+"We intend to invest and participate in system migration projects in other cities 
+like our Nanhai model. This collaboration with Coship and the new IP based STB 
+will provide us a convincing advantage to gain more contracts in the future 
+that would allow our Company to grow faster and to enlarge our service coverage," 
+Mr. Ng added.
 
-I found a place where the Invalid owner_id error always happens and
-added a WARN_ON.
-Also, adding a couple of printks to track IDs I had:
+About China Digital Media Corporation :
+China Digital Media Corporation (OTC Bulletin Board: CDGT - News) focuses 
+its business in three main areas: Cable TV Operations, Programs Production 
+and Advertising Sales. Arcotect Technology (GZ) Limited, a wholly owned subsidiary 
+of CDGT in China, is the sole contractor and operator of digital television services 
+in Nanhai, a city with 400,000 cable TV subscribers. The service could offer 
+more than 800 digital channels of pay TV programs and value added 
+multimedia services. The Group is seeking to establish similar models elsewhere 
+in China. 
 
-[...]
-  Checking 'hlt' instruction... OK.
-  Allocated: 1
-  Allocated: 2
-  Allocated: 3
-  Allocated: 4
-  Allocated: 5
-   tbxface-0109 [02] load_tables           : ACPI Tables successfully
-acquired
-  Parsing all Control Methods:.
-  <4>Allocated: 6
-  Released: 6
+About Shenzhen Coship Electronics Co. Ltd.
+This is a company to watch closely starting NOW! They have been known to make 
+BIG moves and we feel there is one coming !!!
 
-6 is then allocated and released 190 times
-
-  Table [DSDT](id 0005) - 555 Objects with 54 Devices 191 Methods 21
-Regions
-  ACPI Namespace successfully loaded at root c03cf5b8
-  evxfevnt-0091 [03] enable                : Transition to ACPI mode
-successful
-  NET: Registered protocol family 16
-  ACPI: bus type pci registered
-  PCI: PCI BIOS revision 2.10 entry at 0xfd9aa, last bus=3D2
-  PCI: Using configuration type 1
-  ACPI: Subsystem revision 20050729
-  evgpeblk-0988 [06] ev_create_gpe_block   : GPE 00 to 0F [_GPE] 2 regs
-on int 0x9
-  evgpeblk-0996 [06] ev_create_gpe_block   : Found 6 Wake, Enabled 0
-Runtime GPEs in this block
-  evgpeblk-0988 [06] ev_create_gpe_block   : GPE 10 to 1F [_GPE] 2 regs
-on int 0x9
-  evgpeblk-0996 [06] ev_create_gpe_block   : Found 1 Wake, Enabled 0
-Runtime GPEs in this block
-  Allocated: 6
-  Allocated: 7
-  Released: 7
-  Allocated: 7
-  Released: 7
-  Released: 0
-------------^
-should this be 6?
-6 is never allocated anymore.
-
-    utmisc-0133: *** Error: Invalid owner_id: 00
-  Badness in acpi_ut_release_owner_id at
-drivers/acpi/utilities/utmisc.c:134
-   [<c021766a>] acpi_ut_release_owner_id+0x75/0x11d
-   [<c01f6df7>] acpi_ds_terminate_control_method+0x187/0x1d0
-   [<c020e9d6>] acpi_ps_parse_aml+0x1aa/0x2e4
-   [<c020fea0>] acpi_ps_execute_pass+0xa9/0xd5
-   [<c020fd30>] acpi_ps_execute_method+0x104/0x195
-   [<c020b5f9>] acpi_ns_execute_control_method+0x10b/0x132
-   [<c020b4b5>] acpi_ns_evaluate_by_handle+0x104/0x13d
-   [<c01f9caf>] acpi_ev_execute_reg_method+0x12f/0x16a
-   [<c020d8f8>] acpi_ns_walk_namespace+0xbb/0x1b7
-   [<c01fa65c>] acpi_ev_execute_reg_methods+0x3b/0x5f
-   [<c01fa680>] acpi_ev_reg_run+0x0/0x50
-   [<c01f9b4d>] acpi_ev_initialize_op_regions+0x5b/0x8e
-   [<c02181a8>] acpi_initialize_objects+0x4e/0x132
-   [<c038c8f2>] acpi_bus_init+0x40/0xe5
-   [<c038ca11>] acpi_init+0x7a/0x11e
-   [<c037c914>] do_initcalls+0x54/0xd0
-   [<c03941ea>] netfilter_init+0x9a/0xd0
-   [<c01002a0>] init+0x0/0x170
-   [<c01002cf>] init+0x2f/0x170
-   [<c0101394>] kernel_thread_helper+0x0/0xc
-   [<c0101399>] kernel_thread_helper+0x5/0xc
-  Completing Region/Field/Buffer/Package
-initialization:.........................................................
-.....
-  Initialized 20/21 Regions 0/0 Fields 25/25 Buffers 17/27 Packages (564
-nodes)
-  Executing all Device _STA and_INI methods:....<4>Allocated: 7
-  Released: 7
-  .............<4>Allocated: 7
-  Released: 7
-  Allocated: 7
-  Allocated: 8
-  Released: 8
-  Released: 7
- =20
-I'm going through the code trying to follow possible paths but it'll
-take long :) so I'm sharing these thoughts.
-
---=20
-mattia
-:wq!
+Last time we issued a watch we watched CHMS go from .36 to .73 in 4 DAYS !
 
 
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle
-Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing &
-QA
-Security * Process Improvement & Measurement *
-http://www.sqe.com/bsce5sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+
+
+
+
+
+
+Disclaimer:
+Information within this email contains "forwardlooking statements" within
+the meaning of Section 27Aof the Securities Act of 1933 and Section 21B of
+the Securities Exchange Act of 1934. Any statements that express or involve
+discussions with respect to predictions, expectations, beliefs,
+plans, projections, objectives, goals, assumptions or future events or
+performance are not statements of historical fact and may be "forward
+looking statements". "Forward looking statements" are based on
+expectations, estimates and projections at the time the statements are made
+that involve a number of risks and uncertainties which could cause actual
+results or events to differ materially from those presently anticipated.
+Forward looking statements in this action may be identified through the use
+of words such as "projects", "foresee", "expects", "will", "anticipates",
+"estimates", "believes", "understands" or that by statements indicating
+certain actions "may", "could", or "might" occur. Risk factors include
+general economic and business conditions, the ability to acquire and develop
+specific projects, the ability to fund operations and changes in consumer
+and business consumption habits and other factors overwhich the company has
+little or no control. The publisher of this newsletter does not represent
+that the information contained in this message states all material facts or
+does not omit a material fact necessary to make the statements therein not
+misleading. All information provided within this email pertaining to
+investing, ST0CKs, securities must be understood as information provided and
+not investment advice. The publisher of this newsletter advises all readers
+and subscribers to seek advice from a registered professional securities
+representative before deciding to trade in ST0CKs featured within this
+email. None of the material within this report shall be construed as any
+kind of investment advice or solicitation. Many of these companies are on
+the verge of bankruptcy. You can lose all your money by investing in this
+ST0CK. We urge you to read the company's SEC filings now, before you invest.
+The publisher of this newsletter is not a registered invstment advisor.
+Subscribers should not view information herein as legal, tax, accounting or
+investment advice. In compliance with the SecuritiesAct of 1933, Section
+17(b), The publisher of this newsletter is contracted to receive six hundred
+thousand free trading shares from a third party, not an officer, director or
+affiliate shareholder for the circulation of this report. Be aware of an
+inherent conflict of interest resulting from such compensation due to the
+fact that this is a paid advertisement and is not without bias. The party
+that paid us has a position in the ST0CK they will sell at anytime without
+notice. This could have a negative impact on the price of the ST0CK, causing
+you to lose money. All factual information in this report was gathered from
+public sources, including but not limited to SEC filings, Company Websites
+and Company Press Releases. The publisher of this newsletter believes this
+information to be reliable but can make no guarantee as to its accuracy or
+completeness. Use of the material within this email constitutes your
+acceptance of these terms.
+
+
 
 
 -------------------------------------------------------
