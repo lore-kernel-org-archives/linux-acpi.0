@@ -1,18 +1,15 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+From: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
 Subject: Re: Centrino not scaling to lowest frequency
-Date: Thu, 25 Aug 2005 22:20:25 +0800
-Message-ID: <1124979626.16010.3.camel@neuromancer.home.net>
-References: <200508152344.11572.fexpop@onlinehome.de>
-	 <20050816080625.GE9150@dominikbrodowski.de>
-	 <200508181847.48291.fexpop@onlinehome.de>
-	 <20050824105002.GC12792@dominikbrodowski.de>
-	 <1124978274.16010.0.camel@neuromancer.home.net>
-	 <20050825140456.GA8630@isilmar.linta.de>
+Date: Thu, 25 Aug 2005 17:00:33 +0200
+Message-ID: <200508251700.33424.fexpop@onlinehome.de>
+References: <200508152344.11572.fexpop@onlinehome.de> <20050825140456.GA8630@isilmar.linta.de> <1124979626.16010.3.camel@neuromancer.home.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050825140456.GA8630-JwFqNg2GrOVrgjWwlLH9qw@public.gmane.org>
+In-Reply-To: <1124979626.16010.3.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,44 +19,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-08-25 at 16:04 +0200, Dominik Brodowski wrote:
-> On Thu, Aug 25, 2005 at 09:57:53PM +0800, Ow Mun Heng wrote:
-> > On Wed, 2005-08-24 at 12:50 +0200, Dominik Brodowski wrote:
-> > > Hi,
-> > > 
-> > > On Thu, Aug 18, 2005 at 06:47:48PM +0200, Felix Homann wrote:
-> > > > On the other hand, in Windows I _do_ get 600 MHz without any further trickery. 
-> > > > And at 600 MHz it seems to give me a lot more battery life, too. How does 
-> > 
-> > > The better
-> > > energy usage rates of Windows are a known problem; hopefully the dynamic
-> > > tick patch will improve the situation in this regard.
-> > 
-> > Hmm.. that's a nice way to put it :-)
-> > 
-> > ANyway, where's this dynamic tick patch? Is it the one where you drop
-> > the hertz from 1K to 100?
-> 
-> Uh, no. http://lwn.net/Articles/138969/ has an explanation, don't know where
-> the most current patch is -- best check the LKML archives for that.
+On Thursday 25 August 2005 16:20, Ow Mun Heng wrote:
+>
+> Here's the patches http://muru.com/linux/dyntick/
+>
 
-Ah.. Thanks for the link.
+Hi,
 
-Here's the patches http://muru.com/linux/dyntick/
+I guess the latest patch is this:
 
-Anyone played with it just yet??
-> 
-> 	Dominik
+ http://lkml.org/lkml/diff/2005/8/7/2/1
 
--- 
-Ow Mun Heng
-Gentoo/Linux on DELL D600 1.4Ghz 1.5GB RAM
-98% Microsoft(tm) Free!! 
-Neuromancer 22:18:54 up 13:11, 6 users, load average: 2.20, 1.95, 1.81 
+Regards,
+
+Felix
 
 
 
