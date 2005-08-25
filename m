@@ -1,12 +1,8 @@
-From: "Paulo Vitor Magacho da Silva" <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: EC Confusion
-Date: Thu, 25 Aug 2005 16:56:23 -0300
-Message-ID: <BAY12-F297C1478A6E800210A33F2A8AB0@phx.gbl>
-References: <3ACA40606221794F80A5670F0AF15F84041AC1FE@pdsmsx403>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+From: Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org
+Subject: [patch 1/1] ES7000 broken build for non-ACPI config
+Date: Thu, 25 Aug 2005 04:05:59 -0700
+Message-ID: <20050825110600.4382758DC5@linux.site>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC1FE@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,76 +12,128 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: akpm-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Added #ifdefs in several places for items meant for ACPI boot only.
+Moved es7000_plat global var outside of CONFIG_ACPI_BOOT scope, so it's
+available for non-ACPI build.
 
-Hello,
+Signed-off-by: <Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>
 
-sorry for the late reply. I would like to thank for all your help.
-I did a grep for "burst-mode-ec-10-Aug" and it was there, but the sleep 
-button still didn't work. The dmesg output is the same for both kernel I am 
-testing, 2.6.12-rc2-mm2 e 2.6.13-rc6.
+---
 
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d0d28)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d0ba8)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d0d28)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d0ba8)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d0d28)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d0ba8)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.BAT0._BST] (Node c14d0d28)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__.AC__._PSR] (Node c14d0ba8)
-kernel: Execute Method: [\_SB_.PCI0.LPC0.EC__._Q0D] (Node c14d1aa8)
+ arch/i386/kernel/mpparse.c                  |    4 ++--
+ arch/i386/mach-es7000/es7000.h              |    2 ++
+ arch/i386/mach-es7000/es7000plat.c          |    6 ++----
+ include/asm-i386/mach-es7000/mach_mpparse.h |    4 ++++
+ 4 files changed, 10 insertions(+), 6 deletions(-)
 
-It keeps polling the AC and Battery, and when I hit the sleep button it 
-appears the Q0D line. However for kernel 2.6.13-rc6, this line only appears 
-after 8 hits in the sleep button.
-
-Thanks,
-Paulo
-
->From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->To: "Thomas Renninger" <trenn-l3A5Bk7waGM@public.gmane.org>
->CC: "Paulo Vitor Magacho da Silva" 
-><pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>,<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
->Subject: RE: [ACPI] EC Confusion
->Date: Wed, 17 Aug 2005 21:10:10 +0800
->
->
-> >> EC burst mode did solve this problem on that machine.
-> >>
-> >Seems there is a regression in the EC burst mode code:
-> >EC burst mode does not solve the problem for this guy in
-> >current kernels any more.
-> >
-> >I used one of the patches applied to:
-> >http://bugzilla.kernel.org/show_bug.cgi?id=3851
-> >(Sorry don't know the exact one any more, was about a month or
-> >a bit more ago).
-> >With that one the buffered key issue was gone.
-> >
-> >He now retested with current kernels: 2.6.13-rc6-git1-2 and
-> >the problem exists again.
-> >
-> >Maybe Paolo should raise a new bug for that issue if not already done?
-> >Please CC me.
->
->Please grep dmesg if you find "burst-mode-ec-10-Aug", then there has
->right patch.
->
-> >
-> >Thanks,
-> >
-> >    Thomas
-> >
->
->
-
-_________________________________________________________________
-Chegou o que faltava: MSN Acesso Grátis. Instale Já! 
-http://www.msn.com.br/discador
-
+diff -puN arch/i386/mach-es7000/es7000.h~build-fix-1 arch/i386/mach-es7000/es7000.h
+--- linux-2.6.13-rc6/arch/i386/mach-es7000/es7000.h~build-fix-1	2005-08-25 00:57:54.998988192 -0700
++++ linux-2.6.13-rc6-root/arch/i386/mach-es7000/es7000.h	2005-08-25 00:58:39.812175552 -0700
+@@ -74,6 +74,7 @@ struct es7000_oem_table {
+ 	struct psai psai;
+ };
+ 
++#ifdef CONFIG_ACPI_BOOT
+ struct acpi_table_sdt {
+ 	unsigned long pa;
+ 	unsigned long count;
+@@ -89,6 +90,7 @@ struct oem_table {
+ 	u32 OEMTableAddr;
+ 	u32 OEMTableSize;
+ };
++#endif
+ 
+ struct mip_reg {
+ 	unsigned long long off_0;
+diff -puN arch/i386/mach-es7000/es7000plat.c~build-fix-1 arch/i386/mach-es7000/es7000plat.c
+--- linux-2.6.13-rc6/arch/i386/mach-es7000/es7000plat.c~build-fix-1	2005-08-25 00:57:55.033982872 -0700
++++ linux-2.6.13-rc6-root/arch/i386/mach-es7000/es7000plat.c	2005-08-25 00:59:26.518075176 -0700
+@@ -51,8 +51,6 @@ struct mip_reg		*host_reg;
+ int 			mip_port;
+ unsigned long		mip_addr, host_addr;
+ 
+-#if defined(CONFIG_X86_IO_APIC) && (defined(CONFIG_ACPI_INTERPRETER) || defined(CONFIG_ACPI_BOOT))
+-
+ /*
+  * GSI override for ES7000 platforms.
+  */
+@@ -73,8 +71,6 @@ es7000_rename_gsi(int ioapic, int gsi)
+ 	return gsi;
+ }
+ 
+-#endif // (CONFIG_X86_IO_APIC) && (CONFIG_ACPI_INTERPRETER || CONFIG_ACPI_BOOT)
+-
+ /*
+  * Parse the OEM Table
+  */
+@@ -156,6 +152,7 @@ parse_unisys_oem (char *oemptr, int oem_
+ 	return es7000_plat;
+ }
+ 
++#ifdef CONFIG_ACPI_BOOT
+ int __init
+ find_unisys_acpi_oem_table(unsigned long *oem_addr, int *length)
+ {
+@@ -210,6 +207,7 @@ find_unisys_acpi_oem_table(unsigned long
+ 	Dprintk("ES7000: did not find Unisys ACPI OEM table!\n");
+ 	return -1;
+ }
++#endif
+ 
+ static void
+ es7000_spin(int n)
+diff -puN include/asm-i386/mach-es7000/mach_mpparse.h~build-fix-1 include/asm-i386/mach-es7000/mach_mpparse.h
+--- linux-2.6.13-rc6/include/asm-i386/mach-es7000/mach_mpparse.h~build-fix-1	2005-08-25 01:30:43.906668728 -0700
++++ linux-2.6.13-rc6-root/include/asm-i386/mach-es7000/mach_mpparse.h	2005-08-25 01:31:35.785781904 -0700
+@@ -13,7 +13,9 @@ static inline void mpc_oem_pci_bus(struc
+ }
+ 
+ extern int parse_unisys_oem (char *oemptr, int oem_entries);
++#ifdef CONFIG_ACPI_BOOT
+ extern int find_unisys_acpi_oem_table(unsigned long *oem_addr, int *length);
++#endif
+ 
+ static inline int mps_oem_check(struct mp_config_table *mpc, char *oem,
+ 		char *productid)
+@@ -30,10 +32,12 @@ static inline int mps_oem_check(struct m
+ /* Hook from generic ACPI tables.c */
+ static inline int acpi_madt_oem_check(char *oem_id, char *oem_table_id)
+ {
++#ifdef CONFIG_ACPI_BOOT
+ 	unsigned long oem_addr; 
+ 	int oem_entries;
+ 	if (!find_unisys_acpi_oem_table(&oem_addr, &oem_entries))
+ 		return parse_unisys_oem((char *)oem_addr, oem_entries);
++#endif
+ 	return 0;
+ }
+ 
+diff -puN arch/i386/kernel/mpparse.c~build-fix-1 arch/i386/kernel/mpparse.c
+--- linux-2.6.13-rc6/arch/i386/kernel/mpparse.c~build-fix-1	2005-08-25 01:50:46.237886600 -0700
++++ linux-2.6.13-rc6-root/arch/i386/kernel/mpparse.c	2005-08-25 01:51:57.733017688 -0700
+@@ -812,6 +812,8 @@ void __init find_smp_config (void)
+                             ACPI-based MP Configuration
+    -------------------------------------------------------------------------- */
+ 
++int es7000_plat;
++
+ #ifdef CONFIG_ACPI_BOOT
+ 
+ void __init mp_register_lapic_address (
+@@ -982,8 +984,6 @@ void __init mp_override_legacy_irq (
+ 	return;
+ }
+ 
+-int es7000_plat;
+-
+ void __init mp_config_acpi_legacy_irqs (void)
+ {
+ 	struct mpc_config_intsrc intsrc;
+_
 
 
 -------------------------------------------------------
