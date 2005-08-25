@@ -1,13 +1,13 @@
-From: "Protasevich, Natalie" <Natalie.Protasevich-8PZ5lytb3wbQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [patch 1/1] ES7000 broken build for non-ACPI config
-Date: Fri, 26 Aug 2005 11:13:35 -0500
-Message-ID: <19D0D50E9B1D0A40A9F0323DBFA04ACCE04CF9@USRV-EXCH4.na.uis.unisys.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: presario 2500 hangs on resume s3
+Date: Thu, 25 Aug 2005 20:24:58 +0200
+Message-ID: <20050825182457.GB443@openzaurus.ucw.cz>
+References: <1124730128.10429.5.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <1124730128.10429.5.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,177 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: akpm-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Antonio Distante <antonio.distante-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sorry, I wasn't aware of that.=20
-Maybe CONFIG_ACPI can be used instead; I just tried it and verified that
-it worked as well...
-Thanks,
---Natalie=20
-=20
-> can't apply this one because in the latest ACPI patch both=20
-> CONFIG_ACPI_BOOT and CONFIG_ACPI_INTERPRETER no longer exist.
->=20
-> I'll see if I can sort this out later today.
->=20
-> thanks,
-> -Len
->=20
->=20
-> >-----Original Message-----
-> >From: Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org
-> >[mailto:Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org]
-> >Sent: Thursday, August 25, 2005 7:06 AM
-> >To: Brown, Len
-> >Cc: akpm-3NddpPZAyC0@public.gmane.org; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org;=20
-> >Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org
-> >Subject: [patch 1/1] ES7000 broken build for non-ACPI config
-> >
-> >Added #ifdefs in several places for items meant for ACPI boot only.
-> >Moved es7000_plat global var outside of CONFIG_ACPI_BOOT=20
-> scope, so it's=20
-> >available for non-ACPI build.
-> >
-> >Signed-off-by: <Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>
-> >
-> >---
-> >
-> > arch/i386/kernel/mpparse.c                  |    4 ++--
-> > arch/i386/mach-es7000/es7000.h              |    2 ++
-> > arch/i386/mach-es7000/es7000plat.c          |    6 ++----
-> > include/asm-i386/mach-es7000/mach_mpparse.h |    4 ++++
-> > 4 files changed, 10 insertions(+), 6 deletions(-)
-> >
-> >diff -puN arch/i386/mach-es7000/es7000.h~build-fix-1
-> >arch/i386/mach-es7000/es7000.h
-> >---=20
-> >linux-2.6.13-rc6/arch/i386/mach-es7000/es7000.h~build-fix-1=09
-> >2005-08-25 00:57:54.998988192 -0700
-> >+++ linux-2.6.13-rc6-root/arch/i386/mach-es7000/es7000.h=09
-> >2005-08-25 00:58:39.812175552 -0700
-> >@@ -74,6 +74,7 @@ struct es7000_oem_table {
-> > 	struct psai psai;
-> > };
-> >=20
-> >+#ifdef CONFIG_ACPI_BOOT
-> > struct acpi_table_sdt {
-> > 	unsigned long pa;
-> > 	unsigned long count;
-> >@@ -89,6 +90,7 @@ struct oem_table {
-> > 	u32 OEMTableAddr;
-> > 	u32 OEMTableSize;
-> > };
-> >+#endif
-> >=20
-> > struct mip_reg {
-> > 	unsigned long long off_0;
-> >diff -puN arch/i386/mach-es7000/es7000plat.c~build-fix-1
-> >arch/i386/mach-es7000/es7000plat.c
-> >---
-> >linux-2.6.13-rc6/arch/i386/mach-es7000/es7000plat.c~buil
-> >d-fix-1	2005-08-25 00:57:55.033982872 -0700
-> >+++ linux-2.6.13-rc6-root/arch/i386/mach-es7000/es7000plat.c=09
-> >2005-08-25 00:59:26.518075176 -0700
-> >@@ -51,8 +51,6 @@ struct mip_reg		*host_reg;
-> > int 			mip_port;
-> > unsigned long		mip_addr, host_addr;
-> >=20
-> >-#if defined(CONFIG_X86_IO_APIC) &&
-> >(defined(CONFIG_ACPI_INTERPRETER) || defined(CONFIG_ACPI_BOOT))
-> >-
-> > /*
-> >  * GSI override for ES7000 platforms.
-> >  */
-> >@@ -73,8 +71,6 @@ es7000_rename_gsi(int ioapic, int gsi)
-> > 	return gsi;
-> > }
-> >=20
-> >-#endif // (CONFIG_X86_IO_APIC) && (CONFIG_ACPI_INTERPRETER ||
-> >CONFIG_ACPI_BOOT)
-> >-
-> > /*
-> >  * Parse the OEM Table
-> >  */
-> >@@ -156,6 +152,7 @@ parse_unisys_oem (char *oemptr, int oem_
-> > 	return es7000_plat;
-> > }
-> >=20
-> >+#ifdef CONFIG_ACPI_BOOT
-> > int __init
-> > find_unisys_acpi_oem_table(unsigned long *oem_addr, int=20
-> *length)  { @@=20
-> >-210,6 +207,7 @@ find_unisys_acpi_oem_table(unsigned long
-> > 	Dprintk("ES7000: did not find Unisys ACPI OEM table!\n");
-> > 	return -1;
-> > }
-> >+#endif
-> >=20
-> > static void
-> > es7000_spin(int n)
-> >diff -puN
-> >include/asm-i386/mach-es7000/mach_mpparse.h~build-fix-1
-> >include/asm-i386/mach-es7000/mach_mpparse.h
-> >---
-> >linux-2.6.13-rc6/include/asm-i386/mach-es7000/mach_mpparse.h~bu
-> >ild-fix-1	2005-08-25 01:30:43.906668728 -0700
-> >+++=20
-> >linux-2.6.13-rc6-root/include/asm-i386/mach-es7000/mach_mp
-> >parse.h	2005-08-25 01:31:35.785781904 -0700
-> >@@ -13,7 +13,9 @@ static inline void mpc_oem_pci_bus(struc  }
-> >=20
-> > extern int parse_unisys_oem (char *oemptr, int oem_entries);
-> >+#ifdef CONFIG_ACPI_BOOT
-> > extern int find_unisys_acpi_oem_table(unsigned long *oem_addr, int=20
-> >*length);
-> >+#endif
-> >=20
-> > static inline int mps_oem_check(struct mp_config_table *mpc, char=20
-> >*oem,
-> > 		char *productid)
-> >@@ -30,10 +32,12 @@ static inline int mps_oem_check(struct m
-> > /* Hook from generic ACPI tables.c */
-> > static inline int acpi_madt_oem_check(char *oem_id, char
-> >*oem_table_id)
-> > {
-> >+#ifdef CONFIG_ACPI_BOOT
-> > 	unsigned long oem_addr;=20
-> > 	int oem_entries;
-> > 	if (!find_unisys_acpi_oem_table(&oem_addr, &oem_entries))
-> > 		return parse_unisys_oem((char *)oem_addr, oem_entries);
-> >+#endif
-> > 	return 0;
-> > }
-> >=20
-> >diff -puN arch/i386/kernel/mpparse.c~build-fix-1
-> >arch/i386/kernel/mpparse.c
-> >--- linux-2.6.13-rc6/arch/i386/kernel/mpparse.c~build-fix-1=09
-> >2005-08-25 01:50:46.237886600 -0700
-> >+++ linux-2.6.13-rc6-root/arch/i386/kernel/mpparse.c=09
-> >2005-08-25 01:51:57.733017688 -0700
-> >@@ -812,6 +812,8 @@ void __init find_smp_config (void)
-> >                             ACPI-based MP Configuration
-> >   =20
-> >---------------------------------------------------------------
-> >----------- */
-> >=20
-> >+int es7000_plat;
-> >+
-> > #ifdef CONFIG_ACPI_BOOT
-> >=20
-> > void __init mp_register_lapic_address ( @@ -982,8 +984,6 @@ void=20
-> >__init mp_override_legacy_irq (
-> > 	return;
-> > }
-> >=20
-> >-int es7000_plat;
-> >-
-> > void __init mp_config_acpi_legacy_irqs (void)  {
-> > 	struct mpc_config_intsrc intsrc;
-> >_
-> >
->=20
+Hi!
+
+> Pavel Machek's patch that should play a beep on resume:
+> 
+>  --- clean/arch/i386/kernel/acpi/wakeup.S	2005-01-22 21:24:51.000000000 +0100
+>  +++ linux/arch/i386/kernel/acpi/wakeup.S	2004-12-25 15:51:04.000000000 +0100
+....
+> 
+> I applied it to a 2.6.13-rc5 vanilla kernel and build it without framebuffer
+> support. I booted the new kernel with "init=/bin/sh" and then tried to S3. On
+> resume system hangs and I can't hear no beep. I hope this helps. Just ask if you
+> need some other informations.
+
+Try it with apic disabled and minimal config...
+
+Yep, this is hard to debug. If above does not help, I do not know what to
+do...
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
