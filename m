@@ -1,15 +1,14 @@
-From: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
-Subject: Re: Centrino not scaling to lowest frequency
-Date: Thu, 25 Aug 2005 17:04:50 +0200
-Message-ID: <200508251704.50673.fexpop@onlinehome.de>
-References: <200508152344.11572.fexpop@onlinehome.de> <200508181847.48291.fexpop@onlinehome.de> <20050824105002.GC12792@dominikbrodowski.de>
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Subject: Re: utmisc-0131: *** Error: Invalid owner_id: 00
+Date: Thu, 25 Aug 2005 17:20:44 +0200
+Message-ID: <20050825152044.GA30781@gamma.logic.tuwien.ac.at>
+References: <6694B22B6436BC43B429958787E454983CBD0C@mssmsx402nb>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050824105002.GC12792-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <6694B22B6436BC43B429958787E454983CBD0C@mssmsx402nb>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,34 +18,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mattia Dongili <malattia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, ACPI Devel Maling List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 24 August 2005 12:50, Dominik Brodowski wrote:
-> That's because other Operating Systems do "throttling" on top of "CPU
-> frequency scaling", even though that doesn't save you any energy. The
-> better energy usage rates of Windows are a known problem; hopefully the
-> dynamic tick patch will improve the situation in this regard.
->
-> 	Dominik
->
+Hi Alexey!
 
-Thanks for the info. The dynamic tick patch sounds really interesting! I'll 
-give it a try.
+On Don, 25 Aug 2005, Starikovskiy, Alexey Y wrote:
+>  Could you try this patch?
 
-BTW, Intel's CPU identifiction utility reports a system bus frequency of 400 
-MHz when the CPU is reported to work at 600 MHz. Usually the system bus is 
-running at 533 MHz. Is this the effect of "throttling" on top of "CPU 
-frequency scaling" or is this something different?
+I have used the patch for 2.6.11-rc6-mm2 from Mattia and also here no
+strange messages from the ACPI system anymore. Thanks a lot.
 
-Thanks,
+Best wishes
 
-Felix
+Norbert
+
+-------------------------------------------------------------------------=
+------
+Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0 =
+di Siena
+sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
+690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
+5 B094
+-------------------------------------------------------------------------=
+------
+BOLSOVER
+One of those brown plastic trays with bumps on, placed upside down in
+boxes of chocolates to make you think you're-getting two layers.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
 SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practic=
+es
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & Q=
+A
 Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
