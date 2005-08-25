@@ -1,14 +1,13 @@
-From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Subject: Re: utmisc-0131: *** Error: Invalid owner_id: 00
-Date: Thu, 25 Aug 2005 17:20:44 +0200
-Message-ID: <20050825152044.GA30781@gamma.logic.tuwien.ac.at>
-References: <6694B22B6436BC43B429958787E454983CBD0C@mssmsx402nb>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: Centrino not scaling to lowest frequency
+Date: Thu, 25 Aug 2005 17:37:03 +0200
+Message-ID: <20050825153703.GA594@isilmar.linta.de>
+References: <200508152344.11572.fexpop@onlinehome.de> <200508181847.48291.fexpop@onlinehome.de> <20050824105002.GC12792@dominikbrodowski.de> <200508251704.50673.fexpop@onlinehome.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6694B22B6436BC43B429958787E454983CBD0C@mssmsx402nb>
+In-Reply-To: <200508251704.50673.fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,42 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mattia Dongili <malattia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, ACPI Devel Maling List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Felix Homann <fexpop-53koH/AXb86i2/dY4+mD5w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Alexey!
+On Thu, Aug 25, 2005 at 05:04:50PM +0200, Felix Homann wrote:
+> On Wednesday 24 August 2005 12:50, Dominik Brodowski wrote:
+> > That's because other Operating Systems do "throttling" on top of "CPU
+> > frequency scaling", even though that doesn't save you any energy. The
+> > better energy usage rates of Windows are a known problem; hopefully the
+> > dynamic tick patch will improve the situation in this regard.
+> >
+> > 	Dominik
+> >
+> 
+> Thanks for the info. The dynamic tick patch sounds really interesting! I'll 
+> give it a try.
+> 
+> BTW, Intel's CPU identifiction utility reports a system bus frequency of 400 
+> MHz when the CPU is reported to work at 600 MHz. Usually the system bus is 
+> running at 533 MHz. Is this the effect of "throttling" on top of "CPU 
+> frequency scaling" or is this something different?
 
-On Don, 25 Aug 2005, Starikovskiy, Alexey Y wrote:
->  Could you try this patch?
+Uh, this is strange. I know of no implementation on Intel CPUs to scale the
+system bus frequency.
 
-I have used the patch for 2.6.11-rc6-mm2 from Mattia and also here no
-strange messages from the ACPI system anymore. Thanks a lot.
+However.... Are you relying on centrino-decode of cpufrequtils? IIRC
+it is broken for the 533 MHz case, so if it reports 400 MHz it actually means
+600 MHz.  *clicketiclick* Yes, cpufrequtils-0.3 still contains this bug;
+need to release 0.4 soon.
 
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------=
-------
-Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0 =
-di Siena
-sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
-690018
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
-5 B094
--------------------------------------------------------------------------=
-------
-BOLSOVER
-One of those brown plastic trays with bumps on, placed upside down in
-boxes of chocolates to make you think you're-getting two layers.
-			--- Douglas Adams, The Meaning of Liff
+	Dominik
 
 
 -------------------------------------------------------
 SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practic=
-es
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & Q=
-A
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
 Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
