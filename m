@@ -1,11 +1,10 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [patch 1/1] ES7000 broken build for non-ACPI config
-Date: Fri, 26 Aug 2005 11:36:12 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30046DB0CE@hdsmsx401.amr.corp.intel.com>
+From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: utmisc-0131: *** Error: Invalid owner_id: 00
+Date: Fri, 26 Aug 2005 19:51:37 +0400
+Message-ID: <6694B22B6436BC43B429958787E454984289FD@mssmsx402nb>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C5AA56.09EE4B57"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,171 +16,202 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org
-Cc: akpm-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mattia Dongili <malattia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, ACPI Devel Maling List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-can't apply this one because in the latest ACPI patch both
-CONFIG_ACPI_BOOT and CONFIG_ACPI_INTERPRETER no longer exist.
+This is a multi-part message in MIME format.
 
-I'll see if I can sort this out later today.
+------_=_NextPart_001_01C5AA56.09EE4B57
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-thanks,
--Len
+ Looks like I went into wrong direction with previous patch, could you
+please try new one?
 
+Regards,
+	Alex.
 
->-----Original Message-----
->From: Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org=20
->[mailto:Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org]=20
->Sent: Thursday, August 25, 2005 7:06 AM
->To: Brown, Len
->Cc: akpm-3NddpPZAyC0@public.gmane.org; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org;=20
->Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org
->Subject: [patch 1/1] ES7000 broken build for non-ACPI config
->
->Added #ifdefs in several places for items meant for ACPI boot only.
->Moved es7000_plat global var outside of CONFIG_ACPI_BOOT scope, so it's
->available for non-ACPI build.
->
->Signed-off-by: <Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>
->
->---
->
-> arch/i386/kernel/mpparse.c                  |    4 ++--
-> arch/i386/mach-es7000/es7000.h              |    2 ++
-> arch/i386/mach-es7000/es7000plat.c          |    6 ++----
-> include/asm-i386/mach-es7000/mach_mpparse.h |    4 ++++
-> 4 files changed, 10 insertions(+), 6 deletions(-)
->
->diff -puN arch/i386/mach-es7000/es7000.h~build-fix-1=20
->arch/i386/mach-es7000/es7000.h
->---=20
->linux-2.6.13-rc6/arch/i386/mach-es7000/es7000.h~build-fix-1=09
->2005-08-25 00:57:54.998988192 -0700
->+++ linux-2.6.13-rc6-root/arch/i386/mach-es7000/es7000.h=09
->2005-08-25 00:58:39.812175552 -0700
->@@ -74,6 +74,7 @@ struct es7000_oem_table {
-> 	struct psai psai;
-> };
->=20
->+#ifdef CONFIG_ACPI_BOOT
-> struct acpi_table_sdt {
-> 	unsigned long pa;
-> 	unsigned long count;
->@@ -89,6 +90,7 @@ struct oem_table {
-> 	u32 OEMTableAddr;
-> 	u32 OEMTableSize;
-> };
->+#endif
->=20
-> struct mip_reg {
-> 	unsigned long long off_0;
->diff -puN arch/i386/mach-es7000/es7000plat.c~build-fix-1=20
->arch/i386/mach-es7000/es7000plat.c
->---=20
->linux-2.6.13-rc6/arch/i386/mach-es7000/es7000plat.c~buil
->d-fix-1	2005-08-25 00:57:55.033982872 -0700
->+++ linux-2.6.13-rc6-root/arch/i386/mach-es7000/es7000plat.c=09
->2005-08-25 00:59:26.518075176 -0700
->@@ -51,8 +51,6 @@ struct mip_reg		*host_reg;
-> int 			mip_port;
-> unsigned long		mip_addr, host_addr;
->=20
->-#if defined(CONFIG_X86_IO_APIC) &&=20
->(defined(CONFIG_ACPI_INTERPRETER) || defined(CONFIG_ACPI_BOOT))
->-
-> /*
->  * GSI override for ES7000 platforms.
->  */
->@@ -73,8 +71,6 @@ es7000_rename_gsi(int ioapic, int gsi)
-> 	return gsi;
-> }
->=20
->-#endif // (CONFIG_X86_IO_APIC) && (CONFIG_ACPI_INTERPRETER ||=20
->CONFIG_ACPI_BOOT)
->-
-> /*
->  * Parse the OEM Table
->  */
->@@ -156,6 +152,7 @@ parse_unisys_oem (char *oemptr, int oem_
-> 	return es7000_plat;
-> }
->=20
->+#ifdef CONFIG_ACPI_BOOT
-> int __init
-> find_unisys_acpi_oem_table(unsigned long *oem_addr, int *length)
-> {
->@@ -210,6 +207,7 @@ find_unisys_acpi_oem_table(unsigned long
-> 	Dprintk("ES7000: did not find Unisys ACPI OEM table!\n");
-> 	return -1;
-> }
->+#endif
->=20
-> static void
-> es7000_spin(int n)
->diff -puN=20
->include/asm-i386/mach-es7000/mach_mpparse.h~build-fix-1=20
->include/asm-i386/mach-es7000/mach_mpparse.h
->---=20
->linux-2.6.13-rc6/include/asm-i386/mach-es7000/mach_mpparse.h~bu
->ild-fix-1	2005-08-25 01:30:43.906668728 -0700
->+++=20
->linux-2.6.13-rc6-root/include/asm-i386/mach-es7000/mach_mp
->parse.h	2005-08-25 01:31:35.785781904 -0700
->@@ -13,7 +13,9 @@ static inline void mpc_oem_pci_bus(struc
-> }
->=20
-> extern int parse_unisys_oem (char *oemptr, int oem_entries);
->+#ifdef CONFIG_ACPI_BOOT
-> extern int find_unisys_acpi_oem_table(unsigned long=20
->*oem_addr, int *length);
->+#endif
->=20
-> static inline int mps_oem_check(struct mp_config_table *mpc,=20
->char *oem,
-> 		char *productid)
->@@ -30,10 +32,12 @@ static inline int mps_oem_check(struct m
-> /* Hook from generic ACPI tables.c */
-> static inline int acpi_madt_oem_check(char *oem_id, char=20
->*oem_table_id)
-> {
->+#ifdef CONFIG_ACPI_BOOT
-> 	unsigned long oem_addr;=20
-> 	int oem_entries;
-> 	if (!find_unisys_acpi_oem_table(&oem_addr, &oem_entries))
-> 		return parse_unisys_oem((char *)oem_addr, oem_entries);
->+#endif
-> 	return 0;
-> }
->=20
->diff -puN arch/i386/kernel/mpparse.c~build-fix-1=20
->arch/i386/kernel/mpparse.c
->--- linux-2.6.13-rc6/arch/i386/kernel/mpparse.c~build-fix-1=09
->2005-08-25 01:50:46.237886600 -0700
->+++ linux-2.6.13-rc6-root/arch/i386/kernel/mpparse.c=09
->2005-08-25 01:51:57.733017688 -0700
->@@ -812,6 +812,8 @@ void __init find_smp_config (void)
->                             ACPI-based MP Configuration
->   =20
->---------------------------------------------------------------
->----------- */
->=20
->+int es7000_plat;
->+
-> #ifdef CONFIG_ACPI_BOOT
->=20
-> void __init mp_register_lapic_address (
->@@ -982,8 +984,6 @@ void __init mp_override_legacy_irq (
-> 	return;
-> }
->=20
->-int es7000_plat;
->-
-> void __init mp_config_acpi_legacy_irqs (void)
-> {
-> 	struct mpc_config_intsrc intsrc;
->_
->
+-----Original Message-----
+From: Mattia Dongili [mailto:malattia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]=20
+Sent: Thursday, August 25, 2005 9:32 PM
+To: Starikovskiy, Alexey Y; Norbert Preining; Thomas Renninger; ACPI
+Devel Maling List
+Subject: Re: [ACPI] utmisc-0131: *** Error: Invalid owner_id: 00
+
+On Thu, Aug 25, 2005 at 07:22:28PM +0200, Mattia Dongili wrote:
+> On Thu, Aug 25, 2005 at 12:36:52PM +0200, Mattia Dongili wrote:
+> > On 8/25/05, Starikovskiy, Alexey Y <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+wrote:
+[...]
+> I'll restore the WARN_ON(*owner_id!=3D0) in acpi_ut_allocate_owner_id
+and
+> see if I can get more out of it.
+[...]
+> Badness in acpi_ut_allocate_owner_id at
+drivers/acpi/utilities/utmisc.c:70
+>  [<c02170c1>] acpi_ut_allocate_owner_id+0x3d/0xdb
+>  [<c01f64ae>] acpi_ds_call_control_method+0xed/0x303
+>  [<c020e471>] acpi_ps_parse_aml+0xf1/0x2d0
+>  [<c020e485>] acpi_ps_parse_aml+0x105/0x2d0
+
+doh... the mentioned WARN_ON was already there and was the author of
+that
+stack dump
+
+>  [<c0228673>] acpi_thermal_get_temperature+0x63/0xdb
+>  [<c02298cb>] acpi_thermal_temp_seq_show+0x30/0x8d
+
+and polling the thermal_zone was actually what issued it...
+
+--=20
+mattia
+:wq!
+
+------_=_NextPart_001_01C5AA56.09EE4B57
+Content-Type: application/octet-stream;
+	name="owner_id-3.patch"
+Content-Transfer-Encoding: base64
+Content-Description: owner_id-3.patch
+Content-Disposition: attachment;
+	filename="owner_id-3.patch"
+
+ZGlmZiAtcnUgL2hvbWUvYXlzdGFyaWsvcmVmZXJlbmNlL2xpbnV4LTIuNi4xMi9kcml2ZXJzL2Fj
+cGkvZGlzcGF0Y2hlci9kc21ldGhvZC5jIC4vZHJpdmVycy9hY3BpL2Rpc3BhdGNoZXIvZHNtZXRo
+b2QuYwotLS0gL2hvbWUvYXlzdGFyaWsvcmVmZXJlbmNlL2xpbnV4LTIuNi4xMi9kcml2ZXJzL2Fj
+cGkvZGlzcGF0Y2hlci9kc21ldGhvZC5jCTIwMDUtMDgtMjUgMTM6NTM6NTAuMDAwMDAwMDAwICsw
+NDAwCisrKyAuL2RyaXZlcnMvYWNwaS9kaXNwYXRjaGVyL2RzbWV0aG9kLmMJMjAwNS0wOC0yNiAy
+MzoyMToxNC4wMDAwMDAwMDAgKzA0MDAKQEAgLTI0Myw2ICsyNDMsMTUgQEAKIAkJc3RhdHVzID0g
+YWNwaV9leF9zeXN0ZW1fd2FpdF9zZW1hcGhvcmUgKG9ial9kZXNjLT5tZXRob2Quc2VtYXBob3Jl
+LAogCQkJCSBBQ1BJX1dBSVRfRk9SRVZFUik7CiAJfQorCS8qCisJICogYWxsb2NhdGUgb3duZXIg
+aWQgZm9yIHRoaXMgbWV0aG9kCisJKi8KKwlpZiAoIW9ial9kZXNjLT5tZXRob2QudGhyZWFkX2Nv
+dW50KSB7CisJCXN0YXR1cyA9IGFjcGlfdXRfYWxsb2NhdGVfb3duZXJfaWQgKCZvYmpfZGVzYy0+
+bWV0aG9kLm93bmVyX2lkKTsKKwkJaWYgKEFDUElfRkFJTFVSRSAoc3RhdHVzKSkgeworCQkJcmV0
+dXJuX0FDUElfU1RBVFVTIChzdGF0dXMpOworCQl9CisJfQogCiAJLyoKIAkgKiBJbmNyZW1lbnQg
+dGhlIG1ldGhvZCBwYXJzZSB0cmVlIHRocmVhZCBjb3VudCBzaW5jZSBpdCBoYXMgYmVlbgpAQCAt
+Mjk5LDExICszMDgsNiBAQAogCQlyZXR1cm5fQUNQSV9TVEFUVVMgKEFFX05VTExfT0JKRUNUKTsK
+IAl9CiAKLQlzdGF0dXMgPSBhY3BpX3V0X2FsbG9jYXRlX293bmVyX2lkICgmb2JqX2Rlc2MtPm1l
+dGhvZC5vd25lcl9pZCk7Ci0JaWYgKEFDUElfRkFJTFVSRSAoc3RhdHVzKSkgewotCQlyZXR1cm5f
+QUNQSV9TVEFUVVMgKHN0YXR1cyk7Ci0JfQotCiAJLyogSW5pdCBmb3IgbmV3IG1ldGhvZCwgd2Fp
+dCBvbiBjb25jdXJyZW5jeSBzZW1hcGhvcmUgKi8KIAogCXN0YXR1cyA9IGFjcGlfZHNfYmVnaW5f
+bWV0aG9kX2V4ZWN1dGlvbiAobWV0aG9kX25vZGUsIG9ial9kZXNjLApAQCAtMzg3LDIzICszOTEs
+MTcgQEAKIAogCWlmIChvYmpfZGVzYy0+bWV0aG9kLm1ldGhvZF9mbGFncyAmIEFNTF9NRVRIT0Rf
+SU5URVJOQUxfT05MWSkgewogCQlzdGF0dXMgPSBvYmpfZGVzYy0+bWV0aG9kLmltcGxlbWVudGF0
+aW9uIChuZXh0X3dhbGtfc3RhdGUpOwotCQlyZXR1cm5fQUNQSV9TVEFUVVMgKHN0YXR1cyk7CiAJ
+fQotCi0JcmV0dXJuX0FDUElfU1RBVFVTIChBRV9PSyk7Ci0KLQotCS8qIE9uIGVycm9yLCB3ZSBt
+dXN0IGRlbGV0ZSB0aGUgbmV3IHdhbGsgc3RhdGUgKi8KLQorCWdvdG8gZW5kOwogY2xlYW51cDoK
+LQlhY3BpX3V0X3JlbGVhc2Vfb3duZXJfaWQgKCZvYmpfZGVzYy0+bWV0aG9kLm93bmVyX2lkKTsK
+KwkvKiBEZWNyZW1lbnQgdGhlIHRocmVhZCBjb3VudCBvbiB0aGUgbWV0aG9kIHBhcnNlIHRyZWUg
+Ki8KIAlpZiAobmV4dF93YWxrX3N0YXRlICYmIChuZXh0X3dhbGtfc3RhdGUtPm1ldGhvZF9kZXNj
+KSkgewotCQkvKiBEZWNyZW1lbnQgdGhlIHRocmVhZCBjb3VudCBvbiB0aGUgbWV0aG9kIHBhcnNl
+IHRyZWUgKi8KLQotCSAgIG5leHRfd2Fsa19zdGF0ZS0+bWV0aG9kX2Rlc2MtPm1ldGhvZC50aHJl
+YWRfY291bnQtLTsKKwkJbmV4dF93YWxrX3N0YXRlLT5tZXRob2RfZGVzYy0+bWV0aG9kLnRocmVh
+ZF9jb3VudC0tOwogCX0KLQkodm9pZCkgYWNwaV9kc190ZXJtaW5hdGVfY29udHJvbF9tZXRob2Qg
+KG5leHRfd2Fsa19zdGF0ZSk7CisJLyogT24gZXJyb3IsIHdlIG11c3QgZGVsZXRlIHRoZSBuZXcg
+d2FsayBzdGF0ZSAqLworCWFjcGlfZHNfdGVybWluYXRlX2NvbnRyb2xfbWV0aG9kIChuZXh0X3dh
+bGtfc3RhdGUpOwogCWFjcGlfZHNfZGVsZXRlX3dhbGtfc3RhdGUgKG5leHRfd2Fsa19zdGF0ZSk7
+CitlbmQ6CiAJcmV0dXJuX0FDUElfU1RBVFVTIChzdGF0dXMpOwogfQogCkBAIC00OTEsNyArNDg5
+LDcgQEAKICAqCiAgKiBQQVJBTUVURVJTOiAgd2Fsa19zdGF0ZSAgICAgICAgICAtIFN0YXRlIG9m
+IHRoZSBtZXRob2QKICAqCi0gKiBSRVRVUk46ICAgICAgU3RhdHVzCisgKiBSRVRVUk46ICAgICAg
+Tm9uZQogICoKICAqIERFU0NSSVBUSU9OOiBUZXJtaW5hdGUgYSBjb250cm9sIG1ldGhvZC4gIERl
+bGV0ZSBldmVyeXRoaW5nIHRoYXQgdGhlIG1ldGhvZAogICogICAgICAgICAgICAgIGNyZWF0ZWQs
+IGRlbGV0ZSBhbGwgbG9jYWxzIGFuZCBhcmd1bWVudHMsIGFuZCBkZWxldGUgdGhlIHBhcnNlCkBA
+IC00OTksNyArNDk3LDcgQEAKICAqCiAgKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLwogCi1hY3BpX3N0
+YXR1cwordm9pZAogYWNwaV9kc190ZXJtaW5hdGVfY29udHJvbF9tZXRob2QgKAogCXN0cnVjdCBh
+Y3BpX3dhbGtfc3RhdGUgICAgICAgICAgKndhbGtfc3RhdGUpCiB7CkBAIC01MTIsMTQgKzUxMCwx
+NCBAQAogCiAKIAlpZiAoIXdhbGtfc3RhdGUpIHsKLQkJcmV0dXJuIChBRV9CQURfUEFSQU1FVEVS
+KTsKKwkJcmV0dXJuX1ZPSUQ7CiAJfQogCiAJLyogVGhlIGN1cnJlbnQgbWV0aG9kIG9iamVjdCB3
+YXMgc2F2ZWQgaW4gdGhlIHdhbGsgc3RhdGUgKi8KIAogCW9ial9kZXNjID0gd2Fsa19zdGF0ZS0+
+bWV0aG9kX2Rlc2M7CiAJaWYgKCFvYmpfZGVzYykgewotCQlyZXR1cm5fQUNQSV9TVEFUVVMgKEFF
+X09LKTsKKwkJcmV0dXJuX1ZPSUQ7CiAJfQogCiAJLyogRGVsZXRlIGFsbCBhcmd1bWVudHMgYW5k
+IGxvY2FscyAqLwpAQCAtNTMzLDcgKzUzMSw3IEBACiAJICovCiAJc3RhdHVzID0gYWNwaV91dF9h
+Y3F1aXJlX211dGV4IChBQ1BJX01UWF9QQVJTRVIpOwogCWlmIChBQ1BJX0ZBSUxVUkUgKHN0YXR1
+cykpIHsKLQkJcmV0dXJuX0FDUElfU1RBVFVTIChzdGF0dXMpOworCQlyZXR1cm5fVk9JRDsKIAl9
+CiAKIAkvKiBTaWduYWwgY29tcGxldGlvbiBvZiB0aGUgZXhlY3V0aW9uIG9mIHRoaXMgbWV0aG9k
+IGlmIG5lY2Vzc2FyeSAqLwpAQCAtNTg2LDcgKzU4NCw3IEBACiAJCSAqLwogCQlzdGF0dXMgPSBh
+Y3BpX3V0X2FjcXVpcmVfbXV0ZXggKEFDUElfTVRYX05BTUVTUEFDRSk7CiAJCWlmIChBQ1BJX0ZB
+SUxVUkUgKHN0YXR1cykpIHsKLQkJCXJldHVybl9BQ1BJX1NUQVRVUyAoc3RhdHVzKTsKKwkJCWdv
+dG8gY2xlYW51cDsKIAkJfQogCiAJCWlmIChtZXRob2Rfbm9kZS0+Y2hpbGQpIHsKQEAgLTYwMiwx
+MiArNjAwLDExIEBACiAJCWFjcGlfdXRfcmVsZWFzZV9vd25lcl9pZCAoJndhbGtfc3RhdGUtPm1l
+dGhvZF9kZXNjLT5tZXRob2Qub3duZXJfaWQpOwogCiAJCWlmIChBQ1BJX0ZBSUxVUkUgKHN0YXR1
+cykpIHsKLQkJCXJldHVybl9BQ1BJX1NUQVRVUyAoc3RhdHVzKTsKKwkJCWdvdG8gY2xlYW51cDsK
+IAkJfQogCX0KLQotCXN0YXR1cyA9IGFjcGlfdXRfcmVsZWFzZV9tdXRleCAoQUNQSV9NVFhfUEFS
+U0VSKTsKLQlyZXR1cm5fQUNQSV9TVEFUVVMgKHN0YXR1cyk7CitjbGVhbnVwOgorCWFjcGlfdXRf
+cmVsZWFzZV9tdXRleCAoQUNQSV9NVFhfUEFSU0VSKTsKIH0KIAogCmRpZmYgLXJ1IC9ob21lL2F5
+c3RhcmlrL3JlZmVyZW5jZS9saW51eC0yLjYuMTIvZHJpdmVycy9hY3BpL3BhcnNlci9wc3BhcnNl
+LmMgLi9kcml2ZXJzL2FjcGkvcGFyc2VyL3BzcGFyc2UuYwotLS0gL2hvbWUvYXlzdGFyaWsvcmVm
+ZXJlbmNlL2xpbnV4LTIuNi4xMi9kcml2ZXJzL2FjcGkvcGFyc2VyL3BzcGFyc2UuYwkyMDA1LTA4
+LTI1IDEzOjUzOjUwLjAwMDAwMDAwMCArMDQwMAorKysgLi9kcml2ZXJzL2FjcGkvcGFyc2VyL3Bz
+cGFyc2UuYwkyMDA1LTA4LTI2IDIzOjQwOjI1LjAwMDAwMDAwMCArMDQwMApAQCAtNDM3LDcgKzQz
+Nyw2IEBACiAJc3RydWN0IGFjcGlfd2Fsa19zdGF0ZSAgICAgICAgICAqd2Fsa19zdGF0ZSkKIHsK
+IAlhY3BpX3N0YXR1cyAgICAgICAgICAgICAgICAgICAgIHN0YXR1czsKLQlhY3BpX3N0YXR1cyAg
+ICAgICAgICAgICAgICAgICAgIHRlcm1pbmF0ZV9zdGF0dXM7CiAJc3RydWN0IGFjcGlfdGhyZWFk
+X3N0YXRlICAgICAgICAqdGhyZWFkOwogCXN0cnVjdCBhY3BpX3RocmVhZF9zdGF0ZSAgICAgICAg
+KnByZXZfd2Fsa19saXN0ID0gYWNwaV9nYmxfY3VycmVudF93YWxrX2xpc3Q7CiAJc3RydWN0IGFj
+cGlfd2Fsa19zdGF0ZSAgICAgICAgICAqcHJldmlvdXNfd2Fsa19zdGF0ZTsKQEAgLTUwNyw3ICs1
+MDYsMTAgQEAKIAkJZWxzZSBpZiAoKHN0YXR1cyAhPSBBRV9PSykgJiYgKHdhbGtfc3RhdGUtPm1l
+dGhvZF9kZXNjKSkgewogCQkJQUNQSV9SRVBPUlRfTUVUSE9EX0VSUk9SICgiTWV0aG9kIGV4ZWN1
+dGlvbiBmYWlsZWQiLAogCQkJCXdhbGtfc3RhdGUtPm1ldGhvZF9ub2RlLCBOVUxMLCBzdGF0dXMp
+OwotCisJCQkKKwkJCS8qIE1ha2Ugc3VyZSB0aGF0IGZhaWxlZCBtZXRob2Qgd2lsbCBiZSBjbGVh
+bmVkIGFzIGlmIGl0IHdhcyBleGVjdXRlZCAqLworCQkJd2Fsa19zdGF0ZS0+cGFyc2VfZmxhZ3Mg
+fD0gQUNQSV9QQVJTRV9FWEVDVVRFOworCQkJCiAJCQkvKiBDaGVjayBmb3IgcG9zc2libGUgbXVs
+dGktdGhyZWFkIHJlZW50cmFuY3kgcHJvYmxlbSAqLwogCiAJCQlpZiAoKHN0YXR1cyA9PSBBRV9B
+TFJFQURZX0VYSVNUUykgJiYKQEAgLTUyMywxNCArNTI1LDYgQEAKIAkJCX0KIAkJfQogCi0JCWlm
+ICh3YWxrX3N0YXRlLT5tZXRob2RfZGVzYykgewotCQkJLyogRGVjcmVtZW50IHRoZSB0aHJlYWQg
+Y291bnQgb24gdGhlIG1ldGhvZCBwYXJzZSB0cmVlICovCi0KLQkJCWlmICh3YWxrX3N0YXRlLT5t
+ZXRob2RfZGVzYy0+bWV0aG9kLnRocmVhZF9jb3VudCkgewotCQkJCXdhbGtfc3RhdGUtPm1ldGhv
+ZF9kZXNjLT5tZXRob2QudGhyZWFkX2NvdW50LS07Ci0JCQl9Ci0JCX0KLQogCQkvKiBXZSBhcmUg
+ZG9uZSB3aXRoIHRoaXMgd2FsaywgbW92ZSBvbiB0byB0aGUgcGFyZW50IGlmIGFueSAqLwogCiAJ
+CXdhbGtfc3RhdGUgPSBhY3BpX2RzX3BvcF93YWxrX3N0YXRlICh0aHJlYWQpOwpAQCAtNTQ0LDEz
+ICs1MzgsMTEgQEAKIAkJICogdGhlcmUncyBsb3RzIG9mIGNsZWFudXAgdG8gZG8KIAkJICovCiAJ
+CWlmICgod2Fsa19zdGF0ZS0+cGFyc2VfZmxhZ3MgJiBBQ1BJX1BBUlNFX01PREVfTUFTSykgPT0g
+QUNQSV9QQVJTRV9FWEVDVVRFKSB7Ci0JCQl0ZXJtaW5hdGVfc3RhdHVzID0gYWNwaV9kc190ZXJt
+aW5hdGVfY29udHJvbF9tZXRob2QgKHdhbGtfc3RhdGUpOwotCQkJaWYgKEFDUElfRkFJTFVSRSAo
+dGVybWluYXRlX3N0YXR1cykpIHsKLQkJCQlBQ1BJX1JFUE9SVF9FUlJPUiAoKAotCQkJCQkiQ291
+bGQgbm90IHRlcm1pbmF0ZSBjb250cm9sIG1ldGhvZCBwcm9wZXJseVxuIikpOwotCi0JCQkJLyog
+SWdub3JlIGVycm9yIGFuZCBjb250aW51ZSAqLworCQkJLyogRGVjcmVtZW50IHRoZSB0aHJlYWQg
+Y291bnQgb24gdGhlIG1ldGhvZCBwYXJzZSB0cmVlICovCisJCQlpZiAod2Fsa19zdGF0ZS0+bWV0
+aG9kX2Rlc2MpIHsKKwkJCQl3YWxrX3N0YXRlLT5tZXRob2RfZGVzYy0+bWV0aG9kLnRocmVhZF9j
+b3VudC0tOwogCQkJfQorCQkJYWNwaV9kc190ZXJtaW5hdGVfY29udHJvbF9tZXRob2QgKHdhbGtf
+c3RhdGUpOwogCQl9CiAKIAkJLyogRGVsZXRlIHRoaXMgd2FsayBzdGF0ZSBhbmQgYWxsIGxpbmtl
+ZCBjb250cm9sIHN0YXRlcyAqLwpkaWZmIC1ydSAvaG9tZS9heXN0YXJpay9yZWZlcmVuY2UvbGlu
+dXgtMi42LjEyL2RyaXZlcnMvYWNwaS9wYXJzZXIvcHN4ZmFjZS5jIC4vZHJpdmVycy9hY3BpL3Bh
+cnNlci9wc3hmYWNlLmMKLS0tIC9ob21lL2F5c3RhcmlrL3JlZmVyZW5jZS9saW51eC0yLjYuMTIv
+ZHJpdmVycy9hY3BpL3BhcnNlci9wc3hmYWNlLmMJMjAwNS0wOC0yNSAxMzo1Mzo1MC4wMDAwMDAw
+MDAgKzA0MDAKKysrIC4vZHJpdmVycy9hY3BpL3BhcnNlci9wc3hmYWNlLmMJMjAwNS0wOC0yNiAy
+Mzo0MDoyOC4wMDAwMDAwMDAgKzA0MDAKQEAgLTExMCwxNiArMTEwLDYgQEAKIAl9CiAKIAkvKgot
+CSAqIEdldCBhIG5ldyBvd25lcl9pZCBmb3Igb2JqZWN0cyBjcmVhdGVkIGJ5IHRoaXMgbWV0aG9k
+LiBOYW1lc3BhY2UKLQkgKiBvYmplY3RzIChzdWNoIGFzIE9wZXJhdGlvbiBSZWdpb25zKSBjYW4g
+YmUgY3JlYXRlZCBkdXJpbmcgdGhlCi0JICogZmlyc3QgcGFzcyBwYXJzZS4KLQkgKi8KLQlzdGF0
+dXMgPSBhY3BpX3V0X2FsbG9jYXRlX293bmVyX2lkICgmaW5mby0+b2JqX2Rlc2MtPm1ldGhvZC5v
+d25lcl9pZCk7Ci0JaWYgKEFDUElfRkFJTFVSRSAoc3RhdHVzKSkgewotCQlyZXR1cm5fQUNQSV9T
+VEFUVVMgKHN0YXR1cyk7Ci0JfQotCi0JLyoKIAkgKiBUaGUgY2FsbGVyICJvd25zIiB0aGUgcGFy
+YW1ldGVycywgc28gZ2l2ZSBlYWNoIG9uZSBhbiBleHRyYQogCSAqIHJlZmVyZW5jZQogCSAqLwpA
+QCAtMTUxLDEwICsxNDEsNiBAQAogCiAKIGNsZWFudXA6Ci0JaWYgKGluZm8tPm9ial9kZXNjLT5t
+ZXRob2Qub3duZXJfaWQpIHsKLQkJYWNwaV91dF9yZWxlYXNlX293bmVyX2lkICgmaW5mby0+b2Jq
+X2Rlc2MtPm1ldGhvZC5vd25lcl9pZCk7Ci0JfQotCiAJLyogVGFrZSBhd2F5IHRoZSBleHRyYSBy
+ZWZlcmVuY2UgdGhhdCB3ZSBnYXZlIHRoZSBwYXJhbWV0ZXJzIGFib3ZlICovCiAKIAlhY3BpX3Bz
+X3VwZGF0ZV9wYXJhbWV0ZXJfbGlzdCAoaW5mbywgUkVGX0RFQ1JFTUVOVCk7CmRpZmYgLXJ1IC9o
+b21lL2F5c3RhcmlrL3JlZmVyZW5jZS9saW51eC0yLjYuMTIvZHJpdmVycy9hY3BpL3V0aWxpdGll
+cy91dG1pc2MuYyAuL2RyaXZlcnMvYWNwaS91dGlsaXRpZXMvdXRtaXNjLmMKLS0tIC9ob21lL2F5
+c3RhcmlrL3JlZmVyZW5jZS9saW51eC0yLjYuMTIvZHJpdmVycy9hY3BpL3V0aWxpdGllcy91dG1p
+c2MuYwkyMDA1LTA4LTI1IDEzOjUzOjUwLjAwMDAwMDAwMCArMDQwMAorKysgLi9kcml2ZXJzL2Fj
+cGkvdXRpbGl0aWVzL3V0bWlzYy5jCTIwMDUtMDgtMjYgMjM6NDA6NTcuMDAwMDAwMDAwICswNDAw
+CkBAIC03NCw3ICs3NCw4IEBACiAKIAlBQ1BJX0ZVTkNUSU9OX1RSQUNFICgidXRfYWxsb2NhdGVf
+b3duZXJfaWQiKTsKIAotCisJV0FSTl9PTigqb3duZXJfaWQpOworCQogCS8qIE11dGV4IGZvciB0
+aGUgZ2xvYmFsIElEIG1hc2sgKi8KIAogCXN0YXR1cyA9IGFjcGlfdXRfYWNxdWlyZV9tdXRleCAo
+QUNQSV9NVFhfQ0FDSEVTKTsKZGlmZiAtcnUgL2hvbWUvYXlzdGFyaWsvcmVmZXJlbmNlL2xpbnV4
+LTIuNi4xMi9pbmNsdWRlL2FjcGkvYWNkaXNwYXQuaCAuL2luY2x1ZGUvYWNwaS9hY2Rpc3BhdC5o
+Ci0tLSAvaG9tZS9heXN0YXJpay9yZWZlcmVuY2UvbGludXgtMi42LjEyL2luY2x1ZGUvYWNwaS9h
+Y2Rpc3BhdC5oCTIwMDUtMDgtMjUgMTM6NDE6MTYuMDAwMDAwMDAwICswNDAwCisrKyAuL2luY2x1
+ZGUvYWNwaS9hY2Rpc3BhdC5oCTIwMDUtMDgtMjYgMjM6MDk6MjguMDAwMDAwMDAwICswNDAwCkBA
+IC0yNDksNyArMjQ5LDcgQEAKIAlzdHJ1Y3QgYWNwaV93YWxrX3N0YXRlICAgICAgICAgICp3YWxr
+X3N0YXRlLAogCXVuaW9uIGFjcGlfb3BlcmFuZF9vYmplY3QgICAgICAgKnJldHVybl9kZXNjKTsK
+IAotYWNwaV9zdGF0dXMKK3ZvaWQKIGFjcGlfZHNfdGVybWluYXRlX2NvbnRyb2xfbWV0aG9kICgK
+IAlzdHJ1Y3QgYWNwaV93YWxrX3N0YXRlICAgICAgICAgICp3YWxrX3N0YXRlKTsKIAo=
+
+------_=_NextPart_001_01C5AA56.09EE4B57--
 
 
 -------------------------------------------------------
