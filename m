@@ -1,13 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: presario 2500 hangs on resume s3
-Date: Thu, 25 Aug 2005 20:24:58 +0200
-Message-ID: <20050825182457.GB443@openzaurus.ucw.cz>
-References: <1124730128.10429.5.camel@localhost.localdomain>
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Subject: Re: utmisc-0131: *** Error: Invalid owner_id: 00
+Date: Fri, 26 Aug 2005 23:18:00 +0200
+Message-ID: <20050826211800.GB7145@gamma.logic.tuwien.ac.at>
+References: <6694B22B6436BC43B429958787E454984289FD@mssmsx402nb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1124730128.10429.5.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <6694B22B6436BC43B429958787E454984289FD@mssmsx402nb>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +18,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Antonio Distante <antonio.distante-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mattia Dongili <malattia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, ACPI Devel Maling List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> Pavel Machek's patch that should play a beep on resume:
-> 
->  --- clean/arch/i386/kernel/acpi/wakeup.S	2005-01-22 21:24:51.000000000 +0100
->  +++ linux/arch/i386/kernel/acpi/wakeup.S	2004-12-25 15:51:04.000000000 +0100
-....
-> 
-> I applied it to a 2.6.13-rc5 vanilla kernel and build it without framebuffer
-> support. I booted the new kernel with "init=/bin/sh" and then tried to S3. On
-> resume system hangs and I can't hear no beep. I hope this helps. Just ask if you
-> need some other informations.
+On Fre, 26 Aug 2005, Starikovskiy, Alexey Y wrote:
+>  Looks like I went into wrong direction with previous patch, could you
+> please try new one?
 
-Try it with apic disabled and minimal config...
+Better. No strange kernel Ooops, no ACPI messages here. Only hard to
+merge into the 2.6.13-rc6-mm2 kernel.
 
-Yep, this is hard to debug. If above does not help, I do not know what to
-do...
-				Pavel
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+I report if I find something more.
 
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------=
+------
+Dr. Norbert Preining <preining AT logic DOT at>             Universit=E0 =
+di Siena
+sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
+690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
+5 B094
+-------------------------------------------------------------------------=
+------
+POLLOCH (n.)
+One of those tiny ribbed-plastic and aluminium foil tubs of milk
+served on trains enabling you to carry one safely back to you
+compartment where your legs in comfort trying to get the bloody things
+open.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
 SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practic=
+es
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & Q=
+A
 Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
