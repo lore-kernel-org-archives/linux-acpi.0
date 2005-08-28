@@ -1,46 +1,52 @@
 From: matthieu castet <castet.matthieu@free.fr>
-Subject: Re: [ACPI] Re: [PATCH] PNPACPI: fix types when decoding ACPI	resources
- [resend]
-Date: Sun, 28 Aug 2005 19:40:59 +0200
-Message-ID: <4311F72B.2010106@free.fr>
-References: <200508020955.54844.bjorn.helgaas@hp.com>	 <1123030861.2937.4.camel@linux-hp.sh.intel.com>	 <200508030920.13450.bjorn.helgaas@hp.com>  <42F1343B.70707@free.fr> <1123116712.2929.8.camel@linux-hp.sh.intel.com>
+Subject: [PATCH] PNPACPI: only parse device that have CRS method
+Date: Sun, 28 Aug 2005 19:45:39 +0200
+Message-ID: <4311F843.4030000@free.fr>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------060303020506050103090206"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750713AbVH1Rp1@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: acpi-devel@lists.sourceforge.net
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, Adam Belay <ambx1@neo.rr.com>, linux-kernel@vger.kernel.org, Shaohua Li <shaohua.li@intel.com>
+List-Id: linux-acpi@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------060303020506050103090206
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750710AbVH1Rkr@vger.kernel.org>
-In-Reply-To: <1123116712.2929.8.camel@linux-hp.sh.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shaohua Li <shaohua.li@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, acpi-devel@lists.sourceforge.net, Adam Belay <ambx1@neo.rr.com>, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-Shaohua Li wrote:
-> On Wed, 2005-08-03 at 23:16 +0200, matthieu castet wrote:
-> 
->>There are drivers/acpi/motherboard.c that done some stuff already handle 
->>by pnp/system.c.
-> 
-> Yes, it should be disabled if pnpacpi is enabled. 
-But even if pnpacpi is disabled, pnp/system.c sould work with pnpbios.
-> The only concern is
-> motherboard.c also request some ACPI resources, which might not declaim
-> in ACPI motherboard device, but it's completely BIOS dependent. We might
-> could try remove it at -mm tree to see if it breaks any system later.
-> 
-> 
-Ok,
-may be we should split in 2 modules : the one that request some ACPI 
-resources and the other that use PNP resource.
->>PS : I saw in acpi ols paper that you plan once all dupe acpi drivers 
->>will be removed to register again the pnp device in acpi layer. Do you 
->>plan to add more check and for example add only device that have a CRS 
->>in pnp layer ?
-> 
-> For detecting PNP device? it's worthy trying.
-> 
+this patch blacklist device that don't have CRS method as there are 
+useless for pnp layer as they don't provide any resource.
 
-I will send a patch for that.
+Please comment and consider for inclusion.
+
+Thanks,
 
 Matthieu
+
+--------------060303020506050103090206
+Content-Type: text/x-patch;
+ name="pnpacpi_nocrs.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pnpacpi_nocrs.patch"
+
+Index: linux-2.6.13rc/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux-2.6.13rc.orig/drivers/pnp/pnpacpi/core.c	2005-08-28 19:24:40.000000000 +0200
++++ linux-2.6.13rc/drivers/pnp/pnpacpi/core.c	2005-08-28 19:26:35.000000000 +0200
+@@ -131,7 +131,8 @@
+ 	struct pnp_id *dev_id;
+ 	struct pnp_dev *dev;
+ 
+-	if (!ispnpidacpi(acpi_device_hid(device)) ||
++	status = acpi_get_handle(device->handle, "_CRS", &temp);
++	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
+ 		is_exclusive_device(device))
+ 		return 0;
+ 
+
+--------------060303020506050103090206--
