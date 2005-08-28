@@ -1,41 +1,46 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: issues with acpi events
-Date: Sun, 28 Aug 2005 11:12:19 +0200
-Message-ID: <20050828091218.GF1109@openzaurus.ucw.cz>
-References: <9cfa1502050827011924cf0304@mail.gmail.com>
+From: matthieu castet <castet.matthieu@free.fr>
+Subject: Re: [ACPI] Re: [PATCH] PNPACPI: fix types when decoding ACPI	resources
+ [resend]
+Date: Sun, 28 Aug 2005 19:40:59 +0200
+Message-ID: <4311F72B.2010106@free.fr>
+References: <200508020955.54844.bjorn.helgaas@hp.com>	 <1123030861.2937.4.camel@linux-hp.sh.intel.com>	 <200508030920.13450.bjorn.helgaas@hp.com>  <42F1343B.70707@free.fr> <1123116712.2929.8.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9cfa1502050827011924cf0304-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750710AbVH1Rkr@vger.kernel.org>
+In-Reply-To: <1123116712.2929.8.camel@linux-hp.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shaohua Li <shaohua.li@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, acpi-devel@lists.sourceforge.net, Adam Belay <ambx1@neo.rr.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi,
 
+Shaohua Li wrote:
+> On Wed, 2005-08-03 at 23:16 +0200, matthieu castet wrote:
+> 
+>>There are drivers/acpi/motherboard.c that done some stuff already handle 
+>>by pnp/system.c.
+> 
+> Yes, it should be disabled if pnpacpi is enabled. 
+But even if pnpacpi is disabled, pnp/system.c sould work with pnpbios.
+> The only concern is
+> motherboard.c also request some ACPI resources, which might not declaim
+> in ACPI motherboard device, but it's completely BIOS dependent. We might
+> could try remove it at -mm tree to see if it breaks any system later.
+> 
+> 
+Ok,
+may be we should split in 2 modules : the one that request some ACPI 
+resources and the other that use PNP resource.
+>>PS : I saw in acpi ols paper that you plan once all dupe acpi drivers 
+>>will be removed to register again the pnp device in acpi layer. Do you 
+>>plan to add more check and for example add only device that have a CRS 
+>>in pnp layer ?
+> 
+> For detecting PNP device? it's worthy trying.
+> 
 
-> Suspend-2-ram works fine. I still need to on Suspend-2-disk, however.
-> It tells me if frees memory for a while.. then screen goes black, but
-> it never shuts down, forcing me to do a 'hard' shutdown.
+I will send a patch for that.
 
-See Doc*/power/swsusp.txt.
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
-
-
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
-Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
+Matthieu
