@@ -1,12 +1,13 @@
-From: Manuel J.Galan <mjgalan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACER Aspire 5000
-Date: Tue, 30 Aug 2005 14:36:52 +0000 (UTC)
-Message-ID: <loom.20050830T163344-565@post.gmane.org>
-References: <20050829180845.98096.qmail@web81605.mail.yahoo.com>
+From: "Magenheimer, Dan (HP Labs Fort Collins)" <dan.magenheimer-VXdhtT5mjnY@public.gmane.org>
+Subject: RE: One-line patch for systems with ACPI enabled but incomplete tree
+Date: Tue, 30 Aug 2005 09:27:24 -0700
+Message-ID: <516F50407E01324991DD6D07B0531AD56953D4@cacexc12.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,69 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matt R Hall <mhall@...> writes:
+I see this didn't make it into 2.6.13 so am re-posting.
 
-> 
-> I am having some problems with ACPI battery support on an ACER Aspire
-> 5000. I am unable to read the battery state, which makes this laptop
-> nearly useless. I suspect the DSDT code was missing a variable
-> declaration or something and this was not caught by Microsoft's
-> compiler, but I'm nowhere near expert with the DSDT programming
-> language, so some help would be greatly appreciated.
-> 
-> Relevant ASCII information is included inline. The /proc/acpi/dsdt file
-> is attached.
-> 
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
-try to patch your dsdt.dsl with the following
-================================================
---- dstd.dsl.old        2005-08-30 15:26:55.000000000 +0100
-+++ dstd.dsl    2005-08-30 15:26:35.000000000 +0100
-@@ -2,7 +2,7 @@
-  * Intel ACPI Component Architecture
-  * AML Disassembler version 20050624
-  *
-- * Disassembly of dstd, Tue Aug 30 15:26:55 2005
-+ * Disassembly of dstd, Tue Aug 30 15:12:42 2005
-  */
- DefinitionBlock ("DSDT.aml", "DSDT", 1, "PTLTD ", "755", 100925440)
+The attached patch allows systems for which ACPI is enabled,
+but a full tree is not present, to avoid a horrible kernel crash.
+Systems with this characteristic include the ia64 HP simulator
+(with ACPI enabled) and some future virtualized environments
+(e.g. Xen, specifically Xen/ia64).
+
+If no objections, please apply.  If discussion ensues, please
+cc me as I am not a subscriber to this list.
+
+Thanks,
+Dan Magenheimer
+HP Labs
+
+--- 1.6/drivers/acpi/motherboard.c	Wed Nov 10 15:57:35 2004
++++ 1.7/drivers/acpi/motherboard.c	Fri Apr 22 16:47:41 2005
+@@ -120,6 +120,7 @@
+ static void __init
+ acpi_reserve_resources (void)
  {
-@@ -144,7 +144,10 @@
-
-     Scope (_PR)
-     {
--        Processor (CPU0, 0x00, 0x00008010, 0x06) {}
-+        Processor (CPU0, 0x00, 0x00008010, 0x06)
-+       {
-+               External (_PPC) // added. mjgalan
-+       }
-     }
-
-     Scope (\_SB)
-@@ -3007,8 +3010,8 @@
-             Name (PBST, Package (0x04)
-             {
-                 0x00,
--                Z007,
--                Z007,
-+                Z006,  // changed from Z007. mjgalan
-+                Z006,  // changed from Z007. mjgalan
-                 0x2710
-             })
-             Name (ERRC, 0x00)
-@@ -3399,6 +3402,7 @@
-         {
-             \_SB.PHSR (0x03, 0x00)
-         }
-+       Return(Package(0x02){0x00, 0x00}) // added. mjgalan
-     }
-
-     Method (_PTS, 1, NotSerialized)
-========================================================
-
++	if (!acpi_gbl_FADT) return;
 
 
 -------------------------------------------------------
