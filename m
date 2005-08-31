@@ -1,65 +1,47 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: Re: Re: ACER Aspire 5000 <- Will these bios bugs ever be	fixed?
-Date: Wed, 31 Aug 2005 19:51:07 +0200
-Message-ID: <4315EE0B.7090407@tzi.de>
-References: <20050829180845.98096.qmail@web81605.mail.yahoo.com>	 <loom.20050830T163344-565@post.gmane.org>  <1125475314.3594.8.camel@linux>	 <1125478354.20251.5.camel@localhost.localdomain> <1125493848.3355.8.camel@localhost.localdomain> <4315B00F.1080805@gmx.net>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: One-line patch for systems with ACPI enabled but incomplete tree
+Date: Wed, 31 Aug 2005 15:49:50 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30047B83DE@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4315B00F.1080805-hi6Y0CQ0nG0@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>, Hans Kristian Rosbach <hk-lnVXpwuIOH4XWF+eFR7m5Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Magenheimer, Dan (HP Labs Fort Collins)" <dan.magenheimer@hp.com>
+Cc: acpi-devel@lists.sourceforge.net, hch@infradead.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Carl-Daniel Hailfinger schrieb:
-> Alan Cox schrieb:
-> 
->>On Mer, 2005-08-31 at 10:52 +0200, Erik Slagter wrote:
->>
->>
->>>Dell is even worse. If you tell them you run Linux on your laptop they
->>>will try to convince you it may damage your hardware and you won't get
->>>any guarantee whatsoever etc. (this in reply to a simple purely hardware
->>>based question)
->>
->>
->>Random Dell techies might. If you've got specific demonstrable BIOS bugs
->>in modern Dell laptops make sure the Dell Linux folks get them but in an
->>easy to reproduce form, or with a fix. If you can get something through
->>to the Dell BIOS people my experience so far is that it actually gets
->>fixed. Getting something that far into Dell is "interesting"
-> 
-> 
-> For many vendors, contacting some higher-level staff at trade fairs gets
-> you better contacts than any other method. Especially if you offer to
-> supply a detailed technical description of the problem and tell them
-> their engineering will find a solution inside that description. Keep
-> the email address of the person you talked to and regularly bug them
-> if the problem persists.
-> 
+>
+>The attached patch allows systems for which ACPI is enabled,
+>but a full tree is not present, to avoid a horrible kernel crash.
+>Systems with this characteristic include the ia64 HP simulator
+>(with ACPI enabled) and some future virtualized environments
+>(e.g. Xen, specifically Xen/ia64).
+>
+>If no objections, please apply.  If discussion ensues, please
+>cc me as I am not a subscriber to this list.
+>
+>Thanks,
+>Dan Magenheimer
+>HP Labs
+>
+>--- 1.6/drivers/acpi/motherboard.c	Wed Nov 10 15:57:35 2004
+>+++ 1.7/drivers/acpi/motherboard.c	Fri Apr 22 16:47:41 2005
+>@@ -120,6 +120,7 @@
+> static void __init
+> acpi_reserve_resources (void)
+> {
+>+	if (!acpi_gbl_FADT) return;
 
-What also works is starting an online petition and setting it somehow up 
-on slashdot ;-). In this way the battery issue of my M6 got fixed. 
-Anyway, if you contact ASUS support you don't get a promise that they 
-will fix it, but at least you get some links to patches that work 
-arround the problem on linuxside...
+Is this the same simulator that runs arch/ia64/configs/sim_defconfig,
+but for your kernel ACPI is now enabled?
+Why is ACPI now enabled in the simulation?
+Why can't the simulator provide an FADT?
 
-Greets
-    Janosch
+Modifying (everybodies) Linux to work-around simulator bugs
+doesn't sound like a good idea for a number of reasons.
 
-
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
-Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
+thanks,
+-Len
