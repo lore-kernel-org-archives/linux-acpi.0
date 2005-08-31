@@ -1,71 +1,110 @@
-From: "Magenheimer, Dan (HP Labs Fort Collins)" <dan.magenheimer@hp.com>
-Subject: RE: One-line patch for systems with ACPI enabled but incomplete tree
-Date: Wed, 31 Aug 2005 13:28:25 -0700
-Message-ID: <516F50407E01324991DD6D07B0531AD56954F6@cacexc12.americas.cpqcorp.net>
+From: Venkatesh Pallipadi <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC][PATCH 0/4] Software coordination of frequency across CPUs sharing common P-state
+Date: Wed, 31 Aug 2005 14:09:33 -0700
+Message-ID: <20050831140933.A12497@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: acpi-devel@lists.sourceforge.net, hch@infradead.org, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: cpufreq <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> >--- 1.6/drivers/acpi/motherboard.c	Wed Nov 10 15:57:35 2004
-> >+++ 1.7/drivers/acpi/motherboard.c	Fri Apr 22 16:47:41 2005
-> >@@ -120,6 +120,7 @@
-> > static void __init
-> > acpi_reserve_resources (void)
-> > {
-> >+	if (!acpi_gbl_FADT) return;
-> 
-> Is this the same simulator that runs arch/ia64/configs/sim_defconfig,
-> but for your kernel ACPI is now enabled?
-> Why is ACPI now enabled in the simulation?
-> Why can't the simulator provide an FADT?
-> 
-> Modifying (everybodies) Linux to work-around simulator bugs
-> doesn't sound like a good idea for a number of reasons.
 
-I have been working on a patch that allows real kernels to
-run on this simulator... that is the same bits that work
-on real hardware will run on the simulator.  This will make
-debugging ia64 kernels easier for some situations.  Real kernels
-of course have ACPI on and this is the only remaining (non-ia64)
-code that fails when running a real kernel on the simulator.
+ACPI 3.0 (http://www.acpi.info) adds new methods with which BIOS can communicate
+P-state dependency domains (List of CPUs that share a common P-state) to
+the OS. This can be used in conjunction with the existing "cpu group awareness"
+in cpufreq infrastructure, to manage the group of CPUs sharing the common 
+P-state, in a better way.
 
-The same ACPI setup code used by this simulator is
-currently used for Xen/ia64 so the same problem
-occurs there.
+The patchset that follows adds this "software-coordination" feature in 
+acpi-perflib, and also changes acpi-cpufreq and speedstep-centrino drivers to
+use this feature. 
 
-> From: Moore, Robert [mailto:robert.moore@intel.com] 
-> Subject: RE: [ACPI] RE: One-line patch for systems with ACPI 
-> enabled but incomplete tree
-> 
-> I agree with Len's sentiments, assuming we are understanding 
-> the problem
-> correctly.
-> 
-> The ACPI CA subsystem operates under the assumption that at least the
-> following absolute minimum table set is available:
-> 
-> RSDT/XSDT
-> DSDT
-> FADT
-> FACS
-> 
-> It is quite simple for a simulator to provide these tables; see the
-> AcpiExec "simulator" source code (provided with ACPI CA) for a good
-> example of this.
+With this feature, current and future platforms (with more than one
+logical processor) with Enhanced Speedstep Technology, can use 
+software-coordination in place of BIOS(or Hardware)-coordination of P-states. 
+The advantages:
+1) With software coordination, we can use MSRs to change the frequency, 
+instead of using IO ports (as in BIOS coordination). This has a huge advantage
+in terms of P-state transition latency. MSR based P-states transition latency 
+is around 10uS where as IO port based (which goes through SMM for BIOS 
+coordination) latency is around 100uS.
+2) Kernel will know about the exact frequency at which each CPU is running. 
+With BIOS coordination, actual frequency of a particular CPU may be different
+from what kernel thinks it is. As, BIOS changes the frequency of a particular 
+CPU depending on last request from the kernel and also the frequency request 
+from all the other CPUs in the same domain.
 
-If FADT is absolutely required for every ACPI tree, I see why
-there is no check in the kernel code.  However, it still seems
-like a bug to me as everything else works if the FADT pointer
-is zero (with the above one line patch).
+Caveat: BIOSes have to change to to support these new ACPI 3.0 based interfaces.
+Not many BIOSes support it today. But, are likely to do it in future, as with 
+dual-cores, more number of logical processors share the common P-states.
 
-Thanks for the pointer... I will go find it and see if I can
-leverage the code.
+The patchset also allows "hardware coordination" of P-states among the
+CPUs belonging to same P-state dependency domain. Kernel will use either
+software or hardware coordination, depending on what BIOS supports on the
+particular platform. With hardware coordination among the CPUs of a dependency
+domain, we will still have the advantage (2) above, but will not have the 
+advantage (1).
 
-Dan
+Below is more info about each patch in the patchset.
+
+Comments most welcome.
+Thanks,
+Venki
+
+[PATCH 1/4] Software coordination of freq across CPUs sharing common P-state
+
+Changes to acpi/processor_perflib.c to invoke new (ACPI 3.0) _PSD methods. 
+This method has to be called early on all CPUs and P-state dependency domains 
+determined before the actual performance_register of P-states.
+
+Also, a new field (shared_type) is added to cpufreq_policy. This is required to support two kinds of CPU groups. One, where one logical CPU can change the 
+frequency of all the CPUs by writing into an MSR or IO port. Other, where all 
+CPUs in the dependency domain need to write to an MSR or IO port.
+
+
+[PATCH 2/4] Software coordination of freq across CPUs sharing common P-state
+
+Changes to speedstep-centrino required for supporting cpu groups sharing
+common P-state.
+
+acpi_processor_preregister_performance is called initially to determine the
+CPU group membership.
+centrino_target is chaneg to handle acpu group shared_type of SHARED_TYPE_ANY
+and SHARED_TYPE_ALL.
+
+
+[PATCH 3/4] Software coordination of freq across CPUs sharing common P-state
+
+Changes to acpi-cpufreq required for supporting cpu groups sharing
+common P-state
+
+acpi_processor_preregister_performance is called initially to determine the
+CPU group membership.
+centrino_target is chaneg to handle acpu group shared_type of SHARED_TYPE_ANY
+and SHARED_TYPE_ALL.
+
+
+[PATCH 4/4] Software coordination of freq across CPUs sharing common P-state
+
+Final knob to turn on the P-state cpu groups in acpi-cpufreq and
+speedstep-centrino. Add the software coordination bit for _PDC calls.
+
+
+
+
+-------------------------------------------------------
+SF.Net email is Sponsored by the Better Software Conference & EXPO
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
