@@ -1,13 +1,11 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: ACER Aspire 5000 <- Will these bios bugs ever be	fixed?
-Date: Wed, 31 Aug 2005 15:26:39 +0200
-Message-ID: <4315B00F.1080805@gmx.net>
-References: <20050829180845.98096.qmail@web81605.mail.yahoo.com>	 <loom.20050830T163344-565@post.gmane.org>  <1125475314.3594.8.camel@linux>	 <1125478354.20251.5.camel@localhost.localdomain> <1125493848.3355.8.camel@localhost.localdomain>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: ACPICA - public version control repository
+Date: Wed, 31 Aug 2005 17:30:28 +0200
+Message-ID: <4315CD14.9010208@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1125493848.3355.8.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +15,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>, Hans Kristian Rosbach <hk-lnVXpwuIOH4XWF+eFR7m5Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Alan Cox schrieb:
-> On Mer, 2005-08-31 at 10:52 +0200, Erik Slagter wrote:
-> 
->>Dell is even worse. If you tell them you run Linux on your laptop they
->>will try to convince you it may damage your hardware and you won't get
->>any guarantee whatsoever etc. (this in reply to a simple purely hardware
->>based question)
-> 
-> 
-> Random Dell techies might. If you've got specific demonstrable BIOS bugs
-> in modern Dell laptops make sure the Dell Linux folks get them but in an
-> easy to reproduce form, or with a fix. If you can get something through
-> to the Dell BIOS people my experience so far is that it actually gets
-> fixed. Getting something that far into Dell is "interesting"
+Hi,
 
-For many vendors, contacting some higher-level staff at trade fairs gets
-you better contacts than any other method. Especially if you offer to
-supply a detailed technical description of the problem and tell them
-their engineering will find a solution inside that description. Keep
-the email address of the person you talked to and regularly bug them
-if the problem persists.
+I try to extract some patches from the recent ACPICA commits (e.g. do not load ACPI tables twice).
+This is very difficult due recent lindent/debug (const char*)/...
+patches.
 
+Is there a public cvs/svn/whatever repository to reproduce single commits?
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+Thanks,
+
+    Thomas
 
 
 -------------------------------------------------------
