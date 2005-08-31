@@ -1,53 +1,31 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI Linux: acpi_get_firmware fix
-Date: Wed, 31 Aug 2005 16:37:43 -0400
-Message-ID: <1125520663.16880.41.camel@toshiba>
-References: <1121264876.8504.24.camel@firedrake.mandriva.com>
-	 <1121270181.8504.28.camel@firedrake.mandriva.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: One-line patch for systems with ACPI enabled but incomplete tree
+Date: Wed, 31 Aug 2005 17:51:36 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30047B85D5@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1121270181.8504.28.camel-UvLOT2mcgw93qojSD/UXlMfpnLc0EkqF@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Yann Droneaud <ydroneaud-4qZELD6FgxhWk0Htik3J/w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Magenheimer, Dan (HP Labs Fort Collins)" <dan.magenheimer@hp.com>
+Cc: acpi-devel@lists.sourceforge.net, hch@infradead.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+ 
+>If FADT is absolutely required for every ACPI tree, I see why
+>there is no check in the kernel code.  However, it still seems
+>like a bug to me as everything else works if the FADT pointer
+>is zero (with the above one line patch).
 
-thanks,
+ACPI has to jump through a lot of hoops due to broken systems.
+I don't want to add, test, and support an "FADT optional" hoop
+unless absolutely necessary.
+
+>Thanks for the pointer... I will go find it and see if I can
+>leverage the code.
+
+please do -- that is why we write it:-)
+
 -Len
-
------------
-Index: linux-acpi-2.6/drivers/char/ipmi/ipmi_si_intf.c
-===================================================================
---- linux-acpi-2.6.orig/drivers/char/ipmi/ipmi_si_intf.c
-+++ linux-acpi-2.6/drivers/char/ipmi/ipmi_si_intf.c
-@@ -1484,6 +1484,9 @@ static int try_init_acpi(int intf_num, s
-        char             *io_type;
-        u8               addr_space;
-
-+       if (acpi_disabled)
-+               return -ENODEV;
-+
-        if (acpi_failure)
-                return -ENODEV;
-
-
-
-
-
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
-Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
