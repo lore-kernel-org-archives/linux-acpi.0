@@ -1,124 +1,89 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI Linux: acpi_get_firmware fix
-Date: Wed, 31 Aug 2005 15:56:27 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30047B8402@hdsmsx401.amr.corp.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [ACPI] RE: One-line patch for systems with ACPI enabled but incomplete tree
+Date: Wed, 31 Aug 2005 13:07:20 -0700
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E02961E28@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-class: urn:content-classes:message
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Yann Droneaud <ydroneaud-4qZELD6FgxhWk0Htik3J/w@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>, "Magenheimer, Dan (HP Labs Fort Collins)" <dan.magenheimer@hp.com>
+Cc: acpi-devel@lists.sourceforge.net, hch@infradead.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
+I agree with Len's sentiments, assuming we are understanding the problem
+correctly.
 
->-----Original Message-----
->From: Yann Droneaud [mailto:ydroneaud-4qZELD6FgxhWk0Htik3J/w@public.gmane.org]=20
->Sent: Tuesday, August 30, 2005 10:54 AM
->To: Brown, Len
->Cc: Andrew Morton; Moore, Robert
->Subject: Re: ACPI Linux: acpi_get_firmware fix
->
->On Friday 12 August 2005 06:15, Brown, Len wrote:
->> >Le mercredi 13 juillet 2005 =E0 16:27 +0200, Yann Droneaud a =E9crit =
-:
->> >> Hi,
->> >>
->> >> In May, I sent a patch to add a check in acpi_get_firmware_table()
->> >>
->> >> "[PATCH 1/2] IPMI and acpi=3Doff|ht :=20
->acpi-get-firmware-failure.patch"
->> >> (Message-ID: <m23bsmzw35.fsf-UvLOT2mcgw93qojSD/UXlMfpnLc0EkqF@public.gmane.org>)
->> >>
->> >> Someone tell me that this change couldn't be merged asis=20
->because the
->> >> code touched was managed outside of the Linux tree.
->> >>
->> >> Today, I see in 2.6.13-rc3's changelog that a new ACPI CA=20
->was merged.
->> >>
->> >> I look at the code to see if the something changed, but=20
->nothing was
->> >> merged. I'm a bit surprised because I check the original=20
->ACPI CA code
->> >> from acpica-unix-20050624.tar.gz and found the check added.
->>
->> Yann,
->> 2.6.13 will ship with ACPICA 20050408.
->>
->> Changes that got into the ACPICA core after that will not hit Linux
->> until 2.6.14.
->>
->> The very latest core (20050729) is available in the -mm tree today.
->> If there is a fix missing from that very latest code, please=20
->let me know.
->>
->
->It's okay here, the fix applied on ACPICA is present in the=20
->-mm (at least in=20
->2.6.13-rc6).
+The ACPI CA subsystem operates under the assumption that at least the
+following absolute minimum table set is available:
 
-thanks for verifying.
+RSDT/XSDT
+DSDT
+FADT
+FACS
 
->> If the fix is critical, we can always cherry-pick it and
->> back-port it to 2.6.13.1.
->>
->
->I don't think it's critical, but I let you status on it.
->
->The real problem is located in drivers/char/ipmi/ipmi_si_intf.c, where=20
->try_init_acpi() call acpi_get_firmware_table() regardless of=20
->the status of=20
->ACPI. If the ACPI interpretor is disabled, this trigger a bug in=20
->acpi_get_firmware_table() trying to unmap rsdt_info->pointer=20
->which hasn't=20
->been setup after a failure of acpi_tb_get_table().
->
->I propose a patch to check acpi_disabled value, but I'm really=20
->not sure it's=20
->correct, since, there's really no other places in drivers=20
->where the variable=20
->is used, so I'm not sure if it's really exposed to the drivers or not=20
->restricted to arch/ and drivers/acpi/ .
+It is quite simple for a simulator to provide these tables; see the
+AcpiExec "simulator" source code (provided with ACPI CA) for a good
+example of this.
 
-acpi_disabled is defined in the base kernel and exported for drivers
-to check, so like the asus/sony/ibm etc. platform drivers,
-ipmi can check it too.
-
-thanks,
--Len
-
->I also sent the patch to check rsdt_info->pointer before=20
->free'ing it, which=20
->fix the Oops when acpi=3D is set to "off" or "ht". This one is=20
->applyed in=20
->ACPICA and -mm.
->
->References:
->http://lkml.org/lkml/2005/5/16/251
->http://lkml.org/lkml/2005/5/16/261
->http://lkml.org/lkml/2005/5/16/259
->http://lkml.org/lkml/2005/6/7/122
->
->The patch against ipmi_si_intf.c is attached.
->
->Regards.
->
+Bob Moore
 
 
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
-Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
+> -----Original Message-----
+> From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
+> admin@lists.sourceforge.net] On Behalf Of Brown, Len
+> Sent: Wednesday, August 31, 2005 12:50 PM
+> To: Magenheimer, Dan (HP Labs Fort Collins)
+> Cc: acpi-devel@lists.sourceforge.net; hch@infradead.org; linux-
+> ia64@vger.kernel.org
+> Subject: [ACPI] RE: One-line patch for systems with ACPI enabled but
+> incomplete tree
+> 
+> >
+> >The attached patch allows systems for which ACPI is enabled,
+> >but a full tree is not present, to avoid a horrible kernel crash.
+> >Systems with this characteristic include the ia64 HP simulator
+> >(with ACPI enabled) and some future virtualized environments
+> >(e.g. Xen, specifically Xen/ia64).
+> >
+> >If no objections, please apply.  If discussion ensues, please
+> >cc me as I am not a subscriber to this list.
+> >
+> >Thanks,
+> >Dan Magenheimer
+> >HP Labs
+> >
+> >--- 1.6/drivers/acpi/motherboard.c	Wed Nov 10 15:57:35 2004
+> >+++ 1.7/drivers/acpi/motherboard.c	Fri Apr 22 16:47:41 2005
+> >@@ -120,6 +120,7 @@
+> > static void __init
+> > acpi_reserve_resources (void)
+> > {
+> >+	if (!acpi_gbl_FADT) return;
+> 
+> Is this the same simulator that runs arch/ia64/configs/sim_defconfig,
+> but for your kernel ACPI is now enabled?
+> Why is ACPI now enabled in the simulation?
+> Why can't the simulator provide an FADT?
+> 
+> Modifying (everybodies) Linux to work-around simulator bugs
+> doesn't sound like a good idea for a number of reasons.
+> 
+> thanks,
+> -Len
+> 
+> 
+> -------------------------------------------------------
+> SF.Net email is Sponsored by the Better Software Conference & EXPO
+> September 19-22, 2005 * San Francisco, CA * Development Lifecycle
+> Practices
+> Agile & Plan-Driven Development * Managing Projects & Teams * Testing
+& QA
+> Security * Process Improvement & Measurement *
+http://www.sqe.com/bsce5sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
