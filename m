@@ -1,13 +1,15 @@
-From: "Magenheimer, Dan (HP Labs Fort Collins)" <dan.magenheimer-VXdhtT5mjnY@public.gmane.org>
-Subject: RE: One-line patch for systems with ACPI enabled but incomplete tree
-Date: Tue, 30 Aug 2005 09:27:24 -0700
-Message-ID: <516F50407E01324991DD6D07B0531AD56953D4@cacexc12.americas.cpqcorp.net>
+From: Hans Kristian Rosbach <hk-lnVXpwuIOH4XWF+eFR7m5Q@public.gmane.org>
+Subject: Re: Re: ACER Aspire 5000 <- Will these bios bugs ever be
+	fixed?
+Date: Wed, 31 Aug 2005 10:01:54 +0200
+Message-ID: <1125475314.3594.8.camel@linux>
+References: <20050829180845.98096.qmail@web81605.mail.yahoo.com>
+	 <loom.20050830T163344-565@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <loom.20050830T163344-565-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +19,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I see this didn't make it into 2.6.13 so am re-posting.
+Patching the dsdt.dsl isn't exactly for the faint at heart,
+so I am wondering wether this will be possible to work around
+automagicly for known problems on specific models?
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+I did contact Acer and ask them to just apply some easy fixes
+for the Ferrari 4005 battery detection. The reply I got was
+very surprising. Basicly she told me they don't want my
+business if I use anything other than windows.
 
-The attached patch allows systems for which ACPI is enabled,
-but a full tree is not present, to avoid a horrible kernel crash.
-Systems with this characteristic include the ia64 HP simulator
-(with ACPI enabled) and some future virtualized environments
-(e.g. Xen, specifically Xen/ia64).
+I'll probably try again at some later point if this is going
+to be a problem for long. It seems that they think it's not
+worth while to support Linux users at all.
 
-If no objections, please apply.  If discussion ensues, please
-cc me as I am not a subscriber to this list.
+And since windows somehow doesn't have the same problem it's
+unlikely to ever be fixed even though it is an actual bug in
+their bios implementation.
 
-Thanks,
-Dan Magenheimer
-HP Labs
+</rant>
+-HK
 
---- 1.6/drivers/acpi/motherboard.c	Wed Nov 10 15:57:35 2004
-+++ 1.7/drivers/acpi/motherboard.c	Fri Apr 22 16:47:41 2005
-@@ -120,6 +120,7 @@
- static void __init
- acpi_reserve_resources (void)
- {
-+	if (!acpi_gbl_FADT) return;
 
 
 -------------------------------------------------------
