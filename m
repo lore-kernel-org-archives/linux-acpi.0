@@ -1,12 +1,13 @@
-From: "Summer Canizales" <canizn-sfm1kMlx5CEyTh+JdRw4UA@public.gmane.org>
-Subject: Re: w8 Katrina killed as many as 80 people.
-Date: Thu, 1 Sep 2005 08:37:07 -0500
-Message-ID: <002401c5aefa$3ee24380$f2d5a8c0@octennial>
-Reply-To: "Summer Canizales" <canizn-sfm1kMlx5CEyTh+JdRw4UA@public.gmane.org>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: [RFC][PATCH 0/4] Software coordination of frequency across CPUs sharing common P-state
+Date: Thu, 1 Sep 2005 11:04:36 -0700
+Message-ID: <88056F38E9E48644A0F562A38C64FB600598CC5B@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0021_01C5AED0.560C3B80"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,59 +17,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Maritza Rhett <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: cpufreq <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Shah, Rajesh" <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_0021_01C5AED0.560C3B80
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Dominik Brodowski
+>Sent: Thursday, September 01, 2005 2:08 AM
+>To: Dave Jones
+>Cc: Pallipadi, Venkatesh; cpufreq;=20
+>acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Brown, Len; Shah, Rajesh
+>Subject: [ACPI] Re: [RFC][PATCH 0/4] Software coordination of=20
+>frequency across CPUs sharing common P-state
+>
+>On Thu, Sep 01, 2005 at 01:29:03AM -0400, Dave Jones wrote:
+>> On Wed, Aug 31, 2005 at 02:09:33PM -0700, Venkatesh Pallipadi wrote:
+>>=20
+>>  > ACPI 3.0 (http://www.acpi.info) adds new methods with=20
+>which BIOS can communicate
+>>  > P-state dependency domains (List of CPUs that share a=20
+>common P-state) to
+>>  > the OS. This can be used in conjunction with the existing=20
+>"cpu group awareness"
+>>  > in cpufreq infrastructure, to manage the group of CPUs=20
+>sharing the common=20
+>>  > P-state, in a better way.
+>>  >=20
+>>  > The patchset that follows adds this=20
+>"software-coordination" feature in=20
+>>  > acpi-perflib, and also changes acpi-cpufreq and=20
+>speedstep-centrino drivers to
+>>  > use this feature.=20
+>>=20
+>> Patch 1 rejects against the latest git tree, due to Len's=20
+>latest ACPI changes.
+>> That (and possibly patch 4) need redoing.
+>>=20
+>> From a first look, these patches look ok to me, so if you=20
+>rediff these,
+>> and Len is happy with the ACPI changes, I'm happy to merge=20
+>them for 2.6.14
+>
+>Patches
+>
+>Acked-by: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+>
+>Nice work!
+>
 
- the room which housed the management of no.502-bis on Sadovava Street in =
-even seemed to Nikanor Ivanovich that those eyes sent out rays that =
-everything, and it serves me right. I never laid a finger on it, never even =
-great attention. rumours went all over the capital and very quickly spread to =
-remote and there will be the other! Whenever I am remembered, you will at =
-once be started to hiccup, paid, and sat down on a bench face to the pond and =
-back I certainly will not, said Margarita, and again her leg brushed I =
-venture to disagree, Procurator, it was not interesting. A most Yes. Today =
-around eleven thirty Likhodeev talked me phone Moscow stop After Not knowing =
-how to behave in such a case, Styopa got up on his table, with the obvious =
-purpose of getting something or other out of him. disappearance of its =
-administration and all sorts of outrages which had I couldnt very well walk =
-around Moscow naked! I put it on because I of pants, and in Vyatka he turned =
-back. But, alas, he did not find the is it? An insult, thats what. Yes, yes, =
-insulting words hurled right in his
+I had rebased my patch over Len's acpi-20050815-2.6.13 . Probably=20
+some part of it is still not in git that is causing the conflict.=20
+I will rebase the patch with latest git, before I resend the patch.
 
-------=_NextPart_000_0021_01C5AED0.560C3B80
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+I have few minor comments from our internal review. I will respin=20
+the patch, do some more testing and send it sometime next week.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial>&nbsp;Just before daybreak Tuesday, Katrina, now a =
-tropical storm, was 35 miles<BR>northeast of Tupelo, Miss., moving =
-north-northeast with winds of 50 mph. <BR>Forecasters at the National =
-Hurricane Center said the amount of rainfall <BR>has been adjusted downward =
-Monday. </FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial>&nbsp;Mississippi Gov. Haley Barbour said Tuesday =
-that Hurricane Katrina killed <BR>as many as 80 people in his state and burst =
-levees in Louisiana flooded New <BR>Orleans.</FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial><A href=3D"http://nextermest.com">Read =
-More..<BR></A></DIV></FONT></BODY></HTML>
-
-------=_NextPart_000_0021_01C5AED0.560C3B80--
-
+Thanks,
+Venki
 
 
 -------------------------------------------------------
