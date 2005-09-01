@@ -1,13 +1,13 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Subject: Re: [RFC][PATCH 0/4] Software coordination of frequency across CPUs sharing common P-state
-Date: Thu, 1 Sep 2005 11:08:22 +0200
-Message-ID: <20050901090822.GD6285@isilmar.linta.de>
-References: <20050831140933.A12497@unix-os.sc.intel.com> <20050901052903.GA17927@redhat.com>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Latest ACPI patch location, contents
+Date: Thu, 01 Sep 2005 14:00:45 +0200
+Message-ID: <4316ED6D.2010807@suse.de>
+References: <1125009963.16880.29.camel@toshiba>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050901052903.GA17927-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1125009963.16880.29.camel@toshiba>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +17,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, cpufreq <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 01, 2005 at 01:29:03AM -0400, Dave Jones wrote:
-> On Wed, Aug 31, 2005 at 02:09:33PM -0700, Venkatesh Pallipadi wrote:
+Len Brown wrote:
+> Folks,
 > 
->  > ACPI 3.0 (http://www.acpi.info) adds new methods with which BIOS can communicate
->  > P-state dependency domains (List of CPUs that share a common P-state) to
->  > the OS. This can be used in conjunction with the existing "cpu group awareness"
->  > in cpufreq infrastructure, to manage the group of CPUs sharing the common 
->  > P-state, in a better way.
->  > 
->  > The patchset that follows adds this "software-coordination" feature in 
->  > acpi-perflib, and also changes acpi-cpufreq and speedstep-centrino drivers to
->  > use this feature. 
+> I've consolidated the "to-linus" and "to-akpm" git trees into
+> a single "linux-acpi-2.6" git tree with "release" and "test"
+> branches.  Thanks to Tony Luck for the example.
 > 
-> Patch 1 rejects against the latest git tree, due to Len's latest ACPI changes.
-> That (and possibly patch 4) need redoing.
+> So for the latest test code, go here:
 > 
-> From a first look, these patches look ok to me, so if you rediff these,
-> and Len is happy with the ACPI changes, I'm happy to merge them for 2.6.14
+> rsync://rsync.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git test
+> 
+> Everything in this batch is intended for 2.6.14 "opening day",
+> please let me know if you see any regressions.
+> 
+> A pull from there now will update the files shown below.
+> 
+> thanks,
+> -Len
+> 
+> ps.
+> Plain patch available here:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.13/acpi-20050729-2.6.13-rc7.diff.gz
+...
+> commit 0c9938cc75057c0fca1af55a55dcfc2842436695
+> Author: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Date:   Fri Jul 29 15:15:00 2005 -0700
+> 
+>     [ACPI] ACPICA 20050729 from Bob Moore
+>     
+>     Implemented support to ignore an attempt to install/load
+>     a particular ACPI table more than once. Apparently there
+>     exists BIOS code that repeatedly attempts to load the same
+>     SSDT upon certain events. Thanks to Venkatesh Pallipadi.
+>     
+>     Restructured the main interface to the AML parser in
+>     order to correctly handle all exceptional conditions. This
+>     will prevent leakage of the OwnerId resource and should
+>     eliminate the AE_OWNER_ID_LIMIT exceptions seen on some
+>     machines. Thanks to Alexey Starikovskiy.
+>     
+>     Support for "module level code" has been disabled in this
+>     version due to a number of issues that have appeared
+>     on various machines. The support can be enabled by
+>     defining ACPI_ENABLE_MODULE_LEVEL_CODE during subsystem
+>     compilation. When the issues are fully resolved, the code
+>     will be enabled by default again.
+>     
+>     Modified the internal functions for debug print support
+>     to define the FunctionName parameter as a (const char *)
+>     for compatibility with compiler built-in macros such as
+>     __FUNCTION__, etc.
+>     
+>     Linted the entire ACPICA source tree for both 32-bit
+>     and 64-bit.
+>     
+>     Signed-off-by: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>     Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+...
 
-Patches
+Could this be splitted in functional and formatting patches, please.
+Or at least could someone post the "AE_OWNER_ID_LIMIT exceptions" and
+"avoid ACPI tables double loading" patches separately.
+Or tell me how to extract them, so that older kernels can be backported with the bug fixing
+patches cleanly.
 
-Acked-by: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Thanks,
 
-Nice work!
-
-	Dominik
+        Thomas
 
 
 -------------------------------------------------------
