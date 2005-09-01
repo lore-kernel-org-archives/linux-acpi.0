@@ -1,13 +1,11 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: [RFC][PATCH 0/4] Software coordination of frequency across CPUs sharing common P-state
-Date: Thu, 1 Sep 2005 15:20:33 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30047B8ED9@hdsmsx401.amr.corp.intel.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: [Bugme-new] [Bug 5171] New: Linux-2.6.13 crash on boot
+Date: Thu, 1 Sep 2005 12:50:00 -0700
+Message-ID: <20050901125000.24ef6bcc.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +15,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: cpufreq <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Shah, Rajesh" <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->I had rebased my patch over Len's acpi-20050815-2.6.13 . Probably=20
->some part of it is still not in git that is causing the conflict.=20
->I will rebase the patch with latest git, before I resend the patch.
 
-FYI we're planning to send this ACPI patch to Linus in the next
-few days.  It includes a huge Lindent flag-day, so we really
-want to get it into 2.6.14 extremely early, but we need to
-button up a few things first.
+A regression..
 
--Len
+
+Begin forwarded message:
+
+Date: Thu, 1 Sep 2005 10:39:00 -0700
+From: bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+To: bugme-new-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
+Subject: [Bugme-new] [Bug 5171] New: Linux-2.6.13 crash on boot
+
+
+http://bugzilla.kernel.org/show_bug.cgi?id=5171
+
+           Summary: Linux-2.6.13 crash on boot
+    Kernel Version: 2.6.13-rc7 and later
+            Status: NEW
+          Severity: high
+             Owner: acpi_other-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+         Submitter: masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org
+                CC: masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org
+
+
+Most recent kernel where this bug did not occur: 2.6.13-rc6
+Distribution: Unbutnu 5.04
+Hardware Environment: 2x866 MHz machine with MSI-694D board (via chipset), 768
+Megs of RAM, a 160Gig IDE hdd, VIA-Rhine nic, SymBIOS scsi card, 3dfx voodoo
+graphics adapter
+Software Environment: gcc version 3.3.5, nothing else running at the time of crash
+Problem Description/Steps to reproduce:
+Configure the kernel on the same hardware with the attached config and set it to
+boot. It crashes with the attached capture file (through serial interface)
+only SMP kernel crashes. UP boots fine.
+Some chasing in the source showed that it is the call to non-set pm_idle_save()
+function that fails. It probably has something to do with the machine being an SMP.
+
+------- You are receiving this mail because: -------
+You are on the CC list for the bug, or are watching someone who is.
 
 
 -------------------------------------------------------
