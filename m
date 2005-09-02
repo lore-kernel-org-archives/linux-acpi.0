@@ -1,49 +1,46 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [Pcihpd-discuss] Re: ACPI problem with PCI Express Native
-	Hot-plug driver
-Date: Fri, 02 Sep 2005 10:46:28 -0700
-Message-ID: <1125683188.13185.5.camel@whizzy>
-References: <b115cb5f0509020057741365dc@mail.gmail.com>
-	 <b115cb5f050902005877607db1@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: dsdt for Sony VGN-A190
+Date: Fri, 2 Sep 2005 12:17:40 -0600
+Message-ID: <200509021217.40194.bjorn.helgaas@hp.com>
+References: <43188BB5.10808@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <kernelnewbies-bounce@nl.linux.org>
-In-Reply-To: <b115cb5f050902005877607db1@mail.gmail.com>
-Sender: kernelnewbies-bounce@nl.linux.org
-Errors-to: kernelnewbies-bounce@nl.linux.org
-List-help: <mailto:ecartis@nl.linux.org?Subject=help>
-List-unsubscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=unsubscribe>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:kernelnewbies-request@nl.linux.org?Subject=subscribe>
-List-owner: <mailto:ecartis-owner@nl.linux.org>
-List-post: <mailto:kernelnewbies@nl.linux.org>
-List-archive: <http://mail.nl.linux.org/kernelnewbies/>
-To: Rajat Jain <rajat.noida.india@gmail.com>
-Cc: Linux-newbie@vger.kernel.org, linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, kernelnewbies@nl.linux.org, greg@kroah.com, dkumar@noida.hcltech.com, sanjayku@noida.hcltech.com
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <43188BB5.10808-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->  
-> > Even if no body had faced this problem before, I would really
-> > appreciate if any one can provide ANY kind of pointers / information
-> > regarding this (As I am willing to explore and solve this, no matter
-> > what :-))
-> > 
-> > TIA
-> > 
-> > Rajat Jain
-> >
+On Friday 02 September 2005 11:28 am, Jim Cromie wrote:
+> attached is result of:
+> # |cat /proc/acpi/dsdt > dsdt.aml| and |iasl -d dsdt.aml > dsdt.asl|
+> 
+> I would have uploaded it, but the register-user page didnt exist.
+> 
+> back of laptop has this model number PCG-8Q5L
+> top has this one VGN-A190.  go figure.
+> 
+> I hope the file has what you need, otherwize let me know.
 
-Hello,
-Would you be willing to test the mainline kernel (2.6.13) to see if you
-have the same problem with the most recent version of the driver?  And
-attach the logs again please.
-
-Thanks,
-Kristen
+Is this related to a problem report?  If so, you might
+open a report at http://bugzilla.kernel.org and attach
+the DSDT and other relevant information there.
 
 
---
-Kernelnewbies: Help each other learn about the Linux kernel.
-Archive:       http://mail.nl.linux.org/kernelnewbies/
-FAQ:           http://kernelnewbies.org/faq/
+-------------------------------------------------------
+SF.Net email is Sponsored by the Better Software Conference & EXPO
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
