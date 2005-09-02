@@ -1,10 +1,10 @@
-From: "Stein Milliman" <stexflnahmilliman-xUm5YQvLadf2fBVCVOL8/A@public.gmane.org>
-Subject: =?iso-8859-1?Q?Re:_Special_prop_-_Pharmac=EButical?=
-Date: Fri, 2 Sep 2005 17:02:47 -0500
-Message-ID: <E1EBJcl-0001ye-Fu@mail.sourceforge.net>
+From: Couriousous <couriousous-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IASL disassembler bug with "Missing EndDependentFunctions" comment
+Date: Sat, 3 Sep 2005 00:09:44 +0200
+Message-ID: <200509030009.44767.couriousous@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0044_01C5AFE0.24829580"
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_o2MGDYeNWVSQn4b"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,64 +15,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Coriander Baudoin <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0044_01C5AFE0.24829580
+--Boundary-00=_o2MGDYeNWVSQn4b
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-PrCeViUlMeCiXaLeVaAm
-opleag=
-trrialnavilibi
-eciabrexra=
-amdiaisxtra=
-umen
-64 72 69 85 99 99 12=
-99 85 68
-95.00.85.55.96=
-753.45.94.45.00
-http://www.afteoldinvide.co=
-m of perfume besides. attempt to arrest him. Bar-Rabban is incomparably more =
-dangerous than
+Hello 
 
-------=_NextPart_000_0044_01C5AFE0.24829580
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Sorry if it's the wrong list/email, but I didn't found a better one. There is 
+no email on Intel website about the iasl disassembler.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCourier>
-<DIV style=3D"FLOAT: left">Pr<BR><BR>Ce<BR><BR><STRONG>Vi</STRONG><BR><B=
-R>Ul<BR><BR>Me<BR><BR><STRONG>Ci</STRONG><BR><BR>Xa<BR><BR>Le<BR><BR><STR=
-ONG>Va</STRONG><BR><BR>Am</DIV>
-<DIV style=3D"FLOAT: left">op<BR><BR>le<BR><BR><STRONG>ag</STRONG><BR><BR>=
-tr<BR><BR>ri<BR><BR><STRONG>al</STRONG><BR><BR>na<BR><BR>vi<BR><BR><=
-STRONG>li</STRONG><BR><BR>bi</DIV>
-<DIV style=3D"FLOAT: left">ecia<BR><BR>brex<BR><BR><STRONG>ra</STRONG>=
-<BR><BR>am<BR><BR>dia<BR><BR><STRONG>is</STRONG><BR><BR>x<BR><BR>tra=
-<BR><BR><STRONG>um</STRONG><BR><BR>en</DIV>
-<DIV style=3D"FLOAT: left">&nbsp;64<BR><BR>&nbsp;72<BR><BR>&nbsp;69<BR=
-><BR>&nbsp;85<BR><BR>&nbsp;99<BR><BR>&nbsp;99<BR><BR>&nbsp;12<BR><BR>=
-&nbsp;99<BR><BR>&nbsp;85<BR><BR>&nbsp;68</DIV>
-<DIV style=3D"FLOAT: left">.95<BR><BR>.00<BR><BR>.85<BR><BR>.55<BR><BR>.96=
-<BR><BR>.75<BR><BR>3.45<BR><BR>.94<BR><BR>.45<BR><BR>.00</DIV>
-<DIV style=3D"CLEAR: both">&nbsp;</DIV>
-<DIV><A href=3D"http://www.afteoldinvide.com">http://www.afteoldinvide.co=
-m</A></DIV></FONT></DIV></B></B></BODY></HTML>
+When a dependent resource list doesn't end with EndDependentFn() macro, the 
+iasl disassembler print the following comment in the disassembled source:
 
-------=_NextPart_000_0044_01C5AFE0.24829580--
+//*** Missing EndDependentFunctions descriptor
 
+But it forget to terminate the comment by \n. So, the "next line" is on the 
+same line as the comment.
+
+Regards,
+Couriousous 
+
+--Boundary-00=_o2MGDYeNWVSQn4b
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="EndDependentFunctions-comment-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="EndDependentFunctions-comment-fix.patch"
+
+--- disassembler/dmresrc.c.origi	2005-09-02 23:16:41.000000000 +0200
++++ disassembler/dmresrc.c	2005-09-02 23:17:12.000000000 +0200
+@@ -303,7 +303,7 @@
+                 AcpiOsPrintf ("}\n");
+                 AcpiDmIndent (Level);
+ 
+-                AcpiOsPrintf ("//*** Missing EndDependentFunctions descriptor");
++                AcpiOsPrintf ("//*** Missing EndDependentFunctions descriptor\n");
+ 
+                 /*
+                  * We could fix the problem, but then the ASL would not match
+
+--Boundary-00=_o2MGDYeNWVSQn4b--
 
 
 -------------------------------------------------------
