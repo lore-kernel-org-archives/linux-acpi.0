@@ -1,13 +1,15 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IASL disassembler bug with "Missing EndDependentFunctions" comment
-Date: Fri, 2 Sep 2005 15:48:50 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E029D9744@orsmsx403.amr.corp.intel.com>
+From: Couriousous <couriousous-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IASL disassembler bug with "Missing EndDependentFunctions" comment
+Date: Sat, 3 Sep 2005 00:46:45 +0200
+Message-ID: <200509030046.45184.couriousous@gmail.com>
+References: <971FCB6690CD0E4898387DBF7552B90E029D96D0@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E029D96D0-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +19,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Couriousous <couriousous-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-True, we don't post every single release up to the web.  I am hoping to =
-post the 09/02 release.
+Le Samedi 03 Septembre 2005 00.20, Moore, Robert a =E9crit=A0:
+> This was fixed recently in the 20050729 version of the compiler
+>
 
+Well, updating http://www.intel.com/technology/iapc/acpi/downloads.htm tarb=
+all=20
+should avoid such duplicate patch :)=20
 
-> -----Original Message-----
-> From: Couriousous [mailto:couriousous-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Friday, September 02, 2005 3:47 PM
-> To: Moore, Robert
-> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] [PATCH] IASL disassembler bug with "Missing
-> EndDependentFunctions" comment
->=20
-> Le Samedi 03 Septembre 2005 00.20, Moore, Robert a =E9crit=A0:
-> > This was fixed recently in the 20050729 version of the compiler
-> >
->=20
-> Well, updating http://www.intel.com/technology/iapc/acpi/downloads.htm
-> tarball
-> should avoid such duplicate patch :)
->=20
-> Regards,
-> Couriousous
+Regards,
+Couriousous
 
 
 -------------------------------------------------------
