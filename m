@@ -1,13 +1,11 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Latest ACPI patch location, contents
-Date: 02 Sep 2005 17:42:54 -0400
-Message-ID: <1125697374.11258.45.camel@d845pe.worldpath.net>
-References: <1125009963.16880.29.camel@toshiba>  <4316ED6D.2010807@suse.de>
+From: "Stein Milliman" <stexflnahmilliman-xUm5YQvLadf2fBVCVOL8/A@public.gmane.org>
+Subject: =?iso-8859-1?Q?Re:_Special_prop_-_Pharmac=EButical?=
+Date: Fri, 2 Sep 2005 17:02:47 -0500
+Message-ID: <E1EBJcl-0001ye-Fu@mail.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0044_01C5AFE0.24829580"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4316ED6D.2010807-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,106 +15,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+To: Coriander Baudoin <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-09-01 at 08:00, Thomas Renninger wrote:
-> Len Brown wrote:
+This is a multi-part message in MIME format.
 
-> ...
-> > commit 0c9938cc75057c0fca1af55a55dcfc2842436695
-> > Author: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Date:   Fri Jul 29 15:15:00 2005 -0700
-> >
-> >     [ACPI] ACPICA 20050729 from Bob Moore
-> >    
-> >     Implemented support to ignore an attempt to install/load
-> >     a particular ACPI table more than once. Apparently there
-> >     exists BIOS code that repeatedly attempts to load the same
-> >     SSDT upon certain events. Thanks to Venkatesh Pallipadi.
-> >    
-> >     Restructured the main interface to the AML parser in
-> >     order to correctly handle all exceptional conditions. This
-> >     will prevent leakage of the OwnerId resource and should
-> >     eliminate the AE_OWNER_ID_LIMIT exceptions seen on some
-> >     machines. Thanks to Alexey Starikovskiy.
-> >    
-> >     Support for "module level code" has been disabled in this
-> >     version due to a number of issues that have appeared
-> >     on various machines. The support can be enabled by
-> >     defining ACPI_ENABLE_MODULE_LEVEL_CODE during subsystem
-> >     compilation. When the issues are fully resolved, the code
-> >     will be enabled by default again.
-> >    
-> >     Modified the internal functions for debug print support
-> >     to define the FunctionName parameter as a (const char *)
-> >     for compatibility with compiler built-in macros such as
-> >     __FUNCTION__, etc.
-> >    
-> >     Linted the entire ACPICA source tree for both 32-bit
-> >     and 64-bit.
-> >    
-> >     Signed-off-by: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >     Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> ...
-> 
-> Could this be splitted in functional and formatting patches, please.
-> Or at least could someone post the "AE_OWNER_ID_LIMIT exceptions" and
-> "avoid ACPI tables double loading" patches separately.
-> Or tell me how to extract them, so that older kernels can be
-> backported with the bug fixing
-> patches cleanly.
+------=_NextPart_000_0044_01C5AFE0.24829580
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Thomas,
+PrCeViUlMeCiXaLeVaAm
+opleag=
+trrialnavilibi
+eciabrexra=
+amdiaisxtra=
+umen
+64 72 69 85 99 99 12=
+99 85 68
+95.00.85.55.96=
+753.45.94.45.00
+http://www.afteoldinvide.co=
+m of perfume besides. attempt to arrest him. Bar-Rabban is incomparably more =
+dangerous than
 
-There are a couple of hurdles here.
+------=_NextPart_000_0044_01C5AFE0.24829580
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-20050729 Lint -- sorry, I'm afraid the Lint changes
-are bundled into that patch and it is too late to
-un-bundle them.  Ideally every patch should be Linted
-before applied so that the changes will go in
-Lint-clean, but we sometimes diverge from
-the Lint clean and unfortunately that patch
-included some unrelated catch up.
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DCourier>
+<DIV style=3D"FLOAT: left">Pr<BR><BR>Ce<BR><BR><STRONG>Vi</STRONG><BR><B=
+R>Ul<BR><BR>Me<BR><BR><STRONG>Ci</STRONG><BR><BR>Xa<BR><BR>Le<BR><BR><STR=
+ONG>Va</STRONG><BR><BR>Am</DIV>
+<DIV style=3D"FLOAT: left">op<BR><BR>le<BR><BR><STRONG>ag</STRONG><BR><BR>=
+tr<BR><BR>ri<BR><BR><STRONG>al</STRONG><BR><BR>na<BR><BR>vi<BR><BR><=
+STRONG>li</STRONG><BR><BR>bi</DIV>
+<DIV style=3D"FLOAT: left">ecia<BR><BR>brex<BR><BR><STRONG>ra</STRONG>=
+<BR><BR>am<BR><BR>dia<BR><BR><STRONG>is</STRONG><BR><BR>x<BR><BR>tra=
+<BR><BR><STRONG>um</STRONG><BR><BR>en</DIV>
+<DIV style=3D"FLOAT: left">&nbsp;64<BR><BR>&nbsp;72<BR><BR>&nbsp;69<BR=
+><BR>&nbsp;85<BR><BR>&nbsp;99<BR><BR>&nbsp;99<BR><BR>&nbsp;12<BR><BR>=
+&nbsp;99<BR><BR>&nbsp;85<BR><BR>&nbsp;68</DIV>
+<DIV style=3D"FLOAT: left">.95<BR><BR>.00<BR><BR>.85<BR><BR>.55<BR><BR>.96=
+<BR><BR>.75<BR><BR>3.45<BR><BR>.94<BR><BR>.45<BR><BR>.00</DIV>
+<DIV style=3D"CLEAR: both">&nbsp;</DIV>
+<DIV><A href=3D"http://www.afteoldinvide.com">http://www.afteoldinvide.co=
+m</A></DIV></FONT></DIV></B></B></BODY></HTML>
 
-duplicate tables.
-The fix in 20050729 was proven to be insufficient,
-and has been augmented in 20050815. (do a byte
-compare of the actual table contents).  20050815
-went into git post Lindent flag-day, but is available
-pre-lindent in the quilt series below.
-
-AE_OWNER_ID_LIMIT exception.
-20050729 is a partial fix.  You'll also need
-Alexey's owner-id-3.patch, which went into
-the latest ACPI patch post Lindent flag-day, but is
-available in bugzilla as well as the quilt
-series below.
-
-I've created a quilt patches series that can
-upgrade 2.6.13 to the latest ACPICA here:
-kernel.org:/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.13/acpica-upgrade-series
-It excludes the Lindent flag-day that happened
-between 20050729 and 20050815 -- so you have
-a better chance to apply it, or cherry-pick it.
-
-Bob plans to release 20050902 tonight and I'll
-be adding that there too.  It fixes the un-do
-of our aborted attempt to enable module level
-code -- ie we'll behave like stock 2.6.13 again.
-My intent is to ship this version to 2.6.14.
-
-If your release is based on 2.6.13, ideally
-you'll apply the entire series ala treating
-the ACPICA core as a driver and doing a wholesale
-update.  That would reduce the risk of cherry-picking
-because ACPICA release are tested as a unit.
-
-cheers,
--Len
-
+------=_NextPart_000_0044_01C5AFE0.24829580--
 
 
 
