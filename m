@@ -1,14 +1,10 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: dsdt for Sony VGN-A190
-Date: Fri, 2 Sep 2005 14:56:20 -0600
-Message-ID: <200509021456.20267.bjorn.helgaas@hp.com>
-References: <43188BB5.10808@gmail.com> <200509021217.40194.bjorn.helgaas@hp.com> <43189A10.4050304@gmail.com>
+From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Subject: [-mm patch] drivers/acpi/: make needlessly global functions static
+Date: Fri, 2 Sep 2005 23:16:48 +0200
+Message-ID: <20050902211648.GW3657@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <43189A10.4050304-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,40 +15,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 02 September 2005 12:29 pm, Jim Cromie wrote:
-> Bjorn Helgaas wrote:
-> >On Friday 02 September 2005 11:28 am, Jim Cromie wrote:
-> >>attached is result of:
-> >># |cat /proc/acpi/dsdt > dsdt.aml| and |iasl -d dsdt.aml > dsdt.asl|
-> >>
-> >>I would have uploaded it, but the register-user page didnt exist.
-> >>
-> >>back of laptop has this model number PCG-8Q5L
-> >>top has this one VGN-A190.  go figure.
-> >>
-> >>I hope the file has what you need, otherwize let me know.
-> >
-> >Is this related to a problem report?  If so, you might
-> >open a report at http://bugzilla.kernel.org and attach
-> >the DSDT and other relevant information there.
-> >
-> Sorry,
-> Basically, Im reporting cuz of this log entry:
-> 
-> Aug 23 07:10:46 harpo kernel:   SE model detected, unsupported, trying 
-> default values, supply the developers with your DSDT
-> Aug 23 07:10:46 harpo kernel: ACPI: Battery Slot [BAT1] (battery present)
-> Aug 23 07:10:46 harpo kernel: ACPI: Power Button (CM) [PWRB]
-> Aug 23 07:10:46 harpo kernel: ACPI: Lid Switch [LID]
+This patch makes some needlesly global functions static.
 
-I'm afraid you'll have to give a bit more context.  The
-complete dmesg log would be a start, as well as the
-specific kernel you're running.  I don't see the "SE model
-detected" message you quote in the current upstream kernel.
+
+Signed-off-by: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+
+---
+
+ drivers/acpi/osl.c            |    2 +-
+ drivers/acpi/pci_bind.c       |    3 ++-
+ drivers/acpi/processor_core.c |    2 +-
+ drivers/acpi/scan.c           |    2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+--- linux-2.6.13-mm1-full/drivers/acpi/osl.c.old	2005-09-02 22:54:33.000000000 +0200
++++ linux-2.6.13-mm1-full/drivers/acpi/osl.c	2005-09-02 22:54:46.000000000 +0200
+@@ -1038,7 +1038,7 @@
+ 
+ __setup("acpi_wake_gpes_always_on", acpi_wake_gpes_always_on_setup);
+ 
+-int __init acpi_hotkey_setup(char *str)
++static int __init acpi_hotkey_setup(char *str)
+ {
+ 	acpi_specific_hotkey_enabled = FALSE;
+ 	return 1;
+--- linux-2.6.13-mm1-full/drivers/acpi/pci_bind.c.old	2005-09-02 22:57:23.000000000 +0200
++++ linux-2.6.13-mm1-full/drivers/acpi/pci_bind.c	2005-09-02 22:57:45.000000000 +0200
+@@ -44,7 +44,8 @@
+ 	struct pci_dev *dev;
+ };
+ 
+-void acpi_pci_data_handler(acpi_handle handle, u32 function, void *context)
++static void acpi_pci_data_handler(acpi_handle handle, u32 function,
++				  void *context)
+ {
+ 	ACPI_FUNCTION_TRACE("acpi_pci_data_handler");
+ 
+--- linux-2.6.13-mm1-full/drivers/acpi/processor_core.c.old	2005-09-02 22:59:06.000000000 +0200
++++ linux-2.6.13-mm1-full/drivers/acpi/processor_core.c	2005-09-02 22:59:18.000000000 +0200
+@@ -221,7 +221,7 @@
+ 	return_VALUE(0);
+ }
+ 
+-int acpi_processor_errata(struct acpi_processor *pr)
++static int acpi_processor_errata(struct acpi_processor *pr)
+ {
+ 	int result = 0;
+ 	struct pci_dev *dev = NULL;
+--- linux-2.6.13-mm1-full/drivers/acpi/scan.c.old	2005-09-02 22:59:48.000000000 +0200
++++ linux-2.6.13-mm1-full/drivers/acpi/scan.c	2005-09-02 23:00:02.000000000 +0200
+@@ -527,7 +527,7 @@
+ 	return_VALUE(0);
+ }
+ 
+-int acpi_start_single_object(struct acpi_device *device)
++static int acpi_start_single_object(struct acpi_device *device)
+ {
+ 	int result = 0;
+ 	struct acpi_driver *driver;
+
 
 
 -------------------------------------------------------
