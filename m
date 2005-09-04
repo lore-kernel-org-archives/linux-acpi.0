@@ -1,14 +1,11 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: dsdt for Sony VGN-A190
-Date: Sat, 3 Sep 2005 22:23:42 +0200
-Message-ID: <20050903202342.GB29975@fuchi>
-References: <43188BB5.10808@gmail.com>
+From: "Orla Dierks" <diera-hrZqLXVlf1ye8SVatnDBiw@public.gmane.org>
+Subject: =?iso-8859-1?Q?Re:_Super_Offr_Phharmace=FAt-icaI?=
+Date: Sun, 4 Sep 2005 00:01:44 -0500
+Message-ID: <E1EBmdY-0007uO-PD@mail.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NMuMz9nt05w80d4+"
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0011_01C5B0E3.D5BE2400"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <43188BB5.10808-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,50 +15,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Micaela Thon <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---NMuMz9nt05w80d4+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------=_NextPart_000_0011_01C5B0E3.D5BE2400
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-hello Jim...
+CeViPrMeAmCiVaUlXaLe
+leagopribiallitrnavi
+brexraeciadia=
+enisumamxtra
+$3 $1&=
+nbsp;$3
+33.21.75=
+http://www.nevadimilohi.com Now they could watch the execution through the =
+sparse line of the the black potato skins dirtied their fingers. Laughter =
+came from the
 
-* Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [2005-09-03 13:43 +0200]:
->=20
-> attached is result of:
-> # |cat /proc/acpi/dsdt > dsdt.aml| and |iasl -d dsdt.aml > dsdt.asl|
->=20
-> I would have uploaded it, but the register-user page didnt exist.
+------=_NextPart_000_0011_01C5B0E3.D5BE2400
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-if you meant http://acpi.sf.net/dsdt/user.php, could you please retry?
-while reimplementing some stuff, i must forgotten that file. sorry for the
-inconvenience.
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DCourier>
+<DIV style=3D"FLOAT: left;">Ce<BR><STRONG>Vi</STRONG><BR>Pr<BR>Me<B=
+R>Am<BR><STRONG>Ci</STRONG><BR><STRONG>Va</STRONG><BR>Ul<BR>Xa<BR>Le</DIV>
+<DIV style=3D"FLOAT: left;">le<BR><STRONG>ag</STRONG><BR>op<BR>ri<B=
+R>bi<BR><STRONG>al</STRONG><BR><STRONG>li</STRONG><BR>tr<BR>na<BR>vi</DIV>
+<DIV style=3D"FLOAT: left;">brex<BR><STRONG>ra</STRONG><BR>ecia<BR>dia<BR>=
+en<BR><STRONG>is</STRONG><BR><STRONG>um</STRONG><BR>am<BR>x<BR>tra</DIV>
+<DIV style=3D"FLOAT: left;"><BR>&nbsp;$3<BR><BR><BR><BR>&nbsp;$1<BR>&=
+nbsp;$3<BR><BR><BR></DIV>
+<DIV style=3D"FLOAT: left;"><BR>.33<BR><BR><BR><BR>.21<BR>.75<BR><BR>=
+<BR></DIV>
+<DIV style=3D"CLEAR: both">&nbsp;</DIV>
+<DIV><A href=3D"http://www.nevadimilohi.com">http://www.nevadimilohi.com</=
+A></DIV></FONT></DIV></B></B></BODY></HTML>
 
-cheers,
- Sebastian
---=20
-Oo................................................................
-Der naechste Satz ist eine Luege. Der vorhergehende Satz ist wahr.
-OpenPGP key ID: 0x7A62F9B4 Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++
-=2E...............................................................oO
+------=_NextPart_000_0011_01C5B0E3.D5BE2400--
 
---NMuMz9nt05w80d4+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDGgZOreHfL3pi+bQRAueNAJ4j63w4W+/kLKmJnzTPEdco5/OVOgCeK9Ks
-BfO/CntCjj4T3lJ4c0mtSQw=
-=jHBD
------END PGP SIGNATURE-----
-
---NMuMz9nt05w80d4+--
 
 
 -------------------------------------------------------
