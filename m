@@ -1,10 +1,10 @@
-From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: pmtools - acpiexec
-Date: Mon, 5 Sep 2005 20:42:40 +0400
-Message-ID: <6694B22B6436BC43B429958787E454984CF9E2@mssmsx402nb>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: acpi problem -- Error: Handler for [EmbeddedControl] returned AE_TIME
+Date: Mon, 5 Sep 2005 13:29:16 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30047FA172@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
@@ -17,84 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: u15119-4pcC6BA0Z1GELgA04lAiVw@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
- Hi,
+>> Sounds like you are running the latest.
+>Right.
+>
+>> What is the most recent kernel or patch where the battery
+>> worked and you didn't get these messages?
+>No idea yet but I guess 2.6.11.
 
-Actually, acpiexec should work on Linux without any changes to source.
-Besides, last version is 20050902.
+It would be really helpful if you can revert the ACPI
+patch from your 2.6.13 kernel and report how vanilla
+2.6.13 does.
 
-Regards,
-	Alex.
+If 2.6.13 works, then we need to find out
+why the latest ACPI patch breaks the default ec_burst=3D0
+mode -- because we're not ready to deploy ec_burst=3D1 by default.
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Thomas
-Renninger
-Sent: Monday, September 05, 2005 8:31 PM
-To: ML ACPI-devel
-Subject: [ACPI] pmtools - acpiexec
+If 2.6.13 fails, then we need to go back and try 2.6.12.
+If 2.6.12 works then we a need a fix for 2.6.13.1.
 
-Hi,
+If 2.6.13 fails, and 2.6.12 fails, it would be helpful
+if you can confirm if 2.6.11 works or not -- ie has this
+box always been broken, or did we regress someplace?
 
-I recently played with acpiexec to debug a DSDT.
+Note that some of this may depend on the version
+of your BIOS, so it would be good to verify that you're
+running the latest.
 
-This seems to be a very useful tool to debug/execute DSDTs outside the
-kernel?
-Is it supposed to work?
+>> Any difference if you boot the latest with "ec_burst=3D1"?
+>Now I got no errors and battery status, ac power and sleep=20
+>states are shown.
+>
+>What this option does?
 
-The first Hunk of this patch makes it compile/link again.
+ec_burst=3D1 enables the Embedded Controller Burst Mode.
+We tried to deploy this as default in 2.6.13, but it
+broke a lot of systems, so it is disabled by default
+until we can fix it.
 
-It came out that the AcpiGbl_RootNode was not allocated.
-I tried it with the second Hunk, but it seems as if this Node has
-to be created in some special way, as parsing of the DSDT segfaults
-when it tries to find the parent of the (global root?) node.
+thanks,
+-Len
 
-Thanks,
-
-      Thomas
----------------------------------------------
-diff -ru tmp/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c
-/home/trenn/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c
---- tmp/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c
-2005-06-24 23:31:40.000000000 +0200
-+++ /home/trenn/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c
-2005-09-05 01:41:23.000000000 +0200
-@@ -308,6 +308,8 @@
-
-      /* Get the command line options */
-
-+    AcpiUtInitGlobals ();
-+
-      while ((j =3D AcpiGetopt (argc, argv, "?b^dgio:svx:")) !=3D EOF)
-switch(j)
-      {
-      case 'b':
-@@ -384,6 +386,9 @@
-          }
-
-          AeBuildLocalTables (Table);
-+   if (AcpiGbl_RootNode =3D=3D NULL)
-+       AcpiGbl_RootNode =3D AcpiNsCreateNode (0);
-+
-          Status =3D AeInstallTables ();
-          if (ACPI_FAILURE (Status))
-          {
-
-
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle
-Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing &
-QA
-Security * Process Improvement & Measurement *
-http://www.sqe.com/bsce5sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+ps. it might be good to record the results of your multiple
+experiments in a bug report:
+http://bugzilla.kernel.org/enter_bug.cgi?product=3DACPI
+Power-battery is as good a component as any.
 
 
 -------------------------------------------------------
