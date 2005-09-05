@@ -1,7 +1,10 @@
-From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Subject: fans not working after suspend to disk on nc-4000 and nc-8000
-Date: Mon, 05 Sep 2005 16:12:58 +0200
-Message-ID: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: fix IO Macro/Namestring name clash in iasl compiler
+Date: Mon, 05 Sep 2005 16:54:43 +0200
+Message-ID: <431C5C33.4060606@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -12,32 +15,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On the nc-4000 and nc-8000 notebooks, there's a problem with the fan
-control after a resume from hiberantion.  This is a long standing
-problem with an otherwise perfectly working hibernation.  Tried with
-2.6.10 to 2.6.13, and with suspend to disk and swsusp2.
+Hi,
 
-After resume the fans are not switched on (or off) based on
-temperature.  This is pretty dangerous, and makes hibernation
-basically unusable for me.
+I got a DSDT that uses IO as an OperationRegion/Field definition.
+As this seems to be working with the M$ compiler, it does not with the Intel.
 
-Unloading the ACPI modules before suspend, and reloding them after
-resume doesn't help.
+This fixes/workarounds the problem (Thanks to Michael Matz for helping me to find a fix):
+DSDT to test: http://www.renninger.de/acpi/dsdt.dsl
 
-Setting /proc/acpi/thermal_zone/TZ1/polling_frequency to some
-value after resume _sometimes_ helps, but not reliably.
+--- acpica-unix-20050624/compiler/aslcompiler.y.orig    2005-09-06 16:46:21.000000000 +0200
++++ acpica-unix-20050624/compiler/aslcompiler.y 2005-09-06 15:40:37.000000000 +0200
+@@ -2951,6 +2951,7 @@
+  NameString
+      : NameSeg                       {}
+      | PARSEOP_NAMESTRING            {$$ = TrCreateValuedLeafNode (PARSEOP_NAMESTRING, (ACPI_NATIVE_INT) AslCompilerlval.s);}
++    | PARSEOP_IO                    {$$ = TrCreateValuedLeafNode (PARSEOP_IO, (ACPI_NATIVE_INT) "IO");}
+      ;
 
-A similar report is here:
+  NameSeg
 
-  http://lists.suspend2.net/lurker/message/20050409.225750.4602a704.en.html
-
-Could someone please help solve this?  I can test debug patches, etc.
-
-Thanks,
-Miklos
+     Thomas
 
 
 -------------------------------------------------------
