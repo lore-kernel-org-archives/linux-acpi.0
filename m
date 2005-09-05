@@ -1,10 +1,7 @@
-From: yvespiel <yvespiel-GANU6spQydw@public.gmane.org>
-Subject: [HALT] My pc don't stop
-Date: Mon, 05 Sep 2005 10:10:06 +0200
-Message-ID: <431BFD5E.2030501@free.fr>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000009080705080307020909"
+From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
+Subject: fans not working after suspend to disk on nc-4000 and nc-8000
+Date: Mon, 05 Sep 2005 16:12:58 +0200
+Message-ID: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,43 +15,29 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000009080705080307020909
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On the nc-4000 and nc-8000 notebooks, there's a problem with the fan
+control after a resume from hiberantion.  This is a long standing
+problem with an otherwise perfectly working hibernation.  Tried with
+2.6.10 to 2.6.13, and with suspend to disk and swsusp2.
 
-Hello,
-I have installed debian testing (but with unstable it is the same) on my 
-computer. THe mainboard is a DFI 915P-TAG. My problem is that when I 
-want to stop the PC, the system shutdown, and I have the message : 
-"ACPI_POWER_OFF" but the pc don't stop completly.
-I have installed the acpid package and I have the 2.6.12-1-686 kernel.
-Is there an issue  ?
+After resume the fans are not switched on (or off) based on
+temperature.  This is pretty dangerous, and makes hibernation
+basically unusable for me.
 
-thanks :)
+Unloading the ACPI modules before suspend, and reloding them after
+resume doesn't help.
 
---
-yves piel
+Setting /proc/acpi/thermal_zone/TZ1/polling_frequency to some
+value after resume _sometimes_ helps, but not reliably.
 
---------------000009080705080307020909
-Content-Type: text/x-vcard; charset=utf-8;
- name="yvespiel.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="yvespiel.vcf"
+A similar report is here:
 
-begin:vcard
-fn:Yves Piel
-n:Piel;Yves
-adr:apt. 138;;4, impasse d'aquitaine;Allonnes;;72700;France
-email;internet:yvespielusenet-GANU6spQydw@public.gmane.org
-tel;home:02 43 21 14 25
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
+  http://lists.suspend2.net/lurker/message/20050409.225750.4602a704.en.html
 
+Could someone please help solve this?  I can test debug patches, etc.
 
---------------000009080705080307020909--
+Thanks,
+Miklos
 
 
 -------------------------------------------------------
