@@ -1,7 +1,7 @@
 From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: fix IO Macro/Namestring name clash in iasl compiler
-Date: Mon, 05 Sep 2005 16:54:43 +0200
-Message-ID: <431C5C33.4060606@suse.de>
+Subject: pmtools - acpiexec
+Date: Mon, 05 Sep 2005 18:30:43 +0200
+Message-ID: <431C72B3.6090008@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -20,24 +20,44 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-I got a DSDT that uses IO as an OperationRegion/Field definition.
-As this seems to be working with the M$ compiler, it does not with the Intel.
+I recently played with acpiexec to debug a DSDT.
 
-This fixes/workarounds the problem (Thanks to Michael Matz for helping me to find a fix):
-DSDT to test: http://www.renninger.de/acpi/dsdt.dsl
+This seems to be a very useful tool to debug/execute DSDTs outside the kernel?
+Is it supposed to work?
 
---- acpica-unix-20050624/compiler/aslcompiler.y.orig    2005-09-06 16:46:21.000000000 +0200
-+++ acpica-unix-20050624/compiler/aslcompiler.y 2005-09-06 15:40:37.000000000 +0200
-@@ -2951,6 +2951,7 @@
-  NameString
-      : NameSeg                       {}
-      | PARSEOP_NAMESTRING            {$$ = TrCreateValuedLeafNode (PARSEOP_NAMESTRING, (ACPI_NATIVE_INT) AslCompilerlval.s);}
-+    | PARSEOP_IO                    {$$ = TrCreateValuedLeafNode (PARSEOP_IO, (ACPI_NATIVE_INT) "IO");}
-      ;
+The first Hunk of this patch makes it compile/link again.
 
-  NameSeg
+It came out that the AcpiGbl_RootNode was not allocated.
+I tried it with the second Hunk, but it seems as if this Node has
+to be created in some special way, as parsing of the DSDT segfaults
+when it tries to find the parent of the (global root?) node.
 
-     Thomas
+Thanks,
+
+      Thomas
+---------------------------------------------
+diff -ru tmp/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c /home/trenn/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c
+--- tmp/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c    2005-06-24 23:31:40.000000000 +0200
++++ /home/trenn/pmtools/acpica-unix-20050624/tools/acpiexec/aemain.c    2005-09-05 01:41:23.000000000 +0200
+@@ -308,6 +308,8 @@
+
+      /* Get the command line options */
+
++    AcpiUtInitGlobals ();
++
+      while ((j = AcpiGetopt (argc, argv, "?b^dgio:svx:")) != EOF) switch(j)
+      {
+      case 'b':
+@@ -384,6 +386,9 @@
+          }
+
+          AeBuildLocalTables (Table);
++   if (AcpiGbl_RootNode == NULL)
++       AcpiGbl_RootNode = AcpiNsCreateNode (0);
++
+          Status = AeInstallTables ();
+          if (ACPI_FAILURE (Status))
+          {
 
 
 -------------------------------------------------------
