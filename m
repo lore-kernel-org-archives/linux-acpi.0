@@ -1,37 +1,64 @@
-From: Rajat Jain <rajat.noida.india@gmail.com>
-Subject: Re: [Pcihpd-discuss] Re: ACPI problem with PCI Express Native Hot-plug driver
-Date: Mon, 5 Sep 2005 10:58:01 +0900
-Message-ID: <b115cb5f05090418583abfc73@mail.gmail.com>
-References: <b115cb5f0509020057741365dc@mail.gmail.com>
-	 <b115cb5f050902005877607db1@mail.gmail.com>
-	 <1125683188.13185.5.camel@whizzy>
+From: yvespiel <yvespiel-GANU6spQydw@public.gmane.org>
+Subject: [HALT] My pc don't stop
+Date: Mon, 05 Sep 2005 10:10:06 +0200
+Message-ID: <431BFD5E.2030501@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-newbie-owner@vger.kernel.org>
-In-Reply-To: <1125683188.13185.5.camel@whizzy>
-Content-Disposition: inline
-Sender: linux-newbie-owner@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: Linux-newbie@vger.kernel.org, linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, kernelnewbies@nl.linux.org, greg@kroah.com, dkumar@noida.hcltech.com, sanjayku@noida.hcltech.com
+Content-Type: multipart/mixed;
+ boundary="------------000009080705080307020909"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> 
-> Hello,
-> Would you be willing to test the mainline kernel (2.6.13) to see if you
-> have the same problem with the most recent version of the driver?  And
-> attach the logs again please.
-> 
-> Thanks,
-> Kristen
-> 
-> 
+This is a multi-part message in MIME format.
+--------------000009080705080307020909
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Thanks, for the inputs. I will test it with 2.6.13 and get back.
+Hello,
+I have installed debian testing (but with unstable it is the same) on my 
+computer. THe mainboard is a DFI 915P-TAG. My problem is that when I 
+want to stop the PC, the system shutdown, and I have the message : 
+"ACPI_POWER_OFF" but the pc don't stop completly.
+I have installed the acpid package and I have the 2.6.12-1-686 kernel.
+Is there an issue  ?
 
-Rajat
--
-To unsubscribe from this list: send the line "unsubscribe linux-newbie" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at http://www.linux-learn.org/faqs
+thanks :)
+
+--
+yves piel
+
+--------------000009080705080307020909
+Content-Type: text/x-vcard; charset=utf-8;
+ name="yvespiel.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="yvespiel.vcf"
+
+begin:vcard
+fn:Yves Piel
+n:Piel;Yves
+adr:apt. 138;;4, impasse d'aquitaine;Allonnes;;72700;France
+email;internet:yvespielusenet-GANU6spQydw@public.gmane.org
+tel;home:02 43 21 14 25
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------000009080705080307020909--
+
+
+-------------------------------------------------------
+SF.Net email is Sponsored by the Better Software Conference & EXPO
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
