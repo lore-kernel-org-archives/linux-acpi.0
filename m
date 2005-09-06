@@ -1,14 +1,22 @@
-From: <foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Compal EFL30 ACPI
-Date: Tue, 6 Sep 2005 09:29:19 -0700 (PDT)
-Message-ID: <20050906162919.31864.qmail@web81605.mail.yahoo.com>
-References: <14569678.1126022061410.JavaMail.root@mswamui-andean.atl.sa.earthlink.net>
-Reply-To: foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+From: Antoni Villalonga <frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Tue, 6 Sep 2005 21:53:32 +0200
+Message-ID: <75eeb70e050906125344c326ad@mail.gmail.com>
+References: <41E81C2C.8010809@bartol.udel.edu>
+	 <1105747983.7368.3.camel@tyrosine>
+	 <47e0449d05011419037877f931@mail.gmail.com>
+	 <m2fz13x8mw.fsf@phoenix.squirrel.nl>
+	 <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
+	 <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
+	 <41EF1F6A.5000807@bartol.udel.edu>
+	 <75eeb70e05090520257be89afa@mail.gmail.com>
+Reply-To: frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <14569678.1126022061410.JavaMail.root-l98S9+yXcW0EnThS6yfqI2T5tvvlLVcNFbm1WkIHI0jR7s880joybQ@public.gmane.org>
+In-Reply-To: <75eeb70e05090520257be89afa-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,31 +26,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dow_Hurst <Dow.Hurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---- Dow_Hurst <dhurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org> wrote:
-> I'd like to work out.  I did see that the CPU under XP was running at
-> ~750MHz instead of 1.86GHz.  I am pretty sure this doesn't happen
-> under SUSE 9.3.
+2005/9/6, Antoni Villalonga:
+> I know about sbs-linux project in sourceforge, but I get a big delay
+> (about ~20 seconds) with my Acer TM 4001 when I try to read battery
+> status.
+>=20
+> There are any way to fix it?
+>=20
+> Thanks!!
 
-Right. That's probably a sign that you do not have the 2.6.xx cpufreq
-CPU speed adjustment drivers present in that SuSE kernel of yours. If
-you enable AMD PowerNow / Intel SpeedStep cpufreq drivers, this problem
-will go away. Then, if you want to control the speed, download
-cpufreqd, which will let you set up everything just exactly how you
-want it using cpufreqd.conf.
+Thanks to Olaf and Yu!
 
-> Thanks,
-> Dow
+It doesn't work for me, I don't have more time today at weekend I'll retry.=
+ :-)
 
-HTH!
+THANKS!!
+
+--=20
+$ sh ~/.bash_history
+
+Antoni Villalonga i Noceras
+#Web# ~> http://friki.org
+#Bloc# ~> http://bloc.balearweb.net/friki
+#Jabber# ~> friki-STYuutOhSz/k1uMJSBkQmQ@public.gmane.org
 
 
 -------------------------------------------------------
 SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practic=
-es
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & Q=
-A
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
 Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
