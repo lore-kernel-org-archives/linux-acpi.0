@@ -1,11 +1,21 @@
-From: "Hestia Mayhan" <hestiamay-hUvkMFbNSC7by3iVrkZq2A@public.gmane.org>
-Subject: Re: Good work Pharamaceutic al
-Date: Mon, 5 Sep 2005 20:06:13 -0500
-Message-ID: <E1ECRuw-0003n0-NK@mail.sourceforge.net>
+From: Antoni Villalonga <frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Tue, 6 Sep 2005 05:25:24 +0200
+Message-ID: <75eeb70e05090520257be89afa@mail.gmail.com>
+References: <41E81C2C.8010809@bartol.udel.edu>
+	 <1105747983.7368.3.camel@tyrosine>
+	 <47e0449d05011419037877f931@mail.gmail.com>
+	 <m2fz13x8mw.fsf@phoenix.squirrel.nl>
+	 <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
+	 <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
+	 <41EF1F6A.5000807@bartol.udel.edu>
+Reply-To: frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_004C_01C5B255.43D62880"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41EF1F6A.5000807-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,57 +25,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Clement Hamann <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+2005/1/20, Rich Townsend :
+> Tonight's build:
+>=20
+> http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20050120.tar.gz
 
-------=_NextPart_000_004C_01C5B255.43D62880
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+I'm sorry for reply an old mail.
+But, it's the last release of acpi_sbs kernel module?
 
-LeCePrAmMeVaXaUlCiVi
-vileopbirilinatralag
-trabrexeciaendiaumxamisra
-$3=
-$1 $3
-75.21=
-33
-http://www.openivy.com held out for a few seconds, began to subside. Theyve =
-seen me, the age-old tradition of folk humour with its carnivalized =
-world-view, its
+I know about sbs-linux project in sourceforge, but I get a big delay
+(about ~20 seconds) with my Acer TM 4001 when I try to read battery
+status.
 
-------=_NextPart_000_004C_01C5B255.43D62880
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+There are any way to fix it?
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCourier>
-<DIV style=3D"FLOAT: left;">Le<BR>Ce<BR>Pr<BR>Am<BR>Me<BR><B>Va</B><B=
-R>Xa<BR>Ul<BR><B>Ci</B><BR><B>Vi</B></DIV>
-<DIV style=3D"FLOAT: left;">vi<BR>le<BR>op<BR>bi<BR>ri<BR><B>li</B><BR=
->na<BR>tr<BR><B>al</B><BR><B>ag</B></DIV>
-<DIV style=3D"FLOAT: left;">tra<BR>brex<BR>ecia<BR>en<BR>dia<BR><B>um</B><=
-BR>x<BR>am<BR><B>is</B><BR><B>ra</B></DIV>
-<DIV style=3D"FLOAT: left;"><BR><BR><BR><BR><BR>&nbsp;$3<BR><BR><BR>=
-&nbsp;$1<BR>&nbsp;$3</DIV>
-<DIV style=3D"FLOAT: left;"><BR><BR><BR><BR><BR>.75<BR><BR><BR>.21<BR>=
-33</DIV>
-<DIV style=3D"CLEAR: both">&nbsp;</DIV>
-<DIV><A href=3D"http://www.openivy.com">http://www.openivy.com</A></DIV></=
-FONT></DIV></B></B></BODY></HTML>
+Thanks!!
 
-------=_NextPart_000_004C_01C5B255.43D62880--
+(Sorry my English, I'm not an English speaker)
+--=20
+$ sh ~/.bash_history
 
+Antoni Villalonga i Noceras
+#Web# ~> http://friki.org
+#Bloc# ~> http://bloc.balearweb.net/friki
+#Jabber# ~> friki-STYuutOhSz/k1uMJSBkQmQ@public.gmane.org
 
 
 -------------------------------------------------------
