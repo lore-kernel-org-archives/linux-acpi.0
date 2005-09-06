@@ -1,15 +1,12 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: dsdt for Sony VGN-A190
-Date: Tue, 6 Sep 2005 09:21:24 -0600
-Message-ID: <200509060921.24673.bjorn.helgaas@hp.com>
-References: <43188BB5.10808@gmail.com> <200509060905.55220.bjorn.helgaas@hp.com> <20050906151200.GB2390@hell.org.pl>
+From: Dow_Hurst <dhurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
+Subject: Compal EFL30 ACPI
+Date: Tue, 6 Sep 2005 11:54:20 -0400 (GMT-04:00)
+Message-ID: <14569678.1126022061410.JavaMail.root@mswamui-andean.atl.sa.earthlink.net>
+Reply-To: Dow_Hurst <Dow.Hurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050906151200.GB2390-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,28 +16,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Jim Cromie <jim.cromie-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 06 September 2005 9:12 am, Karol Kozimor wrote:
-> Thus wrote Bjorn Helgaas:
-> > > >>Aug 23 07:10:46 harpo kernel:   SE model detected, unsupported, trying 
-> > > >>default values, supply the developers with your DSDT
-> > 
-> > This is from asus_acpi.c (Asus Laptop ACPI Extras), which
-> > supports things like hotkeys to change LCD brightness,
-> > change video outputs, etc.
-> > 
-> > I'll copy the maintainers.  They'd probably be interested
-> > in whether those features work on your laptop with the
-> > default values.
-> 
-> Thanks. May I have the DSDT please?
+I have a rather new laptop from Compal called an EFL30.  I've noticed that ACPI seems pretty well supported in SUSE 9.3 running the 2.6.11 kernel.  I do have some mouse timing issues but haven't proceeded very far in trying out fixes such as fiddling with the battery status check timings.  I have been able to suspend to RAM based on closing the lid.  I have not yet tried suspend to disk.  No thermal stats are available.  The battery reports status and will warn me in a shell when at a low battery state that I can specify.  I've tried XP just to see the dark side and their really isn't alot of difference.  The mouse issue and thermal control are probably the most useful fixes I'd like to work out.  I did see that the CPU under XP was running at ~750MHz instead of 1.86GHz.  I am pretty sure this doesn't happen under SUSE 9.3.
 
-I forwarded the tarfile from Jim's Sep 3, 00:10:52 message, which I
-think contains the DSDT.  It should be in the acpi-devel archives
-if anybody else is interested.
+What type of info would be helpful to post so this laptop can be more fully supported?  Just extract the DSDT and post it?
+
+
+Any advice on fixing the current timing and CPU control issues?
+
+Thanks,
+Dow
 
 
 -------------------------------------------------------
