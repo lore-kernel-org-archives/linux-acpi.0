@@ -1,53 +1,70 @@
-From: Elliott Martin <johnelliottmartin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: help troubleshooting
-Date: Wed, 7 Sep 2005 11:01:26 -0700
-Message-ID: <200509071101.27211.johnelliottmartin@gmail.com>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: battery status events (RE: Kernel 2.6.13 repeated ACPI events?)
+Date: Wed, 7 Sep 2005 16:10:07 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30048646E9@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751294AbVIGUK0@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jan De Luyck <lkml@kcore.org>
+Cc: acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, "Lebedev, Vladimir P" <vladimir.p.lebedev@intel.com>, "Yu, Luming" <luming.yu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+ 
 
-I just upgraded to the 2.6.13 kernel and I am now seeing new ACPI errors 
-during boot up and I was wondering if I could get some help. I have fixed 
-every problem with my DSDT so far, but this is a little more difficult.
+>-----Original Message-----
+>From: linux-kernel-owner@vger.kernel.org 
+>[mailto:linux-kernel-owner@vger.kernel.org] On Behalf Of Jan De Luyck
+>Sent: Monday, September 05, 2005 9:17 AM
+>To: linux-kernel@vger.kernel.org
+>Subject: Re: Kernel 2.6.13 repeated ACPI events?
+>
+>I'm seeing repeated ACPI events too, but of the battery kind:
+>
+>[Mon Sep  5 15:13:52 2005] received event "battery BAT2 
+>00000080 00000001"
+>[Mon Sep  5 15:13:52 2005] completed event "battery BAT2 
+>00000080 00000001"
+>[Mon Sep  5 15:14:53 2005] received event "battery BAT1 
+>00000080 00000001"
+>[Mon Sep  5 15:14:53 2005] completed event "battery BAT1 
+>00000080 00000001"
+>[Mon Sep  5 15:14:53 2005] received event "battery BAT2 
+>00000080 00000001"
+>[Mon Sep  5 15:14:53 2005] completed event "battery BAT2 
+>00000080 00000001"
+>[Mon Sep  5 15:15:55 2005] received event "battery BAT1 
+>00000080 00000001"
+>[Mon Sep  5 15:15:55 2005] completed event "battery BAT1 
+>00000080 00000001"
+>[Mon Sep  5 15:15:55 2005] received event "battery BAT2 
+>00000080 00000001"
+>[Mon Sep  5 15:15:55 2005] completed event "battery BAT2 
+>00000080 00000001"
+>
+>going on forever and ever...
+>
+>Jan
 
-My question is, how do I find out exactly what is failing from these messages:
+The kernel doesn't created these messages -- presumably
+they're from acpid or some other user-level daemon
+that is monitoring /proc/acpi/event.  Unlikely that
+logging these events is necessary...
 
+Event 0x80 on the battery device is a "Battery Status Changed"
+which you'd expect to see when plugging/charging/discharging
+a battery.  How frequent they are depends on the rate,
+the battery and the firmware that is talking to it.
 
-    ACPI-0423: *** Error: Handler for [EmbeddedControl] returned AE_TIME
-    ACPI-1172: *** Error: Method execution failed [\_SB_.PCI0.SBRG.EC0_.RWRD] 
-(Node ddfba4e0), AE_TIME
-    ACPI-1172: *** Error: Method execution failed [\_SB_.PCI0.BAT0.BIF1] (Node 
-ddfba1a0), AE_TIME
-    ACPI-1172: *** Error: Method execution failed [\_SB_.PCI0.BAT0._BIF] (Node 
-ddfba320), AE_TIME
+Is there a GUI or something reading the battery status files?
+Do these events stop when running in text mode?
 
+Did this not happen on this box with earlier kernels?
 
-I have looked through the code, and I think the BIF1 and _BIF methods fail 
-because they call the RWRD method, so if I fix that I should be alright, but 
-I don't know what in the RWRD method is bad. Can I use that node information 
-from above to find out where in the DSDT the problem is occuring?
+Do the /proc/acpi/battery* files look sane --
+is the status really changing?
 
--Elliott
-
-
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
-Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
+thanks,
+-Len
