@@ -1,13 +1,13 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Compal EFL30 ACPI
-Date: Wed, 7 Sep 2005 11:18:44 +0200
-Message-ID: <20050907091844.GA23635@poupinou.org>
-References: <20050906162919.31864.qmail@web81605.mail.yahoo.com> <1126081987.19250.17.camel@localhost.localdomain>
+Date: Wed, 7 Sep 2005 11:21:09 +0200
+Message-ID: <20050907092109.GB23635@poupinou.org>
+References: <14569678.1126022061410.JavaMail.root@mswamui-andean.atl.sa.earthlink.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1126081987.19250.17.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <14569678.1126022061410.JavaMail.root-l98S9+yXcW0EnThS6yfqI2T5tvvlLVcNFbm1WkIHI0jR7s880joybQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
-Cc: foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org, Dow_Hurst <Dow.Hurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dow_Hurst <Dow.Hurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 07, 2005 at 10:33:07AM +0200, Erik Slagter wrote:
-> On Tue, 2005-09-06 at 09:29 -0700, foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org wrote:
-> > --- Dow_Hurst <dhurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org> wrote:
-> > > I'd like to work out.  I did see that the CPU under XP was running at
-> > > ~750MHz instead of 1.86GHz.  I am pretty sure this doesn't happen
-> > > under SUSE 9.3.
-> > 
-> > Right. That's probably a sign that you do not have the 2.6.xx cpufreq
-> > CPU speed adjustment drivers present in that SuSE kernel of yours. If
-> > you enable AMD PowerNow / Intel SpeedStep cpufreq drivers, this problem
-> > will go away. Then, if you want to control the speed, download
-> > cpufreqd, which will let you set up everything just exactly how you
-> > want it using cpufreqd.conf.
+On Tue, Sep 06, 2005 at 11:54:20AM -0400, Dow_Hurst wrote:
+> I have a rather new laptop from Compal called an EFL30.  I've noticed that ACPI seems pretty well supported in SUSE 9.3 running the 2.6.11 kernel.  I do have some mouse timing issues but haven't proceeded very far in trying out fixes such as fiddling with the battery status check timings.  I have been able to suspend to RAM based on closing the lid.  I have not yet tried suspend to disk.  No thermal stats are available.  The battery reports status and will warn me in a shell when at a low battery state that I can specify.  I've tried XP just to see the dark side and their really isn't alot of difference.  The mouse issue and thermal control are probably the most useful fixes I'd like to work out.  I did see that the CPU under XP was running at ~750MHz instead of 1.86GHz.  I am pretty sure this doesn't happen under SUSE 9.3.
 > 
-> I was under the impression that the "acpi" cpufreq driver was
-> preferable.
+> What type of info would be helpful to post so this laptop can be more fully supported?  Just extract the DSDT and post it?
+> 
+> 
+> Any advice on fixing the current timing and CPU control issues?
+> 
 
-You were wrong.
+Not related to those problems, there are some supports for compal laptops
+via the omnibook kernel module at http://www.sf.net/projects/omke
+You may want to check if by chance that work for you.
+
+Cheers,
 
 -- 
 Bruno Ducrot
