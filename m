@@ -1,13 +1,13 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [OOPS] vanilla 2.6.13 + "rmmod processor"
-Date: Thu, 8 Sep 2005 04:22:45 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30048B3F05@hdsmsx401.amr.corp.intel.com>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [GIT PATCH] ACPI for 2.6.14
+Date: Thu, 8 Sep 2005 01:22:19 -0700
+Message-ID: <20050908012219.6b5431b7.akpm@osdl.org>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30048B3F04@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30048B3F04-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: gl-o/hVf8ie6tKzQB+pC5nmwQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: torvalds-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+"Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+> I saw lots of transient battery issues from 2.6.13-rc3
+>  until 2.6.13-rc6, but the ones I followed went away
+>  as of 2.6.13 final.  Do you have your eye on others
+>  besides 4980?
 
->Just booted a 2.6.13 compiled with UP, ACPI, APIC, LAPIC,=20
->sensor modules=20
->with "nolapic noapic acpi=3Doff".
+Not specifically, but then ACPI bugs are the one sort which I don't track. 
+a) because there are so many and b) because the ACPI team use bugzilla
+well.
 
-Huh, I don't see I don't see the processor module checking
-for acpi_disabled anyplace...
-
-I assume the oops goes away when you
-do not boot with "acpi=3Doff"?
-
-> The processor module was still loaded by=20
->the hotplug. On rmmod it Oopsed:
-
-Note other processor rmmod fix here, maybe unrelated:
-http://bugzilla.kernel.org/show_bug.cgi?id=3D5021
-
-
+Sticking "battery" into the bugzilla Summary field turns up a few. 
+<vague>There seem to have been four or five reports in recent weeks.
 
 
 -------------------------------------------------------
