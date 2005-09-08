@@ -1,13 +1,15 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Latest acpica
-Date: Thu, 08 Sep 2005 19:21:33 +0200
-Message-ID: <4320731D.5070706@suse.de>
-References: <971FCB6690CD0E4898387DBF7552B90E02A69A30@orsmsx403.amr.corp.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: [GIT PATCH] ACPI for 2.6.14
+Date: Thu, 8 Sep 2005 12:29:51 -0600
+Message-ID: <200509081229.51208.bjorn.helgaas@hp.com>
+References: <1126163937.21723.12.camel@toshiba> <20050908003420.00e49325.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E02A69A30-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20050908003420.00e49325.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,93 +19,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, dhurst-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Moore, Robert wrote:
-> The compilation errors of this form:
+On Thursday 08 September 2005 1:34 am, Andrew Morton wrote:
+> Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> >
+> > Hi Linus, please pull from the release branch here:
+> > 
+> >  rsync://rsync.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git release
+> 
+> There are a few bugs which I'd identified as arising from the acpi tree
+> while it was in -mm.  Is this patch likely to drag them into mainline?
+> 
+> They include:
 > 
 > 
-> dsdt_org.dsl   149:                     , AddressRangeMemory,
-> TypeStatic)
-> 
-> Error    1094 -                Missing ResourceSource string (required)
-> ^
-> are caused by specifying a ResourceIndex with no corresponding
-> ResourceString.  We recently tightened up the iASL compiler to detect
-> this condition and flag it as an error, as per the following text from
-> the ACPI specification, 3.0:
-> 
-> DWord Address Space Descriptor 
-> 
-> Byte 46
->  Resource Source Index
->  (Optional) Only present if Resource Source (below) is present. This
-> field gives an index to the specific resource descriptor that this
-> device consumes from in the current resource template for the device
-> object pointed to in Resource Source.
->  
-> A relevant ASL source statement is below.
-> 
->                 DWordMemory (ResourceProducer, PosDecode, MinFixed,
-> MaxFixed, Cacheable, ReadWrite,
-> 
->                     0x00000000, // Address Space Granularity
-> 
->                     0x000A0000, // Address Range Minimum
-> 
->                     0x000BFFFF, // Address Range Maximum
-> 
->                     0x00000000, // Address Translation Offset
-> 
->                     0x00020000, 0x00,,
-> 
->                     , AddressRangeMemory, TypeStatic)
-> 
-> It is the 0x00 that is causing the issue, it should not be there.
-> 
-Yes those 0x00 are there.
-> 
-> However, we recently changed the disassembler to detect this condition
-> within existing AML code and to emit ASL code that is compilable.  In
-> this case, the statement comes out of the disassembler like this:
-> 
->  
-> 
->                 DWordMemory (ResourceProducer, PosDecode, MinFixed,
-> MaxFixed, Cacheable, ReadWrite,
-> 
->                     0x00000000, // Address Space Granularity
-> 
->                     0x000A0000, // Address Range Minimum
-> 
->                     0x000BFFFF, // Address Range Maximum
-> 
->                     0x00000000, // Address Translation Offset
-> 
->                     0x00020000,,,
-> 
->                     , AddressRangeMemory, TypeStatic)
-> 
-> Which is compilable code.
+> http://bugzilla.kernel.org/show_bug.cgi?id=4977
+>             Summary: ACPI 20050708 fails on HP RX2600 platform
 
-Ok, thanks.
-Then the DSDT posted lately in (subject) "Compal EFL30 ACPI"
-Cannot be compiled with newer ACPICA versions because it has been disassembled
-with an older iasl...
-
-> 
-> This change to the disassembler appeared in ACPICA version 20050617:
-> 
-> Enhanced the disassembler to emit compilable code in the face of
-> incorrect AML resource descriptors. If the optional ResourceSourceIndex
-> is present, but the ResourceSource is not, do not emit the
-> ResourceSourceIndex in the disassembly. Otherwise, the resulting code
-> cannot be compiled without errors.
-> 
-> 
-      Thomas
+I tested 2.6.13 + the acpi-20050902 patch, and it works fine, so
+I think this bug can be closed.  I pinged the submitter to do so.
 
 
 -------------------------------------------------------
