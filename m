@@ -1,156 +1,49 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Latest acpica
-Date: Thu, 08 Sep 2005 12:15:51 +0200
-Message-ID: <43200F57.9040000@suse.de>
+From: gl@dsa-ac.de
+Subject: RE: [OOPS] vanilla 2.6.13 + "rmmod processor"
+Date: Thu, 8 Sep 2005 12:47:10 +0200 (CEST)
+Message-ID: <Pine.LNX.4.63.0509081221440.11341@pcgl.dsa-ac.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30048B3F05@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080102090200020505050709"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964844AbVIHKrR@vger.kernel.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30048B3F05@hdsmsx401.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, "Li, Shaohua" <shaohua.li@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080102090200020505050709
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 8 Sep 2005, Brown, Len wrote:
 
-acpica-unix-20050902.tar.gz
-is now available under:
-http://developer.intel.com/technology/iapc/acpi/downloads.htm
-Thanks.
+>> Just booted a 2.6.13 compiled with UP, ACPI, APIC, LAPIC,
+>> sensor modules
+>> with "nolapic noapic acpi=off".
+>
+> Huh, I don't see I don't see the processor module checking
+> for acpi_disabled anyplace...
+>
+> I assume the oops goes away when you
+> do not boot with "acpi=off"?
 
-There is one concern:
-This has been discussed some weeks ago.
-The compiler throws dozens of errors on some DSDTs:
+Yep. With apic lapic without acpi= thermal (and other ACPI modules) get 
+also loaded successfully by hotplug, so, one has to rmmod thermal 
+processor, then no Oops. Actually, should it (processor) at all load 
+successfully with acpi=off? It is the only module that loads.
 
-DSDT.dsl   777:                     , AddressRangeMemory, TypeStatic)
-Error    1084 -            Missing ResourceSource string (required) ^
+>> The processor module was still loaded by
+>> the hotplug. On rmmod it Oopsed:
+>
+> Note other processor rmmod fix here, maybe unrelated:
+> http://bugzilla.kernel.org/show_bug.cgi?id=5021
 
-I cannot find the mail now, but IIRC Len said this was added to identify
-how many DSDTs violate specs (is it optional or not?) and should be removed
-again later.
+Are you sure it is this bug? Cannot see how those patches can be related 
+to rmmod path, it said something about races, which doesn't seem to be the 
+case here. I might be wrong, of course.
 
-The patch attached lowers the error to a warning, so that you get a compiled
-DSDT as output.
-Not sure, maybe the error/warning case should be reverted totally?
-
-
-      Thomas
-
---------------080102090200020505050709
-Content-Type: text/x-patch;
- name="resource_string_warning.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="resource_string_warning.diff"
-
---- compiler/aslrestype2.c.orig	2005-09-08 12:05:25.000000000 +0200
-+++ compiler/aslrestype2.c	2005-09-08 12:08:10.000000000 +0200
-@@ -331,7 +331,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -545,7 +545,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -757,7 +757,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -1430,7 +1430,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -1639,7 +1639,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -1846,7 +1846,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -2034,7 +2034,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -2234,7 +2234,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -2431,7 +2431,7 @@
-              */
-             else if (ResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-@@ -2592,7 +2592,7 @@
-              */
-             else if (HasResSourceIndex)
-             {
--                AslError (ASL_ERROR, ASL_MSG_RESOURCE_SOURCE,
-+                AslError (ASL_WARNING, ASL_MSG_RESOURCE_SOURCE,
-                     InitializerOp, NULL);
-             }
-             break;
-
---------------080102090200020505050709--
-
-
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
-Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
+Thanks
+Guennadi
+---------------------------------
+Guennadi Liakhovetski, Ph.D.
+DSA Daten- und Systemtechnik GmbH
+Pascalstr. 28
+D-52076 Aachen
+Germany
