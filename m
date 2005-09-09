@@ -1,22 +1,13 @@
-From: Antoni Villalonga <frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Fri, 9 Sep 2005 23:59:55 +0200
-Message-ID: <75eeb70e05090914594e3619ba@mail.gmail.com>
-References: <41E81C2C.8010809@bartol.udel.edu>
-	 <47e0449d05011419037877f931@mail.gmail.com>
-	 <m2fz13x8mw.fsf@phoenix.squirrel.nl>
-	 <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
-	 <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
-	 <41EF1F6A.5000807@bartol.udel.edu>
-	 <75eeb70e05090520257be89afa@mail.gmail.com>
-	 <75eeb70e050906125344c326ad@mail.gmail.com>
-Reply-To: frikimaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Compal EFL30 ACPI
+Date: Fri, 9 Sep 2005 21:21:15 +0200
+Message-ID: <20050909192115.GA4954@message-id.gmane0305.slipkontur.de>
+References: <14569678.1126022061410.JavaMail.root@mswamui-andean.atl.sa.earthlink.net> <20050906162919.31864.qmail@web81605.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <75eeb70e050906125344c326ad-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20050906162919.31864.qmail-ZDCUxwME616A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -29,44 +20,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-2005/9/6, Antoni Villalonga:
-> 2005/9/6, Antoni Villalonga:
-> > I know about sbs-linux project in sourceforge, but I get a big delay
-> > (about ~20 seconds) with my Acer TM 4001 when I try to read battery
-> > status.
-> >
-> > There are any way to fix it?
-> >
-> > Thanks!!
->=20
-> Thanks to Olaf and Yu!
->=20
-> It doesn't work for me, I don't have more time today at weekend I'll retr=
-y. :-)
->=20
-> THANKS!!
+On Tue, Sep 06, 2005 at 09:29:19AM -0700, foo_bar_baz_boo wrote:
+> > I'd like to work out.  I did see that the CPU under XP was running at
+> > ~750MHz instead of 1.86GHz.  I am pretty sure this doesn't happen
+> > under SUSE 9.3.
+> 
+> Right. That's probably a sign that you do not have the 2.6.xx cpufreq
+> CPU speed adjustment drivers present in that SuSE kernel of yours. If
 
-It works now.
+No. This is all built as modules and works out of the box on most machines
+with SUSE 9.3.
 
-The delay of `cat /proc/acpi/battery/BAT0/state` its nearly 0.170 seconds.
+> you enable AMD PowerNow / Intel SpeedStep cpufreq drivers, this problem
+> will go away. Then, if you want to control the speed, download
+> cpufreqd, which will let you set up everything just exactly how you
+> want it using cpufreqd.conf.
 
-Read form this file block my pc while it is reading.I advise it if i'm
-moving the mouse or typing, it stop for a moment.
+Or just use the installed powersaved which will do this just fine. No
+need to download anything.
+-- 
+Stefan Seyfried
 
-$ while true; cat /proc/acpi/battery/BAT0/state > /dev/null; done
-It block totally the computer <:D
-
-Thanks to all!
-
-PS: I use linux-2.6.13
-
---=20
-$ sh ~/.bash_history
-
-Antoni Villalonga i Noceras
-#Web# ~> http://friki.org
-#Bloc# ~> http://bloc.balearweb.net/friki
-#Jabber# ~> friki-STYuutOhSz/k1uMJSBkQmQ@public.gmane.org
 
 
 -------------------------------------------------------
