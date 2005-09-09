@@ -1,11 +1,14 @@
-From: Fridtjof Busse <fbusse-Mmb7MZpHnFY@public.gmane.org>
-Subject: ibm-acpi
-Date: Fri, 9 Sep 2005 08:16:01 +0200
-Message-ID: <20050909081601.0071c822.fbusse@gmx.de>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Latest acpica
+Date: Fri, 9 Sep 2005 10:10:02 +0200
+Message-ID: <20050909081002.GA23728@fuchi>
+References: <43200F57.9040000@suse.de> <200509081859.57340.hugelmopf@web.de> <20050908183832.GA4770@parisc-linux.org> <200509082149.57483.hugelmopf@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200509082149.57483.hugelmopf-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,21 +21,53 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
-I'm not sure if this is the right place to ask, but the
-MAINTAINERS-file in the kernel lists nobody else:
-Who is responsible for keeping ibm-acpi up2date in the kernel? The
-version in the kernel is 0.8, while 0.11 is the current available
-version. But since the ibm-acpi developers don't answer mails anymore,
-I can't figure out if they maintain the driver in the kernel themselves.
-Anyhow, the version in the kernel should be updated, especially since
-0.11 doesn't build with the current kernel (2.6.13), though that's easy
-fixable (but still annoying).
-Thus a current in-kernel driver would be a good thing since it supports
-lots of new hardware.
 
--- 
-Fridtjof Busse
+--OgqxwSJOaUobr8KG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+hello Frank...
+
+* Frank <hugelmopf-S0/GAf8tV78@public.gmane.org> [2005-09-08 22:36 +0200]:
+> Thanks a lot, this solved it. Maybe a note on the download page might be=
+=20
+> helpful?
+
+done: http://acpi.sf.net/download.html
+
+i always wanted to do that, but it always slipped out of my mind. :)
+
+cheers,
+ Sebastian
+
+
+> Am Donnerstag, 8. September 2005 20:38 schrieb Matthew Wilcox:
+> > On Thu, Sep 08, 2005 at 06:59:57PM +0200, Frank wrote:
+> > > I am having problems compiling this compiler on AMD64.
+> > > It throws the following error message:
+> >
+> > Are you on Debian?  I think this means you need to install flex-old.
+
+--=20
+Oo......................................................................oO
+Jeden Tag eine Erisische Tat!
+Oo. OpenPGP key ID: 0x7A62F9B4  Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++ .oO
+
+--OgqxwSJOaUobr8KG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDIUNareHfL3pi+bQRAtaGAJsFLYy+3PnYfE5r3tjTGP3EzkyTFwCfYjxV
+JG9paJkFtHYKzuFP/5pfB9Q=
+=FHWT
+-----END PGP SIGNATURE-----
+
+--OgqxwSJOaUobr8KG--
 
 
 -------------------------------------------------------
