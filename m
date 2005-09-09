@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
-Date: Wed, 7 Sep 2005 20:32:18 +0200
-Message-ID: <20050907183218.GA773@openzaurus.ucw.cz>
-References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu>
+From: Fridtjof Busse <fbusse-Mmb7MZpHnFY@public.gmane.org>
+Subject: ibm-acpi
+Date: Fri, 9 Sep 2005 08:16:01 +0200
+Message-ID: <20050909081601.0071c822.fbusse@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E1ECHiU-0005le-00-VFwzv6uONVrxNFs70CDYszOMxtEWgIxa@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +15,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi
+I'm not sure if this is the right place to ask, but the
+MAINTAINERS-file in the kernel lists nobody else:
+Who is responsible for keeping ibm-acpi up2date in the kernel? The
+version in the kernel is 0.8, while 0.11 is the current available
+version. But since the ibm-acpi developers don't answer mails anymore,
+I can't figure out if they maintain the driver in the kernel themselves.
+Anyhow, the version in the kernel should be updated, especially since
+0.11 doesn't build with the current kernel (2.6.13), though that's easy
+fixable (but still annoying).
+Thus a current in-kernel driver would be a good thing since it supports
+lots of new hardware.
 
-> On the nc-4000 and nc-8000 notebooks, there's a problem with the fan
-> control after a resume from hiberantion.  This is a long standing
-> problem with an otherwise perfectly working hibernation.  Tried with
-> 2.6.10 to 2.6.13, and with suspend to disk and swsusp2.
-> 
-> After resume the fans are not switched on (or off) based on
-> temperature.  This is pretty dangerous, and makes hibernation
-> basically unusable for me.
-
-acpi=off should solve it, too :-).
-
-
-> Unloading the ACPI modules before suspend, and reloding them after
-> resume doesn't help.
-> 
-> Setting /proc/acpi/thermal_zone/TZ1/polling_frequency to some
-> value after resume _sometimes_ helps, but not reliably.
-
-Does echo 0/3 > /proc/acpi/fan/*/state still work after resume? Is kacpid looping
-after resume? Is /proc/a*/thermal*/*/temperature still showing
-believable values?
-Does passive cooling work for you? Can you send me your trip_points?
-
-				Pavel
 -- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+Fridtjof Busse
 
 
 -------------------------------------------------------
