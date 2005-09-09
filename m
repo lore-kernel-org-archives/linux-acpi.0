@@ -1,27 +1,74 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [PATCH] [2.6.13-mm2] set IBM ThinkPad extras to default n in Kconfig
-Date: Fri, 9 Sep 2005 18:29:14 +0200
-Message-ID: <200509091829.15073.ak@suse.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30048FA292@hdsmsx401.amr.corp.intel.com>
+From: "Lieven Schmid" <schmigxrlieven-8JXG4tPIR5tWk0Htik3J/w@public.gmane.org>
+Subject: Re: ok, try it Meddicatiowns
+Date: Fri, 9 Sep 2005 13:00:39 -0500
+Message-ID: <E1EDnBI-0003xu-6r@mail.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751422AbVIIQ3Q@vger.kernel.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30048FA292@hdsmsx401.amr.corp.intel.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: akpm@osdl.org, Borislav Petkov <petkov@uni-muenster.de>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_004C_01C5B53E.7A09F580"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Vega Dengler <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 09 September 2005 18:06, Brown, Len wrote:
+This is a multi-part message in MIME format.
 
-> I'm not sure what to do here -- what use-model
-> should we tune default Kconfig for?
+------=_NextPart_000_004C_01C5B53E.7A09F580
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-I would just give no default for the platform drivers. They are not 
-exactly mission critical. The default stuff is for more for
-optons that prevent booting when commonly set wrong etc.
+LCXMCPVUVA
+evieleanaeriialropiagltralimbi
+trbrxdiisec=
+raamumen
+aexa $1ia&nbs=
+p;$3 $3
+2.3.7
+http://www.haktoberfest.com Also, incidentally, having returned to his place, =
+into his grey striped The visitor reclined, a servant poured some thick red =
+wine into his
 
--Andi
+------=_NextPart_000_004C_01C5B53E.7A09F580
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DCourier>
+<DIV style=3D"FLOAT: left;">L<BR>C<BR>X<BR>M<BR><B>C</B><BR>P<BR><B>V</B><=
+BR>U<BR><B>V</B><BR>A</DIV>
+<DIV style=3D"FLOAT: left;">evi<BR>ele<BR>ana<BR>eri<BR><B>ial</B><BR=
+>rop<BR><B>iag</B><BR>ltr<BR><B>ali</B><BR>mbi</DIV>
+<DIV style=3D"FLOAT: left;">tr<BR>br<BR>x<BR>di<BR><B>is</B><BR>ec<BR>=
+<B>ra</B><BR>am<BR><B>um</B><BR>en</DIV>
+<DIV style=3D"FLOAT: left;">a<BR>ex<BR><BR>a<BR>&nbsp;$1<BR>ia<BR>&nbs=
+p;$3<BR><BR>&nbsp;$3<BR></DIV>
+<DIV style=3D"FLOAT: left;"><BR><BR><BR><BR>.2<BR><BR>.3<BR><BR>.7<BR></DIV>
+<DIV style=3D"CLEAR: both">&nbsp;</DIV>
+<DIV><A href=3D"http://www.haktoberfest.com">http://www.haktoberfest.com</=
+A></DIV></FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_004C_01C5B53E.7A09F580--
+
+
+
+-------------------------------------------------------
+SF.Net email is Sponsored by the Better Software Conference & EXPO
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
