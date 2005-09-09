@@ -1,11 +1,13 @@
-From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
-Date: Fri, 09 Sep 2005 12:41:27 +0200
-Message-ID: <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu>
-References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] [2.6.13-mm2] set IBM ThinkPad extras to default n in Kconfig
+Date: Fri, 9 Sep 2005 12:06:34 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30048FA292@hdsmsx401.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20050907183218.GA773-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org> (message from Pavel
-	Machek on Wed, 7 Sep 2005 20:32:18 +0200)
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,70 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: pavel-+ZI9xUNit7I@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, Borislav Petkov <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > On the nc-4000 and nc-8000 notebooks, there's a problem with the fan
-> > control after a resume from hiberantion.  This is a long standing
-> > problem with an otherwise perfectly working hibernation.  Tried with
-> > 2.6.10 to 2.6.13, and with suspend to disk and swsusp2.
-> > 
-> > After resume the fans are not switched on (or off) based on
-> > temperature.  This is pretty dangerous, and makes hibernation
-> > basically unusable for me.
-> 
-> acpi=off should solve it, too :-).
+>Hi Andrew,
+>
+>   I think the following isn't on purpose but the IBM Thinkpad acpi
+>   extras default to y in Kconfig. The patch below fixes it:
+>
+>   Signed-off-by: <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
+>
+>
+>--- drivers/acpi/Kconfig.orig	2005-09-09 09:46:26.000000000 +0200
+>+++ drivers/acpi/Kconfig	2005-09-09 09:46:46.000000000 +0200
+>@@ -197,7 +197,7 @@ config ACPI_ASUS
+> config ACPI_IBM
+> 	tristate "IBM ThinkPad Laptop Extras"
+> 	depends on X86
+>-	default y
+>+	default n
+> 	---help---
+> 	  This is a Linux ACPI driver for the IBM ThinkPad=20
 
-Yes, but that's rather noisy :)
+Before we had "default m", since that is how a distro
+is expected to compile this, and other, "ACPI drivers".
 
-> > Unloading the ACPI modules before suspend, and reloding them after
-> > resume doesn't help.
-> > 
-> > Setting /proc/acpi/thermal_zone/TZ1/polling_frequency to some
-> > value after resume _sometimes_ helps, but not reliably.
-> 
-> Does echo 0/3 > /proc/acpi/fan/*/state still work after resume?
+But we got complaits that _nothing_ should be "default m",
+so I changed it to "default y".  Maybe that was simplistic --
+button should be "default y", but the platform drivers should
+all be "default n"?
 
-Yes.
+I'm not sure what to do here -- what use-model
+should we tune default Kconfig for?
 
-> Is kacpid looping after resume?
-
-No.
-
-> Is /proc/a*/thermal*/*/temperature still showing believable values?
-
-Yes.  Perfectly normal.
-
-> Does passive cooling work for you?
-
-My guess not. /proc/acpi/thermal_zone/*/state does not change after
-resume, except if polling is enabled.
-
-I haven't left it long enough to see if it does work or not though.
-
-> Can you send me your trip_points?
-
-TZ1:
-
-critical (S5):           102 C
-passive:                 95 C: tc1=1 tc2=2 tsp=100 devices=0xdffcd468
-active[0]:               67 C: devices=0xc14e89a8
-active[1]:               60 C: devices=0xc14e8868
-active[2]:               55 C: devices=0xc14e8768
-active[3]:               40 C: devices=0xc14e8668
-
-Normally this has some hysteresis, but after resume that doesn't
-happen either (even if polling is enabled).
-
-TZ2 and TZ3 are not actively cooled.
-
-Does this info help?
-
-Thanks,
-Miklos
+thanks,
+-Len
 
 
 -------------------------------------------------------
