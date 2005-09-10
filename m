@@ -1,92 +1,72 @@
-From: Erik Slagter <erik@slagter.name>
-Subject: Re: [ACPI] Re: [PATCH] [2.6.13-mm2] set IBM ThinkPad extras to
-	default n in Kconfig
-Date: Sat, 10 Sep 2005 11:47:25 +0200
-Message-ID: <1126345645.4766.40.camel@localhost.localdomain>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30048FA292@hdsmsx401.amr.corp.intel.com>
-	 <Pine.LNX.4.61.0509091817220.3743@scrub.home>
-	 <20050910094259.GA16051@gollum.tnic>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Subject: Re: C states on AMD SMP
+Date: Sat, 10 Sep 2005 12:01:13 +0200
+Message-ID: <20050910100113.GA2582@tangens.sinus.cz>
+References: <1126178956.24699.42.camel@localhost.localdomain> <43202621.9080600@tzi.de> <1126182374.4397.8.camel@localhost.localdomain> <43215F09.7030909@tzi.de> <1126339733.22979.2.camel@localhost.localdomain> <4322A06D.8050804@tzi.de> <1126343826.4766.29.camel@localhost.localdomain>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-YU9GlqSHEzGP9hX2CZHr"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750731AbVIJJsG@vger.kernel.org>
-In-Reply-To: <20050910094259.GA16051@gollum.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <petkov@uni-muenster.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>, "Brown, Len" <len.brown@intel.com>, Andi Kleen <ak@suse.de>, akpm@osdl.org, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1126343826.4766.29.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Cc: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> On Sat, 2005-09-10 at 10:59 +0200, Janosch Machowinski wrote:
+> 
+> > > Is there a way to patch the FADT or to fool linux-acpi into it does
+> > > actually work (to at least be able to test the thing)?
+> > Shure, patch the verify functions in processor_idle.c ...
+> > But actually I think this is no good idea...
+> 
+> Testing purposes ;-)
+> 
+> BTW amd76x_pm does work, so you never know... I'd really be happy if I
+> could get something off the 190 Watts the machine now dissipates
+> constantly!
 
---=-YU9GlqSHEzGP9hX2CZHr
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, 2005-09-10 at 11:42 +0200, Borislav Petkov wrote:
-> On Fri, Sep 09, 2005 at 06:25:00PM +0200, Roman Zippel wrote:
-> =20
-> > The best would be to avoid using defaults completely, unless the result=
-ing=20
-> > kernel is non-functional (e.g. it doesn't compile or boot).
-> > So far it's still the responsibility of the user to explicitly turn=20
-> > everything on he needs (at least until we have a functional autoconfig)=
-.
-> > BTW distros are not the only users, from them I would expect how to=20
-> > configure a kernel.
->=20
-> Actually, this sounds pretty sane and IMHO is somehow the biggest common
-> denominator concerning linux users and their kernel configuration
-> recreational activities :); but seriously, going all over the menus of Kb=
-uild
-> and turning everything off is a lot of work compared to turning on the
-> several things I need on my system. "default m" is also not a good thing
-> since compiling of unnecessary modules is simply dumb for a system
-> that's just not going to use them.
-
-Not to mention the bugs you get for free while you don't even (actively)
-use the offending module/piece of code.
-
---=-YU9GlqSHEzGP9hX2CZHr
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFjCCAs8w
-ggI4oAMCAQICAw9TczANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUwODE4MTE1NDA1WhcNMDYwODE4MTE1NDA1WjBDMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFt
-ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANAMKW15OgreNb+Wd++Xcw6uNJUXXIfX
-56u1rtTObMmbbDY2wNc4Iqwbuwaysvox3z+YElXBibE8BAyV1iMjhee4mOfAy38dGHtWDxhOGke8
-VpkyY8DSWgMN5p4egTiT6YNdHW75iiQ+Vh5zMHju1UXnIqgf5zkUGkNuxYp15jLZvRDbfA5H+Sil
-jbZGB2fiPOJHpyI61ZidcMgdow31qm70/oe6vXxhSZLzo7OLvExE+mQHwbCSIJMN/hPTK1z0lmQ1
-kkaEjHrefqIgoF9Dk/WfOtulzvR3xBzDL50GZ32BxT/OhXYe1SHEJpSM1S/aq8TBQJYwjzREWyDh
-0OYsmr0CAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFndGVyLm5hbWUwDAYDVR0TAQH/BAIw
-ADANBgkqhkiG9w0BAQQFAAOBgQCCpzoneRQIKsUO8zSnwQ7yhJTrS/EaDibiIVrkkCbzXwCiHFAi
-7nmTRF0DlLVF3Ssf97ITWT/RSdkj9Xke0OHH7724PJdfpA6OglMnx2i7IcJLzPgPjB+fOmfR0nYX
-UYKuzGxTOXmshLmPcwKdpFuRLLk7n+vrTAwJYJI++crhJzCCAz8wggKooAMCAQICAQ0wDQYJKoZI
-hvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcT
-CUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmlj
-YXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
-bCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3
-MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUg
-Q29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
-SXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRw
-nd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+R
-NiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEA
-AaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwu
-dGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNV
-HREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEA
-SIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6E
-sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
-IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
-aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
-MBwGCSqGSIb3DQEJBTEPFw0wNTA5MTAwOTQ3MjVaMCMGCSqGSIb3DQEJBDEWBBS6C3DgAm9+QIV9
-z1Uyi219Equ4BTANBgkqhkiG9w0BAQEFAASCAQBWF5Zj1IwZ8Cs+KQd3BL+yv2m9QOGZ2HQoiiI3
-OlP0H44DExPxzVeBKRg72ceQP8Ld3qQQWnGCPKLPvmaF2mmjYYXyS5cVoe8j1+jcCSTnD8xtl9zk
-pAhd/O/xuNIm80HK69WC24j7ffabR0co1dkVjI7+tgGTTRy6IMQvf8rsV9/7umLG2gw7s3/+6xnM
-1y379/nDvr5sIg3SWdyUGNRvbqt2b0HOErzYgww/v+rcfmDP8emmcRi2yf84CJwFhZmLNwx0IDFh
-MaR4A/9XNSBLU1z8QxXLM1rUhamjUakXpKh/rNtHbq3nRPn8CJwzBJnTl8KydYwhuBrnYPR7FBeW
-AAAAAAAA
+Hi!
+  AFAIK, the Cx state transition mechanism described in the ACPI spec is
+designed just very simply: CPU accesses the "sleep register" stated in the
+FACP for the particular sleep level, does the dummy operation, and hardware
+puts CPU to the desired sleep level. But, what to do, if the chipset is 
+designed that it requires more than a single access ? I'm afraid that it will
+then require a specialized driver for that purpose. 
+  Did You look at the amd76x_pm sources ? I did, just to see what it
+does. There is a plenty of registers accessed, bits set/cleared from them,
+simply something, which is not present in plain processor_idle.c . Why this
+code is there ? Probably because it is necessary to handle sleep states on this
+chipset. I'm afraid that using just the "plain method" from ACPI spec
+implemented in the kernel is not enough. It is also the reason why this method
+is disabled in BIOS.
+  I'm also using amd76x_pm and it's really wonderful, the CPUs cool down to 45C
+from 75C, I can even stop the fans and the temp doesn't go above 60C if the
+CPUs are idling. I've written a small script using lm_sensors and controlling
+fans, it's nice - You start a compilation and fans turn on 5 seconds later,
+it's finished and they stop almost immediately. Nice accoustic indication :-).
+   THe same problem as with this machine I have with my notebook, Clevo D610SU,
+with SiS650 chipset. The C2/3 lats are set to 190/1900 in FADT. I patched the
+lat limits in include/acpi/processor.h to 200/2000. Now CPU enters C2 but it
+doesn't save more power than in C1. C3 is not entered at all because of bus 
+mastering issues.
+   I would be very glad for some "sis650_pm" driver but I don't have any. 
+   Windows can run about two times longer than my Linux on the same hardware
+   :-(.
+                     With regards, Pavel Troller
 
 
---=-YU9GlqSHEzGP9hX2CZHr--
+-------------------------------------------------------
+SF.Net email is Sponsored by the Better Software Conference & EXPO
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
