@@ -1,13 +1,16 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
 Subject: Re: C states on AMD SMP
-Date: Sat, 10 Sep 2005 14:47:58 +0200
-Message-ID: <4322D5FE.2040308@tzi.de>
-References: <1126178956.24699.42.camel@localhost.localdomain>	 <43202621.9080600@tzi.de> <1126182374.4397.8.camel@localhost.localdomain>	 <43215F09.7030909@tzi.de> <1126339733.22979.2.camel@localhost.localdomain>	 <4322A06D.8050804@tzi.de> <1126349362.4766.51.camel@localhost.localdomain>
+Date: Sat, 10 Sep 2005 16:51:19 +0200
+Message-ID: <1126363879.4766.54.camel@localhost.localdomain>
+References: <1126178956.24699.42.camel@localhost.localdomain>
+	 <43202621.9080600@tzi.de> <1126182374.4397.8.camel@localhost.localdomain>
+	 <43215F09.7030909@tzi.de> <1126339733.22979.2.camel@localhost.localdomain>
+	 <4322A06D.8050804@tzi.de> <1126349362.4766.51.camel@localhost.localdomain>
+	 <4322D5FE.2040308@tzi.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-BevJaFHtR5JFHq4OMUG3"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1126349362.4766.51.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <4322D5FE.2040308-cGBD8117FJM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,61 +20,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
+--=-BevJaFHtR5JFHq4OMUG3
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Erik Slagter wrote:
-> On Sat, 2005-09-10 at 10:59 +0200, Janosch Machowinski wrote:
->=20
->>>Is there a way to patch the FADT or to fool linux-acpi into it does
->>>actually work (to at least be able to test the thing)?
->>
->>Shure, patch the verify functions in processor_idle.c ...
->>But actually I think this is no good idea...
->=20
->=20
-> I tested it a few mins ago and there's good news and bad news ;-)
->=20
-> The very bad news is that my power meter is in a place I cannot reach a=
-t
-> the moment;
->=20
-> The good news is that CPU0 now has three C3 states and is almost
-> constantly running in that state;
->=20
-> The bad news is that CPU1 still reports only C1.
-That's a bug:
-Here a comment from ACPI Spec 3.0 :
-Processor power state support is symmetric when presented via the FADT=20
-and P_BLK interfaces; OSPM
-assumes all processors in a system support the same power states. If=20
-processors have non-symmetric power
-state support, then the BIOS will choose and use the lowest common power=20
-states supported by all the
-processors in the system through the FADT table. For example, if the=20
-CPU0 processor supports all power
-states up to and including the C3 state, but the CPU1 processor only=20
-supports the C1 power state, then
-OSPM will only place idle processors into the C1 power state (CPU0 will=20
-never be put into the C2 or C3
-power states). Notice that the C1 power state must be supported. The C2=20
-and C3 power states are optional
-(see the PROC_C1 flag in the FADT table description in section 5.2.6,=20
-=93System Description Table
-Header=94).
+On Sat, 2005-09-10 at 14:47 +0200, Janosch Machowinski wrote:
+
+> > The good news is that CPU0 now has three C3 states and is almost
+> > constantly running in that state;
+> >=20
+> > The bad news is that CPU1 still reports only C1.
+
+> That's a bug:
+
+[ ... ]
+
+> Feel free to write a patch
+
+I am sorry, that's way over my head. I am very much a newbie on ACPI
+stuff.
+
+Bummer!
+
+--=-BevJaFHtR5JFHq4OMUG3
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFjCCAs8w
+ggI4oAMCAQICAw9TczANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUwODE4MTE1NDA1WhcNMDYwODE4MTE1NDA1WjBDMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFt
+ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANAMKW15OgreNb+Wd++Xcw6uNJUXXIfX
+56u1rtTObMmbbDY2wNc4Iqwbuwaysvox3z+YElXBibE8BAyV1iMjhee4mOfAy38dGHtWDxhOGke8
+VpkyY8DSWgMN5p4egTiT6YNdHW75iiQ+Vh5zMHju1UXnIqgf5zkUGkNuxYp15jLZvRDbfA5H+Sil
+jbZGB2fiPOJHpyI61ZidcMgdow31qm70/oe6vXxhSZLzo7OLvExE+mQHwbCSIJMN/hPTK1z0lmQ1
+kkaEjHrefqIgoF9Dk/WfOtulzvR3xBzDL50GZ32BxT/OhXYe1SHEJpSM1S/aq8TBQJYwjzREWyDh
+0OYsmr0CAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFndGVyLm5hbWUwDAYDVR0TAQH/BAIw
+ADANBgkqhkiG9w0BAQQFAAOBgQCCpzoneRQIKsUO8zSnwQ7yhJTrS/EaDibiIVrkkCbzXwCiHFAi
+7nmTRF0DlLVF3Ssf97ITWT/RSdkj9Xke0OHH7724PJdfpA6OglMnx2i7IcJLzPgPjB+fOmfR0nYX
+UYKuzGxTOXmshLmPcwKdpFuRLLk7n+vrTAwJYJI++crhJzCCAz8wggKooAMCAQICAQ0wDQYJKoZI
+hvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcT
+CUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmlj
+YXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
+bCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3
+MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUg
+Q29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
+SXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRw
+nd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+R
+NiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEA
+AaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwu
+dGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNV
+HREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEA
+SIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6E
+sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
+IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
+dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
+aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
+MBwGCSqGSIb3DQEJBTEPFw0wNTA5MTAxNDUxMTlaMCMGCSqGSIb3DQEJBDEWBBQnnJ5YoMTO69xa
+rbJvlbnJTmndIzANBgkqhkiG9w0BAQEFAASCAQCRCXSUYuxtnFWlIwKDo+fTyiML1ivXR5XPDDsD
+LwtkSFoO95ioM06jPS0K8MwSpqdAJ2VMKAAt92ophgS09o5MsN03AeRFTD7vHb33Lc+FJc0Z3qb3
+pEyyYPtrtX5grsTwF1m1IHUDftWcjqlauNRDOIWQrpuNet6PXx4lc9Fdc9HST2O4C8+cx9tR7EW2
+Ju7+L2OMxa5uS4xXv4wLlcE82570C0H00hrLm4SkR3JIV8ltxRdvphzyAJXhKmWhAXl8S0Pgw5wT
+xu3STtgJoiQc4ICGUE3AgOQQT2q/GZXqOyuVNc/n7srXlBYXVYkUVOS1phLbzU7xiU6sSOrRMUeu
+AAAAAAAA
 
 
-Feel free to write a patch
->=20
-> Could it be that the "restriction" of this chipset is, that the complet=
-e
-> system (including both cpu's) always must run in the same C-state? That
-> would be no real problem for me.
-No, every Processor can use the Sleep states independent (with some=20
-restrictions, see ACPISpec p. 257).
+--=-BevJaFHtR5JFHq4OMUG3--
 
 
 -------------------------------------------------------
