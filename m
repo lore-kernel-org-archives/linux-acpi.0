@@ -1,16 +1,15 @@
 From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
 Subject: Re: C states on AMD SMP
-Date: Sat, 10 Sep 2005 12:46:35 +0200
-Message-ID: <1126349195.4766.48.camel@localhost.localdomain>
+Date: Sat, 10 Sep 2005 12:49:22 +0200
+Message-ID: <1126349362.4766.51.camel@localhost.localdomain>
 References: <1126178956.24699.42.camel@localhost.localdomain>
 	 <43202621.9080600@tzi.de> <1126182374.4397.8.camel@localhost.localdomain>
 	 <43215F09.7030909@tzi.de> <1126339733.22979.2.camel@localhost.localdomain>
-	 <4322A06D.8050804@tzi.de> <1126343826.4766.29.camel@localhost.localdomain>
-	 <20050910100113.GA2582@tangens.sinus.cz>
+	 <4322A06D.8050804@tzi.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-SHXK+xNBmNgGxseOMQbO"
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-VtV0C2I0XSqKD4ZiT7qM"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050910100113.GA2582-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
+In-Reply-To: <4322A06D.8050804-cGBD8117FJM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,75 +19,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Cc: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-SHXK+xNBmNgGxseOMQbO
+--=-VtV0C2I0XSqKD4ZiT7qM
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, 2005-09-10 at 12:01 +0200, Pavel Troller wrote:
+On Sat, 2005-09-10 at 10:59 +0200, Janosch Machowinski wrote:
+> > Is there a way to patch the FADT or to fool linux-acpi into it does
+> > actually work (to at least be able to test the thing)?
+> Shure, patch the verify functions in processor_idle.c ...
+> But actually I think this is no good idea...
 
-> > > > Is there a way to patch the FADT or to fool linux-acpi into it does
-> > > > actually work (to at least be able to test the thing)?
-> > > Shure, patch the verify functions in processor_idle.c ...
-> > > But actually I think this is no good idea...
-> >=20
-> > Testing purposes ;-)
-> >=20
-> > BTW amd76x_pm does work, so you never know... I'd really be happy if I
-> > could get something off the 190 Watts the machine now dissipates
-> > constantly!
+I tested it a few mins ago and there's good news and bad news ;-)
 
->   AFAIK, the Cx state transition mechanism described in the ACPI spec is
-> designed just very simply: CPU accesses the "sleep register" stated in th=
-e
-> FACP for the particular sleep level, does the dummy operation, and hardwa=
-re
-> puts CPU to the desired sleep level.
+The very bad news is that my power meter is in a place I cannot reach at
+the moment;
 
-Yeah, that's right. The amd 768 chipset does it exactly this way. I have
-the documentation here because I fiddled a lot with amd768 and didn't
-manage to do it the right thing (which means: full power when needed
-(+bus mastering), minimum power when idle).
+The good news is that CPU0 now has three C3 states and is almost
+constantly running in that state;
 
-I do know C2/C3 works, because if you call it from the idle loop, about
-20 times in a row, your computer will become dead slow ;-)
+The bad news is that CPU1 still reports only C1.
 
-> But, what to do, if the chipset is=20
-> designed that it requires more than a single access ? I'm afraid that it =
-will
-> then require a specialized driver for that purpose.=20
+Could it be that the "restriction" of this chipset is, that the complete
+system (including both cpu's) always must run in the same C-state? That
+would be no real problem for me.
 
-In that case it's not acpi compliant. IMHO it shouldn't be mentioned in
-the acpi tables anyway...
-
->   Did You look at the amd76x_pm sources?
-
-Yes ;-)
-
-> I did, just to see what it
-> does. There is a plenty of registers accessed, bits set/cleared from them=
-,
-> simply something, which is not present in plain processor_idle.c.
-
-a) mostly for the amd760 chipset (as opposed to amd768)
-b) some registers are already set by default or by bios
-c) some registers enable some extra savings
-
->  I'm also using amd76x_pm and it's really wonderful, the CPUs cool down t=
-o 45C
-> from 75C, I can even stop the fans and the temp doesn't go above 60C if t=
-he
-> CPUs are idling.
-
-See above. It doesn't do the right thing, especially not using bus
-mastering (like video capturing cards).
-
-
---=-SHXK+xNBmNgGxseOMQbO
+--=-VtV0C2I0XSqKD4ZiT7qM
 Content-Type: application/x-pkcs7-signature; name=smime.p7s
 Content-Disposition: attachment; filename=smime.p7s
 Content-Transfer-Encoding: base64
@@ -124,16 +84,16 @@ sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
 IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
 dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
 aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
-MBwGCSqGSIb3DQEJBTEPFw0wNTA5MTAxMDQ2MzVaMCMGCSqGSIb3DQEJBDEWBBTuA6gKxFahX6JR
-FagX1nfeofOskTANBgkqhkiG9w0BAQEFAASCAQBQbeDfg0jhnLkg+6tpbdNsjp54IZ/QM4g1MMO1
-NvHGC235+5cdFtLzIL6Dpj/oW0tIiW+SSEyUmlNLeZKBL3tu99E2RpSDN6vdA5oBMi7tJ4ux62Jy
-1XCUmYbhQ0Q4FFL9HUXTv532q7HcTnyJZGW7GaCOGvxbhHEh6JkM7wwsoOWIIqbFyksNDy0qpCf1
-QLRmNoAR6u9Moug8MDgvnmosrbGW+5nyYIrot71oX1u1ULnGfn9supE/2zspOUkK3HVUy+OlAD55
-wTmbz2V927FBy10+zhwoGqx+D7UDBYWSGBCEJrp560Da/KeYEnqQJlYAgrsjqN65fmcROXjP6uzN
+MBwGCSqGSIb3DQEJBTEPFw0wNTA5MTAxMDQ5MjJaMCMGCSqGSIb3DQEJBDEWBBQiVJML2fnskHd5
+2z1dchoEI2ykXjANBgkqhkiG9w0BAQEFAASCAQAVoYVlTaKUw0AkWgmuJn/mQ+lsWUyuqxVh9wY+
+K+OzGYckmYiuPZR+YpJBdN2oXTQubzhJcQ54mUqjWFTLo/j05n0GmcHdSeig0FZxfoA6heXlGrKI
+Tua1gXbdnSz57P8fljljMkvo+Q7kv9wWWuS5cuRxorE+Eg3GvnB2pb3e5DVjRv3oDUk9K3D1Qxq/
+Gwy1L+A/vQNB2RM3pOyXAbYEFYyC/HCKqpuxX3CcyB3ty0x71hJLFLnvCxMkUdK52a2DireJuF0w
+pXo/XiAeOKrb5g6cDikb7c7IWXGkHw0mrwGOjutGwV+uaU2eMS3SYeK2ss351p14TbT8azsx2jYU
 AAAAAAAA
 
 
---=-SHXK+xNBmNgGxseOMQbO--
+--=-VtV0C2I0XSqKD4ZiT7qM--
 
 
 -------------------------------------------------------
