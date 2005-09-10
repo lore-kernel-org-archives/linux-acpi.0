@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Acpi4asus-user] Re: Re: [PATCH] Fixed buffered ACPI events for a lot ASUS machines
-Date: Tue, 13 Sep 2005 22:21:50 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC209@pdsmsx403>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
+Date: Sat, 10 Sep 2005 23:55:53 +0200
+Message-ID: <20050910215552.GA2463@openzaurus.ucw.cz>
+References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz> <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <E1EDgJz-0000PH-00-VFwzv6uONVrxNFs70CDYszOMxtEWgIxa@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,49 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jfvasconcelos-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
+Cc: pavel-+ZI9xUNit7I@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->ec_burst patch will be enabled in SUSE Linux 10.0 by default.
+Hi!
 
-Great!
+> > > Unloading the ACPI modules before suspend, and reloding them after
+> > > resume doesn't help.
+> > > 
+> > > Setting /proc/acpi/thermal_zone/TZ1/polling_frequency to some
+> > > value after resume _sometimes_ helps, but not reliably.
+> > 
+> > Does echo 0/3 > /proc/acpi/fan/*/state still work after resume?
+> 
+> Yes.
+> 
+> > Is kacpid looping after resume?
+> 
+> No.
+> 
+> > Is /proc/a*/thermal*/*/temperature still showing believable values?
+> 
+> Yes.  Perfectly normal.
 
-Please check patch link at :
- http://bugzilla.kernel.org/show_bug.cgi?id=3D3851#c73
-
-The same patch against Lindent-ed ec.c is at:
- http://bugzilla.kernel.org/show_bug.cgi?id=3D3851#c75
-
->Beside lost mouse/key-strokes on some specific machines (also=20
->happen with=20
->ec_burst=3D0), I don't know of any greater harm ec_burst causes.
->If you know any other issues I'd appreciate if you let me know.
-
-After fixing the infamous regression of old burst mode ec patch,
-the latest burst mode ec driver has been validated on pretty much boxs.
-(One example is  http://bugzilla.kernel.org/show_bug.cgi?id=3D4665)
-
-And, I don't know other regression could exist. So, I think this patch
-is safe.
-If you know it,  please drop me a link to bug report.  It's really
-appreciated.
-
-As for lost mouse/key-strokes issues,  the root cause is quite
-complicated.
-the latest ec driver has eliminated  the long delay of polling ec status
-
-while holding spin lock. So, the latest ec driver itself shouldn't hang
-system
-a period that causes mouse/key lost.
-
-In case you unluckily encounter problem with ec_burst=3D1, please also
-test ec_burst=3D0. If ec_burst=3D0 works and ec_burst=3D1 doesn't, then=20
-it is a regression with ec_burst=3D1.=20
+Okay, so ACPI is basically okay, but fan driver is confused.
+You need to add code to handle suspend and resume into fan.c.
+Probably force everything on for suspend, and sync it with
+software expectations after resume.
 
 
-Thanks,
-Luming
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
