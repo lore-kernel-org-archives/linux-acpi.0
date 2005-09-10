@@ -1,64 +1,183 @@
-From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Subject: Re: C states on AMD SMP
-Date: Sat, 10 Sep 2005 19:08:08 +0200
-Message-ID: <20050910170808.GA683@tangens.sinus.cz>
-References: <1126178956.24699.42.camel@localhost.localdomain> <43202621.9080600@tzi.de> <1126182374.4397.8.camel@localhost.localdomain> <43215F09.7030909@tzi.de> <1126339733.22979.2.camel@localhost.localdomain> <4322A06D.8050804@tzi.de> <1126343826.4766.29.camel@localhost.localdomain> <20050910100113.GA2582@tangens.sinus.cz> <1126349195.4766.48.camel@localhost.localdomain>
-Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: reboot vs poweroff
+Date: Sat, 10 Sep 2005 15:07:29 -0600
+Message-ID: <m1d5ngk4xa.fsf@ebiederm.dsl.xmission.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30047B8DAF@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1126349195.4766.48.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
-Cc: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932308AbVIJVJU@vger.kernel.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30047B8DAF@hdsmsx401.amr.corp.intel.com> (Len
+ Brown's message of "Thu, 1 Sep 2005 14:23:31 -0400")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Brown, Len" <len.brown@intel.com>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>, acpi-devel@lists.sourceforge.net, ncunningham@cyclades.com, Pavel Machek <pavel@ucw.cz>, Meelis Roos <mroos@linux.ee>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+"Brown, Len" <len.brown@intel.com> writes:
 
-> > I did, just to see what it
-> > does. There is a plenty of registers accessed, bits set/cleared from them,
-> > simply something, which is not present in plain processor_idle.c.
-> 
-> a) mostly for the amd760 chipset (as opposed to amd768)
-But which chipset is in my machine, when for example lspci shows:
-00:00.0 Host bridge: Advanced Micro Devices [AMD] AMD-760 MP [IGD4-2P] System Controller (rev 11)
-00:01.0 PCI bridge: Advanced Micro Devices [AMD] AMD-760 MP [IGD4-2P] AGP Bridge
-00:07.0 ISA bridge: Advanced Micro Devices [AMD] AMD-768 [Opus] ISA (rev 04)
-00:07.1 IDE interface: Advanced Micro Devices [AMD] AMD-768 [Opus] IDE (rev 04)
-Is it a compbination of 760/768 ? If the important part is in the first line, 
-does it mean that it cannot work that simple as a "pure" 768 ?
-> b) some registers are already set by default or by bios
-But when the bios forbids PM, takes it enough care to put them to the correct 
-state ?
-> c) some registers enable some extra savings
-Another reason for a specialized driver.
-> 
-> >  I'm also using amd76x_pm and it's really wonderful, the CPUs cool down to 45C
-> > from 75C, I can even stop the fans and the temp doesn't go above 60C if the
-> > CPUs are idling.
-> 
-> See above. It doesn't do the right thing, especially not using bus
-> mastering (like video capturing cards).
-Probably not, but for example the previous version of the driver with C3 enabled
-(the current version seems not to contain C3 support) entered C3 in my case
-regularly (less than C2, but my machine is running a lot of daemons keeping CPU
-load at 0.2 or more so maybe it didn't had enough time to enter it so often).
-> 
-                                        With regards, Pavel Troller
+>  
+>>Patch tested and works fine here. You should probably make a 
+>>note in the bugzilla so we don't get a conflicting merge
+>>from the ACPI folks.
+>
+> One might also consider that it would be a good idea to
+> send patches that break ACPI files to the ACPI maintainer
+> and acpi-devel@lists.sourceforge.net before sending them
+> to Linus...
 
+OK hopefully this is my final version of this bug fix.
 
+Eric
 
--------------------------------------------------------
-SF.Net email is Sponsored by the Better Software Conference & EXPO
-September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
-Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
-Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
+diff --git a/include/linux/reboot.h b/include/linux/reboot.h
+--- a/include/linux/reboot.h
++++ b/include/linux/reboot.h
+@@ -59,6 +59,10 @@ extern void machine_crash_shutdown(struc
+  * Architecture independent implemenations of sys_reboot commands.
+  */
+ 
++extern void kernel_restart_prepare(char *cmd);
++extern void kernel_halt_prepare(void);
++extern void kernel_power_off_prepare(void);
++
+ extern void kernel_restart(char *cmd);
+ extern void kernel_halt(void);
+ extern void kernel_power_off(void);
+diff --git a/kernel/power/disk.c b/kernel/power/disk.c
+--- a/kernel/power/disk.c
++++ b/kernel/power/disk.c
+@@ -17,12 +17,12 @@
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+ #include <linux/mount.h>
++#include <linux/pm.h>
+ 
+ #include "power.h"
+ 
+ 
+ extern suspend_disk_method_t pm_disk_mode;
+-extern struct pm_ops * pm_ops;
+ 
+ extern int swsusp_suspend(void);
+ extern int swsusp_write(void);
+@@ -49,13 +49,11 @@ dev_t swsusp_resume_device;
+ 
+ static void power_down(suspend_disk_method_t mode)
+ {
+-	unsigned long flags;
+ 	int error = 0;
+ 
+-	local_irq_save(flags);
+ 	switch(mode) {
+ 	case PM_DISK_PLATFORM:
+- 		device_shutdown();
++		kernel_power_off_prepare();
+ 		error = pm_ops->enter(PM_SUSPEND_DISK);
+ 		break;
+ 	case PM_DISK_SHUTDOWN:
+diff --git a/kernel/sys.c b/kernel/sys.c
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -361,17 +361,35 @@ out_unlock:
+ 	return retval;
+ }
+ 
++/**
++ *	emergency_restart - reboot the system
++ *
++ *	Without shutting down any hardware or taking any locks
++ *	reboot the system.  This is called when we know we are in
++ *	trouble so this is our best effort to reboot.  This is
++ *	safe to call in interrupt context.
++ */
+ void emergency_restart(void)
+ {
+ 	machine_emergency_restart();
+ }
+ EXPORT_SYMBOL_GPL(emergency_restart);
+ 
+-void kernel_restart(char *cmd)
++/**
++ *	kernel_restart - reboot the system
++ *
++ *	Shutdown everything and perform a clean reboot.
++ *	This is not safe to call in interrupt context.
++ */
++void kernel_restart_prepare(char *cmd)
+ {
+ 	notifier_call_chain(&reboot_notifier_list, SYS_RESTART, cmd);
+ 	system_state = SYSTEM_RESTART;
+ 	device_shutdown();
++}
++void kernel_restart(char *cmd)
++{
++	kernel_restart_prepare(cmd);
+ 	if (!cmd) {
+ 		printk(KERN_EMERG "Restarting system.\n");
+ 	} else {
+@@ -382,6 +400,12 @@ void kernel_restart(char *cmd)
+ }
+ EXPORT_SYMBOL_GPL(kernel_restart);
+ 
++/**
++ *	kernel_kexec - reboot the system
++ *
++ *	Move into place and start executing a preloaded standalone
++ *	executable.  If nothing was preloaded return an error.
++ */
+ void kernel_kexec(void)
+ {
+ #ifdef CONFIG_KEXEC
+@@ -390,9 +414,7 @@ void kernel_kexec(void)
+ 	if (!image) {
+ 		return;
+ 	}
+-	notifier_call_chain(&reboot_notifier_list, SYS_RESTART, NULL);
+-	system_state = SYSTEM_RESTART;
+-	device_shutdown();
++	kernel_restart_prepare(NULL);
+ 	printk(KERN_EMERG "Starting new kernel\n");
+ 	machine_shutdown();
+ 	machine_kexec(image);
+@@ -400,21 +422,39 @@ void kernel_kexec(void)
+ }
+ EXPORT_SYMBOL_GPL(kernel_kexec);
+ 
+-void kernel_halt(void)
++/**
++ *	kernel_halt - halt the system
++ *
++ *	Shutdown everything and perform a clean system halt.
++ */
++void kernel_halt_prepare(void)
+ {
+ 	notifier_call_chain(&reboot_notifier_list, SYS_HALT, NULL);
+ 	system_state = SYSTEM_HALT;
+ 	device_shutdown();
++}
++void kernel_halt(void)
++{
++	kernel_halt_prepare();
+ 	printk(KERN_EMERG "System halted.\n");
+ 	machine_halt();
+ }
+ EXPORT_SYMBOL_GPL(kernel_halt);
+ 
+-void kernel_power_off(void)
++/**
++ *	kernel_power_off - power_off the system
++ *
++ *	Shutdown everything and perform a clean system power_off.
++ */
++void kernel_power_off_prepare(void)
+ {
+ 	notifier_call_chain(&reboot_notifier_list, SYS_POWER_OFF, NULL);
+ 	system_state = SYSTEM_POWER_OFF;
+ 	device_shutdown();
++}
++void kernel_power_off(void)
++{
++	kernel_power_off_prepare();
+ 	printk(KERN_EMERG "Power down.\n");
+ 	machine_power_off();
+ }
