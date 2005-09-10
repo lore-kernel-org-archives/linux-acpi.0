@@ -1,16 +1,14 @@
-From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Subject: Re: C states on AMD SMP
-Date: Sat, 10 Sep 2005 16:51:19 +0200
-Message-ID: <1126363879.4766.54.camel@localhost.localdomain>
-References: <1126178956.24699.42.camel@localhost.localdomain>
-	 <43202621.9080600@tzi.de> <1126182374.4397.8.camel@localhost.localdomain>
-	 <43215F09.7030909@tzi.de> <1126339733.22979.2.camel@localhost.localdomain>
-	 <4322A06D.8050804@tzi.de> <1126349362.4766.51.camel@localhost.localdomain>
-	 <4322D5FE.2040308@tzi.de>
+Date: Sat, 10 Sep 2005 19:08:08 +0200
+Message-ID: <20050910170808.GA683@tangens.sinus.cz>
+References: <1126178956.24699.42.camel@localhost.localdomain> <43202621.9080600@tzi.de> <1126182374.4397.8.camel@localhost.localdomain> <43215F09.7030909@tzi.de> <1126339733.22979.2.camel@localhost.localdomain> <4322A06D.8050804@tzi.de> <1126343826.4766.29.camel@localhost.localdomain> <20050910100113.GA2582@tangens.sinus.cz> <1126349195.4766.48.camel@localhost.localdomain>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-BevJaFHtR5JFHq4OMUG3"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4322D5FE.2040308-cGBD8117FJM@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1126349195.4766.48.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,79 +18,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Cc: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>, Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---=-BevJaFHtR5JFHq4OMUG3
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> > I did, just to see what it
+> > does. There is a plenty of registers accessed, bits set/cleared from them,
+> > simply something, which is not present in plain processor_idle.c.
+> 
+> a) mostly for the amd760 chipset (as opposed to amd768)
+But which chipset is in my machine, when for example lspci shows:
+00:00.0 Host bridge: Advanced Micro Devices [AMD] AMD-760 MP [IGD4-2P] System Controller (rev 11)
+00:01.0 PCI bridge: Advanced Micro Devices [AMD] AMD-760 MP [IGD4-2P] AGP Bridge
+00:07.0 ISA bridge: Advanced Micro Devices [AMD] AMD-768 [Opus] ISA (rev 04)
+00:07.1 IDE interface: Advanced Micro Devices [AMD] AMD-768 [Opus] IDE (rev 04)
+Is it a compbination of 760/768 ? If the important part is in the first line, 
+does it mean that it cannot work that simple as a "pure" 768 ?
+> b) some registers are already set by default or by bios
+But when the bios forbids PM, takes it enough care to put them to the correct 
+state ?
+> c) some registers enable some extra savings
+Another reason for a specialized driver.
+> 
+> >  I'm also using amd76x_pm and it's really wonderful, the CPUs cool down to 45C
+> > from 75C, I can even stop the fans and the temp doesn't go above 60C if the
+> > CPUs are idling.
+> 
+> See above. It doesn't do the right thing, especially not using bus
+> mastering (like video capturing cards).
+Probably not, but for example the previous version of the driver with C3 enabled
+(the current version seems not to contain C3 support) entered C3 in my case
+regularly (less than C2, but my machine is running a lot of daemons keeping CPU
+load at 0.2 or more so maybe it didn't had enough time to enter it so often).
+> 
+                                        With regards, Pavel Troller
 
-On Sat, 2005-09-10 at 14:47 +0200, Janosch Machowinski wrote:
-
-> > The good news is that CPU0 now has three C3 states and is almost
-> > constantly running in that state;
-> >=20
-> > The bad news is that CPU1 still reports only C1.
-
-> That's a bug:
-
-[ ... ]
-
-> Feel free to write a patch
-
-I am sorry, that's way over my head. I am very much a newbie on ACPI
-stuff.
-
-Bummer!
-
---=-BevJaFHtR5JFHq4OMUG3
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFjCCAs8w
-ggI4oAMCAQICAw9TczANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUwODE4MTE1NDA1WhcNMDYwODE4MTE1NDA1WjBDMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFt
-ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANAMKW15OgreNb+Wd++Xcw6uNJUXXIfX
-56u1rtTObMmbbDY2wNc4Iqwbuwaysvox3z+YElXBibE8BAyV1iMjhee4mOfAy38dGHtWDxhOGke8
-VpkyY8DSWgMN5p4egTiT6YNdHW75iiQ+Vh5zMHju1UXnIqgf5zkUGkNuxYp15jLZvRDbfA5H+Sil
-jbZGB2fiPOJHpyI61ZidcMgdow31qm70/oe6vXxhSZLzo7OLvExE+mQHwbCSIJMN/hPTK1z0lmQ1
-kkaEjHrefqIgoF9Dk/WfOtulzvR3xBzDL50GZ32BxT/OhXYe1SHEJpSM1S/aq8TBQJYwjzREWyDh
-0OYsmr0CAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFndGVyLm5hbWUwDAYDVR0TAQH/BAIw
-ADANBgkqhkiG9w0BAQQFAAOBgQCCpzoneRQIKsUO8zSnwQ7yhJTrS/EaDibiIVrkkCbzXwCiHFAi
-7nmTRF0DlLVF3Ssf97ITWT/RSdkj9Xke0OHH7724PJdfpA6OglMnx2i7IcJLzPgPjB+fOmfR0nYX
-UYKuzGxTOXmshLmPcwKdpFuRLLk7n+vrTAwJYJI++crhJzCCAz8wggKooAMCAQICAQ0wDQYJKoZI
-hvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcT
-CUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmlj
-YXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
-bCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3
-MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUg
-Q29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
-SXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRw
-nd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+R
-NiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEA
-AaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwu
-dGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNV
-HREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEA
-SIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6E
-sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
-IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
-aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
-MBwGCSqGSIb3DQEJBTEPFw0wNTA5MTAxNDUxMTlaMCMGCSqGSIb3DQEJBDEWBBQnnJ5YoMTO69xa
-rbJvlbnJTmndIzANBgkqhkiG9w0BAQEFAASCAQCRCXSUYuxtnFWlIwKDo+fTyiML1ivXR5XPDDsD
-LwtkSFoO95ioM06jPS0K8MwSpqdAJ2VMKAAt92ophgS09o5MsN03AeRFTD7vHb33Lc+FJc0Z3qb3
-pEyyYPtrtX5grsTwF1m1IHUDftWcjqlauNRDOIWQrpuNet6PXx4lc9Fdc9HST2O4C8+cx9tR7EW2
-Ju7+L2OMxa5uS4xXv4wLlcE82570C0H00hrLm4SkR3JIV8ltxRdvphzyAJXhKmWhAXl8S0Pgw5wT
-xu3STtgJoiQc4ICGUE3AgOQQT2q/GZXqOyuVNc/n7srXlBYXVYkUVOS1phLbzU7xiU6sSOrRMUeu
-AAAAAAAA
-
-
---=-BevJaFHtR5JFHq4OMUG3--
 
 
 -------------------------------------------------------
