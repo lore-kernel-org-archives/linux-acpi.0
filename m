@@ -1,183 +1,39 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
+From: Meelis Roos <mroos-Y27EyoLml9s@public.gmane.org>
 Subject: Re: reboot vs poweroff
-Date: Sat, 10 Sep 2005 15:07:29 -0600
-Message-ID: <m1d5ngk4xa.fsf@ebiederm.dsl.xmission.com>
+Date: Sun, 11 Sep 2005 11:43:04 +0300 (EEST)
+Message-ID: <Pine.SOC.4.61.0509111140550.9218@math.ut.ee>
 References: <F7DC2337C7631D4386A2DF6E8FB22B30047B8DAF@hdsmsx401.amr.corp.intel.com>
+ <m1d5ngk4xa.fsf@ebiederm.dsl.xmission.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932308AbVIJVJU@vger.kernel.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30047B8DAF@hdsmsx401.amr.corp.intel.com> (Len
- Brown's message of "Thu, 1 Sep 2005 14:23:31 -0400")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>, acpi-devel@lists.sourceforge.net, ncunningham@cyclades.com, Pavel Machek <pavel@ucw.cz>, Meelis Roos <mroos@linux.ee>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <m1d5ngk4xa.fsf-T1Yj925okcoyDheHMi7gv2pdwda3JcWeAL8bYrjMMd8@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Masoud Sharbiani <masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-"Brown, Len" <len.brown@intel.com> writes:
+> OK hopefully this is my final version of this bug fix.
 
->  
->>Patch tested and works fine here. You should probably make a 
->>note in the bugzilla so we don't get a conflicting merge
->>from the ACPI folks.
->
-> One might also consider that it would be a good idea to
-> send patches that break ACPI files to the ACPI maintainer
-> and acpi-devel@lists.sourceforge.net before sending them
-> to Linus...
+I'm not in the position to test threse patches any more because the 
+mainboard in question died last week when I installed some more RAM into 
+it. Masoud Sharbiani <masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org> added to CC: since he 
+experienced the same problem.
 
-OK hopefully this is my final version of this bug fix.
+-- 
+Meelis Roos (mroos-Y27EyoLml9s@public.gmane.org)
 
-Eric
 
-diff --git a/include/linux/reboot.h b/include/linux/reboot.h
---- a/include/linux/reboot.h
-+++ b/include/linux/reboot.h
-@@ -59,6 +59,10 @@ extern void machine_crash_shutdown(struc
-  * Architecture independent implemenations of sys_reboot commands.
-  */
- 
-+extern void kernel_restart_prepare(char *cmd);
-+extern void kernel_halt_prepare(void);
-+extern void kernel_power_off_prepare(void);
-+
- extern void kernel_restart(char *cmd);
- extern void kernel_halt(void);
- extern void kernel_power_off(void);
-diff --git a/kernel/power/disk.c b/kernel/power/disk.c
---- a/kernel/power/disk.c
-+++ b/kernel/power/disk.c
-@@ -17,12 +17,12 @@
- #include <linux/delay.h>
- #include <linux/fs.h>
- #include <linux/mount.h>
-+#include <linux/pm.h>
- 
- #include "power.h"
- 
- 
- extern suspend_disk_method_t pm_disk_mode;
--extern struct pm_ops * pm_ops;
- 
- extern int swsusp_suspend(void);
- extern int swsusp_write(void);
-@@ -49,13 +49,11 @@ dev_t swsusp_resume_device;
- 
- static void power_down(suspend_disk_method_t mode)
- {
--	unsigned long flags;
- 	int error = 0;
- 
--	local_irq_save(flags);
- 	switch(mode) {
- 	case PM_DISK_PLATFORM:
-- 		device_shutdown();
-+		kernel_power_off_prepare();
- 		error = pm_ops->enter(PM_SUSPEND_DISK);
- 		break;
- 	case PM_DISK_SHUTDOWN:
-diff --git a/kernel/sys.c b/kernel/sys.c
---- a/kernel/sys.c
-+++ b/kernel/sys.c
-@@ -361,17 +361,35 @@ out_unlock:
- 	return retval;
- }
- 
-+/**
-+ *	emergency_restart - reboot the system
-+ *
-+ *	Without shutting down any hardware or taking any locks
-+ *	reboot the system.  This is called when we know we are in
-+ *	trouble so this is our best effort to reboot.  This is
-+ *	safe to call in interrupt context.
-+ */
- void emergency_restart(void)
- {
- 	machine_emergency_restart();
- }
- EXPORT_SYMBOL_GPL(emergency_restart);
- 
--void kernel_restart(char *cmd)
-+/**
-+ *	kernel_restart - reboot the system
-+ *
-+ *	Shutdown everything and perform a clean reboot.
-+ *	This is not safe to call in interrupt context.
-+ */
-+void kernel_restart_prepare(char *cmd)
- {
- 	notifier_call_chain(&reboot_notifier_list, SYS_RESTART, cmd);
- 	system_state = SYSTEM_RESTART;
- 	device_shutdown();
-+}
-+void kernel_restart(char *cmd)
-+{
-+	kernel_restart_prepare(cmd);
- 	if (!cmd) {
- 		printk(KERN_EMERG "Restarting system.\n");
- 	} else {
-@@ -382,6 +400,12 @@ void kernel_restart(char *cmd)
- }
- EXPORT_SYMBOL_GPL(kernel_restart);
- 
-+/**
-+ *	kernel_kexec - reboot the system
-+ *
-+ *	Move into place and start executing a preloaded standalone
-+ *	executable.  If nothing was preloaded return an error.
-+ */
- void kernel_kexec(void)
- {
- #ifdef CONFIG_KEXEC
-@@ -390,9 +414,7 @@ void kernel_kexec(void)
- 	if (!image) {
- 		return;
- 	}
--	notifier_call_chain(&reboot_notifier_list, SYS_RESTART, NULL);
--	system_state = SYSTEM_RESTART;
--	device_shutdown();
-+	kernel_restart_prepare(NULL);
- 	printk(KERN_EMERG "Starting new kernel\n");
- 	machine_shutdown();
- 	machine_kexec(image);
-@@ -400,21 +422,39 @@ void kernel_kexec(void)
- }
- EXPORT_SYMBOL_GPL(kernel_kexec);
- 
--void kernel_halt(void)
-+/**
-+ *	kernel_halt - halt the system
-+ *
-+ *	Shutdown everything and perform a clean system halt.
-+ */
-+void kernel_halt_prepare(void)
- {
- 	notifier_call_chain(&reboot_notifier_list, SYS_HALT, NULL);
- 	system_state = SYSTEM_HALT;
- 	device_shutdown();
-+}
-+void kernel_halt(void)
-+{
-+	kernel_halt_prepare();
- 	printk(KERN_EMERG "System halted.\n");
- 	machine_halt();
- }
- EXPORT_SYMBOL_GPL(kernel_halt);
- 
--void kernel_power_off(void)
-+/**
-+ *	kernel_power_off - power_off the system
-+ *
-+ *	Shutdown everything and perform a clean system power_off.
-+ */
-+void kernel_power_off_prepare(void)
- {
- 	notifier_call_chain(&reboot_notifier_list, SYS_POWER_OFF, NULL);
- 	system_state = SYSTEM_POWER_OFF;
- 	device_shutdown();
-+}
-+void kernel_power_off(void)
-+{
-+	kernel_power_off_prepare();
- 	printk(KERN_EMERG "Power down.\n");
- 	machine_power_off();
- }
+-------------------------------------------------------
+SF.Net email is Sponsored by the Better Software Conference & EXPO
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
