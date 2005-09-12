@@ -1,11 +1,15 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH] Fixed buffered ACPI events for a lot ASUS machines
-Date: Mon, 12 Sep 2005 13:39:15 +0200
-Message-ID: <432568E3.6040401@suse.de>
+From: Yann Droneaud <ydroneaud-4qZELD6FgxhWk0Htik3J/w@public.gmane.org>
+Subject: Re: ACPI Linux: acpi_get_firmware fix
+Date: Mon, 12 Sep 2005 13:44:52 +0200
+Message-ID: <200509121344.53063.ydroneaud@mandriva.com>
+References: <1121264876.8504.24.camel@firedrake.mandriva.com> <1121270181.8504.28.camel@firedrake.mandriva.com> <1125520663.16880.41.camel@toshiba>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040800010807050609030908"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1125520663.16880.41.camel@toshiba>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,53 +19,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, jfvasconcelos-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040800010807050609030908
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wednesday 31 August 2005 22:37, Len Brown wrote:
+> Applied.
+>
+> thanks,
 
-Hi,
 
-I finally could resolve the buffering of ACPI events on
-some ASUS (M6N, M6000, A3500N, A6000G, maybe more...)
-when battery module is loaded.
+I see the changelog here:
+http://lkml.org/lkml/mbox/2005/9/8/30
 
-After hours of hopeless debugging I could track it down by comparing
-with Yu Luming's previously patch posted on bugzilla.kernel.org.
-
-Yu, could you confirm that this is really fixing a bug and totally safe?
-
-Or was this intended and could possibly lead to problems on other machines?
-
-Thanks,
-
-      Thomas
-
---------------040800010807050609030908
-Content-Type: text/x-patch;
- name="acpi_fix_ASUS_M6N_bufferd_events.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="acpi_fix_ASUS_M6N_bufferd_events.diff"
-
---- drivers/acpi/ec.c.orig	2005-09-12 13:22:13.000000000 +0200
-+++ drivers/acpi/ec.c	2005-09-12 13:22:22.000000000 +0200
-@@ -840,8 +840,8 @@
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Evaluating %s\n", object_name));
+The two bugs and patches, I sent are fixed in this tree
+(event if I'm not credited for this fix:
  
- 	acpi_evaluate_object(ec->common.handle, object_name, NULL, NULL);
--end:	
- 	atomic_dec(&ec->burst.pending_gpe);
-+end:	
- 	return;
- }
- 
+   Added a check for a null RSDT pointer in
+    acpi_get_firmware_table (tbxfroot.c) to prevent a fault
+    in this error case.
 
---------------040800010807050609030908--
+Perhaps you fixed it too. Doesn"t really matter in fact).
+
+Thank you.
+
+(Sorry for this late answer, i was in holiday for a week and half).
+
+Regards.
+
+-- 
+Yann Droneaud
 
 
 -------------------------------------------------------
