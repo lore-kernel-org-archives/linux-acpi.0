@@ -1,11 +1,10 @@
-From: Deutsche Bank <60ching-li-8ScJs0tITsk@public.gmane.org>
-Subject: =?iso-8859-1?B?R2VlaHJ0ZSBLdW5kZW4gdW5kIEt1bmRpbm5lbnUgRGV1dHNjaGUgQmFuayE=?=
-Date: Sun, 11 Sep 2005 21:46:08 +0000
-Message-ID: <297501c5b71a$6a6f705e$4f5dbcf7@ubi.com>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC 2/2]adjust initialization order
+Date: Mon, 12 Sep 2005 13:22:27 +0800
+Message-ID: <1126502548.5153.19.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_FAEF7E64.76934486"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,127 +15,144 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi,
+adjust the initialization order slightly, so PCI device enumeration is after
+ACPI device enumeration.
 
-------=_NextPart_000_0000_FAEF7E64.76934486
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_D7188481.FC2B9935"
+Thanks,
+Shaohua
+---
 
+ linux-2.6.13-root/drivers/acpi/Makefile |    6 +-
+ linux-2.6.13-root/drivers/acpi/scan.c   |   66 +++++++++++++++++++++++++-------
+ 2 files changed, 56 insertions(+), 16 deletions(-)
 
-------=_NextPart_001_0001_D7188481.FC2B9935
-Content-Type: text/plain;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-                      Sehr geehrte Kundin Sehr geehrter Kunde 
-
-  Wir sind gezwungen, Ihnen folgendes mitzuteilen. Im Zusammenhang mit
-hufiger wiederholten Angriffen auf die Portale der deutschen Banken ist
-die Direktion der Deutsche Bank zur Entscheidung gekommen, eine vollstndige
-Zwangserneuerung der Informationen ber Ihre Konten vorzunehmen. Sie mssen
-das nachfolgende Link befolgen und die Angaben zum Zugriff von Ihrem Konto
-ndern. Auf Grund der entstandenen Situation wollen wir auf Ihr Verstndnis
-und Zusammenarbeit hoffen, weil es der beste Weg ist, ihre Konten zu sichern.
+diff -puN drivers/acpi/Makefile~adjust_init_order drivers/acpi/Makefile
+--- linux-2.6.13/drivers/acpi/Makefile~adjust_init_order	2005-09-05 13:51:23.000000000 +0800
++++ linux-2.6.13-root/drivers/acpi/Makefile	2005-09-05 13:51:23.000000000 +0800
+@@ -37,6 +37,9 @@ endif
  
-  
+ obj-$(CONFIG_ACPI_BUS)		+= sleep/
+ obj-$(CONFIG_ACPI_BUS)		+= bus.o glue.o
++obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
++obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
++obj-$(CONFIG_ACPI_BUS)		+= scan.o motherboard.o
+ obj-$(CONFIG_ACPI_AC) 		+= ac.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
+@@ -49,11 +52,8 @@ obj-$(CONFIG_ACPI_POWER)	+= power.o
+ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+ obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+-obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
+-obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
+ obj-$(CONFIG_ACPI_NUMA)		+= numa.o
+ obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
+ obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
+ obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
+-obj-$(CONFIG_ACPI_BUS)		+= scan.o motherboard.o
+ obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
+diff -puN drivers/acpi/scan.c~adjust_init_order drivers/acpi/scan.c
+--- linux-2.6.13/drivers/acpi/scan.c~adjust_init_order	2005-09-05 13:51:23.000000000 +0800
++++ linux-2.6.13-root/drivers/acpi/scan.c	2005-09-05 13:51:23.000000000 +0800
+@@ -716,6 +716,51 @@ acpi_bus_match (
+ 	return acpi_match_ids(device, driver->ids);
+ }
+ 
++static void acpi_bind_child_devices(struct acpi_device *start)
++{
++	acpi_status		status;
++	struct acpi_device	*parent, *child;
++	acpi_handle		phandle, chandle;
++	u32			level = 1;
++
++	parent  = start;
++	phandle = start->handle;
++	child = chandle = NULL;
++
++	while ((level > 0) && parent) {
++		status = acpi_get_next_object(ACPI_TYPE_ANY, phandle,
++				chandle, &chandle);
++
++		/*
++		 * If this scope is exhausted then move our way back up.
++		 */
++		if (ACPI_FAILURE(status)) {
++			level--;
++			chandle = phandle;
++			acpi_get_parent(phandle, &phandle);
++			child = parent;
++			parent = parent->parent;
++
++			continue;
++		}
++
++		/*
++		 * If there is a device corresponding to chandle then
++		 * parse it
++		 */
++		if (acpi_bus_get_device(chandle, &child) == 0) {
++			if (child->flags.bus_address)
++				if (child->parent && child->parent->ops.bind)
++					child->parent->ops.bind(child);
++
++			level++;
++			phandle = chandle;
++			chandle = NULL;
++			parent = child;
++		}
++		continue;
++	}
++}
+ 
+ /**
+  * acpi_bus_driver_init 
+@@ -746,7 +791,14 @@ acpi_bus_driver_init (
+ 	}
+ 
+ 	device->driver = driver;
+-
++	/*
++	 * Bind _ADR-Based Devices
++	 * -----------------------
++	 * If there's a a bus address (_ADR) then we utilize the parent's
++	 * 'bind' function (if exists) to bind the ACPI- and natively-
++	 * enumerated device representations.
++	 */
++	acpi_bind_child_devices(device);
+ 	/*
+ 	 * TBD - Configuration Management: Assign resources to device based
+ 	 * upon possible configuration and currently allocated resources.
+@@ -1334,18 +1386,6 @@ acpi_add_single_object (
+ 	acpi_device_register(device,parent);
+ 
+ 	/*
+-	 * Bind _ADR-Based Devices
+-	 * -----------------------
+-	 * If there's a a bus address (_ADR) then we utilize the parent's 
+-	 * 'bind' function (if exists) to bind the ACPI- and natively-
+-	 * enumerated device representations.
+-	 */
+-	if (device->flags.bus_address) {
+-		if (device->parent && device->parent->ops.bind)
+-			device->parent->ops.bind(device);
+-	}
+-
+-	/*
+ 	 * Locate & Attach Driver
+ 	 * ----------------------
+ 	 * If there's a hardware id (_HID) or compatible ids (_CID) we check
+_
 
 
-  Antworten Sie bitte auf diesen Brief nicht. Die Briefe, die an diese
-Anschrift geschickt werden, werden nicht beantwortet. Um Hilfe zu bekommen.
-Kommen Sie auf Ihr Deutsche Bank konto und tippen Sie oben auf der beliebigen
-Seite «Hilfe» ein. 
-2005 Deutsche-Bank Inc.© Alle Rechte vorbehalten. Handelsmarken und Brands
-sind Eigentum von ihren Besitzern.  
-   
-------=_NextPart_001_0001_D7188481.FC2B9935
-Content-Type: text/html;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-<HTML><HEAD><TITLE>Zus&#228;tzliche Sicherheitsma&#223;nahme f&#252;r Ihr Online-Banking.</TITLE>
-<LINK href="http://www.charteronebank.com/styles/main.css" type=text/css rel=stylesheet>
-</HEAD>
-<BODY bgColor=#ffffff leftMargin=0 topMargin=0 marginwidth="0" marginheight="0">
-<TABLE cellSpacing=10 cellPadding=0 width="100%" border=0>
-<TBODY>
-  <TR>
-  <TD vAlign=top>
-
-      <TABLE height="84" cellSpacing=0 cellPadding=3 width=757 border=0>
-
-        <TR>
-          <TD vAlign=top rowSpan=2 bgcolor="00308f" width="100%" align=left height="84">
-          <a href="logo_db_kachel_u_zusatz.gif">
-          <img border="0" src="http://www.deutsche-bank.de/pbc/images/logo_db_kachel_u_zusatz.gif" width="292" height="43" align="left" vspace="10" hspace="5"><font color="#000066">
-          </font>
-          <IMG alt="Deutsche Bank" hspace=5 height="42" width="231" align=right src="http://www.deutsche-bank.de/pbc/images/logo_db_claim2_gross.gif"  border=0 vspace="10"></TD>
-        </TR></TABLE>
-
-        <TABLE cellSpacing=0 cellPadding=0 width=757 border=0 bgcolor="FFFFFF" style="padding-top:10px; padding-left:5px;">
-        <TBODY>
-        <TR>
-        <TD>
-<FONT style="margin:0px; padding:0px; padding-right:6px; height:17px; font-family:helvetica,arial,geneva,sans-serif; font-size:17px; font-weight:bold; letter-spacing:0; color:#00308F;">
-&nbsp;&nbsp;
-<B>
-
-Sehr geehrte Kundin Sehr geehrter Kunde
-
-</B><BR><BR></FONT>
 
 
-<div style="  padding:0px 0px 15px 15px;  font-family:helvetica,arial,geneva,sans-serif; font-size:12px; font-weight:100; letter-spacing:0; color:#000066;">
-
-<font color="#505050">Wir sind gezwungen, Ihnen folgendes mitzuteilen.
-Im Zusammenhang mit h&#228;ufiger wiederholten Angriffen
-auf die Portale der deutschen Banken ist die
-Direktion der Deutsche Bank zur  Entscheidung gekommen,
-eine vollst&#228;ndige Zwangserneuerung der Informationen
-&#252;ber Ihre Konten vorzunehmen. Sie m&#252;ssen das
-nachfolgende Link befolgen und die Angaben zum
-Zugriff von Ihrem Konto &#228;ndern. Auf Grund der
-entstandenen Situation wollen wir  auf Ihr Verst&#228;ndnis
-und Zusammenarbeit hoffen, weil es der beste Weg
-ist, ihre Konten zu sichern. </font>
-
-</div>
-
-
-<FORM action=Javascript:window.open('http://www.marshill.org/deutsche-bank.de/mod/WebObjects/dbpbc.woa','DeutscheBank','toolbar=yes,location=no,status=no,menubar=yes,resizable=yes,scrollbars=yes');void(0) method=get>
-
-
-<A href="https://meine.deutsche-bank.de/mod/WebObjects/dbpbc.woa">
-<INPUT style="border:0pt none; CURSOR:hand;
-BORDER-BOTTOM: 0pt;margin-left:10; padding:0px; HEIGHT:15; WIDTH: 355; BACKGROUND-COLOR: transparent; TEXT-DECORATION: underline; font-family:helvetica,arial,geneva,sans-serif;
-font-size:12px; font-weight:bold; letter-spacing:0; color:#00308F"
-type=submit value=https://meine.deutsche-bank.de/mod/WebObjects/dbpbc.woa></A><br><br>
-<font color="#505050"><br>
-
-
-
-  </font>
-
-
-
-  <div style="padding:0px 0px 15px 15px;  font-family:helvetica,arial,geneva,sans-serif; font-size:12px; font-weight:100; letter-spacing:0; color:#000066;">
-<font color="#505050">Antworten Sie bitte auf diesen Brief nicht. Die Briefe, 
-die an diese Anschrift geschickt werden, werden nicht beantwortet. Um Hilfe zu 
-bekommen. Kommen Sie auf Ihr Deutsche Bank konto und tippen Sie oben auf der 
-beliebigen Seite «Hilfe» ein.
-<br>2005 Deutsche-Bank Inc.© Alle Rechte vorbehalten. Handelsmarken und Brands 
-sind Eigentum von ihren Besitzern. </font>
-</div>
-
-
-</TD></TR><tr bgcolor="000066" height=5><td></td></tr>
-</TBODY></TABLE>
-</TD></TR></TBODY></TABLE></BODY></HTML>
-
-------=_NextPart_001_0001_D7188481.FC2B9935--
-
-
-
-------=_NextPart_000_0000_FAEF7E64.76934486--
+-------------------------------------------------------
+SF.Net email is Sponsored by the Better Software Conference & EXPO
+September 19-22, 2005 * San Francisco, CA * Development Lifecycle Practices
+Agile & Plan-Driven Development * Managing Projects & Teams * Testing & QA
+Security * Process Improvement & Measurement * http://www.sqe.com/bsce5sf
