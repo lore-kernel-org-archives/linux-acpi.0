@@ -1,11 +1,13 @@
-From: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] acpi/video: check brightness is non-NULL before writing
-Date: Mon, 12 Sep 2005 11:44:01 -0700
-Message-ID: <20050912184401.GC25471@us.ibm.com>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: [RFC 0/2]convert ACPI driver model to Linux driver model
+Date: Mon, 12 Sep 2005 19:57:41 +0200
+Message-ID: <20050912175741.GA15324@dominikbrodowski.de>
+References: <1126502542.5153.17.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1126502542.5153.17.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,77 +17,94 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len, acpi-devel,
+Hi,
 
-An easy to reproduce oops:
+On Mon, Sep 12, 2005 at 01:22:22PM +0800, Shaohua Li wrote:
+> I'm sending the patches out not for merging but for comments. The
+> patches try to convert ACPI driver model to Linux driver model. 
 
-if
+Excellent.
 
-cat /proc/acpi/video/VID/LCD0/brightness
+> 1. in my mind, acpi should export two sets of info in sysfs. One is
+> current namespace subsystem, it should just export the firmware info.
+> All acpi device/drivers related info don't export here. The other is
+> ACPI bus. It's similar with other buses like PCI bus.
 
-reports <not supported>
+However, there is no physical ACPI bus. Therefore, it shouldn't exist in
+/sys/devices/ or /sys/bus/. If they are platform devices (devices which can be
+poked at some iomem or ioport address, but aren't on any specific bus), they
+should be registered as platform devices; if these are system devices
+(core devices for basic operation; can live with IRQs off for suspend and 
+resume, or even require that) they should be registered as system devices.
 
-and then one does
+> 2. I regard all devices which don't belong to physical buses in the DSDT
+> as ACPI bus devices. Ideally, PCI devices, PNP devices & other devices
+> should bind them to their physical buses.
 
-echo 1 > /proc/acpi/video/VID/LCD0/brightness
+Yes, exactly.
 
-the following oops will occur every time.
+> Since many devices listed in
+> DSDT aren't in ACPI bus, this makes it impossible to convert current
+> acpi driver model into Linux style.
 
-Sep 12 11:39:27 joust kernel: [4606058.981000]  <1>Unable to handle kernel NULL pointer dereference at virtual address 00000004
-Sep 12 11:39:27 joust kernel: [4606313.261000] c024a542
-Sep 12 11:39:27 joust kernel: [4606313.261000] PREEMPT 
-Sep 12 11:39:27 joust kernel: [4606313.261000] Modules linked in: dummy wlan_wep ath_pci ath_rate_sample wlan ath_hal
-Sep 12 11:39:27 joust kernel: [4606313.261000] CPU:    0
-Sep 12 11:39:27 joust kernel: [4606313.261000] EIP:    0060:[acpi_video_device_write_brightness+91/140]    Tainted: P      VLI
-Sep 12 11:39:27 joust kernel: [4606313.261000] EFLAGS: 00010246   (2.6.13) 
-Sep 12 11:39:27 joust kernel: [4606313.261000] EIP is at acpi_video_device_write_brightness+0x5b/0x8c
-Sep 12 11:39:27 joust kernel: [4606313.261000] eax: 00000001   ebx: 00000001   ecx: 00000000   edx: 00000000
-Sep 12 11:39:27 joust kernel: [4606313.261000] esi: c1b62ec0   edi: 00000002   ebp: de191f74   esp: de191f64
-Sep 12 11:39:27 joust kernel: [4606313.261000] ds: 007b   es: 007b   ss: 0068
-Sep 12 11:39:27 joust kernel: [4606313.261000] Process bash (pid: 406, threadinfo=de190000 task=e3012a80)
-Sep 12 11:39:27 joust kernel: [4606313.261000] Stack: 00000a31 c050e8e0 ea258e80 080eec08 de191f94 c015ff6c de191fa0 c050e8e0 
-Sep 12 11:39:27 joust kernel: [4606313.261000]        00000000 ea258e80 fffffff7 080eec08 de191fb4 c01600d1 de191fa0 00000000 
-Sep 12 11:39:27 joust kernel: [4606313.261000]        00000000 00000000 00000001 00000002 de190000 c0103165 00000001 080eec08 
-Sep 12 11:39:27 joust kernel: [4606313.261000] Call Trace:
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [show_stack+122/144] show_stack+0x7a/0x90
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [show_registers+342/448] show_registers+0x156/0x1c0
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [die+224/368] die+0xe0/0x170
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [do_page_fault+831/1674] do_page_fault+0x33f/0x68a
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [error_code+79/84] error_code+0x4f/0x54
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [vfs_write+172/352] vfs_write+0xac/0x160
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [sys_write+65/112] sys_write+0x41/0x70
-Sep 12 11:39:27 joust kernel: [4606313.261000]  [syscall_call+7/11] syscall_call+0x7/0xb
-Sep 12 11:39:27 joust kernel: [4606313.261000] Code: ff 85 c0 b9 f2 ff ff ff 75 4a 8d 45 f0 31 c9 31 d2 c6 04 07 00 e8 9f 29 fd ff 83 f8 64 89 c3 b9 f2 ff ff ff 77 2e 8b 56 1c 31 c9 <3b> 4a 04 7d 22 8b 42 08 3b 1c 88 75 14 89 da 89 f0 e8 51 f8 ff 
+Indeed. For each device, you need to decide which bus it resides on:
+> (CPU is in the bus)
 
-The following patch fixes the issue for me.
+No, CPUs are already registered as system devices. ( /sys/devices/system/cpu/ )
+Don't insert them twice into the device tree, please
 
-Description: acpi_video_device_brightness_seq_show() checks for both dev and
-dev->brightness to be non-NULL, but acpi_video_device_write_brightness() only
-checks if dev is non-NULL, leading to an easily reproducible oops. Checking for
-dev->brightness in the write routine fixes the problem.
+>  So I'd like to remove the namespace hotplug interface later.
+Indeed, let's focus on this stuff later on.
 
-Signed-off-by: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+So, let's look at the devices and where they should be registered. In most
+cases, it is just a guess on my side; system devices are suspended and
+resumed with interrupts off; that most probably should be a decisive point
+in this distinction.
 
----
++       "PNP0C09", /* EC */
+-> system or platform, not sure...
 
- drivers/acpi/video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
++       "ACPI0003", /* AC */
+-> platform
 
---- 2.6.13/drivers/acpi/video.c	2005-08-28 17:46:32.000000000 -0700
-+++ 2.6.13-dev/drivers/acpi/video.c	2005-09-12 11:36:36.000000000 -0700
-@@ -846,7 +846,7 @@ acpi_video_device_write_brightness (
- 
- 	ACPI_FUNCTION_TRACE("acpi_video_device_write_brightness");
- 
--	if (!dev || count + 1 > sizeof str)
-+	if (!dev || !dev->brightness || count + 1 > sizeof str)
- 		return_VALUE(-EINVAL);
- 
- 	if (copy_from_user(str, buffer, count))
++       "PNP0C0F", /* Link */
+-> system. Might this already be registered on some systems? I have
+irqrouter, i8237 and i8259 in /sys/devices/system/
+
++       "PNP0C0A", /* battery */
+-> platform
+
++       "PNP0C0C", "PNP0C0E", "PNP0C0D", "ACPI_FPB" ,"ACPI_FSB", /* button */
+-> platform
+
++       "PNP0C0B", /* fan */
+-> platform
+
++       "PNP0A03", /* PCI root */
+-> system or platform, not sure either.... Please make sure that "pci0000:00" or
+   whatever is registered as a child of this device.
+
++       ACPI_POWER_HID, /* power */
+-> platform
+
++       ACPI_PROCESSOR_HID, /* CPU */
+-> system, is already there...
+
++       ACPI_THERMAL_HID, /* thermal */
+-> platform
+
+
+Also, you might think about adding all these devices to "class ACPI".
+/sys/class/acpi/ is perfectly valid; there you can add some common
+infrastrucutre for _all_ ACPI-enumerated devices, rely on "class interface"
+and other methods available.
+
+Thanks,
+	Dominik
 
 
 -------------------------------------------------------
