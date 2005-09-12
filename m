@@ -1,7 +1,7 @@
 From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC 2/2]adjust initialization order
-Date: Mon, 12 Sep 2005 13:22:27 +0800
-Message-ID: <1126502548.5153.19.camel@linux-hp.sh.intel.com>
+Subject: [RFC 0/2]convert ACPI driver model to Linux driver model
+Date: Mon, 12 Sep 2005 13:22:22 +0800
+Message-ID: <1126502542.5153.17.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -16,138 +16,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
-adjust the initialization order slightly, so PCI device enumeration is after
-ACPI device enumeration.
+I'm sending the patches out not for merging but for comments. The
+patches try to convert ACPI driver model to Linux driver model. There
+are still many things unsettled. If you have any
+comment/suggestion/requirement, please let me know.
+
+1. in my mind, acpi should export two sets of info in sysfs. One is
+current namespace subsystem, it should just export the firmware info.
+All acpi device/drivers related info don't export here. The other is
+ACPI bus. It's similar with other buses like PCI bus.
+
+2. I regard all devices which don't belong to physical buses in the DSDT
+as ACPI bus devices. Ideally, PCI devices, PNP devices & other devices
+should bind them to their physical buses. Since many devices listed in
+DSDT aren't in ACPI bus, this makes it impossible to convert current
+acpi driver model into Linux style. You might look at my patch, many
+routines required by Linux driver model are empty. Though we can't
+completely utilize the advantage of Linux driver model, the partial
+convert still benefits us many such as sysfs support and suspend/resume
+support.
+
+3. The acpi namespace hotplug interface looks strange. After we
+introduce ACPI bus (CPU is in the bus), we can send hotplug event
+through it. So I'd like to remove the namespace hotplug interface later.
+
+There are something to prevent us from completely converting ACPI driver
+model to Linux style:
+1. Current ACPI driver model can register drivers for all devices listed
+in DSDT. ACPI bus can't handle this.
+2. Current ACPI hotplug (CPU/IO) relays on separate .add/.start
+callbacks, but Linux driver can only provide a .probe. We might split
+ACPI hotplug support to separate drivers.
+Since these, my patch just adds fake Linux driver model support, but it
+still is very useful.
 
 Thanks,
 Shaohua
----
-
- linux-2.6.13-root/drivers/acpi/Makefile |    6 +-
- linux-2.6.13-root/drivers/acpi/scan.c   |   66 +++++++++++++++++++++++++-------
- 2 files changed, 56 insertions(+), 16 deletions(-)
-
-diff -puN drivers/acpi/Makefile~adjust_init_order drivers/acpi/Makefile
---- linux-2.6.13/drivers/acpi/Makefile~adjust_init_order	2005-09-05 13:51:23.000000000 +0800
-+++ linux-2.6.13-root/drivers/acpi/Makefile	2005-09-05 13:51:23.000000000 +0800
-@@ -37,6 +37,9 @@ endif
- 
- obj-$(CONFIG_ACPI_BUS)		+= sleep/
- obj-$(CONFIG_ACPI_BUS)		+= bus.o glue.o
-+obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
-+obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
-+obj-$(CONFIG_ACPI_BUS)		+= scan.o motherboard.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-@@ -49,11 +52,8 @@ obj-$(CONFIG_ACPI_POWER)	+= power.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
--obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
- obj-$(CONFIG_ACPI_IBM)		+= ibm_acpi.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
--obj-$(CONFIG_ACPI_BUS)		+= scan.o motherboard.o
- obj-$(CONFIG_ACPI_HOTPLUG_MEMORY)	+= acpi_memhotplug.o
-diff -puN drivers/acpi/scan.c~adjust_init_order drivers/acpi/scan.c
---- linux-2.6.13/drivers/acpi/scan.c~adjust_init_order	2005-09-05 13:51:23.000000000 +0800
-+++ linux-2.6.13-root/drivers/acpi/scan.c	2005-09-05 13:51:23.000000000 +0800
-@@ -716,6 +716,51 @@ acpi_bus_match (
- 	return acpi_match_ids(device, driver->ids);
- }
- 
-+static void acpi_bind_child_devices(struct acpi_device *start)
-+{
-+	acpi_status		status;
-+	struct acpi_device	*parent, *child;
-+	acpi_handle		phandle, chandle;
-+	u32			level = 1;
-+
-+	parent  = start;
-+	phandle = start->handle;
-+	child = chandle = NULL;
-+
-+	while ((level > 0) && parent) {
-+		status = acpi_get_next_object(ACPI_TYPE_ANY, phandle,
-+				chandle, &chandle);
-+
-+		/*
-+		 * If this scope is exhausted then move our way back up.
-+		 */
-+		if (ACPI_FAILURE(status)) {
-+			level--;
-+			chandle = phandle;
-+			acpi_get_parent(phandle, &phandle);
-+			child = parent;
-+			parent = parent->parent;
-+
-+			continue;
-+		}
-+
-+		/*
-+		 * If there is a device corresponding to chandle then
-+		 * parse it
-+		 */
-+		if (acpi_bus_get_device(chandle, &child) == 0) {
-+			if (child->flags.bus_address)
-+				if (child->parent && child->parent->ops.bind)
-+					child->parent->ops.bind(child);
-+
-+			level++;
-+			phandle = chandle;
-+			chandle = NULL;
-+			parent = child;
-+		}
-+		continue;
-+	}
-+}
- 
- /**
-  * acpi_bus_driver_init 
-@@ -746,7 +791,14 @@ acpi_bus_driver_init (
- 	}
- 
- 	device->driver = driver;
--
-+	/*
-+	 * Bind _ADR-Based Devices
-+	 * -----------------------
-+	 * If there's a a bus address (_ADR) then we utilize the parent's
-+	 * 'bind' function (if exists) to bind the ACPI- and natively-
-+	 * enumerated device representations.
-+	 */
-+	acpi_bind_child_devices(device);
- 	/*
- 	 * TBD - Configuration Management: Assign resources to device based
- 	 * upon possible configuration and currently allocated resources.
-@@ -1334,18 +1386,6 @@ acpi_add_single_object (
- 	acpi_device_register(device,parent);
- 
- 	/*
--	 * Bind _ADR-Based Devices
--	 * -----------------------
--	 * If there's a a bus address (_ADR) then we utilize the parent's 
--	 * 'bind' function (if exists) to bind the ACPI- and natively-
--	 * enumerated device representations.
--	 */
--	if (device->flags.bus_address) {
--		if (device->parent && device->parent->ops.bind)
--			device->parent->ops.bind(device);
--	}
--
--	/*
- 	 * Locate & Attach Driver
- 	 * ----------------------
- 	 * If there's a hardware id (_HID) or compatible ids (_CID) we check
-_
-
 
 
 
