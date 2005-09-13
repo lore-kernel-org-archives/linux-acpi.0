@@ -1,11 +1,13 @@
-From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
-Date: Tue, 13 Sep 2005 17:22:58 +0200
-Message-ID: <E1EFCcc-0008Jy-00@dorka.pomaz.szeredi.hu>
-References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz> <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu> <20050910215552.GA2463@openzaurus.ucw.cz>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: PATCH default C1
+Date: Tue, 13 Sep 2005 20:02:19 +0200
+Message-ID: <20050913180219.GB9572@dominikbrodowski.de>
+References: <432697CC.3020201@tzi.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20050910215552.GA2463-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org> (message from Pavel
-	Machek on Sat, 10 Sep 2005 23:55:53 +0200)
+Content-Disposition: inline
+In-Reply-To: <432697CC.3020201-cGBD8117FJM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,22 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: pavel-+ZI9xUNit7I@public.gmane.org
+To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Okay, so ACPI is basically okay, but fan driver is confused.
-> You need to add code to handle suspend and resume into fan.c.
-> Probably force everything on for suspend, and sync it with
-> software expectations after resume.
+> +		/* We support up to ACPI_PROCESSOR_MAX_POWER. */
+> +		if (pr->power.count >= ACPI_PROCESSOR_MAX_POWER) {
+> +		printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
+> +		printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
+> +		break;
+> +		}
 
-Also how do you explain the fact, that removing the fan and
-thermal_zone modules before suspend and inserting them after resume
-doesn't help at all?
+broken indent
 
-It seems to me as if something in core ACPI is breaking.
+> +			if (cx->valid) {
+> +			  /*
+> +			   *  mark this CPU as being "idle manageable"
+> +			   */
+> +			  pr->flags.power = 1;
+> +			}
 
-Miklos
+same here.
+
+	Dominik
 
 
 -------------------------------------------------------
