@@ -1,15 +1,11 @@
-From: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: [PATCH] Fixed buffered ACPI events for a lot ASUS machines
-Date: Tue, 13 Sep 2005 17:08:53 +0800
-Message-ID: <200509131708.53544.luming.yu@intel.com>
-References: <432568E3.6040401@suse.de> <200509131031.43570.luming.yu@intel.com> <43267D43.3070305@suse.de>
+From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Subject: PATCH default C1
+Date: Tue, 13 Sep 2005 11:11:40 +0200
+Message-ID: <432697CC.3020201@tzi.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------030307050503050701030905"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <43267D43.3070305-l3A5Bk7waGM@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,33 +16,202 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, jfvasconcelos-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->
->  I used vanilla-2.6.13 with acpica-20050902 patches on it.
-Yes, this version has latest ec patch.
->  So it still seems to be used, at least on ASUS machines.
->  One of your old EC-burst patches in
->  http://bugzilla.kernel.org/show_bug.cgi?id=3851
->  had this little change. After reports of working ASUS machines with
->  this one, I found that newer EC-burst version do not have this
->  change anymore, but behave as the non EC-burst code on these machines.
-It should be old behavior.  Because, ec gpe will be wrongly disabled in some 
-cases.  I think the issue should be fixed in the latest ec patch. Because, ec 
-gpe is always be enabled at run-time.
+This is a multi-part message in MIME format.
+--------------030307050503050701030905
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
->
->  Therefore I asked whether this change was intended or whether it is
->  a bug that slipped in by accident. So I expect the latter?
-You are right. The change pointed out by your previous mail  was somehow 
-dropped in the previous EC driver release. 
+Hey,
+please test and include this patch.
+It sets up an C1 state per default
+and ignores all C1-states given by
+_CST and P_BLK. Also it does some
+cleanup.
+    Janosch
 
-Anyway, please make sure the latest ec driver works as expected.
-ec_burst=1 is still needed to enable ec murst mode.
+--------------030307050503050701030905
+Content-Type: text/plain;
+ name="mypatch.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mypatch.patch"
 
-Thanks,
-Luming
+--- linux-2.6.13/drivers/acpi/processor_idle.c	2005-09-02 22:36:45.000000000 +0200
++++ linux-2.6.13-patch/drivers/acpi/processor_idle.c	2005-09-02 22:36:09.000000000 +0200
+@@ -513,20 +513,16 @@
+ 
+ 	if (!pr->pblk)
+ 		return_VALUE(-ENODEV);
+-
+-	for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
+-		memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
++	
++	/* We got C0 an C1 by default starting at 2 */
++	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
++		memset(&(pr->power.states[i]), 0, 
++		       sizeof(struct acpi_processor_cx));
+ 
+ 	/* if info is obtained from pblk/fadt, type equals state */
+-	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
+ 	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
+ 	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
+ 
+-	/* the C0 state only exists as a filler in our array,
+-	 * and all processors need to support C1 */
+-	pr->power.states[ACPI_STATE_C0].valid = 1;
+-	pr->power.states[ACPI_STATE_C1].valid = 1;
+-
+ 	/* determine C2 and C3 address from pblk */
+ 	pr->power.states[ACPI_STATE_C2].address = pr->pblk + 4;
+ 	pr->power.states[ACPI_STATE_C3].address = pr->pblk + 5;
+@@ -554,10 +550,8 @@
+ 		memset(&(pr->power.states[i]), 0, 
+ 		       sizeof(struct acpi_processor_cx));
+ 
+-	/* if info is obtained from pblk/fadt, type equals state */
++	/* set the first C-State to C1 */
+ 	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
+-	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
+-	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
+ 
+ 	/* the C0 state only exists as a filler in our array,
+ 	 * and all processors need to support C1 */
+@@ -581,8 +575,11 @@
+ 	if (nocst)
+ 		return_VALUE(-ENODEV);
+ 
+-	pr->power.count = 0;
+-	for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
++	/*We allready have C1 */
++	pr->power.count = 1;
++	
++	/* We don't want to delete C0 and C1 so we start at 2 */
++	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
+ 		memset(&(pr->power.states[i]), 0, 
+ 		       sizeof(struct acpi_processor_cx));
+ 
+@@ -610,13 +607,6 @@
+ 		goto end;
+ 	}
+ 
+-	/* We support up to ACPI_PROCESSOR_MAX_POWER. */
+-	if (count > ACPI_PROCESSOR_MAX_POWER) {
+-		printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
+-		printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
+-		count = ACPI_PROCESSOR_MAX_POWER;
+-	}
+-
+ 	/* Tell driver that at least _CST is supported. */
+ 	pr->flags.has_cst = 1;
+ 
+@@ -660,7 +650,8 @@
+ 		    (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO))
+ 			continue;
+ 
+-		if ((cx.type < ACPI_STATE_C1) ||
++		/* We got C1 by default, so we only accept C2 and C3 states */
++		if ((cx.type < ACPI_STATE_C2) ||
+ 		    (cx.type > ACPI_STATE_C3))
+ 			continue;
+ 
+@@ -678,6 +669,13 @@
+ 
+ 		(pr->power.count)++;
+ 		memcpy(&(pr->power.states[pr->power.count]), &cx, sizeof(cx));
++
++		/* We support up to ACPI_PROCESSOR_MAX_POWER. */
++		if (pr->power.count >= ACPI_PROCESSOR_MAX_POWER) {
++		printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
++		printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
++		break;
++		}
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d power states\n", pr->power.count));
+@@ -796,6 +794,11 @@
+ 	 */
+ 	cx->valid = 1;
+ 	cx->latency_ticks = US_TO_PM_TIMER_TICKS(cx->latency);
++	
++	/*
++	 *  mark this CPU as being "idle manageable"
++	 */
++	pr->flags.power = 1;
+ 
+ 	return_VOID;
+ }
+@@ -806,16 +809,19 @@
+ 	unsigned int i;
+ 	unsigned int working = 0;
+ 
+-	for (i=1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
++	/* C1 is allways valid, starting at 2 */
++	for (i=2; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+ 		struct acpi_processor_cx *cx = &pr->power.states[i];
+ 
+ 		switch (cx->type) {
+-		case ACPI_STATE_C1:
+-			cx->valid = 1;
+-			break;
+-
+ 		case ACPI_STATE_C2:
+ 			acpi_processor_power_verify_c2(cx);
++			if (cx->valid) {
++			  /*
++			   *  mark this CPU as being "idle manageable"
++			   */
++			  pr->flags.power = 1;
++			}
+ 			break;
+ 
+ 		case ACPI_STATE_C3:
+@@ -833,19 +839,19 @@
+ static int acpi_processor_get_power_info (
+ 	struct acpi_processor	*pr)
+ {
+-	unsigned int i;
+ 	int result;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info");
+ 
+ 	/* NOTE: the idle thread may not be running while calling
+ 	 * this function */
+-
++	
++	/* Adding C1 state */
++	acpi_processor_get_power_info_default_c1(pr);
+ 	result = acpi_processor_get_power_info_cst(pr);
+-	if ((result) || (acpi_processor_power_verify(pr) < 2)) {
++	if ((result) || (!acpi_processor_power_verify(pr))) {
+ 		result = acpi_processor_get_power_info_fadt(pr);
+-		if ((result) || (acpi_processor_power_verify(pr) < 2))
+-			result = acpi_processor_get_power_info_default_c1(pr);
++		acpi_processor_power_verify(pr);
+ 	}
+ 
+ 	/*
+@@ -860,17 +866,6 @@
+ 	if (result)
+ 		return_VALUE(result);
+ 
+-	/*
+-	 * if one state of type C2 or C3 is available, mark this
+-	 * CPU as being "idle manageable"
+-	 */
+-	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+-		if (pr->power.states[i].valid) {
+-			pr->power.count = i;
+-			pr->flags.power = 1;
+-		}
+-	}
+-
+ 	return_VALUE(0);
+ }
+ 
+
+--------------030307050503050701030905--
 
 
 -------------------------------------------------------
