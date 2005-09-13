@@ -1,7 +1,7 @@
 From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
 Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
-Date: Tue, 13 Sep 2005 17:17:55 +0200
-Message-ID: <E1EFCXj-0008J4-00@dorka.pomaz.szeredi.hu>
+Date: Tue, 13 Sep 2005 17:22:58 +0200
+Message-ID: <E1EFCcc-0008Jy-00@dorka.pomaz.szeredi.hu>
 References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz> <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu> <20050910215552.GA2463@openzaurus.ucw.cz>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-reply-to: <20050910215552.GA2463-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org> (message from Pavel
@@ -21,23 +21,14 @@ List-Id: linux-acpi@vger.kernel.org
 
 > Okay, so ACPI is basically okay, but fan driver is confused.
 > You need to add code to handle suspend and resume into fan.c.
-
-OK.  Any volunteers?  I don't quite feel qualified ;)
-
 > Probably force everything on for suspend, and sync it with
 > software expectations after resume.
 
-It's not _just_ fan driver confusion, though.
+Also how do you explain the fact, that removing the fan and
+thermal_zone modules before suspend and inserting them after resume
+doesn't help at all?
 
-After resume thermal_zone is also not quite right: it doesn't trigger
-the fans _at all_.
-
-If polling is enabled it does something, but since the fan driver is
-also confused it's not always right.
-
-But there's a distinct difference between polling and no polling in
-thermal_zone after resume, which is not explained by the fan driver
-breakage.
+It seems to me as if something in core ACPI is breaking.
 
 Miklos
 
