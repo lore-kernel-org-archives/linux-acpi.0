@@ -1,15 +1,8 @@
-From: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Fixed buffered ACPI events for a lot ASUS machines
-Date: Tue, 13 Sep 2005 10:31:43 +0800
-Message-ID: <200509131031.43570.luming.yu@intel.com>
-References: <432568E3.6040401@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [patch 2/5] set IBM ThinkPad extras to default n in Kconfig
+Date: Mon, 12 Sep 2005 22:38:34 -0700
+Message-ID: <200509130539.j8D5d2Tj009961@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <432568E3.6040401-l3A5Bk7waGM@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,33 +12,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, jfvasconcelos-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 12 September 2005 19:39, Thomas Renninger wrote:
-> Hi,
->
->  I finally could resolve the buffering of ACPI events on
->  some ASUS (M6N, M6000, A3500N, A6000G, maybe more...)
->  when battery module is loaded.
->
->  After hours of hopeless debugging I could track it down by comparing
->  with Yu Luming's previously patch posted on bugzilla.kernel.org.
-Do you mean the patch at http://bugzilla.kernel.org/show_bug.cgi?id=3851#c75?
-or http://bugzilla.kernel.org/show_bug.cgi?id=3851#c74
->
->  Yu, could you confirm that this is really fixing a bug and totally safe?
->
-Now ec->burst.pending_gpe is useless. it will be cleaned up.
 
->  Or was this intended and could possibly lead to problems on other
-> machines?
+From: Borislav Petkov <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
 
-If the attached patch fixs the bug, I guess you are using old code.
+I think the following isn't on purpose but the IBM Thinkpad acpi extras
+default to y in Kconfig.  The patch below fixes it:
 
-Thanks,
-Luming
+Signed-off-by: <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+---
+
+ drivers/acpi/Kconfig |    1 -
+ 1 files changed, 1 deletion(-)
+
+diff -puN drivers/acpi/Kconfig~set-ibm-thinkpad-extras-to-default-n-in-kconfig drivers/acpi/Kconfig
+--- devel/drivers/acpi/Kconfig~set-ibm-thinkpad-extras-to-default-n-in-kconfig	2005-09-09 18:19:42.000000000 -0700
++++ devel-akpm/drivers/acpi/Kconfig	2005-09-09 18:19:57.000000000 -0700
+@@ -197,7 +197,6 @@ config ACPI_ASUS
+ config ACPI_IBM
+ 	tristate "IBM ThinkPad Laptop Extras"
+ 	depends on X86
+-	default y
+ 	---help---
+ 	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
+ 	  support for Fn-Fx key combinations, Bluetooth control, video
+_
 
 
 -------------------------------------------------------
