@@ -1,14 +1,11 @@
-From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 0/2]convert ACPI driver model to Linux driver model
-Date: Tue, 13 Sep 2005 14:50:50 +0800
-Message-ID: <1126594250.4096.9.camel@linux-hp.sh.intel.com>
-References: <1126502542.5153.17.camel@linux-hp.sh.intel.com>
-	 <20050912175741.GA15324@dominikbrodowski.de>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Cruz <Waring-6g92fnY69Mo@public.gmane.org>
+Subject: Is This stock Ready to Fly Higher?
+Date: Tue, 13 Sep 2005 14:58:41 +0800
+Message-ID: <3192343615.95703101017@221.194.54.137>
+Mime-Version: 1.0 (Apple Message framework v728)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050912175741.GA15324-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,103 +15,160 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-09-12 at 19:57 +0200, Dominik Brodowski wrote:
-> Hi,
-> 
-> On Mon, Sep 12, 2005 at 01:22:22PM +0800, Shaohua Li wrote:
-> > I'm sending the patches out not for merging but for comments. The
-> > patches try to convert ACPI driver model to Linux driver model. 
-Thanks for your time.
+Press Release Source: China World Trade Corporation
 
-> > 1. in my mind, acpi should export two sets of info in sysfs. One is
-> > current namespace subsystem, it should just export the firmware info.
-> > All acpi device/drivers related info don't export here. The other is
-> > ACPI bus. It's similar with other buses like PCI bus.
-> 
-> However, there is no physical ACPI bus. Therefore, it shouldn't exist in
-> /sys/devices/ or /sys/bus/. If they are platform devices (devices which can be
-> poked at some iomem or ioport address, but aren't on any specific bus), they
-> should be registered as platform devices; if these are system devices
-> (core devices for basic operation; can live with IRQs off for suspend and 
-> resume, or even require that) they should be registered as system devices.
-Not sure. It's just a virtual bus. Some acpi devices haven't any
-iomem/ioports. And some devices are platform devices and some not, which
-means we must take care devices separately. We haven't a generic method
-for all devices.
-
-> 
-> > 2. I regard all devices which don't belong to physical buses in the DSDT
-> > as ACPI bus devices. Ideally, PCI devices, PNP devices & other devices
-> > should bind them to their physical buses.
-> 
-> Yes, exactly.
-> 
-> > Since many devices listed in
-> > DSDT aren't in ACPI bus, this makes it impossible to convert current
-> > acpi driver model into Linux style.
-> 
-> Indeed. For each device, you need to decide which bus it resides on:
-> > (CPU is in the bus)
-> 
-> No, CPUs are already registered as system devices. ( /sys/devices/system/cpu/ )
-> Don't insert them twice into the device tree, please
-Ok, might be a sysdevice driver.
-> 
-> >  So I'd like to remove the namespace hotplug interface later.
-> Indeed, let's focus on this stuff later on.
-> 
-> So, let's look at the devices and where they should be registered. In most
-> cases, it is just a guess on my side; system devices are suspended and
-> resumed with interrupts off; that most probably should be a decisive point
-> in this distinction.
-> 
-> +       "PNP0C09", /* EC */
-> -> system or platform, not sure...
-> 
-> +       "ACPI0003", /* AC */
-> -> platform
-> 
-> +       "PNP0C0F", /* Link */
-> -> system. Might this already be registered on some systems? I have
-> irqrouter, i8237 and i8259 in /sys/devices/system/
-This one is broken for a long time. It can't be suspend/resume with
-interrupt disabled.
-> 
-> +       "PNP0C0A", /* battery */
-> -> platform
-> 
-> +       "PNP0C0C", "PNP0C0E", "PNP0C0D", "ACPI_FPB" ,"ACPI_FSB", /* button */
-> -> platform
-> 
-> +       "PNP0C0B", /* fan */
-> -> platform
-> 
-> +       "PNP0A03", /* PCI root */
-> -> system or platform, not sure either.... Please make sure that "pci0000:00" or
->    whatever is registered as a child of this device.
-> 
-> +       ACPI_POWER_HID, /* power */
-> -> platform
-> 
-> +       ACPI_PROCESSOR_HID, /* CPU */
-> -> system, is already there...
-> 
-> +       ACPI_THERMAL_HID, /* thermal */
-> -> platform
-> 
-> 
-> Also, you might think about adding all these devices to "class ACPI".
-> /sys/class/acpi/ is perfectly valid; there you can add some common
-> infrastrucutre for _all_ ACPI-enumerated devices, rely on "class interface"
-> and other methods available.
+China World Trade Corporation Announces Record Second Quarter 2005 Revenue Growth
+Monday September 12, 8:30 am ET
+Second Quarter 2005 Revenues Up 405% Year over Year
 
 
-Thanks,
-Shaohua
+TIANHE, Guangzhou, China, Sept. 12 /Xinhua-PRNewswire/ -- 
+China World Trade Corporation (China WTC) (OTC Bulletin Board: CWTD - News) 
+announced today record second quarter revenue growth and net profit 
+for the quarter ended June 30, 2005.
+
+Financial Highlights
+- An increase of 405% in operating revenues to $1,697,078 in the second
+quarter 2005 compared to $335,569 in operating revenues in the second
+quarter of 2004;
+
+- Revenues in the first six months of 2005 increased 465% to $3,610,268,
+compared to $639,340 in the first six months of 2004;
+
+- Operating loss for first six months of 2005 decreased to $1,335,633
+compared to $2,210,251 in the same period in 2004;
+
+- An increase in net income to $45,637 ($0.01 per diluted share) in the
+second quarter 2005 as compared to net loss of $603,133 ($0.03 per
+diluted share) in the second quarter of 2004; and
+
+- Cash and cash equivalents totaled $4,280,941 at June 30, 2005, a
+significant increase compared to $32, 935 recorded as of June 30, 2004.
+
+John Hui, CEO of China WTC commented, "We are extremely pleased to report 
+that the Company has completed its first profitable quarter in its history 
+as a public company. We spent the last year focused on building 
+a solid foundation so we could execute on our strategic growth initiatives 
+and show significant progress this year. We delivered on those expectations 
+and believe that this is just the beginning. Our strategy to build a platform 
+to provide Chinese companies with a wide and diverse range of consulting 
+and travel services is gaining momentum. The team has worked hard 
+and we are excited about reaching this milestone."
+
+
+Revenues
+
+Consolidated operating revenue for the three-month period ended 
+June 30, 2005 was $1,697,000, compared to $336,000 
+for the same corresponding period in year 2004, an increase of $1,361,000 
+or 405.1%. The increase was mainly the result of an increase in revenues generated 
+from our business segments.
+
+Of the $1,697,000 revenue in the three-month period ended June 30, 2005, 
+approximately $216,000 or 12.7% was generated from providing club related services 
+by Guangzhou World Trade Center Club and Beijing World Trade Center Club, 
+$1,091,000 or 64.3% was generated from business travel services resulting 
+from the acquisition of the New Generation Group, and $325,000 or 19.2% 
+from business value-added services, and the remaining $65,000 or 3.8% 
+from other businesses. The acquisition of New Generation 
+and the continuous development of China WTC's business value-added services 
+should continue to contribute positively to the Company's operating revenue.
+
+The Company's segmental mix of operating revenues continued to shift since 
+its acquisition of the travel business and further development of its 
+business value-added services. China WTC will continue to utilize 
+the World Trade Center Clubs in various major cities in China to provide 
+the necessary platform for the continued growth of its businesses.
+
+
+Gross Profit
+
+Consolidated gross profit increased by $624,000 or 358.6% for the three-month period 
+ended June 30, 2005 over the same corresponding period in year 2004. 
+The increase was predominantly driven by China WTC's business travel services 
+and by the Company's business value-added services resulting from providing various 
+consultancy services to our members.
+
+As a percentage of total operating revenues, the consolidated gross profit margin 
+of 47.0% for the three-month period ended 2005 decreased from 51.8% 
+for the same corresponding period in 2004. China WTC's profit margin was driven 
+by a mix shift from lower margin trading business to higher margin business 
+travel services. However, the lower profit margin as a percent of operating revenues 
+for the three-month period ended June 30, 2005 as compared to the same 
+corresponding period in 2004 was primarily contributed by the negative margin 
+from the Company's business value-added services. The shift in segmental distribution 
+was primarily due to the increase in gross profit in the business travel services. 
+We foresee that this segment mix will continue to change and balance out 
+in year 2005 upon further development of the business value-added services.
+
+
+Travel Business
+
+China World Trade Corporation has commenced its operation in the travel business 
+since the Company's acquisition of New Generation in August 2004. 
+For the three-month period ended June 30, 2005, New Generation sold a total 
+of over 310,000 tickets, which translates to a total value of air-ticket fare 
+of approximately $34.4 million. As compared to the same corresponding period 
+in year 2004, ticket sold of New Generation increased by 73,000 tickets or 30.8% 
+from approximately 237,000 tickets with value of air-ticket fare increased 
+by $7.0 million or 25.5% from $27.4 million.
+
+
+About China World Trade Corporation
+
+China World Trade Corporation (CWTC) has established its business 
+in three distinct areas: the club and business centers throughout 
+major cities in China, business travel-related services, and business 
+value-added services. The Club and Business Center Division is devoted 
+to the building of the World Trade brand throughout China via the opening 
+and operating of business clubs in China's major, positioning the CWTC 
+to act as a platform to facilitate trade between China and the world markets. 
+The acquisition of CEO Clubs China Limited ("CEO Clubs") in May 2004 
+further complements CWTC's offerings by targeting high-level corporate executives 
+from premier companies. The Business Traveling Services Division, New Generation, 
+provides CWTC access to the rapidly growing travel-related industry. 
+New Generation is a pioneer and market leader in the travel agency business 
+through its strong network of ticketing sales operations throughout Southern China. 
+The Business Value-Added Services Division focuses on value-added services 
+of credit cards, merchant-related business services, as well as consultancy services 
+to CWTC members and clients. Guangdong World Trade Link Information Services Limited 
+("WTC Link"), a subsidiary of CWTC, manages the Company's co-branded 
+credit card project and is an active provider of CRM solutions and services in China.
+
+
+Safe Harbor
+
+The words or phrases "can be," "expects," "may affect," "believed," "estimate," 
+"project," and similar words and phrases are intended to identify such 
+forward-looking statements. China World Trade Corp cautions you that any 
+forward-looking information provided by or on behalf of China World Trade Corp 
+is not a guarantee of future performance. None of the information on this website 
+constitutes an offer to sell securities or investment advice of any kind, and 
+visitors should not base their investment decisions on information contained 
+in this website. China World Trade Corp's actual results may differ materially 
+from those anticipated in such forward-looking statements as a result of various 
+important factors, some of which are beyond China World Trade Corp's control. 
+In addition to those discussed in China World Trade Corp's press releases, 
+public filings, and statements by China World Trade Corp's management, including, 
+but not limited to, China World Trade Corp's estimate of the sufficiency 
+of its existing capital resources, China World Trade Corp's ability 
+to raise additional capital to fund future operations, China World Trade Corp's 
+ability to repay its existing indebtedness, the uncertainties involved 
+in estimating market opportunities and, in identifying contracts which match 
+China World Trade Corp's capability to be awarded contracts. All such forward-looking 
+statements are current only as of the date on which such statements were made. 
+China World Trade Corp does not undertake any obligation to publicly update 
+any forward-looking statement to reflect events or circumstances after 
+the date on which any such statement is made or to reflect the occurrence 
+of unanticipated events.
+
+
+--------------------------------------------------------------------------------
+Source: China World Trade Corporation
+
 
 
 
