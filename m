@@ -1,13 +1,15 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [patch 5/5] PNPACPI: clean blacklist
-Date: Tue, 13 Sep 2005 16:17:54 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F165A95B@pdsmsx406>
+From: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [PATCH] Fixed buffered ACPI events for a lot ASUS machines
+Date: Tue, 13 Sep 2005 17:08:53 +0800
+Message-ID: <200509131708.53544.luming.yu@intel.com>
+References: <432568E3.6040401@suse.de> <200509131031.43570.luming.yu@intel.com> <43267D43.3070305@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <43267D43.3070305-l3A5Bk7waGM@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,66 +19,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: akpm-3NddpPZAyC0@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, castet.matthieu-GANU6spQydw@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>, jfvasconcelos-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+>
+>  I used vanilla-2.6.13 with acpica-20050902 patches on it.
+Yes, this version has latest ec patch.
+>  So it still seems to be used, at least on ASUS machines.
+>  One of your old EC-burst patches in
+>  http://bugzilla.kernel.org/show_bug.cgi?id=3851
+>  had this little change. After reports of working ASUS machines with
+>  this one, I found that newer EC-burst version do not have this
+>  change anymore, but behave as the non EC-burst code on these machines.
+It should be old behavior.  Because, ec gpe will be wrongly disabled in some 
+cases.  I think the issue should be fixed in the latest ec patch. Because, ec 
+gpe is always be enabled at run-time.
 
-Hi matthieu,
 >
->From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
->
->Clean the blacklist.  Battery, Button, Fan don't have a CRS and should
-be
->removed.  PCI root, PIC, Timer are in pnpbios and are harmless.
->
->Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
->Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
->---
->
-> drivers/pnp/pnpacpi/core.c |   12 ++++++------
-> 1 files changed, 6 insertions(+), 6 deletions(-)
->
->diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist
->drivers/pnp/pnpacpi/core.c
->--- devel/drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist	2005-09-
->11 03:21:48.000000000 -0700
->+++ devel-akpm/drivers/pnp/pnpacpi/core.c	2005-09-11
-03:21:48.000000000 -
->0700
->@@ -27,15 +27,15 @@
->
-> static int num =3D 0;
->
->+/* We need only to blacklist device that have already an acpi driver
-that
->+ * can't use pnp layer. We don't need to blacklist device that are
->directly
->+ * used by the kernel (PIC, Timer, ...), as it is harmless and there
-were
->+ * already present in pnpbios. Finaly only devices that have a CRS
-method
->+ * need to be in this list.
->+ */
-> static char __initdata excluded_id_list[] =3D
->-	"PNP0C0A," /* Battery */
->-	"PNP0C0C,PNP0C0E,PNP0C0D," /* Button */
-> 	"PNP0C09," /* EC */
->-	"PNP0C0B," /* Fan */
->-	"PNP0A03," /* PCI root */
-> 	"PNP0C0F," /* Link device */
->-	"PNP0000," /* PIC */
->-	"PNP0100," /* Timer */
-PNPACPI will call an 'acpi_register_gsi' for device's IRQ. If you remove
-PIC/TIMER from the list, their irq will be called. It sounds not safe to
-me, especially, in the ioapic mode.
-It's meaningless to export PCI root to PNP layer to me. Could we remove
-it?
-Others look good to me.
+>  Therefore I asked whether this change was intended or whether it is
+>  a bug that slipped in by accident. So I expect the latter?
+You are right. The change pointed out by your previous mail  was somehow 
+dropped in the previous EC driver release. 
+
+Anyway, please make sure the latest ec driver works as expected.
+ec_burst=1 is still needed to enable ec murst mode.
 
 Thanks,
-Shaohua
+Luming
 
 
 -------------------------------------------------------
