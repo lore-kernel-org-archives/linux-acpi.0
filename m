@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
 Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
-Date: Sat, 10 Sep 2005 23:55:53 +0200
-Message-ID: <20050910215552.GA2463@openzaurus.ucw.cz>
-References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz> <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Tue, 13 Sep 2005 17:17:55 +0200
+Message-ID: <E1EFCXj-0008J4-00@dorka.pomaz.szeredi.hu>
+References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz> <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu> <20050910215552.GA2463@openzaurus.ucw.cz>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E1EDgJz-0000PH-00-VFwzv6uONVrxNFs70CDYszOMxtEWgIxa@public.gmane.org>
+In-reply-to: <20050910215552.GA2463-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org> (message from Pavel
+	Machek on Sat, 10 Sep 2005 23:55:53 +0200)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +15,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Cc: pavel-+ZI9xUNit7I@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: pavel-+ZI9xUNit7I@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> Okay, so ACPI is basically okay, but fan driver is confused.
+> You need to add code to handle suspend and resume into fan.c.
 
-> > > Unloading the ACPI modules before suspend, and reloding them after
-> > > resume doesn't help.
-> > > 
-> > > Setting /proc/acpi/thermal_zone/TZ1/polling_frequency to some
-> > > value after resume _sometimes_ helps, but not reliably.
-> > 
-> > Does echo 0/3 > /proc/acpi/fan/*/state still work after resume?
-> 
-> Yes.
-> 
-> > Is kacpid looping after resume?
-> 
-> No.
-> 
-> > Is /proc/a*/thermal*/*/temperature still showing believable values?
-> 
-> Yes.  Perfectly normal.
+OK.  Any volunteers?  I don't quite feel qualified ;)
 
-Okay, so ACPI is basically okay, but fan driver is confused.
-You need to add code to handle suspend and resume into fan.c.
-Probably force everything on for suspend, and sync it with
-software expectations after resume.
+> Probably force everything on for suspend, and sync it with
+> software expectations after resume.
 
+It's not _just_ fan driver confusion, though.
 
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+After resume thermal_zone is also not quite right: it doesn't trigger
+the fans _at all_.
 
+If polling is enabled it does something, but since the fan driver is
+also confused it's not always right.
+
+But there's a distinct difference between polling and no polling in
+thermal_zone after resume, which is not explained by the fan driver
+breakage.
+
+Miklos
 
 
 -------------------------------------------------------
