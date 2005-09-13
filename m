@@ -1,13 +1,14 @@
-From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
-Subject: Re: [patch 5/5] PNPACPI: clean blacklist
-Date: Tue, 13 Sep 2005 11:34:01 +0200
-Message-ID: <43269D09.506@free.fr>
-References: <59D45D057E9702469E5775CBB56411F165A95B@pdsmsx406>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [Acpi4asus-user] Re: Re: [PATCH] Fixed buffered ACPI events
+ for a lot ASUS machines
+Date: Tue, 13 Sep 2005 12:39:01 +0200
+Message-ID: <4326AC45.3080006@suse.de>
+References: <432568E3.6040401@suse.de> <200509131031.43570.luming.yu@intel.com> <43267D43.3070305@suse.de> <200509131708.53544.luming.yu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090705000502060003080902"
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <59D45D057E9702469E5775CBB56411F165A95B@pdsmsx406>
+In-Reply-To: <200509131708.53544.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,76 +18,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: akpm-3NddpPZAyC0@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org
+To: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jfvasconcelos-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090705000502060003080902
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi Shaohua,
-
-Li, Shaohua wrote:
-> Hi matthieu,
+Yu Luming wrote:
+>>  I used vanilla-2.6.13 with acpica-20050902 patches on it.
+> Yes, this version has latest ec patch.
+>>  So it still seems to be used, at least on ASUS machines.
+>>  One of your old EC-burst patches in
+>>  http://bugzilla.kernel.org/show_bug.cgi?id=3851
+>>  had this little change. After reports of working ASUS machines with
+>>  this one, I found that newer EC-burst version do not have this
+>>  change anymore, but behave as the non EC-burst code on these machines.
+> It should be old behavior.  Because, ec gpe will be wrongly disabled in some 
+> cases.  I think the issue should be fixed in the latest ec patch. Because, ec 
+> gpe is always be enabled at run-time.
 > 
->>From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+Yes, seems as if you are right.
+I mixed up kernels during testing.
+This seems to be sovled with latest 20050902 patch.
+Sorry for this one, I am a bit in a pressure of time...
 
-> PNPACPI will call an 'acpi_register_gsi' for device's IRQ. If you remove
-> PIC/TIMER from the list, their irq will be called. It sounds not safe to
-> me, especially, in the ioapic mode.
-Yes, I remembered this yesterday. I started to try to understand how 
-work acpi_register_gsi and if it was safe.
+Could you please line out the change to the older ec_burst patch by some
+code.
+It's very hard to pitch on the big ACPICA commits for little fixes.
+ec_burst patch will be enabled in SUSE Linux 10.0 by default.
+Beside lost mouse/key-strokes on some specific machines (also happen with 
+ec_burst=0), I don't know of any greater harm ec_burst causes.
+If you know any other issues I'd appreciate if you let me know.
 
-I was wondering if we shouln't call it only when a driver register the 
-device (to do something like pci_enable), but it will need pnp layer 
-modification.
-
-I updated the patch in order to keep PIC and TIMER.
-
-> It's meaningless to export PCI root to PNP layer to me. Could we remove
-> it?
-I know, but it is already in pnpbios and I believe we should only put 
-device that are problematic.
+Hmm, searching for something that could have fixed it in the to-akpm/broken-out
+directory of Len, I don't find anything than the huge ACPICA-20050408 commit...
 
 Thanks,
 
-Matthieu
+      Thomas
 
---------------090705000502060003080902
-Content-Type: text/x-patch;
- name="pnpacpi_clean_blacklist.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pnpacpi_clean_blacklist.patch"
 
-Index: linux-2.6.13rc/drivers/pnp/pnpacpi/core.c
-===================================================================
---- linux-2.6.13rc.orig/drivers/pnp/pnpacpi/core.c	2005-08-28 19:26:35.000000000 +0200
-+++ linux-2.6.13rc/drivers/pnp/pnpacpi/core.c	2005-09-13 11:31:15.000000000 +0200
-@@ -27,12 +27,15 @@
- 
- static int num = 0;
- 
-+/* We need only to blacklist devices that have already an acpi driver that
-+ * can't use pnp layer. We don't need to blacklist device that are directly
-+ * used by the kernel (PCI root, ...), as it is harmless and there were
-+ * already present in pnpbios. But there is an exception for devices that
-+ * have irqs (PIC, Timer) because we call acpi_register_gsi.
-+ * Finaly only devices that have a CRS method need to be in this list.
-+ */
- static char __initdata excluded_id_list[] =
--	"PNP0C0A," /* Battery */
--	"PNP0C0C,PNP0C0E,PNP0C0D," /* Button */
- 	"PNP0C09," /* EC */
--	"PNP0C0B," /* Fan */
--	"PNP0A03," /* PCI root */
- 	"PNP0C0F," /* Link device */
- 	"PNP0000," /* PIC */
- 	"PNP0100," /* Timer */
-
---------------090705000502060003080902--
 
 
 -------------------------------------------------------
