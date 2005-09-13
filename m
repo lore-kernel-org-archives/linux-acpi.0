@@ -1,11 +1,13 @@
-From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
-Subject: PATCH default C1
-Date: Tue, 13 Sep 2005 11:11:40 +0200
-Message-ID: <432697CC.3020201@tzi.de>
+From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+Subject: Re: [patch 5/5] PNPACPI: clean blacklist
+Date: Tue, 13 Sep 2005 11:34:01 +0200
+Message-ID: <43269D09.506@free.fr>
+References: <59D45D057E9702469E5775CBB56411F165A95B@pdsmsx406>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------030307050503050701030905"
+ boundary="------------090705000502060003080902"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <59D45D057E9702469E5775CBB56411F165A95B@pdsmsx406>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,203 +17,76 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: akpm-3NddpPZAyC0@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030307050503050701030905
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--------------090705000502060003080902
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hey,
-please test and include this patch.
-It sets up an C1 state per default
-and ignores all C1-states given by
-_CST and P_BLK. Also it does some
-cleanup.
-    Janosch
+Hi Shaohua,
 
---------------030307050503050701030905
-Content-Type: text/plain;
- name="mypatch.patch"
+Li, Shaohua wrote:
+> Hi matthieu,
+> 
+>>From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+
+> PNPACPI will call an 'acpi_register_gsi' for device's IRQ. If you remove
+> PIC/TIMER from the list, their irq will be called. It sounds not safe to
+> me, especially, in the ioapic mode.
+Yes, I remembered this yesterday. I started to try to understand how 
+work acpi_register_gsi and if it was safe.
+
+I was wondering if we shouln't call it only when a driver register the 
+device (to do something like pci_enable), but it will need pnp layer 
+modification.
+
+I updated the patch in order to keep PIC and TIMER.
+
+> It's meaningless to export PCI root to PNP layer to me. Could we remove
+> it?
+I know, but it is already in pnpbios and I believe we should only put 
+device that are problematic.
+
+Thanks,
+
+Matthieu
+
+--------------090705000502060003080902
+Content-Type: text/x-patch;
+ name="pnpacpi_clean_blacklist.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="mypatch.patch"
+ filename="pnpacpi_clean_blacklist.patch"
 
---- linux-2.6.13/drivers/acpi/processor_idle.c	2005-09-02 22:36:45.000000000 +0200
-+++ linux-2.6.13-patch/drivers/acpi/processor_idle.c	2005-09-02 22:36:09.000000000 +0200
-@@ -513,20 +513,16 @@
+Index: linux-2.6.13rc/drivers/pnp/pnpacpi/core.c
+===================================================================
+--- linux-2.6.13rc.orig/drivers/pnp/pnpacpi/core.c	2005-08-28 19:26:35.000000000 +0200
++++ linux-2.6.13rc/drivers/pnp/pnpacpi/core.c	2005-09-13 11:31:15.000000000 +0200
+@@ -27,12 +27,15 @@
  
- 	if (!pr->pblk)
- 		return_VALUE(-ENODEV);
--
--	for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
--		memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
-+	
-+	/* We got C0 an C1 by default starting at 2 */
-+	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
-+		memset(&(pr->power.states[i]), 0, 
-+		       sizeof(struct acpi_processor_cx));
+ static int num = 0;
  
- 	/* if info is obtained from pblk/fadt, type equals state */
--	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
- 	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
- 	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
- 
--	/* the C0 state only exists as a filler in our array,
--	 * and all processors need to support C1 */
--	pr->power.states[ACPI_STATE_C0].valid = 1;
--	pr->power.states[ACPI_STATE_C1].valid = 1;
--
- 	/* determine C2 and C3 address from pblk */
- 	pr->power.states[ACPI_STATE_C2].address = pr->pblk + 4;
- 	pr->power.states[ACPI_STATE_C3].address = pr->pblk + 5;
-@@ -554,10 +550,8 @@
- 		memset(&(pr->power.states[i]), 0, 
- 		       sizeof(struct acpi_processor_cx));
- 
--	/* if info is obtained from pblk/fadt, type equals state */
-+	/* set the first C-State to C1 */
- 	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
--	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
--	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
- 
- 	/* the C0 state only exists as a filler in our array,
- 	 * and all processors need to support C1 */
-@@ -581,8 +575,11 @@
- 	if (nocst)
- 		return_VALUE(-ENODEV);
- 
--	pr->power.count = 0;
--	for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
-+	/*We allready have C1 */
-+	pr->power.count = 1;
-+	
-+	/* We don't want to delete C0 and C1 so we start at 2 */
-+	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
- 		memset(&(pr->power.states[i]), 0, 
- 		       sizeof(struct acpi_processor_cx));
- 
-@@ -610,13 +607,6 @@
- 		goto end;
- 	}
- 
--	/* We support up to ACPI_PROCESSOR_MAX_POWER. */
--	if (count > ACPI_PROCESSOR_MAX_POWER) {
--		printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
--		printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
--		count = ACPI_PROCESSOR_MAX_POWER;
--	}
--
- 	/* Tell driver that at least _CST is supported. */
- 	pr->flags.has_cst = 1;
- 
-@@ -660,7 +650,8 @@
- 		    (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO))
- 			continue;
- 
--		if ((cx.type < ACPI_STATE_C1) ||
-+		/* We got C1 by default, so we only accept C2 and C3 states */
-+		if ((cx.type < ACPI_STATE_C2) ||
- 		    (cx.type > ACPI_STATE_C3))
- 			continue;
- 
-@@ -678,6 +669,13 @@
- 
- 		(pr->power.count)++;
- 		memcpy(&(pr->power.states[pr->power.count]), &cx, sizeof(cx));
-+
-+		/* We support up to ACPI_PROCESSOR_MAX_POWER. */
-+		if (pr->power.count >= ACPI_PROCESSOR_MAX_POWER) {
-+		printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
-+		printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
-+		break;
-+		}
- 	}
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d power states\n", pr->power.count));
-@@ -796,6 +794,11 @@
- 	 */
- 	cx->valid = 1;
- 	cx->latency_ticks = US_TO_PM_TIMER_TICKS(cx->latency);
-+	
-+	/*
-+	 *  mark this CPU as being "idle manageable"
-+	 */
-+	pr->flags.power = 1;
- 
- 	return_VOID;
- }
-@@ -806,16 +809,19 @@
- 	unsigned int i;
- 	unsigned int working = 0;
- 
--	for (i=1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
-+	/* C1 is allways valid, starting at 2 */
-+	for (i=2; i < ACPI_PROCESSOR_MAX_POWER; i++) {
- 		struct acpi_processor_cx *cx = &pr->power.states[i];
- 
- 		switch (cx->type) {
--		case ACPI_STATE_C1:
--			cx->valid = 1;
--			break;
--
- 		case ACPI_STATE_C2:
- 			acpi_processor_power_verify_c2(cx);
-+			if (cx->valid) {
-+			  /*
-+			   *  mark this CPU as being "idle manageable"
-+			   */
-+			  pr->flags.power = 1;
-+			}
- 			break;
- 
- 		case ACPI_STATE_C3:
-@@ -833,19 +839,19 @@
- static int acpi_processor_get_power_info (
- 	struct acpi_processor	*pr)
- {
--	unsigned int i;
- 	int result;
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info");
- 
- 	/* NOTE: the idle thread may not be running while calling
- 	 * this function */
--
-+	
-+	/* Adding C1 state */
-+	acpi_processor_get_power_info_default_c1(pr);
- 	result = acpi_processor_get_power_info_cst(pr);
--	if ((result) || (acpi_processor_power_verify(pr) < 2)) {
-+	if ((result) || (!acpi_processor_power_verify(pr))) {
- 		result = acpi_processor_get_power_info_fadt(pr);
--		if ((result) || (acpi_processor_power_verify(pr) < 2))
--			result = acpi_processor_get_power_info_default_c1(pr);
-+		acpi_processor_power_verify(pr);
- 	}
- 
- 	/*
-@@ -860,17 +866,6 @@
- 	if (result)
- 		return_VALUE(result);
- 
--	/*
--	 * if one state of type C2 or C3 is available, mark this
--	 * CPU as being "idle manageable"
--	 */
--	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
--		if (pr->power.states[i].valid) {
--			pr->power.count = i;
--			pr->flags.power = 1;
--		}
--	}
--
- 	return_VALUE(0);
- }
- 
++/* We need only to blacklist devices that have already an acpi driver that
++ * can't use pnp layer. We don't need to blacklist device that are directly
++ * used by the kernel (PCI root, ...), as it is harmless and there were
++ * already present in pnpbios. But there is an exception for devices that
++ * have irqs (PIC, Timer) because we call acpi_register_gsi.
++ * Finaly only devices that have a CRS method need to be in this list.
++ */
+ static char __initdata excluded_id_list[] =
+-	"PNP0C0A," /* Battery */
+-	"PNP0C0C,PNP0C0E,PNP0C0D," /* Button */
+ 	"PNP0C09," /* EC */
+-	"PNP0C0B," /* Fan */
+-	"PNP0A03," /* PCI root */
+ 	"PNP0C0F," /* Link device */
+ 	"PNP0000," /* PIC */
+ 	"PNP0100," /* Timer */
 
---------------030307050503050701030905--
+--------------090705000502060003080902--
 
 
 -------------------------------------------------------
