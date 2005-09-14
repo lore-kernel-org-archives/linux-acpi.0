@@ -1,7 +1,7 @@
-From: Alfredo <arching-R/OkCpoN6ffQT0dZR+AlfA@public.gmane.org>
-Subject: Platinum stock News-letter
-Date: Wed, 14 Sep 2005 12:36:36 +0300
-Message-ID: <8780188507.253249444@85.101.50.10>
+From: Marquise <republicans-fYDbcdVfw5nQT0dZR+AlfA@public.gmane.org>
+Subject: Are Shares of This Issue Poised For a Run?
+Date: Wed, 14 Sep 2005 12:36:38 +0300
+Message-ID: <9448220971.6167639096@85.101.50.10>
 Mime-Version: 1.0 (Apple Message framework v728)
 Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -15,7 +15,7 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Best stock for Year 2005 - read the story and you will see for yourself.
