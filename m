@@ -1,10 +1,9 @@
-From: Marquise <republicans-fYDbcdVfw5nQT0dZR+AlfA@public.gmane.org>
-Subject: Are Shares of This Issue Poised For a Run?
-Date: Wed, 14 Sep 2005 12:36:38 +0300
-Message-ID: <9448220971.6167639096@85.101.50.10>
-Mime-Version: 1.0 (Apple Message framework v728)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+From: giskard <giskard-GaUfNO9RBHfsrOwW+9ziJQ@public.gmane.org>
+Subject: standby problem
+Date: Wed, 14 Sep 2005 19:45:45 +0200
+Message-ID: <1126719945.4563.12.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-FZdJLQ/Ki8439YSSkzSM"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,35 +17,47 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Best stock for Year 2005 - read the story and you will see for yourself.
-Get AXCP First Thing Wednesday, This Is Going To Explode next 2-3 days!!!
 
-Name: Allixon International Corporation
-Symbol: AXCP
-Price(14.09.2005): $2.40
-1 Week Target: $8 (!!!)
+--=-FZdJLQ/Ki8439YSSkzSM
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Buy: Strong
-Expectations: 300-500%
+hello,
 
+i wanted to know what's mean this error :)
 
-***
-About Allixon International Corporation
+mrspurr:/home/giskard# echo standby > /sys/power/state
+acpi_pm_prepare does not support 1
 
-Allixon is a leading provider of RFID middleware and mobile Internet solution
-for device computing. Allixon combines its products, expertise, partnerships
-and integration capability into solutions for a wide range
-of device computing applications, including RFID middleware
-and m-banking solutions. Allixon's products based on ubiquitous technologies
-direct companies looking to tap into the wealth of data captured
-by networked devices such as RFID readers or handhelds to extend
-the quality of information to any device where they want.
-***
+means that my laptop doesn't supporto standby mode?
 
-When this Stock moves - WATCH OUT! This is your chance to get in
-while it is still low. Big watch in play this Wednesday morning!
-Put AXCP on your radar's now.
+another question: i can suspend to ram my laptop without problems (echo
+mem > /sys/power/state) but when i try to resume it i get a black screen
+and then i need to reboot it. i need to do something else for resume
+it?=20
 
+i have a:
+satellite a80-111
+linux 2.6.13 with suspend2.net patch
+=20
+--=20
+ciao giskard
+
+non ho peli sulla lingua. e se ce li ho... non sono miei.
+
+--=-FZdJLQ/Ki8439YSSkzSM
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBDKGHJokwHIYS/ecgRAqBNAJ0SvQ2FFcxxRTonuQXNhFrpdlzFzQCfQudl
+YnwbYMK83G5UsvPqa+h8WLI=
+=zb3y
+-----END PGP SIGNATURE-----
+
+--=-FZdJLQ/Ki8439YSSkzSM--
 
 
 
