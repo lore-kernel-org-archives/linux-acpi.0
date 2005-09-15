@@ -1,11 +1,13 @@
-From: "Motel Strom" <strujmot-bNOzj5R7lcIHrNJx0XZkJA@public.gmane.org>
-Subject: Re: got to kn ow
-Date: Thu, 15 Sep 2005 17:38:36 -0500
-Message-ID: <E1EG2NM-0007jK-2o@mail.sourceforge.net>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: C states on AMD SMP
+Date: Thu, 15 Sep 2005 15:33:31 +0200
+Message-ID: <20050915133330.GB468@openzaurus.ucw.cz>
+References: <1126178956.24699.42.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_003C_01C5BA1C.4CC8B600"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1126178956.24699.42.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,55 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sofronio Honig <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Thu 08-09-05 13:29:16, Erik Slagter wrote:
+> Hi,
+> 
+> I compiled & installed 2.6.13 (vanilla) on my Tyan Tiger S2466 (AMD768
+> chipset, 2xathlon MP 2600) yesterday. Indeed, as expected, acpi
+> "/proc/acpi/processor/*/power" (C states) is now supported on SMP. But,
+> to my surprise, it only shows one C state (C1), which, I assume, is
+> full-on.
 
-------=_NextPart_000_003C_01C5BA1C.4CC8B600
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Wrong. C1 is basically hlt.
 
-XaMeLeCiAmUlCeViVaPr
-narivialbitrleagliop
-xdiatraisenambrexraumecia
-$1 $=
-3 $3
-21.33.75=
-http://www.newspaprep=
-ort.com went out with him, complete silence fell in the colonnade, and one =
-could Congrats, citizen, you done lied!
+				Pavel
 
-------=_NextPart_000_003C_01C5BA1C.4CC8B600
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCourier>
-<DIV style=3D"FLOAT: left;">Xa<BR>Me<BR>Le<BR>Ci<BR>Am<BR>Ul<BR>Ce<B=
-R>Vi<BR>Va<BR>Pr</DIV>
-<DIV style=3D"FLOAT: left;">na<BR>ri<BR>vi<BR>al<BR>bi<BR>tr<BR>le<B=
-R>ag<BR>li<BR>op</DIV>
-<DIV style=3D"FLOAT: left;">x<BR>dia<BR>tra<BR>is<BR>en<BR>am<BR>brex<B=
-R>ra<BR>um<BR>ecia</DIV>
-<DIV style=3D"FLOAT: left;"><BR><BR><BR>&nbsp;$1<BR><BR><BR><BR>&nbsp;$=
-3<BR>&nbsp;$3<BR></DIV>
-<DIV style=3D"FLOAT: left;"><BR><BR><BR>.21<BR><BR><BR><BR>.33<BR>.75=
-<BR></DIV>
-<DIV style=3D"CLEAR: both">&nbsp;</DIV>
-<DIV><A href=3D"http://www.newspapreport.com">http://www.newspaprep=
-ort.com</A></DIV></FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_003C_01C5BA1C.4CC8B600--
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
 
 
