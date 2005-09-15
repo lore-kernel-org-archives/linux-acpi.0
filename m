@@ -1,8 +1,11 @@
 From: Miklos Szeredi <miklos-sUDqSbJrdHQHWmgEVkV9KA@public.gmane.org>
-Subject: Fan driver suspend/resume issues
-Date: Thu, 15 Sep 2005 12:42:42 +0200
-Message-ID: <E1EFrCU-0002lM-00@dorka.pomaz.szeredi.hu>
+Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
+Date: Thu, 15 Sep 2005 12:50:53 +0200
+Message-ID: <E1EFrKP-0002mG-00@dorka.pomaz.szeredi.hu>
+References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz> <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu> <20050910215552.GA2463@openzaurus.ucw.cz> <E1EFCcc-0008Jy-00@dorka.pomaz.szeredi.hu> <20050914210420.GD3460@elf.ucw.cz> <E1EFqlx-0002iN-00@dorka.pomaz.szeredi.hu> <20050915103219.GC2725@elf.ucw.cz>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-reply-to: <20050915103219.GC2725-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org> (message from Pavel Machek on
+	Thu, 15 Sep 2005 12:32:19 +0200)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,34 +15,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: pavel-+ZI9xUNit7I@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: pavel-+ZI9xUNit7I@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It seems that the ACPI fan driver lacks suspend/resume support, which
-causes problems on some laptops (e.g HP nc-4000, nc-8000).
+> > > Not sure... interpretter should not be involved with it. (Perhaps you
+> > > need to use platform, not shutdown mode,
+> > 
+> > Tried this... And it worked.  Am I right in thinking that this is S4
+> > instead of S5?  Why is it not the default if ACPI is enabled?
+> 
+> Yes, it is S4 instead of S5, and it caused too many problems last time
+> we tried enabling it by default.
 
-But it's not just suspend.  I see more than one issue:
+Well, but ACPI seems to rely on it.  You can't have it both ways.
+Either ACPI should be tought not to rely on S4 and reinitialize
+everything after resume, or to rely on S4 but then _require_ S4 for
+suspend.  Am I not right?
 
- 1)  ACPI initializes the fans all-off.
-
-  This is dangerous.  If fan/thermal_zone driver are not compiled into
-  the kernel or are modules or acpid is not installed (to insert the
-  modules), then the system will silently overheat.  This is not a
-  theoretical scenario, I've seen cases where sysadmin simply "forgot"
-  to install the acpid package and user was clueless about
-  overheating, and it resulted in hard disk failure.
-
- 2) The fan/thermal_zone modules dont turn on all fans when removed.
-
-    Also dangerous for same reasons as above.
-
- 3) Fan driver doesn't have suspend/resume support.
-
-Can someone familar with the ACPI internals please comment on the
-above?
-
-Thanks,
 Miklos
 
 
