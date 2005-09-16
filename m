@@ -1,244 +1,244 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] serial: remove 8250_acpi (subsumed by 8250_pnp and PNPACPI)
-Date: Fri, 16 Sep 2005 11:42:33 -0600
-Message-ID: <200509161142.33723.bjorn.helgaas@hp.com>
+From: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Subject: Re: PATCH default C1
+Date: Fri, 16 Sep 2005 21:03:36 +0200
+Message-ID: <432B1708.4060403@tzi.de>
+References: <432697CC.3020201@tzi.de> <20050913180219.GB9572@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-serial-owner@vger.kernel.org
-To: Russell King <rmk+serial@arm.linux.org.uk>
-Cc: linux-serial@vger.kernel.org, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------020201020700080500050509"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050913180219.GB9572-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-With the combination of PNPACPI and 8250_pnp, we no longer need
-8250_acpi.
+This is a multi-part message in MIME format.
+--------------020201020700080500050509
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The only in-tree configs that contain CONFIG_SERIAL_8250_ACPI are ia64.
-ia64 users should make sure CONFIG_PNP and CONFIG_PNPACPI are set so
-8250_pnp.c can discover built-in serial ports.  Tony has already
-accepted a patch to turn them on in the default configs.
+Same patch with corrected codestyle,
+please test and apply
+     Janosch
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Dominik Brodowski wrote:
+>>+		/* We support up to ACPI_PROCESSOR_MAX_POWER. */
+>>+		if (pr->power.count >= ACPI_PROCESSOR_MAX_POWER) {
+>>+		printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
+>>+		printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
+>>+		break;
+>>+		}
+> 
+> 
+> broken indent
+> 
+> 
+>>+			if (cx->valid) {
+>>+			  /*
+>>+			   *  mark this CPU as being "idle manageable"
+>>+			   */
+>>+			  pr->flags.power = 1;
+>>+			}
+> 
+> 
+> same here.
+> 
+> 	Dominik
 
-Index: work-vga2/drivers/serial/Kconfig
-===================================================================
---- work-vga2.orig/drivers/serial/Kconfig	2005-09-14 09:29:08.000000000 -0600
-+++ work-vga2/drivers/serial/Kconfig	2005-09-15 09:58:40.000000000 -0600
-@@ -77,14 +77,6 @@
+--------------020201020700080500050509
+Content-Type: text/plain;
+ name="mypatch.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="mypatch.patch"
+
+--- linux-2.6.13/drivers/acpi/processor_idle.c	2005-09-02 21:49:32.000000000 +0200
++++ linux-2.6.13-patch/drivers/acpi/processor_idle.c	2005-09-14 17:16:13.000000000 +0200
+@@ -513,20 +513,16 @@
  
- 	  If unsure, say N.
+ 	if (!pr->pblk)
+ 		return_VALUE(-ENODEV);
+-
+-	for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
+-		memset(pr->power.states, 0, sizeof(struct acpi_processor_cx));
++	
++	/* We got C0 an C1 by default starting at 2 */
++	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
++		memset(&(pr->power.states[i]), 0, 
++		       sizeof(struct acpi_processor_cx));
  
--config SERIAL_8250_ACPI
--	bool "8250/16550 device discovery via ACPI namespace"
--	default y if IA64
--	depends on ACPI && SERIAL_8250
--	---help---
--	  If you wish to enable serial port discovery via the ACPI
--	  namespace, say Y here.  If unsure, say N.
--
- config SERIAL_8250_NR_UARTS
- 	int "Maximum number of 8250/16550 serial ports"
- 	depends on SERIAL_8250
-Index: work-vga2/drivers/serial/Makefile
-===================================================================
---- work-vga2.orig/drivers/serial/Makefile	2005-09-14 09:29:08.000000000 -0600
-+++ work-vga2/drivers/serial/Makefile	2005-09-15 09:58:18.000000000 -0600
-@@ -5,7 +5,6 @@
- #
+ 	/* if info is obtained from pblk/fadt, type equals state */
+-	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
+ 	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
+ 	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
  
- serial-8250-y :=
--serial-8250-$(CONFIG_SERIAL_8250_ACPI) += 8250_acpi.o
- serial-8250-$(CONFIG_PNP) += 8250_pnp.o
- serial-8250-$(CONFIG_GSC) += 8250_gsc.o
- serial-8250-$(CONFIG_PCI) += 8250_pci.o
-Index: work-vga2/drivers/serial/8250_acpi.c
-===================================================================
---- work-vga2.orig/drivers/serial/8250_acpi.c	2005-09-14 09:29:08.000000000 -0600
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,183 +0,0 @@
--/*
-- * Copyright (c) 2002-2003 Matthew Wilcox for Hewlett-Packard
-- * Copyright (C) 2004 Hewlett-Packard Co
-- *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
+-	/* the C0 state only exists as a filler in our array,
+-	 * and all processors need to support C1 */
+-	pr->power.states[ACPI_STATE_C0].valid = 1;
+-	pr->power.states[ACPI_STATE_C1].valid = 1;
 -
--#include <linux/acpi.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/serial_core.h>
--
--#include <acpi/acpi_bus.h>
--
--#include <asm/io.h>
--
--#include "8250.h"
--
--struct serial_private {
--	int	line;
--};
--
--static acpi_status acpi_serial_mmio(struct uart_port *port,
--				    struct acpi_resource_address64 *addr)
--{
--	port->mapbase = addr->min_address_range;
--	port->iotype = UPIO_MEM;
--	port->flags |= UPF_IOREMAP;
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_port(struct uart_port *port,
--				    struct acpi_resource_io *io)
--{
--	if (io->range_length) {
--		port->iobase = io->min_base_address;
--		port->iotype = UPIO_PORT;
--	} else
--		printk(KERN_ERR "%s: zero-length IO port range?\n", __FUNCTION__);
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_ext_irq(struct uart_port *port,
--				       struct acpi_resource_ext_irq *ext_irq)
--{
--	int rc;
--
--	if (ext_irq->number_of_interrupts > 0) {
--		rc = acpi_register_gsi(ext_irq->interrupts[0],
--	                   ext_irq->edge_level, ext_irq->active_high_low);
--		if (rc < 0)
--			return AE_ERROR;
--		port->irq = rc;
--	}
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_irq(struct uart_port *port,
--				   struct acpi_resource_irq *irq)
--{
--	int rc;
--
--	if (irq->number_of_interrupts > 0) {
--		rc = acpi_register_gsi(irq->interrupts[0],
--	                   irq->edge_level, irq->active_high_low);
--		if (rc < 0)
--			return AE_ERROR;
--		port->irq = rc;
--	}
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_resource(struct acpi_resource *res, void *data)
--{
--	struct uart_port *port = (struct uart_port *) data;
--	struct acpi_resource_address64 addr;
--	acpi_status status;
--
--	status = acpi_resource_to_address64(res, &addr);
--	if (ACPI_SUCCESS(status))
--		return acpi_serial_mmio(port, &addr);
--	else if (res->id == ACPI_RSTYPE_IO)
--		return acpi_serial_port(port, &res->data.io);
--	else if (res->id == ACPI_RSTYPE_EXT_IRQ)
--		return acpi_serial_ext_irq(port, &res->data.extended_irq);
--	else if (res->id == ACPI_RSTYPE_IRQ)
--		return acpi_serial_irq(port, &res->data.irq);
--	return AE_OK;
--}
--
--static int acpi_serial_add(struct acpi_device *device)
--{
--	struct serial_private *priv;
--	acpi_status status;
--	struct uart_port port;
--	int result;
--
--	memset(&port, 0, sizeof(struct uart_port));
--
--	port.uartclk = 1843200;
--	port.flags = UPF_SKIP_TEST | UPF_BOOT_AUTOCONF;
--
--	priv = kmalloc(sizeof(struct serial_private), GFP_KERNEL);
--	if (!priv) {
--		result = -ENOMEM;
--		goto fail;
--	}
--	memset(priv, 0, sizeof(*priv));
--
--	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
--				     acpi_serial_resource, &port);
--	if (ACPI_FAILURE(status)) {
--		result = -ENODEV;
--		goto fail;
+ 	/* determine C2 and C3 address from pblk */
+ 	pr->power.states[ACPI_STATE_C2].address = pr->pblk + 4;
+ 	pr->power.states[ACPI_STATE_C3].address = pr->pblk + 5;
+@@ -554,10 +550,8 @@
+ 		memset(&(pr->power.states[i]), 0, 
+ 		       sizeof(struct acpi_processor_cx));
+ 
+-	/* if info is obtained from pblk/fadt, type equals state */
++	/* set the first C-State to C1 */
+ 	pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
+-	pr->power.states[ACPI_STATE_C2].type = ACPI_STATE_C2;
+-	pr->power.states[ACPI_STATE_C3].type = ACPI_STATE_C3;
+ 
+ 	/* the C0 state only exists as a filler in our array,
+ 	 * and all processors need to support C1 */
+@@ -581,8 +575,11 @@
+ 	if (nocst)
+ 		return_VALUE(-ENODEV);
+ 
+-	pr->power.count = 0;
+-	for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
++	/*We allready have C1 */
++	pr->power.count = 1;
++	
++	/* We don't want to delete C0 and C1 so we start at 2 */
++	for (i = 2; i < ACPI_PROCESSOR_MAX_POWER; i++)
+ 		memset(&(pr->power.states[i]), 0, 
+ 		       sizeof(struct acpi_processor_cx));
+ 
+@@ -610,13 +607,6 @@
+ 		goto end;
+ 	}
+ 
+-	/* We support up to ACPI_PROCESSOR_MAX_POWER. */
+-	if (count > ACPI_PROCESSOR_MAX_POWER) {
+-		printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
+-		printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
+-		count = ACPI_PROCESSOR_MAX_POWER;
 -	}
 -
--	if (!port.mapbase && !port.iobase) {
--		printk(KERN_ERR "%s: no iomem or port address in %s _CRS\n",
--			__FUNCTION__, device->pnp.bus_id);
--		result = -ENODEV;
--		goto fail;
+ 	/* Tell driver that at least _CST is supported. */
+ 	pr->flags.has_cst = 1;
+ 
+@@ -660,7 +650,8 @@
+ 		    (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO))
+ 			continue;
+ 
+-		if ((cx.type < ACPI_STATE_C1) ||
++		/* We got C1 by default, so we only accept C2 and C3 states */
++		if ((cx.type < ACPI_STATE_C2) ||
+ 		    (cx.type > ACPI_STATE_C3))
+ 			continue;
+ 
+@@ -678,6 +669,13 @@
+ 
+ 		(pr->power.count)++;
+ 		memcpy(&(pr->power.states[pr->power.count]), &cx, sizeof(cx));
++
++		/* We support up to ACPI_PROCESSOR_MAX_POWER. */
++		if (pr->power.count >= ACPI_PROCESSOR_MAX_POWER) {
++		        printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
++			printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
++			break;
++		}
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d power states\n", pr->power.count));
+@@ -796,6 +794,11 @@
+ 	 */
+ 	cx->valid = 1;
+ 	cx->latency_ticks = US_TO_PM_TIMER_TICKS(cx->latency);
++	
++	/*
++	 *  mark this CPU as being "idle manageable"
++	 */
++	pr->flags.power = 1;
+ 
+ 	return_VOID;
+ }
+@@ -806,16 +809,19 @@
+ 	unsigned int i;
+ 	unsigned int working = 0;
+ 
+-	for (i=1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
++	/* C1 is allways valid, starting at 2 */
++	for (i=2; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+ 		struct acpi_processor_cx *cx = &pr->power.states[i];
+ 
+ 		switch (cx->type) {
+-		case ACPI_STATE_C1:
+-			cx->valid = 1;
+-			break;
+-
+ 		case ACPI_STATE_C2:
+ 			acpi_processor_power_verify_c2(cx);
++			if (cx->valid) {
++			        /*
++				 *  mark this CPU as being "idle manageable"
++				 */
++			        pr->flags.power = 1;
++			}
+ 			break;
+ 
+ 		case ACPI_STATE_C3:
+@@ -833,19 +839,19 @@
+ static int acpi_processor_get_power_info (
+ 	struct acpi_processor	*pr)
+ {
+-	unsigned int i;
+ 	int result;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_get_power_info");
+ 
+ 	/* NOTE: the idle thread may not be running while calling
+ 	 * this function */
+-
++	
++	/* Adding C1 state */
++	acpi_processor_get_power_info_default_c1(pr);
+ 	result = acpi_processor_get_power_info_cst(pr);
+-	if ((result) || (acpi_processor_power_verify(pr) < 2)) {
++	if ((result) || (!acpi_processor_power_verify(pr))) {
+ 		result = acpi_processor_get_power_info_fadt(pr);
+-		if ((result) || (acpi_processor_power_verify(pr) < 2))
+-			result = acpi_processor_get_power_info_default_c1(pr);
++		acpi_processor_power_verify(pr);
+ 	}
+ 
+ 	/*
+@@ -860,17 +866,6 @@
+ 	if (result)
+ 		return_VALUE(result);
+ 
+-	/*
+-	 * if one state of type C2 or C3 is available, mark this
+-	 * CPU as being "idle manageable"
+-	 */
+-	for (i = 1; i < ACPI_PROCESSOR_MAX_POWER; i++) {
+-		if (pr->power.states[i].valid) {
+-			pr->power.count = i;
+-			pr->flags.power = 1;
+-		}
 -	}
 -
--	priv->line = serial8250_register_port(&port);
--	if (priv->line < 0) {
--		printk(KERN_WARNING "Couldn't register serial port %s: %d\n",
--			device->pnp.bus_id, priv->line);
--		result = -ENODEV;
--		goto fail;
--	}
--
--	acpi_driver_data(device) = priv;
--	return 0;
--
--fail:
--	kfree(priv);
--
--	return result;
--}
--
--static int acpi_serial_remove(struct acpi_device *device, int type)
--{
--	struct serial_private *priv;
--
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
--
--	priv = acpi_driver_data(device);
--	serial8250_unregister_port(priv->line);
--	kfree(priv);
--
--	return 0;
--}
--
--static struct acpi_driver acpi_serial_driver = {
--	.name =		"serial",
--	.class =	"",
--	.ids =		"PNP0501",
--	.ops =	{
--		.add =		acpi_serial_add,
--		.remove =	acpi_serial_remove,
--	},
--};
--
--static int __init acpi_serial_init(void)
--{
--	return acpi_bus_register_driver(&acpi_serial_driver);
--}
--
--static void __exit acpi_serial_exit(void)
--{
--	acpi_bus_unregister_driver(&acpi_serial_driver);
--}
--
--module_init(acpi_serial_init);
--module_exit(acpi_serial_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("Generic 8250/16x50 ACPI serial driver");
+ 	return_VALUE(0);
+ }
+ 
+
+--------------020201020700080500050509--
+
+
+-------------------------------------------------------
+SF.Net email is sponsored by:
+Tame your development challenges with Apache's Geronimo App Server. 
+Download it for free - -and be entered to win a 42" plasma tv or your very
+own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
