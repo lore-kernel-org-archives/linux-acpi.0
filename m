@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: C states on AMD SMP
-Date: Thu, 15 Sep 2005 15:33:31 +0200
-Message-ID: <20050915133330.GB468@openzaurus.ucw.cz>
-References: <1126178956.24699.42.camel@localhost.localdomain>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] ACPI: Fix resource allocation for fixed hardware in MMIO
+Date: Fri, 16 Sep 2005 11:34:24 -0600
+Message-ID: <200509161134.24735.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1126178956.24699.42.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +17,85 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu 08-09-05 13:29:16, Erik Slagter wrote:
-> Hi,
-> 
-> I compiled & installed 2.6.13 (vanilla) on my Tyan Tiger S2466 (AMD768
-> chipset, 2xathlon MP 2600) yesterday. Indeed, as expected, acpi
-> "/proc/acpi/processor/*/power" (C states) is now supported on SMP. But,
-> to my surprise, it only shows one C state (C1), which, I assume, is
-> full-on.
+ACPI supports fixed hardware (PM_TMR, GPE blocks, etc) in either
+I/O port or MMIO space, but used to always request the regions from
+I/O space, even for MMIO hardware.
 
-Wrong. C1 is basically hlt.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-				Pavel
-
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+Index: work-vga2/drivers/acpi/motherboard.c
+===================================================================
+--- work-vga2.orig/drivers/acpi/motherboard.c	2005-09-14 09:28:10.000000000 -0600
++++ work-vga2/drivers/acpi/motherboard.c	2005-09-14 10:39:05.000000000 -0600
+@@ -123,41 +123,46 @@
+ 		},
+ };
+ 
++static void __init acpi_request_region (struct acpi_generic_address *addr,
++	unsigned int length, char *desc)
++{
++	if (!addr->address || !length)
++		return;
++
++	if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_IO)
++		request_region(addr->address, length, desc);
++	else if (addr->address_space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		request_mem_region(addr->address, length, desc);
++}
++
+ static void __init acpi_reserve_resources(void)
+ {
+-	if (acpi_gbl_FADT->xpm1a_evt_blk.address && acpi_gbl_FADT->pm1_evt_len)
+-		request_region(acpi_gbl_FADT->xpm1a_evt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1a_evt_blk,
+ 			       acpi_gbl_FADT->pm1_evt_len, "PM1a_EVT_BLK");
+ 
+-	if (acpi_gbl_FADT->xpm1b_evt_blk.address && acpi_gbl_FADT->pm1_evt_len)
+-		request_region(acpi_gbl_FADT->xpm1b_evt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1b_evt_blk,
+ 			       acpi_gbl_FADT->pm1_evt_len, "PM1b_EVT_BLK");
+ 
+-	if (acpi_gbl_FADT->xpm1a_cnt_blk.address && acpi_gbl_FADT->pm1_cnt_len)
+-		request_region(acpi_gbl_FADT->xpm1a_cnt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1a_cnt_blk,
+ 			       acpi_gbl_FADT->pm1_cnt_len, "PM1a_CNT_BLK");
+ 
+-	if (acpi_gbl_FADT->xpm1b_cnt_blk.address && acpi_gbl_FADT->pm1_cnt_len)
+-		request_region(acpi_gbl_FADT->xpm1b_cnt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm1b_cnt_blk,
+ 			       acpi_gbl_FADT->pm1_cnt_len, "PM1b_CNT_BLK");
+ 
+-	if (acpi_gbl_FADT->xpm_tmr_blk.address && acpi_gbl_FADT->pm_tm_len == 4)
+-		request_region(acpi_gbl_FADT->xpm_tmr_blk.address, 4, "PM_TMR");
++	if (acpi_gbl_FADT->pm_tm_len == 4)
++		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "PM_TMR");
+ 
+-	if (acpi_gbl_FADT->xpm2_cnt_blk.address && acpi_gbl_FADT->pm2_cnt_len)
+-		request_region(acpi_gbl_FADT->xpm2_cnt_blk.address,
++	acpi_request_region(&acpi_gbl_FADT->xpm2_cnt_blk,
+ 			       acpi_gbl_FADT->pm2_cnt_len, "PM2_CNT_BLK");
+ 
+ 	/* Length of GPE blocks must be a non-negative multiple of 2 */
+ 
+-	if (acpi_gbl_FADT->xgpe0_blk.address && acpi_gbl_FADT->gpe0_blk_len &&
+-	    !(acpi_gbl_FADT->gpe0_blk_len & 0x1))
+-		request_region(acpi_gbl_FADT->xgpe0_blk.address,
++	if (!(acpi_gbl_FADT->gpe0_blk_len & 0x1))
++		acpi_request_region(&acpi_gbl_FADT->xgpe0_blk,
+ 			       acpi_gbl_FADT->gpe0_blk_len, "GPE0_BLK");
+ 
+-	if (acpi_gbl_FADT->xgpe1_blk.address && acpi_gbl_FADT->gpe1_blk_len &&
+-	    !(acpi_gbl_FADT->gpe1_blk_len & 0x1))
+-		request_region(acpi_gbl_FADT->xgpe1_blk.address,
++	if (!(acpi_gbl_FADT->gpe1_blk_len & 0x1))
++		acpi_request_region(&acpi_gbl_FADT->xgpe1_blk,
+ 			       acpi_gbl_FADT->gpe1_blk_len, "GPE1_BLK");
+ }
+ 
 
 
 -------------------------------------------------------
