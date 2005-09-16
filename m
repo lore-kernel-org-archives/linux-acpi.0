@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] ACPI: Add "ACPI" to motherboard resources in /proc/io{mem,port}
-Date: Fri, 16 Sep 2005 11:36:02 -0600
-Message-ID: <200509161136.02065.bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: simplify scan.c coding
+Date: Fri, 16 Sep 2005 11:36:52 -0600
+Message-ID: <200509161136.52838.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -21,82 +21,83 @@ To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add "ACPI" to motherboard resource allocation names, so people have a
-clue about where to look.  And remove some trailing spaces.
+No functional changes; just remove leftover, unused "buffer" and
+simplify control flow (no need to remember error values and goto
+the end, when we can simply return the value directly).
+
+Previous post:
+    http://sourceforge.net/mailarchive/message.php?msg_id=12489147
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-Index: work-vga2/drivers/acpi/motherboard.c
+Index: work-vga2/drivers/acpi/scan.c
 ===================================================================
---- work-vga2.orig/drivers/acpi/motherboard.c	2005-09-14 10:39:05.000000000 -0600
-+++ work-vga2/drivers/acpi/motherboard.c	2005-09-14 10:43:36.000000000 -0600
-@@ -37,7 +37,7 @@
- #define ACPI_MB_HID2			"PNP0C02"
- /**
-  * Doesn't care about legacy IO ports, only IO ports beyond 0x1000 are reserved
-- * Doesn't care about the failure of 'request_region', since other may reserve 
-+ * Doesn't care about the failure of 'request_region', since other may reserve
-  * the io ports as well
-  */
- #define IS_RESERVED_ADDR(base, len) \
-@@ -46,7 +46,7 @@
- /*
-  * Clearing the flag (IORESOURCE_BUSY) allows drivers to use
-  * the io ports if they really know they can use it, while
-- * still preventing hotplug PCI devices from using it. 
-+ * still preventing hotplug PCI devices from using it.
-  */
- static acpi_status acpi_reserve_io_ranges(struct acpi_resource *res, void *data)
+--- work-vga2.orig/drivers/acpi/scan.c	2005-09-14 09:28:10.000000000 -0600
++++ work-vga2/drivers/acpi/scan.c	2005-09-15 09:52:33.000000000 -0600
+@@ -236,12 +236,9 @@
+ 
+ int acpi_match_ids(struct acpi_device *device, char *ids)
  {
-@@ -138,39 +138,39 @@
- static void __init acpi_reserve_resources(void)
- {
- 	acpi_request_region(&acpi_gbl_FADT->xpm1a_evt_blk,
--			       acpi_gbl_FADT->pm1_evt_len, "PM1a_EVT_BLK");
-+			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1a_EVT_BLK");
+-	int error = 0;
+-	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
+-
+ 	if (device->flags.hardware_id)
+ 		if (strstr(ids, device->pnp.hardware_id))
+-			goto Done;
++			return 0;
  
- 	acpi_request_region(&acpi_gbl_FADT->xpm1b_evt_blk,
--			       acpi_gbl_FADT->pm1_evt_len, "PM1b_EVT_BLK");
-+			       acpi_gbl_FADT->pm1_evt_len, "ACPI PM1b_EVT_BLK");
- 
- 	acpi_request_region(&acpi_gbl_FADT->xpm1a_cnt_blk,
--			       acpi_gbl_FADT->pm1_cnt_len, "PM1a_CNT_BLK");
-+			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1a_CNT_BLK");
- 
- 	acpi_request_region(&acpi_gbl_FADT->xpm1b_cnt_blk,
--			       acpi_gbl_FADT->pm1_cnt_len, "PM1b_CNT_BLK");
-+			       acpi_gbl_FADT->pm1_cnt_len, "ACPI PM1b_CNT_BLK");
- 
- 	if (acpi_gbl_FADT->pm_tm_len == 4)
--		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "PM_TMR");
-+		acpi_request_region(&acpi_gbl_FADT->xpm_tmr_blk, 4, "ACPI PM_TMR");
- 
- 	acpi_request_region(&acpi_gbl_FADT->xpm2_cnt_blk,
--			       acpi_gbl_FADT->pm2_cnt_len, "PM2_CNT_BLK");
-+			       acpi_gbl_FADT->pm2_cnt_len, "ACPI PM2_CNT_BLK");
- 
- 	/* Length of GPE blocks must be a non-negative multiple of 2 */
- 
- 	if (!(acpi_gbl_FADT->gpe0_blk_len & 0x1))
- 		acpi_request_region(&acpi_gbl_FADT->xgpe0_blk,
--			       acpi_gbl_FADT->gpe0_blk_len, "GPE0_BLK");
-+			       acpi_gbl_FADT->gpe0_blk_len, "ACPI GPE0_BLK");
- 
- 	if (!(acpi_gbl_FADT->gpe1_blk_len & 0x1))
- 		acpi_request_region(&acpi_gbl_FADT->xgpe1_blk,
--			       acpi_gbl_FADT->gpe1_blk_len, "GPE1_BLK");
-+			       acpi_gbl_FADT->gpe1_blk_len, "ACPI GPE1_BLK");
+ 	if (device->flags.compatible_ids) {
+ 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
+@@ -250,15 +247,10 @@
+ 		/* compare multiple _CID entries against driver ids */
+ 		for (i = 0; i < cid_list->count; i++) {
+ 			if (strstr(ids, cid_list->id[i].value))
+-				goto Done;
++				return 0;
+ 		}
+ 	}
+-	error = -ENOENT;
+-
+-      Done:
+-	if (buffer.pointer)
+-		acpi_os_free(buffer.pointer);
+-	return error;
++	return -ENOENT;
  }
  
- static int __init acpi_motherboard_init(void)
+ static acpi_status
+@@ -641,21 +633,19 @@
+  */
+ int acpi_bus_unregister_driver(struct acpi_driver *driver)
  {
- 	acpi_bus_register_driver(&acpi_motherboard_driver1);
- 	acpi_bus_register_driver(&acpi_motherboard_driver2);
--	/* 
-+	/*
- 	 * Guarantee motherboard IO reservation first
- 	 * This module must run after scan.c
- 	 */
+-	int error = 0;
+-
+ 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
+ 
+-	if (driver) {
+-		acpi_driver_detach(driver);
++	if (!driver)
++		return_VALUE(-EINVAL);
+ 
+-		if (!atomic_read(&driver->references)) {
+-			spin_lock(&acpi_device_lock);
+-			list_del_init(&driver->node);
+-			spin_unlock(&acpi_device_lock);
+-		}
+-	} else
+-		error = -EINVAL;
+-	return_VALUE(error);
++	acpi_driver_detach(driver);
++
++	if (!atomic_read(&driver->references)) {
++		spin_lock(&acpi_device_lock);
++		list_del_init(&driver->node);
++		spin_unlock(&acpi_device_lock);
++	}
++	return_VALUE(0);
+ }
+ 
+ EXPORT_SYMBOL(acpi_bus_unregister_driver);
 
 
 -------------------------------------------------------
