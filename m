@@ -1,76 +1,55 @@
-From: "Katheryne Propp" <katherhefgm-9QJZl7hVrifQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Do you  know what?
-Date: Fri, 16 Sep 2005 18:17:36 -0500
-Message-ID: <E1EGPSs-0000jv-L2@mail.sourceforge.net>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [ACPI] [PATCH] ACPI: implement UUID-labelled vendor-defined resources
+Date: Fri, 16 Sep 2005 14:56:31 -0700
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0020_01C5BAEA.E9F22000"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Milagros Estepp <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Id: linux-acpi@vger.kernel.org
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0020_01C5BAEA.E9F22000
 Content-Type: text/plain;
 	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-ia64-owner@vger.kernel.org
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Brown, Len" <len.brown@intel.com>
+Cc: Alex Williamson <alex.williamson@hp.com>, acpi-devel@lists.sourceforge.net, "Luck, Tony" <tony.luck@intel.com>, linux-ia64@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-LeXaCiViUlCeAm=
-PrMeVa
-vinaalagtrlebioprili
-traxisraambrexen=
-eciadiaum
-$1 $3=
-$3
-21.33.7=
-5
-http://www.sensineff.com putting on their helmets. the palace of Herod the =
-Great the procurator of Judea, [2] Pontius Pilate.
+And to make things even more interesting, the base ACPICA code looks
+nothing like the final Linux version of the code; it is converted on the
+fly before every release to Linux.
 
-------=_NextPart_000_0020_01C5BAEA.E9F22000
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+BTW, Please explain in more detail what support is needed in ACPICA for
+the ACPI 3.0 vendor-defined resource.  Also, any idea how we are
+supposed to determine if the UUID data exists within the descriptor?
+(i.e., how do we differentiate an ACPI 2.0 vendor descriptor from an
+ACPI 3.0 descriptor?)
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCourier>
-<DIV style=3D"FLOAT: left;">Le<BR>Xa<BR>Ci<BR>Vi<BR>Ul<BR>Ce<BR>Am<BR>=
-Pr<BR>Me<BR>Va</DIV>
-<DIV style=3D"FLOAT: left;">vi<BR>na<BR>al<BR>ag<BR>tr<BR>le<BR>bi<BR>op<B=
-R>ri<BR>li</DIV>
-<DIV style=3D"FLOAT: left;">tra<BR>x<BR>is<BR>ra<BR>am<BR>brex<BR>en=
-<BR>ecia<BR>dia<BR>um</DIV>
-<DIV style=3D"FLOAT: left;"><BR><BR>&nbsp;$1<BR>&nbsp;$3<BR><BR><BR><BR>=
-<BR><BR>&nbsp;$3</DIV>
-<DIV style=3D"FLOAT: left;"><BR><BR>.21<BR>.33<BR><BR><BR><BR><BR><BR>.7=
-5</DIV>
-<DIV style=3D"CLEAR: both">&nbsp;</DIV>
-<DIV><A href=3D"http://www.sensineff.com">http://www.sensineff.com</A></=
-DIV></FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_0020_01C5BAEA.E9F22000--
+Thanks,
+Bob
 
 
+> -----Original Message-----
+> From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
+> admin@lists.sourceforge.net] On Behalf Of Bjorn Helgaas
+> Sent: Friday, September 16, 2005 10:41 AM
+> To: Brown, Len
+> Cc: Alex Williamson; acpi-devel@lists.sourceforge.net; Luck, Tony;
+linux-
+> ia64@vger.kernel.org
+> Subject: [ACPI] [PATCH] ACPI: implement UUID-labelled vendor-defined
+> resources
+> 
+> ACPI 3.0 includes UUID-labelled vendor-defined resources (section
+> 6.4.3.2),
+> so move the code that supports this from arch/ia64 into ACPI proper.
+> 
+> Len, Tony, this touches both acpi and ia64.  Probably easiest
+> if Tony acks it and Len decides whether to apply it.
+> 
+> HP owns all the copyrights on the code being moved, and we agree
+> that the code being moved into the ACPI CA may be used under either
+> the GPL or the BSD-style license used by the ACPI CA.
+> 
+> (There should be something in Documentation/acpi about how to
+> contribute to the ACPI CA.  It's a royal pain in the rear :-)).
+> 
 
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
