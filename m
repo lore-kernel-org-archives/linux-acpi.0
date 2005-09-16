@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] ACPI: simplify scan.c coding
-Date: Fri, 16 Sep 2005 11:36:52 -0600
-Message-ID: <200509161136.52838.bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: make acpi_bus_register_driver() return success/failure, not device count
+Date: Fri, 16 Sep 2005 11:39:02 -0600
+Message-ID: <200509161139.02934.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -18,86 +18,84 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, julien.lerouge-GANU6spQydw@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-No functional changes; just remove leftover, unused "buffer" and
-simplify control flow (no need to remember error values and goto
-the end, when we can simply return the value directly).
+acpi_bus_register_driver() should not return the number of devices
+claimed.  We're not asking to find devices, we're making a driver
+available to devices, including hot-pluggable devices that may
+appear in the future.
 
-Previous post:
-    http://sourceforge.net/mailarchive/message.php?msg_id=12489147
+I audited all callers of acpi_bus_register_driver(), and except
+asus_acpi.c (fixed in previous patch), all either ignore the return
+value or test only for failure (<0).
+
+Previous post and discussion of this patch:
+    http://sourceforge.net/mailarchive/message.php?msg_id=12489146
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
 Index: work-vga2/drivers/acpi/scan.c
 ===================================================================
---- work-vga2.orig/drivers/acpi/scan.c	2005-09-14 09:28:10.000000000 -0600
-+++ work-vga2/drivers/acpi/scan.c	2005-09-15 09:52:33.000000000 -0600
-@@ -236,12 +236,9 @@
- 
- int acpi_match_ids(struct acpi_device *device, char *ids)
- {
--	int error = 0;
--	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
--
- 	if (device->flags.hardware_id)
- 		if (strstr(ids, device->pnp.hardware_id))
--			goto Done;
-+			return 0;
- 
- 	if (device->flags.compatible_ids) {
- 		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
-@@ -250,15 +247,10 @@
- 		/* compare multiple _CID entries against driver ids */
- 		for (i = 0; i < cid_list->count; i++) {
- 			if (strstr(ids, cid_list->id[i].value))
--				goto Done;
-+				return 0;
- 		}
- 	}
--	error = -ENOENT;
--
--      Done:
--	if (buffer.pointer)
--		acpi_os_free(buffer.pointer);
--	return error;
-+	return -ENOENT;
+--- work-vga2.orig/drivers/acpi/scan.c	2005-09-15 09:52:33.000000000 -0600
++++ work-vga2/drivers/acpi/scan.c	2005-09-15 10:27:59.000000000 -0600
+@@ -538,10 +538,9 @@
+ 	return_VALUE(result);
  }
  
- static acpi_status
-@@ -641,21 +633,19 @@
-  */
- int acpi_bus_unregister_driver(struct acpi_driver *driver)
+-static int acpi_driver_attach(struct acpi_driver *drv)
++static void acpi_driver_attach(struct acpi_driver *drv)
  {
--	int error = 0;
+ 	struct list_head *node, *next;
+-	int count = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
+ 
+@@ -558,7 +557,6 @@
+ 			if (!acpi_bus_driver_init(dev, drv)) {
+ 				acpi_start_single_object(dev);
+ 				atomic_inc(&drv->references);
+-				count++;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 						  "Found driver [%s] for device [%s]\n",
+ 						  drv->name, dev->pnp.bus_id));
+@@ -567,7 +565,6 @@
+ 		spin_lock(&acpi_device_lock);
+ 	}
+ 	spin_unlock(&acpi_device_lock);
+-	return_VALUE(count);
+ }
+ 
+ static int acpi_driver_detach(struct acpi_driver *drv)
+@@ -599,14 +596,11 @@
+  * acpi_bus_register_driver 
+  * ------------------------ 
+  * Registers a driver with the ACPI bus.  Searches the namespace for all
+- * devices that match the driver's criteria and binds.  Returns the
+- * number of devices that were claimed by the driver, or a negative
+- * error status for failure.
++ * devices that match the driver's criteria and binds.  Returns zero for
++ * success or a negative error status for failure.
+  */
+ int acpi_bus_register_driver(struct acpi_driver *driver)
+ {
+-	int count;
 -
- 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
+ 	ACPI_FUNCTION_TRACE("acpi_bus_register_driver");
  
--	if (driver) {
--		acpi_driver_detach(driver);
-+	if (!driver)
-+		return_VALUE(-EINVAL);
+ 	if (acpi_disabled)
+@@ -618,9 +612,9 @@
+ 	spin_lock(&acpi_device_lock);
+ 	list_add_tail(&driver->node, &acpi_bus_drivers);
+ 	spin_unlock(&acpi_device_lock);
+-	count = acpi_driver_attach(driver);
++	acpi_driver_attach(driver);
  
--		if (!atomic_read(&driver->references)) {
--			spin_lock(&acpi_device_lock);
--			list_del_init(&driver->node);
--			spin_unlock(&acpi_device_lock);
--		}
--	} else
--		error = -EINVAL;
--	return_VALUE(error);
-+	acpi_driver_detach(driver);
-+
-+	if (!atomic_read(&driver->references)) {
-+		spin_lock(&acpi_device_lock);
-+		list_del_init(&driver->node);
-+		spin_unlock(&acpi_device_lock);
-+	}
+-	return_VALUE(count);
 +	return_VALUE(0);
  }
  
- EXPORT_SYMBOL(acpi_bus_unregister_driver);
+ EXPORT_SYMBOL(acpi_bus_register_driver);
 
 
 -------------------------------------------------------
