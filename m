@@ -1,13 +1,13 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: fans not working after suspend to disk on nc-4000 and nc-8000
-Date: Fri, 16 Sep 2005 23:18:44 +0200
-Message-ID: <20050916211844.GC15219@message-id.gmane0305.slipkontur.de>
-References: <E1ECHiU-0005le-00@dorka.pomaz.szeredi.hu> <20050907183218.GA773@openzaurus.ucw.cz> <E1EDgJz-0000PH-00@dorka.pomaz.szeredi.hu> <20050910215552.GA2463@openzaurus.ucw.cz> <E1EFCcc-0008Jy-00@dorka.pomaz.szeredi.hu> <20050914210420.GD3460@elf.ucw.cz> <E1EFqlx-0002iN-00@dorka.pomaz.szeredi.hu> <20050915103219.GC2725@elf.ucw.cz> <E1EFrKP-0002mG-00@dorka.pomaz.szeredi.hu> <20050915111152.GD2725@elf.ucw.cz>
+Subject: Re: Fan driver suspend/resume issues
+Date: Fri, 16 Sep 2005 23:33:54 +0200
+Message-ID: <20050916213354.GD15219@message-id.gmane0305.slipkontur.de>
+References: <E1EFrCU-0002lM-00@dorka.pomaz.szeredi.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050915111152.GD2725-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <E1EFrCU-0002lM-00-VFwzv6uONVrxNFs70CDYszOMxtEWgIxa@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,21 +20,44 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 15, 2005 at 01:11:52PM +0200, Pavel Machek wrote:
-> Hi!
- 
-> > Well, but ACPI seems to rely on it.  You can't have it both ways.
-> > Either ACPI should be tought not to rely on S4 and reinitialize
-> > everything after resume, or to rely on S4 but then _require_ S4 for
-> > suspend.  Am I not right?
+On Thu, Sep 15, 2005 at 12:42:42PM +0200, Miklos Szeredi wrote:
+> It seems that the ACPI fan driver lacks suspend/resume support, which
+> causes problems on some laptops (e.g HP nc-4000, nc-8000).
 > 
-> You are right, it is broken. OTOH S4 hangs some machine in
-> ugly/undebuggeable ways. But perhaps that was already fixed?
+> But it's not just suspend.  I see more than one issue:
+> 
+>  1)  ACPI initializes the fans all-off.
+> 
+>   This is dangerous.  If fan/thermal_zone driver are not compiled into
+>   the kernel or are modules or acpid is not installed (to insert the
+>   modules), then the system will silently overheat.  This is not a
+>   theoretical scenario, I've seen cases where sysadmin simply "forgot"
+>   to install the acpid package and user was clueless about
+>   overheating, and it resulted in hard disk failure.
 
-FWIW, since SUSE 9.3 platform is default on SUSE and i have seen some,
-but not too much reports of machines that work better with shutdown.
-So maybe we should start to do "the right thing" as default, and
-document the possibility of using "shutdown" mode prominently.
+YES.
+I had problems on newer compaq HP models with SUSE pre-9.3, since during
+installation the fan/thermal module was not loaded. We fixed this shortly
+before 9.3 for some models by dmi-matching and loading the modules. 10.0
+loads fan and thermal in the initramfs for exactly this reason.
+Older models seem to control the fans by BIOS until the thermal/fan modules
+are inserted, newer machine do it only until ACPI is initialized and then
+leave control to the OS.
+Right now this seems only to hit newer HP models, but maybe other
+manufacturers will also start to implement ACPI-compliant (and ACPI-
+demanding) machines.
+
+>  2) The fan/thermal_zone modules dont turn on all fans when removed.
+> 
+>     Also dangerous for same reasons as above.
+
+Yes.
+
+>  3) Fan driver doesn't have suspend/resume support.
+
+It is _not funny_ that ACPI is the only subsystem which has no suspend /
+resume support _at all_! All the drivers, be it battery, button, fan
+break randomly on various machines during suspend / resume :-(
 -- 
 Stefan Seyfried
 
