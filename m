@@ -1,55 +1,53 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [ACPI] [PATCH] ACPI: implement UUID-labelled vendor-defined resources
-Date: Fri, 16 Sep 2005 14:56:31 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2@orsmsx403.amr.corp.intel.com>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: PATCH default C1
+Date: Sat, 17 Sep 2005 11:13:44 +0200
+Message-ID: <20050917091344.GB1522@isilmar.linta.de>
+References: <432697CC.3020201@tzi.de> <20050913180219.GB9572@dominikbrodowski.de> <432B1708.4060403@tzi.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-ia64-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Brown, Len" <len.brown@intel.com>
-Cc: Alex Williamson <alex.williamson@hp.com>, acpi-devel@lists.sourceforge.net, "Luck, Tony" <tony.luck@intel.com>, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <432B1708.4060403-cGBD8117FJM@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Janosch Machowinski <scotch-cGBD8117FJM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-And to make things even more interesting, the base ACPICA code looks
-nothing like the final Linux version of the code; it is converted on the
-fly before every release to Linux.
-
-BTW, Please explain in more detail what support is needed in ACPICA for
-the ACPI 3.0 vendor-defined resource.  Also, any idea how we are
-supposed to determine if the UUID data exists within the descriptor?
-(i.e., how do we differentiate an ACPI 2.0 vendor descriptor from an
-ACPI 3.0 descriptor?)
-
-Thanks,
-Bob
+Hi,
 
 
-> -----Original Message-----
-> From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
-> admin@lists.sourceforge.net] On Behalf Of Bjorn Helgaas
-> Sent: Friday, September 16, 2005 10:41 AM
-> To: Brown, Len
-> Cc: Alex Williamson; acpi-devel@lists.sourceforge.net; Luck, Tony;
-linux-
-> ia64@vger.kernel.org
-> Subject: [ACPI] [PATCH] ACPI: implement UUID-labelled vendor-defined
-> resources
-> 
-> ACPI 3.0 includes UUID-labelled vendor-defined resources (section
-> 6.4.3.2),
-> so move the code that supports this from arch/ia64 into ACPI proper.
-> 
-> Len, Tony, this touches both acpi and ia64.  Probably easiest
-> if Tony acks it and Len decides whether to apply it.
-> 
-> HP owns all the copyrights on the code being moved, and we agree
-> that the code being moved into the ACPI CA may be used under either
-> the GPL or the BSD-style license used by the ACPI CA.
-> 
-> (There should be something in Documentation/acpi about how to
-> contribute to the ACPI CA.  It's a royal pain in the rear :-)).
-> 
+On Fri, Sep 16, 2005 at 09:03:36PM +0200, Janosch Machowinski wrote:
+> @@ -678,6 +669,13 @@
+>  
+>  		(pr->power.count)++;
+>  		memcpy(&(pr->power.states[pr->power.count]), &cx, sizeof(cx));
+> +
+> +		/* We support up to ACPI_PROCESSOR_MAX_POWER. */
+> +		if (pr->power.count >= ACPI_PROCESSOR_MAX_POWER) {
+> +		        printk(KERN_WARNING "Limiting number of power states to max (%d)\n", ACPI_PROCESSOR_MAX_POWER);
+> +			printk(KERN_WARNING "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
+> +			break;
+> +		}
 
+
+Memory corruption: If pr->power.count is ACPI_PROCESSOR_MAX_POWER (or
+larger), pr->power.states[pr->power.count] is pointing to an invalid memory
+address. Therefore, the check needs to stay at the place it was before.
+
+
+	Dominik
+
+
+-------------------------------------------------------
+SF.Net email is sponsored by:
+Tame your development challenges with Apache's Geronimo App Server. 
+Download it for free - -and be entered to win a 42" plasma tv or your very
+own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
