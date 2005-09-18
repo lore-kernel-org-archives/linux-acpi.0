@@ -1,11 +1,13 @@
-From: Massimo Maiurana <maiurana-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: wakeup devices
-Date: Fri, 16 Sep 2005 21:13:42 +0200
-Message-ID: <432B1966.9070903@gmail.com>
+From: Wim Delvaux <wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
+Subject: klaptop and acpid : hibernating
+Date: Sun, 18 Sep 2005 04:37:52 +0200
+Message-ID: <200509180437.52184.wim.delvaux@adaptiveplanet.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: Quoted-Printable
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,36 +20,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
-hi all,
-my system at boot prints the following lines:
+When I choose to hibernate from KDE klaptop the suspend to disk process starts
 
-ACPI wakeup devices:
-PCI0 PS2K PS2M COM1 COM2 USB0
+It claims after some time that mysql does not stop.
 
-so I thought I was able to resume from a suspend state pressing a key
-or moving the mouse, but the only way to resume is pressing the power
-button.
-doing "echo PS2K > /proc/acpi/wakeup" toggles the state for ps2
-devices from disabled to enabled, but nothing really changes.
+I have added mysql to my acpid config dir as a service to stop but it seems
+that the acpid does not receive the hibernate request from klaptop or so.
 
-is it a misconfiguration on my side, a missing support by a driver, or
-something else?
-or am I misunderstanding the meaning of those lines?
+If I execute /etc/acpi/hibernate.sh by hand the system suspends and resumes OK
 
-I googled around a bit with no luck, and even a search in the ml
-archive didn't help (I found only messages without any reply).
+So I *think* that acpid does not receive a SUSPEND request from the kernel 
+(because klaptop sends stuff through /proc/acpi/sleep) and hence does not 
+execute the STOP service request (I added set -x exec 2> ...  to the scripts 
+but could not find any log output).
 
-TIA
 
---=20
-         Massimo Maiurana          mailto:maiurana-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-	 http://massimo.solira.org       GPG keyID #7044D601
+Suggestions please.
 
-Articolo 11 - L'Italia ripudia la guerra come strumento di offesa alla
-libert=E0  degli  altri  popoli   e  come  mezzo  di  risoluzione  delle
-controversie internazionali....
-
+W
 
 
 -------------------------------------------------------
