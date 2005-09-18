@@ -1,10 +1,11 @@
-From: "Lottie Spradley" <lottiarc-4EWW4Gr6LSru1N2XUdCtNA@public.gmane.org>
-Subject: Re: Good  News
-Date: Sun, 18 Sep 2005 02:50:06 -0500
-Message-ID: <E1EGtwR-00046P-W3@mail.sourceforge.net>
+From: "Bent Madson" <bentham-a/g7UzruCLwAvxtiuMwx3w@public.gmane.org>
+Subject: Re: It W orks Excellent
+Date: Sun, 18 Sep 2005 11:50:30 -0500
+Message-ID: <004a01c5bc71$13d54f00$a37aa8c0@reprobate>
+Reply-To: "Bent Madson" <bentham-a/g7UzruCLwAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0036_01C5BBFB.ACC98300"
+	boundary="----=_NextPart_000_0047_01C5BC47.2AFF4700"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,28 +16,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Volkan Atwood <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Asenath Tijerina <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0036_01C5BBFB.ACC98300
+------=_NextPart_000_0047_01C5BC47.2AFF4700
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-CiLeCeXaAmViMeUlVaPr
-alvilenabiagritrliop
-istrabrexxenradia=
-amumecia
-$1 $3 $3
-21.33.7=
-5
-http://www.plogspre.com=
- name! Ivan cried in anguish. If only I knew his name! I didnt make out be =
-sure there was no one on the balcony, and then said quietly:
+LVMUAXCCPV
+eIelmaIer=
+A
+vArtbnAloL
+iGiriaLepI
+tRdaexIbe=
+U
+raAiamn SrexciaM
+$3   $1$3
+33    .21.75
+http://www.lofarmous.com=
+ Very clever! thought Varenukha, but before he had time to think well, terms, =
+of confusing the aesthetic with the ethical.
 
-------=_NextPart_000_0036_01C5BBFB.ACC98300
+------=_NextPart_000_0047_01C5BC47.2AFF4700
 Content-Type: text/html;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -50,21 +54,27 @@ Content-Transfer-Encoding: quoted-printable
 <BODY bgColor=3D#ffffff>
 <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
 <DIV><FONT face=3DCourier>
-<DIV style=3D"FLOAT: left;">Ci<BR>Le<BR>Ce<BR>Xa<BR>Am<BR>Vi<BR>Me<B=
-R>Ul<BR>Va<BR>Pr</DIV>
-<DIV style=3D"FLOAT: left;">al<BR>vi<BR>le<BR>na<BR>bi<BR>ag<BR>ri<BR=
->tr<BR>li<BR>op</DIV>
-<DIV style=3D"FLOAT: left;">is<BR>tra<BR>brex<BR>x<BR>en<BR>ra<BR>dia<BR>=
-am<BR>um<BR>ecia</DIV>
-<DIV style=3D"FLOAT: left;">&nbsp;$1<BR><BR><BR><BR><BR>&nbsp;$3<BR><BR><B=
-R>&nbsp;$3<BR></DIV>
-<DIV style=3D"FLOAT: left;">.21<BR><BR><BR><BR><BR>.33<BR><BR><BR>.7=
-5<BR></DIV>
+<DIV style=3D"FLOAT: left;">L<BR>V<BR>M<BR>U<BR>A<BR>X<BR>C<BR>C<BR=
+>P<BR>V</DIV>
+<DIV style=3D"FLOAT: left;">e<BR>I<BR>e<BR>l<BR>m<BR>a<BR>I<BR>e<BR>r<BR>=
+A</DIV>
+<DIV style=3D"FLOAT: left;">v<BR>A<BR>r<BR>t<BR>b<BR>n<BR>A<BR>l<BR=
+>o<BR>L</DIV>
+<DIV style=3D"FLOAT: left;">i<BR>G<BR>i<BR>r<BR>i<BR>a<BR>L<BR>e<BR>p<B=
+R>I</DIV>
+<DIV style=3D"FLOAT: left;">t<BR>R<BR>d<BR>a<BR>e<BR>x<BR>I<BR>b<BR>e<BR>=
+U</DIV>
+<DIV style=3D"FLOAT: left;">ra<BR>A<BR>ia<BR>m<BR>n<BR> <BR>S<BR>rex<BR=
+>cia<BR>M</DIV>
+<DIV style=3D"FLOAT: left;"><BR>$3<BR><BR> <BR> <BR> <BR>$1<BR><BR><=
+BR>$3</DIV>
+<DIV style=3D"FLOAT: left;"> <BR>.33<BR> <BR> <BR> <BR> <BR>.21<BR><BR><BR=
+>.75</DIV>
 <DIV style=3D"CLEAR: both">&nbsp;</DIV>
-<DIV><A href=3D"http://www.plogspre.com">http://www.plogspre.com</A>=
+<DIV><A href=3D"http://www.lofarmous.com">http://www.lofarmous.com</A>=
 </DIV></FONT></DIV></BODY></HTML>
 
-------=_NextPart_000_0036_01C5BBFB.ACC98300--
+------=_NextPart_000_0047_01C5BC47.2AFF4700--
 
 
 
