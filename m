@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: standby problem
-Date: Mon, 19 Sep 2005 11:05:12 +0200
-Message-ID: <20050919090512.GJ1893@elf.ucw.cz>
-References: <59D45D057E9702469E5775CBB56411F171FA38@pdsmsx406>
+From: Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: battery life with cpufreq
+Date: Mon, 19 Sep 2005 11:11:01 +0200
+Message-ID: <9cfa150205091902116057595e@mail.gmail.com>
+Reply-To: chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <59D45D057E9702469E5775CBB56411F171FA38@pdsmsx406>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Po 19-09-05 17:00:25, Li, Shaohua wrote:
-> Hi,
-> >
-> >> >> i wanted to know what's mean this error :)
-> >> >>
-> >> >> mrspurr:/home/giskard# echo standby > /sys/power/state
-> >> >> acpi_pm_prepare does not support 1
-> >> >>
-> >> >> means that my laptop doesn't supporto standby mode?
-> >> >
-> >> >Probably yes.
-> >> Is it possible we can just show available pm states in
-> /sys/power/state?
-> >> I think we should report the error earlier before we do actual
-> >> suspend/resume. (maybe pm_ops should have a .supported_states
-> callback
-> >> for all archs) It seems many users are complaining about this after
-> Len
-> >> deprecated the proc interface.
-> >
-> >Pavel Troller even had a patch, but it was too ugly. Yes, we should
-> >only list available states in /sys/power/state.
-> Ok, how does this one look? Each arch provides a .valid callback.
+Hello all
 
-Looks good to me.
-								Pavel
+I have an dell inspiron 5150, 3Ghz. I have loaded p4_clockmod, and my
+CPU frequency now changes with powernowd. It seems to work well.
 
--- 
-if you have sharp zaurus hardware you don't need... you know my address
+`--> cat /proc/cpufreq=20
+          minimum CPU frequency  -  maximum CPU frequency  -  policy
+CPU  0       383323 kHz ( 12 %)  -    3066590 kHz (100 %)  -  userspace
+
+`--> cat throttling=20
+state count:             8
+active state:            T0
+states:
+   *T0:                  00%
+    T1:                  12%
+    T2:                  25%
+    T3:                  37%
+    T4:                  50%
+    T5:                  62%
+    T6:                  75%
+    T7:                  87%
+
+However, I am not seeing any battery life improvement.
+
+Any ideas?
+
+Thanks
+
+fred
 
 
 -------------------------------------------------------
