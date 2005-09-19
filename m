@@ -1,15 +1,15 @@
-From: Wim Delvaux <wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: klaptop and acpid : hibernating
-Date: Mon, 19 Sep 2005 15:09:24 +0200
-Message-ID: <200509191509.24914.wim.delvaux@adaptiveplanet.com>
-References: <200509180437.52184.wim.delvaux@adaptiveplanet.com> <1127125447.20268.78.camel@neuromancer.home.net>
+Date: Mon, 19 Sep 2005 21:19:02 +0800
+Message-ID: <1127135942.11842.0.camel@neuromancer.home.net>
+References: <200509180437.52184.wim.delvaux@adaptiveplanet.com>
+	 <1127125447.20268.78.camel@neuromancer.home.net>
+	 <200509191509.24914.wim.delvaux@adaptiveplanet.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1127125447.20268.78.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200509191509.24914.wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,36 +22,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 19 September 2005 12:24, Ow Mun Heng wrote:
-> On Sun, 2005-09-18 at 04:37 +0200, Wim Delvaux wrote:
-> > Hi,
-> >
-> > When I choose to hibernate from KDE klaptop the suspend to disk process
-> > starts
-> >
-> > It claims after some time that mysql does not stop.
-> >
-> > I have added mysql to my acpid config dir as a service to stop but it
-> > seems that the acpid does not receive the hibernate request from klaptop
-> > or so.
-> >
-> > If I execute /etc/acpi/hibernate.sh by hand the system suspends and
-> > resumes OK
-> >
-> > So I *think* that acpid does not receive a SUSPEND request from the
-> > kernel (because klaptop sends stuff through /proc/acpi/sleep) and hence
-> > does not execute the STOP service request (I added set -x exec 2> ...  to
-> > the scripts but could not find any log output).
->
-> Use Suspend2 instead of swsusp.
+On Mon, 2005-09-19 at 15:09 +0200, Wim Delvaux wrote:
+> On Monday 19 September 2005 12:24, Ow Mun Heng wrote:
 
-can you clarify a bit which part uses swsusp and which suspend2 ? does Klaptop 
-use swsusp or linux ?
+> > Use Suspend2 instead of swsusp.
+> 
+> can you clarify a bit which part uses swsusp and which suspend2 ? does Klaptop 
+> use swsusp or linux ?
 
-W
+Since you use FC's default kernel, I presume it's swsusp.
 
->
-> Read Ed1 of MyOSS magazine - http://mag.my-opensource.org
+check the article for more details on suspend2.
+
+-- 
+Ow Mun Heng
+Gentoo/Linux on DELL D600 1.4Ghz 1.5GB RAM
+98% Microsoft(tm) Free!! 
+Neuromancer 21:19:01 up 11:36, 7 users, load average: 3.45, 2.62, 1.90 
+
+
 
 
 -------------------------------------------------------
