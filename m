@@ -1,13 +1,13 @@
-From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: standby problem
-Date: Mon, 19 Sep 2005 07:32:25 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0509190730570.27719@shark.he.net>
-References: <59D45D057E9702469E5775CBB56411F171F9CF@pdsmsx406>
- <20050919083205.GH1893@elf.ucw.cz> <20050919084442.GA26295@tangens.sinus.cz>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: klaptop and acpid : hibernating
+Date: Mon, 19 Sep 2005 14:17:12 +0200
+Message-ID: <20050919121712.GB2317@elf.ucw.cz>
+References: <200509180437.52184.wim.delvaux@adaptiveplanet.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050919084442.GA26295-hxMeMO63rIAUgFT2KJq8fg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200509180437.52184.wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,29 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Wim Delvaux <wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 19 Sep 2005, Pavel Troller wrote:
+On Ne 18-09-05 04:37:52, Wim Delvaux wrote:
+> Hi,
+> 
+> When I choose to hibernate from KDE klaptop the suspend to disk process starts
+> 
+> It claims after some time that mysql does not stop.
 
-> > Pavel Troller even had a patch, but it was too ugly. Yes, we should
-> > only list available states in /sys/power/state.
-> Hi!
->   I'm still using it but I don't know how to get the list of supported states
-> otherwise than using my "ugly" ACPI-dependent method and without code
-> duplication. Could You, Pavel, drop me some tips, I would then make the real
-> patch and test it.
->                       With regards, Pavel Troller
-
-The suggestion of a .supported_states callback seemed very
-reasonable to me.  I've been working on something similar
-to that in my free time, so between it and your patch (which
-I'll find or you could repost it for review), we should be
-able to make some progress.
+Search archives, known problem, known workaround.
 
 -- 
-~Randy
+if you have sharp zaurus hardware you don't need... you know my address
 
 
 -------------------------------------------------------
