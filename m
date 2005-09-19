@@ -1,13 +1,14 @@
-From: Mark Ter Morshuizen <mark-jjvxw/mUKgPYkQIYctQFYw@public.gmane.org>
-Subject: ACPI / hardware bug
-Date: Mon, 19 Sep 2005 09:25:17 +0200
-Message-ID: <200509190925.17700.mark@itbox.co.za>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Re: Are Acer Aspire model numbers in the DSDT browser correct?
+Date: Mon, 19 Sep 2005 09:47:28 +0200
+Message-ID: <20050919074727.GA3705@fuchi>
+References: <loom.20050918T232607-757@post.gmane.org> <20050918224703.GA19611@fuchi> <loom.20050919T082026-223@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <loom.20050919T082026-223-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,32 +21,93 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I'm having a problem with saving settings to the RTC alarm on an Intel desktop 
-board D865GLCL. It appears to work fine but after a reboot the day of the 
-month field is returned as "00". 
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The board has the latest available BIOS, I'm running debian testing with 
-debian kernel 2.6.11-1-686.
+rehi...
 
-ACPI related packages are as follows (dpkg -l | grep acpi):
-ii   acpi           0.09-1         displays information on ACPI devices
-ii   acpid          1.0.4-2        Utilities for using ACPI power management
+* Mateusz =C5=81oskot <mateusz-hwMs7WXYwaGsTnJN9+BGXg@public.gmane.org> [2005-09-19 09:33 +0200]:
+> Sebastian Henschel <acpi@...> writes:
+> > * Mateusz =C5=81oskot <mateusz@...> [2005-09-19 00:33 +0200]:
+> >=20
+> > > [...]
+> > > I mean why there is 3002 instead of 3020 or 5002 instead of 5020?
+> > > Or may be 3002 has nothing to do with 3020 model?
+> > >=20
+> >=20
+> > well, i do not know the naming policy of Acer. but knowing some product
+> > lines of other manufacturers, it might be that 3002 is really another
+> > machine than 3020 (and this is no swap of digits).
+> > it might be like:
+> > 30xx means 15" screen notebook. 300x means the former + CPU from AMD.
+> > and 3002 means the former with bluetooth, where 3001 would mean the
+> > former with WLAN. well, this might be the idea behind it, but i do not
+> > know. also the same machines might have slightly different numbers in
+> > different countries/regions of the world.
+>=20
+> OK, but do I understand correctly that 3002 is something different to 302=
+0?
 
-Can anyone give me any clues as to how to debug this?
+possibly. on the page you mention below, there is a model 3000, so 3002
+is perhaps a slight deviation of that base model.
 
-vcr:~# echo 2005-09-26 16:30:00 > /proc/acpi/alarm
-vcr:~# cat /proc/acpi/alarm
-2005-09-26 16:30:00
-<reboot>
-vcr:~# cat /proc/acpi/alarm
-2005-09-00 16:30:00
-________^^_________
+> Are you trying to say both numbers are valid?
 
-Thanks,
--- 
-Mark Ter Morshuizen
+again, possibly. :)
+
+
+> Sorry for my ignorance, but there are no model numbers like 3002, 5002 on=
+ this
+> website:
+>=20
+> http://global.acer.com/products/notebook/index.htm
+
+it might be that Acer produces different model numbers for different
+countries, although it does not look like it in this case, because they
+present their notebooks on the "global" pages.
+also, it might be that the abovementioned models are out-of-production
+and Acer has removed them from that list.
+another thing is, that model numbers on a manufacturer's homepage are
+not always the same numbers as sold in the shop or as printed on the
+case of the notebook. the latter ones tend to be more complex, somehow
+coding all features into one number.
+
+
+> > > p.s. I'm going to upgrade DSDT in my Acer Aspire 5021 that why I ask.
+> >=20
+> > so it might be that 5021 is the same family and thus DSDT-compatible
+> > with 5020 and also with 5002. or not... you should contact Acer to ask
+> > them about the relations of the numbers. or you could search the net
+> > extensively for product infos.
+>=20
+> I'll do it. Thanks.
+
+
+good luck,
+ Sebastian
+
+--=20
+Oo......................................................................oO
+Wir muessen auseinanderhalten!
+Oo. OpenPGP key ID: 0x7A62F9B4  Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++ .oO
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDLm0PreHfL3pi+bQRAoNYAKCG75bRM5EObtObW2E1KEGtPQNOCgCfZ54J
+9IhnupOmZmNQqzd9S1PXxZ8=
+=7q9e
+-----END PGP SIGNATURE-----
+
+--mYCpIKhGyMATD0i+--
 
 
 -------------------------------------------------------
