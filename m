@@ -1,41 +1,69 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: klaptop and acpid : hibernating
-Date: Mon, 19 Sep 2005 14:17:12 +0200
-Message-ID: <20050919121712.GB2317@elf.ucw.cz>
-References: <200509180437.52184.wim.delvaux@adaptiveplanet.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [ACPI] [PATCH] ACPI: implement UUID-labelled vendor-defined resources
+Date: Mon, 19 Sep 2005 09:31:20 -0600
+Message-ID: <200509190931.20643.bjorn.helgaas@hp.com>
+References: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2@orsmsx403.amr.corp.intel.com>
 Content-Disposition: inline
-In-Reply-To: <200509180437.52184.wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Wim Delvaux <wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-ia64-owner@vger.kernel.org
+To: acpi-devel@lists.sourceforge.net
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Brown, Len" <len.brown@intel.com>, Alex Williamson <alex.williamson@hp.com>, "Luck, Tony" <tony.luck@intel.com>, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Ne 18-09-05 04:37:52, Wim Delvaux wrote:
-> Hi,
+On Friday 16 September 2005 3:56 pm, Moore, Robert wrote:
+> And to make things even more interesting, the base ACPICA code looks
+> nothing like the final Linux version of the code; it is converted on the
+> fly before every release to Linux.
+
+Well, if you decide you'll integrate the code, I can dig out the
+pre-converted ACPICA code and make a patch against it.
+
+> BTW, Please explain in more detail what support is needed in ACPICA for
+> the ACPI 3.0 vendor-defined resource.  Also, any idea how we are
+> supposed to determine if the UUID data exists within the descriptor?
+> (i.e., how do we differentiate an ACPI 2.0 vendor descriptor from an
+> ACPI 3.0 descriptor?)
+
+There's no mark that distinguishes 2.0 and 3.0 vendor descriptors.
+As far as I can tell, a 3.0 descriptor (that contains a UUID and
+sub-type) is also a perfectly valid 2.0 descriptor.
+
+ACPI 3.0 "strongs recommends," but apparently doesn't actually
+require a UUID, so a 2.0 vendor descriptor should also be a valid
+3.0 descriptor.
+
+The idea is that we just look through all the vendor descriptors
+for the supplied UUID.  If we find one, we return the information.
+There's a small possibility that an ACPI 2.0, non-UUID-labelled
+descriptor will contain data that happens to match the random
+16-byte UUID, and we'll return it by mistake.  But that possibility
+is pretty remote, I think.
+
+The point of having this code in ACPICA is so that people who
+use UUID-labelled vendor descriptors can do something simple
+like this:
+
+> struct acpi_vendor_descriptor hp_ccsr_descriptor = {
+>         .uuid_subtype = 2,
+>         .uuid = ACPI_UUID(0x69e9adf9, 0x924f, 0xab5f, 0xf6, 0x4a, 0x24, 0xd2,
+>                           0x01, 0x37, 0x0e, 0xad)
+> };
 > 
-> When I choose to hibernate from KDE klaptop the suspend to disk process starts
-> 
-> It claims after some time that mysql does not stop.
+> acpi_status hp_acpi_csr_space(acpi_handle obj, u64 * csr_base, u64 * csr_length)
+> {
+>...
+>         status = acpi_find_vendor_resource(obj, &hp_ccsr_descriptor, &data,
+>                 &length);
 
-Search archives, known problem, known workaround.
+rather than having to duplicate the implementation of
+acpi_find_vendor_resource().  But that's an obvious answer.
+Maybe you had a deeper question that I missed?
 
--- 
-if you have sharp zaurus hardware you don't need... you know my address
-
-
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+This is pretty generic stuff, certainly not ia64-, or even OS-
+dependent.  So I thought ACPICA would be a logical place for it.
+If you have other suggestions, let me know.
