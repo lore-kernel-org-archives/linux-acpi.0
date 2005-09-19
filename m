@@ -1,13 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Subject: Re: standby problem
-Date: Mon, 19 Sep 2005 10:32:05 +0200
-Message-ID: <20050919083205.GH1893@elf.ucw.cz>
-References: <59D45D057E9702469E5775CBB56411F171F9CF@pdsmsx406>
+Date: Mon, 19 Sep 2005 10:44:42 +0200
+Message-ID: <20050919084442.GA26295@tangens.sinus.cz>
+References: <59D45D057E9702469E5775CBB56411F171F9CF@pdsmsx406> <20050919083205.GH1893@elf.ucw.cz>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <59D45D057E9702469E5775CBB56411F171F9CF@pdsmsx406>
+In-Reply-To: <20050919083205.GH1893-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +18,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> Pavel Troller even had a patch, but it was too ugly. Yes, we should
+> only list available states in /sys/power/state.
 Hi!
-
-> >> i wanted to know what's mean this error :)
-> >>
-> >> mrspurr:/home/giskard# echo standby > /sys/power/state
-> >> acpi_pm_prepare does not support 1
-> >>
-> >> means that my laptop doesn't supporto standby mode?
-> >
-> >Probably yes.
-> Is it possible we can just show available pm states in /sys/power/state?
-> I think we should report the error earlier before we do actual
-> suspend/resume. (maybe pm_ops should have a .supported_states callback
-> for all archs) It seems many users are complaining about this after Len
-> deprecated the proc interface.
-
-Pavel Troller even had a patch, but it was too ugly. Yes, we should
-only list available states in /sys/power/state.
-								Pavel
-
--- 
-if you have sharp zaurus hardware you don't need... you know my address
+  I'm still using it but I don't know how to get the list of supported states
+otherwise than using my "ugly" ACPI-dependent method and without code
+duplication. Could You, Pavel, drop me some tips, I would then make the real
+patch and test it.
+                      With regards, Pavel Troller
 
 
 -------------------------------------------------------
