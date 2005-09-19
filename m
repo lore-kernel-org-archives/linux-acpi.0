@@ -1,14 +1,13 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: Are Acer Aspire model numbers in the DSDT browser correct?
-Date: Mon, 19 Sep 2005 00:47:03 +0200
-Message-ID: <20050918224703.GA19611@fuchi>
-References: <loom.20050918T232607-757@post.gmane.org>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: wrong documentation for /proc/acpi/sleep?
+Date: Sun, 18 Sep 2005 23:08:05 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3004A13DD5@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <loom.20050918T232607-757-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,67 +18,111 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Jochen Hein <jochen-AVN6mSxK9lsdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Seems it is pretty obscure to enable SMP SLEEP in Kconfig.
 
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Anybody got suggestions?
 
-hello...
+it might be that we want to use "select" instead
+of "depends on" here?
 
-* Mateusz =C5=81oskot <mateusz-hwMs7WXYwaGsTnJN9+BGXg@public.gmane.org> [2005-09-19 00:33 +0200]:
+thanks,
+-Len=20
 
-> My question may not be about ACPI development (I'm ACPI user only) but I =
-need to
-> ask my question. This list seems to fit this topic.
-> Why all Acer Aspire model numbers have strange form in this browser
-> http://acpi.sourceforge.net/dsdt/view.php?manufacturer=3DACER
->=20
-> I mean why there is 3002 instead of 3020 or 5002 instead of 5020?
-> Or may be 3002 has nothing to do with 3020 model?
->=20
-> Thanks for any explanation.
-
-well, i do not know the naming policy of Acer. but knowing some product
-lines of other manufacturers, it might be that 3002 is really another
-machine than 3020 (and this is no swap of digits). it might be like:
-30xx means 15" screen notebook. 300x means the former + CPU from AMD.
-and 3002 means the former with bluetooth, where 3001 would mean the
-former with WLAN. well, this might be the idea behind it, but i do not
-know. also the same machines might have slightly different numbers in
-different countries/regions of the world.
-
-
-> p.s. I'm going to upgrade DSDT in my Acer Aspire 5021 that why I ask.
-
-so it might be that 5021 is the same family and thus DSDT-compatible
-with 5020 and also with 5002. or not... you should contact Acer to ask
-them about the relations of the numbers. or you could search the net
-extensively for product infos.
-
-hth,
- Sebastian
---=20
-Oo......................................................................oO
-Der naechste Satz ist eine Luege. Der vorhergehende Satz ist wahr.
-Oo. OpenPGP key ID: 0x7A62F9B4 Geekcode: GCSd-s:a-C++ULB+++W++M+PS+++ .oO
-
---opJtzjQTFsWo+cga
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDLe5nreHfL3pi+bQRAs4HAJ9mV/2yP/WOW+0j0nlYA0HgOW2hDwCgguKh
-GbYtBibtzcR9qp0tTplvhqc=
-=92MX
------END PGP SIGNATURE-----
-
---opJtzjQTFsWo+cga--
+>-----Original Message-----
+>From: Jochen Hein [mailto:jochen-AVN6mSxK9lsdnm+yROfE0A@public.gmane.org]=20
+>Sent: Friday, September 16, 2005 2:20 PM
+>To: Brown, Len
+>Subject: Re: [ACPI] wrong documentation for /proc/acpi/sleep?
+>
+>"Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+>
+>>>>> System is a Thinkpad R40, Debian/sarge with kernel=20
+>2.6.14-rc1. Did I
+>>>>> miss something obvious?
+>>>>
+>>>> Enable CONFIG_ACPI_SLEEP
+>>>
+>>>Which is a maze to find, if you have SMP enabled.  Can that be made
+>>>easier?  Thanks for your help.
+>>
+>> The idea is that /proc/acpi/sleep is deprecated --
+>> it is disabled by default.  Indeed, we're deprecating
+>> all of /proc/acpi as we move to sysfs -- so when equivalent
+>> functions appear in sysfs, other parts of /proc/acpi
+>> will be under similar non-default config options
+>> solely for backwards compatibility.
+>
+>That's fine with me.
+>
+>> I'm open to suggestions for better clarity if you've got any.
+>
+>I asked myself, why I didn't find CONFIG_ACPI_SLEEP in menuconfig.
+>Looking into drivers/acpi/Kconfig:
+>
+>,----
+>| config ACPI_SLEEP
+>|         bool "Sleep States"
+>|         depends on X86 && (!SMP || SUSPEND_SMP)
+>|         depends on PM
+>`----
+>
+>Ok, my kernel has been SMP, so I needed to look for SUSPEND_SMP first.
+>In menuconfig I didn't find it in the suspect places.  So a grep told
+>me:
+>
+>,----
+>| root@hermes:/usr/src/linux-2.6.14-rc1# find . -name Kconfig | xargs
+>| grep SUSPEND_SMP
+>| ./drivers/acpi/Kconfig: depends on X86 && (!SMP || SUSPEND_SMP)
+>| ./kernel/power/Kconfig:config SUSPEND_SMP
+>`----
+>
+>Ok, looking int kernel/power/Kconfig:
+>
+>,----
+>| config SUSPEND_SMP
+>|         bool
+>|         depends on HOTPLUG_CPU && X86 && PM
+>`----
+>
+>I never imagined that I'd need HOTPLUG_CPU outside a virtualized
+>environment ala LPAR or VM on S/390.
+>
+>Where the heck is HOTPLUG_CPU defined?
+>
+>,----
+>| root@hermes:/usr/src/linux-2.6.14-rc1# find . -name Kconfig | xargs
+>| grep HOTPLUG_CPU
+>| ./arch/i386/Kconfig:config HOTPLUG_CPU
+>| ./arch/ia64/Kconfig:config HOTPLUG_CPU
+>| ./arch/parisc/Kconfig:config HOTPLUG_CPU
+>`----
+>
+>And there it is:
+>,----
+>| config HOTPLUG_CPU
+>|         bool "Support for hot-pluggable CPUs (EXPERIMENTAL)"
+>|         depends on SMP && HOTPLUG && EXPERIMENTAL
+>`----
+>
+>So, wouldn't it be far easier for a user to get all the needed symbols
+>selected, instead of hunting dependencies in Kconfig?  For me it
+>doesn't matter *what* options I need for ACPI_SLEEP.  I just want it
+>enabled.
+>
+>I see that the dependency on EXPERIMENTAL might force us to have the
+>user select three symbols to achive a single thing - but once
+>HOTPLUG_CPU isn't experimental any more, we should try to make it
+>easier for users.
+>
+>Jochen
+>
+>--=20
+>#include <~/.signature>: permission denied
+>
 
 
 -------------------------------------------------------
