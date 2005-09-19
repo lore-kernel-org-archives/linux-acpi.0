@@ -1,13 +1,24 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH] ACPI: implement UUID-labelled vendor-defined resources
-Date: Mon, 19 Sep 2005 16:52:03 +0100
-Message-ID: <20050919155203.GA24346@infradead.org>
-References: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2@orsmsx403.amr.corp.intel.com>
+From: Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: battery life with cpufreq
+Date: Mon, 19 Sep 2005 23:46:55 +0200
+Message-ID: <9cfa150205091914461c5c13c0@mail.gmail.com>
+References: <9cfa150205091902116057595e@mail.gmail.com>
+	 <9cfa150205091902354d5b4c43@mail.gmail.com>
+	 <1127123139.11913.2.camel@nouse.net>
+	 <20050919094827.GB26933@isilmar.linta.de>
+	 <9cfa1502050919025331a15ad0@mail.gmail.com>
+	 <20050919095715.GA29988@isilmar.linta.de>
+	 <20050919101808.GA2411@tangens.sinus.cz>
+	 <20050919102251.GB13041@isilmar.linta.de>
+	 <9cfa150205091904396e66c2ea@mail.gmail.com>
+	 <m2k6hdqlyi.fsf@phoenix.squirrel.nl>
+Reply-To: chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <m2k6hdqlyi.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,20 +28,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 16, 2005 at 02:56:31PM -0700, Moore, Robert wrote:
-> And to make things even more interesting, the base ACPICA code looks
-> nothing like the final Linux version of the code; it is converted on the
-> fly before every release to Linux.
+On 9/19/05, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org> wrote:
+> Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+>=20
+> > To sum up, I am screwed I guess :\ Since the speedstep* don't work for
+> > me... No long battery life for me...
+>=20
+> Centrino cpustep didn't work for me either, but acpi-cpufreq does.
+> Have you tried it?
+Just did...
+FATAL: Error inserting acpi_cpufreq
+(/lib/modules/2.6.10fb/kernel/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.ko)=
+:
+No such device
 
-So the Linux code is not the "preferred from of modification"?  You're
-on an extremly slipperly slope vs the GPL there.  Not that I want to
-sue your or intel, but this is certainly not in the spirit of the
-License.
+I haven't done any research on that yet, so this will be for later.
 
+Thanks all for the time and help.
+>=20
+> -- Johan
+fred
+>=20
+>=20
+> -------------------------------------------------------
+> SF.Net email is sponsored by:
+> Tame your development challenges with Apache's Geronimo App Server.
+> Download it for free - -and be entered to win a 42" plasma tv or your ver=
+y
+> own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
