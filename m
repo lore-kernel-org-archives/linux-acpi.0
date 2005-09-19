@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: wrong documentation for /proc/acpi/sleep?
-Date: Mon, 19 Sep 2005 16:29:02 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F171F9D7@pdsmsx406>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: standby problem
+Date: Mon, 19 Sep 2005 10:32:05 +0200
+Message-ID: <20050919083205.GH1893@elf.ucw.cz>
+References: <59D45D057E9702469E5775CBB56411F171F9CF@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <59D45D057E9702469E5775CBB56411F171F9CF@pdsmsx406>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jochen Hein <jochen-AVN6mSxK9lsdnm+yROfE0A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->
->"Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
->
->> Seems it is pretty obscure to enable SMP SLEEP in Kconfig.
->
->Yes, it is ;-)
->
->>>So, wouldn't it be far easier for a user to get all the needed
-symbols
->>>selected, instead of hunting dependencies in Kconfig?  For me it
->>>doesn't matter *what* options I need for ACPI_SLEEP.  I just want it
->>>enabled.
->
->On further thinking, why does Suspend-to-RAM need HOTPLUG_CPU, but
->Suspend-to-Disk works without?  Might help in finding a better
->solution.
-STD also requires HOTPLUG_CPU. It might be the config error.
+Hi!
 
-Thanks,
-Shaohua
+> >> i wanted to know what's mean this error :)
+> >>
+> >> mrspurr:/home/giskard# echo standby > /sys/power/state
+> >> acpi_pm_prepare does not support 1
+> >>
+> >> means that my laptop doesn't supporto standby mode?
+> >
+> >Probably yes.
+> Is it possible we can just show available pm states in /sys/power/state?
+> I think we should report the error earlier before we do actual
+> suspend/resume. (maybe pm_ops should have a .supported_states callback
+> for all archs) It seems many users are complaining about this after Len
+> deprecated the proc interface.
+
+Pavel Troller even had a patch, but it was too ugly. Yes, we should
+only list available states in /sys/power/state.
+								Pavel
+
+-- 
+if you have sharp zaurus hardware you don't need... you know my address
 
 
 -------------------------------------------------------
