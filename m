@@ -1,15 +1,15 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+From: Wim Delvaux <wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
 Subject: Re: klaptop and acpid : hibernating
-Date: Mon, 19 Sep 2005 21:19:02 +0800
-Message-ID: <1127135942.11842.0.camel@neuromancer.home.net>
-References: <200509180437.52184.wim.delvaux@adaptiveplanet.com>
-	 <1127125447.20268.78.camel@neuromancer.home.net>
-	 <200509191509.24914.wim.delvaux@adaptiveplanet.com>
+Date: Mon, 19 Sep 2005 15:26:10 +0200
+Message-ID: <200509191526.10770.wim.delvaux@adaptiveplanet.com>
+References: <200509180437.52184.wim.delvaux@adaptiveplanet.com> <200509191509.24914.wim.delvaux@adaptiveplanet.com> <1127135942.11842.0.camel@neuromancer.home.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200509191509.24914.wim.delvaux-ZIwQ0BidGjIRoeccq4QiytBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <1127135942.11842.0.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,25 +22,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-09-19 at 15:09 +0200, Wim Delvaux wrote:
-> On Monday 19 September 2005 12:24, Ow Mun Heng wrote:
+On Monday 19 September 2005 15:19, Ow Mun Heng wrote:
+> On Mon, 2005-09-19 at 15:09 +0200, Wim Delvaux wrote:
+> > On Monday 19 September 2005 12:24, Ow Mun Heng wrote:
+> > > Use Suspend2 instead of swsusp.
+> >
+> > can you clarify a bit which part uses swsusp and which suspend2 ? does
+> > Klaptop use swsusp or linux ?
+>
+> Since you use FC's default kernel, I presume it's swsusp.
 
-> > Use Suspend2 instead of swsusp.
-> 
-> can you clarify a bit which part uses swsusp and which suspend2 ? does Klaptop 
-> use swsusp or linux ?
+ I use ubuntu
 
-Since you use FC's default kernel, I presume it's swsusp.
-
-check the article for more details on suspend2.
-
--- 
-Ow Mun Heng
-Gentoo/Linux on DELL D600 1.4Ghz 1.5GB RAM
-98% Microsoft(tm) Free!! 
-Neuromancer 21:19:01 up 11:36, 7 users, load average: 3.45, 2.62, 1.90 
-
-
+>
+> check the article for more details on suspend2.
 
 
 -------------------------------------------------------
