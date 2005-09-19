@@ -1,16 +1,15 @@
-From: Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
 Subject: Re: battery life with cpufreq
-Date: Mon, 19 Sep 2005 11:35:24 +0200
-Message-ID: <9cfa150205091902354d5b4c43@mail.gmail.com>
+Date: Mon, 19 Sep 2005 11:45:38 +0200
+Message-ID: <1127123139.11913.2.camel@nouse.net>
 References: <9cfa150205091902116057595e@mail.gmail.com>
 	 <20050919092448.GA9023@isilmar.linta.de>
-Reply-To: chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+	 <9cfa150205091902354d5b4c43@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050919092448.GA9023-JwFqNg2GrOVrgjWwlLH9qw@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <9cfa150205091902354d5b4c43-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,42 +19,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 9/19/05, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org> wrote:
-> Hi,
->=20
-> On Mon, Sep 19, 2005 at 11:11:01AM +0200, Fred Blaise wrote:
-> > I have an dell inspiron 5150, 3Ghz. I have loaded p4_clockmod, and my
-> > CPU frequency now changes with powernowd. It seems to work well.
-> >
-> > However, I am not seeing any battery life improvement.
-> >
-> > Any ideas?
->=20
-> Yes. In general, throttling doesn't improve battery life, only CPU freque=
-ncy
-> scaling does:
-ok.. So the fact that my CPU goes down to 383Mghz instead of the
-normal 3Ghz is not frequency scaling? (pardon the noob that I am if
-this question doesn't make sense)
->=20
-> "In contrast to CPU frequency scaling, where the operating frequency is
-> constantly modulated, throttling means the CPU is forced to a halt for sh=
-ort
-> periods of time. If throttled, the CPU [enters] into a physical and
-> electrical state comparable to the idling states mentioned above, so it c=
-an
-> be described as an enforced idling of the CPU.
->=20
-> As certain CPU power state typically utilize similar hardware
-> implementations, and as throttling does not have a positive effect on the
-> energy consumption during CPU power states, throttling the CPU by a given
-> rate is only useful if the CPU is less idle than the throttling rate."
->=20
->         Dominik
->
+Hi,
+
+On Mon, 2005-09-19 at 11:35 +0200, Fred Blaise wrote:
+
+[...]
+
+> ok.. So the fact that my CPU goes down to 383Mghz instead of the
+> normal 3Ghz is not frequency scaling? (pardon the noob that I am if
+> this question doesn't make sense)
+
+This is frequency scaling.  But it has nothing in common with
+throttling.
+
+Are you saying that you're stepping down from 3 GHz to 300 MHz and do
+not see any improvements regarding battery life time?
+
+[...]
+
+See you,
+
+   Timo
+
 
 
 -------------------------------------------------------
