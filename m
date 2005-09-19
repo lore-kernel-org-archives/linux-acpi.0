@@ -1,13 +1,13 @@
-From: Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: battery life with cpufreq
-Date: Mon, 19 Sep 2005 11:11:01 +0200
-Message-ID: <9cfa150205091902116057595e@mail.gmail.com>
-Reply-To: chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
+Subject: Re: battery life with cpufreq
+Date: Mon, 19 Sep 2005 11:24:48 +0200
+Message-ID: <20050919092448.GA9023@isilmar.linta.de>
+References: <9cfa150205091902116057595e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <9cfa150205091902116057595e-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fred Blaise <chapeaurouge-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all
+Hi,
 
-I have an dell inspiron 5150, 3Ghz. I have loaded p4_clockmod, and my
-CPU frequency now changes with powernowd. It seems to work well.
+On Mon, Sep 19, 2005 at 11:11:01AM +0200, Fred Blaise wrote:
+> I have an dell inspiron 5150, 3Ghz. I have loaded p4_clockmod, and my
+> CPU frequency now changes with powernowd. It seems to work well.
+>
+> However, I am not seeing any battery life improvement.
+> 
+> Any ideas?
 
-`--> cat /proc/cpufreq=20
-          minimum CPU frequency  -  maximum CPU frequency  -  policy
-CPU  0       383323 kHz ( 12 %)  -    3066590 kHz (100 %)  -  userspace
+Yes. In general, throttling doesn't improve battery life, only CPU frequency
+scaling does:
 
-`--> cat throttling=20
-state count:             8
-active state:            T0
-states:
-   *T0:                  00%
-    T1:                  12%
-    T2:                  25%
-    T3:                  37%
-    T4:                  50%
-    T5:                  62%
-    T6:                  75%
-    T7:                  87%
+"In contrast to CPU frequency scaling, where the operating frequency is
+constantly modulated, throttling means the CPU is forced to a halt for short
+periods of time. If throttled, the CPU [enters] into a physical and
+electrical state comparable to the idling states mentioned above, so it can
+be described as an enforced idling of the CPU.
 
-However, I am not seeing any battery life improvement.
+As certain CPU power state typically utilize similar hardware
+implementations, and as throttling does not have a positive effect on the
+energy consumption during CPU power states, throttling the CPU by a given
+rate is only useful if the CPU is less idle than the throttling rate."
 
-Any ideas?
-
-Thanks
-
-fred
+	Dominik
 
 
 -------------------------------------------------------
