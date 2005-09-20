@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: standby problem
-Date: Tue, 20 Sep 2005 13:31:11 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F171FF64@pdsmsx406>
+From: Nik Trevallyn-Jones <nik-DjZbVUabzA+jF4gvJNWmbtHuzzzSOjJt@public.gmane.org>
+Subject: Re: Acpi-devel digest, Vol 1 #2816 - 10 msgs
+Date: Tue, 20 Sep 2005 19:31:30 +1000
+Message-ID: <432FD6F2.5010205@babel.homelinux.net>
+References: <20050920030132.F26E389321@sc8-sf-spam1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20050920030132.F26E389321-MRDXTZLjjMs+bN4EscsFoaQD96bmaF075NbjCUgZEJk@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,47 +17,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Cc: pavel-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> >
->> >> >> i wanted to know what's mean this error :)
->> >> >>
->> >> >> mrspurr:/home/giskard# echo standby > /sys/power/state
->> >> >> acpi_pm_prepare does not support 1
->> >> >>
->> >> >> means that my laptop doesn't supporto standby mode?
->> >> >
->> >> >Probably yes.
->> >> Is it possible we can just show available pm states in
->> /sys/power/state?
->> >> I think we should report the error earlier before we do actual
->> >> suspend/resume. (maybe pm_ops should have a .supported_states
->> callback
->> >> for all archs) It seems many users are complaining about this
-after
->> Len
->> >> deprecated the proc interface.
->> >
->> >Pavel Troller even had a patch, but it was too ugly. Yes, we should
->> >only list available states in /sys/power/state.
->> Ok, how does this one look? Each arch provides a .valid callback.
->
->With this patch, I see in /sys/power/state either:
->standby disk		# if CONFIG_SOFTWARE_SUSPEND=3Dy
->
->or just:
->standby			# if CONFIG_SOFTWARE_SUSPEND=3Dn
->
->Does this mean that my poor old BIOS cannot do STR or did I miss
->a config option?  Yes, I have CONFIG_ACPI_SLEEP=3Dy.
->Is there another config option for STR?
-It's interesting one system support standby but not support STR. Your
-dmesg will tell us which states the system supports.
+> Try tailing the log file  :-) 
+> 
+>  received event "button/sleep SBTN 00000080 00000002"
+> [Tue Sep 13 22:02:31 2005] notifying client 12488[500:100]
+> [Tue Sep 13 22:02:31 2005] executing action "/etc/acpi/handle.pl
+> button/sleep SBTN 00000080 00000002"
 
-Thanks,
-Shaohua
+Awesome!! Now that I've found the acpi log file (I was tailing 
+/var/log/messages), I can confirm that it has the same label on my 
+distro too (FC3).
+
+> ipw2200 will need to be rmmod from the kernel. Along with some other
+> "blacklists".
+
+That's interesting: with the previous kernel, the ipw2200 driver tried 
+to resume - it just had a problem reloading the firmware...
+
+No problems, I am happy to unload/reload drivers.
+
+> Better yet, look now!! There's even a kernel packaged for FC Folks. See
+> the article for the link to the packager's homepage etc.
+> 
+
+Yess!! Found the link! I can download a patched FC3 drop-in replacement 
+kernel, and give Suspend2 a try. I'll let you know which seems better 
+for me, suspend to memory, or suspend2 to disk.
+
+> I feel so left out  :-) 
+
+I feel for you. For almost the entire time I ran RH9 on my Dell, I 
+couldn't get 3D acceleration working - I was the only kid on the block 
+without it... *shiff*
+
+
+Thank you again for all your help! So far, the changes have been very 
+easy - I was just having trouble finding out how it actually worked (was 
+spoilt by the previous version working out of the box).
+
+
+Cheers!
+Nik.
+
+
 
 
 -------------------------------------------------------
