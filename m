@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Fan resume handling - ACPI resume callbacks?
-Date: Tue, 20 Sep 2005 09:42:39 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F171FD2A@pdsmsx406>
+From: Nik Trevallyn-Jones <nik-DjZbVUabzA+jF4gvJNWmbtHuzzzSOjJt@public.gmane.org>
+Subject: Re: Ceased working on Dell D600 after update to 2.6.12
+Date: Tue, 20 Sep 2005 11:44:55 +1000
+Message-ID: <432F6997.5040605@babel.homelinux.net>
+References: <20050919143430.0AB928841D@sc8-sf-spam1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20050919143430.0AB928841D-MRDXTZLjjMs+bN4EscsFoaQD96bmaF075NbjCUgZEJk@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,43 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->
->I'm trying to implement resume support for the fan driver. From what I
->can tell through experimentation, the easiest solution is to check if
->the fan claims to be switched on, and if so to switch it off and on
->again. However, my resume callback never seems to be called. I've got
->
->static struct acpi_driver acpi_fan_driver =3D {
->        .name =3D         ACPI_FAN_DRIVER_NAME,
->        .class =3D        ACPI_FAN_CLASS,
->        .ids =3D          ACPI_FAN_HID,
->        .ops =3D          {
->                                .add =3D          acpi_fan_add,
->                                .remove =3D       acpi_fan_remove,
->                                .resume =3D       acpi_fan_resume,
->                        },
->};
->
->but adding printks to acpi_fan_resume doesn't seem to result in
-anything
->in the kernel logs. Is this stuff supposed to work?
-The ACPI driver model isn't plugged into Linux driver tree, so the
-.resume method will never get called. I recently sent out some patches
-into the list
-(http://sourceforge.net/mailarchive/forum.php?thread_id=3D8172458&forum_i=
-d
-=3D6102). With the patches, the .resume will work. But Dominik thought =
-we
-should not introduce acpi bus, instead we should make most ACPI devices
-as platform devices. I'm still evaluating it.
+Hi All,
 
-Thanks,
-Shaohua
+Just a follow-up to let the list know how I got on.
+
+In summary, I now have suspend to memory working to a (currently) 
+acceptable degree :o)
+
+Based on responses from Ow (thanks), I figured that either my /etc/acpi 
+files had been overwritten, or the previous kernel was using different 
+files. So I copied the sample.conf file, and added an entry to it:
+
+/etc/acpi/events/xxx.conf
+
+====================================================
+
+# This is the config file for xxx
+
+event=button/power.*
+action=/sbin/shutdown -h now
+
+event=button/lid.*
+action=echo mem > /sys/power/state
+
+=====================================================
+
+**BTW: Can anyone tell me the button regexp for Fn-Esc (suspend) on my D600?
+
+
+After restarting acpid, the lid button now does a suspend (which looks 
+pretty similar to what I used to get with the old kernel, although there 
+seem to be a few new warnings or errors in there).
+
+Releaseing the lid button results in a resume (seems quite a bit faster 
+than with the previous kernel), accompanied with this warning/error:
+
+Message from syslogd@xxx at Tue Sep 20 10:21:05 2005 ...
+xxx kernel: Disabling IRQ #5
+
+I'm not quite sure what problems (if any) this has caused. The log shows 
+that my ipw2200 failed to re-initialise, and it seems there may be 
+issues with the sound driver. I've got a few messages in the logs to try 
+to understand before I ask for any more help.
+
+
+Once again, thank you for all your help. Once I've sorted this, I'll 
+look at Suspend2.
+
+Cheers!
+Nik.
 
 
 -------------------------------------------------------
