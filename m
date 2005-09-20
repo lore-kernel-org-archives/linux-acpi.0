@@ -1,9 +1,9 @@
-From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
-Subject: S3 (sort of) success report on desktop
-Date: Tue, 20 Sep 2005 23:05:11 +0200
-Message-ID: <20050920230511.3cade509@commensaal.drs.p>
+From: Lukasz <peryklez-5tc4TXWwyLM@public.gmane.org>
+Subject: fan - problem
+Date: Tue, 20 Sep 2005 23:02:19 +0200
+Message-ID: <433078DB.6000807@wp.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,33 +15,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+I'm running Fedora Core 4 on my Fujitsu-Siemens Amilo L1310G laptop.
+I have downloaded vanilla 2.6.13 from kernel.org, patched it with 
+acpi-20050902-2.6.13.diff.gz, modified DSDT (iasl reported a warning: 
+"Reserved method must return a value (_WAK)") and compiled it into the 
+kernel. I have also tried acpi_os_name kernel parameter... and nothing 
+helps:/
 
-Recently for the first time I succeeded in getting S3 to work on my
-desktop. The specs:
+The problem is that fan either works non-stop or doesn't work at all...
 
-Motherboard: Asus A7V8X
-Videocard: nVidia RIVA TNT2 model 64
+And even when the fan is not working both /proc/acpi/fan/FAN0/state and 
+/proc/acpi/fan/FAN1/state read "status: on".
 
-I need s3_bios,s3_mode. The only problem (so far) is that when
-suspending from the console the monitor stays blank. Suspending from X
-works OK.
+However, /proc/acpi/thermal_zone/THRM/state is changing correctly 
+according to temperature changes and current setting in trip_points... 
+but it has nothing to do with the fan.
 
+Any suggestions, please?
 
-Something different, I have a change for Documentation/power/video.txt
-@@ -69,2 +69,2 @@
--Acer TM 636Lci			s3_bios vga=normal (2)
-+Acer TM 636Lci			s3_bios,s3_mode (4)
-
-I think this line came originally from me, I found out (somebody on the 
-list told me, I think) that if I also use s3_mode, I don't have to use 
-vga=normal, but can also use higher resolutions.
-
-g
 
 
 -------------------------------------------------------
