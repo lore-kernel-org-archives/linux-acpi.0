@@ -1,13 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: standby problem
-Date: Tue, 20 Sep 2005 11:44:43 +0200
-Message-ID: <20050920094443.GC20380@elf.ucw.cz>
-References: <59D45D057E9702469E5775CBB56411F171FA38@pdsmsx406> <20050919210936.4cd0c3b7.rdunlap@xenotime.net>
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: Re: Acpi-devel digest, Vol 1 #2816 - 10 msgs
+Date: Tue, 20 Sep 2005 17:49:59 +0800
+Message-ID: <1127209800.25800.130.camel@neuromancer.home.net>
+References: <20050920030132.F26E389321@sc8-sf-spam1.sourceforge.net>
+	 <432FD6F2.5010205@babel.homelinux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050919210936.4cd0c3b7.rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <432FD6F2.5010205-DjZbVUabzA+jF4gvJNWmbtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +18,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Tue, 2005-09-20 at 19:31 +1000, Nik Trevallyn-Jones wrote:
 
-> > >Pavel Troller even had a patch, but it was too ugly. Yes, we should
-> > >only list available states in /sys/power/state.
-> > Ok, how does this one look? Each arch provides a .valid callback.
+> > ipw2200 will need to be rmmod from the kernel. Along with some other
+> > "blacklists".
 > 
-> With this patch, I see in /sys/power/state either:
-> standby disk		# if CONFIG_SOFTWARE_SUSPEND=y
+> That's interesting: with the previous kernel, the ipw2200 driver tried 
+> to resume - it just had a problem reloading the firmware...
 > 
-> or just:
-> standby			# if CONFIG_SOFTWARE_SUSPEND=n
+> No problems, I am happy to unload/reload drivers.
+
+If you use hibernate script, it's all automatic.
+
 > 
-> Does this mean that my poor old BIOS cannot do STR or did I miss
-> a config option?  Yes, I have CONFIG_ACPI_SLEEP=y.
-> Is there another config option for STR?
+> > Better yet, look now!! There's even a kernel packaged for FC Folks. See
+> > the article for the link to the packager's homepage etc.
+> > 
+> 
+> Yess!! Found the link! I can download a patched FC3 drop-in replacement 
+> kernel, and give Suspend2 a try. I'll let you know which seems better 
+> for me, suspend to memory, or suspend2 to disk.
 
-I think its your poor old BIOS/hardware. 
+Bear in mind that suspend2 or swsusp, it doesn't change whether suspend
+to disk or suspend to ram works. If it works, it works.
 
-> I think it would be great if we could make the config options
-> something more user-friendly, like Suspend to Disk and
-> Standby/Suspend to RAM.  Or at least mention Suspend to RAM
-> in the Help text....  It would also make sense (from a user's
-> perspective) to have them together (next to each other).
+it's either echo mem or echo ram 
 
-I guess patches are accepted.. but be warned: SWSUSP is generic
-option, while ACPI_SLEEP is ... well, ACPI related.
-								Pavel
+
+> Thank you again for all your help! So far, the changes have been very 
+> easy - I was just having trouble finding out how it actually worked (was 
+> spoilt by the previous version working out of the box).
+
+Well, it should be 'just works'.
+
+Only ppl like us(techies) will know the diff
+
 -- 
-if you have sharp zaurus hardware you don't need... you know my address
+Ow Mun Heng
+Gentoo/Linux on DELL D600 1.4Ghz 1.5GB RAM
+98% Microsoft(tm) Free!! 
+Neuromancer 17:47:27 up 1 day, 8:05, 6 users, load average: 2.59, 1.83,
+1.25 
+
+
 
 
 -------------------------------------------------------
