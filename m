@@ -1,14 +1,15 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Re: Acpi-devel digest, Vol 1 #2816 - 10 msgs
-Date: Tue, 20 Sep 2005 17:49:59 +0800
-Message-ID: <1127209800.25800.130.camel@neuromancer.home.net>
-References: <20050920030132.F26E389321@sc8-sf-spam1.sourceforge.net>
-	 <432FD6F2.5010205@babel.homelinux.net>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [PATCH] serial: remove 8250_acpi (subsumed by 8250_pnp and PNPACPI)
+Date: Tue, 20 Sep 2005 10:04:31 -0600
+Message-ID: <200509201004.31224.bjorn.helgaas@hp.com>
+References: <200509161142.33723.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <432FD6F2.5010205-DjZbVUabzA+jF4gvJNWmbtHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <200509161142.33723.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,52 +19,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Russell King <rmk+serial-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mattieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-09-20 at 19:31 +1000, Nik Trevallyn-Jones wrote:
-
-> > ipw2200 will need to be rmmod from the kernel. Along with some other
-> > "blacklists".
+On Friday 16 September 2005 11:42 am, Bjorn Helgaas wrote:
+> With the combination of PNPACPI and 8250_pnp, we no longer need
+> 8250_acpi.
 > 
-> That's interesting: with the previous kernel, the ipw2200 driver tried 
-> to resume - it just had a problem reloading the firmware...
-> 
-> No problems, I am happy to unload/reload drivers.
+> The only in-tree configs that contain CONFIG_SERIAL_8250_ACPI are ia64.
+> ia64 users should make sure CONFIG_PNP and CONFIG_PNPACPI are set so
+> 8250_pnp.c can discover built-in serial ports.  Tony has already
+> accepted a patch to turn them on in the default configs.
 
-If you use hibernate script, it's all automatic.
+Please don't apply this just yet.  Tony Luck tried it and tripped
+over a deficiency in PNPACPI that I'll have to fix first.
 
-> 
-> > Better yet, look now!! There's even a kernel packaged for FC Folks. See
-> > the article for the link to the packager's homepage etc.
-> > 
-> 
-> Yess!! Found the link! I can download a patched FC3 drop-in replacement 
-> kernel, and give Suspend2 a try. I'll let you know which seems better 
-> for me, suspend to memory, or suspend2 to disk.
-
-Bear in mind that suspend2 or swsusp, it doesn't change whether suspend
-to disk or suspend to ram works. If it works, it works.
-
-it's either echo mem or echo ram 
-
-
-> Thank you again for all your help! So far, the changes have been very 
-> easy - I was just having trouble finding out how it actually worked (was 
-> spoilt by the previous version working out of the box).
-
-Well, it should be 'just works'.
-
-Only ppl like us(techies) will know the diff
-
--- 
-Ow Mun Heng
-Gentoo/Linux on DELL D600 1.4Ghz 1.5GB RAM
-98% Microsoft(tm) Free!! 
-Neuromancer 17:47:27 up 1 day, 8:05, 6 users, load average: 2.59, 1.83,
-1.25 
-
-
+(HP rx1620 has an ACPI_RSTYPE_ADDRESS32 item in its _PRS, and
+PNPACPI doesn't know what to do with it.)
 
 
 -------------------------------------------------------
