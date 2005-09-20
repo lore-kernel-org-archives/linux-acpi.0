@@ -1,13 +1,14 @@
-From: Nik Trevallyn-Jones <nik-DjZbVUabzA+jF4gvJNWmbtHuzzzSOjJt@public.gmane.org>
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: Ceased working on Dell D600 after update to 2.6.12
-Date: Tue, 20 Sep 2005 11:44:55 +1000
-Message-ID: <432F6997.5040605@babel.homelinux.net>
+Date: Tue, 20 Sep 2005 09:57:11 +0800
+Message-ID: <1127181431.25800.40.camel@neuromancer.home.net>
 References: <20050919143430.0AB928841D@sc8-sf-spam1.sourceforge.net>
+	 <432F5ED3.3070305@babel.homelinux.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050919143430.0AB928841D-MRDXTZLjjMs+bN4EscsFoaQD96bmaF075NbjCUgZEJk@public.gmane.org>
+In-Reply-To: <432F5ED3.3070305-DjZbVUabzA+jF4gvJNWmbtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,55 +21,104 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
-
-Just a follow-up to let the list know how I got on.
-
-In summary, I now have suspend to memory working to a (currently) 
-acceptable degree :o)
-
-Based on responses from Ow (thanks), I figured that either my /etc/acpi 
-files had been overwritten, or the previous kernel was using different 
-files. So I copied the sample.conf file, and added an entry to it:
-
-/etc/acpi/events/xxx.conf
-
-====================================================
-
-# This is the config file for xxx
-
-event=button/power.*
-action=/sbin/shutdown -h now
-
-event=button/lid.*
-action=echo mem > /sys/power/state
-
-=====================================================
-
-**BTW: Can anyone tell me the button regexp for Fn-Esc (suspend) on my D600?
+On Tue, 2005-09-20 at 10:58 +1000, Nik Trevallyn-Jones wrote:
+> > Subject: Re: [ACPI] Ceased working on Dell D600 after update to 2.6.12
+> > From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+> > Date: Mon, 19 Sep 2005 18:22:53 +0800
+> 
+> Hi Ow,
+> 
+> Thanks for you quick reply! :o)
+:-0
 
 
-After restarting acpid, the lid button now does a suspend (which looks 
-pretty similar to what I used to get with the old kernel, although there 
-seem to be a few new warnings or errors in there).
+> > which version of suspend? Suspend2 or swsusp?
+> > 
+> 
+> *embarrassed look*  I don't really know. In the Klaptop applet menu, I 
+> just selected "suspend". The three options I had were:
 
-Releaseing the lid button results in a resume (seems quite a bit faster 
-than with the previous kernel), accompanied with this warning/error:
+Sorry.. what distro are you running? It's safe to say that unless you
+did anything special with your laptop, its running on swsusp and not
+suspend2.
 
-Message from syslogd@xxx at Tue Sep 20 10:21:05 2005 ...
-xxx kernel: Disabling IRQ #5
+> . (I had to disable 
+> mDNSResponder to get suspend working, if that's useful.)
 
-I'm not quite sure what problems (if any) this has caused. The log shows 
-that my ipw2200 failed to re-initialise, and it seems there may be 
-issues with the sound driver. I've got a few messages in the logs to try 
-to understand before I ask for any more help.
+not useful :-) But I believe this is FC then.
+
+> > Does it recognise any keys?? eg: Fn-Esc, Lid, Power Button etc?
+> 
+> Um, if I press and hold the power button, the OS does a shutdown, so I 
+> guess that means its recognising the power button.
+> 
+> Pressing the lid button has no effect, and neither does Fn-Esc.
+
+That may be because it's not looking or triggering any rules. Check 
+
+$ sudo tail -f /var/log/acpid 
+
+and press the buttons, You will see things like
+
+[Tue Sep 13 20:44:54 2005] received event "button/lid LID 00000080
+00000009"
+[Tue Sep 13 20:44:54 2005] executing action "/etc/acpi/handle.pl
+button/lid LID 00000080 00000009
+
+> > already, try suspend2. You can see how to get it down by reading this
+> > article in Ed1 of the MyOSS Magazine - http://mag.my-opensource.org
+> 
+> Excellent!  Many, many thanks!
+
+No Probs.
+
+> 
+> > 
+> > check /etc/acpi/
+> 
+> That's sort of why I asked. I don't know what the contents of /etc/acpi 
+> were with the old kernel, because everything worked using the GUI tool.
+> 
+> All that's in there now is this /etc/acpi/events/sample.conf:
+> 
+> =============================================
+> # This is a sample ACPID configuration
+> 
+> event=button/power.*
+> action=/sbin/shutdown -h now
+> 
+> =============================================
 
 
-Once again, thank you for all your help. Once I've sorted this, I'll 
-look at Suspend2.
+That's why it didn't recognise anything else.
 
-Cheers!
-Nik.
+Try this
+event=button[ /]lid
+action=/usr/X11R6/bin/xset -display :0 dpms force off
+
+(I use the lid button to turn off the display. Suspend to ram not
+working for me :-( )
+
+
+
+> > Hibernates (to disk) in 40 secs with 1.5GB Ram.
+> > 
+> > Suspend to Ram doesn't work on my machine. Does yours? (previously?)
+> 
+> Absolutely. I loved it. Just close the lid, and the machine was good to 
+> go in 5-10 seconds. Of course, it drained the battery after some days 
+> (i'm seeing posts in this list on how to hopefully improve that).
+
+I feel so left out :-)
+
+-- 
+Ow Mun Heng
+Gentoo/Linux on DELL D600 1.4Ghz 1.5GB RAM
+98% Microsoft(tm) Free!! 
+Neuromancer 09:54:28 up 1 day, 12 min, 7 users, load average: 2.20,
+2.23, 2.25 
+
+
 
 
 -------------------------------------------------------
