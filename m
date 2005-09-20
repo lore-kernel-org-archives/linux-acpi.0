@@ -1,11 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Fan resume handling - ACPI resume callbacks?
-Date: Tue, 20 Sep 2005 02:12:09 +0100
-Message-ID: <20050920011209.GA15933@srcf.ucam.org>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Fan resume handling - ACPI resume callbacks?
+Date: Tue, 20 Sep 2005 09:42:39 +0800
+Message-ID: <59D45D057E9702469E5775CBB56411F171FD2A@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,30 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm trying to implement resume support for the fan driver. From what I
-can tell through experimentation, the easiest solution is to check if
-the fan claims to be switched on, and if so to switch it off and on
-again. However, my resume callback never seems to be called. I've got
+Hi,
+>
+>I'm trying to implement resume support for the fan driver. From what I
+>can tell through experimentation, the easiest solution is to check if
+>the fan claims to be switched on, and if so to switch it off and on
+>again. However, my resume callback never seems to be called. I've got
+>
+>static struct acpi_driver acpi_fan_driver =3D {
+>        .name =3D         ACPI_FAN_DRIVER_NAME,
+>        .class =3D        ACPI_FAN_CLASS,
+>        .ids =3D          ACPI_FAN_HID,
+>        .ops =3D          {
+>                                .add =3D          acpi_fan_add,
+>                                .remove =3D       acpi_fan_remove,
+>                                .resume =3D       acpi_fan_resume,
+>                        },
+>};
+>
+>but adding printks to acpi_fan_resume doesn't seem to result in
+anything
+>in the kernel logs. Is this stuff supposed to work?
+The ACPI driver model isn't plugged into Linux driver tree, so the
+.resume method will never get called. I recently sent out some patches
+into the list
+(http://sourceforge.net/mailarchive/forum.php?thread_id=3D8172458&forum_i=
+d
+=3D6102). With the patches, the .resume will work. But Dominik thought =
+we
+should not introduce acpi bus, instead we should make most ACPI devices
+as platform devices. I'm still evaluating it.
 
-static struct acpi_driver acpi_fan_driver = {
-        .name =         ACPI_FAN_DRIVER_NAME,
-        .class =        ACPI_FAN_CLASS,
-        .ids =          ACPI_FAN_HID,
-        .ops =          {
-                                .add =          acpi_fan_add,
-                                .remove =       acpi_fan_remove,
-                                .resume =       acpi_fan_resume,
-                        },
-};
-
-but adding printks to acpi_fan_resume doesn't seem to result in anything 
-in the kernel logs. Is this stuff supposed to work?
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
