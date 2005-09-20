@@ -1,14 +1,13 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Ceased working on Dell D600 after update to 2.6.12
-Date: Tue, 20 Sep 2005 10:01:54 +0800
-Message-ID: <1127181714.25800.45.camel@neuromancer.home.net>
-References: <20050919143430.0AB928841D@sc8-sf-spam1.sourceforge.net>
-	 <432F6997.5040605@babel.homelinux.net>
+From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: standby problem
+Date: Mon, 19 Sep 2005 21:09:36 -0700
+Message-ID: <20050919210936.4cd0c3b7.rdunlap@xenotime.net>
+References: <59D45D057E9702469E5775CBB56411F171FA38@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <432F6997.5040605-DjZbVUabzA+jF4gvJNWmbtHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <59D45D057E9702469E5775CBB56411F171FA38@pdsmsx406>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,76 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: pavel-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-09-20 at 11:44 +1000, Nik Trevallyn-Jones wrote:
+On Mon, 19 Sep 2005 17:00:25 +0800 Li, Shaohua wrote:
 
-> /etc/acpi/events/xxx.conf
-> 
-> ====================================================
-> event=button/lid.*
-> action=echo mem > /sys/power/state
-> =====================================================
-> 
-> **BTW: Can anyone tell me the button regexp for Fn-Esc (suspend) on my D600?
+> Hi,
+> >
+> >> >> i wanted to know what's mean this error :)
+> >> >>
+> >> >> mrspurr:/home/giskard# echo standby > /sys/power/state
+> >> >> acpi_pm_prepare does not support 1
+> >> >>
+> >> >> means that my laptop doesn't supporto standby mode?
+> >> >
+> >> >Probably yes.
+> >> Is it possible we can just show available pm states in
+> /sys/power/state?
+> >> I think we should report the error earlier before we do actual
+> >> suspend/resume. (maybe pm_ops should have a .supported_states
+> callback
+> >> for all archs) It seems many users are complaining about this after
+> Len
+> >> deprecated the proc interface.
+> >
+> >Pavel Troller even had a patch, but it was too ugly. Yes, we should
+> >only list available states in /sys/power/state.
+> Ok, how does this one look? Each arch provides a .valid callback.
 
-I use perl.
+With this patch, I see in /sys/power/state either:
+standby disk		# if CONFIG_SOFTWARE_SUSPEND=y
 
- 
-        if ($first_arg =~ /^button\/sleep$/) {
-                shift (@ARGV);
-                system ('/usr/sbin/hibernate --force');
+or just:
+standby			# if CONFIG_SOFTWARE_SUSPEND=n
 
+Does this mean that my poor old BIOS cannot do STR or did I miss
+a config option?  Yes, I have CONFIG_ACPI_SLEEP=y.
+Is there another config option for STR?
 
-Try tailing the log file :-)
+I think it would be great if we could make the config options
+something more user-friendly, like Suspend to Disk and
+Standby/Suspend to RAM.  Or at least mention Suspend to RAM
+in the Help text....  It would also make sense (from a user's
+perspective) to have them together (next to each other).
 
- received event "button/sleep SBTN 00000080 00000002"
-[Tue Sep 13 22:02:31 2005] notifying client 12488[500:100]
-[Tue Sep 13 22:02:31 2005] executing action "/etc/acpi/handle.pl
-button/sleep SBTN 00000080 00000002"
-
-
-
-
-> Message from syslogd@xxx at Tue Sep 20 10:21:05 2005 ...
-> xxx kernel: Disabling IRQ #5
-> 
-> I'm not quite sure what problems (if any) this has caused. The log shows 
-> that my ipw2200 failed to re-initialise, and it seems there may be 
-> issues with the sound driver. I've got a few messages in the logs to try 
-> to understand before I ask for any more help.
-
-ipw2200 will need to be rmmod from the kernel. Along with some other
-"blacklists".
-
-You can search for suspend2's hibernate script, it supports in-kernel
-swsusp too.
-
-*  sys-power/hibernate-script
-      Latest version available: 1.10-r1
-      Latest version installed: 1.10
-      Size of downloaded files: 62 kB
-      Homepage:    http://www.suspend2.net
-      Description: Hibernate script supporting multiple suspend methods
-      License:     GPL-2
-
-> 
-> 
-> Once again, thank you for all your help. Once I've sorted this, I'll 
-> look at Suspend2.
-
-Better yet, look now!! There's even a kernel packaged for FC Folks. See
-the article for the link to the packager's homepage etc.
-
--- 
-Ow Mun Heng
-Gentoo/Linux on DELL D600 1.4Ghz 1.5GB RAM
-98% Microsoft(tm) Free!! 
-Neuromancer 10:01:54 up 1 day, 19 min, 7 users, load average: 2.22,
-2.31, 2.28 
-
-
+---
+~Randy
+You can't do anything without having to do something else first.
+-- Belefant's Law
 
 
 -------------------------------------------------------
