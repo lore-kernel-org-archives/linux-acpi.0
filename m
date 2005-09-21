@@ -1,14 +1,14 @@
-From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Fw: ACPI, pm timer and ASUS a8v
-Date: Wed, 21 Sep 2005 16:44:54 +0800
-Message-ID: <1127292294.3948.1.camel@linux-hp.sh.intel.com>
-References: <59D45D057E9702469E5775CBB56411F1784EB5@pdsmsx406>
-	 <20050921013019.74b5059e.akpm@osdl.org>
+From: Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: oops with asus_acpi on P30/P35
+Date: Wed, 21 Sep 2005 11:08:10 +0200
+Message-ID: <20050921090810.GS22403@orest.greek0.net>
+References: <20050618004506.GE3690@orest.greek0.net> <42C2BA01.2060806@gmx.net> <20050629155015.GB14659@hell.org.pl> <200508191749.18016.mail@hboeck.de> <1124634977.4952.9.camel@nouse.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G+DT6X5ssgZ56VG3"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050921013019.74b5059e.akpm-3NddpPZAyC0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1124634977.4952.9.camel-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,73 +18,137 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: jonas-fAbYwIrWRvUAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Hanno =?iso-8859-1?Q?B=F6ck?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2005-09-21 at 01:30 -0700, Andrew Morton wrote:
-> "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> >
-> > >> How about add something like this:
-> > >> if (fadt->revision >= FADT2_REVISION_ID) {
-> > >> 		/* FADT rev. 2 */
-> > >> 		if (fadt->xpm_tmr_blk.address_space_id !=
-> > >> ACPI_ADR_SPACE_SYSTEM_IO)
-> > >> 			return 0;
-> > >>
-> > >> 		pmtmr_ioport = fadt->xpm_tmr_blk.address;
-> > >> +		if (!pmtmr_ioport)
-> > >> +			pmtmr_ioport = fadt->V1_pm_tmr_blk;
-> > >> 	} else {
-> > >> 		/* FADT rev. 1 */
-> > >> 		pmtmr_ioport = fadt->V1_pm_tmr_blk;
-> > >> 	}
-> > >
-> > >this works
-> > Great.
-> > 
-> > >
-> > >ps.
-> > >	I opened as andrew suggested a bug report:
-> > >http://bugzilla.kernel.org/show_bug.cgi?id=5283
-> > >ds.
-> > Ok, I'll attach a formal patch into bugzilla.
-> 
-> Please email a copy?  I fear that patches which go into bugzilla never come
-> out again ;)
-> 
-> At least, not sufficiently promptly.  We need to get fixups like this into
-> mainline quickly.
-Sure.
-Handling FADT 2.0 xpmtmr address 0 case. The patch makes the pmtmr ioport
-detecting align with ACPICA (the comments are copied from ACPICA code).
 
-Signed-off-by: Shaohua Li<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--G+DT6X5ssgZ56VG3
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Aug 21, 2005 at 04:36:17PM +0200, Timo Hoenig wrote:
+> Hi,
+>=20
+> On Fri, 2005-08-19 at 17:49 +0200, Hanno B=F6ck wrote:
+>=20
+> [...]
+>=20
+> > This is still not fixed within 2.6.13_rc6. As 2.6.13 seems to be on the=
+ way=20
+> > and this bug is really grave/makes a piece of hardware unusable, can th=
+is be=20
+> > pushed to the kernel tree as soon as possible?
+>=20
+> This patch does fix the Samsung P30 but this fix will also break support
+> for other systems (like the ASUS W5A), too.  To get the W5A working
+> again, it needs something like the attached patch.
+>=20
+> I assume that other models will stop working, too.
+
+OK, it's getting a little frustrating that this still isn't fixed.
+I've now written a patch that tests for ACPI_TYPE_INTEGER, and it
+tests for possible return values from P35's INIT.
+
+Since the relevant part hasn't changed between P30 -> P35's DSDT, I
+assume that there has been some change in the Linux ACPI code, that
+causes integer returns now instead of no returns. This means we
+could get rid of the P30 code in the (!buffer.pointer) path. I don't
+have a P30 around to test this though :-/
+
+I got the -1/0x58/0x38 values from my DSDT:
+INIT there calls WLED, which calls \_SB.PCI0.LPCB.EC0.STC5, last
+call with arg 0x58 or 0x38. That function then returns with either
+Ones (which I gathered is ~0, i.e. -1) or with Arg0. That's the last
+return that happens within the INIT call, so I thought that might be
+the result of the call as a whole.
+
+That fits nicely, since 0x58 is really returned on my laptop.
+
+If this fix still breaks other laptops I'd really be puzzled, since
+currently the value is dereferenced later when doing the string
+comparisons. So the patch at least shouldn't break it more than it
+already is ;)
+
+I can resubmit my patch with a proper changelog entry and
+Signed-off-by line if it should be merged.
+
+Cheers,
+Christian Aichinger
+
 ---
-
- linux-2.6.14-rc1-root/arch/i386/kernel/acpi/boot.c |    7 +++++++
- 1 files changed, 7 insertions(+)
-
-diff -puN arch/i386/kernel/acpi/boot.c~pm-tmr arch/i386/kernel/acpi/boot.c
---- linux-2.6.14-rc1/arch/i386/kernel/acpi/boot.c~pm-tmr	2005-09-21 16:17:23.000000000 +0800
-+++ linux-2.6.14-rc1-root/arch/i386/kernel/acpi/boot.c	2005-09-21 16:20:05.000000000 +0800
-@@ -642,6 +642,13 @@ static int __init acpi_parse_fadt(unsign
- 			return 0;
- 
- 		pmtmr_ioport = fadt->xpm_tmr_blk.address;
-+		/*
-+		 * "X" fields are optional extensions to the original V1.0
-+		 * fields, so we must selectively expand V1.0 fields if the
-+		 * corresponding X field is zero.
-+	 	 */
-+		if (!pmtmr_ioport)
-+			pmtmr_ioport = fadt->V1_pm_tmr_blk;
+c51f431351c648519a9b91de3c5e1d636246d7bc
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -1006,6 +1006,24 @@ static int __init asus_hotk_get_info(voi
+ 	}
+=20
+ 	model =3D (union acpi_object *)buffer.pointer;
++
++	/* INIT on Samsung's P35 returns an integer, possible return
++	 * values are tested below */
++	if (model->type =3D=3D ACPI_TYPE_INTEGER) {
++		if (model->integer.value =3D=3D -1 ||
++			model->integer.value =3D=3D 0x58 ||
++			model->integer.value =3D=3D 0x38) {
++			hotk->model =3D P30;
++			printk(KERN_NOTICE
++				       "  Samsung P35 detected, supported\n");
++			goto out_known;
++		} else {
++			printk(KERN_WARNING=20
++				"  unknown integer returned by INIT\n");
++			goto out_unknown;
++		}
++	}
++
+ 	if (model->type =3D=3D ACPI_TYPE_STRING) {
+ 		printk(KERN_NOTICE "  %s model detected, ",
+ 		       model->string.pointer);
+@@ -1057,9 +1075,7 @@ static int __init asus_hotk_get_info(voi
+ 		hotk->model =3D L5x;
+=20
+ 	if (hotk->model =3D=3D END_MODEL) {
+-		printk("unsupported, trying default values, supply the "
+-		       "developers with your DSDT\n");
+-		hotk->model =3D M2E;
++		goto out_unknown;
  	} else {
- 		/* FADT rev. 1 */
- 		pmtmr_ioport = fadt->V1_pm_tmr_blk;
-_
+ 		printk("supported\n");
+ 	}
+@@ -1088,6 +1104,15 @@ static int __init asus_hotk_get_info(voi
+ 	acpi_os_free(model);
+=20
+ 	return AE_OK;
++
++out_unknown:
++	printk(KERN_WARNING "  unsupported, trying default values, "
++			"supply the developers with your DSDT\n");
++	hotk->model =3D M2E;
++out_known:
++	hotk->methods =3D &model_conf[hotk->model];
++	acpi_os_free(model);
++	return AE_OK;
+ }
+=20
+ static int __init asus_hotk_check(void)
 
+--G+DT6X5ssgZ56VG3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDMSL6xsP1RlTwJHsRAmsjAKCdyHPA8niROgCsgazd4bWh/xM6QACfRaJY
+LXiZ8pClYIPO9Ton2ROprX4=
+=zLy5
+-----END PGP SIGNATURE-----
+
+--G+DT6X5ssgZ56VG3--
 
 
 -------------------------------------------------------
