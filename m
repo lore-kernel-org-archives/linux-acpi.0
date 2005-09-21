@@ -1,13 +1,13 @@
-From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: [PATCH] STD needs HOTPLUG_CPU on SMP
-Date: Tue, 20 Sep 2005 19:48:13 -0700
-Message-ID: <20050920194813.4dd6f6da.rdunlap@xenotime.net>
-References: <59D45D057E9702469E5775CBB56411F171F9D7@pdsmsx406>
+From: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC 0/2]convert ACPI driver model to Linux driver model
+Date: Wed, 21 Sep 2005 00:31:47 -0400
+Message-ID: <20050921043147.GA14734@neo.rr.com>
+References: <1126502542.5153.17.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <59D45D057E9702469E5775CBB56411F171F9D7@pdsmsx406>
+Content-Disposition: inline
+In-Reply-To: <1126502542.5153.17.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,49 +17,88 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: jochen-AVN6mSxK9lsdnm+yROfE0A@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 19 Sep 2005 16:29:02 +0800 Li, Shaohua wrote:
+Hi Shaohua,
 
+I'm sorry for the late reply.
+
+On Mon, Sep 12, 2005 at 01:22:22PM +0800, Shaohua Li wrote:
 > Hi,
-> >
-> >"Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
-> >
-> >On further thinking, why does Suspend-to-RAM need HOTPLUG_CPU, but
-> >Suspend-to-Disk works without?  Might help in finding a better
-> >solution.
-> STD also requires HOTPLUG_CPU. It might be the config error.
+> I'm sending the patches out not for merging but for comments. The
+> patches try to convert ACPI driver model to Linux driver model. There
+> are still many things unsettled. If you have any
+> comment/suggestion/requirement, please let me know.
+> 
+> 1. in my mind, acpi should export two sets of info in sysfs. One is
+> current namespace subsystem, it should just export the firmware info.
+> All acpi device/drivers related info don't export here. The other is
+> ACPI bus. It's similar with other buses like PCI bus.
 
-Yes, Kconfig error, if indeed your statement is correct,
-which I'm not verifying, but accepting it to be.
+I'm not sure if we want to export the ACPI namespace in sysfs.  In
+theory, we can attach most of that information on to the device tree
+directly.  I agree that an ACPI bus would be useful.  I think it should
+represent every device that can't be enumerated by another standard.
 
-Pavel, I guess this is yours to merge?
+> 
+> 2. I regard all devices which don't belong to physical buses in the DSDT
+> as ACPI bus devices. Ideally, PCI devices, PNP devices & other devices
+> should bind them to their physical buses. Since many devices listed in
+> DSDT aren't in ACPI bus, this makes it impossible to convert current
+> acpi driver model into Linux style. You might look at my patch, many
+> routines required by Linux driver model are empty. Though we can't
+> completely utilize the advantage of Linux driver model, the partial
+> convert still benefits us many such as sysfs support and suspend/resume
+> support.
 
----
-From: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+This partial implementation has its advantages, but it's also important
+to have a well defined plan of transition.  I think we should migrate the
+ACPI code entirely to the linux driver model.  I've made some progress on
+this issue.
 
-SOFTWARE_SUSPEND needs HOTPLUG_CPU on SMP.
+> 
+> 3. The acpi namespace hotplug interface looks strange. After we
+> introduce ACPI bus (CPU is in the bus), we can send hotplug event
+> through it. So I'd like to remove the namespace hotplug interface later.
 
-Signed-off-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
----
+Agreed.
 
- kernel/power/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+> 
+> There are something to prevent us from completely converting ACPI driver
+> model to Linux style:
+> 1. Current ACPI driver model can register drivers for all devices listed
+> in DSDT. ACPI bus can't handle this.
 
-diff -Naurp linux-2614-rc1-git4/kernel/power/Kconfig~std_needs_hotplug_cpu linux-2614-rc1-git4/kernel/power/Kconfig
---- linux-2614-rc1-git4/kernel/power/Kconfig~std_needs_hotplug_cpu	2005-09-18 20:21:08.000000000 -0700
-+++ linux-2614-rc1-git4/kernel/power/Kconfig	2005-09-19 19:28:33.000000000 -0700
-@@ -29,7 +29,7 @@ config PM_DEBUG
- 
- config SOFTWARE_SUSPEND
- 	bool "Software Suspend"
--	depends on PM && SWAP && (X86 || ((FVR || PPC32) && !SMP))
-+	depends on PM && SWAP && (X86 && (!SMP || SUSPEND_SMP)) || ((FVR || PPC32) && !SMP)
- 	---help---
- 	  Enable the possibility of suspending the machine.
- 	  It doesn't need APM.
+I'm assuming you're referring to devices that don't need ACPI for
+enumeration.  All other types shouldn't be a problem.
+
+I've ran into this with some of my PCI bus code.  My current strategy is
+to move the responsibility of attaching firmware data to the specific
+device driver of the device in question rather than having the ACPI bus
+handle it.  The idea is that only ACPI-aware drivers will utilize ACPI,
+otherwise it will be ignored.  Essentially, ACPI aware devices will serve
+as anchoring points for ACPI objects, including those that belong to the
+ACPI Bus type.  Any comments?
+
+> 2. Current ACPI hotplug (CPU/IO) relays on separate .add/.start
+> callbacks, but Linux driver can only provide a .probe. We might split
+> ACPI hotplug support to separate drivers.
+> Since these, my patch just adds fake Linux driver model support, but it
+> still is very useful.
+
+This was also an issue that I came across.
+
+Could you explain the role of .add/.start and why it's necessary?  It
+may be reasonable to add this functionality to the Linux driver model
+so that other drivers can utilize it.
+
+
+I would appreciate any comments.
+
+Thanks,
+Adam
 
 
 -------------------------------------------------------
