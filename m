@@ -1,15 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Re: [PATCH] PNPACPI: handle address descriptors in _PRS
-Date: Wed, 21 Sep 2005 09:27:03 -0600
-Message-ID: <200509210927.03377.bjorn.helgaas@hp.com>
-References: <200509201626.15973.bjorn.helgaas@hp.com> <1127265452.4040.3.camel@linux-hp.sh.intel.com>
+From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [PATCH 2/2] suspend: Cleanup calling of power off methods.
+Date: Wed, 21 Sep 2005 09:35:20 -0700 (PDT)
+Message-ID: <Pine.LNX.4.58.0509210930410.2553@g5.osdl.org>
+References: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com>
+ <20050921101855.GD25297@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1127265452.4040.3.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20050921101855.GD25297-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,26 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, Masoud Sharbiani <masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 20 September 2005 7:17 pm, Shaohua Li wrote:
-> On Tue, 2005-09-20 at 16:26 -0600, Bjorn Helgaas wrote:
-> > PNPACPI complained about and ignored devices with ADDRESS16, ADDRESS32,
-> > or ADDRESS64 descriptors in _PRS.  Those descriptors seem legitimate,
-> > and HP firmware uses them for built-in serial ports, so this patch adds
-> > support for them.
 
-> You might have missed the similar change in pnpacpi_encode_resources in
-> your patch. It's used when we assign new resources (_SRS method) to pnp
-> devices.
 
-You're right, I did miss the corresponding encoding change.  I'll
-add that.  I feel a bit uneasy about it, though, because it will be
-a fair amount of code, and I don't know how to test it.  Do we ever
-really use _SRS today?  And there's information lost when decoding
-the ACPI resources, such as the _TRA.
+On Wed, 21 Sep 2005, Pavel Machek wrote:
+> 
+> I think you are not following the proper procedure. All the patches
+> should go through akpm.
+
+One issue is that I actually worry that Andrew will at some point be where 
+I was a couple of years ago - overworked and stressed out by just tons and 
+tons of patches. 
+
+Yes, he's written/modified tons of patch-tracking tools, and the git 
+merging hopefully avoids some of the pressures, but it still worries me. 
+If Andrew burns out, we'll all suffer hugely.
+
+I'm wondering what we can do to offset those kinds of issues. I _do_ like 
+having -mm as a staging area and catching some problems there, so going 
+through andrew is wonderful in that sense, but it has downsides.
+
+Andrew?
+
+			Linus
 
 
 -------------------------------------------------------
