@@ -1,52 +1,44 @@
-From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+From: ebiederm@xmission.com (Eric W. Biederman)
 Subject: Re: [PATCH 2/2] suspend: Cleanup calling of power off methods.
-Date: Wed, 21 Sep 2005 09:35:20 -0700 (PDT)
-Message-ID: <Pine.LNX.4.58.0509210930410.2553@g5.osdl.org>
+Date: Wed, 21 Sep 2005 11:28:55 -0600
+Message-ID: <m1slvycotk.fsf@ebiederm.dsl.xmission.com>
 References: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com>
- <20050921101855.GD25297@atrey.karlin.mff.cuni.cz>
+	<20050921101855.GD25297@atrey.karlin.mff.cuni.cz>
+	<Pine.LNX.4.58.0509210930410.2553@g5.osdl.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050921101855.GD25297-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, Masoud Sharbiani <masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751290AbVIURao@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0509210930410.2553@g5.osdl.org> (Linus
+ Torvalds's message of "Wed, 21 Sep 2005 09:35:20 -0700 (PDT)")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Pavel Machek <pavel@suse.cz>, Andrew Morton <akpm@osdl.org>, len.brown@intel.com, Pierre Ossman <drzeus-list@drzeus.cx>, acpi-devel@lists.sourceforge.net, ncunningham@cyclades.com, Masoud Sharbiani <masouds@masoud.ir>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Linus Torvalds <torvalds@osdl.org> writes:
 
+> On Wed, 21 Sep 2005, Pavel Machek wrote:
+>> 
+>> I think you are not following the proper procedure. All the patches
+>> should go through akpm.
 
-On Wed, 21 Sep 2005, Pavel Machek wrote:
-> 
-> I think you are not following the proper procedure. All the patches
-> should go through akpm.
+Ok.  I thought it was fine to send simple and obviously correct bug
+fixes to Linus.
 
-One issue is that I actually worry that Andrew will at some point be where 
-I was a couple of years ago - overworked and stressed out by just tons and 
-tons of patches. 
+> One issue is that I actually worry that Andrew will at some point be where 
+> I was a couple of years ago - overworked and stressed out by just tons and 
+> tons of patches. 
+>
+> Yes, he's written/modified tons of patch-tracking tools, and the git 
+> merging hopefully avoids some of the pressures, but it still worries me. 
+> If Andrew burns out, we'll all suffer hugely.
+>
+> I'm wondering what we can do to offset those kinds of issues. I _do_ like 
+> having -mm as a staging area and catching some problems there, so going 
+> through andrew is wonderful in that sense, but it has downsides.
 
-Yes, he's written/modified tons of patch-tracking tools, and the git 
-merging hopefully avoids some of the pressures, but it still worries me. 
-If Andrew burns out, we'll all suffer hugely.
+It is especially challenging for people like me who typically work on
+parts of the kernel without a maintainer.  So there frequently isn't
+an intermediate I can submit my patches to.
 
-I'm wondering what we can do to offset those kinds of issues. I _do_ like 
-having -mm as a staging area and catching some problems there, so going 
-through andrew is wonderful in that sense, but it has downsides.
-
-Andrew?
-
-			Linus
-
-
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+Eric
