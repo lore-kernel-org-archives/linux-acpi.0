@@ -1,13 +1,14 @@
-From: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [RFC 0/2]convert ACPI driver model to Linux driver model
-Date: Wed, 21 Sep 2005 00:56:41 -0400
-Message-ID: <20050921045641.GB14734@neo.rr.com>
-References: <1126502542.5153.17.camel@linux-hp.sh.intel.com> <20050912175741.GA15324@dominikbrodowski.de>
+Date: Wed, 21 Sep 2005 13:37:02 +0800
+Message-ID: <1127281022.6485.25.camel@linux-hp.sh.intel.com>
+References: <1126502542.5153.17.camel@linux-hp.sh.intel.com>
+	 <20050921043147.GA14734@neo.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050912175741.GA15324-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+In-Reply-To: <20050921043147.GA14734-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,132 +18,109 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7OTW4wlIGRCZ@public.gmane.org>
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 12, 2005 at 07:57:41PM +0200, Dominik Brodowski wrote:
-> Hi,
+Hi,
+On Wed, 2005-09-21 at 00:31 -0400, Adam Belay wrote:
 > 
 > On Mon, Sep 12, 2005 at 01:22:22PM +0800, Shaohua Li wrote:
+> > Hi,
 > > I'm sending the patches out not for merging but for comments. The
-> > patches try to convert ACPI driver model to Linux driver model. 
-> 
-> Excellent.
-> 
+> > patches try to convert ACPI driver model to Linux driver model. There
+> > are still many things unsettled. If you have any
+> > comment/suggestion/requirement, please let me know.
+> > 
 > > 1. in my mind, acpi should export two sets of info in sysfs. One is
 > > current namespace subsystem, it should just export the firmware info.
 > > All acpi device/drivers related info don't export here. The other is
 > > ACPI bus. It's similar with other buses like PCI bus.
 > 
-> However, there is no physical ACPI bus. Therefore, it shouldn't exist in
-> /sys/devices/ or /sys/bus/. If they are platform devices (devices which can be
-> poked at some iomem or ioport address, but aren't on any specific bus), they
-> should be registered as platform devices; if these are system devices
-> (core devices for basic operation; can live with IRQs off for suspend and 
-> resume, or even require that) they should be registered as system devices.
+Thanks for your time to look at it.
 
-In theory this makes sense, but in practice I think it's very difficult.  The
-ACPI specification clearly intends for these representions to show up as real
-physical devices.  One of the goals of ACPI is to look like a physical bus for
-platform hardware.  Hence, ACPI provides detection, identification, power
-management, and other bus-like services.
+> I'm not sure if we want to export the ACPI namespace in sysfs.  In
+> theory, we can attach most of that information on to the device tree
+> directly.  I agree that an ACPI bus would be useful.  I think it should
+> represent every device that can't be enumerated by another standard.
+I guess we can delay the discussion about if ACPI namespace should be in
+sysfs. We can do it after converting ACPI to Linux driver model.
 
-Also, in the driver model, we don't have physical bus types.  Rather buses are
-just collections of devices that have the same interface for detection,
-identification, power management, etc.  In general, a bus is just an API for
-talking to a type of physical hardware.  Some have even used "struct bus_type"
-to represent subcomponents of a physical device (see the PCI Express Port
-Driver). Therefore, I think it's very natural to create an ACPI "struct
-bus_type".  Every device that utilizes ACPI for detection, power management,
-etc... would belong to this bus_type.  I see "struct bus_type" as a type of
-physical device class.
-
-Also, platform devices are rather ugly, and I would argue that it may make sense
-to eventually remove them from the driver model.  They don't show device tree
-dependencies properly and in many ways are just a hack, so it may be better to
-register platform devices without a bus or with a legacy bus like ISA depending
-on the situation.
-
-> 
+> > 
 > > 2. I regard all devices which don't belong to physical buses in the DSDT
 > > as ACPI bus devices. Ideally, PCI devices, PNP devices & other devices
-> > should bind them to their physical buses.
-> 
-> Yes, exactly.
-> 
-> > Since many devices listed in
+> > should bind them to their physical buses. Since many devices listed in
 > > DSDT aren't in ACPI bus, this makes it impossible to convert current
-> > acpi driver model into Linux style.
+> > acpi driver model into Linux style. You might look at my patch, many
+> > routines required by Linux driver model are empty. Though we can't
+> > completely utilize the advantage of Linux driver model, the partial
+> > convert still benefits us many such as sysfs support and suspend/resume
+> > support.
 > 
-> Indeed. For each device, you need to decide which bus it resides on:
-> > (CPU is in the bus)
-> 
-> No, CPUs are already registered as system devices. ( /sys/devices/system/cpu/ )
-> Don't insert them twice into the device tree, please
+> This partial implementation has its advantages, but it's also important
+> to have a well defined plan of transition.  I think we should migrate the
+> ACPI code entirely to the linux driver model.  I've made some progress on
+> this issue.
+I have some troubles to migrate ACPI code entirely to linux driver model
+(I mentioned in my previous email). It would be great to look at your
+patches if possible.
 
-Once again, I'm not sure if I agree here.  When ACPI is the root bus, we can
-represent things like ACPI wants.  When we're using PnPBIOS or a legacy root
-bus, we can use system devices or whatever.  Still, this issue is rather
-complex and needs to be worked out.
-
+> > 
+> > 3. The acpi namespace hotplug interface looks strange. After we
+> > introduce ACPI bus (CPU is in the bus), we can send hotplug event
+> > through it. So I'd like to remove the namespace hotplug interface later.
 > 
-> >  So I'd like to remove the namespace hotplug interface later.
-> Indeed, let's focus on this stuff later on.
+> Agreed.
 > 
-> So, let's look at the devices and where they should be registered. In most
-> cases, it is just a guess on my side; system devices are suspended and
-> resumed with interrupts off; that most probably should be a decisive point
-> in this distinction.
+> > 
+> > There are something to prevent us from completely converting ACPI driver
+> > model to Linux style:
+> > 1. Current ACPI driver model can register drivers for all devices listed
+> > in DSDT. ACPI bus can't handle this.
 > 
-> +       "PNP0C09", /* EC */
-> -> system or platform, not sure...
-> 
-> +       "ACPI0003", /* AC */
-> -> platform
-> 
-> +       "PNP0C0F", /* Link */
-> -> system. Might this already be registered on some systems? I have
-> irqrouter, i8237 and i8259 in /sys/devices/system/
-> 
-> +       "PNP0C0A", /* battery */
-> -> platform
-> 
-> +       "PNP0C0C", "PNP0C0E", "PNP0C0D", "ACPI_FPB" ,"ACPI_FSB", /* button */
-> -> platform
-> 
-> +       "PNP0C0B", /* fan */
-> -> platform
-> 
-> +       "PNP0A03", /* PCI root */
-> -> system or platform, not sure either.... Please make sure that "pci0000:00" or
->    whatever is registered as a child of this device.
-> 
-> +       ACPI_POWER_HID, /* power */
-> -> platform
-> 
-> +       ACPI_PROCESSOR_HID, /* CPU */
-> -> system, is already there...
-> 
-> +       ACPI_THERMAL_HID, /* thermal */
-> -> platform
-
-I'd argue all of these should appear in the device tree.  Their drivers want
-to use the ACPI bus interface and will bind in a fashion identical to real
-physical devices.
+> I'm assuming you're referring to devices that don't need ACPI for
+> enumeration.  All other types shouldn't be a problem.
+Yes, exactly.
 
 > 
-> 
-> Also, you might think about adding all these devices to "class ACPI".
-> /sys/class/acpi/ is perfectly valid; there you can add some common
-> infrastructure for _all_ ACPI-enumerated devices, rely on "class interface"
-> and other methods available.
+> I've ran into this with some of my PCI bus code.  My current strategy is
+> to move the responsibility of attaching firmware data to the specific
+> device driver of the device in question rather than having the ACPI bus
+> handle it.  The idea is that only ACPI-aware drivers will utilize ACPI,
+> otherwise it will be ignored.  Essentially, ACPI aware devices will serve
+> as anchoring points for ACPI objects, including those that belong to the
+> ACPI Bus type.  Any comments?
+So only devices belonging to ACPI bus can register ACPI driver and other
+devices listed in ACPI table can have an ACPI handler and execute some
+ACPI methods but they can't register an ACPI driver, right? Looks good.
+I also have similar idea. In my mind, there are a firmware driver and an
+ACPI driver. All devices listed in ACPI table are able to have a
+firmware driver. Devices in ACPI bus can have an ACPI driver.
 
-I have some thoughts on this issue also, but it's probably best that we
-focus on physical ACPI device representation for now.
+> 
+> > 2. Current ACPI hotplug (CPU/IO) relays on separate .add/.start
+> > callbacks, but Linux driver can only provide a .probe. We might split
+> > ACPI hotplug support to separate drivers.
+> > Since these, my patch just adds fake Linux driver model support, but it
+> > still is very useful.
+> 
+> This was also an issue that I came across.
+> 
+> Could you explain the role of .add/.start and why it's necessary?  It
+> may be reasonable to add this functionality to the Linux driver model
+> so that other drivers can utilize it.
+Let's see an example of ACPI PCI root bridge hotplug. When a new root
+bridge is added, the root bridge's .added (scan PCI devices) method is
+called. And after we we allocated resources to PCI devices under the
+bridge, we start (call .start, add PCI devices into global PCI tree, as
+a result, binding devices with drivers) the bridge. The processor driver
+is another example. The seperate .add/.start makes the driver can work
+on both the non-hotplug and hotplug cases. The syntax mixed the
+functionalities of controlling the device and controlling hotplug the
+device. 
 
 Thanks,
-Adam
+Shaohua
 
 
 
