@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 Subject: Re: [PATCH 2/2] suspend: Cleanup calling of power off methods.
-Date: Wed, 21 Sep 2005 10:46:15 -0700
-Message-ID: <20050921104615.2e8dd7d5.akpm@osdl.org>
+Date: Wed, 21 Sep 2005 11:02:01 -0700
+Message-ID: <20050921110201.1cc7fca2.akpm@osdl.org>
 References: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com>
 	<20050921101855.GD25297@atrey.karlin.mff.cuni.cz>
 	<Pine.LNX.4.58.0509210930410.2553@g5.osdl.org>
+	<m1slvycotk.fsf@ebiederm.dsl.xmission.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0509210930410.2553-hNm40g4Ew95AfugRpC6u6w@public.gmane.org>
+In-Reply-To: <m1slvycotk.fsf-T1Yj925okcoyDheHMi7gv2pdwda3JcWeAL8bYrjMMd8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,70 +20,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: pavel-AlSwsSmVLrQ@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>
+Cc: torvalds-3NddpPZAyC0@public.gmane.org, pavel-AlSwsSmVLrQ@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org> wrote:
+ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org (Eric W. Biederman) wrote:
 >
+> Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org> writes:
 > 
+> > On Wed, 21 Sep 2005, Pavel Machek wrote:
+> >> 
+> >> I think you are not following the proper procedure. All the patches
+> >> should go through akpm.
 > 
-> On Wed, 21 Sep 2005, Pavel Machek wrote:
-> > 
-> > I think you are not following the proper procedure. All the patches
-> > should go through akpm.
+> Ok.  I thought it was fine to send simple and obviously correct bug
+> fixes to Linus.
+
+I habitually scoop up patches and will get them into Linus (preferably
+after 1-2 -mm cycles) if he ducks them.
+
+> > One issue is that I actually worry that Andrew will at some point be where 
+> > I was a couple of years ago - overworked and stressed out by just tons and 
+> > tons of patches. 
+> >
+> > Yes, he's written/modified tons of patch-tracking tools, and the git 
+> > merging hopefully avoids some of the pressures, but it still worries me. 
+> > If Andrew burns out, we'll all suffer hugely.
+> >
+> > I'm wondering what we can do to offset those kinds of issues. I _do_ like 
+> > having -mm as a staging area and catching some problems there, so going 
+> > through andrew is wonderful in that sense, but it has downsides.
 > 
-> One issue is that I actually worry that Andrew will at some point be where 
-> I was a couple of years ago - overworked and stressed out by just tons and 
-> tons of patches. 
+> It is especially challenging for people like me who typically work on
+> parts of the kernel without a maintainer.  So there frequently isn't
+> an intermediate I can submit my patches to.
 
-Patches are very low overhead, really.  It's patches which don't work which
-take lots of time - a single dud patch can take hours and can make me think
-rude thoughts about its originator.
+Yup.  And MAINTAINERS has quite a few omissions.  I generally know who
+should be poked and if there's nobody obvious I have 26000 patches to grep
+through to find out who might know a bit about that code.  Low-level x86 is
+a bit of a problem really because it has many cooks and no obvious chef.
 
-> Yes, he's written/modified tons of patch-tracking tools, and the git 
-> merging hopefully avoids some of the pressures, but it still worries me. 
-> If Andrew burns out, we'll all suffer hugely.
-> 
-> I'm wondering what we can do to offset those kinds of issues. I _do_ like 
-> having -mm as a staging area and catching some problems there, so going 
-> through andrew is wonderful in that sense, but it has downsides.
-> 
-> Andrew?
-> 
+Individual maintainers have differing response times, differing
+attentiveness and differing patchloss ratios.
 
-I'm doin OK.
+There's also confusion once I've cc'ed a maintainer on a patch over whether
+I'll be sending it to Linus or whether I want them to.
 
-Patch volume isn't a problem wrt the simple mechanics of handling them. 
-The problem we have at present is lack of patch reviewing bandwidth.  I'll
-be tightening things up in that area.  Relatively few developers seem to
-have the stomach to do a line-by-line through large patches, and it would
-be nice to refocus people a bit on that.  Christoph's work is hugely
-appreciated, thanks.
+If a maintainer has a tree in -mm then I'll autodrop the patch if they
+merge it, so there's no confusion there.
 
-Famous last words, but the actual patch volume _has_ to drop off one day. 
-In fact there doesn't seem to much happening out there wrt 2.6.15.
+If the maintainer says "thanks, merged" and I don't have their tree in -mm
+then I'll tend to hang onto the patch indefinitely until it finally hits
+-linus.  Or I'll eventually forget and merge it up anyway ;) 
 
-Bugs are a big problem - it takes 4 hours minimum to get a -mm out the door
-and a single bug can cause it to slip to the next day in which case I have
-to start again.  A couple of times it has taken over two days just to get
-together a tree which boots on four architectures and compiles on seven.
+If the maintainer just acks the patch I'll send it in to Linus.
 
-I'm spending more and more time on bugs now.  We have hundreds of bugs
-which people have taken the time to report, which the relevant developers
-know about and NOTHING IS HAPPENING.  "I can't reproduce it" is not an
-adequate reason when there are nice testers out there who are available to
-work through the diagnosis process.  We have hundreds of machines out there
-which we are known to have broken and developers just need to reapportion
-some of their time to getting these things fixed.
+If the maintainer nacks the patch I'll either drop it or I'll mark it
+not-for-merging and hang onto it anwyay, as a reminder that we have some
+bug which needs fixing.
 
-The -mm tree does prevent a large amount of crap from hitting mainline -
-I'd guess the bug leakthrough rate is ~10%, although that 90% tends to be
-the easy stuff - often compile errors.  I'd like to release -mm's more
-often and I'd like -mm to have less of a wild-and-crappy reputation.  Both
-of these would happen if originators were to test ther stuff more
-carefully.
-
+If the maintainer has a tree in -mm and doesn't merge the patch I'll hang
+onto it and periodically resend to the maintainer until some definite
+response comes back.
 
 
 
