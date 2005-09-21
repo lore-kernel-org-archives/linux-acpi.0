@@ -1,66 +1,42 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+From: Diego Calleja <diegocg@gmail.com>
 Subject: Re: [PATCH 2/2] suspend: Cleanup calling of power off methods.
-Date: Wed, 21 Sep 2005 13:10:19 -0700
-Message-ID: <20050921131019.21f20e97.akpm@osdl.org>
+Date: Wed, 21 Sep 2005 22:16:33 +0200
+Message-ID: <20050921221633.b3bf970b.diegocg@gmail.com>
 References: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com>
 	<20050921101855.GD25297@atrey.karlin.mff.cuni.cz>
 	<Pine.LNX.4.58.0509210930410.2553@g5.osdl.org>
 	<20050921173630.GA2477@localhost.localdomain>
-	<20050921194306.GC13246@flint.arm.linux.org.uk>
+	<20050921203505.32cc714d.diegocg@gmail.com>
+	<20050921114948.5b423109.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050921194306.GC13246-f404yB8NqCZvn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Russell King <rmk+lkml-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org, torvalds-3NddpPZAyC0@public.gmane.org, pavel-AlSwsSmVLrQ@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964805AbVIUUQu@vger.kernel.org>
+In-Reply-To: <20050921114948.5b423109.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>
+Cc: mbligh@aracnet.com, alexn@telia.com, torvalds@osdl.org, pavel@suse.cz, ebiederm@xmission.com, len.brown@intel.com, drzeus-list@drzeus.cx, acpi-devel@lists.sourceforge.net, ncunningham@cyclades.com, masouds@masoud.ir, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Russell King <rmk+lkml-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
->
-> So, before trying to get the "underworked" bug system used more,
->  please try to get more developers signed up to it so that we have
->  the necessary folk behind the bug system to handle the increased
->  work load.
+El Wed, 21 Sep 2005 11:49:48 -0700,
+Andrew Morton <akpm@osdl.org> escribi=F3:
 
-They don't actually need to be signed up to bugzilla.  Just cc
-bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org on the email trail and anything with
-'[Bug NNNN]' in Subject: gets filed appropriately.
+> There is such a list - it's a great way to depress yourself while sti=
+ll
+> half asleep.
 
-So all you need to do forward the email to the relevant culprit and cc
-bugme-daemon-ztI5WcYan/vQLgFONoPN61N6ohzGQtmt@public.gmane.org  Unfotunately some of the emails which
-bugzilla sends (the [bugme-new] ones) don't actually have
-bugme-daemon-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org on the To: or Cc: lines, so you need to
-add that by hand the first time.
+Thanks. While we are at it, what do people thinks about this
+very humble wiki page? (ie, does it have sense or I'd better remove it?=
+):
 
-On problem with all this is that once the discussion has gone to email, it
-kinda has to stay that way - if someone goes in and updates the bug via the
-web interface, those people who were getting the info only via direct email
-don't get to see the new info.   Generally that works out OK.
+http://wiki.kernelnewbies.org/wiki/LinuxChanges
 
-It would be nice if
+I'm trying to do something useful, ie like:
+http://wiki.dragonflybsd.org/index.php/DragonFly_Status
 
-a) we could add non-bugzilla-account-holders to a bug's cc list and
-
-b) Once bugzilla sees any person either sending or receiving emails or
-   web entries, it autoadds that person to the bug's cc list, so they get
-   email for all further activity.  Could be a bit irritating, but tough
-   luck ;) We need to fix bugs.
-
-
-
-
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+(yes, I also hate wikis, but if people knows of a better "colaborative
+environment" crap which works even with lynx and using it is as easy
+*cough* as writing text in a text form in lynx I'm all ears.
+http://gcc.gnu.org/wiki/ is also a great example of why kernel could be=
+nefit
+from using a wiki)
