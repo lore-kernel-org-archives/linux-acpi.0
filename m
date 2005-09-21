@@ -1,13 +1,13 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ACPI: implement UUID-labelled vendor-defined resources
-Date: Tue, 20 Sep 2005 16:16:37 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E02C8E63F@orsmsx403.amr.corp.intel.com>
+From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: standby problem
+Date: Tue, 20 Sep 2005 17:49:57 -0700
+Message-ID: <20050920174957.0852d7fe.rdunlap@xenotime.net>
+References: <59D45D057E9702469E5775CBB56411F171FF64@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <59D45D057E9702469E5775CBB56411F171FF64@pdsmsx406>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,52 +17,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: pavel-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'll get to this a bit later.
-Thx
-Bob
+On Tue, 20 Sep 2005 13:31:11 +0800 Li, Shaohua wrote:
 
+> >> >
+> >> >> >> i wanted to know what's mean this error :)
+> >> >> >>
+> >> >> >> mrspurr:/home/giskard# echo standby > /sys/power/state
+> >> >> >> acpi_pm_prepare does not support 1
+> >> >> >>
+> >> >> >> means that my laptop doesn't supporto standby mode?
+> >> >> >
+> >> >> >Probably yes.
+> >> >> Is it possible we can just show available pm states in
+> >> /sys/power/state?
+> >> >> I think we should report the error earlier before we do actual
+> >> >> suspend/resume. (maybe pm_ops should have a .supported_states
+> >> callback
+> >> >> for all archs) It seems many users are complaining about this
+> after
+> >> Len
+> >> >> deprecated the proc interface.
+> >> >
+> >> >Pavel Troller even had a patch, but it was too ugly. Yes, we should
+> >> >only list available states in /sys/power/state.
+> >> Ok, how does this one look? Each arch provides a .valid callback.
+> >
+> >With this patch, I see in /sys/power/state either:
+> >standby disk		# if CONFIG_SOFTWARE_SUSPEND=y
+> >
+> >or just:
+> >standby			# if CONFIG_SOFTWARE_SUSPEND=n
+> >
+> >Does this mean that my poor old BIOS cannot do STR or did I miss
+> >a config option?  Yes, I have CONFIG_ACPI_SLEEP=y.
+> >Is there another config option for STR?
+> It's interesting one system support standby but not support STR. Your
+> dmesg will tell us which states the system supports.
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:bjorn.helgaas-VXdhtT5mjnY@public.gmane.org]
-> Sent: Tuesday, September 20, 2005 4:10 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Cc: Moore, Robert; Brown, Len; Alex Williamson; Luck, Tony; linux-
-> ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [ACPI] [PATCH] ACPI: implement UUID-labelled
-vendor-defined
-> resources
->=20
-> On Monday 19 September 2005 9:31 am, Bjorn Helgaas wrote:
-> > > BTW, Please explain in more detail what support is needed in
-ACPICA
-> for
-> > > the ACPI 3.0 vendor-defined resource.  Also, any idea how we are
-> > > supposed to determine if the UUID data exists within the
-descriptor?
-> > > (i.e., how do we differentiate an ACPI 2.0 vendor descriptor from
-an
-> > > ACPI 3.0 descriptor?)
-> >
-> > There's no mark that distinguishes 2.0 and 3.0 vendor descriptors.
-> > As far as I can tell, a 3.0 descriptor (that contains a UUID and
-> > sub-type) is also a perfectly valid 2.0 descriptor.
-> >
-> > ACPI 3.0 "strongs recommends," but apparently doesn't actually
-> > require a UUID, so a 2.0 vendor descriptor should also be a valid
-> > 3.0 descriptor.
-> >
-> > The idea is that we just look through all the vendor descriptors
-> > for the supplied UUID.  If we find one, we return the information.
-> > There's a small possibility that an ACPI 2.0, non-UUID-labelled
-> > descriptor will contain data that happens to match the random
-> > 16-byte UUID, and we'll return it by mistake.  But that possibility
-> > is pretty remote, I think.
->=20
-> Ping...  Did this make any sense, or did I answer the wrong questions?
+Yes, it does tell us :(
+
+[42949386.700000] ACPI: (supports S0 S1 S4 S5)
+
+Thanks,
+---
+~Randy
+You can't do anything without having to do something else first.
+-- Belefant's Law
 
 
 -------------------------------------------------------
