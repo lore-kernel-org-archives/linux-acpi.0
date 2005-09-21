@@ -1,56 +1,40 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: S3 (sort of) success report on desktop
-Date: Wed, 21 Sep 2005 12:12:10 +0200
-Message-ID: <20050921101208.GB25297@atrey.karlin.mff.cuni.cz>
-References: <20050920230511.3cade509@commensaal.drs.p>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [PATCH 2/2] suspend: Cleanup calling of power off methods.
+Date: Wed, 21 Sep 2005 12:18:55 +0200
+Message-ID: <20050921101855.GD25297@atrey.karlin.mff.cuni.cz>
+References: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750799AbVIUKS5@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20050920230511.3cade509-7SZEXzPdWeU90gtriz95AQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Linus Torvalds <torvalds@osdl.org>, len.brown@intel.com, Pierre Ossman <drzeus-list@drzeus.cx>, acpi-devel@lists.sourceforge.net, ncunningham@cyclades.com, Masoud Sharbiani <masouds@masoud.ir>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> Recently for the first time I succeeded in getting S3 to work on my
-> desktop. The specs:
+> >> The S4 suspend code for PM_DISK_PLATFORM was also calling
+> >> device_shutdown without setting system_state, and was
+> >> not calling the appropriate reboot_notifier.
+> >
+> > ACK on both. But should not you submit patch via -mm, so it gets at
+> > least some testing there?
 > 
-> Motherboard: Asus A7V8X
-> Videocard: nVidia RIVA TNT2 model 64
+> The code is obviously correct, and the people with the problem
+> have reported that this approach solves it.
 > 
-> I need s3_bios,s3_mode. The only problem (so far) is that when
-> suspending from the console the monitor stays blank. Suspending from X
-> works OK.
+> If this bit of functionality is to even work we need to do
+> something like this.
 > 
-> 
-> Something different, I have a change for Documentation/power/video.txt
-> @@ -69,2 +69,2 @@
-> -Acer TM 636Lci			s3_bios vga=normal (2)
-> +Acer TM 636Lci			s3_bios,s3_mode (4)
-> 
-> I think this line came originally from me, I found out (somebody on the 
-> list told me, I think) that if I also use s3_mode, I don't have to use 
-> vga=normal, but can also use higher resolutions.
+> So I don't see what benefit putting this in -mm would give.  If
+> I was aggressive I would say that this needs to be in 2.6.13.N.
+> If I'm not following some procedure I don't have a problem
+> changing though.
 
-Thanks, applied.
-							Pavel
+I think you are not following the proper procedure. All the patches
+should go through akpm.
+								Pavel
 -- 
 Boycott Kodak -- for their patent abuse against Java.
-
-
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
