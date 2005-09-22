@@ -1,13 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] ACPI: implement UUID-labelled vendor-defined resources
-Date: Thu, 22 Sep 2005 19:48:36 +0200
-Message-ID: <20050922174835.GA27011@elf.ucw.cz>
-References: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2@orsmsx403.amr.corp.intel.com> <20050919155203.GA24346@infradead.org>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: [PATCH] PNPACPI: handle address descriptors in _PRS
+Date: Thu, 22 Sep 2005 17:48:29 -0600
+Message-ID: <200509221748.30090.bjorn.helgaas@hp.com>
+References: <200509210927.03377.bjorn.helgaas@hp.com> <1127350144.3961.5.camel@linux-hp.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1127350144.3961.5.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050919155203.GA24346-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +19,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Wednesday 21 September 2005 6:49 pm, Shaohua Li wrote:
+> On Wed, 2005-09-21 at 23:27 +0800, Bjorn Helgaas wrote:
+> > On Tuesday 20 September 2005 7:17 pm, Shaohua Li wrote: 
+> > > On Tue, 2005-09-20 at 16:26 -0600, Bjorn Helgaas wrote: 
+> > > > PNPACPI complained about and ignored devices with ADDRESS16,
+> > ADDRESS32, 
+> > > > or ADDRESS64 descriptors in _PRS.  Those descriptors seem
+> > legitimate, 
+> > > > and HP firmware uses them for built-in serial ports, so this patch
+> > adds 
+> > > > support for them.
+> > 
+> > > You might have missed the similar change in pnpacpi_encode_resources
+> > in 
+> > > your patch. It's used when we assign new resources (_SRS method) to
+> > pnp 
+> > > devices.
+> > 
+> > You're right, I did miss the corresponding encoding change.  I'll 
+> > add that.  I feel a bit uneasy about it, though, because it will be 
+> > a fair amount of code, and I don't know how to test it.  Do we ever 
+> > really use _SRS today?  And there's information lost when decoding 
+> > the ACPI resources, such as the _TRA.
+> We did use _SRS, at least under x86. This only is done when some PNP
+> devices havn't resources, so only very small number of systems need it.
+> Ignoring it might be ok currently, if HP firmware always assigns
+> resources to PNP devices. Yes, we did lose the info of _TRA. I didn't
+> find any system uses it. Maybe some big IA64 systems use.
 
-> > And to make things even more interesting, the base ACPICA code looks
-> > nothing like the final Linux version of the code; it is converted on the
-> > fly before every release to Linux.
-> 
-> So the Linux code is not the "preferred from of modification"?  You're
-> on an extremly slipperly slope vs the GPL there.  Not that I want to
-> sue your or intel, but this is certainly not in the spirit of the
-> License.
+HP ia64 systems definitely use _TRA.  I would expect most systems
+with multiple PCI root bridges would use _TRA, because if you
+don't, the amount of 32-bit PCI bus address space you can use
+is severely limited.
 
-Actually, they change it to conform to kernel coding-style... That
-should be okay.
+HP firmware does assign resources to the PNP devices (typically
+they're things hardwired onto the motherboard at fixed addresses).
+So we don't actually need the encoding changes at the moment.
 
-								Pavel
--- 
-if you have sharp zaurus hardware you don't need... you know my address
+I'm inclined to just leave the encoding out for now.  That
+way, we don't carry around the untested code, and if somebody
+eventually tries to use it, the attempt to set resources will
+fail, and we can write the code and test it at that time.
+
+What do you think?
+
+Bjorn
 
 
 -------------------------------------------------------
