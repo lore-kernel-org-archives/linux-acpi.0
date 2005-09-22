@@ -1,12 +1,13 @@
-From: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
-Subject: acpid maintainer searched
-Date: Thu, 22 Sep 2005 06:40:33 +0200
-Message-ID: <20050922044033.GA27206@schottelius.org>
+From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+Subject: Re: [PATCH 2/2] suspend: Cleanup calling of power off methods.
+Date: Thu, 22 Sep 2005 09:15:14 +0200
+Message-ID: <43325A02.90208@drzeus.cx>
+References: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com> <20050921101855.GD25297@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.58.0509210930410.2553@g5.osdl.org> <20050921173630.GA2477@localhost.localdomain> <20050921194306.GC13246@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20050921194306.GC13246-f404yB8NqCZvn6HldHNs0ANdhmdF6hFW@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,54 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Tim Hockin <thockin-xsfywfwIY+M@public.gmane.org>
+To: Russell King <rmk+lkml-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Alexander Nyberg <alexn-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, Masoud Sharbiani <masouds-VSK0CvVmMoVQFI55V6+gNQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Russell King wrote:
 
---tThc/1wpZn/ma/RB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>So, before trying to get the "underworked" bug system used more,
+>please try to get more developers signed up to it so that we have
+>the necessary folk behind the bug system to handle the increased
+>work load.
+>
+>  
+>
 
-Moin!
+What we probably need then is an official policy that maintainers need
+to have an account in the bugzilla. Start with the subsystem maintainers
+and leave it to them to get each driver maintainer in line. Having only
+a handful of parts of the kernel in the bugzilla is just confusing.
 
-If somebody has the e-mail of the current maitainer of
-acpid, I would be happy if it is passed to me. Tim seems not
-be reachable (mailbox does not exist).
+Personally I think the mailing lists are a great way for general
+discussion. But once we have a confirmed bug (or difficult new feature)
+it is better off being tracked in bugzilla. And this is my opinion both
+as a user and as a developer. Bugzilla is the de facto standard of
+reporting bugs so some users might find it troublesome dealing with
+mailing lists such as LKML.
 
-Thanks in advance,
-
-Nico
-
---=20
-Latest project: cconfig (http://nico.schotteli.us/papers/linux/cconfig/)
-Open Source nutures open minds and free, creative developers.
-
---tThc/1wpZn/ma/RB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iQIVAwUBQzI1wLOTBMvCUbrlAQLhiQ/8C+v8FdF/nkiddR7sbIaWVr3yUS80VZc2
-bBQNxccqRQS2+RxzUzCieP3GHbcHP7A23YTcwrCwW7pa2k2tAedW62q6mXW1w0L2
-K7GeH6JUgixYfZnaZg6QcHkXfxrSpUtYIg+quXJEtCyAMhODSA96m3W5644bTFPV
-2eCfsIRI8vk3ttCOEwBAI4QeUyj9R0XCwx/nXdaMMsw21/pSxcbZKr4/bjFESFNG
-Km6RdqkbzYvs2gIOBf223cGMFCIc3UJwX2i4UpNwlFqaNmFeN8QUwtwzfCMC7gxF
-Hinc1rBb4sxxHG0N5YCCOwGWczH/6mqkKzETvRaRMui5b7x3/E3dgIYNshihJ1fF
-YYW8bpptAmdwwzmjOHMEtopI/yZpWavL/hRIeOkQV+/kjYfVW1VAgVWEZWPNs/sz
-NC4gHKPCiQdvOtR6H3f7yC9Jse/7vnoYKjZZhh5BwATWr6kQlo+JCX5Ytqh/7HYt
-dtKMFKTCi+vWuGu57ycIqlzuhKfsBTQOryZveN+F32NrMeQAoRzwXu03n02+XIO7
-/Ya8zLOyaMNKYeohD7Gq3AXkqrr0yx5tM3Iv3ZFmb9fMp6HS2XpYFDmljsDDFKm3
-Ve+qrG5VLpuxkPxoFcZzTslVASNU54/pZd5d9rkkosO9BUofqh6yFR7leUOq9Zk7
-TLBu/+YxV1k=
-=3uDd
------END PGP SIGNATURE-----
-
---tThc/1wpZn/ma/RB--
+Rgds
+Pierre
 
 
 -------------------------------------------------------
