@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/7] acpi: handle FADT 2.0 xpmtmr address 0 case
-Date: Thu, 22 Sep 2005 20:59:50 -0700
-Message-ID: <200509230400.j8N40TnQ003685@shell0.pdx.osdl.net>
+Subject: [patch 5/7] acpi: Disable C2/C3 for _all_ IBM R40e Laptops
+Date: Thu, 22 Sep 2005 20:59:55 -0700
+Message-ID: <200509230400.j8N40XHK003698@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,40 +13,157 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, kernel-bugs-gyMb1R/nBgON7a6Aj5WzbLNAH6kLmebB@public.gmane.org, davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Thomas Rosner <kernel-bugs-gyMb1R/nBgON7a6Aj5WzbLNAH6kLmebB@public.gmane.org>
 
-Handle FADT 2.0 xpmtmr address 0 case.  The patch makes the pmtmr ioport
-detecting align with ACPICA (the comments are copied from ACPICA code).
+This adds all known BIOS versions of IBM R40e Laptops to the C2/C3
+processor state blacklist and thus prevents them from crashing.  Fixes Bug
+#3549.
 
-Signed-off-by: Shaohua Li<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Implementation is probably overly verbose, but DMI_MATCH seems to give us
+no choice.
+
+Signed-off-by: Thomas Rosner <kernel-bugs-gyMb1R/nBgON7a6Aj5WzbLNAH6kLmebB@public.gmane.org>
+Cc: <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- arch/i386/kernel/acpi/boot.c |    7 +++++++
- 1 files changed, 7 insertions(+)
+ drivers/acpi/processor_idle.c |  115 ++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 101 insertions(+), 14 deletions(-)
 
-diff -puN arch/i386/kernel/acpi/boot.c~acpi-handle-fadt-20-xpmtmr-address-0-case arch/i386/kernel/acpi/boot.c
---- devel/arch/i386/kernel/acpi/boot.c~acpi-handle-fadt-20-xpmtmr-address-0-case	2005-09-21 01:40:09.000000000 -0700
-+++ devel-akpm/arch/i386/kernel/acpi/boot.c	2005-09-21 01:40:09.000000000 -0700
-@@ -642,6 +642,13 @@ static int __init acpi_parse_fadt(unsign
- 			return 0;
+diff -puN drivers/acpi/processor_idle.c~acpi-disable-c2-c3-for-_all_-ibm-r40e-laptops-for-2613-bug-3549 drivers/acpi/processor_idle.c
+--- devel/drivers/acpi/processor_idle.c~acpi-disable-c2-c3-for-_all_-ibm-r40e-laptops-for-2613-bug-3549	2005-09-22 20:58:54.000000000 -0700
++++ devel-akpm/drivers/acpi/processor_idle.c	2005-09-22 20:58:59.000000000 -0700
+@@ -94,23 +94,110 @@ static int set_max_cstate(struct dmi_sys
+ }
  
- 		pmtmr_ioport = fadt->xpm_tmr_blk.address;
-+		/*
-+		 * "X" fields are optional extensions to the original V1.0
-+		 * fields, so we must selectively expand V1.0 fields if the
-+		 * corresponding X field is zero.
-+	 	 */
-+		if (!pmtmr_ioport)
-+			pmtmr_ioport = fadt->V1_pm_tmr_blk;
- 	} else {
- 		/* FADT rev. 1 */
- 		pmtmr_ioport = fadt->V1_pm_tmr_blk;
+ static struct dmi_system_id __initdata processor_power_dmi_table[] = {
++	/* The known versions of IBM R40e BIOS */
+ 	{set_max_cstate, "IBM ThinkPad R40e", {
+-					       DMI_MATCH(DMI_BIOS_VENDOR,
+-							 "IBM"),
+-					       DMI_MATCH(DMI_BIOS_VERSION,
+-							 "1SET60WW")},
+-	 (void *)1},
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET32WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET43WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET45WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET47WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET50WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET52WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET55WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET56WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET59WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET60WW")},
++			(void *)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET61WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET62WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET64WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET65WW") },
++			(void*)1},
++	{set_max_cstate, "IBM ThinkPad R40e", {
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"IBM"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"1SET68WW") },
++			(void*)1},
++	/* Other laptops, same problem */
+ 	{set_max_cstate, "Medion 41700", {
+-					  DMI_MATCH(DMI_BIOS_VENDOR,
+-						    "Phoenix Technologies LTD"),
+-					  DMI_MATCH(DMI_BIOS_VERSION,
+-						    "R01-A1J")}, (void *)1},
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"Phoenix Technologies LTD"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"R01-A1J")},
++			(void *)1},
+ 	{set_max_cstate, "Clevo 5600D", {
+-					 DMI_MATCH(DMI_BIOS_VENDOR,
+-						   "Phoenix Technologies LTD"),
+-					 DMI_MATCH(DMI_BIOS_VERSION,
+-						   "SHE845M0.86C.0013.D.0302131307")},
+-	 (void *)2},
++			DMI_MATCH(DMI_BIOS_VENDOR,
++				"Phoenix Technologies LTD"),
++			DMI_MATCH(DMI_BIOS_VERSION,
++				"SHE845M0.86C.0013.D.0302131307")},
++			(void *)2},
+ 	{},
+ };
+ 
 _
 
 
