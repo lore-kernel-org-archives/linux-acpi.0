@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 4/7] Don't set dcdbas driver to default m
-Date: Thu, 22 Sep 2005 20:59:54 -0700
-Message-ID: <200509230400.j8N40WSY003695@shell0.pdx.osdl.net>
+Subject: [patch 1/7] acpi: handle FADT 2.0 xpmtmr address 0 case
+Date: Thu, 22 Sep 2005 20:59:50 -0700
+Message-ID: <200509230400.j8N40TnQ003685@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,33 +13,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-It's nasty to set random drivers to default m because people who just press
-enter on make oldconfig get these.  Remove the default m
+Handle FADT 2.0 xpmtmr address 0 case.  The patch makes the pmtmr ioport
+detecting align with ACPICA (the comments are copied from ACPICA code).
 
-Signed-off-by: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Signed-off-by: Shaohua Li<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/firmware/Kconfig |    1 -
- 1 files changed, 1 deletion(-)
+ arch/i386/kernel/acpi/boot.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN drivers/firmware/Kconfig~dont-set-dcdbas-driver-to-default-m drivers/firmware/Kconfig
---- devel/drivers/firmware/Kconfig~dont-set-dcdbas-driver-to-default-m	2005-09-10 04:09:41.000000000 -0700
-+++ devel-akpm/drivers/firmware/Kconfig	2005-09-10 04:09:41.000000000 -0700
-@@ -71,7 +71,6 @@ config DELL_RBU
- config DCDBAS
- 	tristate "Dell Systems Management Base Driver"
- 	depends on X86 || X86_64
--	default m
- 	help
- 	  The Dell Systems Management Base Driver provides a sysfs interface
- 	  for systems management software to perform System Management
+diff -puN arch/i386/kernel/acpi/boot.c~acpi-handle-fadt-20-xpmtmr-address-0-case arch/i386/kernel/acpi/boot.c
+--- devel/arch/i386/kernel/acpi/boot.c~acpi-handle-fadt-20-xpmtmr-address-0-case	2005-09-21 01:40:09.000000000 -0700
++++ devel-akpm/arch/i386/kernel/acpi/boot.c	2005-09-21 01:40:09.000000000 -0700
+@@ -642,6 +642,13 @@ static int __init acpi_parse_fadt(unsign
+ 			return 0;
+ 
+ 		pmtmr_ioport = fadt->xpm_tmr_blk.address;
++		/*
++		 * "X" fields are optional extensions to the original V1.0
++		 * fields, so we must selectively expand V1.0 fields if the
++		 * corresponding X field is zero.
++	 	 */
++		if (!pmtmr_ioport)
++			pmtmr_ioport = fadt->V1_pm_tmr_blk;
+ 	} else {
+ 		/* FADT rev. 1 */
+ 		pmtmr_ioport = fadt->V1_pm_tmr_blk;
 _
 
 
