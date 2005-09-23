@@ -1,11 +1,14 @@
-From: Berthold Cogel <cogel-F8dkAKZEjLURtNtAH2Wc8g@public.gmane.org>
-Subject: Acer Extensa 3002 WLMi: Help wanted fixing the DSDT
-Date: Fri, 23 Sep 2005 23:50:18 +0200
-Message-ID: <4334789A.8020803@rrz.uni-koeln.de>
+From: Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
+Subject: [PATCH] acpi: Fix oops in asus_acpi.c on Samsung P30/P35 Laptops
+Date: Sat, 24 Sep 2005 01:36:25 +0200
+Message-ID: <20050923233625.GF6860@orest.greek0.net>
+References: <20050618004506.GE3690@orest.greek0.net> <42C2BA01.2060806@gmx.net> <20050629155015.GB14659@hell.org.pl> <200508191749.18016.mail@hboeck.de> <1124634977.4952.9.camel@nouse.net> <20050921090810.GS22403@orest.greek0.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9sSKoi6Rw660DLir"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050921090810.GS22403-eJYrgmUciHpxYM3rXe3Iuw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,113 +18,101 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Development <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Hanno =?iso-8859-1?Q?B=F6ck?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
 
-I've exported the DSTD of my notebook (Acer Extensa 3002 WLMi) and tried
-to recompile it:
+--9sSKoi6Rw660DLir
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---:<---
+Samsung P35's INIT returns an integer (instead of a string or a
+plain buffer), which caused an oops when the result was treated as
+string in asus_hotk_get_info() (since an invalid pointer got
+dereferenced).
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20040715 [Sep 22 2004]
-Copyright (C) 2000 - 2004 Intel Corporation
-Supports ACPI Specification Revision 2.0c
+This patch explicitly checks for ACPI_TYPE_INTEGER and for the
+return values possible on the P30/P35.
 
-dsdt.dsl.orig   245:     Method (_WAK, 1, NotSerialized)
-Warning  2026 -                     ^ Reserved method must return a
-value (_WAK)
+Signed-off-by: Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
+---
 
-dsdt.dsl.orig  4901:                         Method (_STA, 0, NotSerialized)
-Warning  2019 -    Not all control paths return a value ^  (_STA)
+ drivers/acpi/asus_acpi.c |   31 ++++++++++++++++++++++++++++---
+ 1 files changed, 28 insertions(+), 3 deletions(-)
 
-dsdt.dsl.orig  4901:                         Method (_STA, 0, NotSerialized)
-Warning  2026 -     Reserved method must return a value ^  (_STA)
-ASL Input:  dsdt.dsl.orig - 5430 lines, 203286 bytes, 2595 keywords
-AML Output: DSDT.aml - 22082 bytes 643 named objects 1952 executable opcodes
+c51f431351c648519a9b91de3c5e1d636246d7bc
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -1006,6 +1006,24 @@ static int __init asus_hotk_get_info(voi
+ 	}
+=20
+ 	model =3D (union acpi_object *)buffer.pointer;
++
++	/* INIT on Samsung's P35 returns an integer, possible return
++	 * values are tested below */
++	if (model->type =3D=3D ACPI_TYPE_INTEGER) {
++		if (model->integer.value =3D=3D -1 ||
++			model->integer.value =3D=3D 0x58 ||
++			model->integer.value =3D=3D 0x38) {
++			hotk->model =3D P30;
++			printk(KERN_NOTICE
++				       "  Samsung P35 detected, supported\n");
++			goto out_known;
++		} else {
++			printk(KERN_WARNING=20
++				"  unknown integer returned by INIT\n");
++			goto out_unknown;
++		}
++	}
++
+ 	if (model->type =3D=3D ACPI_TYPE_STRING) {
+ 		printk(KERN_NOTICE "  %s model detected, ",
+ 		       model->string.pointer);
+@@ -1057,9 +1075,7 @@ static int __init asus_hotk_get_info(voi
+ 		hotk->model =3D L5x;
+=20
+ 	if (hotk->model =3D=3D END_MODEL) {
+-		printk("unsupported, trying default values, supply the "
+-		       "developers with your DSDT\n");
+-		hotk->model =3D M2E;
++		goto out_unknown;
+ 	} else {
+ 		printk("supported\n");
+ 	}
+@@ -1088,6 +1104,15 @@ static int __init asus_hotk_get_info(voi
+ 	acpi_os_free(model);
+=20
+ 	return AE_OK;
++
++out_unknown:
++	printk(KERN_WARNING "  unsupported, trying default values, "
++			"supply the developers with your DSDT\n");
++	hotk->model =3D M2E;
++out_known:
++	hotk->methods =3D &model_conf[hotk->model];
++	acpi_os_free(model);
++	return AE_OK;
+ }
+=20
+ static int __init asus_hotk_check(void)
 
-Compilation complete. 0 Errors, 3 Warnings, 0 Remarks, 723 Optimizations
+--9sSKoi6Rw660DLir
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
---:<---
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
+iD8DBQFDNJF4xsP1RlTwJHsRAkv9AKCdTiqkiR9gWiI5jfaSN+RWUFkszwCgkEoz
+8ao8TUfAKNmzRznzUngrpDM=
+=7oZY
+-----END PGP SIGNATURE-----
 
-I've fixed the errors according to information I found in the list and
-other sources:
-
-
---:<---
-
-diff -c orig/dsdt.dsl.orig fixed/dsdt.dsl
-*** orig/dsdt.dsl.orig  2005-08-23 23:51:15.000000000 +0200
---- fixed/dsdt.dsl      2005-08-27 19:50:55.000000000 +0200
-***************
-*** 295,300 ****
---- 295,301 ----
-          }
-
-          Store (0x00, \_SB.SLEE)
-+       Return(Package(0x02){0x00, 0x00})
-      }
-
-      Scope (_GPE)
-***************
-*** 4917,4922 ****
---- 4918,4927 ----
-                                              Return (0x0F)
-                                          }
-                                      }
-+                                     Else
-+                                     {
-+                                         Return (0x08)
-+                                     }
-                                  }
-                                  Else
-                                  {
-
---:<---
-
-
-Then I patched the DSDT with the code from the sbs-linux project
-(sbs-cm-20050328, acer-tm4xxx-sbs-cm.diff). Recompiling gives some
-errors I haven't fixed yet:
-
-
---:<---
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20040715 [Sep 22 2004]
-Copyright (C) 2000 - 2004 Intel Corporation
-Supports ACPI Specification Revision 2.0c
-
-smbus-cm.asl    87:         Method (_SBI, 0, NotSerialized)
-Warning  2033 -  Unknown reserved name ^  (_SBI)
-
-smbus-cm.asl   147:         Method (_SBR, 3, NotSerialized)
-Warning  2033 -  Unknown reserved name ^  (_SBR)
-
-smbus-cm.asl   237:         Method (_SBW, 5, NotSerialized)
-Warning  2033 -  Unknown reserved name ^  (_SBW)
-
-smbus-cm.asl   314:         Method (_SBA, 0, NotSerialized)
-Warning  2033 -  Unknown reserved name ^  (_SBA)
-
-ASL Input:  dsdt.dsl - 5337 lines, 247867 bytes, 3171 keywords
-AML Output: DSDT.aml - 25869 bytes 706 named objects 2465 executable opcodes
-
-Compilation complete. 0 Errors, 4 Warnings, 0 Remarks, 921 Optimizations
-
---:<---
-
-
-Does anybody know how to fix the DSDT?
-
-Thanks,
-
-Berthold
-
-
+--9sSKoi6Rw660DLir--
 
 
 -------------------------------------------------------
