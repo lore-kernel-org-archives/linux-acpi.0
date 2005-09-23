@@ -1,7 +1,7 @@
 From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] PNPACPI: handle address descriptors in _PRS
-Date: Fri, 23 Sep 2005 10:06:35 -0600
-Message-ID: <200509231006.35547.bjorn.helgaas@hp.com>
+Subject: [PATCH] ACPI: fix memhotplug memory range length handling
+Date: Fri, 23 Sep 2005 11:27:41 -0600
+Message-ID: <200509231127.41874.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -17,110 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>, Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-PNPACPI complained about and ignored devices with ADDRESS16, ADDRESS32, or
-ADDRESS64 descriptors in _PRS.  HP firmware uses them for built-in serial
-ports, so this patch adds support for parsing these descriptors from _PRS.
-
-Note that this does not add the corresponding support for encoding them
-in preparation for _SRS, because I don't have any machine that supports
-_SRS on these descriptors, so I couldn't test that support.  Attempts to
-encode them will cause a warning and an -EINVAL return.
-
-Previous discussion:
-    http://sourceforge.net/mailarchive/forum.php?thread_id=8250154&forum_id=6102
+Address space descriptors contain _MIN, _MAX, and _LEN.  _MIN and
+_MAX are the bounds within which the region can be moved (this
+is clarified in Table 6-38 of the 3.0 ACPI spec).  We should use
+_LEN to determine the size of the region, not _MAX - _MIN + 1.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-Index: work-vga2/drivers/pnp/pnpacpi/rsparser.c
+Index: work3/drivers/acpi/acpi_memhotplug.c
 ===================================================================
---- work-vga2.orig/drivers/pnp/pnpacpi/rsparser.c	2005-09-20 16:12:47.000000000 -0600
-+++ work-vga2/drivers/pnp/pnpacpi/rsparser.c	2005-09-23 09:45:37.000000000 -0600
-@@ -453,6 +453,45 @@
- 	return;
- }
+--- work3.orig/drivers/acpi/acpi_memhotplug.c	2005-09-23 11:22:11.000000000 -0600
++++ work3/drivers/acpi/acpi_memhotplug.c	2005-09-23 11:23:44.000000000 -0600
+@@ -74,7 +74,7 @@
+ 	unsigned short cache_attribute;	/* memory cache attribute */
+ 	unsigned short read_write_attribute;	/* memory read/write attribute */
+ 	u64 start_addr;		/* Memory Range start physical addr */
+-	u64 end_addr;		/* Memory Range end physical addr */
++	u64 length;		/* Memory Range length */
+ };
  
-+static void
-+pnpacpi_parse_address_option(struct pnp_option *option, struct acpi_resource *r)
-+{
-+	struct acpi_resource_address64 addr, *p = &addr;
-+	acpi_status status;
-+	struct pnp_mem * mem;
-+	struct pnp_port * port;
-+
-+	status = acpi_resource_to_address64(r, p);
-+	if (!ACPI_SUCCESS(status)) {
-+		pnp_warn("PnPACPI: failed to convert resource type %d", r->id);
-+		return;
-+	}
-+
-+	if (p->address_length == 0)
-+		return;
-+
-+	if (p->resource_type == ACPI_MEMORY_RANGE) {
-+		mem = kcalloc(1, sizeof(struct pnp_mem), GFP_KERNEL);
-+		if (!mem)
-+			return;
-+		mem->min = mem->max = p->min_address_range;
-+		mem->size = p->address_length;
-+		mem->align = 0;
-+		mem->flags = (p->attribute.memory.read_write_attribute ==
-+		    ACPI_READ_WRITE_MEMORY) ? IORESOURCE_MEM_WRITEABLE : 0;
-+		pnp_register_mem_resource(option,mem);
-+	} else if (p->resource_type == ACPI_IO_RANGE) {
-+		port = kcalloc(1, sizeof(struct pnp_port), GFP_KERNEL);
-+		if (!port)
-+			return;
-+		port->min = port->max = p->min_address_range;
-+		port->size = p->address_length;
-+		port->align = 0;
-+		port->flags = PNP_PORT_FLAG_FIXED;
-+		pnp_register_port_resource(option,port);
-+	}
-+}
-+
- struct acpipnp_parse_option_s {
- 	struct pnp_option *option;
- 	struct pnp_option *option_independent;
-@@ -495,6 +534,11 @@
- 			pnpacpi_parse_fixed_mem32_option(option,
- 				&res->data.fixed_memory32);
- 			break;
-+		case ACPI_RSTYPE_ADDRESS16:
-+		case ACPI_RSTYPE_ADDRESS32:
-+		case ACPI_RSTYPE_ADDRESS64:
-+			pnpacpi_parse_address_option(option, res);
-+			break;
- 		case ACPI_RSTYPE_START_DPF:
- 			switch (res->data.start_dpf.compatibility_priority) {
- 				case ACPI_GOOD_CONFIGURATION:
-@@ -568,11 +612,9 @@
- 	case ACPI_RSTYPE_MEM24:
- 	case ACPI_RSTYPE_MEM32:
- 	case ACPI_RSTYPE_FIXED_MEM32:
--#if 0
- 	case ACPI_RSTYPE_ADDRESS16:
- 	case ACPI_RSTYPE_ADDRESS32:
- 	case ACPI_RSTYPE_ADDRESS64:
--#endif
- 		(*res_cnt) ++;
- 	default:
- 		return AE_OK;
-@@ -593,11 +635,9 @@
- 	case ACPI_RSTYPE_MEM24:
- 	case ACPI_RSTYPE_MEM32:
- 	case ACPI_RSTYPE_FIXED_MEM32:
--#if 0
- 	case ACPI_RSTYPE_ADDRESS16:
- 	case ACPI_RSTYPE_ADDRESS32:
- 	case ACPI_RSTYPE_ADDRESS64:
--#endif
- 		(*resource)->id = res->id;
- 		(*resource)++;
- 	default:
+ static int
+@@ -102,7 +102,7 @@
+ 			mem_device->read_write_attribute =
+ 			    address64.attribute.memory.read_write_attribute;
+ 			mem_device->start_addr = address64.min_address_range;
+-			mem_device->end_addr = address64.max_address_range;
++			mem_device->length = address64.address_length;
+ 		}
+ 	}
+ 
+@@ -199,8 +199,7 @@
+ 	 * Tell the VM there is more memory here...
+ 	 * Note: Assume that this function returns zero on success
+ 	 */
+-	result = add_memory(mem_device->start_addr,
+-			    (mem_device->end_addr - mem_device->start_addr) + 1,
++	result = add_memory(mem_device->start_addr, mem_device->length,
+ 			    mem_device->read_write_attribute);
+ 	if (result) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "\nadd_memory failed\n"));
+@@ -250,7 +249,7 @@
+ {
+ 	int result;
+ 	u64 start = mem_device->start_addr;
+-	u64 len = mem_device->end_addr - start + 1;
++	u64 len = mem_device->length;
+ 	unsigned long attr = mem_device->read_write_attribute;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
 
 
 -------------------------------------------------------
