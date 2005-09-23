@@ -1,8 +1,11 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 3/7] set IBM ThinkPad extras to default n in Kconfig
-Date: Thu, 22 Sep 2005 20:59:52 -0700
-Message-ID: <200509230400.j8N40Vit003691@shell0.pdx.osdl.net>
+From: maxxer <maxxer-IWqWACnzNjyonA0d6jMUrA@public.gmane.org>
+Subject: A stupid question...
+Date: Fri, 23 Sep 2005 15:52:54 +0200
+Message-ID: <20050923135254.GA32409@ginger>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,36 +15,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
 
-From: Borislav Petkov <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
+I've a stupid question: where can I get the meaning of acpi codes CPU 80
+& 81?
 
-I think the following isn't on purpose but the IBM Thinkpad acpi extras
-default to y in Kconfig.  The patch below fixes it:
-
-Signed-off-by: <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
----
-
- drivers/acpi/Kconfig |    1 -
- 1 files changed, 1 deletion(-)
-
-diff -puN drivers/acpi/Kconfig~set-ibm-thinkpad-extras-to-default-n-in-kconfig drivers/acpi/Kconfig
---- devel/drivers/acpi/Kconfig~set-ibm-thinkpad-extras-to-default-n-in-kconfig	2005-09-09 18:19:42.000000000 -0700
-+++ devel-akpm/drivers/acpi/Kconfig	2005-09-09 18:19:57.000000000 -0700
-@@ -197,7 +197,6 @@ config ACPI_ASUS
- config ACPI_IBM
- 	tristate "IBM ThinkPad Laptop Extras"
- 	depends on X86
--	default y
- 	---help---
- 	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
- 	  support for Fn-Fx key combinations, Bluetooth control, video
-_
+Thanks
+Maxxer
 
 
 -------------------------------------------------------
