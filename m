@@ -1,14 +1,13 @@
-From: Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
-Subject: [PATCH] acpi: Fix oops in asus_acpi.c on Samsung P30/P35 Laptops
-Date: Sat, 24 Sep 2005 01:36:25 +0200
-Message-ID: <20050923233625.GF6860@orest.greek0.net>
-References: <20050618004506.GE3690@orest.greek0.net> <42C2BA01.2060806@gmx.net> <20050629155015.GB14659@hell.org.pl> <200508191749.18016.mail@hboeck.de> <1124634977.4952.9.camel@nouse.net> <20050921090810.GS22403@orest.greek0.net>
+From: vidyut karan <kvidyut2000-/E1597aS9LQxFYw1CcD5bw@public.gmane.org>
+Subject: Re: native vs acpi support
+Date: Sat, 24 Sep 2005 03:10:44 +0100 (BST)
+Message-ID: <20050924021044.61508.qmail@web35415.mail.mud.yahoo.com>
+References: <20050912110025.A15668@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9sSKoi6Rw660DLir"
+Content-Type: multipart/alternative; boundary="0-1313400353-1127527844=:59414"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050921090810.GS22403-eJYrgmUciHpxYM3rXe3Iuw@public.gmane.org>
+In-Reply-To: <20050912110025.A15668-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,101 +17,128 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Hanno =?iso-8859-1?Q?B=F6ck?= <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-hotplug-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---9sSKoi6Rw660DLir
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--0-1313400353-1127527844=:59414
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Samsung P35's INIT returns an integer (instead of a string or a
-plain buffer), which caused an oops when the result was treated as
-string in asus_hotk_get_info() (since an invalid pointer got
-dereferenced).
-
-This patch explicitly checks for ACPI_TYPE_INTEGER and for the
-return values possible on the P30/P35.
-
-Signed-off-by: Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
----
-
- drivers/acpi/asus_acpi.c |   31 ++++++++++++++++++++++++++++---
- 1 files changed, 28 insertions(+), 3 deletions(-)
-
-c51f431351c648519a9b91de3c5e1d636246d7bc
-diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c
-+++ b/drivers/acpi/asus_acpi.c
-@@ -1006,6 +1006,24 @@ static int __init asus_hotk_get_info(voi
- 	}
+Hi,
 =20
- 	model =3D (union acpi_object *)buffer.pointer;
-+
-+	/* INIT on Samsung's P35 returns an integer, possible return
-+	 * values are tested below */
-+	if (model->type =3D=3D ACPI_TYPE_INTEGER) {
-+		if (model->integer.value =3D=3D -1 ||
-+			model->integer.value =3D=3D 0x58 ||
-+			model->integer.value =3D=3D 0x38) {
-+			hotk->model =3D P30;
-+			printk(KERN_NOTICE
-+				       "  Samsung P35 detected, supported\n");
-+			goto out_known;
-+		} else {
-+			printk(KERN_WARNING=20
-+				"  unknown integer returned by INIT\n");
-+			goto out_unknown;
-+		}
-+	}
-+
- 	if (model->type =3D=3D ACPI_TYPE_STRING) {
- 		printk(KERN_NOTICE "  %s model detected, ",
- 		       model->string.pointer);
-@@ -1057,9 +1075,7 @@ static int __init asus_hotk_get_info(voi
- 		hotk->model =3D L5x;
+Section [6.7.8] of pci express specs related to OSHP says that
+
+"Some systems that include Hot-Plug capable Root Ports and Switches that =
+are released before ACPI-compliant operating systems with native Hot-Plug=
+ support are available, can use ACPI firmware for propagating Hot-Plug ev=
+ents. Firmware control of the Hot-Plug registers must be disabled if an o=
+perating system with native support is used. Platforms that provide ACPI =
+firmware to propagate Hot-Plug events must also provide a control method =
+to transfer control to the operating system."
+
 =20
- 	if (hotk->model =3D=3D END_MODEL) {
--		printk("unsupported, trying default values, supply the "
--		       "developers with your DSDT\n");
--		hotk->model =3D M2E;
-+		goto out_unknown;
- 	} else {
- 		printk("supported\n");
- 	}
-@@ -1088,6 +1104,15 @@ static int __init asus_hotk_get_info(voi
- 	acpi_os_free(model);
+
+I could not understand the above properly.Please help me understand this.=
+ If a OS is not ACPI compliant will it still be able to use the OSHP meth=
+od provided by ACPI. Or does it mean that ACPI will disable the firmware =
+taking control of Hot plug so that OS can take care of that.
+
 =20
- 	return AE_OK;
-+
-+out_unknown:
-+	printk(KERN_WARNING "  unsupported, trying default values, "
-+			"supply the developers with your DSDT\n");
-+	hotk->model =3D M2E;
-+out_known:
-+	hotk->methods =3D &model_conf[hotk->model];
-+	acpi_os_free(model);
-+	return AE_OK;
- }
+
+Also in the native hotpluggin on PCI-Express how the control flows for AC=
+PI and non-ACPI case. For e.g. in linux 2.6.=20
+
 =20
- static int __init asus_hotk_check(void)
 
---9sSKoi6Rw660DLir
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Karan
 
-iD8DBQFDNJF4xsP1RlTwJHsRAkv9AKCdTiqkiR9gWiI5jfaSN+RWUFkszwCgkEoz
-8ao8TUfAKNmzRznzUngrpDM=
-=7oZY
------END PGP SIGNATURE-----
+=20
 
---9sSKoi6Rw660DLir--
+
+Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On Mon, Sep 12, 2005 at 08:16:49AM +0100, vidyut karan wrote:
+>=20
+> What is the difference betwwen an
+>=20
+> OS with an "native hot plug support"
+>=20
+An OS that has hotplug support as described in the PCI Express
+specification. This is supported by the pciehp driver.
+
+> and controlling the hot-plug by using ACPI.
+>=20
+An OS that has hotplug support as described in the ACPI
+specification. This is supported by the acpiphp driver.
+
+Native pcie hotplug is newer and better, since it describes a
+usage model (e.g. attention buttons, indicators etc.) and
+standardizes the programming interface to the hotplug
+hardware.=20
+
+>=20
+> If my query sounds idiotic, give me some pointers so that i can move
+> on the right track.
+>=20
+See the PCI hotplug specification and PCI Express specification
+from the PCI SIG, and the ACPI specification from=20
+http://www.acpi.info/.
+
+Rajesh
+
+Send instant messages to your online friends http://in.messenger.yahoo.co=
+m=20
+--0-1313400353-1127527844=:59414
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<DIV>Hi,</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Section [6.7.8] of pci express specs related to OSHP says that</DIV>
+<DIV><FONT face=3DGaramond>
+<P align=3Dleft><EM>"Some systems that include Hot-Plug capable Root Port=
+s and Switches that are released before ACPI-compliant operating systems =
+with native Hot-Plug support are available, can use ACPI </EM></FONT><FON=
+T face=3DGaramond><EM>firmware for propagating Hot-Plug events. Firmware =
+control of the Hot-Plug registers must be disabled if an operating system=
+ with native support is used. Platforms that provide ACPI firmware to pro=
+pagate Hot-Plug events must also provide a control method to transfer con=
+trol to the operating system."</EM></FONT></P>
+<P align=3Dleft><FONT face=3DGaramond><EM></EM></FONT>&nbsp;</P>
+<P align=3Dleft><FONT face=3DGaramond>I could not understand the above pr=
+operly.Please help me understand this. If a OS is not ACPI compliant will=
+ it still be able to use the OSHP method provided by ACPI. Or does it mea=
+n that ACPI will disable the firmware taking control of Hot plug so that =
+OS can take care of that.</FONT></P>
+<P align=3Dleft><FONT face=3DGaramond></FONT>&nbsp;</P>
+<P align=3Dleft><FONT face=3DGaramond>Also in the native hotpluggin on PC=
+I-Express how the control flows for ACPI and non-ACPI case. For e.g. in l=
+inux 2.6.&nbsp;</FONT></P>
+<P align=3Dleft><FONT face=3DGaramond></FONT>&nbsp;</P>
+<P align=3Dleft><FONT face=3DGaramond>Regards,</FONT></P>
+<P align=3Dleft><FONT face=3DGaramond>Karan</FONT></P>
+<P align=3Dleft><FONT face=3DGaramond><EM></EM>&nbsp;</P></FONT><BR><BR><=
+B><I>Rajesh Shah &lt;rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org&gt;</I></B> wrote:</DIV>
+<BLOCKQUOTE class=3Dreplbq style=3D"PADDING-LEFT: 5px; MARGIN-LEFT: 5px; =
+BORDER-LEFT: #1010ff 2px solid">On Mon, Sep 12, 2005 at 08:16:49AM +0100,=
+ vidyut karan wrote:<BR>&gt; <BR>&gt; What is the difference betwwen an<B=
+R>&gt; <BR>&gt; OS with an "native hot plug support"<BR>&gt; <BR>An OS th=
+at has hotplug support as described in the PCI Express<BR>specification. =
+This is supported by the pciehp driver.<BR><BR>&gt; and controlling the h=
+ot-plug by using ACPI.<BR>&gt; <BR>An OS that has hotplug support as desc=
+ribed in the ACPI<BR>specification. This is supported by the acpiphp driv=
+er.<BR><BR>Native pcie hotplug is newer and better, since it describes a<=
+BR>usage model (e.g. attention buttons, indicators etc.) and<BR>standardi=
+zes the programming interface to the hotplug<BR>hardware. <BR><BR>&gt; <B=
+R>&gt; If my query sounds idiotic, give me some pointers so that i can mo=
+ve<BR>&gt; on the right track.<BR>&gt; <BR>See the PCI hotplug specificat=
+ion and PCI Express specification<BR>from the PCI
+ SIG, and the ACPI specification from <BR>http://www.acpi.info/.<BR><BR>R=
+ajesh<BR></BLOCKQUOTE><p>Send instant messages to your online friends htt=
+p://in.messenger.yahoo.com=20
+--0-1313400353-1127527844=:59414--
 
 
 -------------------------------------------------------
