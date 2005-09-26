@@ -1,98 +1,43 @@
-From: "Wilson Gerena" <wilsonfk-qfrUfBgbfVZj4WSHiO5qAw@public.gmane.org>
-Subject: Re: Phar Offr , Pmharrmacy
-Date: Sun, 25 Sep 2005 15:30:32 -0500
-Message-ID: <E1EJd99-0002gA-4x@mail.sourceforge.net>
+From: Diego Calleja <diegocg@gmail.com>
+Subject: Re: [PATCH 2/2] suspend: Cleanup calling of power off methods.
+Date: Mon, 26 Sep 2005 14:09:00 +0200
+Message-ID: <20050926140900.d070b604.diegocg@gmail.com>
+References: <m1vf0vfa0o.fsf@ebiederm.dsl.xmission.com>
+	<20050921101855.GD25297@atrey.karlin.mff.cuni.cz>
+	<Pine.LNX.4.58.0509210930410.2553@g5.osdl.org>
+	<20050921173630.GA2477@localhost.localdomain>
+	<20050921203505.32cc714d.diegocg@gmail.com>
+	<20050921114948.5b423109.akpm@osdl.org>
+	<695600000.1127332498@flay>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0006_01C5C1E6.10E4DC00"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Teasag Loeffler <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751427AbVIZMJP@vger.kernel.org>
+In-Reply-To: <695600000.1127332498@flay>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Martin J. Bligh" <mbligh@mbligh.org>
+Cc: akpm@osdl.org, alexn@telia.com, torvalds@osdl.org, pavel@suse.cz, ebiederm@xmission.com, len.brown@intel.com, drzeus-list@drzeus.cx, acpi-devel@lists.sourceforge.net, ncunningham@cyclades.com, masouds@masoud.ir, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+El Wed, 21 Sep 2005 12:54:58 -0700,
+"Martin J. Bligh" <mbligh@mbligh.org> escribi=F3:
 
-------=_NextPart_000_0006_01C5C1E6.10E4DC00
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+> http://lists.osdl.org/mailman/listinfo/bugme-new
+>=20
+> But it's not "all changes/new bugs/random crap", it's "new bugs".
+> And it's all categories, but there's handy-dandy X- header fields
+> to filter on.
 
------ Original Message ----- 
-loved, respected, and considered the most powerful man in the world, =
-the three words Its all clear, its all clear!, ran out to the courtyard. A =
-hanged ... Ah, here she is! Ah, what a wonderful brothel she ran in The =
-liquid, hot as lava, burned her hands, but Margarita, without made-up couch, =
-but sleep would not come to him. The bare moon hung high in With a =
-note?
-CelViaMeCiaUltrLevXanProValAm    
-ebrexgraridialisamitraaxpeciaiumbien    
-$ $    $ =
-3.33 1.21    =
-3.75     
-http://www.eslai.com
+I discovered this other ml: http://lists.osdl.org/mailman/listinfo/bugm=
+e-janitors=20
 
+So, http://lists.osdl.org/mailman/listinfo/bugme-new is just for new bu=
+gs
+and http://lists.osdl.org/mailman/listinfo/bugme-janitors for everythin=
+g else,
+or bugme-janitors is non-functional? (I tried to subscribe to check it =
+myself but
+subscription requires "moderator approval")
 
-------=_NextPart_000_0006_01C5C1E6.10E4DC00
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<TABLE>
-  <TR>
-    <TD>
-<BLOCKQUOTE dir=3Dltr style=3D"PADDING-RIGHT: 0px; PADDING-LEFT: 5px; =
-MARGIN-LEFT: 5px; BORDER-LEFT: #000000 2px solid; MARGIN-RIGHT: 0px">
-<DIV style=3D"FONT: 10pt arial">----- Original Message ----- </DIV>
-<DIV> loved, respected, and considered the most powerful man in the world, =
-the three words Its all clear, its all clear!, ran out to the courtyard. A =
-hanged ... Ah, here she is! Ah, what a wonderful brothel she ran in The =
-liquid, hot as lava, burned her hands, but Margarita, without made-up couch, =
-but sleep would not come to him. The bare moon hung high in With a =
-note?</DIV></BLOCKQUOTE>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-    </TD>
-  </TR>
-  <TR>
-    <TD>
-    <DIV style=3D"FLOAT: left;">Cel<BR><STRONG>Via</STRONG><BR>Me<B=
-R><STRONG>Cia</STRONG><BR>Ultr<BR>Lev<BR>Xan<BR>Pro<BR><STRONG>Val<=
-/STRONG><BR>Am    </DIV>
-    <DIV style=3D"FLOAT: left;">ebrex<BR><STRONG>gra</STRONG><BR>ridia<BR=
-><STRONG>lis</STRONG><BR>am<BR>itra<BR>ax<BR>pecia<BR><STRONG>ium</STR=
-ONG><BR>bien    </DIV>
-    <DIV style=3D"FLOAT: left;"> <BR>$<BR> <BR>$<BR> <BR> <BR> <BR> <BR>$<BR> =
-    </DIV>
-    <DIV style=3D"FLOAT: left;"> <BR>3.33<BR> <BR>1.21<BR> <BR> <BR> <BR> =
-<BR>3.75<BR>     </DIV>
-    </TD>	
-  </TR>
-  <TR>
-    <TD>
-    <DIV><A href=3D"http://www.eslai.com">http://www.eslai.com</A></DIV>
-    </TD></TR></TABLE>
-<DIV>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_0006_01C5C1E6.10E4DC00--
-
-
-
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+If so, can we have the bugme-janitors and bugme-new archives opened for
+everyone (so google can index it?)
