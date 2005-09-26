@@ -1,145 +1,77 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: FYI - Intel _PDC documentation update
-Date: Mon, 26 Sep 2005 12:53:52 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3004B2E562@hdsmsx401.amr.corp.intel.com>
+From: Rajesh Shah <rajesh.shah@intel.com>
+Subject: Re: [ACPI] native vs acpi support
+Date: Mon, 26 Sep 2005 10:03:14 -0700
+Message-ID: <20050926100312.B3471@unix-os.sc.intel.com>
+References: <20050912110025.A15668@unix-os.sc.intel.com> <20050924021044.61508.qmail@web35415.mail.mud.yahoo.com>
+Reply-To: Rajesh Shah <rajesh.shah@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C5C2BA.E12009CC"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-hotplug-devel-admin@lists.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <20050924021044.61508.qmail@web35415.mail.mud.yahoo.com>; from kvidyut2000@yahoo.co.in on Sat, Sep 24, 2005 at 03:10:44AM +0100
+Sender: linux-hotplug-devel-admin@lists.sourceforge.net
+Errors-To: linux-hotplug-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
+	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-hotplug-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
+	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-hotplug-devel>
+To: vidyut karan <kvidyut2000@yahoo.co.in>
+Cc: Rajesh Shah <rajesh.shah@intel.com>, linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, greg@kroah.com
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Sat, Sep 24, 2005 at 03:10:44AM +0100, vidyut karan wrote:
+> 
+>    Section [6.7.8] of pci express specs related to OSHP says that
+> 
+>    "Some  systems  that  include Hot-Plug capable Root Ports and Switches
+>    that  are released before ACPI-compliant operating systems with native
+>    Hot-Plug support are available, can use ACPI 
+>    firmware  for  propagating  Hot-Plug  events.  Firmware control of the
+>    Hot-Plug registers must be disabled if an operating system with native
+>    support  is  used.  Platforms  that provide ACPI firmware to propagate
+>    Hot-Plug events must also provide a control method to transfer control
+>    to the operating system."
+> 
+The _OSC/OSHP mechanism is there to allow a system to support
+hotplug on a variety of OS's, some with and some without native
+pcie hotplug capabilities. Firmware could boot with the assumption
+that it will control hotplug hardware and the OS will only support
+the older acpiphp way of doing hot-plug. Of course, this still
+requires acpiphp support in the OS. If the system ends up booting
+a version of OS that supports native pcie hotplug, it will run the
+OSHP method to tell the BIOS that the OS will now control hotplug
+hardware directly. After OSHP is run, the BIOS must not attempt to
+control hotplug hardware, and must not generate an ACPI interrupt
+when hotplug occurs.
 
-------_=_NextPart_001_01C5C2BA.E12009CC
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+>    
+>    I  could  not  understand the above properly.Please help me understand
+>    this.  If  a OS is not ACPI compliant will it still be able to use the
+>    OSHP  method  provided by ACPI. 
 
-http://www.intel.com/technology/iapc/acpi/downloads/302223.htm
+No.
 
-=20
+> Or does it mean that ACPI will disable
+>    the  firmware  taking  control of Hot plug so that OS can take care of
+>    that.
+> 
+Yes.
 
+> 
+>    Also in the native hotpluggin on PCI-Express how the control flows for
+>    ACPI and non-ACPI case. For e.g. in linux 2.6.
+> 
+acpi interrupts are not generated any more for hotplug once native
+pcie hotplug is enabled. 
 
-------_=_NextPart_001_01C5C2BA.E12009CC
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML xmlns=3D"http://www.w3.org/TR/REC-html40" xmlns:v =3D=20
-"urn:schemas-microsoft-com:vml" xmlns:o =3D=20
-"urn:schemas-microsoft-com:office:office" xmlns:w =3D=20
-"urn:schemas-microsoft-com:office:word" xmlns:st1 =3D=20
-"urn:schemas-microsoft-com:office:smarttags"><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2900.2668" name=3DGENERATOR><!--[if !mso]>
-<STYLE>v\:* {
-	BEHAVIOR: url(#default#VML)
-}
-o\:* {
-	BEHAVIOR: url(#default#VML)
-}
-w\:* {
-	BEHAVIOR: url(#default#VML)
-}
-.shape {
-	BEHAVIOR: url(#default#VML)
-}
-</STYLE>
-<![endif]--><o:SmartTagType downloadurl=3D"http://www.microsoft.com"=20
-name=3D"PersonName"=20
-namespaceuri=3D"urn:schemas-microsoft-com:office:smarttags"></o:SmartTagT=
-ype><!--[if !mso]>
-<STYLE>st1\:* {
-	BEHAVIOR: url(#default#ieooui)
-}
-</STYLE>
-<![endif]-->
-<STYLE>@font-face {
-	font-family: MS Mincho;
-}
-@font-face {
-	font-family: Tahoma;
-}
-@font-face {
-	font-family: @MS Mincho;
-}
-@page Section1 {size: 8.5in 11.0in; margin: 1.0in 1.25in 1.0in 1.25in; }
-P.MsoNormal {
-	FONT-SIZE: 12pt; MARGIN: 0in 0in 0pt; FONT-FAMILY: "Times New Roman"
-}
-LI.MsoNormal {
-	FONT-SIZE: 12pt; MARGIN: 0in 0in 0pt; FONT-FAMILY: "Times New Roman"
-}
-DIV.MsoNormal {
-	FONT-SIZE: 12pt; MARGIN: 0in 0in 0pt; FONT-FAMILY: "Times New Roman"
-}
-A:link {
-	COLOR: blue; TEXT-DECORATION: underline
-}
-SPAN.MsoHyperlink {
-	COLOR: blue; TEXT-DECORATION: underline
-}
-A:visited {
-	COLOR: purple; TEXT-DECORATION: underline
-}
-SPAN.MsoHyperlinkFollowed {
-	COLOR: purple; TEXT-DECORATION: underline
-}
-SPAN.EmailStyle17 {
-	COLOR: windowtext; FONT-FAMILY: Arial; mso-style-type: personal
-}
-SPAN.EmailStyle18 {
-	COLOR: navy; FONT-FAMILY: Arial; mso-style-type: personal
-}
-SPAN.EmailStyle19 {
-	COLOR: navy; FONT-FAMILY: Arial; mso-style-type: personal
-}
-SPAN.EmailStyle20 {
-	COLOR: navy; FONT-FAMILY: Arial; mso-style-type: personal
-}
-SPAN.EmailStyle21 {
-	COLOR: navy; FONT-FAMILY: Arial; mso-style-type: personal-reply
-}
-DIV.Section1 {
-	page: Section1
-}
-</STYLE>
-<!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext=3D"edit">
-  <o:idmap v:ext=3D"edit" data=3D"1" />
- </o:shapelayout></xml><![endif]--></HEAD>
-<BODY lang=3DEN-US vLink=3Dpurple link=3Dblue>
-<DIV dir=3Dltr align=3Dleft><FONT face=3DArial size=3D2><SPAN=20
-style=3D"FONT-SIZE: 10pt; FONT-FAMILY: Arial"><A=20
-title=3Dhttp://www.intel.com/technology/iapc/acpi/downloads/302223.htm=20
-href=3D"http://www.intel.com/technology/iapc/acpi/downloads/302223.htm">h=
-ttp://www.intel.com/technology/iapc/acpi/downloads/302223.htm</A><o:p></o=
-:p></SPAN></FONT></DIV>
-<DIV class=3DSection1>
-<P class=3DMsoNormal><FONT face=3DArial size=3D2><SPAN=20
-style=3D"FONT-SIZE: 10pt; FONT-FAMILY: =
-Arial"><o:p>&nbsp;</o:p></SPAN></FONT></P></DIV></BODY></HTML>
-
-------_=_NextPart_001_01C5C2BA.E12009CC--
+Rajesh
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+Tame your development challenges with Apache's Geronimo App Server. Download
+it for free - -and be entered to win a 42" plasma tv or your very own
+Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
