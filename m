@@ -1,77 +1,106 @@
-From: Rajesh Shah <rajesh.shah@intel.com>
-Subject: Re: [ACPI] native vs acpi support
-Date: Mon, 26 Sep 2005 10:03:14 -0700
-Message-ID: <20050926100312.B3471@unix-os.sc.intel.com>
-References: <20050912110025.A15668@unix-os.sc.intel.com> <20050924021044.61508.qmail@web35415.mail.mud.yahoo.com>
-Reply-To: Rajesh Shah <rajesh.shah@intel.com>
+From: Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi: remove whitespace before \n
+Date: Tue, 27 Sep 2005 01:45:34 +0400
+Message-ID: <20050926214533.GF32409@mipter.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-hotplug-devel-admin@lists.sourceforge.net>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050924021044.61508.qmail@web35415.mail.mud.yahoo.com>; from kvidyut2000@yahoo.co.in on Sat, Sep 24, 2005 at 03:10:44AM +0100
-Sender: linux-hotplug-devel-admin@lists.sourceforge.net
-Errors-To: linux-hotplug-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
-	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-hotplug-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
-	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-hotplug-devel>
-To: vidyut karan <kvidyut2000@yahoo.co.in>
-Cc: Rajesh Shah <rajesh.shah@intel.com>, linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, greg@kroah.com
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Denis Vlasenko <vda-BN/BzeNzsW2SlH3FCl+8hg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Sep 24, 2005 at 03:10:44AM +0100, vidyut karan wrote:
-> 
->    Section [6.7.8] of pci express specs related to OSHP says that
-> 
->    "Some  systems  that  include Hot-Plug capable Root Ports and Switches
->    that  are released before ACPI-compliant operating systems with native
->    Hot-Plug support are available, can use ACPI 
->    firmware  for  propagating  Hot-Plug  events.  Firmware control of the
->    Hot-Plug registers must be disabled if an operating system with native
->    support  is  used.  Platforms  that provide ACPI firmware to propagate
->    Hot-Plug events must also provide a control method to transfer control
->    to the operating system."
-> 
-The _OSC/OSHP mechanism is there to allow a system to support
-hotplug on a variety of OS's, some with and some without native
-pcie hotplug capabilities. Firmware could boot with the assumption
-that it will control hotplug hardware and the OS will only support
-the older acpiphp way of doing hot-plug. Of course, this still
-requires acpiphp support in the OS. If the system ends up booting
-a version of OS that supports native pcie hotplug, it will run the
-OSHP method to tell the BIOS that the OS will now control hotplug
-hardware directly. After OSHP is run, the BIOS must not attempt to
-control hotplug hardware, and must not generate an ACPI interrupt
-when hotplug occurs.
+From: Denis Vlasenko <vda-BN/BzeNzsW2SlH3FCl+8hg@public.gmane.org>
 
->    
->    I  could  not  understand the above properly.Please help me understand
->    this.  If  a OS is not ACPI compliant will it still be able to use the
->    OSHP  method  provided by ACPI. 
+Signed-off-by: Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
 
-No.
+ drivers/acpi/acpi_memhotplug.c |    2 +-
+ drivers/acpi/hotkey.c          |    4 ++--
+ drivers/acpi/pci_link.c        |    2 +-
+ drivers/acpi/sleep/main.c      |    2 +-
+ drivers/acpi/sleep/wakeup.c    |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-> Or does it mean that ACPI will disable
->    the  firmware  taking  control of Hot plug so that OS can take care of
->    that.
-> 
-Yes.
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -375,7 +375,7 @@ static int acpi_memory_device_add(struct
+ 	/* Set the device state */
+ 	mem_device->state = MEMORY_POWER_ON_STATE;
+ 
+-	printk(KERN_INFO "%s \n", acpi_device_name(device));
++	printk(KERN_INFO "%s\n", acpi_device_name(device));
+ 
+ 	return_VALUE(result);
+ }
+--- a/drivers/acpi/hotkey.c
++++ b/drivers/acpi/hotkey.c
+@@ -769,7 +769,7 @@ static ssize_t hotkey_write_config(struc
+ 
+ 	if (copy_from_user(config_record, buffer, count)) {
+ 		kfree(config_record);
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid data \n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid data\n"));
+ 		return_VALUE(-EINVAL);
+ 	}
+ 	config_record[count] = 0;
+@@ -826,7 +826,7 @@ static ssize_t hotkey_write_config(struc
+ 		else
+ 			free_poll_hotkey_buffer(key);
+ 		kfree(key);
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid hotkey \n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid hotkey\n"));
+ 		return_VALUE(-EINVAL);
+ 	}
+ 
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -295,7 +295,7 @@ static int acpi_pci_link_get_current(str
+ 
+ 	link->irq.active = irq;
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d\n", link->irq.active));
+ 
+       end:
+ 	return_VALUE(result);
+--- a/drivers/acpi/sleep/main.c
++++ b/drivers/acpi/sleep/main.c
+@@ -52,7 +52,7 @@ static int acpi_pm_prepare(suspend_state
+ 	u32 acpi_state = acpi_suspend_states[pm_state];
+ 
+ 	if (!sleep_states[acpi_state]) {
+-		printk("acpi_pm_prepare does not support %d \n", pm_state);
++		printk("acpi_pm_prepare does not support %d\n", pm_state);
+ 		return -EPERM;
+ 	}
+ 	return acpi_sleep_prepare(acpi_state);
+--- a/drivers/acpi/sleep/wakeup.c
++++ b/drivers/acpi/sleep/wakeup.c
+@@ -155,7 +155,7 @@ static int __init acpi_wakeup_device_ini
+ 
+ 	if (acpi_disabled)
+ 		return 0;
+-	printk("ACPI wakeup devices: \n");
++	printk("ACPI wakeup devices:\n");
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
 
-> 
->    Also in the native hotpluggin on PCI-Express how the control flows for
->    ACPI and non-ACPI case. For e.g. in linux 2.6.
-> 
-acpi interrupts are not generated any more for hotplug once native
-pcie hotplug is enabled. 
 
-Rajesh
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. Download
-it for free - -and be entered to win a 42" plasma tv or your very own
-Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+Tame your development challenges with Apache's Geronimo App Server. 
+Download it for free - -and be entered to win a 42" plasma tv or your very
+own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
