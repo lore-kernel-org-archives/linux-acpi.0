@@ -1,13 +1,11 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: S3 Suspend input devices problem with 2.6.12
-Date: Tue, 27 Sep 2005 09:04:27 +0200
-Message-ID: <20050927070427.GA4676@message-id.gmane0305.slipkontur.de>
-References: <200509270001.58875.johnohagan@iprimus.com.au>
+From: Simon <SimonLa-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>
+Subject: Problems with Kernel 2.6.13.2 and Acer Travelmate 4002lmi
+Date: Tue, 27 Sep 2005 19:34:17 +0200
+Message-ID: <43398299.80809@t-online.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------020909060304030806010102"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200509270001.58875.johnohagan-q6EoVN9bke7vnOemgxGiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,31 +18,135 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 27, 2005 at 12:01:58AM +1000, John O'Hagan wrote:
- 
-> So, my questions are: why does S3 suspend (and not S4) shuffle the devices 
+This is a multi-part message in MIME format.
+--------------020909060304030806010102
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-It is probably luck that it does not happen with S4.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="Generator" content="Kate, the KDE Advanced Text Editor">
+<pre>Hallo everybody,
 
-> around, and how can it be prevented? I notice that the keyboard and touchpad 
-> are initialized early in the boot process. Can they somehow be reinitialized 
-> after suspend? Is udev involved? Or is there a 
-> better solution?
+I have a problem with kernel 2.6.13.2 and my notebook Acer Travelmate 4002lmi(SBS battery). I have used Suse 9.3 with Kernel 2.6.8 and a patched DSDT from the 
+<a class="moz-txt-link-freetext" href="https://sourceforge.net/projects/sbs-linux/">https://sourceforge.net/projects/sbs-linux/</a> package. All work fine. 
+Now I have install Opensuse 10.0 RC1 with Kernel 2.6.13 and when I am activate ACPI the kernel needs 20 seconds to boot and the following Warning appears in the boot log
+and in the kernel log:
 
-I had something similar on a sony vaio, the touchpad would get a mux error on
-resume, disconnect and reconnect itself and then get a different device node.
-It didn't bother me much, since the newer X versions can cope with changing
-device nodes. Anyway, Vojtech diagnosed this and added a DMI match for this
-machine to disable mux mode.
+&lt;6&gt;ACPI: Embedded Controller [EC0] (gpe 29)
+&lt;4&gt;    ACPI-1048: *** Warning: Failed to acquire semaphore[dfec5960|1|0], AE_TIME
 
-You can try if it also happens with "i8042.nomux" parameter.
--- 
-Stefan Seyfried
+(More see attachment)
 
+And my battery applet in KDE shows no battery status(powersave, kpowersave). But when I use acpi -b in the terminal the right battery level were displayed.
+I have updated the Kernel with apt to 2.6.13.2 and the powersave package. 
+
+What means this warning/failure? What is the problem? (solution). When I disable acpi the kernel boots normally.
+
+Thanks for any help
+
+Simon Laschka 
+</pre>
+</body>
+</html>
+
+--------------020909060304030806010102
+Content-Type: application/x-txt;
+ name="acpi.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="acpi.txt"
+
+SW5zcGVjdGluZyAvYm9vdC9TeXN0ZW0ubWFwLTIuNi4xMy4yLTIwMDUwOTI2MTQyNTMzLWRl
+ZmF1bHQKU3ltYm9scyBtYXRjaCBrZXJuZWwgdmVyc2lvbiAyLjYuMTMuCjw2PkRNSSBwcmVz
+ZW50Lgo8Nz5BQ1BJOiBSU0RQICh2MDAwIEFDRVIgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgKSBAIDB4MDAwZjYyYzAKPDc+QUNQSTogUlNEVCAodjAwMSBBQ0VSICAgS2Vz
+dHJlbCAgMHgyMDAyMTAxMiAgTFRQIDB4MDAwMDAwMDApIEAgMHgxZmVlNjIwNQo8Nz5BQ1BJ
+OiBGQURUICh2MDAxIEFDRVIgICBLZXN0cmVsICAweDIwMDIxMDEyIFBUTCAgMHgwMDAwMDA1
+MCkgQCAweDFmZWViZjJjCjw3PkFDUEk6IEhQRVQgKHYwMDEgQUNFUiAgIEtlc3RyZWwgIDB4
+MjAwMjEwMTIgUFRMICAweDAwMDAwMDAwKSBAIDB4MWZlZWJmYTAKPDc+QUNQSTogQk9PVCAo
+djAwMSBBQ0VSICAgS2VzdHJlbCAgMHgyMDAyMTAxMiAgTFRQIDB4MDAwMDAwMDEpIEAgMHgx
+ZmVlYmZkOAo8Nz5BQ1BJOiBEU0RUICh2MDAxIEFDRVIgICBLZXN0cmVsICAweDIwMDIxMDEy
+IE1TRlQgMHgwMTAwMDAwZSkgQCAweDAwMDAwMDAwCjw2PkFDUEk6IFBNLVRpbWVyIElPIFBv
+cnQ6IDB4MTAwOAo8Nj5BQ1BJOiBsb2NhbCBhcGljIGRpc2FibGVkCjw2PkFDUEk6IExvb2tp
+bmcgZm9yIERTRFQgaW4gaW5pdHJhbWZzLi4uIGZvdW5kIC9EU0RULmFtbCAuLi4gc3VjY2Vz
+c2Z1bGx5IHJlYWQgMjU4NjEgYnl0ZXMgZnJvbSAvRFNEVC5hbWwKPDY+QUNQSTogVXNpbmcg
+Y3VzdG9taXplZCBEU0RUCjw0PiAgICBBQ1BJLTAzMDY6ICoqKiBJbmZvOiBUYWJsZSBbRFNE
+VF0gcmVwbGFjZWQgYnkgaG9zdCBPUwo8ND5BQ1BJOiBzZXR0aW5nIEVMQ1IgdG8gMDIwMCAo
+ZnJvbSAwNDQwKQo8Nj5ORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2Cjw2PkFD
+UEk6IGJ1cyB0eXBlIHBjaSByZWdpc3RlcmVkCjw2PlBDSTogUENJIEJJT1MgcmV2aXNpb24g
+Mi4xMCBlbnRyeSBhdCAweGZkNzgyLCBsYXN0IGJ1cz0yCjw2PlBDSTogVXNpbmcgY29uZmln
+dXJhdGlvbiB0eXBlIDEKPDY+QUNQSTogU3Vic3lzdGVtIHJldmlzaW9uIDIwMDUwNDA4Cjw2
+PkFDUEk6IEludGVycHJldGVyIGVuYWJsZWQKPDY+QUNQSTogVXNpbmcgUElDIGZvciBpbnRl
+cnJ1cHQgcm91dGluZwo8Nj5BQ1BJOiBQQ0kgUm9vdCBCcmlkZ2UgW1BDSTBdICgwMDAwOjAw
+KQo8ND5QQ0k6IFByb2JpbmcgUENJIGhhcmR3YXJlIChidXMgMDApCjw2PkFDUEk6IEFzc3Vt
+ZSByb290IGJyaWRnZSBbXF9TQl8uUENJMF0gc2VnbWVudCBpcyAwCjw2PlBDSTogSWdub3Jp
+bmcgQkFSMC0zIG9mIElERSBjb250cm9sbGVyIDAwMDA6MDA6MWYuMQo8Nz5Cb290IHZpZGVv
+IGRldmljZSBpcyAwMDAwOjAxOjAwLjAKPDY+UENJOiBUcmFuc3BhcmVudCBicmlkZ2UgLSAw
+MDAwOjAwOjFlLjAKPDc+QUNQSTogUENJIEludGVycnVwdCBSb3V0aW5nIFRhYmxlIFtcX1NC
+Xy5QQ0kwLl9QUlRdCjw3PkFDUEk6IFBDSSBJbnRlcnJ1cHQgUm91dGluZyBUYWJsZSBbXF9T
+Ql8uUENJMC5BR1BfLl9QUlRdCjw3PkFDUEk6IFBDSSBJbnRlcnJ1cHQgUm91dGluZyBUYWJs
+ZSBbXF9TQl8uUENJMC5QQ0lCLl9QUlRdCjw0PkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBb
+TE5LQV0gKElSUXMgKjYpCjw0PkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQl0gKElS
+UXMgKjEwKQo8ND5BQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0NdIChJUlFzICo2KQo8
+ND5BQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0RdIChJUlFzICo2KQo8ND5BQ1BJOiBQ
+Q0kgSW50ZXJydXB0IExpbmsgW0xOS0VdIChJUlFzICoxMCkKPDQ+QUNQSTogUENJIEludGVy
+cnVwdCBMaW5rIFtMTktGXSAoSVJRcyAxMCkgKjAsIGRpc2FibGVkLgo8ND5BQ1BJOiBQQ0kg
+SW50ZXJydXB0IExpbmsgW0xOS0ddIChJUlFzIDYpICowLCBkaXNhYmxlZC4KPDQ+QUNQSTog
+UENJIEludGVycnVwdCBMaW5rIFtMTktIXSAoSVJRcyAqMTApCjw2PkFDUEk6IEVtYmVkZGVk
+IENvbnRyb2xsZXIgW0VDMF0gKGdwZSAyOSkKPDQ+ICAgIEFDUEktMTA0ODogKioqIFdhcm5p
+bmc6IEZhaWxlZCB0byBhY3F1aXJlIHNlbWFwaG9yZVtkZmVjNTk2MHwxfDBdLCBBRV9USU1F
+Cjw0PiAgICBBQ1BJLTEwNDg6ICoqKiBXYXJuaW5nOiBGYWlsZWQgdG8gYWNxdWlyZSBzZW1h
+cGhvcmVbZGZlYzU5NjB8MXwwXSwgQUVfVElNRQo8ND4gICAgQUNQSS0xMDQ4OiAqKiogV2Fy
+bmluZzogRmFpbGVkIHRvIGFjcXVpcmUgc2VtYXBob3JlW2RmZWM1OTYwfDF8MF0sIEFFX1RJ
+TUUKPDQ+ICAgIEFDUEktMTA0ODogKioqIFdhcm5pbmc6IEZhaWxlZCB0byBhY3F1aXJlIHNl
+bWFwaG9yZVtkZmVjNTk2MHwxfDBdLCBBRV9USU1FCjw0PiAgICBBQ1BJLTEwNDg6ICoqKiBX
+YXJuaW5nOiBGYWlsZWQgdG8gYWNxdWlyZSBzZW1hcGhvcmVbZGZlYzU5NjB8MXwwXSwgQUVf
+VElNRQo8ND4gICAgQUNQSS0xMDQ4OiAqKiogV2FybmluZzogRmFpbGVkIHRvIGFjcXVpcmUg
+c2VtYXBob3JlW2RmZWM1OTYwfDF8MF0sIEFFX1RJTUUKPDQ+ICAgIEFDUEktMTA0ODogKioq
+IFdhcm5pbmc6IEZhaWxlZCB0byBhY3F1aXJlIHNlbWFwaG9yZVtkZmVjNTk2MHwxfDBdLCBB
+RV9USU1FCjw0PiAgICBBQ1BJLTEwNDg6ICoqKiBXYXJuaW5nOiBGYWlsZWQgdG8gYWNxdWly
+ZSBzZW1hcGhvcmVbZGZlYzU5NjB8MXwwXSwgQUVfVElNRQo8ND4gICAgQUNQSS0xMDQ4OiAq
+KiogV2FybmluZzogRmFpbGVkIHRvIGFjcXVpcmUgc2VtYXBob3JlW2RmZWM1OTYwfDF8MF0s
+IEFFX1RJTUUKPDQ+ICAgIEFDUEktMTA0ODogKioqIFdhcm5pbmc6IEZhaWxlZCB0byBhY3F1
+aXJlIHNlbWFwaG9yZVtkZmVjNTk2MHwxfDBdLCBBRV9USU1FCjw0PiAgICBBQ1BJLTEwNDg6
+ICoqKiBXYXJuaW5nOiBGYWlsZWQgdG8gYWNxdWlyZSBzZW1hcGhvcmVbZGZlYzU5NjB8MXww
+XSwgQUVfVElNRQo8ND4gICAgQUNQSS0xMDQ4OiAqKiogV2FybmluZzogRmFpbGVkIHRvIGFj
+cXVpcmUgc2VtYXBob3JlW2RmZWM1OTYwfDF8MF0sIEFFX1RJTUUKPDQ+ICAgIEFDUEktMTA0
+ODogKioqIFdhcm5pbmc6IEZhaWxlZCB0byBhY3F1aXJlIHNlbWFwaG9yZVtkZmVjNTk2MHwx
+fDBdLCBBRV9USU1FCjw0PiAgICBBQ1BJLTEwNDg6ICoqKiBXYXJuaW5nOiBGYWlsZWQgdG8g
+YWNxdWlyZSBzZW1hcGhvcmVbZGZlYzU5NjB8MXwwXSwgQUVfVElNRQo8ND4gICAgQUNQSS0x
+MDQ4OiAqKiogV2FybmluZzogRmFpbGVkIHRvIGFjcXVpcmUgc2VtYXBob3JlW2RmZWM1OTYw
+fDF8MF0sIEFFX1RJTUUKPDQ+ICAgIEFDUEktMTA0ODogKioqIFdhcm5pbmc6IEZhaWxlZCB0
+byBhY3F1aXJlIHNlbWFwaG9yZVtkZmVjNTk2MHwxfDBdLCBBRV9USU1FCjw0PiAgICBBQ1BJ
+LTEwNDg6ICoqKiBXYXJuaW5nOiBGYWlsZWQgdG8gYWNxdWlyZSBzZW1hcGhvcmVbZGZlYzU5
+NjB8MXwwXSwgQUVfVElNRQo8ND4gICAgQUNQSS0xMDQ4OiAqKiogV2FybmluZzogRmFpbGVk
+IHRvIGFjcXVpcmUgc2VtYXBob3JlW2RmZWM1OTYwfDF8MF0sIEFFX1RJTUUKPDQ+ICAgIEFD
+UEktMTA0ODogKioqIFdhcm5pbmc6IEZhaWxlZCB0byBhY3F1aXJlIHNlbWFwaG9yZVtkZmVj
+NTk2MHwxfDBdLCBBRV9USU1FCjw0PiAgICBBQ1BJLTEwNDg6ICoqKiBXYXJuaW5nOiBGYWls
+ZWQgdG8gYWNxdWlyZSBzZW1hcGhvcmVbZGZlYzU5NjB8MXwwXSwgQUVfVElNRQo8ND4gICAg
+QUNQSS0xMDQ4OiAqKiogV2FybmluZzogRmFpbGVkIHRvIGFjcXVpcmUgc2VtYXBob3JlW2Rm
+ZWM1OTYwfDF8MF0sIEFFX1RJTUUKPDQ+ICAgIEFDUEktMTA0ODogKioqIFdhcm5pbmc6IEZh
+aWxlZCB0byBhY3F1aXJlIHNlbWFwaG9yZVtkZmVjNTk2MHwxfDBdLCBBRV9USU1FCjw0PiAg
+ICBBQ1BJLTEwNDg6ICoqKiBXYXJuaW5nOiBGYWlsZWQgdG8gYWNxdWlyZSBzZW1hcGhvcmVb
+ZGZlYzU5NjB8MXwwXSwgQUVfVElNRQo8ND4gICAgQUNQSS0xMDQ4OiAqKiogV2FybmluZzog
+RmFpbGVkIHRvIGFjcXVpcmUgc2VtYXBob3JlW2RmZWM1OTYwfDF8MF0sIEFFX1RJTUUKPDQ+
+ICAgIEFDUEktMTA0ODogKioqIFdhcm5pbmc6IEZhaWxlZCB0byBhY3F1aXJlIHNlbWFwaG9y
+ZVtkZmVjNTk2MHwxfDBdLCBBRV9USU1FCjw0PiAgICBBQ1BJLTEwNDg6ICoqKiBXYXJuaW5n
+OiBGYWlsZWQgdG8gYWNxdWlyZSBzZW1hcGhvcmVbZGZlYzU5NjB8MXwwXSwgQUVfVElNRQo8
+ND4gICAgQUNQSS0xMDQ4OiAqKiogV2FybmluZzogRmFpbGVkIHRvIGFjcXVpcmUgc2VtYXBo
+b3JlW2RmZWM1OTYwfDF8MF0sIEFFX1RJTUUKPDY+QUNQSTogUG93ZXIgUmVzb3VyY2UgW1BG
+TjBdIChvZmYpCjw2PkFDUEk6IFBvd2VyIFJlc291cmNlIFtQRk4xXSAob2ZmKQo=
+--------------020909060304030806010102--
 
 
 -------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. 
-Download it for free - -and be entered to win a 42" plasma tv or your very
-own Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
