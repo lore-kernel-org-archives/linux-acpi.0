@@ -1,13 +1,13 @@
-From: vidyut karan <kvidyut2000-/E1597aS9LQxFYw1CcD5bw@public.gmane.org>
-Subject: problem in allocating resources for
-Date: Wed, 28 Sep 2005 15:08:14 +0100 (BST)
-Message-ID: <20050928140814.28476.qmail@web35410.mail.mud.yahoo.com>
-References: <20050926100312.B3471@unix-os.sc.intel.com>
+From: "Ranjan Parthasarathy" <Ranjan.Parthasarathy-IrU4XInhIXM@public.gmane.org>
+Subject: RE: 2.6.11 issues with S3
+Date: Wed, 28 Sep 2005 10:39:51 -0700
+Message-ID: <4A60C83D027E224BAA4550FB1A2B120E9DFBB3@fcexmb04.efi.internal>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-1915766002-1127916494=:28226"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050926100312.B3471-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,63 +17,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-hotplug-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---0-1915766002-1127916494=:28226
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Thanks,
 
-Hi all,
-While inserting pciehp.ko module(for native hot plug PCI Express support,=
- ACPI enabled), the following messages appear:
-"pciehp: pciehp: controller initialization failed".
-Can somebody give me some pointers where the problem possibly lies.
-Also on looking at the debug messages,=20
-acpi_parse_crs function (add_host_bridge --> acpi_get_crs --> acpi_parse_=
-crs) prints only the following msg:
+Ranjan
 
-"pciehp: End_tag -------- Resource" is printed.
+-----Original Message-----
+From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org]=20
+Sent: Tuesday, September 27, 2005 5:44 AM
+To: Ranjan Parthasarathy
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] 2.6.11 issues with S3
 
-=20
+Hi!
 
-kindly give me some pointers to identify the cause of problem
+> I am trying to get S3 working on my system running a 2.6.11 (upgraded =
+from
+> 2.6.4) kernel. On boot up I can put the system to S3 and then wol =
+using
+magic
+> packets. Subsequent attempts to put the system to S3 fail with the =
+error
 
-=20
+Try with recent kernel.
 
-thanks,
+> "stopping tasks failed (208 tasks remaining)". I tried changing the =
+TIMEOUT
+> from the default 6 HZ in kernel/power/process.c to a larger number and =
+the
+> system is now able to suspend but takes about 20 - 30 seconds for it =
+to go
+to
+> suspend. Why is it taking that long? Also shouldn't the timeout be
+dependent
+> on the number of processes that we are trying to put to suspend vs a
+constant
+> value?
+> =20
+> On my system, the error is easily reproducible with a simple shell =
+script
+> that spawns a lot of processes. As the number of processes increase, =
+after
+> around 70 odd processes in the system I start seeing failures while =
+trying
+to
+> suspend.
 
-karan
+It was not really design to work on stressed system, but feel free to =
+fix it.
+Sometimes even make -j 10 on kernel breaks it.
+--=20
+64 bytes from 195.113.31.123: icmp_seq=3D28 ttl=3D51 time=3D448769.1 ms  =
+      =20
 
-
-	=09
----------------------------------
- Yahoo! India Matrimony: Find your partner now.
---0-1915766002-1127916494=:28226
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<DIV>Hi all,</DIV>
-<DIV>While inserting pciehp.ko module(for native hot plug PCI Express sup=
-port, ACPI enabled), the following messages appear:</DIV>
-<DIV><EM>"pciehp: pciehp: controller initialization failed".</EM></DIV>
-<DIV>Can somebody give me some pointers where the problem possibly lies.<=
-/DIV>
-<DIV>Also on looking at the debug messages, </DIV>
-<DIV>acpi_parse_crs function (add_host_bridge --&gt; acpi_get_crs --&gt; =
-acpi_parse_crs) prints only the following msg:</DIV>
-<DIV><FONT size=3D2>
-<P><EM>"pciehp: End_tag -------- Resource" </EM>is printed.</P>
-<P>&nbsp;</P>
-<P>kindly give me some pointers to identify the cause of problem</P>
-<P>&nbsp;</P>
-<P>thanks,</P>
-<P>karan</FONT></P></DIV><p>
-		<hr size=3D1>=20
-<a href=3Dhttp://yahoo.shaadi.com>Yahoo! India Matrimony</a href>: Find y=
-our partner now.
---0-1915766002-1127916494=:28226--
 
 
 -------------------------------------------------------
