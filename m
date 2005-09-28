@@ -1,7 +1,7 @@
-From: Cristopher <scratches-eCXogm2ok+8AvxtiuMwx3w@public.gmane.org>
-Subject: Hot Shot stock Info
+From: Beau <recapitulated-w4ODDpmxRC8AvxtiuMwx3w@public.gmane.org>
+Subject: An interesting otc stock for your consideration
 Date: Wed, 28 Sep 2005 11:52:37 +0200
-Message-ID: <1184992595.3344810314@adsl196-141-215-206-196.adsl196-7.iam.net.ma>
+Message-ID: <1303799736.1254642386@adsl196-141-215-206-196.adsl196-7.iam.net.ma>
 Mime-Version: 1.0 (Apple Message framework v728)
 Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -15,7 +15,7 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Allixon International Corporation Signs Cooperation Agreement 
