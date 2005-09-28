@@ -1,14 +1,14 @@
 From: Yu Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Linux kernel crash in ACPI code
-Date: Wed, 28 Sep 2005 15:29:15 +0800
-Message-ID: <200509281529.15826.luming.yu@intel.com>
-References: <1127505777.13580.55.camel@desktop.igoweb.org>
+Subject: Re: Problems with Kernel 2.6.13.2 and Acer Travelmate 4002lmi
+Date: Wed, 28 Sep 2005 15:49:27 +0800
+Message-ID: <200509281549.27119.luming.yu@intel.com>
+References: <43398299.80809@t-online.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="gb2312"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1127505777.13580.55.camel-r49W/1Cwd2cZLhczpVEeqB2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <43398299.80809-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,29 +20,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "William M. Shubert" <wms-GS4XM6VRHqgdnm+yROfE0A@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: Simon <SimonLa-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wednesday 28 September 2005 01:34, Simon wrote:
+	> Hallo everybody,
 >
-> As you can see, it crashes inside the ACPI code, apparently because a
-> spinlock is being used before it is initialized. I'm not sure that the
-> dump is exactly the same every time, but I have noticed that it always
-> includes several "acpi_..." functions in the stack.
+> I have a problem with kernel 2.6.13.2 and my notebook Acer Travelmate
+> 4002lmi(SBS battery). I have used Suse 9.3 with Kernel 2.6.8 and a patched
+> DSDT from the https://sourceforge.net/projects/sbs-linux/ package. All work
+> fine. Now I have install Opensuse 10.0 RC1 with Kernel 2.6.13 and when I am
+> activate ACPI the kernel needs 20 seconds to boot and the following Warning
+> appears in the boot log and in the kernel log:
 >
-> The system is a KDS Valiant 6000 laptop, with a pentium III cpu. This
-> dump is from kernel 2.6.12-1.1456_FC4, although I have seen it in at
-> least two other FC4 kernels.
->
-> My apologies if this bug has already been found and fixed, or if this is
-> sent to the wrong email address. Let me know if you need any more
-> information to help track this down.
+> <6>ACPI: Embedded Controller [EC0] (gpe 29)
+> <4>    ACPI-1048: *** Warning: Failed to acquire semaphore[dfec5960|1|0],
+> AE_TIME
 
-Could you try base kernel 2.6.14-rc1 or later?
-
->
-> PS - Len, I think we worked together at intel some years ago. Were you
-> ever working in Cornell Oaks in the enterprise servers group?
-
+Please test 2.6.14-rc1 or later, boot kernel with ec_burst=1.
 
 
 -------------------------------------------------------
