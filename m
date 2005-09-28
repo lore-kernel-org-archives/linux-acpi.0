@@ -1,11 +1,13 @@
-From: Beau <recapitulated-w4ODDpmxRC8AvxtiuMwx3w@public.gmane.org>
-Subject: An interesting otc stock for your consideration
-Date: Wed, 28 Sep 2005 11:52:37 +0200
-Message-ID: <1303799736.1254642386@adsl196-141-215-206-196.adsl196-7.iam.net.ma>
-Mime-Version: 1.0 (Apple Message framework v728)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+From: vidyut karan <kvidyut2000-/E1597aS9LQxFYw1CcD5bw@public.gmane.org>
+Subject: problem in allocating resources for
+Date: Wed, 28 Sep 2005 15:08:14 +0100 (BST)
+Message-ID: <20050928140814.28476.qmail@web35410.mail.mud.yahoo.com>
+References: <20050926100312.B3471@unix-os.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/alternative; boundary="0-1915766002-1127916494=:28226"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050926100312.B3471-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,56 +17,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-hotplug-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Allixon International Corporation Signs Cooperation Agreement 
-with Educational-Industrial Research Center 
-for Logistics Information Technology "LIT"
-of Pusan National University
+--0-1915766002-1127916494=:28226
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Symbol: AXCP
-Price: $4
-Status: Strong Buy 
-Rating: 5(5)
+Hi all,
+While inserting pciehp.ko module(for native hot plug PCI Express support,=
+ ACPI enabled), the following messages appear:
+"pciehp: pciehp: controller initialization failed".
+Can somebody give me some pointers where the problem possibly lies.
+Also on looking at the debug messages,=20
+acpi_parse_crs function (add_host_bridge --> acpi_get_crs --> acpi_parse_=
+crs) prints only the following msg:
 
-******Breaking News******Breaking News******Breaking News******
+"pciehp: End_tag -------- Resource" is printed.
 
-SEOUL, Korea, Sept. 24, 2005 (PRIMEZONE) - 
-Allixon International Corporation (Other OTC:AXCP.PK - News) is pleased 
-to announce that it has signed a cooperation Agreement 
-with Educational-Industrial Research Center 
-for Logistics Information Technology (LIT) of Pusan National University.
+=20
 
-Currently, the Educational-Industrial Center for Logistics Information Technology 
-has under management four projects related to RFID technologies. 
-Allixon International Corporation under its cooperation agreement 
-will be responsible for one of the projects involving and developing 
-next-generation technologies for automatic seaports and logistics. 
+kindly give me some pointers to identify the cause of problem
 
-In March of 2005, the Educational-Industrial Center 
-for Logistics Information Technology established a 4th RFID Test Center 
-of Sun Microsystems. It is expected, as a result of the close 
-working relationships established, that Allixon may have an opportunity 
-to participate in working with 4th RFID Test Center of Sun Microsystems. 
+=20
 
-The Educational-Industrial Research Center for Logistics Information Technology 
-(LIT) will request or co-work with Allixon to research and/or develop 
-what the Educational-Industrial Research Center for Logistics Information 
-will require in regards to their RFID middleware requirements.
+thanks,
+
+karan
 
 
-Today we are issuing another ALERT on AXCP. 
- 
-But we think the fun is just beginning with this stock. 
-It has been showing a steady move up on increasing volume. 
-It appears to us that the stock is in an accumulation phase 
-and might be ready for a big pop to new highs. 
+	=09
+---------------------------------
+ Yahoo! India Matrimony: Find your partner now.
+--0-1915766002-1127916494=:28226
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-*******PUT AXCP ON YOUR RADAR FOR WEDNESDAY**********
-
-
-
+<DIV>Hi all,</DIV>
+<DIV>While inserting pciehp.ko module(for native hot plug PCI Express sup=
+port, ACPI enabled), the following messages appear:</DIV>
+<DIV><EM>"pciehp: pciehp: controller initialization failed".</EM></DIV>
+<DIV>Can somebody give me some pointers where the problem possibly lies.<=
+/DIV>
+<DIV>Also on looking at the debug messages, </DIV>
+<DIV>acpi_parse_crs function (add_host_bridge --&gt; acpi_get_crs --&gt; =
+acpi_parse_crs) prints only the following msg:</DIV>
+<DIV><FONT size=3D2>
+<P><EM>"pciehp: End_tag -------- Resource" </EM>is printed.</P>
+<P>&nbsp;</P>
+<P>kindly give me some pointers to identify the cause of problem</P>
+<P>&nbsp;</P>
+<P>thanks,</P>
+<P>karan</FONT></P></DIV><p>
+		<hr size=3D1>=20
+<a href=3Dhttp://yahoo.shaadi.com>Yahoo! India Matrimony</a href>: Find y=
+our partner now.
+--0-1915766002-1127916494=:28226--
 
 
 -------------------------------------------------------
