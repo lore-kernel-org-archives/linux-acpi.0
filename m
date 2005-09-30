@@ -1,13 +1,10 @@
-From: Krzysztof Oledzki <olel-gcSpNFQc7Gg@public.gmane.org>
-Subject: Re: PNP device interrupt type?
-Date: Sat, 1 Oct 2005 21:44:41 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0510012142300.11416@bizon.gios.gov.pl>
-References: <200509210916.51581.bjorn.helgaas@hp.com>
- <1127350552.3961.11.camel@linux-hp.sh.intel.com>
+From: "David Mathog" <mathog-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
+Subject: Save power at idle onTyan S2466N-MPX, athcool, etc.
+Date: Fri, 30 Sep 2005 15:36:59 -0700
+Message-ID: <E1ELTUx-0001CZ-00@mendel.bio.caltech.edu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-2125658372-1128195881=:11416"
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1127350552.3961.11.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,81 +14,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+I'm currently on a quest to reduce the idle power
+usage on various machines here.  For instance, using
+"athcool" on a 2.6.11-12mdk kernel (Mandriva 2005LE)
+on some Asus A7V266E machines it was possible to drop
+the idle temps from 57.5C to 39C.
 
----187430788-2125658372-1128195881=:11416
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Flushed with success from that I next tried athcool
+on a single processor (athlon-MP 2200+) Tyan 2466N-MPX
+using a 2.6.8.1 kernel.  No joy.  It claimed to have
+changed the bits it controls but this didn't do a thing
+to the idle CPU temperature.  Neither did turning those bits
+off, so it wasn't already in the low power state.
 
+This gives a pretty good clue why:
 
+%  modprobe processor
+%  cat /proc/acpi/processor/CPU0/info
+processor id:            0
+acpi id:                 0
+bus mastering control:   no
+power management:        no
+throttling control:      no
+limit interface:         no
 
-On Thu, 22 Sep 2005, Shaohua Li wrote:
+/proc/acpi/processor/CPU0/power
+showed that only C1 was supported.  On the ASUS boards both C1 and
+C2 were present.
 
-> Hi,
-> Sorry, I wrongly cc-ed the maillist address in previous email.
->
-> On Wed, 2005-09-21 at 23:16 +0800, Bjorn Helgaas wrote:
->> On Wednesday 21 September 2005 8:59 am, Krzysztof Oledzki wrote:
->>> On Wed, 21 Sep 2005, Bjorn Helgaas wrote:
->>>
->>>> On Tuesday 20 September 2005 7:32 pm, Li, Shaohua wrote:
->>>>> Is it possible PNP devices use level trigger interrupt?
->>>>> IIRC, PNP devices always use edge trigger interrupt under x86,
->>>>> how about the IA64 case?
->>>>
->>>> I'm not aware of any reason why ACPI devices should always
->>>> be edge triggered on ia64.
->>>>
->>>>> If PNP devices always use edge trigger
->>>>> interrupt,
->>>>> we might ignore BIOS setting.
->>>>> We have a bug BIOS assign wrong interrupt info to RTC
->>>>> http://bugzilla.kernel.org/show_bug.cgi?id=3D5243
->>>>
->>>> ACPI can describe any combination of edge/level, high/low,
->>>> so I think it would be a bad idea to throw away the information
->>>> the firmware is giving us.
->>>>
->>>> We might have to figure out ways to work around firmware
->>>> defects.  But that seems better to me than just ignoring
->>>> what the firmware tells us.  That will lead to situations
->>>> where the hardware and firmware are perfectly legal and
->>>> correct, but Linux doesn't work (i.e., the hardware uses
->>>> level triggered interrupts for some device, and Linux ignores
->>>> that and treats it as edge-triggered).
->>>
->>> As far as i understand question, it was not about *ALL* ACPI devices
->> but
->>> only about PNP ones.
->>
->> What is the difference between a "PNP" ACPI device and a "non-PNP"
->> ACPI device?  It looks to me like PNPACPI will expose all ACPI
->> devices as PNP devices (with a couple exceptions, like things that
->> don't have any _CRS method).
->>
->>> And IMO the real problem is only RTC on x86 so the
->>> workaround can only force this type of interrupt.
->>
->> Any workaround should be applied as narrowly as possible, to
->> minimize the chance of breaking a platform that legitimately
->> chooses to use a level-triggered interrupt.  If there's a
->> spec or convention that requires RTC to be edge-triggered
->> on x86, I don't object to reflecting that in the code somehow.
-> Ok, maybe we could do this workaround for x86 and report a warning.
-> Let's see if it breaks anything.
+So my questin is, has anybody managed to get the Athlon's 
+"power saving at idle" mode working  on this board?  If so,
+which BIOS settings, kernel, modules, and other magic was
+needed to do so?  
 
-Is there something ready to test? Patches, etc? ;)
+Thanks,
 
-Best regards,
-
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-2125658372-1128195881=:11416--
+David Mathog
+mathog-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org
+Manager, Sequence Analysis Facility, Biology Division, Caltech
 
 
 -------------------------------------------------------
