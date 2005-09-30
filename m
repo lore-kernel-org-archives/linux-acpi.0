@@ -1,9 +1,8 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: mbox archive of acpi-devel?
-Date: Fri, 30 Sep 2005 13:23:29 +0200
-Message-ID: <433D2031.3080706@gmx.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Codie <chapel-Db0KqwOb1NwvJsYlp49lxw@public.gmane.org>
+Subject: Today News. MWIS Special Situation Report
+Date: Fri, 30 Sep 2005 11:32:21 +0000 (UTC)
+Message-ID: <10937519385.76049118445@62.176.117.60>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,18 +14,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri Sep 30 04:28:45 2005
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+EXPLOSIVE PICK FOR OUR MEMBERS
+RIDE THE STAIRWAY TO HEAVEN!
 
-due to some data corruption on my usb flash disk, I lost all messages to 
-acpi-devel since 2005-09-19 (backups cover the messages before that).
-Would someone please be so kind and point me to a mbox archive of 
-acpi-devel or make one available to me?
+Date: 30 Sep 2005
+Company Name: m-Wise
+Stock Name: MWIS
+Price: $0.155
+Short Term Target: $0.5 - 0.6
+12month Target:  $1 (!!!)
 
-Thanks!
-Carl-Daniel
+***
+About m-Wise
+
+Founded in February 2000, m-Wise has rapidly established itself 
+as a leading technology provider with the de facto 
+Service Delivery Platform and related value-added data engines 
+for Mobile Operators, Wireless ASPs, and large content 
+and media providers.
+
+Working closely with leading operators, ASPs and content providers, 
+m-Wise is committed to take the lead and keep up to date 
+with the latest industry headways in areas as diverse 
+as content management and delivery, infotainment, mobile gaming 
+and mobile community services. 
+***
+
+This stock will explode. Do not wait until it is too late!
+
+
+
 
 
 -------------------------------------------------------
