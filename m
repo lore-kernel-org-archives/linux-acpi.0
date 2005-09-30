@@ -1,82 +1,41 @@
-From: "Roxanna Almada" <almadaroxanna-BBCjCy9RAdm8rjiVs5Nzzw@public.gmane.org>
-Subject: hymnal Pharrnmaceutical
-Date: Fri, 30 Sep 2005 11:45:56 -0500
-Message-ID: <002401c5c5de$6d793a00$484aa8c0@worrisome>
-Reply-To: "Roxanna Almada" <almadaroxanna-BBCjCy9RAdm8rjiVs5Nzzw@public.gmane.org>
+From: Rajesh Shah <rajesh.shah@intel.com>
+Subject: Re: problem in allocating resources for
+Date: Fri, 30 Sep 2005 11:42:08 -0700
+Message-ID: <20050930114207.A28328@unix-os.sc.intel.com>
+References: <20050926100312.B3471@unix-os.sc.intel.com> <20050928140814.28476.qmail@web35410.mail.mud.yahoo.com>
+Reply-To: Rajesh Shah <rajesh.shah@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0021_01C5C5B4.84A33200"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lowell Wiechmann <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-hotplug-devel-admin@lists.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <20050928140814.28476.qmail@web35410.mail.mud.yahoo.com>; from kvidyut2000@yahoo.co.in on Wed, Sep 28, 2005 at 03:08:14PM +0100
+Sender: linux-hotplug-devel-admin@lists.sourceforge.net
+Errors-To: linux-hotplug-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
+	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-hotplug-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-hotplug-devel>,
+	<mailto:linux-hotplug-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-hotplug-devel>
+To: vidyut karan <kvidyut2000@yahoo.co.in>
+Cc: linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Wed, Sep 28, 2005 at 03:08:14PM +0100, vidyut karan wrote:
+> 
+>    While  inserting  pciehp.ko  module(for  native  hot  plug PCI Express
+>    support, ACPI enabled), the following messages appear:
+> 
+>    "pciehp: pciehp: controller initialization failed".
+> 
+>    Can somebody give me some pointers where the problem possibly lies.
+> 
+Please provide the full dmesg output, preferably with pciehp_debug
+set to 1. Most of the time I've seen the error happen on systems
+that don't support native pci express hotplug.
 
-------=_NextPart_000_0021_01C5C5B4.84A33200
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Good day
-Ok, let's Have a look -
-Total Easy Fast Best Home =
-ConfidentialityOrrderingShipping=
-PrricesDeIivery
-VaViAmCiXaLe
-labanv
-iugrieliaxit
-m $a $n s $&=
-nbsp;ra 
-3.753.33 1.21 &n=
-bsp;
-Additionnal =
-information  Farmer and besought him to give them some water to drink. They =
-by those with whom you passed the whole day! 
-
-------=_NextPart_000_0021_01C5C5B4.84A33200
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>Good day</DIV>
-<SPAN><P>Ok, let's Have a look -</P></SPAN>
-<TABLE>
-  <TBODY>
-  <TR>
-<TD><FONT face=3DArial size=3D4>Total <BR>Easy <BR>Fast <BR>Best <BR>Home =
-</FONT></TD>
-<TD><FONT face=3DArial size=3D4>Confidentiality<BR>Orrdering<BR>Shipping=
-<BR>Prrices<BR>DeIivery</FONT></TD>
- <TD><FONT face=3DArial>&nbsp;&nbsp;</FONT></TD> <TD><FONT face=3DCourier=
->Va<BR>Vi<BR>Am<BR>Ci<BR>Xa<BR>Le</FONT></TD>
-<TD><FONT face=3DCourier>l<BR>a<BR>b<BR>a<BR>n<BR>v</FONT></TD>
-<TD><FONT face=3DCourier>iu<BR>gr<BR>ie<BR>li<BR>ax<BR>it</FONT></TD>
-<TD><FONT face=3DCourier>m&nbsp;$<BR>a&nbsp;$<BR>n&nbsp;<BR>s&nbsp;$<BR>&=
-nbsp;<BR>ra&nbsp;</FONT></TD>
-<TD><FONT face=3DCourier>3.75<BR>3.33<BR>&nbsp;<BR>1.21<BR>&nbsp;<BR>&n=
-bsp;</FONT></TD>
-</TR></TBODY></TABLE>
-<SPAN><BR><A href=3D"http://www.smlhpql.wodardap.com">Additionnal =
-information</A></SPAN><DIV>&nbsp;<BR></DIV></BODY></HTML>
-
-------=_NextPart_000_0021_01C5C5B4.84A33200--
-
+Rajesh
 
 
 -------------------------------------------------------
