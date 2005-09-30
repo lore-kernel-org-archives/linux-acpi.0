@@ -1,24 +1,35 @@
-From: kylin <fierykylin@gmail.com>
-Subject: Re: Re: ACPI problem with PCI Express Native Hot-plug driver (Rajat Jain)
-Date: Fri, 30 Sep 2005 16:20:57 +0800
-Message-ID: <87ab37ab0509300120w3f79e864pfcd7e755b9db7d2@mail.gmail.com>
-Reply-To: kylin <fierykylin@gmail.com>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: mbox archive of acpi-devel?
+Date: Fri, 30 Sep 2005 13:23:29 +0200
+Message-ID: <433D2031.3080706@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-newbie-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-newbie-owner@vger.kernel.org
-To: rajat.noida.india@gmail.com
-Cc: Linux-newbie@vger.kernel.org, linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-could u list the chipset of ur mainbaord where u r native hotplug on ?
+Hi,
 
---
-we who r about to die,salute u!
--
-To unsubscribe from this list: send the line "unsubscribe linux-newbie" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at http://www.linux-learn.org/faqs
+due to some data corruption on my usb flash disk, I lost all messages to 
+acpi-devel since 2005-09-19 (backups cover the messages before that).
+Would someone please be so kind and point me to a mbox archive of 
+acpi-devel or make one available to me?
+
+Thanks!
+Carl-Daniel
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
