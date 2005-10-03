@@ -1,63 +1,48 @@
-From: "David Mathog" <mathog-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
-Subject: Save power at idle onTyan S2466N-MPX, athcool, etc.
-Date: Fri, 30 Sep 2005 15:36:59 -0700
-Message-ID: <E1ELTUx-0001CZ-00@mendel.bio.caltech.edu>
+From: Rajat Jain <rajat.noida.india@gmail.com>
+Subject: Re: [Pcihpd-discuss] Re: ACPI problem with PCI Express Native Hot-plug driver
+Date: Mon, 3 Oct 2005 14:07:26 +0900
+Message-ID: <b115cb5f0510022207k41df0380nfb8b4ee73149f7ea@mail.gmail.com>
+References: <b115cb5f0509020057741365dc@mail.gmail.com>
+	 <b115cb5f050902005877607db1@mail.gmail.com>
+	 <1125683188.13185.5.camel@whizzy>
+	 <b115cb5f05090418583abfc73@mail.gmail.com>
+	 <b115cb5f0509292257j395d60f8j53d1afa967caa263@mail.gmail.com>
+	 <20050930132440.C28328@unix-os.sc.intel.com>
+Reply-To: Rajat Jain <rajat.noida.india@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750822AbVJCFH3@vger.kernel.org>
+In-Reply-To: <20050930132440.C28328@unix-os.sc.intel.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rajesh Shah <rajesh.shah@intel.com>
+Cc: Kristen Accardi <kristen.c.accardi@intel.com>, Linux-newbie@vger.kernel.org, linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, kernelnewbies@nl.linux.org, greg@kroah.com, dkumar@noida.hcltech.com, sanjayku@noida.hcltech.com
 List-Id: linux-acpi@vger.kernel.org
 
-I'm currently on a quest to reduce the idle power
-usage on various machines here.  For instance, using
-"athcool" on a 2.6.11-12mdk kernel (Mandriva 2005LE)
-on some Asus A7V266E machines it was possible to drop
-the idle temps from 57.5C to 39C.
+On 10/1/05, Rajesh Shah <rajesh.shah@intel.com> wrote:
+> On Fri, Sep 30, 2005 at 02:57:07PM +0900, Rajat Jain wrote:
+> >
+> > pciehp: pfar:cannot locate acpi bridge of PCI 0xb.
+> > ......
+> > pciehp: pfar:cannot locate acpi bridge of PCI 0xe.
+>
+> This is saying that the driver's probe function was called for
+> these pciehp capable bridges, but it didn't find them in the
+> ACPI namespace.
+>
+> >
 
-Flushed with success from that I next tried athcool
-on a single processor (athlon-MP 2200+) Tyan 2466N-MPX
-using a 2.6.8.1 kernel.  No joy.  It claimed to have
-changed the bits it controls but this didn't do a thing
-to the idle CPU temperature.  Neither did turning those bits
-off, so it wasn't already in the low power state.
+Hi Rajesh,
 
-This gives a pretty good clue why:
+Thanks for the insight. But my doubt is that the PCI Express devices
+down the hot-pluggable slots are working fine. i.e. if we forget about
+the hot-plugging / unplugging, the bridges and devices are working
+fine, even with ACPI enabled.
 
-%  modprobe processor
-%  cat /proc/acpi/processor/CPU0/info
-processor id:            0
-acpi id:                 0
-bus mastering control:   no
-power management:        no
-throttling control:      no
-limit interface:         no
-
-/proc/acpi/processor/CPU0/power
-showed that only C1 was supported.  On the ASUS boards both C1 and
-C2 were present.
-
-So my questin is, has anybody managed to get the Athlon's 
-"power saving at idle" mode working  on this board?  If so,
-which BIOS settings, kernel, modules, and other magic was
-needed to do so?  
+So is the presence of bridges in ACPI namespace required only for
+hot-plugging / unplugging and not for normal operation?
 
 Thanks,
 
-David Mathog
-mathog-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org
-Manager, Sequence Analysis Facility, Biology Division, Caltech
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Power Architecture Resource Center: Free content, downloads, discussions,
-and more. http://solutions.newsforge.com/ibmarch.tmpl
+Rajat
