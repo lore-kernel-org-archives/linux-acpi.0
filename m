@@ -1,7 +1,10 @@
-From: "=?ISO-2022-JP?B?GyRCP3k7MzAmSH4bKEI=?=" <ikumi___hello_-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: =?ISO-2022-JP?B?GyRCJCpIaCRsTU0kRyQ3JD8bKEI=?=
-Date: Tue, 4 Oct 2005 10:06:41 +0000 (UTC)
-Message-ID: <012601F4S7.5455@yahoo.com>
+From: info-WMBbaCSme8w1mCiq+qwOWdBPR1lH4CV8@public.gmane.org
+Subject: IRL-GIRL
+Date: 4 Oct 2005 16:52:30 +0900
+Message-ID: <20051004075230.25460.qmail@mail.shmi-skywalker.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -12,27 +15,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Tue Oct  4 02:59:16 2005
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-http://lovers-god.com/index.html?media=pc253
-Å‹ßuƒlƒbƒgƒzƒXƒgv‚Æ‚©u‹t‰‡v‚È‚ñ‚ÄŒ¾—t‚ª‚Í‚â‚Á‚Ä‚¢‚é‚ÌA‚²‘¶’m‚Å‚·‚©H
-–{“–‚É‚»‚¤‚¢‚¤‚Ì‚Á‚Ä‚ ‚é‚ÆŽv‚¢‚Ü‚·H
-’N‚¾‚Á‚Äu‚Í‚ŸHv‚Á‚ÄŽv‚¤‚æ‚ËB‰´‚¾‚Á‚Ä‚»‚¤‚¾‚Á‚½‚µB
-‚Å‚àA‚à‚µ­‚µ‚¾‚¯ŽžŠÔ‚ª‚ ‚Á‚ÄASEX‚ª‚µ‚½‚­‚ÄA‚¿‚å‚Á‚Æ‚¾‚¯‚¨‹à‚Ù‚µ‚¢‚È‚Ÿ‚ÆŽv‚Á‚Ä‚¢‚é‚È‚çA‚º‚ÐƒAƒNƒZƒX‚µ‚Ä‚Ý‚ÄB
-Š®‘S–³—¿‚¾‚©‚çƒzƒ“ƒgAŽžŠÔ‚ª‚ ‚é‚È‚ç‚â‚Á‚Ä‚Ý‚Ä‚Á‚ÄŠ´‚¶‚Å‚·B
-http://lovers-god.com/index.html?media=pc253
-Œ‹‹ÇAŽå•w‚ð‚Í‚¶‚ß‚Æ‚µ‚Ä•’i‚È‚©‚È‚©Žv‚¢Ø‚Á‚½‚±‚Æ‚ª‚Å‚«‚È‚¢—«‚ÍSEX‚É‘Î‚µ‚Ä‚Ì•s–ž“x‚ª‚©‚È‚è‚‚¢‚Á‚Ä‚±‚Æ‚È‚ñ‚¾‚ËB
-l‚¦‚Ä‚Ý‚é‚Æ‚ ‚½‚è‚Ü‚¦‚Ì˜b‚ÅB
-‰´‚ç‚Å‚à³’¼‚¢‚­‚çƒJƒƒCƒC—‚ÌŽq‚Æƒ„‚Á‚Ä‚àA‚³‚·‚ª‚É10‰ñ‚à‚·‚é‚Æ“àS–O‚«‹C–¡‚É‚È‚Á‚¿‚á‚¤‚Å‚µ‚åH
-‚»‚ê‚ª‚³A‚½‚Æ‚¦‚ÎŽå•w‚Æ‚©‚¾‚Æ‘ŠŽè‚ÍŽ‰‚¬‚Á‚½ƒIƒ„ƒW‚È‚í‚¯‚³B‚µ‚©‚à‚¢‚Â‚·‚é‚©‚à’m‚ê‚È‚¢‚æ‚¤‚ÈSEX‚ÅA‚µ‚©‚à‚©‚È‚è’W”’EEEi‚¢‚âA•·‚¢‚½˜b‚Å‚·‚¯‚ÇiŠ¾jjB
-‚»‚è‚á‚½‚Ü‚ñ‚È‚¢‚æ‚ËB
-‚¨‹à‚ð•¥‚Á‚Ä‚à‘¼‚Ì’j‚ÉÓ‚ß‚Ä‚Ù‚µ‚¢A‚ÆŽv‚¤‚Ì‚ÍA‚Ü‚Ÿ‚í‚©‚é˜b‚¾‚ËB
-http://lovers-god.com/index.html?media=pc253
+ http://pure.pmp.to/girl-girl
+
+$B"!!~"!!~%i%s%-%s%0!u%*%H%J$N%V%m%0=8"!!~"!!~(B
+
+$B!y$$$^A49q$G$b$C$H$b?M5$$N$"$k%5%$%H(BTOP8$B!y(B
+
+ http://pure.pmp.to/girl-girl
+
+$B"!CmL\!*!*?7Ce$b$4>R2p!J!0!]!0!K(B
+
+ http://pure.pmp.to/girl-girl
+
+$B$*$^$1$O$+$J$j2a7c$J%*%H%J$N%V%m%0IU"v(B
+
+ http://pure.pmp.to/girl-girl
+
+$B%a!<%k$r5qH]$9$kJ}$O(B
+
+ toiawase_mailer-/E1597aS9LR3+QwDJ9on6Q@public.gmane.org
 
 
 
+
+.
 
 
 -------------------------------------------------------
