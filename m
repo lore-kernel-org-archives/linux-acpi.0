@@ -1,7 +1,7 @@
 From: info-WMBbaCSme8w1mCiq+qwOWdBPR1lH4CV8@public.gmane.org
 Subject: IRL-GIRL
 Date: 4 Oct 2005 16:52:30 +0900
-Message-ID: <20051004075230.25460.qmail@mail.shmi-skywalker.com>
+Message-ID: <20051004075230.25465.qmail@mail.shmi-skywalker.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-2022-jp
 Content-Transfer-Encoding: 7bit
@@ -15,7 +15,7 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
  http://pure.pmp.to/girl-girl
