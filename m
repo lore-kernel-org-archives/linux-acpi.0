@@ -1,9 +1,10 @@
-From: info-WMBbaCSme8w1mCiq+qwOWdBPR1lH4CV8@public.gmane.org
-Subject: IRL-GIRL
-Date: 4 Oct 2005 16:52:30 +0900
-Message-ID: <20051004075230.25465.qmail@mail.shmi-skywalker.com>
+From: Junk Mail Recipient <bulk-wOwPqRMbTBJeoWH0uzbU5w@public.gmane.org>
+Subject: ACPI errors on ECS G220 laptop
+Date: Tue, 04 Oct 2005 21:49:13 -0500
+Message-ID: <1128480553.11538.9.camel@tuxprototype.deadeyedata.net>
+Reply-To: bulk-wOwPqRMbTBJeoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-2022-jp
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,30 +19,37 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- http://pure.pmp.to/girl-girl
+I recently purchased an ECS G220 laptop with the hopes of running Suse
+9.3 on it.  I am pretty well outta luck as far as acpi goes though.  The
+battery monitor doesn't work at all.  It perpetually shows a 1% charge.
+It also doesn't seem to be getting any thermal information.  CPU scaling
+can be done manually, but is not happening automatically.  
 
-◆◇◆◇ランキング＆オトナのブログ集◆◇◆◇
+I followed the how-to on broken dsdt and from iasl I get 1 error and no
+warnings.  Unfortunately this seems to be a pretty generic syntax error
+and I am at a loss on how to track it down or where to go from here.  
 
-☆いま全国でもっとも人気のあるサイトTOP8☆
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20050309 [Mar 19
+2005]
+Copyright (C) 2000 - 2005 Intel Corporation
+Supports ACPI Specification Revision 3.0
 
- http://pure.pmp.to/girl-girl
+dsdt.dsl  1901:     If (SS1)
+Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
 
-◆注目！！新着もご紹介（＾−＾）
+ASL Input:  dsdt.dsl - 2444 lines, 74888 bytes, 903 keywords
+Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
 
- http://pure.pmp.to/girl-girl
+I would really appreciate any help you might be able to offer.  I am
+including links to dsdt.dsl and dmesg on an external site due to size.
+Let me know if there is any more information that might help.
 
-おまけはかなり過激なオトナのブログ付♪
+http://www.msbfr.net/dsdt.dsl
 
- http://pure.pmp.to/girl-girl
-
-メールを拒否する方は
-
- toiawase_mailer-/E1597aS9LR3+QwDJ9on6Q@public.gmane.org
-
-
+http://www.msbfr.net/dmesg
 
 
-.
 
 
 -------------------------------------------------------
