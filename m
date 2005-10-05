@@ -1,58 +1,51 @@
-From: Junk Mail Recipient <bulk-wOwPqRMbTBJeoWH0uzbU5w@public.gmane.org>
-Subject: ACPI errors on ECS G220 laptop
-Date: Tue, 04 Oct 2005 21:49:13 -0500
-Message-ID: <1128480553.11538.9.camel@tuxprototype.deadeyedata.net>
-Reply-To: bulk-wOwPqRMbTBJeoWH0uzbU5w@public.gmane.org
+From: Rajat Jain <rajat.noida.india@gmail.com>
+Subject: Re: [Pcihpd-discuss] Re: ACPI problem with PCI Express Native Hot-plug driver
+Date: Wed, 5 Oct 2005 13:10:53 +0900
+Message-ID: <b115cb5f0510042110j6ff08f9cvd0a3480f175a16ff@mail.gmail.com>
+References: <b115cb5f0509020057741365dc@mail.gmail.com>
+	 <b115cb5f050902005877607db1@mail.gmail.com>
+	 <1125683188.13185.5.camel@whizzy>
+	 <b115cb5f05090418583abfc73@mail.gmail.com>
+	 <b115cb5f0509292257j395d60f8j53d1afa967caa263@mail.gmail.com>
+	 <20050930132440.C28328@unix-os.sc.intel.com>
+	 <b115cb5f0510022207k41df0380nfb8b4ee73149f7ea@mail.gmail.com>
+Reply-To: Rajat Jain <rajat.noida.india@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-newbie-owner@vger.kernel.org>
+In-Reply-To: <b115cb5f0510022207k41df0380nfb8b4ee73149f7ea@mail.gmail.com>
+Content-Disposition: inline
+Sender: linux-newbie-owner@vger.kernel.org
+To: Rajesh Shah <rajesh.shah@intel.com>
+Cc: Kristen Accardi <kristen.c.accardi@intel.com>, Linux-newbie@vger.kernel.org, linux-hotplug-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, kernelnewbies@nl.linux.org, greg@kroah.com, dkumar@noida.hcltech.com, sanjayku@noida.hcltech.com
 List-Id: linux-acpi@vger.kernel.org
 
-I recently purchased an ECS G220 laptop with the hopes of running Suse
-9.3 on it.  I am pretty well outta luck as far as acpi goes though.  The
-battery monitor doesn't work at all.  It perpetually shows a 1% charge.
-It also doesn't seem to be getting any thermal information.  CPU scaling
-can be done manually, but is not happening automatically.  
+> On 10/1/05, Rajesh Shah <rajesh.shah@intel.com> wrote:
+> > On Fri, Sep 30, 2005 at 02:57:07PM +0900, Rajat Jain wrote:
+> > >
+> > > pciehp: pfar:cannot locate acpi bridge of PCI 0xb.
+> > > ......
+> > > pciehp: pfar:cannot locate acpi bridge of PCI 0xe.
+> >
+> > This is saying that the driver's probe function was called for
+> > these pciehp capable bridges, but it didn't find them in the
+> > ACPI namespace.
+> >
 
-I followed the how-to on broken dsdt and from iasl I get 1 error and no
-warnings.  Unfortunately this seems to be a pretty generic syntax error
-and I am at a loss on how to track it down or where to go from here.  
+Hi Rajesh,
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20050309 [Mar 19
-2005]
-Copyright (C) 2000 - 2005 Intel Corporation
-Supports ACPI Specification Revision 3.0
+Thanks a lot, for ending my doubts. I am working on a hardware that is
+still under development. So the chances of missing certain things in
+hardware / BIOS are high.  So the solution for this is to ask my
+Hardware vendor to provide the information for these bridges into the
+ACPI namespace (AML / DSDT?)?
 
-dsdt.dsl  1901:     If (SS1)
-Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
+Thanks a ton,
 
-ASL Input:  dsdt.dsl - 2444 lines, 74888 bytes, 903 keywords
-Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
-
-I would really appreciate any help you might be able to offer.  I am
-including links to dsdt.dsl and dmesg on an external site due to size.
-Let me know if there is any more information that might help.
-
-http://www.msbfr.net/dsdt.dsl
-
-http://www.msbfr.net/dmesg
-
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Power Architecture Resource Center: Free content, downloads, discussions,
-and more. http://solutions.newsforge.com/ibmarch.tmpl
+Rajat
+-
+To unsubscribe from this list: send the line "unsubscribe linux-newbie" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at http://www.linux-learn.org/faqs
