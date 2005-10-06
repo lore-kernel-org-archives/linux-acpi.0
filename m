@@ -1,13 +1,12 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Help needed to fix my dsdt / running out of ideas
-Date: Thu, 6 Oct 2005 14:16:05 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E02F8E015@orsmsx403.amr.corp.intel.com>
+From: Giacomo Rizzo <giacomorizzo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: ACPI problem
+Date: Fri, 7 Oct 2005 00:54:03 +0200
+Message-ID: <3ebbb09c0510061554h5c19610al9d0ecfabf9707312@mail.gmail.com>
+Reply-To: Giacomo Rizzo <giacomorizzo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="----=_Part_530_1035073.1128639243892"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,107 +16,75 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Maximilian Mehnert <widolo87-LWAfsSFWpa4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+------=_Part_530_1035073.1128639243892
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-1) Appears to need three externals:
+Hi,
+Len Brown gave me your address because I talked to him
+about a problem I'm having while trying installing linux (I tried
+several distros)
+The problem is that my notebook (a sony pcg-nvr23)
+shuts down after a random number of seconds during the installation process=
+.
+I think it's an acpi problem because once I tried booting Knoppix by keepin=
+g
+the temperature around
+my notebook really low (it was a really cold winter night)
+Looking at /proc/acpi/temperature I realized that the cpu temperature was
+getting higher and higher as the second passed, untill my computer turned
+off.
+Another weird thing is this. I installed Suse 9.1 always being in a cold
+place and it seems that the temperature is quite stable (it's not so low bu=
+t
+at least it's far from upper limit). I would like to know if it's possible,
+a way to install any linux distribution without keeping the notebook cool.
+I tried to pass these options at boot time
+acpi=3Doff
+acpi=3Doff doapm
+acpi=3Don
+but none of these trys was successful.
+Do you have any suggestion?
+I hope so. Thanks anyway
+Giacomo
 
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "INTEL ", "ALVISO  ", 100925440)
-{
-    External (CFGD, IntObj)
-    External (PDC0, IntObj)
-    External (PDC1, IntObj)
+------=_Part_530_1035073.1128639243892
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-2) One package is not disassembled properly:
+Hi,<br>
+Len Brown gave me your address because I talked to him<br>
+about a problem I'm having while trying installing linux (I tried<br>
+several distros)<br>
+The problem is that my notebook (a sony pcg-nvr23)<br>
+shuts down after a random number of seconds during the installation process=
+.<br>
+I think it's an acpi problem because once I tried booting Knoppix by keepin=
+g the temperature around<br>
+my notebook really low (it was a really cold winter night)<br>
+Looking at /proc/acpi/temperature I realized that the cpu temperature
+was getting higher and higher as the second passed, untill my computer
+turned off.<br>
+Another weird thing is this. I installed Suse 9.1 always being in a
+cold place and it seems that the temperature is quite stable (it's not
+so low but at least it's far from upper limit). I would like to know if
+it's possible, a way to install any linux distribution without keeping
+the notebook cool.<br>
+I tried to pass these options at boot time <br>
+acpi=3Doff<br>
+acpi=3Doff doapm<br>
+acpi=3Don<br>
+but none of these trys was successful.<br>
+Do you have any suggestion?<br>
+I hope so. Thanks anyway<br>
+Giacomo<br>
 
-Name (PBST, Package (0x04)
-{
-    Zero,=20
-    Z007 (),                 Z007 (),                 0x2710
-})=20
-
-Change to:
-
-Name (PBST, Package (0x04)
-{
-    Zero,=20
-    Z007,                =20
-    Z007,                =20
-    0x2710
-})
-
-I was able to recompile the DSDT with these changes (2 warnings for a
-reserved method).  I'll fix the disassembler for the next release.
-
-Bob
-
-Here's the method that causes warnings. It appears to be missing a
-return statement:
-
-                        Method (_DCK, 1, NotSerialized)
-                        {
-                            If (LEqual (Arg0, One))
-                            {
-                                Return (One)
-                            }
-                            Else
-                            {
-                                Store (Zero, ^^RP03.Z002)
-                                Store (One, ^^RP03.LDP3)
-                            }
-                        }
-
-
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Maximilian Mehnert
-> Sent: Thursday, October 06, 2005 12:54 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: [ACPI] Help needed to fix my dsdt / running out of ideas
->=20
-> Hello everyone!
->=20
-> I have fixed a few dsdts before so I am not completely new to this.
->=20
-> However I have no clue how to fix my current dsdt after it changed
-> because of a RAM upgrade.
->=20
-> Please have a look at  my decompiled dsdt
-> (http://userpage.fu-berlin.de/~mmehnert/dsdt-highmem.dsl) and the
-output
-> of iasl trying to compile it again
-> (http://userpage.fu-berlin.de/~mmehnert/errors-iasl)
->=20
->=20
-> I would be extremely glad if someone with more insight into this
-matter
-> could give me a few advises to fix the first (and maybe the last)
-error.
-> Most of them seem to follow the same pattern so I should be able to do
-> most of this on my own...
->=20
-> Hoping for your help,
->=20
-> all the best,
->=20
-> Maximilian Mehnert
->=20
->=20
->=20
->=20
->=20
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by:
-> Power Architecture Resource Center: Free content, downloads,
-discussions,
-> and more. http://solutions.newsforge.com/ibmarch.tmpl
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+------=_Part_530_1035073.1128639243892--
 
 
 -------------------------------------------------------
