@@ -1,10 +1,13 @@
-From: "David Mathog" <mathog-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
-Subject: Re: Save power at idle onTyan S2466N-MPX, athcool, etc.
-Date: Wed, 05 Oct 2005 09:33:25 -0700
-Message-ID: <E1ENCCr-0005rD-00@mendel.bio.caltech.edu>
+From: Michael Doube <m.doube-aUOafQfIvX+1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: DSDT bugs on Acer Aspire 3023 WLMi - SOLVED
+Date: Thu, 06 Oct 2005 16:27:03 +1300
+Message-ID: <43449987.3080001@qmul.ac.uk>
+References: <433CE376.60503@qmul.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <433CE376.60503-aUOafQfIvX+1Qrn1Bg8BZw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,58 +17,120 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Thanks to Benjamin Larsson for the tip:
 
+1) Leave the DSDT alone - it is buggy but battery monitoring can work anyway
+2) Install a recent kernel, 2.6.13 and above apparently.  I am using 
+Fedora's 2.6.13-1.1526_FC4.i686 kernel
+3) use kernel option ec_burst=1
 
-> On Fri, 2005-09-30 at 15:36 -0700, David Mathog wrote:
-> 
-> > Flushed with success from that I next tried athcool
-> > on a single processor (athlon-MP 2200+) Tyan 2466N-MPX
-> > using a 2.6.8.1 kernel.  No joy. 
+Now battery monitoring works, and dmesg gives:
+----------
+ACPI: AC Adapter [ADP1] (on-line)
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LID0]
+ACPI: Sleep Button (CM) [SLPB]
+------------
 
-Erik Slagter replied:
-> 
-> We had a discussion about exactly this a few weeks ago.
-> 
-> It boils down to: the AMD768 chipset can do C1/C2/C3 but not out of the
-> box using ACPI. First because ACPI processor support did not support
-> multiprocessor, now it does, but the ACPI parameters of this motherboard
-> prevent C2/C3 from being used by ACPI processor support.
-> 
-> So, out of the box you have C1, using the amd76x_pm you also have C2 and
-> optionally C3 support (although that completely screws up my sata
-> controller).
+Sweet as.
 
-Got it, there are problems with ACPI and the S2466.  No big surprise
-there since this board has all sorts of oddball problems.  (No WOL
-etc.)
+Thanks to whoever was responsible for making this work, your effort is 
+much appreciated.
 
-However, it sounded like you and others managed in the end
-obtain some power savings at idle.  Correct?  If so,
-could you or some other poster please explain how you accomplished
-that, stating in particular:
+Mike
 
-1. relevant BIOS settings
-2. minimum kernel required
-3. any extra kernel patches required
-4. any extra software (like athcool) required
+Michael Doube wrote:
 
-The machines in question are single CPU beowulf nodes - they do
-have an S3 video card but it is used only when there are
-hardware problems and/or to change the BIOS.  So maybe
-once every two years.  There's no sound, TV card, video streams,
-or anything else like that.  These just sit around until a
-compute job comes through, then they grind like crazy for a while.
-It would be nice if they used less power while they were waiting.
+> Hi all
+>
+> I've been trying to get the smart battery system going on my Acer 
+> Aspire 3023 WLMi notebook under kernel 2.6.12.2.  As far as I'm aware 
+> the 3023 is a variant of (but basically very similar to) all the 3020 
+> and 5020 notebooks.  It is quite different to the 3000 / 5000 series.
+>
+> I've tried the sbs-cm patch (took a punt, didn't work), and I've tried 
+> the instructions at ACPI4Linux.
+>
+> I've managed to remove some of the bugs from the dsdt.dsl using the 
+> error and warning messages from the iasl compiler, but still these 
+> warnings remain, and I don't know how to get smart battery monitoring 
+> going.  My most bug-free dsdt.dsl is posted at 
+> http://acpi.sourceforge.net/dsdt/view.php?id=451.
+>
+> dmesg gives:
+> ---------------------------
+> ....
+> ACPI: Embedded Controller [EC0] (gpe 3)
+> ACPI-0405: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+> ACPI-1138: *** Error: Method execution failed 
+> [\_SB_.PCI0.LPC0.EC0_.BAT0._STA] (Node f7eeb6e0), AE_TIME
+> ACPI-0158: *** Error: Method execution failed 
+> [\_SB_.PCI0.LPC0.EC0_.BAT0._STA] (Node f7eeb6e0), AE_TIME
+> ...
+> ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+> ACPI-0405: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+> ACPI-1138: *** Error: Method execution failed [\_TZ_.TZS0._TMP] (Node 
+> f7ef2540), AE_TIME
+> ACPI: Thermal Zone [TZS0] (60 C)
+> ACPI-0405: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+> ACPI-1138: *** Error: Method execution failed [\_TZ_.TZS1._TMP] (Node 
+> f7ef2440), AE_TIME
+> ACPI: Thermal Zone [TZS1] (47 C)
+> ACPI-0405: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+> ACPI-1138: *** Error: Method execution failed [\_TZ_.TZSV._TMP] (Node 
+> f7ef2320), AE_TIME
+> ACPI: Thermal Zone [TZSV] (51 C)
+> ............
+> ACPI wakeup devices:
+> LID0 SLPB OHC1 OHC2 EHCI P2P MODM
+> ACPI: (supports S0 S3 S4 S5)
+>
+> -----------------------
+>
+> [root@doris mdoube]# iasl -tc dsdt.dsl
+>
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler version 20050902 [Sep 29 2005]
+> Copyright (C) 2000 - 2005 Intel Corporation
+> Supports ACPI Specification Revision 3.0
+>
+> dsdt.dsl 743: Name (_WDG, Buffer (0x3C)
+> Warning 2097 - ^ Unknown reserved name (_WDG)
+>
+> dsdt.dsl 762: Method (_WED, 1, NotSerialized)
+> Warning 2085 - ^ Not all control paths return a value (_WED)
+>
+> dsdt.dsl 762: Method (_WED, 1, NotSerialized)
+> Warning 2097 - Unknown reserved name ^ (_WED)
+>
+> dsdt.dsl 3361: Release (MTIO)
+> Warning 2098 - Statement is unreachable ^
+>
+> ASL Input: dsdt.dsl - 5692 lines, 200128 bytes, 2373 keywords
+> AML Output: DSDT.aml - 22023 bytes 777 named objects 1596 executable 
+> opcodes
+>
+> Compilation complete. 0 Errors, 4 Warnings, 0 Remarks, 824 Optimizations
+> --------------------------------
+>
+> All suggestions are most welcome
+>
+> Mike
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by:
+> Power Architecture Resource Center: Free content, downloads, discussions,
+> and more. http://solutions.newsforge.com/ibmarch.tmpl
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-Thanks,
-
-David Mathog
-mathog-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org
-Manager, Sequence Analysis Facility, Biology Division, Caltech
 
 
 -------------------------------------------------------
