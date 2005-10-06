@@ -1,58 +1,144 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: 2.6.14-rc3-rt2
-Date: Thu, 6 Oct 2005 12:04:32 +0200
-Message-ID: <200510061204.33045.ak@suse.de>
-References: <5bdc1c8b0510041111n188b8e14lf5a1398406d30ec4@mail.gmail.com> <20051006084920.GB22397@elte.hu> <Pine.LNX.4.58.0510060544390.28535@localhost.localdomain>
+From: foolish-joSiycWv2dg+3ClZCHpbBg@public.gmane.org
+Subject: ACPI trouble in SHG 4000 notebook
+Date: Thu, 6 Oct 2005 06:45:15 -0500 (CDT)
+Message-ID: <60125.84.48.53.145.1128599115.squirrel@84.48.53.145>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750780AbVJFKET@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0510060544390.28535@localhost.localdomain>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>, Mark Knecht <markknecht@gmail.com>, linux-kernel@vger.kernel.org, tony.luck@intel.com, acpi-devel@lists.sourceforge.net
+Content-Type: multipart/alternative;boundary="----=_20051006064515_83482"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 06 October 2005 11:48, Steven Rostedt wrote:
-> On Thu, 6 Oct 2005, Ingo Molnar wrote:
-> > * Steven Rostedt <rostedt@goodmis.org> wrote:
-> > > > ahh ... I would not be surprised if this caused actual problems on
-> > > > x64 in the upstream kernel too: using save_flags() over u32 will
-> > > > corrupt a word on the stack ...
-> > >
-> > > Actually, it's still safe upstream.  The locks are taken via a function
-> > > defined as:
-> > >
-> > > unsigned long acpi_os_acquire_lock(acpi_handle handle)
-> > > {
-> > > 	unsigned long flags;
-> > > 	spin_lock_irqsave((spinlock_t *) handle, flags);
-> > > 	return flags;
-> > > }
-> > >
-> > > So a u32 flags with
-> > >
-> > >   flags = acpi_os_acquire_lock(lock);
-> > >
-> > > would be safe, unless a 64 bit machine stored the value of IR in the
-> > > upper word, which I don't know of any archs that do that.
-> >
-> > ok. But this still looks very volatile. Nowhere do we guarantee (or can
-> > we guarantee) that silently zeroing out the upper 32 bits of flags is
-> > safe!
->
-> Andi,
->
-> So, should I send my patch upstream?
+------=_20051006064515_83482
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-It's a theoretical only issue for mainline right now. The only architectures 
-using the ACPI code are i386,x86-64,ia64. The first two are ok with 
-truncating. The IA64 PSR is longer than 32bit, but unless I'm misreading the 
-code they only care about the "i" bit which is also in the lower 32bit (Tony 
-can probably confirm/deny) 
 
-Still might be good to clean up, but certainly not a urgent issue.
 
--Andi
+I recently aquired a budget notebook from SHGcomputers.com, believing tha=
+t
+the hardware included would be supported by a modern distribution. After
+installing Fedora Core 4 on it, I realised the wireless card, an ipw2200,
+didn't work.
+
+After some research, I've come to the conclusion that it's somehow an ACP=
+I
+fault. I get the following ACPI messages:
+
+PCI: PCI BIOS revision 2.10 entry at 0xe9bf4, last bus=3D1
+PCI: Using configuration type 1
+ACPI: Subsystem revision 20050408
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI: Probing PCI hardware (bus 00)
+ACPI: Assume root bridge [\_SB_.PCI0] segment is 0
+ACPI: Assume root bridge [\_SB_.PCI0] bus is 0
+Boot video device is 0000:01:00.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: Embedded Controller [EC0] (gpe 1)
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 10 *11 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 *7 10 11 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 7 10 11 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 *10 11 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [ALKA] (IRQs 20) *0, disabled.
+ACPI: PCI Interrupt Link [ALKB] (IRQs 23) *11
+ACPI: PCI Interrupt Link [ALKC] (IRQs 22) *5, disabled
+    ACPI-0229: *** Error: Return object type is incorrect
+[\_SB_.PCI0.ALKD._CRS] (Node f7ecdee0), AE_TYPE
+ACPI: PCI Interrupt Link [ALKD] (IRQs 21) *0
+
+and the wireless card fails with the message of:
+
+ipw2200: Intel(R) PRO/Wireless 2200/2915 Network Driver, 1.0.0
+ipw2200: Copyright(c) 2003-2004 Intel Corporation
+PCI: Enabling device 0000:00:06.0 (0000 -> 0002)
+ACPI: PCI Interrupt 0000:00:06.0[A]: no GSI
+PCI: Setting latency timer of device 0000:00:06.0 to 64
+ipw2200: Detected Intel PRO/Wireless 2200BG Network Connection
+ipw2200: Error allocating IRQ 0
+ipw2200: probe of 0000:00:06.0 failed with error -16
+
+I've tried to use the pci=3Drouteirq option, but that changed nothing.
+I've attached the full dmesg output.
+
+Please help me get to the bottom of this, as my laptop is seriously
+crippled by the lack of a wireless card.
+
+------=_20051006064515_83482
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+I recently aquired a budget notebook from SHGcomputers.com, believing tha=
+t
+the hardware included would be supported by a modern distribution. After
+installing Fedora Core 4 on it, I realised the wireless card, an ipw2200,
+didn't work.
+
+After some research, I've come to the conclusion that it's somehow an ACP=
+I
+fault. I get the following ACPI messages:
+
+PCI: PCI BIOS revision 2.10 entry at 0xe9bf4, last bus=3D1
+PCI: Using configuration type 1
+ACPI: Subsystem revision 20050408
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI: Probing PCI hardware (bus 00)
+ACPI: Assume root bridge [\_SB_.PCI0] segment is 0
+ACPI: Assume root bridge [\_SB_.PCI0] bus is 0
+Boot video device is 0000:01:00.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: Embedded Controller [EC0] (gpe 1)
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 10 *11 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 *7 10 11 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 7 10 11 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 *10 11 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
+ACPI: PCI Interrupt Link [ALKA] (IRQs 20) *0, disabled.
+ACPI: PCI Interrupt Link [ALKB] (IRQs 23) *11
+ACPI: PCI Interrupt Link [ALKC] (IRQs 22) *5, disabled
+    ACPI-0229: *** Error: Return object type is incorrect
+[\_SB_.PCI0.ALKD._CRS] (Node f7ecdee0), AE_TYPE
+ACPI: PCI Interrupt Link [ALKD] (IRQs 21) *0
+
+and the wireless card fails with the message of:
+
+ipw2200: Intel(R) PRO/Wireless 2200/2915 Network Driver, 1.0.0
+ipw2200: Copyright(c) 2003-2004 Intel Corporation
+PCI: Enabling device 0000:00:06.0 (0000 -> 0002)
+ACPI: PCI Interrupt 0000:00:06.0[A]: no GSI
+PCI: Setting latency timer of device 0000:00:06.0 to 64
+ipw2200: Detected Intel PRO/Wireless 2200BG Network Connection
+ipw2200: Error allocating IRQ 0
+ipw2200: probe of 0000:00:06.0 failed with error -16
+
+I've tried to use the pci=3Drouteirq option, but that changed nothing.
+I've attached the full dmesg output.
+
+Please help me get to the bottom of this, as my laptop is seriously
+crippled by the lack of a wireless card.
+------=_20051006064515_83482--
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
