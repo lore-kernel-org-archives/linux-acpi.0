@@ -1,31 +1,51 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: Re: 2.6.14-rc3-rt2
-Date: Thu, 6 Oct 2005 09:25:28 -0700
-Message-ID: <20051006162528.GA6006@agluck-lia64.sc.intel.com>
-References: <5bdc1c8b0510041111n188b8e14lf5a1398406d30ec4@mail.gmail.com> <20051006084920.GB22397@elte.hu> <Pine.LNX.4.58.0510060544390.28535@localhost.localdomain> <200510061204.33045.ak@suse.de>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: ACPI errors on ECS G220 laptop
+Date: Thu, 06 Oct 2005 18:44:35 +0200
+Message-ID: <43455473.6040209@suse.de>
+References: <1128480553.11538.9.camel@tuxprototype.deadeyedata.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751129AbVJFQ0W@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200510061204.33045.ak@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@elte.hu>, Mark Knecht <markknecht@gmail.com>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1128480553.11538.9.camel-HeUoCuMXkaHnRTjf+tVgBKY7qTmLiVr45NbjCUgZEJk@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: bulk-wOwPqRMbTBJeoWH0uzbU5w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> It's a theoretical only issue for mainline right now. The only architectures 
-> using the ACPI code are i386,x86-64,ia64. The first two are ok with 
-> truncating. The IA64 PSR is longer than 32bit, but unless I'm misreading the 
-> code they only care about the "i" bit which is also in the lower 32bit (Tony 
-> can probably confirm/deny) 
+Junk Mail Recipient wrote:
+> I recently purchased an ECS G220 laptop with the hopes of running Suse
+> 9.3 on it.  I am pretty well outta luck as far as acpi goes though.  The
+> battery monitor doesn't work at all.  It perpetually shows a 1% charge.
+> It also doesn't seem to be getting any thermal information.  CPU scaling
+> can be done manually, but is not happening automatically.  
+> 
+> I followed the how-to on broken dsdt and from iasl I get 1 error and no
+> warnings.  Unfortunately this seems to be a pretty generic syntax error
+> and I am at a loss on how to track it down or where to go from here.  
+> 
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler / AML Disassembler version 20050309 [Mar 19
+> 2005]
+> Copyright (C) 2000 - 2005 Intel Corporation
+> Supports ACPI Specification Revision 3.0
+> 
+> dsdt.dsl  1901:     If (SS1)
+> Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
 
-Andi is right ... if you follow the "acpi_os_release_lock" trail, you
-eventually get to include/asm-ia64/system.h with the following definition
-for __local_irq_restore:
+Create an _INI function in \_SB scope (if there is not already one) and place 
+the If(SSX){...} code there.
 
-#define __local_irq_restore(x)  ia64_intrin_local_irq_restore((x) & IA64_PSR_I)
 
-and the IA64_PSR_I bit is bit 14 ... safely in the low 32 bits.  So this is
-a correct fix, but will have no effect on ia64.
-
--Tony
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
