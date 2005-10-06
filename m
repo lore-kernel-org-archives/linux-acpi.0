@@ -1,10 +1,13 @@
-From: "David Mathog" <mathog-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
-Subject: Re: Save power at idle onTyan S2466N-MPX, athcool, etc.
-Date: Thu, 06 Oct 2005 13:54:01 -0700
-Message-ID: <E1ENckb-0007Dh-00@mendel.bio.caltech.edu>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Help needed to fix my dsdt / running out of ideas
+Date: Thu, 6 Oct 2005 14:16:05 -0700
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E02F8E015@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,51 +17,107 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Maximilian Mehnert <widolo87-LWAfsSFWpa4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Erik Slagter wrote:
 
-> Please search the mailing list archives for something like amd760,
-> amd768, amd76x_pm, smp, or simply my name. This has all been covered.
+1) Appears to need three externals:
 
-I already did that.  There is a lot of general discussion but
-very few details on the final, working, configuration.  In fact,
-having gone through that thread twice already I couldn't determine
-for sure what the final, working configuration actually was!
-That is what I'm after, in particular:
+DefinitionBlock ("DSDT.aml", "DSDT", 1, "INTEL ", "ALVISO  ", 100925440)
+{
+    External (CFGD, IntObj)
+    External (PDC0, IntObj)
+    External (PDC1, IntObj)
 
-> > 1. relevant BIOS settings
-> > 2. minimum kernel required
-> > 3. any extra kernel patches required
-> > 4. any extra software (like athcool) required
+2) One package is not disassembled properly:
 
-> BTW I have had several stability issues with the board, so I am not
-> going to buy another Tyan board. My previous MSI board always worked
-> without any problem.
+Name (PBST, Package (0x04)
+{
+    Zero,=20
+    Z007 (),                 Z007 (),                 0x2710
+})=20
 
-Yeah, these boards are a bit of a pain.  I've got 20 of them.
-Power them all down and turn them back on and the
-odds are nil that they'll all come back up again.  One
-or more always needs to be reset.  They can also get into a state
-where reset is ignored, and since these are rack mounted,
-the only way to regain control is to pull the power
-supply cord out, wait a bit, and plug it back in again.
+Change to:
 
-Moreover, two of them have failed so far.  But they didn't just
-die outright, they started crashing for no good reason.  Perhaps
-that's what you're seeing as "instability".  To its
-credit Tyan did replace those boards under warranty.  The good ones
-never crash, easily staying up for 6 months at a time.
-(Under linux, with no graphics or other complex drivers
-to confuse them.)  We use ECC memory, maybe that helps.
+Name (PBST, Package (0x04)
+{
+    Zero,=20
+    Z007,                =20
+    Z007,                =20
+    0x2710
+})
 
-Regards,
+I was able to recompile the DSDT with these changes (2 warnings for a
+reserved method).  I'll fix the disassembler for the next release.
 
-David Mathog
-mathog-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org
-Manager, Sequence Analysis Facility, Biology Division, Caltech
+Bob
+
+Here's the method that causes warnings. It appears to be missing a
+return statement:
+
+                        Method (_DCK, 1, NotSerialized)
+                        {
+                            If (LEqual (Arg0, One))
+                            {
+                                Return (One)
+                            }
+                            Else
+                            {
+                                Store (Zero, ^^RP03.Z002)
+                                Store (One, ^^RP03.LDP3)
+                            }
+                        }
+
+
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Maximilian Mehnert
+> Sent: Thursday, October 06, 2005 12:54 PM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] Help needed to fix my dsdt / running out of ideas
+>=20
+> Hello everyone!
+>=20
+> I have fixed a few dsdts before so I am not completely new to this.
+>=20
+> However I have no clue how to fix my current dsdt after it changed
+> because of a RAM upgrade.
+>=20
+> Please have a look at  my decompiled dsdt
+> (http://userpage.fu-berlin.de/~mmehnert/dsdt-highmem.dsl) and the
+output
+> of iasl trying to compile it again
+> (http://userpage.fu-berlin.de/~mmehnert/errors-iasl)
+>=20
+>=20
+> I would be extremely glad if someone with more insight into this
+matter
+> could give me a few advises to fix the first (and maybe the last)
+error.
+> Most of them seem to follow the same pattern so I should be able to do
+> most of this on my own...
+>=20
+> Hoping for your help,
+>=20
+> all the best,
+>=20
+> Maximilian Mehnert
+>=20
+>=20
+>=20
+>=20
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by:
+> Power Architecture Resource Center: Free content, downloads,
+discussions,
+> and more. http://solutions.newsforge.com/ibmarch.tmpl
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
