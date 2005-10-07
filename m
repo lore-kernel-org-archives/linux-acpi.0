@@ -1,37 +1,20 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: ACPI problem
-Date: Fri, 07 Oct 2005 13:06:16 +0200
-Message-ID: <434656A8.3020700@suse.de>
-References: <3ebbb09c0510061554h5c19610al9d0ecfabf9707312@mail.gmail.com>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: [patch 0/2] acpiphp: hotplug adapters with bridges on them
+Date: Fri, 07 Oct 2005 10:45:45 -0700
+Message-ID: <1128707145.11020.9.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ebbb09c0510061554h5c19610al9d0ecfabf9707312-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Giacomo Rizzo <giacomorizzo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030530AbVJGRqF@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Cc: rajesh.shah@intel.com, greg@kroah.com, len.brown@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-Giacomo Rizzo wrote:
-> Hi,
-> The problem is that my notebook (a sony pcg-nvr23)
-> shuts down after a random number of seconds during the installation process.
-
-I forogt: Clean your fan slots first.
-
-       Thomas
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Power Architecture Resource Center: Free content, downloads, discussions,
-and more. http://solutions.newsforge.com/ibmarch.tmpl
+These 2 patches will allow adapters with p2p bridges on them to be
+successfully hotplugged using the acpiphp driver.  Currently, if you
+attempt to hotplug an adapter with a p2p bridge on it, the operation
+will fail because resources are not allocated to it properly.  These
+patches have had very limited testing as I only have one machine and one
+type of adapter to test this with.  I tested this with 2.6.14-rc2, but
+the patch applies fine to rc3 as well.
