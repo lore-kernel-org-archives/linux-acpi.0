@@ -1,12 +1,13 @@
-From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
-Subject: Re: Save power at idle onTyan S2466N-MPX, athcool, etc.
-Date: Fri, 07 Oct 2005 11:21:47 +0200
-Message-ID: <1128676907.4775.11.camel@localhost.localdomain>
-References: <E1ENckb-0007Dh-00@mendel.bio.caltech.edu>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: ACPI problem
+Date: Fri, 07 Oct 2005 12:50:54 +0200
+Message-ID: <4346530E.1070500@suse.de>
+References: <3ebbb09c0510061554h5c19610al9d0ecfabf9707312@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-+KyjA3qppnAt7qX7WS7t"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <E1ENckb-0007Dh-00-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
+In-Reply-To: <3ebbb09c0510061554h5c19610al9d0ecfabf9707312-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,109 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Mathog <mathog-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
+To: Giacomo Rizzo <giacomorizzo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Giacomo Rizzo wrote:
+> Hi,
+> Len Brown gave me your address because I talked to him
+> about a problem I'm having while trying installing linux (I tried
+> several distros)
+> The problem is that my notebook (a sony pcg-nvr23)
+> shuts down after a random number of seconds during the installation process.
+> I think it's an acpi problem because once I tried booting Knoppix by keeping
+> the temperature around
+> my notebook really low (it was a really cold winter night)
+> Looking at /proc/acpi/temperature I realized that the cpu temperature was
+> getting higher and higher as the second passed, untill my computer turned
+> off.
+> Another weird thing is this. I installed Suse 9.1 always being in a cold
+> place and it seems that the temperature is quite stable (it's not so low but
+> at least it's far from upper limit). I would like to know if it's possible,
+> a way to install any linux distribution without keeping the notebook cool.
+This is probably because of powersave daemon controlling your cpufreq.
+This package was only available for SUSE and ALT Linux.
+Currently people are working on a Debian and Gentoo package. Not sure if there 
+are already finished packages (please let me know if you find them).
 
---=-+KyjA3qppnAt7qX7WS7t
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+You could use the cpufreqd (now called cpuspeed?) package that only scales 
+cpufreq or you can try to adopt the powersaved (that also includes a lot 
+additional features) to Knoppix (CVS hosted on forge.novell.com), be sure you 
+get help on the mailing list there.
 
-On Thu, 2005-10-06 at 13:54 -0700, David Mathog wrote:
+Still, if you are running on full power for a long time you will probably always 
+suffer of a critical thermal shutdown.
+This could be related to http://bugzilla.kernel.org/show_bug.cgi?id=3410.
+Hopefully this patch goes mainline soon.
+If you have a high tsp value (check cat /proc/acpi/thermal_zone/*/trip_points) 
+for your passive mode it's probably bug #3410.
+As a workaround you could lower the passive trip point value there by:
+echo C:H:P:A1:A2 >/proc/acpi/thermal_zone/*/trip_points
+C -> critical limit
+H -> hot limit
+P -> passive limit
+A1/2 -> active limit
+Just pass any value if a limit is not defined in your BIOS, e.g. echo 
+100:90:60:50:45 sets passive cooling trip point limit (cpufreq will be lowered) 
+to 60 degree.
 
-> > Please search the mailing list archives for something like amd760,
-> > amd768, amd76x_pm, smp, or simply my name. This has all been covered.
-
-> I already did that.
-
-Okay, good.
-
-> There is a lot of general discussion but
-> very few details on the final, working, configuration.  In fact,
-> having gone through that thread twice already I couldn't determine
-> for sure what the final, working configuration actually was!
-
-I my case: no configuration is working :-( That is because I use a
-promise sata card which gets upset very easily.
-
-I tried c3 but maybe if I limit to c2, it will work.
-
-(all using amd76x_pm)
-
-> That is what I'm after, in particular:
->=20
-> > > 1. relevant BIOS settings
-> > > 2. minimum kernel required
-> > > 3. any extra kernel patches required
-> > > 4. any extra software (like athcool) required
-
-1. none=20
-2. 2.6 iirc
-3. amd76x_pm (http://www.sommrey.de/amd76x_pm/)
-4. none
-
-> Yeah, these boards are a bit of a pain.  I've got 20 of them.
-> Power them all down and turn them back on and the
-> odds are nil that they'll all come back up again.
-
-Yep. They take ages to reset and then you'll have to have to luck it
-actually does come up.
-
-> (Under linux, with no graphics or other complex drivers
-> to confuse them.)  We use ECC memory, maybe that helps.
-
-Once running there is no problem (apart from the promise sata controller
-issue, which very well may be a mainboard issue indeed). I have been
-running with ECC for quite a while, but couldn't use it together with
-the extra (non-ECC) I added later.
-
---=-+KyjA3qppnAt7qX7WS7t
-Content-Type: application/x-pkcs7-signature; name=smime.p7s
-Content-Disposition: attachment; filename=smime.p7s
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFjCCAs8w
-ggI4oAMCAQICAw9TczANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
-d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIElzc3VpbmcgQ0EwHhcNMDUwODE4MTE1NDA1WhcNMDYwODE4MTE1NDA1WjBDMR8wHQYDVQQD
-ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFt
-ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANAMKW15OgreNb+Wd++Xcw6uNJUXXIfX
-56u1rtTObMmbbDY2wNc4Iqwbuwaysvox3z+YElXBibE8BAyV1iMjhee4mOfAy38dGHtWDxhOGke8
-VpkyY8DSWgMN5p4egTiT6YNdHW75iiQ+Vh5zMHju1UXnIqgf5zkUGkNuxYp15jLZvRDbfA5H+Sil
-jbZGB2fiPOJHpyI61ZidcMgdow31qm70/oe6vXxhSZLzo7OLvExE+mQHwbCSIJMN/hPTK1z0lmQ1
-kkaEjHrefqIgoF9Dk/WfOtulzvR3xBzDL50GZ32BxT/OhXYe1SHEJpSM1S/aq8TBQJYwjzREWyDh
-0OYsmr0CAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFndGVyLm5hbWUwDAYDVR0TAQH/BAIw
-ADANBgkqhkiG9w0BAQQFAAOBgQCCpzoneRQIKsUO8zSnwQ7yhJTrS/EaDibiIVrkkCbzXwCiHFAi
-7nmTRF0DlLVF3Ssf97ITWT/RSdkj9Xke0OHH7724PJdfpA6OglMnx2i7IcJLzPgPjB+fOmfR0nYX
-UYKuzGxTOXmshLmPcwKdpFuRLLk7n+vrTAwJYJI++crhJzCCAz8wggKooAMCAQICAQ0wDQYJKoZI
-hvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcT
-CUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmlj
-YXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
-bCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3
-MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUg
-Q29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
-SXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRw
-nd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+R
-NiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEA
-AaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwu
-dGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNV
-HREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEA
-SIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6E
-sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
-IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
-dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
-aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
-MBwGCSqGSIb3DQEJBTEPFw0wNTEwMDcwOTIxNDNaMCMGCSqGSIb3DQEJBDEWBBSD4sbxbKV2OGQn
-oE/g/lp7nK7X0DANBgkqhkiG9w0BAQEFAASCAQCkVjiRGxTXeO0ed6ic9gt6NQevsLmHVipyM8s9
-TSMfQElknbUNGBTd2hWVn9X89M9Fv2z0ikACEoqtqzTmnm6wkVRcc3sbv9z44HduSg02E4vXTqV0
-g1DWik4CW4aKuqlZ3x9Oe84PDCRGw7VjC275AxF1CtzMZkuPEnSDC/luzdjLLCKBnNmxTgk9o8jr
-zAeCAJDOclAiMIxhjP3tx5Pak2sl8jSLbIu8mDk0IxN/UqW131PMUzS+Ai+eo+E38axdTAbS9PpF
-0g8wujcBqVrGqpN786BQHRNfnH0UMsZEdAidbh701+cK0wK3RzmpRn6W/CA7S3HNmmxGSfTMv+4r
-AAAAAAAA
-
-
---=-+KyjA3qppnAt7qX7WS7t--
+     Thomas
 
 
 -------------------------------------------------------
