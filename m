@@ -1,12 +1,12 @@
-From: Steve Douglas <microlinksuk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Urgent (Employment Job)
-Date: Fri, 7 Oct 2005 13:09:21 +0900
-Message-ID: <200510070409.j9749Lfx005992@g11.asadal.net>
-Reply-To: microlinksuk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Subject: Re: Save power at idle onTyan S2466N-MPX, athcool, etc.
+Date: Fri, 07 Oct 2005 11:21:47 +0200
+Message-ID: <1128676907.4775.11.camel@localhost.localdomain>
+References: <E1ENckb-0007Dh-00@mendel.bio.caltech.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-+KyjA3qppnAt7qX7WS7t"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <E1ENckb-0007Dh-00-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,55 +16,109 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Mathog <mathog-Mlb+9xX7RBA8OKIjkCRLjtKIQNXEaThN@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Sir/Madam,=20
-=20
-Good day would you like to Work online from home and gets paid weekly? Mi=
-crolinks Inc. needs a Book-Keeper in the United State, so I want to know =
-if you will like to work Online from home and getting paid weekly without=
- leaving or affecting your present Job.
-=20
-It's just that I presently run a Textile and Fabrics firm I inherited fro=
-m my late Dad in the UK and we need Someone to work for the Company as a =
-Representative/Book Keeper in the United States, My Company produces Vari=
-ous Clothing Materials, Batiks, Assorted Fabrics and Traditional Costume =
-which we have Clients we Supply Weekly in the States, My Clients make pay=
-ments for our Supplies every Week in form of Money Orders, Bankers Draft =
-and Checks, which are not Readily Cashable Outside the United States so w=
-e need Someone in the States to work as our representative and Assist us =
-in processing the payments from Our Clients and I will pay him Weekly Sal=
-ary.=20
-=20
-All you Need to do is Receive this payments from Our Clients in the State=
-s get it Cashed in your Bank then Deduct your Weekly pay and Forward the =
-Balance to the Company down here VIA MONEYGRAMM TRANSFER our payments wil=
-l be Issued out in your Name and you get them Cashed in your Bank Deduct =
-your Weekly Salary and Forward the Balance to the Company VIA MONEYGRAMM =
-TRANSFER, So all I need is to Forward your Information=92s to our Clients=
- in the United States and they Issue payments in form of Money Orders the=
-n Send it to you Via or mail Courier.
-=20
-I will need is your Full Name, Address and Phone Number so we can forward=
- it to Our Clients and they will Start making payments to you as the Comp=
-any representative in the States, I will Email you a Letter of Employment=
- from our Company which you have to reply with an Acceptance Letter and a=
- Scanned Copy of your Identification Attached to it as Soon as we Confirm=
- any payment coming to you I will let you know and I will give you the In=
-formation to Send Funds to the Company VIA MONEYGRAMM TRANSFER, for furth=
-er information reply me on this email address  microlinksuk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org and=
- we will get back to you as soon as possible.
-=20
-I Await your Urgent Response.=20
-=20
-Warmest Regards,
-Mr., Steve Douglas.
-CEO Microlinks  Fabrics & Textiles.
+
+--=-+KyjA3qppnAt7qX7WS7t
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 2005-10-06 at 13:54 -0700, David Mathog wrote:
+
+> > Please search the mailing list archives for something like amd760,
+> > amd768, amd76x_pm, smp, or simply my name. This has all been covered.
+
+> I already did that.
+
+Okay, good.
+
+> There is a lot of general discussion but
+> very few details on the final, working, configuration.  In fact,
+> having gone through that thread twice already I couldn't determine
+> for sure what the final, working configuration actually was!
+
+I my case: no configuration is working :-( That is because I use a
+promise sata card which gets upset very easily.
+
+I tried c3 but maybe if I limit to c2, it will work.
+
+(all using amd76x_pm)
+
+> That is what I'm after, in particular:
+>=20
+> > > 1. relevant BIOS settings
+> > > 2. minimum kernel required
+> > > 3. any extra kernel patches required
+> > > 4. any extra software (like athcool) required
+
+1. none=20
+2. 2.6 iirc
+3. amd76x_pm (http://www.sommrey.de/amd76x_pm/)
+4. none
+
+> Yeah, these boards are a bit of a pain.  I've got 20 of them.
+> Power them all down and turn them back on and the
+> odds are nil that they'll all come back up again.
+
+Yep. They take ages to reset and then you'll have to have to luck it
+actually does come up.
+
+> (Under linux, with no graphics or other complex drivers
+> to confuse them.)  We use ECC memory, maybe that helps.
+
+Once running there is no problem (apart from the promise sata controller
+issue, which very well may be a mainboard issue indeed). I have been
+running with ECC for quite a while, but couldn't use it together with
+the extra (non-ECC) I added later.
+
+--=-+KyjA3qppnAt7qX7WS7t
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFjCCAs8w
+ggI4oAMCAQICAw9TczANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUwODE4MTE1NDA1WhcNMDYwODE4MTE1NDA1WjBDMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFt
+ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANAMKW15OgreNb+Wd++Xcw6uNJUXXIfX
+56u1rtTObMmbbDY2wNc4Iqwbuwaysvox3z+YElXBibE8BAyV1iMjhee4mOfAy38dGHtWDxhOGke8
+VpkyY8DSWgMN5p4egTiT6YNdHW75iiQ+Vh5zMHju1UXnIqgf5zkUGkNuxYp15jLZvRDbfA5H+Sil
+jbZGB2fiPOJHpyI61ZidcMgdow31qm70/oe6vXxhSZLzo7OLvExE+mQHwbCSIJMN/hPTK1z0lmQ1
+kkaEjHrefqIgoF9Dk/WfOtulzvR3xBzDL50GZ32BxT/OhXYe1SHEJpSM1S/aq8TBQJYwjzREWyDh
+0OYsmr0CAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFndGVyLm5hbWUwDAYDVR0TAQH/BAIw
+ADANBgkqhkiG9w0BAQQFAAOBgQCCpzoneRQIKsUO8zSnwQ7yhJTrS/EaDibiIVrkkCbzXwCiHFAi
+7nmTRF0DlLVF3Ssf97ITWT/RSdkj9Xke0OHH7724PJdfpA6OglMnx2i7IcJLzPgPjB+fOmfR0nYX
+UYKuzGxTOXmshLmPcwKdpFuRLLk7n+vrTAwJYJI++crhJzCCAz8wggKooAMCAQICAQ0wDQYJKoZI
+hvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcT
+CUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmlj
+YXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
+bCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3
+MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUg
+Q29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
+SXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRw
+nd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+R
+NiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEA
+AaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwu
+dGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNV
+HREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEA
+SIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6E
+sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
+IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
+dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
+aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
+MBwGCSqGSIb3DQEJBTEPFw0wNTEwMDcwOTIxNDNaMCMGCSqGSIb3DQEJBDEWBBSD4sbxbKV2OGQn
+oE/g/lp7nK7X0DANBgkqhkiG9w0BAQEFAASCAQCkVjiRGxTXeO0ed6ic9gt6NQevsLmHVipyM8s9
+TSMfQElknbUNGBTd2hWVn9X89M9Fv2z0ikACEoqtqzTmnm6wkVRcc3sbv9z44HduSg02E4vXTqV0
+g1DWik4CW4aKuqlZ3x9Oe84PDCRGw7VjC275AxF1CtzMZkuPEnSDC/luzdjLLCKBnNmxTgk9o8jr
+zAeCAJDOclAiMIxhjP3tx5Pak2sl8jSLbIu8mDk0IxN/UqW131PMUzS+Ai+eo+E38axdTAbS9PpF
+0g8wujcBqVrGqpN786BQHRNfnH0UMsZEdAidbh701+cK0wK3RzmpRn6W/CA7S3HNmmxGSfTMv+4r
+AAAAAAAA
 
 
-
-
+--=-+KyjA3qppnAt7qX7WS7t--
 
 
 -------------------------------------------------------
