@@ -1,11 +1,12 @@
-From: Phillip Susi <psusi-3tLf1voIkJTQT0dZR+AlfA@public.gmane.org>
-Subject: Asus K8V Delux broken acpi tables?
-Date: Sat, 08 Oct 2005 01:44:59 -0400
-Message-ID: <43475CDB.6070204@cfl.rr.com>
+From: Igor Popik <igor.popik-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi: processor add release_region()
+Date: Sat, 8 Oct 2005 14:41:28 +0200
+Message-ID: <253000f70510080541w2175817w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,25 +19,31 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-As requested, I have attached the output of lspci, dmidecode, dmesg, and 
-acpidump.   To keep the size down, they are in a tarball. 
+Hi,
 
-There seems to be something wrong with the acpi tables in the bios 
-because when I try to suspend or hibernate I see things like this:
+The processor module reservers some io mem but it does not release
+that region during unload nor during processor removal (possibly with
+hotplug support?).
 
-[   32.830712]     ACPI-0508: *** Error: Method execution failed 
-[\_SB_.PCI0.IDE C.RATA] (Node ffff81003f0da980), AE_AML_OPERAND_VALUE
-[   32.830794]     ACPI-0508: *** Error: Method execution failed 
-[\_SB_.PCI0.IDE C.CHN0.DRV0._GTF] (Node ffff81003f0d9100), 
-AE_AML_OPERAND_VALUE
+This casues oops after unloading processor module and attempt to read
+contents of /proc/ioports file (memory region name points to unloaded
+module).
 
-Hibernation seems to work anyhow, but suspend to ram does not.  When I 
-wake back up from being suspended to ram, the sata disk driver 
-complained that a register was in an incorrect state, and the system hung. 
+Best Regards,
+Igor
 
-Could someone help me figure out how to correct this?
+--- a/drivers/acpi/processor_core.c=092005-10-08 13:26:23.000000000 +0200
++++ b/drivers/acpi/processor_core.c=092005-10-08 13:31:35.000000000 +0200
+@@ -675,6 +675,9 @@
 
+ =09acpi_processor_remove_fs(device);
 
++=09if (pr->throttling.address)
++=09=09release_region(pr->throttling.address, 6);
++
+ =09processors[pr->id] =3D NULL;
+
+ =09kfree(pr);
 
 
 -------------------------------------------------------
