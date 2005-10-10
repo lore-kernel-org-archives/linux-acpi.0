@@ -1,15 +1,12 @@
-From: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Latest acpica
-Date: Wed, 12 Oct 2005 17:00:41 -0700
-Message-ID: <c0a09e5c0510121700saa456d6kff2b05b858bc1251@mail.gmail.com>
-References: <971FCB6690CD0E4898387DBF7552B90E02AA4005@orsmsx403.amr.corp.intel.com>
-	 <c0a09e5c0510121037l3be5774bj3ec5e0d50449c69f@mail.gmail.com>
-	 <20051012215628.GG3658@inferi.kami.home>
+From: "Milo Browne" <browne16-t9IZ6g3GBMc@public.gmane.org>
+Subject: The Stock to Watch
+Date: Mon, 10 Oct 2005 19:14:57 +0300
+Message-ID: <1128960897.6357@psi.ca>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_20354_18527943.1129161641979"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051012215628.GG3658-MEqNC12sBsHxa7XIdbXXog@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,94 +16,174 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-------=_Part_20354_18527943.1129161641979
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Newsletter - October Issue, 2005
 
-When you cut through the legalese, the ACPICA license, which is what the
-acpica-unix release is released under, is BSD-style. (Proof of this is that
-FreeBSD uses it ;-) So there shouldn't be any licensing issues.
 
-As for acpisrc, it is a very specialized tool that works in conjunction wit=
-h
-some shellscripts to Linuxize the code. I don't think it is worth packaging=
-,
-since only the guy who ports CA releases to Linux (i.e. Len Brown) really
-uses it... but it's there for the curious. (a nit: it doesn't attach GPLv2,
-it attaches dual BSD/GPLv2.)
+ In October's issue we are going to profile a
+company involved in the Hot Brazilian gaming
+industry.  This company's st0ck is very much
+undervalued considering the potential of the
+industry and the position of the company.
+(The perfect time to get in)
 
-Regards -- Andy (no longer working on acpi, I just want a debian iasl pkg
-;-)
 
-On 10/12/05, Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org> wrote:
->
-> On Wed, Oct 12, 2005 at 10:37:59AM -0700, Andrew Grover wrote:
-> > I am using GNU flex 2.5.31. I was able to get it to build (on x86_64
-> even)
-> > with the attached patch. I have also attached the warnings, in case
-> those
-> > are of interest.
-> >
-> > (Any Debian people want to package iasl?)
->
-> I submitted the ITP, but I'm wondering which licence it is supposed to
-> be. On the Intel site the Linux package is said to be GPLed but
-> downloaded files (and the www licence agreement) don't report that as
-> this is the Unix version.
->
-> I also gave a shot to the acpisrc tool that moves everything into a
-> GPLv2 + CodeStyle clean source tree but the generated source doesn't
-> build.
->
-> Could anybody clarify it?
->
-> Thanks a lot
-> --
-> mattia
-> :wq!
->
+This small treasure is:
 
-------=_Part_20354_18527943.1129161641979
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Carnegie Cooke & Company, Inc. (CGKY)
 
-When you cut through the legalese, the ACPICA license, which is what
-the acpica-unix release is released under, is BSD-style. (Proof of this
-is that FreeBSD uses it ;-) So there shouldn't be any licensing issues.<br>
-<br>
-As for acpisrc, it is a very specialized tool that works in conjunction
-with some shellscripts to Linuxize the code. I don't think it is worth
-packaging, since only the guy who ports CA releases to Linux (i.e. Len
-Brown) really uses it... but it's there for the curious. (a nit: it
-doesn't attach GPLv2, it attaches dual BSD/GPLv2.)<br>
-<br>
-Regards -- Andy (no longer working on acpi, I just want a debian iasl pkg ;=
--)<br><br><div><span class=3D"gmail_quote">On 10/12/05, <b class=3D"gmail_s=
-endername">Mattia Dongili</b> &lt;<a href=3D"mailto:malattia-k2GhghHVRtY@public.gmane.org">mala=
-ttia-k2GhghHVRtY@public.gmane.org
-</a>&gt; wrote:</span><blockquote class=3D"gmail_quote" style=3D"border-lef=
-t: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1=
-ex;">On Wed, Oct 12, 2005 at 10:37:59AM -0700, Andrew Grover wrote:<br>&gt;=
- I am using GNU flex=20
-2.5.31. I was able to get it to build (on x86_64 even)<br>&gt; with the att=
-ached patch. I have also attached the warnings, in case those<br>&gt; are o=
-f interest.<br>&gt;<br>&gt; (Any Debian people want to package iasl?)<br>
-<br>I submitted the ITP, but I'm wondering which licence it is supposed to<=
-br>be. On the Intel site the Linux package is said to be GPLed but<br>downl=
-oaded files (and the www licence agreement) don't report that as<br>this is=
- the Unix version.
-<br><br>I also gave a shot to the acpisrc tool that moves everything into a=
-<br>GPLv2 + CodeStyle clean source tree but the generated source doesn't<br=
->build.<br><br>Could anybody clarify it?<br><br>Thanks a lot<br>--<br>matti=
-a
-<br>:wq!<br></blockquote></div><br>
 
-------=_Part_20354_18527943.1129161641979--
+ The st0ck is trading at only O.11 - O.13 cents
+and we expect it could hit $0.30 - $0.35 by
+late November.
+
+
+ A Huge PR campaign is expected starting tuesday
+and all next week so grab as much as you can up
+to $0.25 range.  We all know it's the big
+announcements that make these small gems move.
+
+
+St0ck Symbol: CGKY . pk
+
+
+Current Price: $O.10
+
+How will it react to being blasted onto
+investors radar screens starting this Tuesday!!
+
+We expect the price to go to $O.18 in next 2-3 days
+We expect the price to go to $O.3O in next 3 weeks.
+
+
+** Why we believe CGKY will be a good investment **
+
+
+ Carnegie Cooke is a media and distribution company
+in the Brazilian turf industry. The Brazilian
+Department of Agriculture reports that in 2003
+turf/gaming industry revenues were in excess of
+US$400_milli0n, in local racing events, using
+un-mechanized facilities. Carnegie Cooke's Brazilian
+subsidiary has been granted the right by the Brazilian
+Association of Jockey Clubs and the endorsement of
+the Brazilian Government to mechanize Jockey Club
+facilities, and to implement international simulcast
+racing throughout Brazil.
+
+ Their philosophy is to identify an untapped and
+underutilized economic niche in the Brazilian
+turf betting community, therefore allowing the
+populace to enjoy the technological advantages
+associated with the domestic and international
+betting universe. This is done through the
+introduction of simulcasts of United States
+horse races and the ability to bet on them in
+the same fashion as if the bettors were actually
+at the American track.
+
+By introducing this technology into the Brazilian
+revenue model, Carnegie Cooke will enhance the
+Brazilian turf industry thereby strengthening revenues.
+Carnegie Cooke intends to extend this philosophy to
+other areas of the Brazilian gaming community as
+opportunities arise in the dynamic Brazilian economy.
+
+
+
+ ***LASTEST BIG N E W S***
+
+
+ Carnegie Cooke & Company, Inc. (CGKY.PK)
+is in the process of acquiring two new locations
+in Niteroi, the island city adjoining Rio de Janeiro.
+Niteroi is one of the most affluent suburbs in Brazil.
+Its population is greater than 500,000 with a daily
+average of 300,000 commuters. These potential new
+locations are in addition to the existing domestic
+revenue generating OTB's currently being expanded
+in Campos and Macae.
+
+Carnegie Cooke recently signed a three year contract,
+with an option for three additional years, for
+exclusivity with the Jockey Club de Campos to operate
+both domestic and international simulcast signals
+related to the turf industry throughout the state of
+Rio de Janeiro.
+
+With ownership of the Campos facility, the domestic
+betting signal allows access to forty existing
+accredited domestic simulcast signal OTB's within
+the state of Rio de Janeiro. Management is in the
+process of analyzing these sites for the inclusion
+into its expanding OTB network.
+
+
+Goto your favorite final website and read up on
+this company. How do u think this companies stock
+is going to react to thousands of investors
+viewing this same very thing?
+
+Is this companys stock ready to roll?
+
+We ThinK So!
+
+
+St0ck Symbol: CGKY . pk
+
+
+Current Price: $0.12
+
+
+We expect the price to go to $0.18 in next 2-3 days
+We expect the price to go to $0.30 in next 3 weeks.
+
+
+Please watch this one trade on Tuesday!
+
+_______________________________________
+
+Inf0rmation within this em4il cont4ins "f0rward_l00king
+_st4tements" within the meaning of Section 27A of
+the Securities Act of 1933 and Section 21B of
+the Securities Exchange Act of 1934. Any statements
+that express or involve discussions with respect to
+predictions, goals,expectations, beliefs, plans,
+projections, objectives, assumptions or future
+events or performance are not statements of historical
+fact and may be "f0rward_l00king_st4tements."
+F0rward_l00king_st4tements are based on expectations,
+estimates and projections at the time the statements
+are made that involve a number of risks and
+uncertainties which could cause actual results or
+events to differ materially from those presently
+anticipated. F0rward_l00king_st4tements in this action
+may be identified through the use of words such as:
+"projects", "foresee", "expects", "estimates,"
+"believes,""understands" "will," "part of: "
+anticipates," or that by statements indicating certain
+actions "may," "could," or "might" occur. All
+information provided within this email pertaining
+to investing, st0c.ks, securities must
+be understood as information provided and not
+investment advice. Emerging Equity Alert advises all
+readers and subscribers to seek advice from a
+r3gistered professional securities representative
+before deciding to trade in st0c.ks featured within
+ this email. None of the material within this report
+shall be construed as any kind of investment advice.
+Please havein mind that the interpretation of the
+writer of this newsletter about the mnews published
+by the company does not represent the company
+official statement and in fact may differ from
+the real meaning of what the news release meant to
+say.  Look at the news release by yourself and judge by
+yourself about the details in it.
+If you wish to stop future m4ilings,
+please m4il to: lokni
+
 
 
 -------------------------------------------------------
