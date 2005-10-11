@@ -1,214 +1,201 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [PATCH] ACPI: implement UUID-labelled vendor-defined resources
-Date: Tue, 11 Oct 2005 11:31:01 -0600
-Message-ID: <200510111131.01813.bjorn.helgaas@hp.com>
-References: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2@orsmsx403.amr.corp.intel.com>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: RE: [patch 2/2] acpi: add ability to derive irq when doing a
+	surpriseremoval of an adapter
+Date: Tue, 11 Oct 2005 10:54:27 -0700
+Message-ID: <1129053267.15526.9.camel@whizzy>
+References: <59D45D057E9702469E5775CBB56411F190A57F@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E02C0B5F2-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751462AbVJKRyn@vger.kernel.org>
+In-Reply-To: <59D45D057E9702469E5775CBB56411F190A57F@pdsmsx406>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Li, Shaohua" <shaohua.li@intel.com>
+Cc: pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, "Shah, Rajesh" <rajesh.shah@intel.com>, greg@kroah.com, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 16 September 2005 3:56 pm, Moore, Robert wrote:
-> And to make things even more interesting, the base ACPICA code looks
-> nothing like the final Linux version of the code; it is converted on the
-> fly before every release to Linux.
+For surprise hotplug removal, the interrupt pin must be guessed, as any
+attempts to read it would obviously be invalid.  This patch adds a new
+function to cycle through all possible pin values, and tries to either
+lookup or derive the right irq to disable.  It also adds a new function
+to acpi which can be used to just find the irq, without freeing it, just
+in case we guess the wrong pin.
 
-OK, here's the patch to the base ACPICA (prior to the Linux
-conversion).
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-I tried to make it look ACPICA-ish.  When you integrate
-this, there will be some breakage (name conflicts with the
-old code that lives in arch/ia64/, probably a change required
-to acpi_uuid.ByteData[], etc).  I hope it will be obvious
-how to fix those up.  Applying the rest of my original
-Linux-based patch should take care of most of it.
-
-Let me know if I can help.
-
-diff -u -ur acpica-unix-20050930/include/acpixf.h acpica-unix-20050930-new/include/acpixf.h
---- acpica-unix-20050930/include/acpixf.h	2005-09-30 16:50:25.000000000 -0600
-+++ acpica-unix-20050930-new/include/acpixf.h	2005-10-11 11:08:32.000000000 -0600
-@@ -498,6 +498,13 @@
-     ACPI_RESOURCE           *Resource,
-     ACPI_RESOURCE_ADDRESS64 *Out);
- 
-+ACPI_STATUS
-+AcpiFindVendorResource (
-+    ACPI_HANDLE		    DeviceHandle,
-+    ACPI_VENDOR_DESCRIPTOR  *Id,
-+    UINT8		    **Data,
-+    UINT32		    *Length);
-+
- /*
-  * Hardware (ACPI device) interfaces
-  */
-diff -u -ur acpica-unix-20050930/include/actypes.h acpica-unix-20050930-new/include/actypes.h
---- acpica-unix-20050930/include/actypes.h	2005-09-30 16:50:25.000000000 -0600
-+++ acpica-unix-20050930-new/include/actypes.h	2005-10-11 10:15:09.000000000 -0600
-@@ -1145,6 +1145,17 @@
- #define ACPI_PRODUCER                   (UINT8) 0x00
- #define ACPI_CONSUMER                   (UINT8) 0x01
- 
-+typedef struct acpi_uuid
-+{
-+    UINT8			ByteData[16];
-+} ACPI_UUID_STRUCT;
-+
-+#define ACPI_UUID(a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \
-+    ((struct acpi_uuid) \
-+    {{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
-+      (b) & 0xff, ((b) >> 8) & 0xff, \
-+      (c) & 0xff, ((c) >> 8) & 0xff, \
-+      (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
- 
- /*
-  *  Structures used to describe device resources
-@@ -1209,6 +1220,19 @@
- 
- } ACPI_RESOURCE_VENDOR;
- 
-+typedef struct acpi_vendor_descriptor
-+{
-+    UINT8			UuidSubtype;
-+    ACPI_UUID_STRUCT		Uuid;
-+} ACPI_VENDOR_DESCRIPTOR;
-+
-+typedef struct acpi_vendor_info
-+{
-+    ACPI_VENDOR_DESCRIPTOR	*Descriptor;
-+    UINT8			*Data;
-+    UINT32			Length;
-+} ACPI_VENDOR_INFO;
-+
- typedef struct acpi_resource_end_tag
- {
-     UINT8                       Checksum;
-diff -u -ur acpica-unix-20050930/resources/rsxface.c acpica-unix-20050930-new/resources/rsxface.c
---- acpica-unix-20050930/resources/rsxface.c	2005-09-30 16:50:33.000000000 -0600
-+++ acpica-unix-20050930-new/resources/rsxface.c	2005-10-11 11:10:26.000000000 -0600
-@@ -514,3 +514,103 @@
- 
-     return (AE_OK);
+diff -uprN -X linux-2.6.14-rc3.orig/Documentation/dontdiff linux-2.6.14-rc3.orig/drivers/acpi/pci_irq.c linux-2.6.14-rc3/drivers/acpi/pci_irq.c
+--- linux-2.6.14-rc3.orig/drivers/acpi/pci_irq.c	2005-10-07 13:37:50.000000000 -0700
++++ linux-2.6.14-rc3/drivers/acpi/pci_irq.c	2005-10-11 10:02:42.000000000 -0700
+@@ -298,6 +298,28 @@ acpi_pci_free_irq(struct acpi_prt_entry 
+ 	return_VALUE(irq);
  }
+ 
 +
-+static inline int
-+AcpiUuidCmp (
-+    ACPI_UUID_STRUCT		Left,
-+    ACPI_UUID_STRUCT		Right)
++
++static int 
++acpi_pci_find_irq(struct acpi_prt_entry *entry,
++		  int *edge_level, int *active_high_low, char **link)
 +{
-+    return memcmp(&Left, &Right, sizeof (Left));
++	int irq;
++
++	ACPI_FUNCTION_TRACE("acpi_pci_find_irq");
++	if (entry->link.handle) {
++		irq = acpi_pci_link_find_irq(entry->link.handle);
++	} else {
++		irq = entry->link.index;
++	}
++
++	*link = entry;
++
++	return_VALUE(irq);
 +}
 +
-+static ACPI_STATUS
-+AcpiVendorResourceMatch (
-+    ACPI_RESOURCE		*Resource,
-+    void			*Context)
++
++	
+ /*
+  * acpi_pci_irq_lookup
+  * success: return IRQ >= 0
+@@ -491,6 +513,83 @@ void __attribute__ ((weak)) acpi_unregis
+ {
+ }
+ 
++
++
++/*
++ * This function will be called only in the case of
++ * a "surprise" hot plug removal.  For surprise removals,
++ * the card has either already be yanked out of the slot, or
++ * the slot's been powered off, so we have to brute force 
++ * our way through all the possible interrupt pins to derive
++ * the GSI, then we double check with the value stored in the
++ * pci_dev structure to make sure we have the GSI that belongs
++ * to this IRQ.
++ */
++void acpi_pci_irq_disable_nodev(struct pci_dev *dev)
 +{
-+    ACPI_VENDOR_INFO		*Info = (ACPI_VENDOR_INFO *) Context;
-+    ACPI_RESOURCE_VENDOR	*Vendor;
-+    ACPI_VENDOR_DESCRIPTOR	*Descriptor;
-+    UINT32			Length;
++	int gsi = 0;
++	u8  pin = 0;
++	int edge_level = ACPI_LEVEL_SENSITIVE;
++	int active_high_low = ACPI_ACTIVE_LOW;
++	int irq;
++	struct acpi_prt_entry *entry;
 +
-+    if (Resource->Type != ACPI_RESOURCE_TYPE_VENDOR)
-+    {
-+	return AE_OK;
-+    }
++	ACPI_FUNCTION_TRACE("acpi_pci_irq_disable_nodev");
 +
-+    Vendor = (ACPI_RESOURCE_VENDOR *) &Resource->Data;
-+    Descriptor = (ACPI_VENDOR_DESCRIPTOR *) Vendor->ByteData;
-+    if (Vendor->ByteLength <= sizeof (*Info->Descriptor) ||
-+	Descriptor->UuidSubtype != Info->Descriptor->UuidSubtype ||
-+	AcpiUuidCmp(Descriptor->Uuid, Info->Descriptor->Uuid))
-+    {
-+	return AE_OK;
-+    }
++	/* 
++	 * since our device is not present, we 
++	 * can't just read the interrupt pin
++	 * and use the value to derive the irq.
++	 * in this case, we are going to check
++	 * each returned irq value to make
++	 * sure it matches our already assigned
++	 * irq before we use it.
++	 */
++	for (pin = 0; pin < 4; pin++) {
++		/*
++	 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.
++	 	 */
++		gsi = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin,
++				  &edge_level, &active_high_low, (char **)&entry,
++				  acpi_pci_find_irq);
 +
-+    Length = Vendor->ByteLength - sizeof (ACPI_VENDOR_DESCRIPTOR);
-+    Info->Data = AcpiOsAllocate(Length);
-+    if (!Info->Data)
-+    {
-+	return AE_NO_MEMORY;
-+    }
++		/*
++	 	 * If no PRT entry was found, we'll try to derive an IRQ from the
++	 	 * device's parent bridge.
++	 	 */
++		if (gsi < 0)
++ 			gsi = acpi_pci_irq_derive(dev, pin,
++				&edge_level, &active_high_low, &entry, acpi_pci_find_irq);
 +
-+    memcpy(Info->Data, Vendor->ByteData +
-+	    sizeof (ACPI_VENDOR_DESCRIPTOR), Length);
-+    Info->Length = Length;
-+    return AE_CTRL_TERMINATE;
++		/* 
++		 * If we could not derive the IRQ, give up on this pin number
++		 * and try a different one.
++		 */
++		if (gsi < 0)
++		 	continue;	
++		
++		if (acpi_gsi_to_irq(gsi, &irq) < 0)
++			continue;
++
++		/* 
++		 * make sure we got the right irq 
++		 */
++		if (irq == dev->irq) {
++			acpi_pci_free_irq(entry, &edge_level, &active_high_low, NULL);
++			printk(KERN_INFO PREFIX 
++				"PCI interrupt for device %s disabled\n",
++	       			pci_name(dev));
++
++			acpi_unregister_gsi(gsi);
++			return_VOID;
++		}
++	}
++	return_VOID;
 +}
 +
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    AcpiFindVendorResource
-+ *
-+ * PARAMETERS:  DeviceHandle    - a handle to the device object for the
-+ *                                device we are querying
-+ *              Id              - a pointer to the acpi_vendor_descriptor
-+ *                                for the UUID-identified vendor-defined
-+ *                                resource we want
-+ *              Data            - a pointer to a pointer where the address
-+ *                                of the vendor data will be stored
-+ *              Length          - a pointer to an integer where the length
-+ *                                of the vendor data will be stored
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: This function walks the current resources for the specified
-+ *              device and looks for a vendor-defined resource that matches
-+ *              the supplied UUID and subtype.
-+ *
-+ *              If the desired resource is found, a buffer is allocated for
-+ *              the vendor-defined data (excluding the UUID and other headers),
-+ *              and the address and size of the buffer are returned in *Data
-+ *              and *Length.  The caller is responsible for deallocating
-+ *              the buffer with AcpiOsFree().
-+ *
-+ *              If the function fails, AE_NOT_FOUND will be returned and
-+ *              the values of *Data and *Length are unchanged.
-+ *
-+ ******************************************************************************/
 +
-+ACPI_STATUS
-+AcpiFindVendorResource (
-+    ACPI_HANDLE				DeviceHandle,
-+    ACPI_VENDOR_DESCRIPTOR		*Id,
-+    UINT8				**Data,
-+    UINT32				*Length)
++
++
+ void acpi_pci_irq_disable(struct pci_dev *dev)
+ {
+ 	int gsi = 0;
+@@ -506,6 +605,14 @@ void acpi_pci_irq_disable(struct pci_dev
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+ 	if (!pin)
+ 		return_VOID;
++
++	/* 
++	 * Check to see if the device was present 
++	 */
++	if (pin == 0xff) {
++		acpi_pci_irq_disable_nodev(dev);
++		return_VOID;
++	}
+ 	pin--;
+ 
+ 	/*
+diff -uprN -X linux-2.6.14-rc3.orig/Documentation/dontdiff linux-2.6.14-rc3.orig/drivers/acpi/pci_link.c linux-2.6.14-rc3/drivers/acpi/pci_link.c
+--- linux-2.6.14-rc3.orig/drivers/acpi/pci_link.c	2005-10-07 13:37:50.000000000 -0700
++++ linux-2.6.14-rc3/drivers/acpi/pci_link.c	2005-10-11 09:51:27.000000000 -0700
+@@ -665,6 +665,41 @@ acpi_pci_link_allocate_irq(acpi_handle h
+ 	return_VALUE(link->irq.active);
+ }
+ 
++
++
++int acpi_pci_link_find_irq(acpi_handle handle)
 +{
-+    ACPI_VENDOR_INFO			Info;
++	struct acpi_device *device = NULL;
++	struct acpi_pci_link *link = NULL;
++	acpi_status result;
 +
-+    Info.Descriptor = Id;
-+    Info.Data = NULL;
++	ACPI_FUNCTION_TRACE("acpi_pci_link_find_irq");
 +
-+    AcpiWalkResources(DeviceHandle, METHOD_NAME__CRS,
-+	    AcpiVendorResourceMatch, &Info);
-+    if (!Info.Data)
-+    {
-+	return AE_NOT_FOUND;
-+    }
++	result = acpi_bus_get_device(handle, &device);
++	if (result) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link device\n"));
++		return_VALUE(-1);
++	}
 +
-+    *Data = Info.Data;
-+    *Length = Info.Length;
-+    return AE_OK;
++	link = (struct acpi_pci_link *)acpi_driver_data(device);
++	if (!link) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link context\n"));
++		return_VALUE(-1);
++	}
++
++	down(&acpi_link_lock);
++	if (!link->irq.initialized) {
++		up(&acpi_link_lock);
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Link isn't initialized\n"));
++		return_VALUE(-1);
++	}
++
++	up(&acpi_link_lock);
++	return_VALUE(link->irq.active);
 +}
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Power Architecture Resource Center: Free content, downloads, discussions,
-and more. http://solutions.newsforge.com/ibmarch.tmpl
++
++
++
+ /*
+  * We don't change link's irq information here.  After it is reenabled, we
+  * continue use the info
