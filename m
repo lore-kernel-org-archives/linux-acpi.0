@@ -1,13 +1,12 @@
-From: Phillip Susi <psusi-3tLf1voIkJTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Asus K8V Delux broken acpi tables?
-Date: Mon, 10 Oct 2005 22:36:12 -0400
-Message-ID: <434B251C.3090300@cfl.rr.com>
-References: <43475CDB.6070204@cfl.rr.com> <4347ED97.1090504@cfl.rr.com> <434A3BB4.1050404@suse.de> <434B171A.3040103@cfl.rr.com>
+From: Petros Kolyvas <pkolyvas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Using the SLPB button for MEM state (suspend to ram)
+Date: Mon, 10 Oct 2005 23:10:25 -0400
+Message-ID: <BAYC1-PASMTP03F4CB11CD595EA2BC0C07D6780@CEZ.ICE>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <434B171A.3040103-3tLf1voIkJTQT0dZR+AlfA@public.gmane.org>
+Message-ID: <434B2D21.1090709@gmail.com>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,54 +19,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I got iasl -d to disassemble /proc/acpi/dsdt, and your patch cleanly 
-applied to that.  When I try to recompile the patched file, I get these 
-errors though:
+Hi folks,
 
-dsdt.dsl    54:             Store (0xAA, DBG8)
-Error    1061 -       Object does not exist ^  (DBG8)
+I've been using ACPI4Linux's suspend to RAM for some time. Until a
+recent reinstall of gentoo, I had been using the lid button (LID0), and
+a script which polled its state (/proc/acpi/button/lid/LID0/state) and
+consequently, depending on whether the lid was up or down, the laptop
+would either come out of or go into the "mem" state.
 
-dsdt.dsl    58:             Store (0xAC, DBG8)
-Error    1061 -       Object does not exist ^  (DBG8)
+Now the thing is that I've begun to use my laptop in the car quite a
+bit; got myself an inverter and I keep it tucked under the front
+passenger seat - anyway, the why and hows don't matter.
 
-dsdt.dsl    65:     Method (OSFL, 0, NotSerialized)
-Warning  2085 -                ^ Not all control paths return a value (OSFL)
+Basically I want to keep the screen down and keep the laptop powered
+up... no problem... just remove the lid button acpi script. The thing is
+that I would like to be able to put it into the "mem" state when I so
+desire.
 
-dsdt.dsl    74:             Store (0xAC, DBG8)
-Error    1061 -       Object does not exist ^  (DBG8)
+I noticed that the Sleep Button, (/proc/acpi/button/sleep/SLPB) is
+present but that there is no state (/proc/acpi/button/sleep/SLPB/state)
+to poll in a script and therefore I'm unsure if I can use the button at
+all.
 
-dsdt.dsl    78:         If (MCTH (\_OS, "Microsoft Windows NT"))
-Error    1094 -                      ^ syntax error, unexpected 
-PARSEOP_NAMESEG, expecting ')'
+If anyone has any idea on how to possibly use this button, if it can be
+used, or if there's a HOWTO out there that I missed, I'd greatly
+appreciate it.
 
-dsdt.dsl    82:         Else
-Error    1094 -            ^ syntax error, unexpected PARSEOP_ELSE
+All the best for those celebrating Canadian thanksgiving.
 
-dsdt.dsl    84:             If (MCTH (\_OS, "Microsoft WindowsME: 
-Millennium Edition"))
-Error    1094 -                          ^ syntax error, unexpected 
-PARSEOP_NAMESEG, expecting ')'
-dsdt.dsl    88:         }
-Error    1094 -         ^ syntax error, unexpected '}', expecting $end
-
-Any ideas?
-
-
-Phillip Susi wrote:
-
-> I think I updated my bios a month or two ago.  I'm not quite sure how 
-> to recompile my DSDT.  I thought I needed to use iasl to decompile the 
-> existing DSDT from acpidump, then apply your patch, then recompile.  I 
-> seem to be missing something though, iasl -d doesn't seem to like my 
-> acpidump.log.
-> Also getting iasl compiled was kind of a pain, the code is a bit 
-> borked.  First I had to add the -l flag to flex so that unput() could 
-> be used correctly, then the code was declaring a variable in one place 
-> as a char [] and in another as a char *, so I had to fix that to get 
-> it to compile.  Even then it had a bunch of warnings because of 
-> incorrect casts due to assumptions about being on a 32bit architecture 
-> ( I'm running 64 bit ).
->
+Pk
 
 
 -------------------------------------------------------
