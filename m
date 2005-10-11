@@ -1,15 +1,15 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: 2.6.14-rc4 ACPI/PCI compile problem
-Date: Tue, 11 Oct 2005 17:17:01 -0600
-Message-ID: <200510111717.01887.bjorn.helgaas@hp.com>
-References: <1129069727.27663.8.camel@localhost.localdomain>
+From: Kristen Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Pcihpd-discuss] [patch 1/2] acpiphp: allocate resources for
+ adapters with bridges
+Date: Tue, 11 Oct 2005 16:53:02 -0700
+Message-ID: <1129074782.15526.28.camel@whizzy>
+References: <1128707147.11020.10.camel@whizzy>
+	 <87mzlgkeil.wl%muneda.takahiro@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1129069727.27663.8.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <87mzlgkeil.wl%muneda.takahiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,47 +19,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Adam Litke <agl-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: MUNEDA Takahiro <muneda.takahiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 11 October 2005 4:28 pm, Adam Litke wrote:
-> Ok I'll admit I've known about this since at least 2.6.14-rc2-git5 but
-> it may have been around longer.  Long enough for me to speak up.
-> 
-> I am getting the following compile errors when building 2.6.14-rc4 for
-> i386:
-> 
-> >   LD      .tmp_vmlinux1
-> > drivers/built-in.o(.text+0x235f9): In function `acpi_pci_root_add':
-> > /home/aglitke/views/acpi-compile-fix-2.6.14-rc4/current/drivers/acpi/pci_root.c:274: undefined reference to `pci_acpi_scan_root'
-> > make[1]: *** [.tmp_vmlinux1] Error 1
-> > make: *** [_all] Error 2
+Allocate resources for adapters with bridges on them.
 
-Please try the following patch and confirm whether it works.
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+I changed the patch to not store the acpi_handle in the acpiphp_slot
+structure, but grab it out of the device structure instead.  However, I
+don't have an adapter that will really test to see if this works
+properly, so if your adapter will work, then please give it a try and
+let me know if it fails.
 
-
-[i386 kbuild] Don't clobber pci-y when X86_VISWS or X86_NUMAQ
-
-Previously, enabling CONFIG_X86_VISWS or CONFIG_X86_NUMAQ
-clobbered any previous contents of pci-y, because they used
-":=" instead of "+=".
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-
-diff -r ed3231e577f5 arch/i386/pci/Makefile
---- a/arch/i386/pci/Makefile	Tue Oct 11 19:03:47 2005
-+++ b/arch/i386/pci/Makefile	Tue Oct 11 15:47:09 2005
-@@ -8,7 +8,7 @@
- pci-$(CONFIG_ACPI)		+= acpi.o
- pci-y				+= legacy.o irq.o
+diff -uprN -X linux-2.6.14-rc3/Documentation/dontdiff linux-2.6.14-rc3.orig/drivers/pci/hotplug/acpiphp_glue.c linux-2.6.14-rc3/drivers/pci/hotplug/acpiphp_glue.c
+--- linux-2.6.14-rc3.orig/drivers/pci/hotplug/acpiphp_glue.c	2005-08-28 16:41:01.000000000 -0700
++++ linux-2.6.14-rc3/drivers/pci/hotplug/acpiphp_glue.c	2005-10-11 16:30:58.000000000 -0700
+@@ -58,6 +58,9 @@ static LIST_HEAD(bridge_list);
  
--pci-$(CONFIG_X86_VISWS)		:= visws.o fixup.o
--pci-$(CONFIG_X86_NUMAQ)		:= numa.o irq.o
-+pci-$(CONFIG_X86_VISWS)		+= visws.o fixup.o
-+pci-$(CONFIG_X86_NUMAQ)		+= numa.o irq.o
+ static void handle_hotplug_event_bridge (acpi_handle, u32, void *);
+ static void handle_hotplug_event_func (acpi_handle, u32, void *);
++static void acpiphp_sanitize_bus(struct pci_bus *bus);
++static void acpiphp_set_hpp_values(acpi_handle handle, struct pci_bus *bus);
++
  
- obj-y				+= $(pci-y) common.o
+ /*
+  * initialization & terminatation routines
+@@ -796,9 +799,14 @@ static int enable_device(struct acpiphp_
+ 		}
+ 	}
+ 
++	pci_bus_size_bridges(bus);
+ 	pci_bus_assign_resources(bus);
++	acpiphp_sanitize_bus(bus);
++	pci_enable_bridges(bus);
+ 	pci_bus_add_devices(bus);
+-
++	acpiphp_set_hpp_values(DEVICE_ACPI_HANDLE(&bus->self->dev), bus);
++	acpiphp_configure_ioapics(DEVICE_ACPI_HANDLE(&bus->self->dev));
++		
+ 	/* associate pci_dev to our representation */
+ 	list_for_each (l, &slot->funcs) {
+ 		func = list_entry(l, struct acpiphp_func, sibling);
+
 
 
 -------------------------------------------------------
