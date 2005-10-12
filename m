@@ -1,13 +1,10 @@
-From: Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>
-Subject: Re: Latest acpica
-Date: Wed, 12 Oct 2005 23:56:28 +0200
-Message-ID: <20051012215628.GG3658@inferi.kami.home>
-References: <971FCB6690CD0E4898387DBF7552B90E02AA4005@orsmsx403.amr.corp.intel.com> <c0a09e5c0510121037l3be5774bj3ec5e0d50449c69f@mail.gmail.com>
-Mime-Version: 1.0
+From: Joseph Wallace <bandstand-xZ8qMK4i7nU@public.gmane.org>
+Subject: Hot News. AXCP Are Hot.
+Date: Wed, 12 Oct 2005 23:11:01 +0000 (UTC)
+Message-ID: <7751515663.5744265644@net-053.forweb.pl>
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c0a09e5c0510121037l3be5774bj3ec5e0d50449c69f-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +14,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date: Wed Oct 12 16:08:42 2005
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 12, 2005 at 10:37:59AM -0700, Andrew Grover wrote:
-> I am using GNU flex 2.5.31. I was able to get it to build (on x86_64 even)
-> with the attached patch. I have also attached the warnings, in case those
-> are of interest.
-> 
-> (Any Debian people want to package iasl?)
+EXPLOSIVE PICK FOR OUR MEMBERS.
+TRADING ALERT!
 
-I submitted the ITP, but I'm wondering which licence it is supposed to
-be. On the Intel site the Linux package is said to be GPLed but
-downloaded files (and the www licence agreement) don't report that as
-this is the Unix version.
+Date: 5 Oct 2005
+Company: Allixon International Corporation
+Symbol: AXCP . PK
+Price: 4.11
+Projection 3 to 5 Days: 5.50 - 6.50
+Projection 7 to 9 Days: 8.00 - 10.00
 
-I also gave a shot to the acpisrc tool that moves everything into a
-GPLv2 + CodeStyle clean source tree but the generated source doesn't
-build.
 
-Could anybody clarify it?
+About Allixon International Corporation
 
-Thanks a lot
--- 
-mattia
-:wq!
+Allixon is a leading provider of RFID Middleware 
+and Mobile Internet solution for device computing. 
+Allixon combines its products, expertise, partnerships 
+and integration capability into solutions for a wide range 
+of device computing applications, including RFID Middleware 
+and m-banking solution. Allixon's products, 
+based on ubiquitous technologies, direct companies 
+looking to tap into the wealth of data captured 
+by networked devices such as RFID readers or handhelds 
+to extend the quality of information to any device anywhere 
+they want. 
+
+
+GET AXCP FIRST THING WEDNESDAY, THIS IS GOING TO EXPLODE 
+IN THE NEXT 2-5 DAYS. GOOD LUCK AND TRADE OUT AT THE TOP!!!
+
+
+
 
 
 -------------------------------------------------------
