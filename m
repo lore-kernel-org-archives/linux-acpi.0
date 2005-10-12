@@ -1,61 +1,51 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [ACPI] 2.6.14-rc4 ACPI/PCI compile problem
-Date: Wed, 12 Oct 2005 12:00:50 -0600
-Message-ID: <20051012180050.GC5103@parisc-linux.org>
-References: <1129069727.27663.8.camel@localhost.localdomain> <200510111717.01887.bjorn.helgaas@hp.com>
+From: Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>
+Subject: Re: Latest acpica
+Date: Wed, 12 Oct 2005 23:56:28 +0200
+Message-ID: <20051012215628.GG3658@inferi.kami.home>
+References: <971FCB6690CD0E4898387DBF7552B90E02AA4005@orsmsx403.amr.corp.intel.com> <c0a09e5c0510121037l3be5774bj3ec5e0d50449c69f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751483AbVJLSAy@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200510111717.01887.bjorn.helgaas@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: acpi-devel@lists.sourceforge.net, Adam Litke <agl@us.ibm.com>, linux-kernel@vger.kernel.org
+In-Reply-To: <c0a09e5c0510121037l3be5774bj3ec5e0d50449c69f-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 11, 2005 at 05:17:01PM -0600, Bjorn Helgaas wrote:
-> Please try the following patch and confirm whether it works.
+On Wed, Oct 12, 2005 at 10:37:59AM -0700, Andrew Grover wrote:
+> I am using GNU flex 2.5.31. I was able to get it to build (on x86_64 even)
+> with the attached patch. I have also attached the warnings, in case those
+> are of interest.
 > 
-> [i386 kbuild] Don't clobber pci-y when X86_VISWS or X86_NUMAQ
-> 
-> Previously, enabling CONFIG_X86_VISWS or CONFIG_X86_NUMAQ
-> clobbered any previous contents of pci-y, because they used
-> ":=" instead of "+=".
+> (Any Debian people want to package iasl?)
 
-This isn't correct.  We want to get rid of some of the current contents
-of pci-y when NUMAQ or VISWS are enabled.  I'm not quite sure what the
-right fix is here.  Maybe something like ...
+I submitted the ITP, but I'm wondering which licence it is supposed to
+be. On the Intel site the Linux package is said to be GPLed but
+downloaded files (and the www licence agreement) don't report that as
+this is the Unix version.
 
---- arch/i386/pci/Makefile      14 Sep 2005 12:54:20 -0000      1.3
-+++ arch/i386/pci/Makefile      12 Oct 2005 17:51:19 -0000
-@@ -4,11 +4,11 @@ obj-$(CONFIG_PCI_BIOS)                += pcbios.o
- obj-$(CONFIG_PCI_MMCONFIG)     += mmconfig.o
- obj-$(CONFIG_PCI_DIRECT)       += direct.o
- 
--pci-y                          := fixup.o
--pci-$(CONFIG_ACPI)             += acpi.o
--pci-y                          += legacy.o irq.o
-+acpi-$(CONFIG_ACPI)            := acpi.o
-+
-+pci-y                          := fixup.o $(acpi-y) legacy.o irq.o
- 
- pci-$(CONFIG_X86_VISWS)                := visws.o fixup.o
--pci-$(CONFIG_X86_NUMAQ)                := numa.o irq.o
-+pci-$(CONFIG_X86_NUMAQ)                := numa.o $(acpi-y) irq.o
- 
- obj-y                          += $(pci-y) common.o
+I also gave a shot to the acpisrc tool that moves everything into a
+GPLv2 + CodeStyle clean source tree but the generated source doesn't
+build.
 
-This mess really needs some more eyes on it.  For example, should fixups.o
-really be enabled on visws but disabled on numaq?  I suspect both want
-legacy.o disabled.  Does it make sense to enable ACPI on a NUMAQ system?
-I don't know enough about them.
+Could anybody clarify it?
 
-And it /really/ needs some commentary.  Here's my first cut at it, based
-on my memories of editing it several years ago:
+Thanks a lot
+-- 
+mattia
+:wq!
 
-# A little more complex than most Makefiles.
-# Neither the VISWS nor the NUMAQ configs want to see legacy.o compiled in.
-# VISWS doesn't have ACPI to worry about, but NUMAQ might
-# Order is important -- don't rearrange the order of files here.
 
-Help most gratefully received from people who really understand these boxes!
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
