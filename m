@@ -1,13 +1,13 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Compaq 2552EA suspend/resume
-Date: Wed, 12 Oct 2005 13:33:09 +0200
-Message-ID: <20051012113309.GB9401@message-id.gmane0305.slipkontur.de>
-References: <1128581461.8134.7.camel@localhost.localdomain> <20051006093525.GB10865@openzaurus.ucw.cz> <1128884950.12703.3.camel@localhost.localdomain> <20051010085625.GC2369@elf.ucw.cz> <1128940620.12703.7.camel@localhost.localdomain>
+Subject: Re: Asus K8V Delux broken acpi tables?
+Date: Wed, 12 Oct 2005 13:37:58 +0200
+Message-ID: <20051012113758.GC9401@message-id.gmane0305.slipkontur.de>
+References: <43475CDB.6070204@cfl.rr.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1128940620.12703.7.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <43475CDB.6070204-3tLf1voIkJTQT0dZR+AlfA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,19 +20,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 10, 2005 at 12:37:00PM +0200, Hein-Pieter van Braam wrote:
-> The problem is that I don't really have any idea on where to start...
-> I've got the feeling that my DSDT is really screwed, and I'm trying to
-> learn AML, but it's not a very transparent language :)
+On Sat, Oct 08, 2005 at 01:44:59AM -0400, Phillip Susi wrote:
+ 
+> Hibernation seems to work anyhow, but suspend to ram does not.  When I 
+> wake back up from being suspended to ram, the sata disk driver 
+> complained that a register was in an incorrect state, and the system hung. 
 
-In my experience, suspend to RAM failures are usually not caused by DSDT
-problems (i have yet to see such a case), so you better start learning C.
-
-> I would really appreciate some pointers, or a couple of links on the
-> subject, I've done a lot of googling already, but I can't really come up
-> with a good place to start.
-
-/usr/src/linux/ ;-)
+Which kernel version?
+The ACPI error and the suspend to RAM failure could be entirely different
+problems, SATA in mainline kernel has only very recently got suspend/resume
+support IIRC.
 -- 
 Stefan Seyfried
 
