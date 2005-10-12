@@ -1,11 +1,13 @@
-From: "Rais Rumore" <raisg-I5cM+au/JFL5yrkLZRFF4g@public.gmane.org>
-Subject: Re: Bettino Moshier Mehdictions
-Date: Wed, 12 Oct 2005 00:56:15 -0500
-Message-ID: <002f01c5cef1$a7f1a980$8c13a8c0@despoliation>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH]Modular C-state policy
+Date: Wed, 12 Oct 2005 14:08:17 +0800
+Message-ID: <1129097298.3928.3.camel@linux-hp.sh.intel.com>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3004D954F8@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_002C_01C5CEC7.BF1BA180"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3004D954F8-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,58 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alvina Terranova <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Wed, 2005-10-12 at 13:26 +0800, Brown, Len wrote:
+> it would be helpful to have a prose summary
+> that explains the benefits of this patch
+> so that reviewers can make sense of the diff.
+This patch actually hasn't any benefit. It just makes it easier to add
+new C-state policy. Its C-sate algorithm is the same with current. The
+purpose is to make C-state policy smoothly move to new one.
 
-------=_NextPart_000_002C_01C5CEC7.BF1BA180
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-lexaceamvaprsocivipr
-vinalebiliopmaalagoz
-traxbrexenum  $ecia is  $ra $ac
-161 90 pi  170 30 pi135 30 pi 
-lls  llslls  
-more detailed info
-
-
-------=_NextPart_000_002C_01C5CEC7.BF1BA180
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<SPAN><BR><DIV style=3D"BORDER: 0px; MARGIN-LEFT: 0px; FLOAT: left; =
-FONT-FAMILY: Courier; PADDING-TOP: 0px;">Le<BR>Xa<BR>Ce<BR>Am<BR>Va<BR>Pr<=
-BR>So<BR>Ci<BR>Vi<BR>Pr</DIV>
-<DIV style=3D"PADDING-TOP: 0px; BORDER-TOP-WIDTH: 0px; BORDER-LEFT: 0px; =
-FLOAT: left; FONT-FAMILY: Courier;">vi<BR>na<BR>le<BR>bi<BR>li<BR>op=
-<BR>ma<BR>al<BR>ag<BR>oz</DIV>
-<DIV style=3D"FONT-FAMILY: Courier; WORD-SPACING: normal; BORDER-TOP: 0px; =
-FLOAT: left; PADDING-LEFT: 0px;">tra<BR>x<BR>brex<BR>en<BR>um  $<BR>ecia<BR> =
-<BR>is  $<BR>ra $<BR>ac</DIV>
-<DIV style=3D"BORDER-COLOR: #FFFFFF; FONT-FAMILY: Courier; FLOAT: left; =
-BORDER: 0px; BORDER-BOTTOM: 0px;"> <BR> <BR> <BR> <BR>161 90 pi<BR> <BR> =
-<BR>170 30 pi<BR>135 30 pi<BR> </DIV>
-<DIV style=3D"PADDING-TOP: 0px; FLOAT: left; BORDER-RIGHT: 0px; WORD-SPACING: =
-normal; FONT-FAMILY: Courier;"> <BR> <BR> <BR> <BR>lls<BR> <BR> =
-<BR>lls<BR>lls<BR> </DIV></SPAN><DIV>&nbsp;<BR></DIV>
-<DIV style=3D"BORDER-RIGHT-WIDTH: 0px; CLEAR: both; BORDER-BOTTOM-WIDTH: 0px; =
-WHITE-SPACE: normal;"><DIV><P><FONT face=3DArial><A href=3D"http://kn=
-kj.ancetori.info"><FONT face=3DArial>More Detailed info</FONT></A></FONT><=
-/P></DIV></DIV>
-</BODY></HTML>
-
-------=_NextPart_000_002C_01C5CEC7.BF1BA180--
+Thanks,
+Shaohua
 
 
 
