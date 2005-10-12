@@ -1,65 +1,71 @@
-From: Thomas Voegtle <tv@lio96.de>
-Subject: Re: bttv card after swsusp dead
-Date: Wed, 12 Oct 2005 13:59:01 +0200 (CEST)
-Message-ID: <Pine.LNX.4.63.0510121355030.30888@er-systems.de>
-References: <Pine.LNX.4.63.0510112104290.16712@er-systems.de>
- <20051012113239.GA31035@elf.ucw.cz>
+From: Hein-Pieter van Braam <hp-KOxqMzujAKlWk0Htik3J/w@public.gmane.org>
+Subject: Re: Compaq 2552EA suspend/resume
+Date: Wed, 12 Oct 2005 16:20:25 +0200
+Message-ID: <1129126825.6202.27.camel@localhost.localdomain>
+References: <1128581461.8134.7.camel@localhost.localdomain>
+	 <20051006093525.GB10865@openzaurus.ucw.cz>
+	 <1128884950.12703.3.camel@localhost.localdomain>
+	 <20051010085625.GC2369@elf.ucw.cz>
+	 <1128940620.12703.7.camel@localhost.localdomain>
+	 <20051012113309.GB9401@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1395022924-223126574-1129118341=:30888"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932428AbVJLL7A@vger.kernel.org>
-In-Reply-To: <20051012113239.GA31035@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, acpi-devel@lists.sourceforge.net
-Cc: linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-rYyt7BqS33u+nbch3rde"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20051012113309.GB9401-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----1395022924-223126574-1129118341=:30888
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+--=-rYyt7BqS33u+nbch3rde
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 12 Oct 2005, Pavel Machek wrote:
+I know C, there's just rather a lot of it in the linux kernel, and I'm
+not sure where to start looking :)
 
-> Hi!
-> 
-> > with 2.6.13 I could after a software suspend use my bttv card. This is not 
-> > possible aynmore with 2.6.14-rc3 and 2.6.14-rc4. 
-> > 
-> > dmesg part of 2.6.13:
-> > 
-> > ACPI: PCI Interrupt 0000:01:04.0[A] -> Link [LNKA] -> GSI 11 (level, low) 
-> > -> IRQ 11
-> > bttv0: reset, reinitialize
-> > bttv0: PLL: 28636363 => 35468950 . ok
-> > 
-> > 
-> > 
-> > and now with 2.6.14-rc3/4:
-> > 
-> > 
-> > ACPI: PCI Interrupt 0000:01:04.0[A] -> Link [LNKA] -> GSI 11 (level, low) 
-> > -> IRQ 11
-> > ACPI: PCI interrupt for device 0000:01:04.0 disabled
-> > bttv0: Can't enable device.
-> > ACPI: PCI Interrupt 0000:01:04.1[A] -> Link [LNKA] -> GSI 11 (level, low) 
-> > -> IRQ 11
-> 
-> You probably want to ask on acpi-devel. Looks like some change in
-> interrupt routing broken your card..
-> 
-> 									Pavel
+On Wed, 2005-10-12 at 13:33 +0200, Stefan Seyfried wrote:
+> On Mon, Oct 10, 2005 at 12:37:00PM +0200, Hein-Pieter van Braam wrote:
+> > The problem is that I don't really have any idea on where to start...
+> > I've got the feeling that my DSDT is really screwed, and I'm trying to
+> > learn AML, but it's not a very transparent language :)
+>=20
+> In my experience, suspend to RAM failures are usually not caused by DSDT
+> problems (i have yet to see such a case), so you better start learning C.
+>=20
+> > I would really appreciate some pointers, or a couple of links on the
+> > subject, I've done a lot of googling already, but I can't really come u=
+p
+> > with a good place to start.
+>=20
+> /usr/src/linux/ ;-)
+
+--=-rYyt7BqS33u+nbch3rde
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBDTRup5iHdtUqHskMRAsqyAJ9G0phiq0BLgWQC9H09UqYzkevbWQCeIyFr
+G5jUpaZ0XaY/hKiaFFr5gjI=
+=cTwu
+-----END PGP SIGNATURE-----
+
+--=-rYyt7BqS33u+nbch3rde--
 
 
-Stupid me. Herewith resend to acpi-devel. 
-Thanks Pavel for the info.
 
- 
-
-      Thomas
-
--- 
- Thomas Vögtle    email: thomas@voegtle-clan.de
- ----- http://www.voegtle-clan.de/thomas ------
----1395022924-223126574-1129118341=:30888--
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
