@@ -1,13 +1,16 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC]convert ACPI driver model to Linux driver model - takes 2
-Date: Thu, 13 Oct 2005 15:45:52 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC20F@pdsmsx403>
+From: "Mattia Dongili" <malattia-k2GhghHVRtY@public.gmane.org>
+Subject: Re: Latest acpica
+Date: Thu, 13 Oct 2005 09:56:50 +0200 (CEST)
+Message-ID: <11638.83.103.117.254.1129190210.squirrel@picard.linux.it>
+References: <971FCB6690CD0E4898387DBF7552B90E02AA4005@orsmsx403.amr.corp.intel.com>
+     <c0a09e5c0510121037l3be5774bj3ec5e0d50449c69f@mail.gmail.com>
+    <20051012215628.GG3658@inferi.kami.home>
+    <c0a09e5c0510121700saa456d6kff2b05b858bc1251@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain;charset=iso-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <c0a09e5c0510121700saa456d6kff2b05b858bc1251-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +20,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->+static int __init acpi_phys_bus_init(void)
->+{
->+	bus_register(&acpi_phys_bus_type);
->+
->+	phys_root =3D kzalloc(sizeof(struct acpi_phys_device),=20
->GFP_KERNEL);
->+	if (!phys_root)
->+		return -ENOMEM;
->+
->+	phys_root->acpi_dev =3D acpi_root;
->+	phys_root->phys_dev.release =3D acpi_phys_device_release;
->+	sprintf(phys_root->phys_dev.bus_id, "%s",=20
->acpi_root->pnp.bus_id);
->+	device_register(&phys_root->phys_dev);
->+
->+	/* enumerate devices */
->+	acpi_bus_register_driver(&dummy_driver);
->+	return 0;
->+}
+On Thu, October 13, 2005 2:00 am, Andrew Grover said:
+[...nice insight on acpica-unix...]
+>
+> Regards -- Andy (no longer working on acpi, I just want a debian iasl p=
+kg
+> ;-)
 
-The structure is in a mess. why not cut bus.c?
+Thanks a lot, you'll have your package soon :)
 
-I like this:
+--=20
+mattia
+:wq!
 
-acpi_bus_init(void)
-{
-...
-bus_register(&acpi_bus_type);
-...
-driver_register(&acpi_bus_driver);
-...
-}
 
 
 
