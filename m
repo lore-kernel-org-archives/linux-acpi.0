@@ -1,15 +1,11 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [RFC]convert ACPI driver model to Linux driver model - takes 2
-Date: Thu, 13 Oct 2005 14:43:47 -0600
-Message-ID: <200510131443.47844.bjorn.helgaas@hp.com>
-References: <1129185454.9074.15.camel@linux-hp.sh.intel.com>
+From: "Melete Woods" <woo-lGDjD2cLz3Pz+pZb47iToQ@public.gmane.org>
+Subject: Alenka Miyashiro No more Failure
+Date: Thu, 13 Oct 2005 15:51:20 -0500
+Message-ID: <005701c5d037$dd081400$3b1ea8c0@narrowgoods>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0054_01C5D00D.F4320C00"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1129185454.9074.15.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,49 +15,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+To: Luanna Kling <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 13 October 2005 12:37 am, Shaohua Li wrote:
-> This is the updated patch for the topic. In this version, I completely
-> convert devices in ACPI bus into Linux driver model.
+This is a multi-part message in MIME format.
 
-This looks like a nice piece of work.
+------=_NextPart_000_0054_01C5D00D.F4320C00
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-> Now the device 
-> driver for ACPI bus device should be a 'struct acpi_phys_driver'. Old
-> style driver (struct acpi_driver) now can't work for ACPI bus devices.
+Hello,
+AnMbien
+Vnlagra $69,95
+CnElebrex
+MxEridia
+VnAlium $85,45
+PnRopecia
+LnEvitra
+UxLtram
+XnAnax
+Cxlalis   $99,95
+PxRozac
+Our WebSite
+Best Regards.
 
-You now have both 'acpi_driver' and 'acpi_phys_driver' (and
-'acpi_device' and 'acpi_phys_device').  What exactly is the
-distinction?  Is the distinction necessary?  Can you just stuff
-the generic device stuff into 'struct acpi_device' itself?
+------=_NextPart_000_0054_01C5D00D.F4320C00
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-> I tried to convert one ACPI driver (link device driver) to the new
-> model. It's quite easy.
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D3>Hello,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D3>AnMbien</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3><STRONG>Vnlagra $69,95</STRONG></FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>CnElebrex</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>MxEridia</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3><STRONG>VnAlium $85,45</STRONG></FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>PnRopecia</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>&nbsp;</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>LnEvitra</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>UxLtram</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>XnAnax</FONT></DIV>
+<DIV><FONT face=3DArial size=3D3><STRONG>Cxlalis&nbsp;&nbsp; $99,95=
+</STRONG></FONT></DIV>
+<DIV><FONT face=3DArial size=3D3>PxRozac</FONT></DIV>
+<DIV><SPAN>&nbsp;<BR></SPAN><DIV><FONT face=3DArial><A href=3D"http://che=
+ckeraij.dropacobe.com">Our WebSite</A></FONT></DIV><BR></DIV>
+<DIV><FONT face=3DArial size=3D3>Best Regards.</FONT></DIV></BODY></HTML>
 
-I'd like to see the link device driver patch, just to help
-me understand all this.
+------=_NextPart_000_0054_01C5D00D.F4320C00--
 
-> +struct acpi_phys_driver {
-> +//	struct list_head node;
-> +	char name[80];
-> +	char class[80];
-
-Shouldn't these be "char *" instead of "char []"?
-
-> +	struct module *owner;
-> +	char *ids;
-> +	int (*probe)(struct acpi_phys_device *dev);
-> +	void (*remove) (struct acpi_phys_device *dev);
-> +	int  (*suspend) (struct acpi_phys_device *dev, pm_message_t state);
-> +	int  (*resume) (struct acpi_phys_device *dev);
-> +	void (*shutdown) (struct acpi_phys_device *dev);
-> +
-> +	struct device_driver    phys_drv;
-
-I think you should name this item "driver", not "phys_drv".
 
 
 -------------------------------------------------------
