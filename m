@@ -1,7 +1,8 @@
 From: GregR <acpi-aFpS7BbXdM5BDgjK7y7TUQ@public.gmane.org>
-Subject: ACPI event problems...
-Date: Thu, 13 Oct 2005 17:05:29 +0000 (UTC)
-Message-ID: <loom.20051013T185813-5@post.gmane.org>
+Subject: Re: ACPI problem
+Date: Thu, 13 Oct 2005 18:13:13 +0000 (UTC)
+Message-ID: <loom.20051013T201056-110@post.gmane.org>
+References: <3ebbb09c0510061554h5c19610al9d0ecfabf9707312@mail.gmail.com> <4346530E.1070500@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -18,28 +19,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a laptop (Sharp PCAV18) that has some terrible problems with ACPI.  
-Right now I am not trying to get sleep or suspend/hibernate working as the 
-biggest problem I have is lockups.
+Thomas Renninger <trenn@...
+> You could use the cpufreqd (now called cpuspeed?) package that only scales 
+> cpufreq or you can try to adopt the powersaved (that also includes a lot 
+> additional features) to Knoppix (CVS hosted on forge.novell.com), be sure you 
+> get help on the mailing list there.
 
-For any ACPI event related to the LID ac_adapter or battery that happens, the 
-thing freezes.  If I plug/unplug the ac_adapter it freezes.  If I insert the 
-battery when on ac power it freezes.  When the battery goes from charging to 
-full it freezes.  When the LID button is triggered, it freezes.
+I had a similar problem, except it would only overheat when compiling the 
+kernel, (which takes a long time, and it would just overheat about 3/4 the way 
+through).
 
-I have tried the latest kernel (1.6.13.4), compiled with the ACPI features 
-built in, and as modules.  I have compiled my own DSDT and installed that in 
-the kernel.  Nothing seems to make any difference.
+I use cpufreq, and set the max to 90%. No more problems...
 
-If I boot using a Knoppix CD, it all seems to work great.  The distro I am 
-using is Mandriva, I have tried both 2005 and 2006.  Same thing.
+g
 
-If there is any information that I can post, I would be more than willing to do 
-so.  Just let me know what you need.  
 
-Thanks
-
-Greg
 
 
 
