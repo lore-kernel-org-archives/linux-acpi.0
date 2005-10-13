@@ -1,13 +1,11 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Latest acpica
-Date: Thu, 13 Oct 2005 10:15:35 -0700
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E030C7D09@orsmsx403.amr.corp.intel.com>
+From: GregR <acpi-aFpS7BbXdM5BDgjK7y7TUQ@public.gmane.org>
+Subject: ACPI event problems...
+Date: Thu, 13 Oct 2005 17:05:29 +0000 (UTC)
+Message-ID: <loom.20051013T185813-5@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +15,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>, Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am the developer and maintainer for ACPICA and the iASL compiler. If
-there are any changes required, send them to me and I will integrate
-them.
+I have a laptop (Sharp PCAV18) that has some terrible problems with ACPI.  
+Right now I am not trying to get sleep or suspend/hibernate working as the 
+biggest problem I have is lockups.
 
-Bob
+For any ACPI event related to the LID ac_adapter or battery that happens, the 
+thing freezes.  If I plug/unplug the ac_adapter it freezes.  If I insert the 
+battery when on ac power it freezes.  When the battery goes from charging to 
+full it freezes.  When the LID button is triggered, it freezes.
 
+I have tried the latest kernel (1.6.13.4), compiled with the ACPI features 
+built in, and as modules.  I have compiled my own DSDT and installed that in 
+the kernel.  Nothing seems to make any difference.
 
-> -----Original Message-----
-> From: Mattia Dongili [mailto:malattia-k2GhghHVRtY@public.gmane.org]
-> Sent: Thursday, October 13, 2005 12:57 AM
-> To: Andrew Grover
-> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Moore, Robert
-> Subject: Re: [ACPI] Latest acpica
->=20
-> On Thu, October 13, 2005 2:00 am, Andrew Grover said:
-> [...nice insight on acpica-unix...]
-> >
-> > Regards -- Andy (no longer working on acpi, I just want a debian
-iasl
-> pkg
-> > ;-)
->=20
-> Thanks a lot, you'll have your package soon :)
->=20
-> --
-> mattia
-> :wq!
->=20
+If I boot using a Knoppix CD, it all seems to work great.  The distro I am 
+using is Mandriva, I have tried both 2005 and 2006.  Same thing.
+
+If there is any information that I can post, I would be more than willing to do 
+so.  Just let me know what you need.  
+
+Thanks
+
+Greg
 
 
 
