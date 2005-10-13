@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Compaq 2552EA suspend/resume
-Date: Wed, 12 Oct 2005 21:53:31 +0200
-Message-ID: <20051012195330.GB12289@openzaurus.ucw.cz>
-References: <1128581461.8134.7.camel@localhost.localdomain> <20051006093525.GB10865@openzaurus.ucw.cz> <1128884950.12703.3.camel@localhost.localdomain> <20051010085625.GC2369@elf.ucw.cz> <1128940620.12703.7.camel@localhost.localdomain> <20051012113309.GB9401@message-id.gmane0305.slipkontur.de> <1129126825.6202.27.camel@localhost.localdomain>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC]convert ACPI driver model to Linux driver model -takes 2
+Date: Thu, 13 Oct 2005 21:10:30 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC210@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1129126825.6202.27.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,17 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hein-Pieter van Braam <hp-KOxqMzujAKlWk0Htik3J/w@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed 12-10-05 16:20:25, Hein-Pieter van Braam wrote:
-> I know C, there's just rather a lot of it in the linux kernel, and I'm
-> not sure where to start looking :)
+>>=20
+>> The structure is in a mess. why not cut bus.c?
+>>=20
+>> I like this:
+>>=20
+>> acpi_bus_init(void)
+>> {
+>> ...
+>> bus_register(&acpi_bus_type);
+>> ...
+>> driver_register(&acpi_bus_driver);
+>> ...
+>> }
+>I'm sorry, but I don't understand what do you mean. Can you clarify it?
+>Also, please focus on the basic idea of how to convert ACPI=20
+>driver model in current stage. It appears people have quite different
+opinions about
+>the topic. The code is just to show my idea (a RFC) not for merging, so
 
-kernel/power/*
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+To cleanly polish the acpi driver code with linux driver model, you'd
+better start it from
+the beginning. I mean you'd better have a acpi bus driver, and there
+should have sysfs=20
+object under /sys/bus/
 
 
 
