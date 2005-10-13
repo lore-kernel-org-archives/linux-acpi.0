@@ -1,43 +1,33 @@
-From: GregR <acpi-aFpS7BbXdM5BDgjK7y7TUQ@public.gmane.org>
-Subject: Re: ACPI problem
-Date: Thu, 13 Oct 2005 18:13:13 +0000 (UTC)
-Message-ID: <loom.20051013T201056-110@post.gmane.org>
-References: <3ebbb09c0510061554h5c19610al9d0ecfabf9707312@mail.gmail.com> <4346530E.1070500@suse.de>
+From: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Subject: Re: [patch 0/2] acpiphp: hotplug adapters with bridges on them
+Date: Thu, 13 Oct 2005 14:29:12 +0300
+Message-ID: <pan.2005.10.13.11.29.11.335682@yahoo.com>
+References: <1128707145.11020.9.camel@whizzy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932162AbVJMTip@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Thomas Renninger <trenn@...
-> You could use the cpufreqd (now called cpuspeed?) package that only scales 
-> cpufreq or you can try to adopt the powersaved (that also includes a lot 
-> additional features) to Knoppix (CVS hosted on forge.novell.com), be sure you 
-> get help on the mailing list there.
+On Fri, 07 Oct 2005 10:45:45 -0700, Kristen Accardi wrote:
 
-I had a similar problem, except it would only overheat when compiling the 
-kernel, (which takes a long time, and it would just overheat about 3/4 the way 
-through).
+> These 2 patches will allow adapters with p2p bridges on them to be
+> successfully hotplugged using the acpiphp driver.  Currently, if you
+> attempt to hotplug an adapter with a p2p bridge on it, the operation will
+> fail because resources are not allocated to it properly.  These patches
+> have had very limited testing as I only have one machine and one type of
+> adapter to test this with.  I tested this with 2.6.14-rc2, but the patch
+> applies fine to rc3 as well.
 
-I use cpufreq, and set the max to 90%. No more problems...
+Is this patch supposed to allow me to hot-plug/hot-eject my laptop in its
+docking station ?
+I have an IBM T41 and a docking station with extra IDE/PCI/PCMCIA bus-es on it.
+I've tried for a long time to make them work hot, but till now, I could
+not make them work.
+I can only use the docking station if I boot in it.
 
-g
-
-
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Power Architecture Resource Center: Free content, downloads, discussions,
-and more. http://solutions.newsforge.com/ibmarch.tmpl
+Thanks,
+Paul
