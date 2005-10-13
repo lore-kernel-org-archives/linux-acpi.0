@@ -1,7 +1,7 @@
-From: "Milo Browne" <browne16-t9IZ6g3GBMc@public.gmane.org>
-Subject: The Stock to Watch
-Date: Mon, 10 Oct 2005 19:14:57 +0300
-Message-ID: <1128960897.6357@psi.ca>
+From: "Don Greene" <don.greene-NznIHH1bWakQrrorzV6ljw@public.gmane.org>
+Subject: Stock Radar
+Date: Thu, 13 Oct 2005 09:45:15 +0700
+Message-ID: <434DCA3B.4E638EE0@gil.com.au>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -40,7 +40,7 @@ and we expect it could hit $0.30 - $0.35 by
 late November.
 
 
- A Huge PR campaign is expected starting tuesday
+ A Huge PR campaign is expected starting thursday
 and all next week so grab as much as you can up
 to $0.25 range.  We all know it's the big
 announcements that make these small gems move.
@@ -52,7 +52,7 @@ St0ck Symbol: CGKY . pk
 Current Price: $O.10
 
 How will it react to being blasted onto
-investors radar screens starting this Tuesday!!
+investors radar screens starting this Thursday!!
 
 We expect the price to go to $O.18 in next 2-3 days
 We expect the price to go to $O.3O in next 3 weeks.
@@ -141,7 +141,7 @@ We expect the price to go to $0.18 in next 2-3 days
 We expect the price to go to $0.30 in next 3 weeks.
 
 
-Please watch this one trade on Tuesday!
+Please watch this one trade on Thursday!
 
 _______________________________________
 
