@@ -1,11 +1,12 @@
-From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: [PATCH] acpi: fix kernel-doc
-Date: Sun, 16 Oct 2005 11:53:24 -0700
-Message-ID: <20051016115324.6deb06d7.rdunlap@xenotime.net>
+From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Subject: Re: Problem with Dell laptop's backlight on resume
+Date: Mon, 17 Oct 2005 11:56:06 +0200
+Message-ID: <1129542966.5945.15.camel@localhost.localdomain>
+References: <Pine.LNX.4.44L0.0510161351380.6336-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-NQyt6LUVmcXfb+He2mYv"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.0510161351380.6336-100000-pYrvlCTfrz9XsRXLowluHWD2FQJk+8+b@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,101 +16,77 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
 
-Convert function descriptions to kernel-doc format.
-Eliminate all kernel-doc warnings.
+--=-NQyt6LUVmcXfb+He2mYv
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
----
+On Sun, 2005-10-16 at 13:57 -0400, Alan Stern wrote:
+> With 2.6.14-rc4, when I suspend and resume my Dell Inspiron 4000 laptop
+> the backlight doesn't act as it should.  (BTW this behavior has been=20
+> unchanged for many kernel releases.)
+>=20
+> When I go to standby, the backlight remains on.
+>=20
+> When I suspend to memory, the backlight remains on and the screen goes=20
+> blank -- a rather disconcerting fully-white screen.  Then when I resume=20
+> the backlight turns off, making the text-mode console invisible. =20
+> Fortunately switching to-and-from an XFree86 screen gets the light back=20
+> on.
 
- Documentation/DocBook/kernel-api.tmpl |    1 
- drivers/acpi/scan.c                   |   27 +++++++++++++++---------
- 2 files changed, 18 insertions(+), 10 deletions(-)
+This is a known problem with the 4000's. I don't think it will ever work
+right. Better focus on software suspend (aka suspend to disk).
 
-diff -Naurp linux-2614-rc4/Documentation/DocBook/kernel-api.tmpl~doc_acpi_kdoc linux-2614-rc4/Documentation/DocBook/kernel-api.tmpl
---- linux-2614-rc4/Documentation/DocBook/kernel-api.tmpl~doc_acpi_kdoc	2005-10-16 10:54:12.000000000 -0700
-+++ linux-2614-rc4/Documentation/DocBook/kernel-api.tmpl	2005-10-16 10:54:44.000000000 -0700
-@@ -367,6 +367,7 @@ X!Edrivers/acpi/motherboard.c
- X!Edrivers/acpi/bus.c
- -->
- !Edrivers/acpi/scan.c
-+!Idrivers/acpi/scan.c
- <!-- No correct structured comments
- X!Edrivers/acpi/pci_bind.c
- -->
-diff -Naurp linux-2614-rc4/drivers/acpi/scan.c~doc_acpi_kdoc linux-2614-rc4/drivers/acpi/scan.c
---- linux-2614-rc4/drivers/acpi/scan.c~doc_acpi_kdoc	2005-10-14 17:31:23.000000000 -0700
-+++ linux-2614-rc4/drivers/acpi/scan.c	2005-10-16 10:41:24.000000000 -0700
-@@ -476,8 +476,10 @@ static LIST_HEAD(acpi_bus_drivers);
- static DECLARE_MUTEX(acpi_bus_drivers_lock);
- 
- /**
-- * acpi_bus_match 
-- * --------------
-+ * acpi_bus_match - match device IDs to driver's supported IDs
-+ * @device: the device that we are trying to match to a driver
-+ * @driver: driver whose device id table is being checked
-+ *
-  * Checks the device's hardware (_HID) or compatible (_CID) ids to see if it
-  * matches the specified driver's criteria.
-  */
-@@ -490,8 +492,10 @@ acpi_bus_match(struct acpi_device *devic
- }
- 
- /**
-- * acpi_bus_driver_init 
-- * --------------------
-+ * acpi_bus_driver_init - add a device to a driver
-+ * @device: the device to add and initialize
-+ * @driver: driver for the device
-+ *
-  * Used to initialize a device via its device driver.  Called whenever a 
-  * driver is bound to a device.  Invokes the driver's add() and start() ops.
-  */
-@@ -604,8 +608,9 @@ static int acpi_driver_detach(struct acp
- }
- 
- /**
-- * acpi_bus_register_driver 
-- * ------------------------ 
-+ * acpi_bus_register_driver - register a driver with the ACPI bus
-+ * @driver: driver being registered
-+ *
-  * Registers a driver with the ACPI bus.  Searches the namespace for all
-  * devices that match the driver's criteria and binds.  Returns the
-  * number of devices that were claimed by the driver, or a negative
-@@ -634,8 +639,9 @@ int acpi_bus_register_driver(struct acpi
- EXPORT_SYMBOL(acpi_bus_register_driver);
- 
- /**
-- * acpi_bus_unregister_driver 
-- * --------------------------
-+ * acpi_bus_unregister_driver - unregisters a driver with the APIC bus
-+ * @driver: driver to unregister
-+ *
-  * Unregisters a driver with the ACPI bus.  Searches the namespace for all
-  * devices that match the driver's criteria and unbinds.
-  */
-@@ -661,8 +667,9 @@ int acpi_bus_unregister_driver(struct ac
- EXPORT_SYMBOL(acpi_bus_unregister_driver);
- 
- /**
-- * acpi_bus_find_driver 
-- * --------------------
-+ * acpi_bus_find_driver - check if there is a driver installed for the device
-+ * @device: device that we are trying to find a supporting driver for
-+ *
-  * Parses the list of registered drivers looking for a driver applicable for
-  * the specified device.
-  */
+--=-NQyt6LUVmcXfb+He2mYv
+Content-Type: application/x-pkcs7-signature; name=smime.p7s
+Content-Disposition: attachment; filename=smime.p7s
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFjCCAs8w
+ggI4oAMCAQICAw9TczANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUwODE4MTE1NDA1WhcNMDYwODE4MTE1NDA1WjBDMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMSAwHgYJKoZIhvcNAQkBFhFlcmlrQHNsYWd0ZXIubmFt
+ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANAMKW15OgreNb+Wd++Xcw6uNJUXXIfX
+56u1rtTObMmbbDY2wNc4Iqwbuwaysvox3z+YElXBibE8BAyV1iMjhee4mOfAy38dGHtWDxhOGke8
+VpkyY8DSWgMN5p4egTiT6YNdHW75iiQ+Vh5zMHju1UXnIqgf5zkUGkNuxYp15jLZvRDbfA5H+Sil
+jbZGB2fiPOJHpyI61ZidcMgdow31qm70/oe6vXxhSZLzo7OLvExE+mQHwbCSIJMN/hPTK1z0lmQ1
+kkaEjHrefqIgoF9Dk/WfOtulzvR3xBzDL50GZ32BxT/OhXYe1SHEJpSM1S/aq8TBQJYwjzREWyDh
+0OYsmr0CAwEAAaMuMCwwHAYDVR0RBBUwE4ERZXJpa0BzbGFndGVyLm5hbWUwDAYDVR0TAQH/BAIw
+ADANBgkqhkiG9w0BAQQFAAOBgQCCpzoneRQIKsUO8zSnwQ7yhJTrS/EaDibiIVrkkCbzXwCiHFAi
+7nmTRF0DlLVF3Ssf97ITWT/RSdkj9Xke0OHH7724PJdfpA6OglMnx2i7IcJLzPgPjB+fOmfR0nYX
+UYKuzGxTOXmshLmPcwKdpFuRLLk7n+vrTAwJYJI++crhJzCCAz8wggKooAMCAQICAQ0wDQYJKoZI
+hvcNAQEFBQAwgdExCzAJBgNVBAYTAlpBMRUwEwYDVQQIEwxXZXN0ZXJuIENhcGUxEjAQBgNVBAcT
+CUNhcGUgVG93bjEaMBgGA1UEChMRVGhhd3RlIENvbnN1bHRpbmcxKDAmBgNVBAsTH0NlcnRpZmlj
+YXRpb24gU2VydmljZXMgRGl2aXNpb24xJDAiBgNVBAMTG1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFp
+bCBDQTErMCkGCSqGSIb3DQEJARYccGVyc29uYWwtZnJlZW1haWxAdGhhd3RlLmNvbTAeFw0wMzA3
+MTcwMDAwMDBaFw0xMzA3MTYyMzU5NTlaMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUg
+Q29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
+SXNzdWluZyBDQTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAxKY8VXNV+065yplaHmjAdQRw
+nd/p/6Me7L3N9VvyGna9fww6YfK/Uc4B1OVQCjDXAmNaLIkVcI7dyfArhVqqP3FWy688Cwfn8R+R
+NiQqE88r1fOCdz0Dviv+uxg+B79AgAJk16emu59l0cUqVIUPSAR/p7bRPGEEQB5kGXJgt/sCAwEA
+AaOBlDCBkTASBgNVHRMBAf8ECDAGAQH/AgEAMEMGA1UdHwQ8MDowOKA2oDSGMmh0dHA6Ly9jcmwu
+dGhhd3RlLmNvbS9UaGF3dGVQZXJzb25hbEZyZWVtYWlsQ0EuY3JsMAsGA1UdDwQEAwIBBjApBgNV
+HREEIjAgpB4wHDEaMBgGA1UEAxMRUHJpdmF0ZUxhYmVsMi0xMzgwDQYJKoZIhvcNAQEFBQADgYEA
+SIzRUIPqCy7MDaNmrGcPf6+svsIXoUOWlJ1/TCG4+DYfqi2fNi/A9BxQIJNwPP2t4WFiw9k6GX6E
+sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
+IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
+dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
+aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
+MBwGCSqGSIb3DQEJBTEPFw0wNTEwMTcwOTU2MDRaMCMGCSqGSIb3DQEJBDEWBBQKcuF80G0G22i4
+7GQ2ZvbfK95+STANBgkqhkiG9w0BAQEFAASCAQAeHUQEDc0C1JPVExnkRGaRO3j+ae+Nu2ee6q9r
+bbiKYky453XSOdiZuvN/TyeX3bOTxVVofhIypxVwbUqhZqTwuUALFott/d+zEqWfNyOOXfPndYiu
+nIaiSK7HIKb2GAokNlcINs9/4D3M95OxcAsii9Ye/GEDMuB0CjsgzFRr8yKkf2gZKEAhkTmGnErA
+CetFv9oq8ZOqsQy2vF4shW/kvE2AH7NrEGW3z4Vl13DzOsMo+u6TiUr4l0Gx0iV6yXzEJ5pA4vcg
+VJMJ/1s7iy5ZQuaS/LtQu0tyPe4TnbsOtDqOLIFOvpLuisrhDIwqrqBdIO5IBQKFOLMWKhZBuKgr
+AAAAAAAA
 
 
----
+--=-NQyt6LUVmcXfb+He2mYv--
 
 
 -------------------------------------------------------
