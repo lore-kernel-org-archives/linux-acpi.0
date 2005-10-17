@@ -1,11 +1,13 @@
-From: Nils Rimestad <nils-LgQBqAA7lunk1uMJSBkQmQ@public.gmane.org>
-Subject: Acer 3222 acpi
-Date: Wed, 19 Oct 2005 00:00:40 +0200
-Message-ID: <43557088.7010907@rimestad.net>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.6.14-rc4-mm1, acpi, irq problems, hdc (cdrom) dead
+Date: Mon, 17 Oct 2005 18:38:33 -0400
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3004E6C758@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,59 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello
 
-This is first time i try to work with acpi on a linux box,
-now i like a challenge, but this is a bit on the top side of what i can 
-handle.
-I managed to decompile the dsdt and have gotten following error when 
-trying to compile again.
+>Since some kernel revisions (hard to tell since when, I don't use cdrom
+>very often), the cdrom hdc is not working any more:
+>
+>vmunix: hdc: lost interrupt
 
-dsdt.dsl  2352:                     If (ECOK)
-Error    1065 -                            ^ Object not accessible from 
-this scope (ECOK)
+> 2.6.14-rc4-mm1
 
-ASL Input:  dsdt.dsl - 6794 lines, 241739 bytes, 2957 keywords
-Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 738 Optimizations
+Can you try vanilla 2.6.14?
 
-the code it is telling me it has a fault in this:
-                Method (_EJ0, 1, NotSerialized)
-                {
-                    Store (0x00, \_SB.PCI0.RP01.Z001)
-                    Store (0x00, \_SB.PCI0.LPCB.SIO.SIOS)
-                    \_SB.GSMI (0x14)
-                    If (ECOK)   ##This is the line where it tells me 
-there is an error.
-                    {
-                        Store (0x01, \_SB.PCI0.LPCB.EC0.OSUD)
-                    }
-                }
+If 2.6.14 works, then does 2.6.14-rc4-mm1 with git-acpi.patch backed out =
+work better?:
+http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.14-rc4=
+/2.6.14-rc4-mm1/broken-out/git-acpi.patch
 
-following if located a bit lower in the file, i guess this is the one it 
-should call, though im not sure.
-                Method (ECOK, 0, NotSerialized)
-                {
-                    If (LEqual (\_SB.PCI0.LPCB.EC0.OKEC, 0x01))
-                    {
-                        Return (0x01)
-                    }
-                    Else
-                    {
-                        Return (0x00)
-                    }
-                }
+If 2.6.14 fails, does 2.6.13 work better?
 
 
-but now i feel kinda stranded, i can't realy figure out what to do next. 
-and that is why i ask here.
-Is there an easy thing that i can try? or should i post the full file 
-and just sit back and let you guys have a look?
+> Kernel command line: BOOT_IMAGE=3D2.6.14-rc4-mm1 ro root=3D303 lapic
+> Local APIC disabled by BIOS -- reenabling.
+> Found and enabled local APIC!
 
-Thanks in advance
-Nils Rimestad
+forcing the LAPIC to be enabled when the BIOS didn't enable it
+is risky -- you're asserting that you know more
+about the hardware than the BIOS writer knew.
+
+Do you still have the issue without the "lapic" boot option?
+
+>     ACPI-0284: *** Info: Table [DSDT] replaced by host OS
+
+You're somewhat on your own here since you've replaced the OEM's =
+firmware.
+Do you still have the issue without replacing the BIOS?
+
+cheers,
+-Len
+
+
 
 
 -------------------------------------------------------
