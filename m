@@ -1,13 +1,11 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2.6.14-rc4-mm1, acpi, irq problems, hdc (cdrom) dead
-Date: Mon, 17 Oct 2005 18:38:33 -0400
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3004E6C758@hdsmsx401.amr.corp.intel.com>
+From: Alejandro Bonilla Beeche <abonilla-N/cRWR3FREN3ZuITGxAgx9i2O/JbrIOy@public.gmane.org>
+Subject: ACPI errors on dmesg
+Date: Mon, 17 Oct 2005 19:09:32 -0600
+Message-ID: <43544B4C.4000703@linuxwireless.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,47 +15,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
->Since some kernel revisions (hard to tell since when, I don't use cdrom
->very often), the cdrom hdc is not working any more:
->
->vmunix: hdc: lost interrupt
+    I have debian Sid with 2.6.14-rc4-git. IBM T42. Please keep me on 
+replys, I'm not in the ML.
 
-> 2.6.14-rc4-mm1
+I think that whenever I put my PC on xlock(matrix screensaver BTW) for 
+too long and then I come back, I see my gnome 2.10 battery icon says N/A.
 
-Can you try vanilla 2.6.14?
+Then, dmesg is full of these messages.
 
-If 2.6.14 works, then does 2.6.14-rc4-mm1 with git-acpi.patch backed out =
-work better?:
-http://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.14-rc4=
-/2.6.14-rc4-mm1/broken-out/git-acpi.patch
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed 
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c14cd4c0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed 
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c14cd4c0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed 
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c14cd4c0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed 
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c14cd4c0), AE_AML_METHOD_LIMIT
 
-If 2.6.14 fails, does 2.6.13 work better?
+abonilla@debian:~$ apt-cache show acpi | grep Version
+Version: 0.09-1
+abonilla@debian:~$ apt-cache show acpid | grep Version
+Version: 1.0.4-3
 
+/etc/init.d/acpid restart has no effect.
 
-> Kernel command line: BOOT_IMAGE=3D2.6.14-rc4-mm1 ro root=3D303 lapic
-> Local APIC disabled by BIOS -- reenabling.
-> Found and enabled local APIC!
+abonilla@debian:~$ acpi -V
+     Thermal 1: ok, 40.0 degrees C
+  AC Adapter 1: off-line
 
-forcing the LAPIC to be enabled when the BIOS didn't enable it
-is risky -- you're asserting that you know more
-about the hardware than the BIOS writer knew.
+It is just not showing the battery information.
 
-Do you still have the issue without the "lapic" boot option?
+Thanks,
 
->     ACPI-0284: *** Info: Table [DSDT] replaced by host OS
-
-You're somewhat on your own here since you've replaced the OEM's =
-firmware.
-Do you still have the issue without replacing the BIOS?
-
-cheers,
--Len
-
-
+.Alejandro
 
 
 -------------------------------------------------------
