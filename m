@@ -1,218 +1,296 @@
-From: Kristen Accardi <kristen.c.accardi@intel.com>
-Subject: Re: [Pcihpd-discuss] RE: [patch 2/2] acpi: add ability to derive
-	irq when doing a surpriseremoval of an adapter
-Date: Tue, 18 Oct 2005 16:57:57 -0700
-Message-ID: <1129679877.30588.5.camel@whizzy>
-References: <59D45D057E9702469E5775CBB56411F190A57F@pdsmsx406>
-	 <1129053267.15526.9.camel@whizzy>
+From: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Latest acpica
+Date: Tue, 18 Oct 2005 20:38:26 -0700
+Message-ID: <c0a09e5c0510182038t392d360fl994264fe90e53894@mail.gmail.com>
+References: <971FCB6690CD0E4898387DBF7552B90E031CC3AC@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932143AbVJRX6X@vger.kernel.org>
-In-Reply-To: <1129053267.15526.9.camel@whizzy>
-Sender: linux-kernel-owner@vger.kernel.org
-To: greg@kroah.com
-Cc: pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, "Shah, Rajesh" <rajesh.shah@intel.com>, "Brown, Len" <len.brown@intel.com>
+Content-Type: multipart/alternative;
+	boundary="----=_Part_19771_4097339.1129693106428"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E031CC3AC-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-For surprise hotplug removal, the interrupt pin must be guessed, as any
-attempts to read it would obviously be invalid.  This patch adds a new
-function to cycle through all possible pin values, and tries to either
-lookup or derive the right irq to disable.  It also adds a new function
-to acpi which can be used to just find the irq, without freeing it, just
-in case we guess the wrong pin.
+------=_Part_19771_4097339.1129693106428
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
----
-I fixed this patch so that it compiles without warnings now.
+Debian may be OK using flex-old but distros less concerned with backwards
+compatibility, such as Red Hat Fedora, no longer ship it. "flex -l" got it
+compiling but produced compilation errors (see Mattia's email), so I'd thin=
+k
+it probably just needs a few more nudges to start working.
 
-diff -uprN -X linux-2.6.14-rc3/Documentation/dontdiff linux-2.6.14-rc3.orig/drivers/acpi/pci_irq.c linux-2.6.14-rc3/drivers/acpi/pci_irq.c
---- linux-2.6.14-rc3.orig/drivers/acpi/pci_irq.c	2005-10-07 13:37:50.000000000 -0700
-+++ linux-2.6.14-rc3/drivers/acpi/pci_irq.c	2005-10-18 16:26:44.000000000 -0700
-@@ -298,6 +298,28 @@ acpi_pci_free_irq(struct acpi_prt_entry 
- 	return_VALUE(irq);
- }
- 
-+
-+
-+static int
-+acpi_pci_find_irq(struct acpi_prt_entry *entry,
-+		  int *edge_level, int *active_high_low, char **link)
-+{
-+	int irq;
-+
-+	ACPI_FUNCTION_TRACE("acpi_pci_find_irq");
-+	if (entry->link.handle) {
-+		irq = acpi_pci_link_find_irq(entry->link.handle);
-+	} else {
-+		irq = entry->link.index;
-+	}
-+
-+	*link = (char *)entry;
-+
-+	return_VALUE(irq);
-+}
-+
-+
-+
- /*
-  * acpi_pci_irq_lookup
-  * success: return IRQ >= 0
-@@ -491,6 +513,86 @@ void __attribute__ ((weak)) acpi_unregis
- {
- }
- 
-+
-+
-+/*
-+ * This function will be called only in the case of
-+ * a "surprise" hot plug removal.  For surprise removals,
-+ * the card has either already be yanked out of the slot, or
-+ * the slot's been powered off, so we have to brute force 
-+ * our way through all the possible interrupt pins to derive
-+ * the GSI, then we double check with the value stored in the
-+ * pci_dev structure to make sure we have the GSI that belongs
-+ * to this IRQ.
-+ */
-+void acpi_pci_irq_disable_nodev(struct pci_dev *dev)
-+{
-+	int gsi = 0;
-+	u8  pin = 0;
-+	int edge_level = ACPI_LEVEL_SENSITIVE;
-+	int active_high_low = ACPI_ACTIVE_LOW;
-+	int irq;
-+	struct acpi_prt_entry *entry;
-+
-+	ACPI_FUNCTION_TRACE("acpi_pci_irq_disable_nodev");
-+
-+	/*
-+	 * since our device is not present, we
-+	 * can't just read the interrupt pin
-+	 * and use the value to derive the irq.
-+	 * in this case, we are going to check
-+	 * each returned irq value to make
-+	 * sure it matches our already assigned
-+	 * irq before we use it.
-+	 */
-+	for (pin = 0; pin < 4; pin++) {
-+		/*
-+	 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.
-+	 	 */
-+		gsi = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin,
-+				&edge_level, &active_high_low,
-+				(char **)&entry,
-+				acpi_pci_find_irq);
-+
-+		/*
-+	 	 * If no PRT entry was found, we'll try to derive an IRQ from the
-+	 	 * device's parent bridge.
-+	 	 */
-+		if (gsi < 0)
-+ 			gsi = acpi_pci_irq_derive(dev, pin,
-+				&edge_level, &active_high_low,
-+				(char **)&entry, acpi_pci_find_irq);
-+
-+		/*
-+		 * If we could not derive the IRQ, give up on this pin number
-+		 * and try a different one.
-+		 */
-+		if (gsi < 0)
-+		 	continue;
-+		
-+		if (acpi_gsi_to_irq(gsi, &irq) < 0)
-+			continue;
-+
-+		/*
-+		 * make sure we got the right irq
-+		 */
-+		if (irq == dev->irq) {
-+			acpi_pci_free_irq(entry, &edge_level,
-+					&active_high_low, NULL);
-+			printk(KERN_INFO PREFIX
-+				"PCI interrupt for device %s disabled\n",
-+	       			pci_name(dev));
-+
-+			acpi_unregister_gsi(gsi);
-+			return_VOID;
-+		}
-+	}
-+	return_VOID;
-+}
-+
-+
-+
-+
- void acpi_pci_irq_disable(struct pci_dev *dev)
- {
- 	int gsi = 0;
-@@ -506,6 +608,14 @@ void acpi_pci_irq_disable(struct pci_dev
- 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
- 	if (!pin)
- 		return_VOID;
-+
-+	/*
-+	 * Check to see if the device was present
-+	 */
-+	if (pin == 0xff) {
-+		acpi_pci_irq_disable_nodev(dev);
-+		return_VOID;
-+	}
- 	pin--;
- 
- 	/*
-diff -uprN -X linux-2.6.14-rc3/Documentation/dontdiff linux-2.6.14-rc3.orig/drivers/acpi/pci_link.c linux-2.6.14-rc3/drivers/acpi/pci_link.c
---- linux-2.6.14-rc3.orig/drivers/acpi/pci_link.c	2005-10-07 13:37:50.000000000 -0700
-+++ linux-2.6.14-rc3/drivers/acpi/pci_link.c	2005-10-18 16:17:30.000000000 -0700
-@@ -665,6 +665,41 @@ acpi_pci_link_allocate_irq(acpi_handle h
- 	return_VALUE(link->irq.active);
- }
- 
-+
-+
-+int acpi_pci_link_find_irq(acpi_handle handle)
-+{
-+	struct acpi_device *device = NULL;
-+	struct acpi_pci_link *link = NULL;
-+	acpi_status result;
-+
-+	ACPI_FUNCTION_TRACE("acpi_pci_link_find_irq");
-+
-+	result = acpi_bus_get_device(handle, &device);
-+	if (result) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link device\n"));
-+		return_VALUE(-1);
-+	}
-+
-+	link = (struct acpi_pci_link *)acpi_driver_data(device);
-+	if (!link) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link context\n"));
-+		return_VALUE(-1);
-+	}
-+
-+	down(&acpi_link_lock);
-+	if (!link->irq.initialized) {
-+		up(&acpi_link_lock);
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Link isn't initialized\n"));
-+		return_VALUE(-1);
-+	}
-+
-+	up(&acpi_link_lock);
-+	return_VALUE(link->irq.active);
-+}
-+
-+
-+
- /*
-  * We don't change link's irq information here.  After it is reenabled, we
-  * continue use the info
-diff -uprN -X linux-2.6.14-rc3/Documentation/dontdiff linux-2.6.14-rc3.orig/include/acpi/acpi_drivers.h linux-2.6.14-rc3/include/acpi/acpi_drivers.h
---- linux-2.6.14-rc3.orig/include/acpi/acpi_drivers.h	2005-10-07 13:37:52.000000000 -0700
-+++ linux-2.6.14-rc3/include/acpi/acpi_drivers.h	2005-10-18 16:20:08.000000000 -0700
-@@ -55,6 +55,7 @@ int acpi_irq_penalty_init(void);
- int acpi_pci_link_allocate_irq(acpi_handle handle, int index, int *edge_level,
- 			       int *active_high_low, char **name);
- int acpi_pci_link_free_irq(acpi_handle handle);
-+int acpi_pci_link_find_irq(acpi_handle handle);
- 
- /* ACPI PCI Interrupt Routing (pci_irq.c) */
- 
+Once it compiles, then we can package it and get it added to the Fedora
+Extras repo. Then FC users can type "yum install iasl" and have it
+automatically installed and ready to go, which I think would make getting
+started with iasl a lot easier.
+
+Regards -- Andy
+
+On 10/18/05, Moore, Robert <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+>  It is my understanding that only flex-old will work to build iASL,
+> because the new flex is not compatible with lex in some important areas.
+>
+> I don't know any more than this.
+>
+> Bob
+> ----Original Message-----
+>
+> *From:* acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:
+> acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] *On Behalf Of *Andrew Grover
+> *Sent:* Tuesday, October 18, 2005 1:24 PM
+> *To:* acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Moore, Robert
+> *Subject:* Re: [ACPI] Latest acpica
+>
+>  Yeah I wish I knew enough flex to fix it, too. How hard can it be? :) --
+> Andy
+>
+> On 10/18/05, *Mattia Dongili* <malattia-k2GhghHVRtY@public.gmane.org > wrote:
+>
+> On Wed, Oct 12, 2005 at 10:37:59AM -0700, Andrew Grover wrote:
+> > I am using GNU flex 2.5.31. I was able to get it to build (on x86_64
+> even)
+> > with the attached patch. I have also attached the warnings, in case
+> those
+> > are of interest.
+>
+> I tried building my DSDT with a patched iasl built with the latest flex
+> available in debian (2.5.31) but it seems the -l flag is doing more bad
+> than good. I get a bunch of (meaningless) errors:
+>
+> DSDT.dsl 34: Scope (\_GPE)
+> Error 1094 - ^ syntax error, unexpected PARSEOP_NAMESEG, expecting ')'
+>
+> DSDT.dsl 38: Notify (\_SB.PCI0.USB1, 0x02)
+> Error 1094 - ^ syntax error, unexpected PARSEOP_NAMESEG, expecting ','
+>
+> DSDT.dsl 38: Notify (\_SB.PCI0.USB1, 0x02)
+> Error 1094 - ^ Invalid character (0x2E), expecting ASL keyword or name
+>
+> DSDT.dsl 43: Notify (\_SB.PCI0.USB2, 0x02)
+> Error 1094 - ^ syntax error, unexpected PARSEOP_NAMESEG, expecting ','
+> ...
+> ...
+> ASL Input: DSDT.dsl - 3597 lines, 124899 bytes, 20 keywords
+> Compilation complete. 15 Errors, 0 Warnings, 0 Remarks, 2 Optimizations
+>
+> while building with flex-old I only get:
+>
+> DSDT.dsl 1347: Field (ECR, AnyAcc, Lock, Preserve)
+> Error 1073 - ^ Host Operation Region requires ByteAcc access
+>
+> ASL Input: DSDT.dsl - 3896 lines, 131852 bytes, 1959 keywords
+> Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 388 Optimizations
+>
+> So I'll probably simply build-depend on flex-old by now and I'll try to
+> learn
+> more of flex soon :)
+>
+> --
+> mattia
+> :wq!
+>
+>
+
+------=_Part_19771_4097339.1129693106428
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Debian may be OK using flex-old but distros less concerned with
+backwards compatibility, such as Red Hat Fedora, no longer ship it.
+&quot;flex -l&quot; got it compiling but produced compilation errors (see
+Mattia's email), so I'd think it probably just needs a few more nudges
+to start working.<br>
+<br>
+Once it compiles, then we can package it and get it added to the Fedora
+Extras repo. Then FC users can type &quot;yum install iasl&quot; and have i=
+t
+automatically installed and ready to go, which I think would make
+getting started with iasl a lot easier.<br>
+<br>
+Regards -- Andy<br><br><div><span class=3D"gmail_quote">On 10/18/05, <b cla=
+ss=3D"gmail_sendername">Moore, Robert</b> &lt;<a href=3D"mailto:robert.moor=
+e@intel.com">robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org</a>&gt; wrote:</span><blockquote class=
+=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204); margin=
+: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div>
+
+<p><font color=3D"navy" face=3D"Arial" size=3D"2"><span style=3D"font-size:=
+ 10pt; font-family: Arial; color: navy;">It is my understanding that only f=
+lex-old
+will work to build iASL, because the new flex is not compatible with lex in
+some important areas.</span></font></p>
+
+
+
+<p><font color=3D"navy" face=3D"Arial" size=3D"2"><span style=3D"font-size:=
+ 10pt; font-family: Arial; color: navy;">I don't know any more than this.</=
+span></font></p>
+
+<p><font color=3D"navy" face=3D"Arial" size=3D"2"><span style=3D"font-size:=
+ 10pt; font-family: Arial; color: navy;">Bob</span></font></p><font color=
+=3D"navy" face=3D"Arial" size=3D"2"><span style=3D"font-size: 10pt; font-fa=
+mily: Arial; color: navy;">
+</span></font> ----Original Message-----<br>
+<div style=3D"border-style: none none none solid; border-color: -moz-use-te=
+xt-color -moz-use-text-color -moz-use-text-color blue; border-width: medium=
+ medium medium 1.5pt; padding: 0in 0in 0in 4pt;"><span class=3D"q"><p><font=
+ face=3D"Tahoma" size=3D"2">
+<span style=3D"font-size: 10pt; font-family: Tahoma;">
+<b><span style=3D"font-weight: bold;">From:</span></b>
+<a href=3D"mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" target=3D"_blank"=
+ onclick=3D"return top.js.OpenExtLink(window,event,this)">acpi-devel-admin@=
+lists.sourceforge.net</a>
+[mailto:<a href=3D"mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" target=3D=
+"_blank" onclick=3D"return top.js.OpenExtLink(window,event,this)">acpi-deve=
+l-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org</a>] <b><span style=3D"font-weight: bold;">On=
+ Behalf Of=20
+</span></b>Andrew Grover<br>
+<b><span style=3D"font-weight: bold;">Sent:</span></b> Tuesday, October 18,=
+ 2005
+1:24 PM<br>
+<b><span style=3D"font-weight: bold;">To:</span></b>
+<a href=3D"mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" target=3D"_blank" oncli=
+ck=3D"return top.js.OpenExtLink(window,event,this)">acpi-devel-5NWGOfrQmncRDUWM+popnw@public.gmane.org=
+forge.net</a>; Moore, Robert<br>
+<b><span style=3D"font-weight: bold;">Subject:</span></b> Re: [ACPI] Latest=
+ acpica</span></font></p>
+
+<p><font face=3D"Times New Roman" size=3D"3"><span style=3D"font-size: 12pt=
+;">&nbsp;</span></font></p></span><div><span class=3D"e" id=3D"q_107056de70=
+f0b738_2">
+
+<p style=3D"margin-bottom: 12pt;"><font face=3D"Times New Roman" size=3D"3"=
+><span style=3D"font-size: 12pt;">Yeah I wish I knew enough
+flex to fix it, too. How hard can it be? :) -- Andy</span></font></p>
+
+<div>
+
+<p><span><font face=3D"Times New Roman" size=3D"3"><span style=3D"font-size=
+: 12pt;">On 10/18/05, <b><span style=3D"font-weight: bold;">Mattia
+Dongili</span></b> &lt;<a href=3D"mailto:malattia-k2GhghHVRtY@public.gmane.org" target=3D"_blan=
+k" onclick=3D"return top.js.OpenExtLink(window,event,this)">malattia@linux.=
+it </a>&gt;
+wrote:</span></font></span></p>
+
+<p><font face=3D"Times New Roman" size=3D"3"><span style=3D"font-size: 12pt=
+;">On Wed, Oct 12, 2005 at 10:37:59AM -0700, Andrew Grover wrote:<br>
+&gt; I am using GNU flex 2.5.31. I was able to get it to build (on x86_64 e=
+ven)<br>
+&gt; with the attached patch. I have also attached the warnings, in case th=
+ose<br>
+&gt; are of interest.<br>
+<br>
+I tried building my DSDT with a patched iasl built with the latest flex <br=
+>
+available in debian (2.5.31) but it seems the -l flag is doing more bad<br>
+than good. I get a bunch of (meaningless) errors:<br>
+<br>
+DSDT.dsl&nbsp;&nbsp;&nbsp;&nbsp;34:&nbsp;&nbsp;&nbsp;&nbsp; Scope (\_GPE)<b=
+r>
+Error&nbsp;&nbsp;&nbsp;&nbsp;1094
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;^
+syntax error, unexpected PARSEOP_NAMESEG, expecting ')'<br>
+<br>
+DSDT.dsl&nbsp;&nbsp;&nbsp;&nbsp;38:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Notify (\_SB.PCI0.USB1, 0x02)<br>Error&nbsp;&nbsp;&nbsp;&nbsp;1094
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^
+syntax error, unexpected PARSEOP_NAMESEG, expecting ','<br>
+<br>
+DSDT.dsl&nbsp;&nbsp;&nbsp;&nbsp;38:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Notify (\_SB.PCI0.USB1, 0x02)<br>
+Error&nbsp;&nbsp;&nbsp;&nbsp;1094
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+^ Invalid character (0x2E), expecting ASL keyword or name<br>
+<br>
+DSDT.dsl&nbsp;&nbsp;&nbsp;&nbsp;43:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Notify (\_SB.PCI0.USB2, 0x02)<br>
+Error&nbsp;&nbsp;&nbsp;&nbsp;1094
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^
+syntax error, unexpected PARSEOP_NAMESEG, expecting ','<br>
+...<br>
+...<br>
+ASL Input:&nbsp;&nbsp;DSDT.dsl - 3597 lines, 124899 bytes, 20 keywords<br>
+Compilation complete. 15 Errors, 0 Warnings, 0 Remarks, 2 Optimizations<br>
+<br>
+while building with flex-old I only get: <br>
+<br>
+DSDT.dsl&nbsp;&nbsp;1347:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Field (ECR, AnyAcc, Lock, Preserve)<br>
+Error&nbsp;&nbsp;&nbsp;&nbsp;1073
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;^
+Host Operation Region requires ByteAcc access<br>
+<br>
+ASL Input:&nbsp;&nbsp;DSDT.dsl - 3896 lines, 131852 bytes, 1959 keywords<br=
+>
+Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 388 Optimizations<br=
+>
+<br>
+So I'll probably simply build-depend on flex-old by now and I'll try to lea=
+rn <br>
+more of flex soon :)<br>
+<br>
+--<br>
+mattia<br>
+:wq!</span></font></p>
+
+</div>
+
+<p><font face=3D"Times New Roman" size=3D"3"><span style=3D"font-size: 12pt=
+;">&nbsp;</span></font></p>
+
+</span></div></div>
+
+</div>
+
+
+
+
+
+</blockquote></div><br>
+
+------=_Part_19771_4097339.1129693106428--
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
