@@ -1,40 +1,36 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [ACPI] Re: [Pcihpd-discuss] RE: [patch 2/2] acpi: add ability to derive irq when doing a surpriseremoval of an adapter
-Date: Wed, 19 Oct 2005 09:59:40 -0700
-Message-ID: <20051019165940.GA2177@kroah.com>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: Re: Re: [Pcihpd-discuss] RE: [patch 2/2] acpi: add ability to derive irq when doing a surpriseremoval of an adapter
+Date: Wed, 19 Oct 2005 11:06:55 -0600
+Message-ID: <20051019170655.GA17314@parisc-linux.org>
 References: <59D45D057E9702469E5775CBB56411F190A57F@pdsmsx406> <1129053267.15526.9.camel@whizzy> <1129679877.30588.5.camel@whizzy> <200510190929.06728.bjorn.helgaas@hp.com> <1129740711.31966.21.camel@whizzy>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751153AbVJSRA2@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 In-Reply-To: <1129740711.31966.21.camel@whizzy>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, acpi-devel@lists.sourceforge.net, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, "Shah, Rajesh" <rajesh.shah@intel.com>, "Brown, Len" <len.brown@intel.com>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Kristen Accardi <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Shah, Rajesh" <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 On Wed, Oct 19, 2005 at 09:51:51AM -0700, Kristen Accardi wrote:
-> On Wed, 2005-10-19 at 09:29 -0600, Bjorn Helgaas wrote:
-> > On Tuesday 18 October 2005 5:57 pm, Kristen Accardi wrote:
-> > > For surprise hotplug removal, the interrupt pin must be guessed, as any
-> > > attempts to read it would obviously be invalid.  This patch adds a new
-> > > function to cycle through all possible pin values, and tries to either
-> > > lookup or derive the right irq to disable.
-> > 
-> > I don't really like this because it adds a new path that's only
-> > used for "surprise" removals.  So we have acpi_pci_irq_disable(),
-> > which is used for normal removals, and acpi_pci_irq_disable_nodev()
-> > for the surprise path.  That feels like a maintenance problem.
-> > 
-> > Other, non-ACPI, IRQ routing schemes should have the same problem
-> > (needing to know the interrupt pin after the device has been removed),
-> > so maybe the pin needs to be cached in the pci_dev?
-> 
 > This seems like a good idea to me, if nobody objects to adding another
 > field to pci_dev, I can change the patch to do this and resubmit. 
 
-No objection from me.
+If you squeeze it in after rom_base_reg, it won't even take any more
+space.  Assuming you'll be using a u8 for it, that is. (We only really
+need three bits, right?  0-4)
 
-thanks,
 
-greg k-h
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Power Architecture Resource Center: Free content, downloads, discussions,
+and more. http://solutions.newsforge.com/ibmarch.tmpl
