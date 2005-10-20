@@ -1,15 +1,14 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [RFC]convert ACPI driver model to Linux driver model - takes 2
-Date: Thu, 20 Oct 2005 11:04:44 -0600
-Message-ID: <200510201104.44164.bjorn.helgaas@hp.com>
-References: <1129185454.9074.15.camel@linux-hp.sh.intel.com>
+From: <foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: acer travelmate 2313 battery problem.
+Date: Thu, 20 Oct 2005 10:30:40 -0700 (PDT)
+Message-ID: <20051020173040.51826.qmail@web81602.mail.yahoo.com>
+References: <435764CD.1090700@inbox.eu.org>
+Reply-To: foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1129185454.9074.15.camel-ECwVeV2eNyQD0+JXs3kMbRL4W9x8LtSr@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <435764CD.1090700-MEOeS5c08o1g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,67 +18,111 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+To: marek czardybon <max-MEOeS5c08o1g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 13 October 2005 12:37 am, Shaohua Li wrote:
-> This is the updated patch for the topic. In this version, I completely
-> convert devices in ACPI bus into Linux driver model. Now the device
-> driver for ACPI bus device should be a 'struct acpi_phys_driver'. Old
-> style driver (struct acpi_driver) now can't work for ACPI bus devices.
+That's a little bit weird but similar to the problem I had with my
+Acer. You will need to build the IASL DSDT compiler and fix your DSDT,
+because there is not a fixed one in the ACPI4Linux database yet. But
+first, before you try that, try upgrading your BIOS and seeing if that
+solves the problem.
 
-    - I don't like names that include "acpi_bus" because there
-      really is no "bus".  If PCI, which really DOES have a bus,
-      doesn't need it, ACPI surely doesn't.
+Please look here http://forums.gentoo.org/viewtopic.php?t=3D122145 for
+ideas. They apply to more than just Gentoo machines.
 
-    - Suspend/resume/probe/remove/shutdown are device-oriented
-      interfaces and should be named with "device", not "bus".
+HTH!
 
-    - We should not end up with two interfaces to register ACPI
-      drivers.  ACPI is confusing enough as it is.  Having both
-      acpi_phys_driver_register() and acpi_bus_register_driver()
-      will be a disaster.  (Keeping both temporarily for during
-      a transition is OK, but one should be explicitly deprecated.)
+--- marek czardybon <max-MEOeS5c08o1g9hUCZPvPmw@public.gmane.org> wrote:
 
-> +			length += scnprintf(scratch, buffer_size - length,
-> +				"COMPTID=%s", cid_list->id[j].value);
+> Hello.
+>=20
+> I'm using acer travlemate 2313. I've installed Debian 3.1 on it.
+> I've kernel 2.6.13 with acpi-20050902-2.6.13 patch.
+> All works fine but without battery.
+>=20
+> When I load module "battery" battery is detected
+>=20
+> form dmesg:
+> "ACPI: Battery Slot [BAT1] (battery present)"
+>=20
+> under /proc/acpi I can see battery directory and BAT1 in it.
+>=20
+> list from it:
+>=20
+> maxik:/proc/acpi/battery/BAT1# cat state
+> present:                 yes
+> ERROR: Unable to read battery status
+> maxik:/proc/acpi/battery/BAT1# cat alarm
+> alarm:                   unsupported
+> maxik:/proc/acpi/battery/BAT1# cat info
+> present:                 yes
+> design capacity:         2000 mAh
+> last full capacity:      1873 mAh
+> battery technology:      rechargeable
+> design voltage:          14800 mV
+> design capacity warning: 300 mAh
+> design capacity low:     74 mAh
+> capacity granularity 1:  32 mAh
+> capacity granularity 2:  32 mAh
+> model number:            11ZL
+> serial number:           3149
+> battery type:            LION
+> OEM info:                SIMPLO
+>=20
+> but in dmesg i've:
+>=20
+> "ACPI: Battery Slot [BAT1] (battery present)
+>    psargs-0339: *** Error: Looking up [Z004] in namespace,
+> AE_NOT_FOUND
+> search_node cddc5628 start_node cddc5628 return_node 00000000
+>   dswexec-0460 [2350] ds_exec_end_op        : [Index]: Could not
+> resolve=20
+> operands, AE_NOT_FOUND
+>   psparse-0508: *** Error: Method execution failed [\_SB_.BAT1._BST]
+> (Node=20
+> cddc5428), AE_NOT_FOUND
+> acpi_battery-0205 [2341] battery_get_status    : Error evaluating
+> _BST
+>    psargs-0339: *** Error: Looking up [Z004] in namespace,
+> AE_NOT_FOUND
+> search_node cddc5628 start_node cddc5628 return_node 00000000
+>   dswexec-0460 [2364] ds_exec_end_op        : [Index]: Could not
+> resolve=20
+> operands, AE_NOT_FOUND
+>   psparse-0508: *** Error: Method execution failed [\_SB_.BAT1._BST]
+> (Node=20
+> cddc5428), AE_NOT_FOUND
+> acpi_battery-0205 [2355] battery_get_status    : Error evaluating
+> _BST"
+>=20
+> And any application can't read status of battery...
+>=20
+> Any sugestion with this ?
+> I've searched google with this problem but I can't find nothing ?
+>=20
+>=20
+> --=20
+> marek czardybon / maxilee   +48 0697 724 404     =20
+> http://inbox.eu.org
+> GG:3299479 JAB:maxilee-veJsmC5npURmR6Xm/wNWPw@public.gmane.org                =20
+> http://outbox.eu.org
+> ARP: 00:90:CC:43:D8:0D         GCC d? s:- a- C+++ UL++ P++ L++ E---
+> W+
+> N+ o K w--- O M- V- PS+ PE+ Y PGP t 5 X+R+ !tv b+ DI- D++ G e h r++
+> y?
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by:
+> Power Architecture Resource Center: Free content, downloads,
+> discussions,
+> and more. http://solutions.newsforge.com/ibmarch.tmpl
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
 
-This requires a sequence number (COMPTID%d) to support multiple
-_CIDs, doesn't it?
-
-> +static struct bus_type acpi_phys_bus_type = {
-> +	.name = "acpi",
-> +	.match = acpi_phys_bus_match,
-> +	.hotplug = acpi_phys_bus_hotplug,
-
-I think this should be just "acpi_hotplug".
-
-> +	.suspend = acpi_phys_bus_suspend,
-> +	.resume = acpi_phys_bus_resume,
-
-And these should be "acpi_device_suspend" and "acpi_device_resume".
-
-> +int acpi_phys_driver_register(struct acpi_phys_driver *drv)
-
-The majority of driver registration interfaces use
-"register_driver", not "driver_register".  So I think
-this should be "acpi_register_driver", and you should
-deprecate "acpi_bus_register_driver".  I still don't
-see any fundamental reason for having two ways to
-register ACPI drivers.
-
-> +{
-> +	int error;
-> +	/*FIXME: add to a list */
-> +	drv->phys_drv.name = drv->name;
-> +	drv->phys_drv.bus = &acpi_phys_bus_type;
-> +	drv->phys_drv.probe = acpi_phys_device_probe;
-> +	drv->phys_drv.remove = acpi_phys_device_remove;
-> +	drv->phys_drv.shutdown = acpi_phys_device_shutdown;
-
-I think these should be "acpi_bus_type", "acpi_device_probe",
-"acpi_device_remove", and "acpi_device_shutdown".
 
 
 -------------------------------------------------------
