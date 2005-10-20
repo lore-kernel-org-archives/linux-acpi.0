@@ -1,11 +1,13 @@
-From: marek czardybon <max-MEOeS5c08o1g9hUCZPvPmw@public.gmane.org>
-Subject: acer travelmate 2313 battery problem.
-Date: Thu, 20 Oct 2005 11:35:09 +0200
-Message-ID: <435764CD.1090700@inbox.eu.org>
+From: Jiri Slaby <jirislaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] `unaligned access' in acpi get_root_bridge_busnr()
+Date: Thu, 20 Oct 2005 13:27:27 +0200
+Message-ID: <43577F1F.3070209@gmail.com>
+References: <17239.4347.595396.783239@berry.gelato.unsw.EDU.AU>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <17239.4347.595396.783239-t0Sv2hkTHA9yuP2ZY8HSTlptZk9uqtcn@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,73 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Peter Chubb <peterc-M3ycANVxPotyL3EAZA59ERCuuivNXqWP@public.gmane.org>
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
+Peter Chubb napsal(a):
 
-I'm using acer travlemate 2313. I've installed Debian 3.1 on it.
-I've kernel 2.6.13 with acpi-20050902-2.6.13 patch.
-All works fine but without battery.
+>In drivers/acpi/glue.c the address of an integer is cast to the
+>address of an unsigned long.  This breaks on systems where a long is
+>larger than an int --- for a start the int can be misaligned; for a
+>second the assignment through the pointer will overwrite part of the
+>next variable.
+>
+>Patch is against linux-2.6.14-rc4
+>
+>Signed-off-by: Peter Chubb <peterc-M3ycANVxPotyL3EAZA59ERCuuivNXqWP@public.gmane.org>
+>
+>Index: linux-2.6-import/drivers/acpi/glue.c
+>===================================================================
+>--- linux-2.6-import.orig/drivers/acpi/glue.c	2005-09-09 09:08:49.928854100 +1000
+>+++ linux-2.6-import/drivers/acpi/glue.c	2005-10-20 13:32:32.126445742 +1000
+>@@ -89,46 +89,46 @@ static int acpi_find_bridge_device(struc
+> /* Get PCI root bridge's handle from its segment and bus number */
+> struct acpi_find_pci_root {
+> 	unsigned int seg;
+> 	unsigned int bus;
+> 	acpi_handle handle;
+> };
+> 
+> static acpi_status
+> do_root_bridge_busnr_callback(struct acpi_resource *resource, void *data)
+> {
+>-	int *busnr = (int *)data;
+>+	unsigned long *busnr = (unsigned long *)data;
+>  
+>
+Is the cast here really needed?
 
-When I load module "battery" battery is detected
-
-form dmesg:
-"ACPI: Battery Slot [BAT1] (battery present)"
-
-under /proc/acpi I can see battery directory and BAT1 in it.
-
-list from it:
-
-maxik:/proc/acpi/battery/BAT1# cat state
-present:                 yes
-ERROR: Unable to read battery status
-maxik:/proc/acpi/battery/BAT1# cat alarm
-alarm:                   unsupported
-maxik:/proc/acpi/battery/BAT1# cat info
-present:                 yes
-design capacity:         2000 mAh
-last full capacity:      1873 mAh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 300 mAh
-design capacity low:     74 mAh
-capacity granularity 1:  32 mAh
-capacity granularity 2:  32 mAh
-model number:            11ZL
-serial number:           3149
-battery type:            LION
-OEM info:                SIMPLO
-
-but in dmesg i've:
-
-"ACPI: Battery Slot [BAT1] (battery present)
-   psargs-0339: *** Error: Looking up [Z004] in namespace, AE_NOT_FOUND
-search_node cddc5628 start_node cddc5628 return_node 00000000
-  dswexec-0460 [2350] ds_exec_end_op        : [Index]: Could not resolve 
-operands, AE_NOT_FOUND
-  psparse-0508: *** Error: Method execution failed [\_SB_.BAT1._BST] (Node 
-cddc5428), AE_NOT_FOUND
-acpi_battery-0205 [2341] battery_get_status    : Error evaluating _BST
-   psargs-0339: *** Error: Looking up [Z004] in namespace, AE_NOT_FOUND
-search_node cddc5628 start_node cddc5628 return_node 00000000
-  dswexec-0460 [2364] ds_exec_end_op        : [Index]: Could not resolve 
-operands, AE_NOT_FOUND
-  psparse-0508: *** Error: Method execution failed [\_SB_.BAT1._BST] (Node 
-cddc5428), AE_NOT_FOUND
-acpi_battery-0205 [2355] battery_get_status    : Error evaluating _BST"
-
-And any application can't read status of battery...
-
-Any sugestion with this ?
-I've searched google with this problem but I can't find nothing ?
-
+regards,
 
 -- 
-marek czardybon / maxilee   +48 0697 724 404       http://inbox.eu.org
-GG:3299479 JAB:maxilee-veJsmC5npURmR6Xm/wNWPw@public.gmane.org                  http://outbox.eu.org
-ARP: 00:90:CC:43:D8:0D         GCC d? s:- a- C+++ UL++ P++ L++ E--- W+
-N+ o K w--- O M- V- PS+ PE+ Y PGP t 5 X+R+ !tv b+ DI- D++ G e h r++ y?
+Jiri Slaby         www.fi.muni.cz/~xslaby
+~\-/~      jirislaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org      ~\-/~
+B67499670407CE62ACC8 22A032CC55C339D47A7E
+
 
 
 -------------------------------------------------------
