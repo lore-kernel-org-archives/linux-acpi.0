@@ -1,114 +1,82 @@
-From: marek czardybon <max-MEOeS5c08o1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: acer travelmate 2313 battery problem.
-Date: Fri, 21 Oct 2005 14:56:16 +0200
-Message-ID: <4358E570.6000302@inbox.eu.org>
-References: <20051020173040.51826.qmail@web81602.mail.yahoo.com>
+From: Kristen Accardi <kristen.c.accardi@intel.com>
+Subject: Re: [ACPI] Re: [Pcihpd-discuss] RE: [patch 2/2] acpi: add ability
+	to derive irq when doing a surpriseremoval of an adapter
+Date: Fri, 21 Oct 2005 14:28:34 -0700
+Message-ID: <1129930114.5932.6.camel@whizzy>
+References: <59D45D057E9702469E5775CBB56411F190A57F@pdsmsx406>
+	 <1129053267.15526.9.camel@whizzy> <1129679877.30588.5.camel@whizzy>
+	 <200510190929.06728.bjorn.helgaas@hp.com>
+	 <1129740711.31966.21.camel@whizzy>  <20051019165940.GA2177@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051020173040.51826.qmail-AjlHvM9Xp4mA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965172AbVJUV2q@vger.kernel.org>
+In-Reply-To: <20051019165940.GA2177@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>, acpi-devel@lists.sourceforge.net, pcihpd-discuss@lists.sourceforge.net, linux-kernel@vger.kernel.org, "Shah, Rajesh" <rajesh.shah@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia 2005-10-20 19:30, foo_bar_baz_boo-acpi-/E1597aS9LQAvxtiuMwx3w@public.gmane.org napisa=B3:
-> That's a little bit weird but similar to the problem I had with my
-> Acer. You will need to build the IASL DSDT compiler and fix your DSDT,
-> because there is not a fixed one in the ACPI4Linux database yet. But
-> first, before you try that, try upgrading your BIOS and seeing if that
-> solves the problem.
->=20
-> Please look here http://forums.gentoo.org/viewtopic.php?t=3D122145 for
-> ideas. They apply to more than just Gentoo machines.
->=20
-[cut]
+This patch will allow the acpi code to correctly disable the irq when an
+adapter has been "surprise" removed.  The INTERRUPT_PIN value is stored
+in the pci_dev structure at probe time, and if the acpi code attempts to
+read the INTERRUPT_PIN from config space and detects that the adapter is
+not present, it will use the stored value instead.
 
-I've downloaded tools from this link and here is my output:
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-maxik:/usr/src/battery/iasl-linux-20030918# ./iasl -tc dsdt.dsl
+---
+I've re-worked this patch as you suggested.  the INTERRUPT_PIN was read
+in many different places in the code, so I hope that this is the right
+place to save off the value.  Thanks for taking a look.
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
-Copyright (C) 2000 - 2003 Intel Corporation
-Supports ACPI Specification Revision 2.0b
+ drivers/acpi/pci_irq.c |   10 ++++++++++
+ drivers/pci/probe.c    |    1 +
+ include/linux/pci.h    |    1 +
+ 3 files changed, 12 insertions(+)
 
-dsdt.dsl  1577:                     Method (_CRS, 0, Serialized)
-Warning  2019 -                                ^ Not all control paths re=
-turn a=20
-value (_CRS)
-
-dsdt.dsl  1577:                     Method (_CRS, 0, Serialized)
-Warning  2026 -                                ^ Reserved method must ret=
-urn a=20
-value (_CRS)
-
-dsdt.dsl  2673:                 Z004,
-Error    1022 -                    ^ Object does not exist (Z004)
-
-dsdt.dsl  2674:                 Z004,
-Error    1022 -                    ^ Object does not exist (Z004)
-
-dsdt.dsl  3049:     Method (_WAK, 1, NotSerialized)
-Warning  2026 -                ^ Reserved method must return a value (_WA=
-K)
-
-ASL Input:  dsdt.dsl - 3169 lines, 107438 bytes, 1506 keywords
-Compilation complete. 2 Errors, 3 Warnings, 0 Remarks, 510 Optimizations
-
-
-I've corected this 2 error after read this=20
-http://acpi.sourceforge.net/dsdt/view.php?id=3D405
-
-and one warning using=20
-http://users.pandora.be/PrittyFlemishPages/linux/aspire1800_3.html
-
-
-and now i've somethink like this:
-
-maxik:/usr/src/battery/iasl-linux-20030918# ./iasl -tc dsdt.dsl
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
-Copyright (C) 2000 - 2003 Intel Corporation
-Supports ACPI Specification Revision 2.0b
-
-dsdt.dsl  1577:                     Method (_CRS, 0, Serialized)
-Warning  2019 -                                ^ Not all control paths re=
-turn a=20
-value (_CRS)
-
-dsdt.dsl  1577:                     Method (_CRS, 0, Serialized)
-Warning  2026 -                                ^ Reserved method must ret=
-urn a=20
-value (_CRS)
-
-ASL Input:  dsdt.dsl - 3171 lines, 107474 bytes, 1507 keywords
-AML Output: DSDT.aml - 12898 bytes 371 named objects 1136 executable opco=
-des
-
-Compilation complete. 0 Errors, 2 Warnings, 0 Remarks, 512 Optimizations
-
-Now i've to compile DSDT into my kernel and test it.
-after weekend i'll send report from tests.
-
---=20
-marek czardybon / maxilee   +48 0697 724 404       http://inbox.eu.org
-GG:3299479 JAB:maxilee-veJsmC5npURmR6Xm/wNWPw@public.gmane.org                  http://outbox.eu.org
-ARP: 00:90:CC:43:D8:0D         GCC d? s:- a- C+++ UL++ P++ L++ E--- W+
-N+ o K w--- O M- V- PS+ PE+ Y PGP t 5 X+R+ !tv b+ DI- D++ G e h r++ y?
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Power Architecture Resource Center: Free content, downloads, discussions,
-and more. http://solutions.newsforge.com/ibmarch.tmpl
+Index: linux-2.6.13/drivers/acpi/pci_irq.c
+===================================================================
+--- linux-2.6.13.orig/drivers/acpi/pci_irq.c
++++ linux-2.6.13/drivers/acpi/pci_irq.c
+@@ -504,6 +504,16 @@ void acpi_pci_irq_disable(struct pci_dev
+ 		return_VOID;
+ 
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
++
++	/*
++	 * If a device has been "surprise" removed via
++	 * hotplug, the pin value will be invalid
++	 * In this case, we should use the stored
++	 * pin value from the pci_dev structure
++	 */
++	if (pin == 0xff)
++		pin = dev->pin;
++
+ 	if (!pin)
+ 		return_VOID;
+ 	pin--;
+Index: linux-2.6.13/drivers/pci/probe.c
+===================================================================
+--- linux-2.6.13.orig/drivers/pci/probe.c
++++ linux-2.6.13/drivers/pci/probe.c
+@@ -571,6 +571,7 @@ static void pci_read_irq(struct pci_dev 
+ 	unsigned char irq;
+ 
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &irq);
++	dev->pin = irq;
+ 	if (irq)
+ 		pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+ 	dev->irq = irq;
+Index: linux-2.6.13/include/linux/pci.h
+===================================================================
+--- linux-2.6.13.orig/include/linux/pci.h
++++ linux-2.6.13/include/linux/pci.h
+@@ -98,6 +98,7 @@ struct pci_dev {
+ 	unsigned int	class;		/* 3 bytes: (base,sub,prog-if) */
+ 	u8		hdr_type;	/* PCI header type (`multi' flag masked out) */
+ 	u8		rom_base_reg;	/* which config register controls the ROM */
++	u8		pin;  		/* which interrupt pin this device uses */
+ 
+ 	struct pci_driver *driver;	/* which driver has allocated this device */
+ 	u64		dma_mask;	/* Mask of the bits of bus address this
