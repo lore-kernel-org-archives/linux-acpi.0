@@ -1,10 +1,12 @@
-From: Stevie Kuhn <quantile-YqVvv8/yTArz+pZb47iToQ@public.gmane.org>
-Subject: Super stock Investor
-Date: Sat, 22 Oct 2005 13:27:37 +0000 (UTC)
-Message-ID: <718143608.12973298511@196.204.156.62>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Thom Cherryhomes <thom.cherryhomes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: sony vaio pcg-k45 hell
+Date: Sat, 22 Oct 2005 18:54:10 -0600
+Message-ID: <64b848100510221754pc557328y6ee1909d97197b23@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,48 +16,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Sat Oct 22 06:24:31 2005
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-WE TOLD YOU TO WATCH!!! 
-IT'S STILL NOT TOO LATE! 
-TRADING ALERT!!! 
+I am having some interesting issues with the Sony VAIO PCG-K45, and I
+need some help decoding the DSDT, to see what I need to fix etc..
+perhaps some help on fixing it...
 
-Timing  is everything!!! 
+I have a disassembly of the DSDT here http://64.74.186.169/pcgk45.dsl.txt
 
-Profits of 200-400% EXPECTED TRADING 
+can someone perhaps shed some light on what could be wrong here?
 
-COMPANY:        China Digital Media Corporation
-SYMB0L:         CDGT.OB 
-Opening Price:  1.89 
-
-
-About China Digital Media Corporation
-
-China Digital Media Corporation (OTC Bulletin Board: CDGT - News) 
-focuses its business in three main areas: Cable Television Operations, 
-Programs Production and Advertising Sales. Arcotect (Guangzhou) 
-Technology Limited, a wholly owned subsidiary of CDGT in China, 
-is the sole contractor and operator of digital television services 
-in Nanhai, a city with 400,000 cable television subscribers. 
-As of today, Nanhai's cable television operation provides 
-130 television channels which comprises of 38 basic channels 
-and 92 pay channels. The pay channels are categorized 
-into various value added packages. The digital broadcasting system 
-could offer more than 800 digital channels of pay television programs 
-and value added multimedia services. The Group is seeking 
-to establish similar models elsewhere in China.
-
-
-Yes, it is Starting To MOVE, Monday could be HUGH!!! 
-10 Day Projectiont: $4-$6
-
-
-
+-Thom
 
 
 -------------------------------------------------------
-This SF.Net email is sponsored by:
-Power Architecture Resource Center: Free content, downloads, discussions,
-and more. http://solutions.newsforge.com/ibmarch.tmpl
+This SF.Net email is sponsored by the JBoss Inc.
+Get Certified Today * Register for a JBoss Training Course
+Free Certification Exam for All Training Attendees Through End of 2005
+Visit http://www.jboss.com/services/certification for more information
