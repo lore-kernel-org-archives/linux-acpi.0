@@ -1,7 +1,7 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ACPI: Fix resource allocation for fixed hardware in MMIO
-Date: Mon, 24 Oct 2005 09:24:17 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F1AF6FCF@pdsmsx406>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: sony vaio pcg-k45 hell
+Date: Mon, 24 Oct 2005 09:39:48 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8409DDEB5D@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,24 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Thom Cherryhomes <thom.cherryhomes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
->> ACPI supports fixed hardware (PM_TMR, GPE blocks, etc) in either
->> I/O port or MMIO space, but used to always request the regions from
->> I/O space, even for MMIO hardware.
+
+what's your kernel version?=20
+I suggest you file bugs on bugzilla.kernel.org.
+
+>well, to start:
 >
-><poke> any news on this or the following few patches?  Should I
->resend them?
-I missed this before. Should we do the same thing in
-'acpi_reserve_io_ranges' and in pnp system.c? The resources listed in
-acpi_gbl_FADT generally also listed in motherboard devices (PNP0C01,
-PNP0C02). We doubly request it is to workaround some buggy BIOS.
+>(1) battery meter most of the time shows zero
+>(2) I get maybe 1 hour battery time.
+>(3) S3 suspend does NOT work at all (using hibernate-ram script)
+>(4) i get unusual time readings that seem to keep incrementing when
+>the battery is charging (when I DO see the battery meter)
+>(5) no fan control
+>(6) display does not dim when disconnected.
+>(7) hotkeys for changing brightness etc do not work.
+>
+>arrggghhhhh
+>
+>I tried to find a PSS table in the DSDT, and couldn't.. it seems the
+>acpi on this laptop is insanely broken. :-(
+
+Please try 2.6.14-rc5 with ec_burst=3D0 and ec_burst=3D1 and latest =
+patch=20
+at  http://bugzilla.kernel.org/show_bug.cgi?id=3D4980
+, http://bugzilla.kernel.org/show_bug.cgi?id=3D4588
+for battery issue.=20
+
+For others, please file bugs on bugzilla.kernel.org in ACPI category.
 
 Thanks,
-Shaohua
+Luming
 
 
 -------------------------------------------------------
