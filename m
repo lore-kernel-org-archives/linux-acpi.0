@@ -1,15 +1,14 @@
-From: Federico =?utf-8?q?Nu=C3=B1ez_Artigas?= <fna-H4aWS73dXuqoBQtF3CFPZg@public.gmane.org>
-Subject: Re: Compaq Evo N150
-Date: Mon, 24 Oct 2005 06:01:31 -0300
-Message-ID: <200510240601.32292.fna@internet.com.uy>
-References: <200510180128.51045.fna@internet.com.uy> <200510241443.10142.luming.yu@intel.com>
-Reply-To: fna-H4aWS73dXuqoBQtF3CFPZg@public.gmane.org
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Acer 3222 acpi
+Date: Mon, 24 Oct 2005 17:55:59 +0800
+Message-ID: <200510241756.00016.luming.yu@intel.com>
+References: <43557088.7010907@rimestad.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200510241443.10142.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <43557088.7010907-LgQBqAA7lunk1uMJSBkQmQ@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -21,47 +20,79 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Nils Rimestad <nils-LgQBqAA7lunk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now I'am using the original DSDT with kernel compiled with gcc 2.95 and 3.4=
-,=20
-and as expected, ACPI work ok with 2.95 and not work with 3.4.
-
-Now I'am compiling the kernel with gcc-4.0 and acpi-debug enable, I will po=
-st=20
-dmesg tomorrow.
-
-bye..
-
-
-El Lun 24 Oct 2005 03:43, Yu, Luming escribi=C3=B3:
-> It's very interesting to know this kind of bug.
-> And, it is pretty hard to debug.
+On Wednesday 19 October 2005 06:00, Nils Rimestad wrote:
+> Hello
 >
-> Could you turn on acpi debug option
-> and  post  dmesg for 2.95 gcc and gcc 4?
+> This is first time i try to work with acpi on a linux box,
+
+That's good.
+
+> now i like a challenge, but this is a bit on the top side of what i can
+> handle.
+
+Before jumping to fix DSDT, please tell me do you have any boot-time or
+run-time problem with ACPI?
+
+> I managed to decompile the dsdt and have gotten following error when
+> trying to compile again.
 >
-> > really, I don't know what more I can do!!!
-> > I send my fixed DSDT attached,
+> dsdt.dsl  2352:                     If (ECOK)
+> Error    1065 -                            ^ Object not accessible from
+> this scope (ECOK)
 >
-> Please test the original DSDT.
+> ASL Input:  dsdt.dsl - 6794 lines, 241739 bytes, 2957 keywords
+> Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 738 Optimizations
 >
-> > bye and thanks
-> > fede.
+> the code it is telling me it has a fault in this:
+>                 Method (_EJ0, 1, NotSerialized)
+>                 {
+>                     Store (0x00, \_SB.PCI0.RP01.Z001)
+>                     Store (0x00, \_SB.PCI0.LPCB.SIO.SIOS)
+>                     \_SB.GSMI (0x14)
+>                     If (ECOK)   ##This is the line where it tells me
+> there is an error.
+>                     {
+>                         Store (0x01, \_SB.PCI0.LPCB.EC0.OSUD)
+>                     }
+>                 }
+>
+> following if located a bit lower in the file, i guess this is the one it
+> should call, though im not sure.
+>                 Method (ECOK, 0, NotSerialized)
+>                 {
+>                     If (LEqual (\_SB.PCI0.LPCB.EC0.OKEC, 0x01))
+>                     {
+>                         Return (0x01)
+>                     }
+>                     Else
+>                     {
+>                         Return (0x00)
+>                     }
+>                 }
+>
+>
+> but now i feel kinda stranded, i can't realy figure out what to do next.
+> and that is why i ask here.
+Please try replace 
+	if(ECOK)
+with
+	 if(ECOK())
 
- Internet Banda Ancha Todo el Dia desde $u 490 por mes!
- ______________________________________________________
- http://www.internet.com.uy - En Uruguay somos internet
+> Is there an easy thing that i can try? or should i post the full file
+> and just sit back and let you guys have a look?
 
+Please post dmesg on this list and file a bug on bugzilla.kernel.org in 
+ACPI category.
 
-
-
- Internet Banda Ancha Todo el Dia desde $u 490 por mes!
- ______________________________________________________
- http://www.internet.com.uy - En Uruguay somos internet
-
-
-
+>
+> Thanks in advance
+> Nils Rimestad
+>
+Thanks,
+Luming
 
 
 -------------------------------------------------------
