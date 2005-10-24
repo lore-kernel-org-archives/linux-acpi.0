@@ -1,13 +1,14 @@
-From: Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>
-Subject: Re: Building the latest acpica on debian
-Date: Sun, 23 Oct 2005 16:33:25 +0200
-Message-ID: <20051023143325.GD5314@inferi.kami.home>
-References: <435B96DA.8040602@rrz.uni-koeln.de>
+From: Thom Cherryhomes <thom.cherryhomes-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: sony vaio pcg-k45 hell
+Date: Sun, 23 Oct 2005 19:07:08 -0600
+Message-ID: <64b848100510231807u36cd8056q521204eaa9099ebc@mail.gmail.com>
+References: <3ACA40606221794F80A5670F0AF15F84041AC212@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC212@pdsmsx403>
 Content-Disposition: inline
-In-Reply-To: <435B96DA.8040602-F8dkAKZEjLURtNtAH2Wc8g@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,29 +18,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Berthold Cogel <cogel-F8dkAKZEjLURtNtAH2Wc8g@public.gmane.org>
-Cc: ACPI Development <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Oct 23, 2005 at 03:57:46PM +0200, Berthold Cogel wrote:
-> Hello!
-> 
-> I'm trying to build the latest acpica package (acpica-unix-20050930) on
-> my debian system using flex-old (flex version 2.5.4). I'm getting some
-> warnings and I wonder if I have to be worried about them. I've attached
-> the output of make. I've compiled iasl with gcc-3.3, gcc-3.4 and gcc-4.
-> Especially the bison (bison (GNU Bison) 1.875d) warnings don't look
-> good. Do I have to be aware of any problems if I use the compiled iasl?
+well, to start:
 
-Well, I'm not aware of any at the moment. If you find any feel free to
-report them.
+(1) battery meter most of the time shows zero
+(2) I get maybe 1 hour battery time.
+(3) S3 suspend does NOT work at all (using hibernate-ram script)
+(4) i get unusual time readings that seem to keep incrementing when
+the battery is charging (when I DO see the battery meter)
+(5) no fan control
+(6) display does not dim when disconnected.
+(7) hotkeys for changing brightness etc do not work.
 
-BTW: I uploaded the acpica-unix package in Debian's NEW queue some days
-ago, the iasl package will hopefully be available soon
+arrggghhhhh
 
--- 
-mattia
-:wq!
+I tried to find a PSS table in the DSDT, and couldn't.. it seems the
+acpi on this laptop is insanely broken. :-(
+
+-Thom
+
+On 10/22/05, Yu, Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> Please describe the issues you have.
+> Fixing in DSDT is not a decent way.
+>
+> Thanks
+> Luming
+>
+> >-----Original Message-----
+> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of
+> >Thom Cherryhomes
+> >Sent: 2005年10月23日 8:54
+> >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> >Subject: [ACPI] sony vaio pcg-k45 hell
+> >
+> >I am having some interesting issues with the Sony VAIO PCG-K45, and I
+> >need some help decoding the DSDT, to see what I need to fix etc..
+> >perhaps some help on fixing it...
+> >
+> >I have a disassembly of the DSDT here
+> >http://64.74.186.169/pcgk45.dsl.txt
+> >
+> >can someone perhaps shed some light on what could be wrong here?
+> >
+> >-Thom
+> >
+>
 
 
 -------------------------------------------------------
