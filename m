@@ -1,13 +1,15 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: sony vaio pcg-k45 hell
-Date: Mon, 24 Oct 2005 12:22:31 +0200
-Message-ID: <20051024102231.GA32705@message-id.gmane0305.slipkontur.de>
-References: <3ACA40606221794F80A5670F0AF15F84041AC212@pdsmsx403> <64b848100510231807u36cd8056q521204eaa9099ebc@mail.gmail.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: [PATCH] ACPI: Fix resource allocation for fixed hardware in MMIO
+Date: Mon, 24 Oct 2005 08:53:46 -0600
+Message-ID: <200510240853.46382.bjorn.helgaas@hp.com>
+References: <59D45D057E9702469E5775CBB56411F1AF6FCF@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <59D45D057E9702469E5775CBB56411F1AF6FCF@pdsmsx406>
 Content-Disposition: inline
-In-Reply-To: <64b848100510231807u36cd8056q521204eaa9099ebc-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,63 +19,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Sunday 23 October 2005 7:24 pm, Li, Shaohua wrote:
+> Hi Bjorn,
+> >> ACPI supports fixed hardware (PM_TMR, GPE blocks, etc) in either
+> >> I/O port or MMIO space, but used to always request the regions from
+> >> I/O space, even for MMIO hardware.
+> >
+> ><poke> any news on this or the following few patches?  Should I
+> >resend them?
+> I missed this before. Should we do the same thing in
+> 'acpi_reserve_io_ranges' and in pnp system.c?
 
-Just to recall my experience with a vaio vgn-fs115b running
-SUSE 10.0:
+Yes, probably so.  Thanks for pointing that out.  I'll update
+the patch.
 
-On Sun, Oct 23, 2005 at 07:07:08PM -0600, Thom Cherryhomes wrote:
-> well, to start:
-> 
-> (1) battery meter most of the time shows zero
-
-worked
-
-> (2) I get maybe 1 hour battery time.
-
-cpufreq active? This has not much to do with ACPI, though.
-
-> (3) S3 suspend does NOT work at all (using hibernate-ram script)
-
-Probably not a general ACPI problem. Read Documentation/power/video.txt
-
-> (4) i get unusual time readings that seem to keep incrementing when
-> the battery is charging (when I DO see the battery meter)
-> (5) no fan control
-
-sony crap bios, no ACPI fan control methods => not an ACPI problem
-
-> (6) display does not dim when disconnected.
-
-you need Stelian Pop's sony_acpi module for that (and a mechanism to adjust
-the brightness on ac adapter plug/unplug, powersaved does this on SUSE).
-It might also work with the generic_hotkey module, but i could not figure
-out how to do it (i remember posts on acpi-devel that claimed that all
-vendor specific acpi drivers are obsoleted by generic_hotkey, still have
-to find out how to control the brightness of my panasonic with it).
-
-> (7) hotkeys for changing brightness etc do not work.
-
-SONY crap. These are no ACPI hotkeys, all the hotkeys on the vgn-fs115
-emitted a standard keycode. Unfortunately all emitted the same keycode.
-
-> arrggghhhhh
-
-SONY notebooks are just badly designed IMO, even the Windows XP drivers
-and utilities looked and felt very hackish.
-Although the hardware / case / display / keyboard were fine, i would
-probably not buy a SONY if i had to pay it with my own money.
- 
-> I tried to find a PSS table in the DSDT, and couldn't.. it seems the
-> acpi on this laptop is insanely broken. :-(
-
-Most of the problems you have are probably not ACPI problems.
--- 
-Stefan Seyfried
-
+> The resources listed in 
+> acpi_gbl_FADT generally also listed in motherboard devices (PNP0C01,
+> PNP0C02). We doubly request it is to workaround some buggy BIOS.
 
 
 -------------------------------------------------------
