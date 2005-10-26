@@ -1,14 +1,15 @@
-From: Fred Thiele <ferdy_news-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: Re: approved website
-Date: Tue, 25 Oct 2005 15:21:01 +0200
-Message-ID: <20051025132101.GC10754@sleipnir.th0r.ath.cx>
-References: <E1EUOCe-0005HC-P3@mail.sourceforge.net>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: sony vaio pcg-k45 hell
+Date: Wed, 26 Oct 2005 10:29:00 +0800
+Message-ID: <200510261029.01166.luming.yu@intel.com>
+References: <3ACA40606221794F80A5670F0AF15F84041AC212@pdsmsx403> <64b848100510231807u36cd8056q521204eaa9099ebc@mail.gmail.com> <20051024102231.GA32705@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GPJrCs/72TxItFYR"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20051024102231.GA32705-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <E1EUOCe-0005HC-P3-/LjvSR3BoHGkA/em5mhdO+TW4wlIGRCZ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,53 +20,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+> you need Stelian Pop's sony_acpi module for that (and a mechanism to adjust
+> the brightness on ac adapter plug/unplug, powersaved does this on SUSE).
+> It might also work with the generic_hotkey module, but i could not figure
+> out how to do it (i remember posts on acpi-devel that claimed that all
+> vendor specific acpi drivers are obsoleted by generic_hotkey, still have
+> to find out how to control the brightness of my panasonic with it).
+Some progress are made on generic_hotkey driver.  There is an example of
+leverage generic_hotkey driver for sony laptop.
+http://bugzilla.kernel.org/show_bug.cgi?id=4876#c4
 
---GPJrCs/72TxItFYR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>
+> > (7) hotkeys for changing brightness etc do not work.
+>
+> SONY crap. These are no ACPI hotkeys, all the hotkeys on the vgn-fs115
+> emitted a standard keycode. Unfortunately all emitted the same keycode.
+>
 
-* vince-gRC5YouWVDBg9hUCZPvPmw@public.gmane.org <vince-gRC5YouWVDBg9hUCZPvPmw@public.gmane.org> [2005-10-25 15:47:07 +0300]:
+Please post acpidump output for vgn-fs115, Let me check if there are any
+ACPI hotkey support.
 
-> Your document.
->=20
-> --------------------------------------------
-> website_acpi-devel.zip: No virus found
-> Powered by the new Norton OnlineScan
-> Get protected: www.symantec.com
->=20
-
-Attention!
-
-sleipnir ~ $ rm your_details.doc\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
-\ \ \ \ \ .exe=20
-
-
-
-
-
---=20
-Best regards,
-
-Fred Thiele                    GnuPG-Key: 0x4F6BE238 <ferdy_news-Mmb7MZpHnFY@public.gmane.org>
-
---GPJrCs/72TxItFYR
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDXjE9EBTrFk9r4jgRAjTkAJ9w5uIPk6R0pNMiFxZ57VrjRgTv/ACfbZW/
-2xGs8oD++4rxJqPc4cMoHlQ=
-=mEYS
------END PGP SIGNATURE-----
-
---GPJrCs/72TxItFYR--
-
+-- 
+Thanks,
+Luming
 
 
 -------------------------------------------------------
