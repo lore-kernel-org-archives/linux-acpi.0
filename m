@@ -1,12 +1,13 @@
-From: Radoslaw Chyra <chyras-foVc9aoM7mKFAqYqPk0RtA@public.gmane.org>
-Subject: Re: Acer Extensa 3002 WLMi: DSDT fixed but system misses keyboard and mouse events
-Date: Thu, 27 Oct 2005 18:13:55 +0000 (UTC)
-Message-ID: <loom.20051027T195942-349@post.gmane.org>
-References: <435D43BB.2080702@rrz.uni-koeln.de> <loom.20051027T072257-534@post.gmane.org> <200510271842.37571.sorosj@gmail.com>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ACPI: fix vendor-defined resource infinite loops
+Date: Thu, 27 Oct 2005 11:38:52 -0700
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E0336A3EE@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,37 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-john <sorosj@...> writes: 
- 
-> i've got the same notebook (tm4001LMI - 512mb ram - ati9600 - ipw2200). 
-> I'm still using acpi-sbs kernel modules to read my battery, but this doesn't  
-> enable me to suspend-to-ram. if fixing the DSDT does, can you send your fixed  
-> dsdt as attachement? would be great to turn on-off the machine in a snap! 
- 
-No, fixing DSDT only enables me to drop acpi-sbs kernel modules (which in turn 
-cause problem with disappearing battery entries from /proc/acpi for me). 
-Suspend-to-ram neither works with acpi-sbs nor with patched/fixed DSDT. Laptop 
-suspends to ram but after pressing Power Button or any of the keys there is 
-only disk spin-up but screen stays dark and USB power is down (mouse and 
-external keyboard stay dark) and touching Caps Lock does nothing. 
- 
-So, with acpi-sbs modules I had problem with disappearing battery, but keyboard 
-worked OK. With patched/fixed DSDT battery is OK, but keyboard behaves bad. 
-With the two I chose the latter and attached external USB keyboard which works 
-OK. 
- 
-If you are still interested I can send you my patched/fixed DSDT, just drop me 
-private message. 
- 
-Regards, 
- 
-Radoslaw 
- 
- 
+These loops go away with the recent release of ACPI CA (20051021) --
+replaced by a memcpy, so this problem should be solved.
 
+You may want to verify this with the new code; I can send you the source
+code package if you need it.
+
+With this update, I have defined and deployed new types to deal with
+resource sizes -- a length type for the 16-bit resource length field,
+and a 32-bit type for the maximum resource descriptor length which is
+(64k -1) + 3.
+
+Thanks,
+Bob
+
+
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Bjorn Helgaas
+> Sent: Wednesday, October 26, 2005 3:18 PM
+> To: Brown, Len
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Matthew Wilcox
+> Subject: [ACPI] [PATCH] ACPI: fix vendor-defined resource infinite
+loops
+>=20
+> Loop index type not large enough to represent loop termination value
+=3D=3D>
+> badness.  I've tripped over the first infinite loop and verified that
+> this patch fixes it.  The second problem was found by inspection.
+>=20
 
 
 -------------------------------------------------------
