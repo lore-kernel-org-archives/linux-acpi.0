@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 3/9] git-acpi build fix
-Date: Fri, 28 Oct 2005 14:59:49 -0700
-Message-ID: <200510282159.j9SLxVet021610@shell0.pdx.osdl.net>
+Subject: [patch 1/9] git-acpi: pciehprm_acpi fix
+Date: Fri, 28 Oct 2005 14:59:48 -0700
+Message-ID: <200510282159.j9SLxURr021604@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,37 +13,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: MAEDA Naoaki <maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 
-This patch fix the following compile error on ia64.
+drivers/pci/hotplug/pciehprm_acpi.c: In function `acpi_parse_crs':              drivers/pci/hotplug/pciehprm_acpi.c:668: error: structure has no member named `id'
+drivers/pci/hotplug/pciehprm_acpi.c:716: error: structure has no member named `id'
 
-arch/ia64/kernel/acpi-ext.c: In function `acpi_vendor_resource_match':
-arch/ia64/kernel/acpi-ext.c:38: error: structure has no member named `id'
-
-Signed-off-by: MAEDA Naoaki <maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- arch/ia64/kernel/acpi-ext.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/pciehprm_acpi.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/acpi-ext.c~git-acpi-build-fix-3 arch/ia64/kernel/acpi-ext.c
---- 25/arch/ia64/kernel/acpi-ext.c~git-acpi-build-fix-3	Fri Oct 28 14:59:06 2005
-+++ 25-akpm/arch/ia64/kernel/acpi-ext.c	Fri Oct 28 14:59:06 2005
-@@ -35,7 +35,7 @@ acpi_vendor_resource_match(struct acpi_r
- 	struct acpi_vendor_descriptor *descriptor;
- 	u32 length;
+diff -puN drivers/pci/hotplug/pciehprm_acpi.c~git-acpi-pciehprm_acpi-fix drivers/pci/hotplug/pciehprm_acpi.c
+--- 25/drivers/pci/hotplug/pciehprm_acpi.c~git-acpi-pciehprm_acpi-fix	Fri Oct 28 14:58:23 2005
++++ 25-akpm/drivers/pci/hotplug/pciehprm_acpi.c	Fri Oct 28 14:58:23 2005
+@@ -665,7 +665,7 @@ static acpi_status acpi_parse_crs(
  
--	if (resource->id != ACPI_RSTYPE_VENDOR)
-+	if (resource->type != ACPI_RSTYPE_VENDOR)
- 		return AE_OK;
+ 	while (!done) {
+ 		dbg("acpi_pciehprm: PCI bus 0x%x Resource structure %x.\n", ab->bus, count++);
+-		switch (resource->id) {
++		switch (resource->type) {
+ 		case ACPI_RSTYPE_IRQ:
+ 			dbg("Irq -------- Resource\n");
+ 			break; 
+@@ -713,7 +713,8 @@ static acpi_status acpi_parse_crs(
+ 			dbg("Ext Irq -------- Resource\n");
+ 			break; 
+ 		default:
+-			dbg("Invalid -------- resource type 0x%x\n", resource->id);
++			dbg("Invalid -------- resource type 0x%x\n",
++					resource->type);
+ 			break;
+ 		}
  
- 	vendor = (struct acpi_resource_vendor *)&resource->data;
 _
 
 
