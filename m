@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 3/4] PNPACPI: handle address descriptors in _PRS
-Date: Fri, 28 Oct 2005 15:01:43 -0700
-Message-ID: <200510282201.j9SM1PUp021817@shell0.pdx.osdl.net>
+Subject: [patch 2/9] git-acpi build fix 2
+Date: Fri, 28 Oct 2005 14:59:48 -0700
+Message-ID: <200510282159.j9SLxUfx021607@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,116 +13,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 
-PNPACPI complained about and ignored devices with ADDRESS16, ADDRESS32, or
-ADDRESS64 descriptors in _PRS.  HP firmware uses them for built-in serial
-ports, so this patch adds support for parsing these descriptors from _PRS.
+More missing type->id conversions
 
-Note that this does not add the corresponding support for encoding them in
-preparation for _SRS, because I don't have any machine that supports _SRS
-on these descriptors, so I couldn't test that support.  Attempts to encode
-them will cause a warning and an -EINVAL return.
-
-Previous discussion:
-    http://sourceforge.net/mailarchive/forum.php?thread_id=8250154&forum_id=6102
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |   48 +++++++++++++++++++++++++++++++++++++----
- 1 files changed, 44 insertions(+), 4 deletions(-)
+ drivers/pci/hotplug/shpchprm_acpi.c |    5 +++--
+ drivers/serial/8250_acpi.c          |    6 +++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-handle-address-descriptors-in-_prs drivers/pnp/pnpacpi/rsparser.c
---- 25/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-handle-address-descriptors-in-_prs	Fri Oct 28 15:01:33 2005
-+++ 25-akpm/drivers/pnp/pnpacpi/rsparser.c	Fri Oct 28 15:01:33 2005
-@@ -453,6 +453,45 @@ pnpacpi_parse_fixed_mem32_option(struct 
- 	return;
- }
+diff -puN drivers/pci/hotplug/shpchprm_acpi.c~git-acpi-build-fix-2 drivers/pci/hotplug/shpchprm_acpi.c
+--- 25/drivers/pci/hotplug/shpchprm_acpi.c~git-acpi-build-fix-2	Fri Oct 28 14:58:24 2005
++++ 25-akpm/drivers/pci/hotplug/shpchprm_acpi.c	Fri Oct 28 14:58:24 2005
+@@ -649,7 +649,7 @@ static acpi_status acpi_parse_crs(
  
-+static void
-+pnpacpi_parse_address_option(struct pnp_option *option, struct acpi_resource *r)
-+{
-+	struct acpi_resource_address64 addr, *p = &addr;
-+	acpi_status status;
-+	struct pnp_mem * mem;
-+	struct pnp_port * port;
-+
-+	status = acpi_resource_to_address64(r, p);
-+	if (!ACPI_SUCCESS(status)) {
-+		pnp_warn("PnPACPI: failed to convert resource type %d", r->id);
-+		return;
-+	}
-+
-+	if (p->address_length == 0)
-+		return;
-+
-+	if (p->resource_type == ACPI_MEMORY_RANGE) {
-+		mem = kcalloc(1, sizeof(struct pnp_mem), GFP_KERNEL);
-+		if (!mem)
-+			return;
-+		mem->min = mem->max = p->min_address_range;
-+		mem->size = p->address_length;
-+		mem->align = 0;
-+		mem->flags = (p->attribute.memory.read_write_attribute ==
-+		    ACPI_READ_WRITE_MEMORY) ? IORESOURCE_MEM_WRITEABLE : 0;
-+		pnp_register_mem_resource(option,mem);
-+	} else if (p->resource_type == ACPI_IO_RANGE) {
-+		port = kcalloc(1, sizeof(struct pnp_port), GFP_KERNEL);
-+		if (!port)
-+			return;
-+		port->min = port->max = p->min_address_range;
-+		port->size = p->address_length;
-+		port->align = 0;
-+		port->flags = PNP_PORT_FLAG_FIXED;
-+		pnp_register_port_resource(option,port);
-+	}
-+}
-+
- struct acpipnp_parse_option_s {
- 	struct pnp_option *option;
- 	struct pnp_option *option_independent;
-@@ -495,6 +534,11 @@ static acpi_status pnpacpi_option_resour
- 			pnpacpi_parse_fixed_mem32_option(option,
- 				&res->data.fixed_memory32);
+ 	while (!done) {
+ 		dbg("acpi_shpchprm: PCI bus 0x%x Resource structure %x.\n", ab->bus, count++);
+-		switch (resource->id) {
++		switch (resource->type) {
+ 		case ACPI_RSTYPE_IRQ:
+ 			dbg("Irq -------- Resource\n");
+ 			break; 
+@@ -697,7 +697,8 @@ static acpi_status acpi_parse_crs(
+ 			dbg("Ext Irq -------- Resource\n");
+ 			break; 
+ 		default:
+-			dbg("Invalid -------- resource type 0x%x\n", resource->id);
++			dbg("Invalid -------- resource type 0x%x\n",
++					resource->type);
  			break;
-+		case ACPI_RSTYPE_ADDRESS16:
-+		case ACPI_RSTYPE_ADDRESS32:
-+		case ACPI_RSTYPE_ADDRESS64:
-+			pnpacpi_parse_address_option(option, res);
-+			break;
- 		case ACPI_RSTYPE_START_DPF:
- 			switch (res->data.start_dpf.compatibility_priority) {
- 				case ACPI_GOOD_CONFIGURATION:
-@@ -568,11 +612,9 @@ static acpi_status pnpacpi_count_resourc
- 	case ACPI_RSTYPE_MEM24:
- 	case ACPI_RSTYPE_MEM32:
- 	case ACPI_RSTYPE_FIXED_MEM32:
--#if 0
- 	case ACPI_RSTYPE_ADDRESS16:
- 	case ACPI_RSTYPE_ADDRESS32:
- 	case ACPI_RSTYPE_ADDRESS64:
--#endif
- 		(*res_cnt) ++;
- 	default:
- 		return AE_OK;
-@@ -593,11 +635,9 @@ static acpi_status pnpacpi_type_resource
- 	case ACPI_RSTYPE_MEM24:
- 	case ACPI_RSTYPE_MEM32:
- 	case ACPI_RSTYPE_FIXED_MEM32:
--#if 0
- 	case ACPI_RSTYPE_ADDRESS16:
- 	case ACPI_RSTYPE_ADDRESS32:
- 	case ACPI_RSTYPE_ADDRESS64:
--#endif
- 		(*resource)->type = res->type;
- 		(*resource)++;
- 	default:
+ 		}
+ 
+diff -puN drivers/serial/8250_acpi.c~git-acpi-build-fix-2 drivers/serial/8250_acpi.c
+--- 25/drivers/serial/8250_acpi.c~git-acpi-build-fix-2	Fri Oct 28 14:58:24 2005
++++ 25-akpm/drivers/serial/8250_acpi.c	Fri Oct 28 14:58:24 2005
+@@ -83,11 +83,11 @@ static acpi_status acpi_serial_resource(
+ 	status = acpi_resource_to_address64(res, &addr);
+ 	if (ACPI_SUCCESS(status))
+ 		return acpi_serial_mmio(port, &addr);
+-	else if (res->id == ACPI_RSTYPE_IO)
++	else if (res->type == ACPI_RSTYPE_IO)
+ 		return acpi_serial_port(port, &res->data.io);
+-	else if (res->id == ACPI_RSTYPE_EXT_IRQ)
++	else if (res->type == ACPI_RSTYPE_EXT_IRQ)
+ 		return acpi_serial_ext_irq(port, &res->data.extended_irq);
+-	else if (res->id == ACPI_RSTYPE_IRQ)
++	else if (res->type == ACPI_RSTYPE_IRQ)
+ 		return acpi_serial_irq(port, &res->data.irq);
+ 	return AE_OK;
+ }
 _
 
 
