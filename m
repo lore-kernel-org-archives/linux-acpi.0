@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 2/4] PNPACPI: clean blacklist
-Date: Fri, 28 Oct 2005 15:01:42 -0700
-Message-ID: <200510282201.j9SM1O0Z021811@shell0.pdx.osdl.net>
+Subject: [patch 4/9] acpi: handle FADT 2.0 xpmtmr address 0 case
+Date: Fri, 28 Oct 2005 14:59:50 -0700
+Message-ID: <200510282159.j9SLxWrb021613@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,47 +13,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, castet.matthieu-GANU6spQydw@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Clean the blacklist.  Battery, Button, Fan don't have a CRS and should be
-removed.  PCI root is in pnpbios and is harmless.
+Handle FADT 2.0 xpmtmr address 0 case.  The patch makes the pmtmr ioport
+detecting align with ACPICA (the comments are copied from ACPICA code).
 
+Signed-off-by: Shaohua Li<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/pnp/pnpacpi/core.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ arch/i386/kernel/acpi/boot.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist drivers/pnp/pnpacpi/core.c
---- 25/drivers/pnp/pnpacpi/core.c~pnpacpi-clean-blacklist	Fri Oct 28 15:01:32 2005
-+++ 25-akpm/drivers/pnp/pnpacpi/core.c	Fri Oct 28 15:01:32 2005
-@@ -27,12 +27,15 @@
+diff -puN arch/i386/kernel/acpi/boot.c~acpi-handle-fadt-20-xpmtmr-address-0-case arch/i386/kernel/acpi/boot.c
+--- 25/arch/i386/kernel/acpi/boot.c~acpi-handle-fadt-20-xpmtmr-address-0-case	Fri Oct 28 14:59:07 2005
++++ 25-akpm/arch/i386/kernel/acpi/boot.c	Fri Oct 28 14:59:07 2005
+@@ -641,6 +641,13 @@ static int __init acpi_parse_fadt(unsign
+ 			return 0;
  
- static int num = 0;
- 
-+/* We need only to blacklist devices that have already an acpi driver that
-+ * can't use pnp layer. We don't need to blacklist device that are directly
-+ * used by the kernel (PCI root, ...), as it is harmless and there were
-+ * already present in pnpbios. But there is an exception for devices that
-+ * have irqs (PIC, Timer) because we call acpi_register_gsi.
-+ * Finaly only devices that have a CRS method need to be in this list.
-+ */
- static char __initdata excluded_id_list[] =
--	"PNP0C0A," /* Battery */
--	"PNP0C0C,PNP0C0E,PNP0C0D," /* Button */
- 	"PNP0C09," /* EC */
--	"PNP0C0B," /* Fan */
--	"PNP0A03," /* PCI root */
- 	"PNP0C0F," /* Link device */
- 	"PNP0000," /* PIC */
- 	"PNP0100," /* Timer */
+ 		pmtmr_ioport = fadt->xpm_tmr_blk.address;
++		/*
++		 * "X" fields are optional extensions to the original V1.0
++		 * fields, so we must selectively expand V1.0 fields if the
++		 * corresponding X field is zero.
++	 	 */
++		if (!pmtmr_ioport)
++			pmtmr_ioport = fadt->V1_pm_tmr_blk;
+ 	} else {
+ 		/* FADT rev. 1 */
+ 		pmtmr_ioport = fadt->V1_pm_tmr_blk;
 _
 
 
