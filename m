@@ -1,31 +1,39 @@
-From: Rajesh Shah <rajesh.shah@intel.com>
-Subject: Re: [patch 1/3] pci: store PCI_INTERRUPT_PIN in pci_dev
-Date: Thu, 27 Oct 2005 16:06:59 -0700
-Message-ID: <20051027160658.A9674@unix-os.sc.intel.com>
-References: <20051027192603.488616000@whizzy> <1130441409.5996.24.camel@whizzy>
-Reply-To: Rajesh Shah <rajesh.shah@intel.com>
+From: Stefan Seyfried <seife-bro8zJjCcIc@public.gmane.org>
+Subject: Re: sony vaio pcg-k45 hell
+Date: Fri, 28 Oct 2005 18:13:10 +0200
+Message-ID: <20051028161310.GA10823@message-id.s3e.de>
+References: <3ACA40606221794F80A5670F0AF15F84041AC212@pdsmsx403> <64b848100510231807u36cd8056q521204eaa9099ebc@mail.gmail.com> <20051024102231.GA32705@message-id.gmane0305.slipkontur.de> <200510261029.01166.luming.yu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932681AbVJ0XHQ@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1130441409.5996.24.camel@whizzy>; from kristen.c.accardi@intel.com on Thu, Oct 27, 2005 at 12:30:09PM -0700
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kristen Accardi <kristen.c.accardi@intel.com>
-Cc: pcihpd-discuss@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, rajesh.shah@intel.com, greg@kroah.com, len.brown@intel.com
+In-Reply-To: <200510261029.01166.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 27, 2005 at 12:30:09PM -0700, Kristen Accardi wrote:
-> --- linux-2.6.13.orig/drivers/pci/probe.c
-> +++ linux-2.6.13/drivers/pci/probe.c
-> @@ -571,6 +571,7 @@ static void pci_read_irq(struct pci_dev 
->  	unsigned char irq;
->  
->  	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &irq);
-> +	dev->pin = irq;
+On Wed, Oct 26, 2005 at 10:29:00AM +0800, Yu, Luming wrote:
+ 
+> Please post acpidump output for vgn-fs115, Let me check if there are any
+> ACPI hotkey support.
 
-pci_read_irq() is not called for PCI bridges, but some of them
-may need an interrupt (e.g. for shpchp, pciehp). Did you check
-if this patchset broke such bridges? You should call this
-function for PCI bridges too.
+I'll look into it but i am away from this machine for the next week, so
+don't hold your breath :-)
+-- 
+Stefan Seyfried
 
-Rajesh
+
+-------------------------------------------------------
+This SF.Net email is sponsored by the JBoss Inc.
+Get Certified Today * Register for a JBoss Training Course
+Free Certification Exam for All Training Attendees Through End of 2005
+Visit http://www.jboss.com/services/certification for more information
