@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 2/9] git-acpi build fix 2
-Date: Fri, 28 Oct 2005 14:59:48 -0700
-Message-ID: <200510282159.j9SLxUfx021607@shell0.pdx.osdl.net>
+Subject: [patch 5/9] ACPI should depend on, not select PCI
+Date: Fri, 28 Oct 2005 14:59:50 -0700
+Message-ID: <200510282159.j9SLxWD9021616@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,62 +13,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
 
-More missing type->id conversions
+ACPI should depend on, not select PCI.
 
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The practical differences should be nearly zero except that it avoids 
+the illegal configuration PCI=y, X86_VOYAGER=y.
+
+Signed-off-by: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- drivers/pci/hotplug/shpchprm_acpi.c |    5 +++--
- drivers/serial/8250_acpi.c          |    6 +++---
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/acpi/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/hotplug/shpchprm_acpi.c~git-acpi-build-fix-2 drivers/pci/hotplug/shpchprm_acpi.c
---- 25/drivers/pci/hotplug/shpchprm_acpi.c~git-acpi-build-fix-2	Fri Oct 28 14:58:24 2005
-+++ 25-akpm/drivers/pci/hotplug/shpchprm_acpi.c	Fri Oct 28 14:58:24 2005
-@@ -649,7 +649,7 @@ static acpi_status acpi_parse_crs(
+diff -puN drivers/acpi/Kconfig~acpi-should-depend-on-not-select-pci drivers/acpi/Kconfig
+--- 25/drivers/acpi/Kconfig~acpi-should-depend-on-not-select-pci	Fri Oct 28 14:59:08 2005
++++ 25-akpm/drivers/acpi/Kconfig	Fri Oct 28 14:59:21 2005
+@@ -10,8 +10,8 @@ menu "ACPI (Advanced Configuration and P
+ config ACPI
+ 	bool "ACPI Support"
+ 	depends on IA64 || X86
++	depends on PCI
+ 	select PM
+-	select PCI
  
- 	while (!done) {
- 		dbg("acpi_shpchprm: PCI bus 0x%x Resource structure %x.\n", ab->bus, count++);
--		switch (resource->id) {
-+		switch (resource->type) {
- 		case ACPI_RSTYPE_IRQ:
- 			dbg("Irq -------- Resource\n");
- 			break; 
-@@ -697,7 +697,8 @@ static acpi_status acpi_parse_crs(
- 			dbg("Ext Irq -------- Resource\n");
- 			break; 
- 		default:
--			dbg("Invalid -------- resource type 0x%x\n", resource->id);
-+			dbg("Invalid -------- resource type 0x%x\n",
-+					resource->type);
- 			break;
- 		}
- 
-diff -puN drivers/serial/8250_acpi.c~git-acpi-build-fix-2 drivers/serial/8250_acpi.c
---- 25/drivers/serial/8250_acpi.c~git-acpi-build-fix-2	Fri Oct 28 14:58:24 2005
-+++ 25-akpm/drivers/serial/8250_acpi.c	Fri Oct 28 14:58:24 2005
-@@ -83,11 +83,11 @@ static acpi_status acpi_serial_resource(
- 	status = acpi_resource_to_address64(res, &addr);
- 	if (ACPI_SUCCESS(status))
- 		return acpi_serial_mmio(port, &addr);
--	else if (res->id == ACPI_RSTYPE_IO)
-+	else if (res->type == ACPI_RSTYPE_IO)
- 		return acpi_serial_port(port, &res->data.io);
--	else if (res->id == ACPI_RSTYPE_EXT_IRQ)
-+	else if (res->type == ACPI_RSTYPE_EXT_IRQ)
- 		return acpi_serial_ext_irq(port, &res->data.extended_irq);
--	else if (res->id == ACPI_RSTYPE_IRQ)
-+	else if (res->type == ACPI_RSTYPE_IRQ)
- 		return acpi_serial_irq(port, &res->data.irq);
- 	return AE_OK;
- }
+ 	default y
+ 	---help---
 _
 
 
