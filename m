@@ -1,13 +1,8 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Unknown "mem" state issue
-Date: Fri, 28 Oct 2005 09:14:16 +0200
-Message-ID: <20051028071416.GA1602@openzaurus.ucw.cz>
-References: <436040FC.5040008@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [patch 3/9] git-acpi build fix
+Date: Fri, 28 Oct 2005 14:59:49 -0700
+Message-ID: <200510282159.j9SLxVet021610@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <436040FC.5040008-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,24 +12,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Petros Kolyvas <pkolyvas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> I can't seem to send my system into the "mem" state. I've recently
-...
-> Basically my tried and true acpi sleep state script hasn't been working
-> and even when I manually 'echo "mem" > /sys/power/state' the system
-> doesn't respond at all.
-> 
-> I'm not sure where to start or what I'm doing wrong.
+From: MAEDA Naoaki <maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-Man dmesg? Try vanilla kernel? What was last working version?
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+This patch fix the following compile error on ia64.
 
+arch/ia64/kernel/acpi-ext.c: In function `acpi_vendor_resource_match':
+arch/ia64/kernel/acpi-ext.c:38: error: structure has no member named `id'
+
+Signed-off-by: MAEDA Naoaki <maeda.naoaki-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+---
+
+ arch/ia64/kernel/acpi-ext.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN arch/ia64/kernel/acpi-ext.c~git-acpi-build-fix-3 arch/ia64/kernel/acpi-ext.c
+--- 25/arch/ia64/kernel/acpi-ext.c~git-acpi-build-fix-3	Fri Oct 28 14:59:06 2005
++++ 25-akpm/arch/ia64/kernel/acpi-ext.c	Fri Oct 28 14:59:06 2005
+@@ -35,7 +35,7 @@ acpi_vendor_resource_match(struct acpi_r
+ 	struct acpi_vendor_descriptor *descriptor;
+ 	u32 length;
+ 
+-	if (resource->id != ACPI_RSTYPE_VENDOR)
++	if (resource->type != ACPI_RSTYPE_VENDOR)
+ 		return AE_OK;
+ 
+ 	vendor = (struct acpi_resource_vendor *)&resource->data;
+_
 
 
 -------------------------------------------------------
