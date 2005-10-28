@@ -1,13 +1,13 @@
-From: Stefan Seyfried <seife-bro8zJjCcIc@public.gmane.org>
-Subject: Re: sony vaio pcg-k45 hell
-Date: Fri, 28 Oct 2005 18:13:10 +0200
-Message-ID: <20051028161310.GA10823@message-id.s3e.de>
-References: <3ACA40606221794F80A5670F0AF15F84041AC212@pdsmsx403> <64b848100510231807u36cd8056q521204eaa9099ebc@mail.gmail.com> <20051024102231.GA32705@message-id.gmane0305.slipkontur.de> <200510261029.01166.luming.yu@intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Unknown "mem" state issue
+Date: Fri, 28 Oct 2005 09:14:16 +0200
+Message-ID: <20051028071416.GA1602@openzaurus.ucw.cz>
+References: <436040FC.5040008@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200510261029.01166.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <436040FC.5040008-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,19 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+To: Petros Kolyvas <pkolyvas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 26, 2005 at 10:29:00AM +0800, Yu, Luming wrote:
- 
-> Please post acpidump output for vgn-fs115, Let me check if there are any
-> ACPI hotkey support.
+Hi!
 
-I'll look into it but i am away from this machine for the next week, so
-don't hold your breath :-)
+> I can't seem to send my system into the "mem" state. I've recently
+...
+> Basically my tried and true acpi sleep state script hasn't been working
+> and even when I manually 'echo "mem" > /sys/power/state' the system
+> doesn't respond at all.
+> 
+> I'm not sure where to start or what I'm doing wrong.
+
+Man dmesg? Try vanilla kernel? What was last working version?
 -- 
-Stefan Seyfried
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
