@@ -1,13 +1,13 @@
-From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: [patch 7/9] Don't set dcdbas driver to default m
-Date: Fri, 28 Oct 2005 19:02:33 -0700
-Message-ID: <20051028190233.65f8b7c2.rdunlap@xenotime.net>
-References: <200510282159.j9SLxY4u021622@shell0.pdx.osdl.net>
+From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+Subject: Re: pnpacpi patches
+Date: Sat, 29 Oct 2005 12:08:53 +0200
+Message-ID: <43634A35.4090803@free.fr>
+References: <20051028150146.6714f094.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200510282159.j9SLxY4u021622-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <20051028150146.6714f094.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 28 Oct 2005 14:59:52 -0700 akpm-3NddpPZAyC0@public.gmane.org wrote:
+Hi,
 
+Andrew Morton wrote:
+> I have a note here that the following patches still need some work.  But
+> I forget what the issue was?
 > 
-> From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-> 
-> It's nasty to set random drivers to default m because people who just press
-> enter on make oldconfig get these.  Remove the default m
+IIRC, these patches are ok to apply, but more work is needed to finish 
+(to clean blacklist (register irq only when a pnp driver claim the 
+device) and support hotplug (manage confict with acpi drivers).
 
-Not ACPI afaik, but I ack the change too.
-
-> Signed-off-by: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-> ---
-> 
->  drivers/firmware/Kconfig |    1 -
->  1 files changed, 1 deletion(-)
-> 
-> diff -puN drivers/firmware/Kconfig~dont-set-dcdbas-driver-to-default-m drivers/firmware/Kconfig
-> --- 25/drivers/firmware/Kconfig~dont-set-dcdbas-driver-to-default-m	Fri Oct 28 14:59:11 2005
-> +++ 25-akpm/drivers/firmware/Kconfig	Fri Oct 28 14:59:11 2005
-> @@ -71,7 +71,6 @@ config DELL_RBU
->  config DCDBAS
->  	tristate "Dell Systems Management Base Driver"
->  	depends on X86 || X86_64
-> -	default m
->  	help
->  	  The Dell Systems Management Base Driver provides a sysfs interface
->  	  for systems management software to perform System Management
-> _
+Len, Shaohua ?
 
 
----
-~Randy
+Matthieu
 
 
 -------------------------------------------------------
