@@ -1,8 +1,13 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/4] PNPACPI: only parse device that have CRS method
-Date: Fri, 28 Oct 2005 15:01:41 -0700
-Message-ID: <200510282201.j9SM1N9A021803@shell0.pdx.osdl.net>
+From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: [patch 7/9] Don't set dcdbas driver to default m
+Date: Fri, 28 Oct 2005 19:02:33 -0700
+Message-ID: <20051028190233.65f8b7c2.rdunlap@xenotime.net>
+References: <200510282159.j9SLxY4u021622@shell0.pdx.osdl.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200510282159.j9SLxY4u021622-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,38 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, castet.matthieu-GANU6spQydw@public.gmane.org, ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 28 Oct 2005 14:59:52 -0700 akpm-3NddpPZAyC0@public.gmane.org wrote:
 
-From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+> 
+> From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+> 
+> It's nasty to set random drivers to default m because people who just press
+> enter on make oldconfig get these.  Remove the default m
 
-Blacklist devices that don't have CRS method as they are useless for pnp
-layer as they don't provide any resource.
+Not ACPI afaik, but I ack the change too.
 
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+> Signed-off-by: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+> ---
+> 
+>  drivers/firmware/Kconfig |    1 -
+>  1 files changed, 1 deletion(-)
+> 
+> diff -puN drivers/firmware/Kconfig~dont-set-dcdbas-driver-to-default-m drivers/firmware/Kconfig
+> --- 25/drivers/firmware/Kconfig~dont-set-dcdbas-driver-to-default-m	Fri Oct 28 14:59:11 2005
+> +++ 25-akpm/drivers/firmware/Kconfig	Fri Oct 28 14:59:11 2005
+> @@ -71,7 +71,6 @@ config DELL_RBU
+>  config DCDBAS
+>  	tristate "Dell Systems Management Base Driver"
+>  	depends on X86 || X86_64
+> -	default m
+>  	help
+>  	  The Dell Systems Management Base Driver provides a sysfs interface
+>  	  for systems management software to perform System Management
+> _
+
+
 ---
-
- drivers/pnp/pnpacpi/core.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
-
-diff -puN drivers/pnp/pnpacpi/core.c~pnpacpi-only-parse-device-that-have-crs-method drivers/pnp/pnpacpi/core.c
---- 25/drivers/pnp/pnpacpi/core.c~pnpacpi-only-parse-device-that-have-crs-method	Fri Oct 28 15:01:29 2005
-+++ 25-akpm/drivers/pnp/pnpacpi/core.c	Fri Oct 28 15:01:29 2005
-@@ -131,7 +131,8 @@ static int __init pnpacpi_add_device(str
- 	struct pnp_id *dev_id;
- 	struct pnp_dev *dev;
- 
--	if (!ispnpidacpi(acpi_device_hid(device)) ||
-+	status = acpi_get_handle(device->handle, "_CRS", &temp);
-+	if (ACPI_FAILURE(status) || !ispnpidacpi(acpi_device_hid(device)) ||
- 		is_exclusive_device(device))
- 		return 0;
- 
-_
+~Randy
 
 
 -------------------------------------------------------
