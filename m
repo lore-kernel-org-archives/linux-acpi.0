@@ -1,10 +1,10 @@
-From: "Everild Lineberry" <everild-in4nEsFIs+lskKof675g1A@public.gmane.org>
-Subject: Re: Stephens Shocking story
-Date: Sat, 29 Oct 2005 14:10:19 -0500
-Message-ID: <001001c5dcbc$6700df80$61e8a8c0@incidentally>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: [Bug 5039] high cpu usage (softirq takes 50% all the time)
+Date: Mon, 31 Oct 2005 01:50:58 -0800
+Message-ID: <20051031015058.1f4bf5e1.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000D_01C5DC92.7E2AD780"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,93 +15,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Gwyn Arana <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_000D_01C5DC92.7E2AD780
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Hi
-s Ph
-ess Sp
-ffer!
-, Don't mis
-armaExpr
-ecial O
-LevCIAXanVALVIAAmb
-itraLIS Now $axIUM Now $GRA Now $ien
-3.75 1.213.33 
-And many other - Get More Detailed information
-- Home - Best - Fast - Easy - Total 
-DeliPricShipOrdeConf
-veryespingringidentiality
+This bug report has something for everyone!
 
 
-------=_NextPart_000_000D_01C5DC92.7E2AD780
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Begin forwarded message:
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>&nbsp;</DIV>
-<TABLE cellSpacing=3D0 cellPadding=3D0>
-  <TR style=3D"BORDER: 0px;">
-    <TD rowSpan=3D2 vAlign=3Dbottom><FONT size=3D4 face=3DArial =
-color=3D#0087C3>Hi</FONT></TD><TD></TD>
-    <TD rowSpan=3D2 vAlign=3Dbottom><FONT size=3D4 face=3DArial =
-color=3D#0087C3>s Ph</FONT></TD><TD></TD>
-    <TD rowSpan=3D2 vAlign=3Dbottom><FONT size=3D4 face=3DArial =
-color=3D#0087C3>ess Sp</FONT></TD><TD></TD>
-    <TD rowSpan=3D2 vAlign=3Dbottom><FONT size=3D4 face=3DArial =
-color=3D#0087C3>ffer!</FONT></TD><TD></TD>
-  </TR>
-  <TR style=3D"BORDER: 0px;">
-    <TD vAlign=3Dbottom><FONT size=3D4 face=3DArial color=3D#0087C3>, Don't =
-mis</FONT></TD>
-    <TD vAlign=3Dbottom><FONT size=3D4 face=3DArial color=3D#0087C3>arma=
-Expr</FONT></TD>
-    <TD vAlign=3Dbottom><FONT size=3D4 face=3DArial color=3D#0087C3>ecial =
-O</FONT></TD>
-  </TR></TABLE>
-<DIV>&nbsp;</DIV>
-<TABLE style=3D"BORDER-WIDTH: 0px;" cellPadding=3D0 cellSpacing=3D0>
-<TR>
-<TD><FONT size=3D3 face=3DCourier>Lev<BR><B>CIA</B><BR>Xan<BR><B>VAL</B=
-><BR><B>VIA</B><BR>Amb</FONT></TD>
-<TD><FONT size=3D3 face=3DCourier>itra<BR><B>LIS Now $</B><BR>ax<BR><B>IUM =
-Now $</B><BR><B>GRA Now $</B><BR>ien</FONT></TD>
-<TD><FONT size=3D3 face=3DCourier>&nbsp;<BR><B>3.75</B><BR>&nbsp;<BR>=
-<B>1.21</B><BR><B>3.33</B><BR>&nbsp;</FONT></TD>
-</TR>
-</TABLE>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D3>And many other - <A href=3D"http://collo=
-idkdu.pricetamarkenet.info"><FONT face=3DArial size=3D3>Get More Detailed =
-information</FONT></A></FONT></DIV>
-<DIV>&nbsp;</DIV>
-<TABLE style=3D"BORDER-WIDTH: 0px;" cellPadding=3D0 cellSpacing=3D0>
-<TR>
-<TD><FONT size=3D3 face=3DCourier>- Home&nbsp;<BR>- Best&nbsp;<BR>- =
-Fast&nbsp;<BR>- Easy&nbsp;<BR>- Total&nbsp;</FONT></TD>
-<TD><FONT size=3D3 face=3DCourier>Deli<BR>Pric<BR>Ship<BR>Orde<BR>Conf<=
-/FONT></TD>
-<TD><FONT size=3D3 face=3DCourier>very<BR>es<BR>ping<BR>ring<BR>ide=
-ntiality</FONT></TD>
-</TR>
-</TABLE></BODY></HTML>
+Date: Mon, 31 Oct 2005 00:21:21 -0800
+From: bugme-daemon-3NddpPZAyC0@public.gmane.org
+To: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [Bug 5039] high cpu usage (softirq takes 50% all the time)
 
-------=_NextPart_000_000D_01C5DC92.7E2AD780--
 
+http://bugme.osdl.org/show_bug.cgi?id=5039
+
+
+
+
+
+------- Additional Comments From laforge-TgoAw6mPHtdg9hUCZPvPmw@public.gmane.org  2005-10-31 00:15 -------
+Ok, some comments:
+
+1) I also see the "50% cpu usage" problem on my Turion64.  I fix this (and many
+other ACPI related problems) by passing "acpi=off" to the kernel command line. 
+The only remaining problem now is that the clock runs at roughly thrice the
+speed, i.e. a second only lasts one third of a second ;) [just a side note]
+This 'turion64' problem shows 49-51% cpu usage at all time, constantly, no
+fluctuation.  Oprofile indicated that it was somewhere in the ACPI idle handling
+code.  Didn't have the time for any more debugging. This is totally unrelated to
+ iptables, however.
+
+2) iptables processing runs like almost all of the network stack in softirq
+context.  So if you have many rules (probably even in a not very much optimized
+layout), and high bandwith, it's not unlikely that you spend a significant
+amount of time in softirq context, especially on dedicated firewalls and the
+like.  This usage should have an almost linear dependency on the number of
+packets per second the system processes.  Also, the system from bug reporter
+'migo' has a number of tc filter rules, it runs connection tracking (and all
+runs in softirq).  So besides 'iptables shall be optimized further', I don't
+really see why this should be a bug.
+
+3) why does 'migo' profile show "ct_get_next" in the profile?  This looks like
+somebody is constantly reading /proc/net/ip_conntrack from userspace (which is
+an _extremely_ expensive operation that should only happen for debugging).  If
+you need that information, use ip_conntrack_netlink and libnetfilter_conntrack.
+
+------- You are receiving this mail because: -------
+You are on the CC list for the bug, or are watching someone who is.
 
 
 -------------------------------------------------------
