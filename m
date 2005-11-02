@@ -1,12 +1,11 @@
-From: Enrico Teotti <agenteo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: asus l3000d
-Date: Wed, 2 Nov 2005 10:06:03 +0100
-Message-ID: <37c051a00511020106g29f0db8fi@mail.gmail.com>
+From: Colin Leroy <colin-5s/l0yV9g/OsTnJN9+BGXg@public.gmane.org>
+Subject: Strange speedstep-related code in some DSDT
+Date: Wed, 2 Nov 2005 15:00:10 +0100
+Message-ID: <20051102140113.4B8E510334@paperstreet.colino.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,73 +19,34 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
-I'm the owner of a Asus L3000d with some ACPI problems... I'm posting
-here hoping to get some help. Sorry about my bad english.
-When I turn on acpi in the bootloader, sometimes, randomly the laptop
-hangs and also sometimes it's as hot as in hell (no I haven't been
-there yet).
-Giving (acpi=3Don and the acpid running):
-acpi -V
-I get:
-No support for device type: battery
-No support for device type: thermal
-No support for device type: ac_adapter
 
-uname -r
-2.6.12-gentoo-r10
-the kernel is coming from the gentoo portage.
+After I upgraded the BIOS on an Asus M6B600C laptop, I found it to be
+stuck at 600MHz. After investigating for a while using debug.cpufreq=3,
+I found out that the DSDT looked strange, and after I fixed it, cpufreq
+worked again.
 
-tailed to the mail you'll find the ACPI stuff I've got in the kernel.
+The things I had to fix were mainly:
+-            Name (APCT, Package (0x02)
++            Name (_PCT, Package (0x02)
 
-I've googled and looked around, and I've found a thread on a Gentoo forum:
-http://forums.gentoo.org/viewtopic.php?t=3D122145
+and
+-            Name (NPSS, 0x00)
+-            Name (APSS, Package (0x0A)
++            Name (NPSS, 0x05)
++            Name (_PSS, Package (0x0A)
 
-I need some suggestions about witch way to take. Do I really need to
-follow the thread DSDT editing way? Or is my solution already out
-there?
+I am wondering whether such objects should be recognized, or is it
+Asus' fault? I read somewhere that they ship a (windows-based)
+proprietary speed controller software for their laptops, so they
+probably don't care about specs in this regard.
 
-Just in case the answer is the first one, I'll post the stuff I've done.
+Do you think a patch would be ok to handle these in
+processor_perflib.c? 
 
-Thanks in advance,
-Enrico
-
-# Power management options (ACPI, APM)
-# ACPI (Advanced Configuration and Power Interface) Support
-CONFIG_ACPI=3Dy
-CONFIG_ACPI_BOOT=3Dy
-CONFIG_ACPI_INTERPRETER=3Dy
-# CONFIG_ACPI_SLEEP is not set
-CONFIG_ACPI_AC=3Dm
-CONFIG_ACPI_BATTERY=3Dm
-CONFIG_ACPI_BUTTON=3Dm
-CONFIG_ACPI_VIDEO=3Dm
-CONFIG_ACPI_FAN=3Dm
-CONFIG_ACPI_PROCESSOR=3Dm
-CONFIG_ACPI_THERMAL=3Dm
-CONFIG_ACPI_ASUS=3Dm
-CONFIG_ACPI_IBM=3Dm
-CONFIG_ACPI_TOSHIBA=3Dm
-CONFIG_ACPI_BLACKLIST_YEAR=3D0
-# CONFIG_ACPI_DEBUG is not set
-CONFIG_ACPI_BUS=3Dy
-CONFIG_ACPI_EC=3Dy
-CONFIG_ACPI_POWER=3Dy
-CONFIG_ACPI_PCI=3Dy
-CONFIG_ACPI_SYSTEM=3Dy
-CONFIG_ACPI_CONTAINER=3Dm
-CONFIG_X86_ACPI_CPUFREQ=3Dm
-CONFIG_X86_POWERNOW_K7_ACPI=3Dy
-CONFIG_X86_POWERNOW_K8_ACPI=3Dy
-CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI=3Dy
-# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
-CONFIG_PNPACPI=3Dy
-CONFIG_SERIAL_8250_ACPI=3Dy
-
-
---
-"The only thing necessary for the triumph of evil
-is for good men to do nothing"
- Edmund Burke
+Thanks,
+(Please Cc: me on replies, as I'm not subscribed...)
+-- 
+Colin
 
 
 -------------------------------------------------------
