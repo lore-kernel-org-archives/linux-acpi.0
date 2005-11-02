@@ -1,11 +1,11 @@
 From: avps-fBIn7JHAfCbUKx/7vDf7Bw@public.gmane.org
 Subject: International Meeting Infectious Diseases
-Date: Wed,  2 Nov 2005 23:23:56 +0100
-Message-ID: <EASYNET19RZl1L7yXnz00086a5f@sl2otrack.com>
+Date: Wed,  2 Nov 2005 23:23:59 +0100
+Message-ID: <EASYNETSVLkInKLpi4D00086a65@sl2otrack.com>
 Reply-To: avps-fBIn7JHAfCbUKx/7vDf7Bw@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/related;
-	boundary="XWDBoundary_HTML_-906209709"
+	boundary="XWDBoundary_HTML_-708046136"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,12 +17,12 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Ceci est un message au format MIME en plusieurs parties.
 
---XWDBoundary_HTML_-906209709
+--XWDBoundary_HTML_-708046136
 Content-Type: text/html;
 	charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
@@ -31,7 +31,7 @@ Content-Transfer-Encoding: quoted-printable
 <HTML><HEAD>
 <META=20http-equiv=3DContent-Type=20content=3D"text/html;=20charset=3Dunicode">
 <META=20content=3D"MSHTML=206=2E00=2E2800=2E1505"=20name=3DGENERATOR></HEAD>
-<BODY>&nbsp;<FONT=20color=3D#0000ff>Dear=20acpi-devel@lists=2Esf=2Enet,</FONT>=20
+<BODY>&nbsp;<FONT=20color=3D#0000ff>Dear=20acpi-devel@lists=2Esourceforge=2Enet,</FONT>=20
 <P><STRONG><FONT=20color=3D#ff0000=20size=3D4><FONT=20color=3D#000080>Those=20who=20are=20on=20the=20
 cutting=20edge=20of=20HIV/AIDS=20Research=20or=20Care</FONT>=20MEET=20in=20FRANCE=20in=20JUNE=20
 2006!</FONT></STRONG></P>
@@ -41,7 +41,7 @@ HEPATITIS,=20BIRD=20FLU,=20WEST=20NILE=20VIRUS,=20DENGUE=20
 DISEASE=2E=2E=2E</STRONG></MARQUEE></FONT></P>
 <P><STRONG><FONT=20color=3D#ff6600=20size=3D4>"Focusing=20First=20on=20People",=20June=2021-23,=20
 2006,=20TOULON,=20France</FONT></STRONG></P>
-<P><A=20href=3D"http://www=2Esl2otrack=2Ecom/ext/clc=2Ephp?u=3D982&c=3D4729&l=3D8547&m=3Dacpi-devel@lists=2Esf=2Enet"><FONT=20
+<P><A=20href=3D"http://www=2Esl2otrack=2Ecom/ext/clc=2Ephp?u=3D982&c=3D4729&l=3D8547&m=3Dacpi-devel@lists=2Esourceforge=2Enet"><FONT=20
 size=3D4>http://www=2Efocusing-first-on-people=2Ecom</FONT></A></P>
 <P><IMG=20alt=3D""=20hspace=3D0=20
 src=3D"cid:wdcid1"=20align=3Dbaseline=20
@@ -50,9 +50,9 @@ border=3D0></P>
 <P><STRONG><FONT=20color=3D#0000ff>The=20Organizers</FONT></STRONG></P>
 <P>
 <HR>
-<a=20href=3D"http://www=2Esl2otrack=2Ecom/ext/desinscrquestion=2Ephp?u=3D1420136176&c=3D4729&m=3Dacpi-devel@lists=2Esf=2Enet"=20target=3D"_blank">Unsubscribe</a></BODY></HTML>
-<p=20align=3D"left"><font=20size=3D"1"=20face=3D"Verdana"><a=20href=3D"http://www=2Esl2otrack=2Ecom/ext/desinscrquestion=2Ephp?u=3D1420136176&c=3D4729&m=3Dacpi-devel@lists=2Esf=2Enet"=20target=3D"_blank">Click=20here=20to=20unsubscribe</a></font></p><img=20src=3D"http://www=2Esl2otrack=2Ecom/ext/read=2Ephp?u=3D982&c=3D4729&m=3Dacpi-devel@lists=2Esf=2Enet"=20width=3D"1"=20height=3D"1">=00
---XWDBoundary_HTML_-906209709
+<a=20href=3D"http://www=2Esl2otrack=2Ecom/ext/desinscrquestion=2Ephp?u=3D1420136176&c=3D4729&m=3Dacpi-devel@lists=2Esourceforge=2Enet"=20target=3D"_blank">Unsubscribe</a></BODY></HTML>
+<p=20align=3D"left"><font=20size=3D"1"=20face=3D"Verdana"><a=20href=3D"http://www=2Esl2otrack=2Ecom/ext/desinscrquestion=2Ephp?u=3D1420136176&c=3D4729&m=3Dacpi-devel@lists=2Esourceforge=2Enet"=20target=3D"_blank">Click=20here=20to=20unsubscribe</a></font></p><img=20src=3D"http://www=2Esl2otrack=2Ecom/ext/read=2Ephp?u=3D982&c=3D4729&m=3Dacpi-devel@lists=2Esourceforge=2Enet"=20width=3D"1"=20height=3D"1">=00
+--XWDBoundary_HTML_-708046136
 Content-Type: image/gif;
 	name="focus.gif"
 Content-Transfer-Encoding: base64
@@ -952,7 +952,7 @@ ywMfK4g8OCIisKiJpHaAFTThwWvlLnJd0Wnf1yCVIBpcMJZX2i0jptWsoKTo2Qh3j3Z9VkFr
 rUrk8i1KRDnywHyFKsVbfKAD6TuR3i6kK5QnUN5KYjl9umg83UGI3jEu6IARo9beGcFHxKgo
 8P8ABijggAQWaOCBAgUEACH5BAUKAP8ALAAAbgAgABcAAAgtAJUIHEiwoMGDCBMqXMiwocOH
 ECNKnEixosWLGDNq3Mixo8ePIEOKHEmyZMiAADs=
---XWDBoundary_HTML_-906209709--
+--XWDBoundary_HTML_-708046136--
 
 
 
