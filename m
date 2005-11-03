@@ -1,14 +1,13 @@
-From: Berthold Cogel <cogel-F8dkAKZEjLURtNtAH2Wc8g@public.gmane.org>
-Subject: Re: Acer Extensa 3002 WLMi: DSDT fixed but system misses keyboard
- and mouse events
-Date: Sat, 05 Nov 2005 23:05:08 +0100
-Message-ID: <436D2C94.90207@rrz.uni-koeln.de>
-References: <971FCB6690CD0E4898387DBF7552B90E032CF08F@orsmsx403.amr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Compaq 2552EA suspend/resume
+Date: Thu, 3 Nov 2005 15:50:08 +0100
+Message-ID: <20051103145007.GB548@openzaurus.ucw.cz>
+References: <1128532406.16313.12.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E032CF08F-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1128532406.16313.12.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,48 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Development <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Hein-Pieter van Braam <hp-KOxqMzujAKlWk0Htik3J/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Moore, Robert wrote:
-> smbus-cm.asl    87:         Method (_SBI, 0, NotSerialized)
-> Warning  2097 -  Unknown reserved name ^  (_SBI)
-> 
-> smbus-cm.asl   147:         Method (_SBR, 3, NotSerialized)
-> Warning  2097 -  Unknown reserved name ^  (_SBR)
-> 
-> smbus-cm.asl   237:         Method (_SBW, 5, NotSerialized)
-> Warning  2097 -  Unknown reserved name ^  (_SBW)
-> 
-> smbus-cm.asl   314:         Method (_SBA, 0, NotSerialized)
-> Warning  2097 -  Unknown reserved name ^  (_SBA)
-> 
-> These are valid warnings from the compiler. It certainly can't do
-> anything about BIOS writers that simply refuse to follow the ACPI spec
-> :-(
-> 
-> Bob
-> 
+Hi!
 
-I cn live wih that, if I can get informations on the battery state. But
-what is rally anoying is the prplemwith the missig keyoard and mouse events.
+> I've got a compaq 2552EA laptop, and I have been trying to get suspend
+> to ram and suspend to disk to work forever, and, well, failed :)
 
-See what i mean? Suppose you try to log in or type the password of your
-mailaccount! Last time I had to try 5 times ... X-|
+Try suspend-to-disk with 2.6.14. That has very little to do with DSDT.
 
-This did not happen with linux-2.6.11.11 and the acpi_sbs-20050120
-package from Rich Townsend (acpi-ec-2.6.10.diff, modules i2c-acpi-ec and
-acpi-sbs).
 
-And it is interesting, that it does not happen when the battery is
-missing. The question is: Is it a problem with the DSDT or with the
-kernel code?
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-Is there any patch available that I can try. Or is there a acpi_sbs
-version that compiles with recent kernel versions? It is not very
-effective to hit each key twice...
-
-Berthold
 
 
 -------------------------------------------------------
