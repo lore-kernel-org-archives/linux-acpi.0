@@ -1,12 +1,13 @@
-From: "sdfa" <slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org>
-Subject: hard drive errors on acpi s3 resume
-Date: Fri,  4 Nov 2005 01:39:46 -0500 (EST)
-Message-ID: <20051104063946.BB9CA3DF4@xprdmailfe12.nwk.excite.com>
-Reply-To: slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Help needed to fix my dsdt / running out of ideas
+Date: Fri, 4 Nov 2005 10:31:50 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E034DF4D7@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,75 +17,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Maximilian Mehnert <widolo87-LWAfsSFWpa4@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-i've been trying to get s3 working on my sony vaio, but i'm having some problems concerning the hard drive during resume. after a resume i see these messages in dmesg:
-
-
-
-hda: lost interrupt
-
- evevent-0299: *** Error: No installed handler for fixed event [00000002]
-
-Restarting tasks... done
-
-hda: dma_timer_expiry: dma status == 0x21
-
-hda: DMA timeout error
-
-hda: dma timeout error: status=0x50 { DriveReady SeekComplete }
-
-ide: failed opcode was: unknown
-
-hda: status error: status=0x50 { DriveReady SeekComplete }
-
-ide: failed opcode was: unknown
-
-hda: no DRQ after issuing MULTWRITE_EXT
-
-hda: status error: status=0x50 { DriveReady SeekComplete }
-
-ide: failed opcode was: unknown
-
-hda: no DRQ after issuing MULTWRITE_EXT
-
-hda: lost interrupt
-
-hda: status error: status=0x50 { DriveReady SeekComplete }
-
-ide: failed opcode was: unknown
-
-hda: no DRQ after issuing MULTWRITE_EXT
-
-hda: status error: status=0x50 { DriveReady SeekComplete }
-
-ide: failed opcode was: unknown
-
-hda: no DRQ after issuing MULTWRITE_EXT
-
-ide0: reset: success
+Please send the DSDT (before change and after).
+Bob
 
 
-
-sometimes i also see this message right before all of this, i'm not sure if it's related:
-
-acpi_bus_0200 [77] bus_set_power      : Device is not power manageable
-
-
-
-the drive eventually spins up and the resume is a success, but it takes like two minutes(too long) and i'm afraid it may be damaging my hard drive.
-
-
-
-the drive is an ide ata drive with an ich4-m controller.
-
-_______________________________________________
-Join Excite! - http://www.excite.com
-The most personalized portal on the Web!
-
-
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Li, Shaohua
+> Sent: Thursday, November 03, 2005 5:27 PM
+> To: Maximilian Mehnert
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: RE: [ACPI] Help needed to fix my dsdt / running out of ideas
+>=20
+> Hi,
+> >
+> >I have fixed a few dsdts before so I am not completely new to this.
+> >
+> >However I have no clue how to fix my current dsdt after it changed
+> >because of a RAM upgrade.
+> >
+> >Attached to this mail you find my decompiled dsdt and the output of
+> iasl
+> >trying to compile it again.
+> >
+> >I would be extremely glad if someone with more insight into this
+matter
+> >could give me a few advises to fix the first (and maybe the last)
+> error.
+> >Most of them seem to follow the same pattern so I should be able to
+do
+> >most of this on my own...
+> >
+> nsaccess-0534: *** Error: ACPI path has too many parent prefixes (^) -
+> reached beyond root node
+>=20
+> ^ stands parent. Maybe you could use absolute path for the node. Such
+as
+> you can change 'Scope (^^PCI0)' to 'Scope (_SB.PCI0)'.
+>=20
+> Thanks,
+> Shaohua
+>=20
+>=20
+> -------------------------------------------------------
+> SF.Net email is sponsored by:
+> Tame your development challenges with Apache's Geronimo App Server.
+> Download
+> it for free - -and be entered to win a 42" plasma tv or your very own
+> Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
