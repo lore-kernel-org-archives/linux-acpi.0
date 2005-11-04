@@ -1,13 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Help needed to fix my dsdt / running out of ideas
-Date: Fri, 4 Nov 2005 09:27:28 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F1C70BC3@pdsmsx406>
+From: "sdfa" <slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org>
+Subject: hard drive errors on acpi s3 resume
+Date: Fri,  4 Nov 2005 01:39:46 -0500 (EST)
+Message-ID: <20051104063946.BB9CA3DF4@xprdmailfe12.nwk.excite.com>
+Reply-To: slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +16,75 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Maximilian Mehnert <widolo87-LWAfsSFWpa4@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->
->I have fixed a few dsdts before so I am not completely new to this.
->
->However I have no clue how to fix my current dsdt after it changed
->because of a RAM upgrade.
->
->Attached to this mail you find my decompiled dsdt and the output of
-iasl
->trying to compile it again.
->
->I would be extremely glad if someone with more insight into this matter
->could give me a few advises to fix the first (and maybe the last)
-error.
->Most of them seem to follow the same pattern so I should be able to do
->most of this on my own...
->
-nsaccess-0534: *** Error: ACPI path has too many parent prefixes (^) -
-reached beyond root node
 
-^ stands parent. Maybe you could use absolute path for the node. Such as
-you can change 'Scope (^^PCI0)' to 'Scope (_SB.PCI0)'.
+i've been trying to get s3 working on my sony vaio, but i'm having some problems concerning the hard drive during resume. after a resume i see these messages in dmesg:
 
-Thanks,
-Shaohua
+
+
+hda: lost interrupt
+
+ evevent-0299: *** Error: No installed handler for fixed event [00000002]
+
+Restarting tasks... done
+
+hda: dma_timer_expiry: dma status == 0x21
+
+hda: DMA timeout error
+
+hda: dma timeout error: status=0x50 { DriveReady SeekComplete }
+
+ide: failed opcode was: unknown
+
+hda: status error: status=0x50 { DriveReady SeekComplete }
+
+ide: failed opcode was: unknown
+
+hda: no DRQ after issuing MULTWRITE_EXT
+
+hda: status error: status=0x50 { DriveReady SeekComplete }
+
+ide: failed opcode was: unknown
+
+hda: no DRQ after issuing MULTWRITE_EXT
+
+hda: lost interrupt
+
+hda: status error: status=0x50 { DriveReady SeekComplete }
+
+ide: failed opcode was: unknown
+
+hda: no DRQ after issuing MULTWRITE_EXT
+
+hda: status error: status=0x50 { DriveReady SeekComplete }
+
+ide: failed opcode was: unknown
+
+hda: no DRQ after issuing MULTWRITE_EXT
+
+ide0: reset: success
+
+
+
+sometimes i also see this message right before all of this, i'm not sure if it's related:
+
+acpi_bus_0200 [77] bus_set_power      : Device is not power manageable
+
+
+
+the drive eventually spins up and the resume is a success, but it takes like two minutes(too long) and i'm afraid it may be damaging my hard drive.
+
+
+
+the drive is an ide ata drive with an ich4-m controller.
+
+_______________________________________________
+Join Excite! - http://www.excite.com
+The most personalized portal on the Web!
+
+
 
 
 -------------------------------------------------------
