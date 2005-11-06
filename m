@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Compaq 2552EA suspend/resume
-Date: Thu, 3 Nov 2005 15:50:08 +0100
-Message-ID: <20051103145007.GB548@openzaurus.ucw.cz>
-References: <1128532406.16313.12.camel@localhost.localdomain>
+Subject: Re: hard drive errors on acpi s3 resume
+Date: Sun, 6 Nov 2005 17:27:39 +0100
+Message-ID: <20051106162739.GA28697@elf.ucw.cz>
+References: <20051104063946.BB9CA3DF4@xprdmailfe12.nwk.excite.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1128532406.16313.12.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <20051104063946.BB9CA3DF4-ch062KcR4Qw632oaNHexgA1yzfppHFFyQQ4Iyu8u01E@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hein-Pieter van Braam <hp-KOxqMzujAKlWk0Htik3J/w@public.gmane.org>
+To: sdfa <slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I've got a compaq 2552EA laptop, and I have been trying to get suspend
-> to ram and suspend to disk to work forever, and, well, failed :)
+> i've been trying to get s3 working on my sony vaio, but i'm having
+>some problems concerning the hard drive during resume. after a resume
+>i see these messages in dmesg:
 
-Try suspend-to-disk with 2.6.14. That has very little to do with DSDT.
+...
+> 
+> the drive eventually spins up and the resume is a success, but it takes like two minutes(too long) and i'm afraid it may be damaging my hard drive.
 
+
+Please fit your mails to 80 columns.
+
+Also I'm afraid you'll have to ask this on ide lists; this is not an
+ACPI but a driver problem.
+
+[Are you doing suspend in middle of some disk operation?]
+								Pavel
 
 -- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+Thanks, Sharp!
 
 
 -------------------------------------------------------
