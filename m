@@ -1,249 +1,51 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] serial: remove 8250_acpi (subsumed by 8250_pnp and PNPACPI)
-Date: Mon, 7 Nov 2005 14:59:27 -0700
-Message-ID: <200511071459.27119.bjorn.helgaas@hp.com>
+From: Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
+Subject: Re: ACPI and PRREMPT bug
+Date: Mon, 7 Nov 2005 15:15:24 -0800
+Message-ID: <20051107231524.GW7991@shell0.pdx.osdl.net>
+References: <971FCB6690CD0E4898387DBF7552B90E0356B628@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-ia64-owner@vger.kernel.org
-To: Russell King <rmk+serial@arm.linux.org.uk>
-Cc: linux-serial@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0356B628-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: tzachar-7iDlm8ZLfO0Zqb/kyJCLuA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-With the combination of PNPACPI and 8250_pnp, we no longer need
-8250_acpi.
+* Moore, Robert (robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org) wrote:
+> You might try setting this flag (in acglobal.h) to TRUE:
+> 
+> /*
+>  * Automatically serialize ALL control methods? Default is FALSE,
+> meaning
+>  * to use the Serialized/NotSerialized method flags on a per method
+> basis.
+>  * Only change this if the ASL code is poorly written and cannot handle
+>  * reentrancy even though methods are marked "NotSerialized".
+>  */
+> ACPI_EXTERN UINT8       ACPI_INIT_GLOBAL (AcpiGbl_AllMethodsSerialized,
+> FALSE);
 
-The only in-tree configs that contain CONFIG_SERIAL_8250_ACPI are ia64.
-ia64 users should make sure CONFIG_PNP and CONFIG_PNPACPI are set so
-8250_pnp.c can discover built-in serial ports.  Tony has already
-accepted a patch to turn them on in the default configs.
+I've chatted with another person having this issue.  Booting with
+acpi_serialize (which sets that flag to true) does seem to fix the
+problem.  I'm guessing thread_count gets decremented twice for one
+increment, causing it to underflow wrapping to -1.
 
-Note: This depends on these patches that are in 2.6.14-mm1, but are
-not in Linus' tree yet:
-    pnpacpi-handle-address-descriptors-in-_prs.patch
-    pnpacpi-handle-address-descriptors-in-_prs-fix-for-git-acpi-change.patch
+thanks,
+-chris
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Index: work-mm1/drivers/serial/Kconfig
-===================================================================
---- work-mm1.orig/drivers/serial/Kconfig	2005-11-03 10:39:15.000000000 -0700
-+++ work-mm1/drivers/serial/Kconfig	2005-11-03 13:26:31.000000000 -0700
-@@ -77,14 +77,6 @@
- 
- 	  If unsure, say N.
- 
--config SERIAL_8250_ACPI
--	bool "8250/16550 device discovery via ACPI namespace"
--	default y if IA64
--	depends on ACPI && SERIAL_8250
--	---help---
--	  If you wish to enable serial port discovery via the ACPI
--	  namespace, say Y here.  If unsure, say N.
--
- config SERIAL_8250_NR_UARTS
- 	int "Maximum number of 8250/16550 serial ports"
- 	depends on SERIAL_8250
-Index: work-mm1/drivers/serial/Makefile
-===================================================================
---- work-mm1.orig/drivers/serial/Makefile	2005-08-28 17:41:01.000000000 -0600
-+++ work-mm1/drivers/serial/Makefile	2005-11-03 13:26:31.000000000 -0700
-@@ -5,7 +5,6 @@
- #
- 
- serial-8250-y :=
--serial-8250-$(CONFIG_SERIAL_8250_ACPI) += 8250_acpi.o
- serial-8250-$(CONFIG_PNP) += 8250_pnp.o
- serial-8250-$(CONFIG_GSC) += 8250_gsc.o
- serial-8250-$(CONFIG_PCI) += 8250_pci.o
-Index: work-mm1/drivers/serial/8250_acpi.c
-===================================================================
---- work-mm1.orig/drivers/serial/8250_acpi.c	2005-11-03 10:40:16.000000000 -0700
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,183 +0,0 @@
--/*
-- * Copyright (c) 2002-2003 Matthew Wilcox for Hewlett-Packard
-- * Copyright (C) 2004 Hewlett-Packard Co
-- *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--
--#include <linux/acpi.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/serial_core.h>
--
--#include <acpi/acpi_bus.h>
--
--#include <asm/io.h>
--
--#include "8250.h"
--
--struct serial_private {
--	int	line;
--};
--
--static acpi_status acpi_serial_mmio(struct uart_port *port,
--				    struct acpi_resource_address64 *addr)
--{
--	port->mapbase = addr->min_address_range;
--	port->iotype = UPIO_MEM;
--	port->flags |= UPF_IOREMAP;
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_port(struct uart_port *port,
--				    struct acpi_resource_io *io)
--{
--	if (io->range_length) {
--		port->iobase = io->min_base_address;
--		port->iotype = UPIO_PORT;
--	} else
--		printk(KERN_ERR "%s: zero-length IO port range?\n", __FUNCTION__);
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_ext_irq(struct uart_port *port,
--				       struct acpi_resource_ext_irq *ext_irq)
--{
--	int rc;
--
--	if (ext_irq->number_of_interrupts > 0) {
--		rc = acpi_register_gsi(ext_irq->interrupts[0],
--	                   ext_irq->edge_level, ext_irq->active_high_low);
--		if (rc < 0)
--			return AE_ERROR;
--		port->irq = rc;
--	}
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_irq(struct uart_port *port,
--				   struct acpi_resource_irq *irq)
--{
--	int rc;
--
--	if (irq->number_of_interrupts > 0) {
--		rc = acpi_register_gsi(irq->interrupts[0],
--	                   irq->edge_level, irq->active_high_low);
--		if (rc < 0)
--			return AE_ERROR;
--		port->irq = rc;
--	}
--	return AE_OK;
--}
--
--static acpi_status acpi_serial_resource(struct acpi_resource *res, void *data)
--{
--	struct uart_port *port = (struct uart_port *) data;
--	struct acpi_resource_address64 addr;
--	acpi_status status;
--
--	status = acpi_resource_to_address64(res, &addr);
--	if (ACPI_SUCCESS(status))
--		return acpi_serial_mmio(port, &addr);
--	else if (res->type == ACPI_RSTYPE_IO)
--		return acpi_serial_port(port, &res->data.io);
--	else if (res->type == ACPI_RSTYPE_EXT_IRQ)
--		return acpi_serial_ext_irq(port, &res->data.extended_irq);
--	else if (res->type == ACPI_RSTYPE_IRQ)
--		return acpi_serial_irq(port, &res->data.irq);
--	return AE_OK;
--}
--
--static int acpi_serial_add(struct acpi_device *device)
--{
--	struct serial_private *priv;
--	acpi_status status;
--	struct uart_port port;
--	int result;
--
--	memset(&port, 0, sizeof(struct uart_port));
--
--	port.uartclk = 1843200;
--	port.flags = UPF_SKIP_TEST | UPF_BOOT_AUTOCONF;
--
--	priv = kmalloc(sizeof(struct serial_private), GFP_KERNEL);
--	if (!priv) {
--		result = -ENOMEM;
--		goto fail;
--	}
--	memset(priv, 0, sizeof(*priv));
--
--	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
--				     acpi_serial_resource, &port);
--	if (ACPI_FAILURE(status)) {
--		result = -ENODEV;
--		goto fail;
--	}
--
--	if (!port.mapbase && !port.iobase) {
--		printk(KERN_ERR "%s: no iomem or port address in %s _CRS\n",
--			__FUNCTION__, device->pnp.bus_id);
--		result = -ENODEV;
--		goto fail;
--	}
--
--	priv->line = serial8250_register_port(&port);
--	if (priv->line < 0) {
--		printk(KERN_WARNING "Couldn't register serial port %s: %d\n",
--			device->pnp.bus_id, priv->line);
--		result = -ENODEV;
--		goto fail;
--	}
--
--	acpi_driver_data(device) = priv;
--	return 0;
--
--fail:
--	kfree(priv);
--
--	return result;
--}
--
--static int acpi_serial_remove(struct acpi_device *device, int type)
--{
--	struct serial_private *priv;
--
--	if (!device || !acpi_driver_data(device))
--		return -EINVAL;
--
--	priv = acpi_driver_data(device);
--	serial8250_unregister_port(priv->line);
--	kfree(priv);
--
--	return 0;
--}
--
--static struct acpi_driver acpi_serial_driver = {
--	.name =		"serial",
--	.class =	"",
--	.ids =		"PNP0501",
--	.ops =	{
--		.add =		acpi_serial_add,
--		.remove =	acpi_serial_remove,
--	},
--};
--
--static int __init acpi_serial_init(void)
--{
--	return acpi_bus_register_driver(&acpi_serial_driver);
--}
--
--static void __exit acpi_serial_exit(void)
--{
--	acpi_bus_unregister_driver(&acpi_serial_driver);
--}
--
--module_init(acpi_serial_init);
--module_exit(acpi_serial_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("Generic 8250/16x50 ACPI serial driver");
+-------------------------------------------------------
+SF.Net email is sponsored by:
+Tame your development challenges with Apache's Geronimo App Server. Download
+it for free - -and be entered to win a 42" plasma tv or your very own
+Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
