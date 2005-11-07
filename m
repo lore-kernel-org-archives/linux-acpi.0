@@ -1,96 +1,249 @@
-From: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: acpi_memhotplug driver is not working for me. Any ideas?
-Date: Mon, 07 Nov 2005 13:44:04 -0800
-Message-ID: <1131399845.6313.73.camel@knk>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] serial: remove 8250_acpi (subsumed by 8250_pnp and PNPACPI)
+Date: Mon, 7 Nov 2005 14:59:27 -0700
+Message-ID: <200511071459.27119.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-ia64-owner@vger.kernel.org
+To: Russell King <rmk+serial@arm.linux.org.uk>
+Cc: linux-serial@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-  I have recently acquired an IBM x460 to work with.  The hardware is
-completing it's hot add memory event just fine but the acpi code is
-retuning errors. (I implemented some stub functions the acpi code
-expects the arch to have)
+With the combination of PNPACPI and 8250_pnp, we no longer need
+8250_acpi.
 
-My kernel is 2.6.14-get7 using x86_64...  
+The only in-tree configs that contain CONFIG_SERIAL_8250_ACPI are ia64.
+ia64 users should make sure CONFIG_PNP and CONFIG_PNPACPI are set so
+8250_pnp.c can discover built-in serial ports.  Tony has already
+accepted a patch to turn them on in the default configs.
 
-With acpi debugging off saw the 
+Note: This depends on these patches that are in 2.6.14-mm1, but are
+not in Linus' tree yet:
+    pnpacpi-handle-address-descriptors-in-_prs.patch
+    pnpacpi-handle-address-descriptors-in-_prs-fix-for-git-acpi-change.patch
 
-" driver data not found"
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-with acpi debugging on I see
-
-"acpi_bus-0072 [03] bus_get_device        : No context for object
-[ffff810037e82df0]"
-
-(in acpi_memhotplug.c)
-I run  acpi_memory_get_device and fail the acpi_bus_get_device call. 
-
-The last of the acpi function call trace output is 
-
-Nov  7 13:24:57 elm3a153 kernel:  utalloc-0526 [09] ut_free_and_track     : ----Entry ffff81027a41d030
-Nov  7 13:24:57 elm3a153 kernel:  utalloc-0686 [10] ut_remove_allocation  : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0794 [11] os_wait_semaphore     : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0863 [11] os_wait_semaphore     : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:      osl-0875 [11] os_signal_semaphore   : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0888 [11] os_signal_semaphore   : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:  utalloc-0723 [10] ut_remove_allocation  : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:  utalloc-0553 [09] ut_free_and_track     : ----Exit-
-Nov  7 13:24:57 elm3a153 kernel: dswstate-0869 [08] ds_delete_walk_state  : ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:  utstate-0329 [08] ut_delete_generic_stat: ----Entry
-Nov  7 13:24:57 elm3a153 kernel:  utstate-0332 [08] ut_delete_generic_stat: ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:  psparse-0643 [07] ps_parse_aml          : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:   pswalk-0067 [07] ps_delete_parse_tree  : ----Entry ffff810279a754e0
-Nov  7 13:24:57 elm3a153 kernel:   pswalk-0096 [07] ps_delete_parse_tree  : ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:  psxface-0246 [06] ps_execute_pass       : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:  psxface-0155 [05] ps_execute_method     : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:  exutils-0126 [05] ex_exit_interpreter   : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0875 [06] os_signal_semaphore   : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0888 [06] os_signal_semaphore   : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:  exutils-0133 [05] ex_exit_interpreter   : ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:   nseval-0414 [04] ns_execute_control_met: ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:   nseval-0338 [03] ns_evaluate_by_handle : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:    evgpe-0568 [02] ev_asynch_execute_gpe_: ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:      osl-0633 [01] os_execute_deferred   : ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:      osl-0621 [01] os_execute_deferred   : ----Entry
-Nov  7 13:24:57 elm3a153 kernel: acpi_bus-0461 [02] bus_notify            : ----Entry
-Nov  7 13:24:57 elm3a153 kernel: acpi_bus-0062 [03] bus_get_device        : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0794 [04] os_wait_semaphore     : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0863 [04] os_wait_semaphore     : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel:      osl-0875 [04] os_signal_semaphore   : ----Entry
-Nov  7 13:24:57 elm3a153 kernel:      osl-0888 [04] os_signal_semaphore   : ----Exit- AE_OK
-Nov  7 13:24:57 elm3a153 kernel: acpi_bus-0072 [03] bus_get_device        : No context for object [ffff810037e82df0]
-Nov  7 13:24:57 elm3a153 kernel: acpi_bus-0073 [03] bus_get_device        : ----Exit- FFFFFFFFFFFFFFED
-Nov  7 13:24:57 elm3a153 kernel: acpi_bus-0464 [02] bus_notify            : ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:  utstate-0329 [02] ut_delete_generic_stat: ----Entry
-Nov  7 13:24:57 elm3a153 kernel:  utstate-0332 [02] ut_delete_generic_stat: ----Exit-
-Nov  7 13:24:57 elm3a153 kernel:      osl-0633 [01] os_execute_deferred   : ----Exit-
-
-
-This is known to work in other OS's.... 
-
-I am not sure where to start looking.    
-
--- 
-keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-
-
-
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. Download
-it for free - -and be entered to win a 42" plasma tv or your very own
-Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+Index: work-mm1/drivers/serial/Kconfig
+===================================================================
+--- work-mm1.orig/drivers/serial/Kconfig	2005-11-03 10:39:15.000000000 -0700
++++ work-mm1/drivers/serial/Kconfig	2005-11-03 13:26:31.000000000 -0700
+@@ -77,14 +77,6 @@
+ 
+ 	  If unsure, say N.
+ 
+-config SERIAL_8250_ACPI
+-	bool "8250/16550 device discovery via ACPI namespace"
+-	default y if IA64
+-	depends on ACPI && SERIAL_8250
+-	---help---
+-	  If you wish to enable serial port discovery via the ACPI
+-	  namespace, say Y here.  If unsure, say N.
+-
+ config SERIAL_8250_NR_UARTS
+ 	int "Maximum number of 8250/16550 serial ports"
+ 	depends on SERIAL_8250
+Index: work-mm1/drivers/serial/Makefile
+===================================================================
+--- work-mm1.orig/drivers/serial/Makefile	2005-08-28 17:41:01.000000000 -0600
++++ work-mm1/drivers/serial/Makefile	2005-11-03 13:26:31.000000000 -0700
+@@ -5,7 +5,6 @@
+ #
+ 
+ serial-8250-y :=
+-serial-8250-$(CONFIG_SERIAL_8250_ACPI) += 8250_acpi.o
+ serial-8250-$(CONFIG_PNP) += 8250_pnp.o
+ serial-8250-$(CONFIG_GSC) += 8250_gsc.o
+ serial-8250-$(CONFIG_PCI) += 8250_pci.o
+Index: work-mm1/drivers/serial/8250_acpi.c
+===================================================================
+--- work-mm1.orig/drivers/serial/8250_acpi.c	2005-11-03 10:40:16.000000000 -0700
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,183 +0,0 @@
+-/*
+- * Copyright (c) 2002-2003 Matthew Wilcox for Hewlett-Packard
+- * Copyright (C) 2004 Hewlett-Packard Co
+- *	Bjorn Helgaas <bjorn.helgaas@hp.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#include <linux/acpi.h>
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/serial_core.h>
+-
+-#include <acpi/acpi_bus.h>
+-
+-#include <asm/io.h>
+-
+-#include "8250.h"
+-
+-struct serial_private {
+-	int	line;
+-};
+-
+-static acpi_status acpi_serial_mmio(struct uart_port *port,
+-				    struct acpi_resource_address64 *addr)
+-{
+-	port->mapbase = addr->min_address_range;
+-	port->iotype = UPIO_MEM;
+-	port->flags |= UPF_IOREMAP;
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_port(struct uart_port *port,
+-				    struct acpi_resource_io *io)
+-{
+-	if (io->range_length) {
+-		port->iobase = io->min_base_address;
+-		port->iotype = UPIO_PORT;
+-	} else
+-		printk(KERN_ERR "%s: zero-length IO port range?\n", __FUNCTION__);
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_ext_irq(struct uart_port *port,
+-				       struct acpi_resource_ext_irq *ext_irq)
+-{
+-	int rc;
+-
+-	if (ext_irq->number_of_interrupts > 0) {
+-		rc = acpi_register_gsi(ext_irq->interrupts[0],
+-	                   ext_irq->edge_level, ext_irq->active_high_low);
+-		if (rc < 0)
+-			return AE_ERROR;
+-		port->irq = rc;
+-	}
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_irq(struct uart_port *port,
+-				   struct acpi_resource_irq *irq)
+-{
+-	int rc;
+-
+-	if (irq->number_of_interrupts > 0) {
+-		rc = acpi_register_gsi(irq->interrupts[0],
+-	                   irq->edge_level, irq->active_high_low);
+-		if (rc < 0)
+-			return AE_ERROR;
+-		port->irq = rc;
+-	}
+-	return AE_OK;
+-}
+-
+-static acpi_status acpi_serial_resource(struct acpi_resource *res, void *data)
+-{
+-	struct uart_port *port = (struct uart_port *) data;
+-	struct acpi_resource_address64 addr;
+-	acpi_status status;
+-
+-	status = acpi_resource_to_address64(res, &addr);
+-	if (ACPI_SUCCESS(status))
+-		return acpi_serial_mmio(port, &addr);
+-	else if (res->type == ACPI_RSTYPE_IO)
+-		return acpi_serial_port(port, &res->data.io);
+-	else if (res->type == ACPI_RSTYPE_EXT_IRQ)
+-		return acpi_serial_ext_irq(port, &res->data.extended_irq);
+-	else if (res->type == ACPI_RSTYPE_IRQ)
+-		return acpi_serial_irq(port, &res->data.irq);
+-	return AE_OK;
+-}
+-
+-static int acpi_serial_add(struct acpi_device *device)
+-{
+-	struct serial_private *priv;
+-	acpi_status status;
+-	struct uart_port port;
+-	int result;
+-
+-	memset(&port, 0, sizeof(struct uart_port));
+-
+-	port.uartclk = 1843200;
+-	port.flags = UPF_SKIP_TEST | UPF_BOOT_AUTOCONF;
+-
+-	priv = kmalloc(sizeof(struct serial_private), GFP_KERNEL);
+-	if (!priv) {
+-		result = -ENOMEM;
+-		goto fail;
+-	}
+-	memset(priv, 0, sizeof(*priv));
+-
+-	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
+-				     acpi_serial_resource, &port);
+-	if (ACPI_FAILURE(status)) {
+-		result = -ENODEV;
+-		goto fail;
+-	}
+-
+-	if (!port.mapbase && !port.iobase) {
+-		printk(KERN_ERR "%s: no iomem or port address in %s _CRS\n",
+-			__FUNCTION__, device->pnp.bus_id);
+-		result = -ENODEV;
+-		goto fail;
+-	}
+-
+-	priv->line = serial8250_register_port(&port);
+-	if (priv->line < 0) {
+-		printk(KERN_WARNING "Couldn't register serial port %s: %d\n",
+-			device->pnp.bus_id, priv->line);
+-		result = -ENODEV;
+-		goto fail;
+-	}
+-
+-	acpi_driver_data(device) = priv;
+-	return 0;
+-
+-fail:
+-	kfree(priv);
+-
+-	return result;
+-}
+-
+-static int acpi_serial_remove(struct acpi_device *device, int type)
+-{
+-	struct serial_private *priv;
+-
+-	if (!device || !acpi_driver_data(device))
+-		return -EINVAL;
+-
+-	priv = acpi_driver_data(device);
+-	serial8250_unregister_port(priv->line);
+-	kfree(priv);
+-
+-	return 0;
+-}
+-
+-static struct acpi_driver acpi_serial_driver = {
+-	.name =		"serial",
+-	.class =	"",
+-	.ids =		"PNP0501",
+-	.ops =	{
+-		.add =		acpi_serial_add,
+-		.remove =	acpi_serial_remove,
+-	},
+-};
+-
+-static int __init acpi_serial_init(void)
+-{
+-	return acpi_bus_register_driver(&acpi_serial_driver);
+-}
+-
+-static void __exit acpi_serial_exit(void)
+-{
+-	acpi_bus_unregister_driver(&acpi_serial_driver);
+-}
+-
+-module_init(acpi_serial_init);
+-module_exit(acpi_serial_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("Generic 8250/16x50 ACPI serial driver");
