@@ -1,13 +1,11 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: hard drive errors on acpi s3 resume
-Date: Mon, 7 Nov 2005 09:29:17 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F1C71393@pdsmsx406>
+From: Nir Tzachar <tzachar-7iDlm8ZLfO0Zqb/kyJCLuA@public.gmane.org>
+Subject: ACPI and PRREMPT bug
+Date: Mon, 07 Nov 2005 11:35:33 +0200
+Message-ID: <1131356134.973.23.camel@nexus.cs.bgu.ac.il>
+Reply-To: tzachar-7iDlm8ZLfO0Zqb/kyJCLuA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Hwwbufimd7AV4QYfRuJE"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,51 +15,88 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, sdfa <slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-Hi,
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Matthew Garrett
->Sent: Monday, November 07, 2005 9:23 AM
->To: Alan Cox
->Cc: Pavel Machek; sdfa; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] hard drive errors on acpi s3 resume
->
->On Sun, Nov 06, 2005 at 08:48:59PM +0000, Alan Cox wrote:
->> On Sul, 2005-11-06 at 17:27 +0100, Pavel Machek wrote:
->> > Also I'm afraid you'll have to ask this on ide lists; this is not
-an
->> > ACPI but a driver problem.
->>
->> Its probably also an ACPI problem. ACPI provides disk suspend/resume
->> methods but nobody as hooked them to anything. Basically you
-shouldn't
->> mix ACPI S3 and IDE disks in Linux until this is done.
->
->There's a patch that floated on here a while ago - we're shipping it in
->Ubuntu. Hang on...
->
->http://www.codon.org.uk/~mjg59/tmp/external-drivers-ide_sleep.dpatch is
->what we're shipping - it seems to work in most cases, but not all. It
->implements the _GTM and _STM methods, but doesn't do anything with _GTF
->since the IDE layer hasn't been resumed at the point where this code
->executes, so there's no existing mechanism to execute the taskfile
->commands returned. It may help in this case.
->
->(I've no idea why this hasn't been submitted upstream yet - it's not my
->patch...)
-yes, this is the debug patch from me. As you said, it does nothing with
-_GTF, so I didn't submit it.
+--=-Hwwbufimd7AV4QYfRuJE
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Alan, is there any way we can execute the taskfile commands before the
-IDE device resume?
+hello.
 
-Thanks,
-Shaohua
+I'm encountering a problem with acpi on kernels where preempt is
+enabled.
+The problem is 100% reproducible on all kernels starting from 2.6.12.1
+to 2.6.14
+( i didn't try 2.6.11 and below ).
+
+the problem is manifested via the battery proc interface. to produce it,
+run in two terminals simultaneously:=20
+while true; do cat /proc/acpi/battery/BAT0/info; done
+
+if i turn on kernel preemption (either voluntary or not), i get the
+following error messages in dmesg:
+Nov  7 08:31:00 lapnir ACPI-0292: *** Error: Looking up [SERN] in
+namespace, AE_ALREADY_EXISTS
+Nov  7 08:31:00 lapnir ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f5d60), AE_ALREADY_EXISTS
+Nov  7 08:31:02 lapnir ACPI-0213: *** Error: Method reached maximum
+reentrancy limit (255)
+Nov  7 08:31:02 lapnir ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f5c20), AE_AML_METHOD_LIMIT
+
+and with acpi debugging info turned on:
+Nov  7 08:46:08 lapnir dswload-0292: *** Error: Looking up [SERN] in
+namespace, AE_ALREADY_EXISTS
+Nov  7 08:46:08 lapnir psloop-0287 [4399] ps_parse_loop         : During
+name lookup/catalog, AE_ALREADY_EXISTS
+Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f94e8), AE_ALREADY_EXISTS
+Nov  7 08:46:08 lapnir osl-0856 [4403] os_wait_semaphore     : Failed to
+acquire semaphore[c18de5e0|1|0], AE_TIME
+Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached maximum
+reentrancy limit (255)
+Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268), AE_AML_METHOD_LIMIT
+Nov  7 08:46:08 lapnir acpi_battery-0144 [4449] battery_get_info      :
+Error evaluating _BIF
+Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached maximum
+reentrancy limit (255)
+Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268), AE_AML_METHOD_LIMIT
+
+
+this is repeated until a reboot. loading and unloading the battery
+module does not help.
+
+My computer is a thinkpad t43p, and i didn't try to reproduce it on
+another laptop
+(have no access to another model..).
+If you need more info, let me know.
+
+p.s. please cc me, im not in the list.
+
+--=20
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D
+Nir Tzachar.
+
+--=-Hwwbufimd7AV4QYfRuJE
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBDbx/lIHR+zI+Dam4RAtAaAJ93o7lRT7qq65o94IXHT1s+YSUdNQCgiu+b
+CZIjx1ojl6pVSTYG55R3fSs=
+=T3Xx
+-----END PGP SIGNATURE-----
+
+--=-Hwwbufimd7AV4QYfRuJE--
+
 
 
 -------------------------------------------------------
