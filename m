@@ -1,11 +1,14 @@
-From: Nir Tzachar <tzachar-7iDlm8ZLfO0Zqb/kyJCLuA@public.gmane.org>
-Subject: ACPI and PRREMPT bug
-Date: Mon, 07 Nov 2005 11:35:33 +0200
-Message-ID: <1131356134.973.23.camel@nexus.cs.bgu.ac.il>
-Reply-To: tzachar-7iDlm8ZLfO0Zqb/kyJCLuA@public.gmane.org
+From: Federico =?iso-8859-1?Q?Nu=F1ez?= Artigas <fna-cqm4jLPdWD1nHTJOWz7GUQ@public.gmane.org>
+Subject: Re: Compaq Evo N150
+Date: Mon, 7 Nov 2005 10:30:15 -0300
+Message-ID: <20051107133015.GA7668@localhost.localdomain>
+References: <200510172356.16445.fna@internet.com.uy> <1131063820.26179.27.camel@bastov>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Hwwbufimd7AV4QYfRuJE"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: Quoted-Printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1131063820.26179.27.camel@bastov>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,87 +18,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sergio Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
+Cc: fna-H4aWS73dXuqoBQtF3CFPZg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+hi sergio,
+thank you for replay.
+> Hi,=20
+> Since nobody answer, I will try give some feed-back was you write
+> someone find that very particular case, doesn't mean that gcc 2.95 is
+> better , may be a lucky point.
+yes, I think that...=20
+> So my advice get lastest (stable) compiler and lastest kernel and repor=
+t
+> any problem that you may have, with some luck you will get back your
+> functionalities.
+I try with kernel 2.6.14rc4 and gcc4.0... and nothing change.. :(
+>=20
+> btw what is the bios age ?=20
+the firmware is 4 years old.
+> regards,
 
---=-Hwwbufimd7AV4QYfRuJE
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-hello.
-
-I'm encountering a problem with acpi on kernels where preempt is
-enabled.
-The problem is 100% reproducible on all kernels starting from 2.6.12.1
-to 2.6.14
-( i didn't try 2.6.11 and below ).
-
-the problem is manifested via the battery proc interface. to produce it,
-run in two terminals simultaneously:=20
-while true; do cat /proc/acpi/battery/BAT0/info; done
-
-if i turn on kernel preemption (either voluntary or not), i get the
-following error messages in dmesg:
-Nov  7 08:31:00 lapnir ACPI-0292: *** Error: Looking up [SERN] in
-namespace, AE_ALREADY_EXISTS
-Nov  7 08:31:00 lapnir ACPI-0508: *** Error: Method execution failed
-[\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f5d60), AE_ALREADY_EXISTS
-Nov  7 08:31:02 lapnir ACPI-0213: *** Error: Method reached maximum
-reentrancy limit (255)
-Nov  7 08:31:02 lapnir ACPI-0508: *** Error: Method execution failed
-[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f5c20), AE_AML_METHOD_LIMIT
-
-and with acpi debugging info turned on:
-Nov  7 08:46:08 lapnir dswload-0292: *** Error: Looking up [SERN] in
-namespace, AE_ALREADY_EXISTS
-Nov  7 08:46:08 lapnir psloop-0287 [4399] ps_parse_loop         : During
-name lookup/catalog, AE_ALREADY_EXISTS
-Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution failed
-[\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f94e8), AE_ALREADY_EXISTS
-Nov  7 08:46:08 lapnir osl-0856 [4403] os_wait_semaphore     : Failed to
-acquire semaphore[c18de5e0|1|0], AE_TIME
-Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached maximum
-reentrancy limit (255)
-Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution failed
-[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268), AE_AML_METHOD_LIMIT
-Nov  7 08:46:08 lapnir acpi_battery-0144 [4449] battery_get_info      :
-Error evaluating _BIF
-Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached maximum
-reentrancy limit (255)
-Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution failed
-[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268), AE_AML_METHOD_LIMIT
+bye,
+fede.
 
 
-this is repeated until a reboot. loading and unloading the battery
-module does not help.
 
-My computer is a thinkpad t43p, and i didn't try to reproduce it on
-another laptop
-(have no access to another model..).
-If you need more info, let me know.
 
-p.s. please cc me, im not in the list.
 
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D
-Nir Tzachar.
+>=20
+> On Mon, 2005-10-17 at 23:56 -0300, Federico Nu=F1ez Artigas wrote:
+> > Hello..
+> >=20
+> > I'm having some troubles with the acpi Support on this laptop.
+> > Here is happening some crazy thinks that I don't understand at all.
+> >=20
+> > Reading on the web I found that someone discover that compiling the k=
+ernel=20
+> > with gcc-2.95 make acpi work on this laptop, I doit a make battery an=
+d thermal=20
+> > status work (sleep modes no).=20
+> > The same kernel, the same config, the same buggy DSDT with gcc-2.95 m=
+ake=20
+> > battery and thermal status work and with gcc-3xx/gcc-4 DON,T.
+> >=20
+> > I have try fix the DSDT, I fix all compiling problem but nothing chan=
+ge.
+> >=20
+> > I was running a kernel compiled with 2.95 for a year, but that take m=
+e other=20
+> > problems when trying to compile external modules.
+> >=20
+> > Now, I need to leave 2.95....
+> >=20
+> > can someone help me?
+> > really, I don't know what more I can do!!!
+> > I send my fixed DSDT attached,=20
+> >=20
+> >=20
+> > bye and thanks=20
+> > fede.
+> --=20
+> S=E9rgio M.B.
 
---=-Hwwbufimd7AV4QYfRuJE
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBDbx/lIHR+zI+Dam4RAtAaAJ93o7lRT7qq65o94IXHT1s+YSUdNQCgiu+b
-CZIjx1ojl6pVSTYG55R3fSs=
-=T3Xx
------END PGP SIGNATURE-----
-
---=-Hwwbufimd7AV4QYfRuJE--
 
 
 
