@@ -1,117 +1,177 @@
 From: "Moore, Robert" <robert.moore@intel.com>
 Subject: RE: [ACPI] ACPI and PRREMPT bug
-Date: Mon, 7 Nov 2005 12:44:12 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E0356B628@orsmsx403.amr.corp.intel.com>
+Date: Mon, 7 Nov 2005 13:26:49 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E0356B71D@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932365AbVKGUoh@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964934AbVKGV1I@vger.kernel.org>
 Content-class: urn:content-classes:message
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Moore, Robert" <robert.moore@intel.com>, tzachar@cs.bgu.ac.il, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-You might try setting this flag (in acglobal.h) to TRUE:
+Here's a quick patch that should stop the METHOD_LIMIT errors. It's just
+a quick hack, not the correct solution.
 
-/*
- * Automatically serialize ALL control methods? Default is FALSE,
-meaning
- * to use the Serialized/NotSerialized method flags on a per method
-basis.
- * Only change this if the ASL code is poorly written and cannot handle
- * reentrancy even though methods are marked "NotSerialized".
- */
-ACPI_EXTERN UINT8       ACPI_INIT_GLOBAL (AcpiGbl_AllMethodsSerialized,
-FALSE);
+Index: source/components/interpreter/parser/psparse.c
+===================================================================
+RCS file:
+/home/cmplr/cvs/acpica/Acpi/source/components/interpreter/parser/psparse
+.c,v
+retrieving revision 1.158
+diff -u -r1.158 psparse.c
+--- source/components/interpreter/parser/psparse.c	2 Sep 2005
+20:17:39 -0000	1.158
++++ source/components/interpreter/parser/psparse.c	7 Nov 2005
+21:15:44 -0000
+@@ -647,7 +647,10 @@
+             {
+                 /* Decrement the thread count on the method parse tree
+*/
+ 
+-                WalkState->MethodDesc->Method.ThreadCount--;
++                if (WalkState->MethodDesc->Method.ThreadCount)
++                {
++                    WalkState->MethodDesc->Method.ThreadCount--;
++                }
+             }
+ 
+             AcpiDsTerminateControlMethod (WalkState);
 
+
+Linux version would look like this:
+
+
+				/* Decrement the thread count on the
+method parse tree */
+
+				if
+(walk_state->method_desc->method.thread_count) {
+	
+walk_state->method_desc->method.thread_count--;
+				}
 
 
 > -----Original Message-----
 > From: Moore, Robert
-> Sent: Monday, November 07, 2005 12:42 PM
-> To: 'tzachar@cs.bgu.ac.il'; linux-kernel@vger.kernel.org; acpi-
-> devel@lists.sourceforge.net
+> Sent: Monday, November 07, 2005 12:44 PM
+> To: Moore, Robert; 'tzachar@cs.bgu.ac.il';
+'linux-kernel@vger.kernel.org';
+> 'acpi-devel@lists.sourceforge.net'
 > Subject: RE: [ACPI] ACPI and PRREMPT bug
 > 
-> I'm aware of this issue and it is under investigation.
-> Bob
+> You might try setting this flag (in acglobal.h) to TRUE:
+> 
+> /*
+>  * Automatically serialize ALL control methods? Default is FALSE,
+meaning
+>  * to use the Serialized/NotSerialized method flags on a per method
+basis.
+>  * Only change this if the ASL code is poorly written and cannot
+handle
+>  * reentrancy even though methods are marked "NotSerialized".
+>  */
+> ACPI_EXTERN UINT8       ACPI_INIT_GLOBAL
+(AcpiGbl_AllMethodsSerialized,
+> FALSE);
+> 
 > 
 > 
 > > -----Original Message-----
-> > From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
-> > admin@lists.sourceforge.net] On Behalf Of Nir Tzachar
-> > Sent: Monday, November 07, 2005 1:36 AM
-> > To: linux-kernel@vger.kernel.org; acpi-devel@lists.sourceforge.net
-> > Subject: [ACPI] ACPI and PRREMPT bug
+> > From: Moore, Robert
+> > Sent: Monday, November 07, 2005 12:42 PM
+> > To: 'tzachar@cs.bgu.ac.il'; linux-kernel@vger.kernel.org; acpi-
+> > devel@lists.sourceforge.net
+> > Subject: RE: [ACPI] ACPI and PRREMPT bug
 > >
-> > hello.
+> > I'm aware of this issue and it is under investigation.
+> > Bob
 > >
-> > I'm encountering a problem with acpi on kernels where preempt is
-> > enabled.
-> > The problem is 100% reproducible on all kernels starting from
+> >
+> > > -----Original Message-----
+> > > From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
+> > > admin@lists.sourceforge.net] On Behalf Of Nir Tzachar
+> > > Sent: Monday, November 07, 2005 1:36 AM
+> > > To: linux-kernel@vger.kernel.org; acpi-devel@lists.sourceforge.net
+> > > Subject: [ACPI] ACPI and PRREMPT bug
+> > >
+> > > hello.
+> > >
+> > > I'm encountering a problem with acpi on kernels where preempt is
+> > > enabled.
+> > > The problem is 100% reproducible on all kernels starting from
 2.6.12.1
-> > to 2.6.14
-> > ( i didn't try 2.6.11 and below ).
-> >
-> > the problem is manifested via the battery proc interface. to produce
-it,
-> > run in two terminals simultaneously:
-> > while true; do cat /proc/acpi/battery/BAT0/info; done
-> >
-> > if i turn on kernel preemption (either voluntary or not), i get the
-> > following error messages in dmesg:
-> > Nov  7 08:31:00 lapnir ACPI-0292: *** Error: Looking up [SERN] in
-> > namespace, AE_ALREADY_EXISTS
-> > Nov  7 08:31:00 lapnir ACPI-0508: *** Error: Method execution failed
-> > [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f5d60), AE_ALREADY_EXISTS
-> > Nov  7 08:31:02 lapnir ACPI-0213: *** Error: Method reached maximum
-> > reentrancy limit (255)
-> > Nov  7 08:31:02 lapnir ACPI-0508: *** Error: Method execution failed
-> > [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f5c20),
-AE_AML_METHOD_LIMIT
-> >
-> > and with acpi debugging info turned on:
-> > Nov  7 08:46:08 lapnir dswload-0292: *** Error: Looking up [SERN] in
-> > namespace, AE_ALREADY_EXISTS
-> > Nov  7 08:46:08 lapnir psloop-0287 [4399] ps_parse_loop         :
-During
-> > name lookup/catalog, AE_ALREADY_EXISTS
-> > Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+> > > to 2.6.14
+> > > ( i didn't try 2.6.11 and below ).
+> > >
+> > > the problem is manifested via the battery proc interface. to
+produce
+> it,
+> > > run in two terminals simultaneously:
+> > > while true; do cat /proc/acpi/battery/BAT0/info; done
+> > >
+> > > if i turn on kernel preemption (either voluntary or not), i get
+the
+> > > following error messages in dmesg:
+> > > Nov  7 08:31:00 lapnir ACPI-0292: *** Error: Looking up [SERN] in
+> > > namespace, AE_ALREADY_EXISTS
+> > > Nov  7 08:31:00 lapnir ACPI-0508: *** Error: Method execution
 failed
-> > [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f94e8), AE_ALREADY_EXISTS
-> > Nov  7 08:46:08 lapnir osl-0856 [4403] os_wait_semaphore     :
-Failed to
-> > acquire semaphore[c18de5e0|1|0], AE_TIME
-> > Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached
+> > > [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f5d60), AE_ALREADY_EXISTS
+> > > Nov  7 08:31:02 lapnir ACPI-0213: *** Error: Method reached
 maximum
-> > reentrancy limit (255)
-> > Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+> > > reentrancy limit (255)
+> > > Nov  7 08:31:02 lapnir ACPI-0508: *** Error: Method execution
 failed
-> > [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268),
+> > > [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f5c20),
 AE_AML_METHOD_LIMIT
-> > Nov  7 08:46:08 lapnir acpi_battery-0144 [4449] battery_get_info
-:
-> > Error evaluating _BIF
-> > Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached
-maximum
-> > reentrancy limit (255)
-> > Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
-failed
-> > [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268),
+> > >
+> > > and with acpi debugging info turned on:
+> > > Nov  7 08:46:08 lapnir dswload-0292: *** Error: Looking up [SERN]
+in
+> > > namespace, AE_ALREADY_EXISTS
+> > > Nov  7 08:46:08 lapnir psloop-0287 [4399] ps_parse_loop         :
+> During
+> > > name lookup/catalog, AE_ALREADY_EXISTS
+> > > Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+> failed
+> > > [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f94e8), AE_ALREADY_EXISTS
+> > > Nov  7 08:46:08 lapnir osl-0856 [4403] os_wait_semaphore     :
+Failed
+> to
+> > > acquire semaphore[c18de5e0|1|0], AE_TIME
+> > > Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached
+> maximum
+> > > reentrancy limit (255)
+> > > Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+> failed
+> > > [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268),
 AE_AML_METHOD_LIMIT
-> >
-> >
-> > this is repeated until a reboot. loading and unloading the battery
-> > module does not help.
-> >
-> > My computer is a thinkpad t43p, and i didn't try to reproduce it on
-> > another laptop
-> > (have no access to another model..).
-> > If you need more info, let me know.
-> >
-> > p.s. please cc me, im not in the list.
-> >
-> > --
-> > =========================================================
-> > Nir Tzachar.
+> > > Nov  7 08:46:08 lapnir acpi_battery-0144 [4449] battery_get_info
+> :
+> > > Error evaluating _BIF
+> > > Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached
+> maximum
+> > > reentrancy limit (255)
+> > > Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+> failed
+> > > [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268),
+AE_AML_METHOD_LIMIT
+> > >
+> > >
+> > > this is repeated until a reboot. loading and unloading the battery
+> > > module does not help.
+> > >
+> > > My computer is a thinkpad t43p, and i didn't try to reproduce it
+on
+> > > another laptop
+> > > (have no access to another model..).
+> > > If you need more info, let me know.
+> > >
+> > > p.s. please cc me, im not in the list.
+> > >
+> > > --
+> > > =========================================================
+> > > Nir Tzachar.
