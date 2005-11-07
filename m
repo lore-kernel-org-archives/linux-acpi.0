@@ -1,45 +1,91 @@
-From: Simon Foster <s.d.f-FhtRXb7CoQBt1OO0OYaSVA@public.gmane.org>
-Subject: C-States on Inspiron 6000
-Date: Mon, 07 Nov 2005 17:57:57 +0000
-Message-ID: <1131386277.16106.19.camel@localhost>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [ACPI] ACPI and PRREMPT bug
+Date: Mon, 7 Nov 2005 12:42:18 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E0356B620@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965351AbVKGUmb@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: tzachar@cs.bgu.ac.il, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-I'm experiencing problems with ACPI C-States higher than 1 an Inspiron
-6000. At any higher setting Xorg graphics are choppy and input from the
-touch-pad is not recognized correctly (e.g. button clicks only register
-as half-clicks or don't register at all). If I set max_cstate to 1, the
-problems disappear, although the CPU is about 6 degrees hotter at rest
-than max_cstate=4. At max C-State 1 the CPU is idle, but at higher max
-C-States it displays constant spikes.
-
-The problem occurs on both Gentoo 2.6.13 and 2.6.14. This problem is
-always reproducible, by simply changing the max_cstate setting from 1 to
-2.
-
-(Please CC me replies).
-
-Thanks,
-
--Si.
+I'm aware of this issue and it is under investigation.
+Bob
 
 
-
--------------------------------------------------------
-SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. Download
-it for free - -and be entered to win a 42" plasma tv or your very own
-Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
+> -----Original Message-----
+> From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
+> admin@lists.sourceforge.net] On Behalf Of Nir Tzachar
+> Sent: Monday, November 07, 2005 1:36 AM
+> To: linux-kernel@vger.kernel.org; acpi-devel@lists.sourceforge.net
+> Subject: [ACPI] ACPI and PRREMPT bug
+> 
+> hello.
+> 
+> I'm encountering a problem with acpi on kernels where preempt is
+> enabled.
+> The problem is 100% reproducible on all kernels starting from 2.6.12.1
+> to 2.6.14
+> ( i didn't try 2.6.11 and below ).
+> 
+> the problem is manifested via the battery proc interface. to produce
+it,
+> run in two terminals simultaneously:
+> while true; do cat /proc/acpi/battery/BAT0/info; done
+> 
+> if i turn on kernel preemption (either voluntary or not), i get the
+> following error messages in dmesg:
+> Nov  7 08:31:00 lapnir ACPI-0292: *** Error: Looking up [SERN] in
+> namespace, AE_ALREADY_EXISTS
+> Nov  7 08:31:00 lapnir ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f5d60), AE_ALREADY_EXISTS
+> Nov  7 08:31:02 lapnir ACPI-0213: *** Error: Method reached maximum
+> reentrancy limit (255)
+> Nov  7 08:31:02 lapnir ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f5c20), AE_AML_METHOD_LIMIT
+> 
+> and with acpi debugging info turned on:
+> Nov  7 08:46:08 lapnir dswload-0292: *** Error: Looking up [SERN] in
+> namespace, AE_ALREADY_EXISTS
+> Nov  7 08:46:08 lapnir psloop-0287 [4399] ps_parse_loop         :
+During
+> name lookup/catalog, AE_ALREADY_EXISTS
+> Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+failed
+> [\_SB_.PCI0.LPC_.EC__.GBIF] (Node c18f94e8), AE_ALREADY_EXISTS
+> Nov  7 08:46:08 lapnir osl-0856 [4403] os_wait_semaphore     : Failed
+to
+> acquire semaphore[c18de5e0|1|0], AE_TIME
+> Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached
+maximum
+> reentrancy limit (255)
+> Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268), AE_AML_METHOD_LIMIT
+> Nov  7 08:46:08 lapnir acpi_battery-0144 [4449] battery_get_info
+:
+> Error evaluating _BIF
+> Nov  7 08:46:08 lapnir dsmethod-0213: *** Error: Method reached
+maximum
+> reentrancy limit (255)
+> Nov  7 08:46:08 lapnir psparse-0508: *** Error: Method execution
+failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c18f9268), AE_AML_METHOD_LIMIT
+> 
+> 
+> this is repeated until a reboot. loading and unloading the battery
+> module does not help.
+> 
+> My computer is a thinkpad t43p, and i didn't try to reproduce it on
+> another laptop
+> (have no access to another model..).
+> If you need more info, let me know.
+> 
+> p.s. please cc me, im not in the list.
+> 
+> --
+> =========================================================
+> Nir Tzachar.
