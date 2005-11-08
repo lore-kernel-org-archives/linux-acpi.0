@@ -1,14 +1,13 @@
-From: Nir Tzachar <tzachar-7iDlm8ZLfO0Zqb/kyJCLuA@public.gmane.org>
-Subject: Re: ACPI and PRREMPT bug
-Date: Tue, 08 Nov 2005 10:17:22 +0200
-Message-ID: <1131437843.8476.2.camel@nexus.cs.bgu.ac.il>
-References: <971FCB6690CD0E4898387DBF7552B90E0356B628@orsmsx403.amr.corp.int el.com>
-	 <20051107231524.GW7991@shell0.pdx.osdl.net>
-Reply-To: tzachar-7iDlm8ZLfO0Zqb/kyJCLuA@public.gmane.org
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: hard drive errors on acpi s3 resume
+Date: Tue, 8 Nov 2005 10:11:44 +0100
+Message-ID: <20051108091144.GD15730@elf.ucw.cz>
+References: <971FCB6690CD0E4898387DBF7552B90E0356BAE2@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-YrnbwH0Id88eYmHVP81+"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051107231524.GW7991-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0356BAE2-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,46 +17,107 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---=-YrnbwH0Id88eYmHVP81+
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Please don't top post.
 
->   Booting with
-> acpi_serialize (which sets that flag to true) does seem to fix the
-> problem. =20
+> Just out of curiosity, what issues do you find with the coding
+> style?
 
-this partially solves the problem. im still getting this:
+I hope that means you want to clean it up and apply it ;-).
 
-Nov  8 10:08:15 lapnir osl-0965 [3164] os_wait_semaphore     : Failed to
-acquire semaphore[c193c820|1|0], AE_TIME
-Nov  8 10:08:17 lapnir osl-0965 [4647] os_wait_semaphore     : Failed to
-acquire semaphore[c193c820|1|0], AE_TIME
++#ifdef CONFIG_ACPI
++#include <linux/acpi.h>
++#define DBG(x...) printk(x)
 
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D
-Nir Tzachar.
+Include in the middle of file? Renaming of printk to confuse reader?
 
---=-YrnbwH0Id88eYmHVP81+
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
++       int i, tmp;
++       acpi_integer addr;
+...
++       addr = i;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+...oops, something is very wrong in acpi land.
 
-iD8DBQBDcF8SIHR+zI+Dam4RAo27AJ9goDwh1vn9t/l/dvoACJi5A/r7/gCgrzQ5
-2WPhTcZwmyiwOebwHsIxuBM=
-=iyVs
------END PGP SIGNATURE-----
++#define GTM_LEN (sizeof(u32) * 5)
+...
++       u32     gtm[GTM_LEN/sizeof(u32)]; /* info from _GTM */
 
---=-YrnbwH0Id88eYmHVP81+--
+Eh? Better names would be nice, too.
 
++       for (i = 0; i < MAX_DEVICES; i ++)
+
+Please no space between i and ++.
+
++static struct acpi_ide_stat *ide_get_acpi_state(acpi_handle handle)
+
+The function is strange, btw. Linear search, and it basically returns
+pointer to zeros. I'd expect zeroing to be in caller or something like that.
+
++int acpi_ide_suspend(struct device *dev)
++{
++       acpi_handle handle, parent_handle;
++       struct acpi_ide_stat *stat;
++       acpi_status     status;
+
+At least alignment should be consistent locally.
+
++static int acpi_ide_gtf(acpi_handle handle, ide_drive_t *drive)
++{
++       struct acpi_buffer      output = {ACPI_ALLOCATE_BUFFER, NULL};
++       ide_task_t      args;
++       int index = 0;
++       unsigned char *data;
++       union acpi_object       *package = NULL;
++       acpi_status status;
+
+...even more horible example of above.
+
++               /* submit command request */
++//             printk("return value %d\n", ide_raw_taskfile(drive, &args, NULL));
++               index += 7;
+
+Someone should learn to use delete key and version control...
+
++       if (stat->channel_handled == 0) {
++               stat->handle = NULL;
++               goto gtf;
++       }
++DBG("Start STM\n");
++       if (acpi_ide_stm(stat))
++               return -ENODEV;
++       stat->channel_handled = 0;
++gtf:
++       return acpi_ide_gtf(handle, drive);
++}
+
+What about "else" instead of ugly goto. And that DBG should really go
+away.
+
+-
++#ifdef CONFIG_ACPI
++       acpi_ide_suspend(dev);
++#endif
+
+-
++#ifdef CONFIG_ACPI
++       acpi_ide_resume(dev);
++#endif
+        memset(&rq, 0, sizeof(rq));
+        memset(&rqpm, 0, sizeof(rqpm));
+        memset(&args, 0, sizeof(args));
+
+We normally allways provide acpi_ide_resume, but make them nop in
+!ACPI case. That means #ifdefs are avoided in callers.
+
+...should be enough...
+							Pavel
+-- 
+Thanks, Sharp!
 
 
 -------------------------------------------------------
