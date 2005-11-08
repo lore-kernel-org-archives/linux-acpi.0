@@ -1,13 +1,16 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Strange speedstep-related code in some DSDT
-Date: Tue, 8 Nov 2005 15:04:30 +0100
-Message-ID: <20051108140430.GG24086@poupinou.org>
-References: <20051102140113.4B8E510334@paperstreet.colino.net> <20051108095503.GE24086@poupinou.org> <20051108095903.F0AC810334@paperstreet.colino.net>
+From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Acer Extensa 4101 WLMI
+Date: Tue, 8 Nov 2005 18:57:28 +0100
+Message-ID: <200511081857.35879.G.Ohrner@post.rwth-aachen.de>
+References: <2520.1131376066@www11.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  boundary="nextPart3528687.HTHEQuyWB4";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051108095903.F0AC810334-ikQ2XB4hBiN4bLtxfhijqcrri8PcjVMM@public.gmane.org>
+In-Reply-To: <2520.1131376066-mtCb7ZCModZmcu3hnIyYJQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,59 +20,97 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Colin Leroy <colin-5s/l0yV9g/OsTnJN9+BGXg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Dirk Partikel <dirk.partikel-hi6Y0CQ0nG0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 08, 2005 at 10:57:01AM +0100, Colin Leroy wrote:
-> On 08 Nov 2005 at 10h11, Bruno Ducrot wrote:
-> 
-> Hi, 
-> 
-> > On Wed, Nov 02, 2005 at 03:00:10PM +0100, Colin Leroy wrote:
-> > > Hi,
-> > > 
-> > > After I upgraded the BIOS on an Asus M6B600C laptop, I found it to
-> > > be stuck at 600MHz. After investigating for a while using
-> > > debug.cpufreq=3, I found out that the DSDT looked strange, and
-> > > after I fixed it, cpufreq worked again.
-> > > 
-> > > The things I had to fix were mainly:
-> > > -            Name (APCT, Package (0x02)
-> > > +            Name (_PCT, Package (0x02)
-> > > 
-> > > and
-> > > -            Name (NPSS, 0x00)
-> > > -            Name (APSS, Package (0x0A)
-> > > +            Name (NPSS, 0x05)
-> > > +            Name (_PSS, Package (0x0A)
-> > > 
-> > > I am wondering whether such objects should be recognized, or is it
-> > > Asus' fault? I read somewhere that they ship a (windows-based)
-> > > proprietary speed controller software for their laptops, so they
-> > > probably don't care about specs in this regard.
-> > > 
-> > > Do you think a patch would be ok to handle these in
-> > > processor_perflib.c? 
-> > > 
-> > 
-> > I'll suspect more that after upgrading your bios you forgot to enable
-> > or disable speedstep stuff based upon a bios option...
-> 
-> Thanks for the answer. I thought of that, but it is true that everytime
-> I got back in the bios, speedstep was flagged 'disabled'. Maybe a bug
-> BIOS then :)
+--nextPart3528687.HTHEQuyWB4
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Most likely.
+Am Montag, 7. November 2005 16:07 schrieb Dirk Partikel:
+> Liebes Acpi4Linux Team
 
-But if a propritary driver work, I think the speedstep-smi may work
-since it's actually more or less a reverse-engineered driver...
+Uhm, sending a German text to an English speaking mailing list is no very=20
+promising idea, I think...
 
--- 
-Bruno Ducrot
+> Die DSDT vom Acer Extensa 4100 WLMI ist nat=FCtlich nicht kompatibel mit
+> meinem Notebook. Laut Acer sind mein Extensa 4101 WLMI und das Aspire
+> 1690 WLMI baugleich. Also habe ich erstmal ein aktuelles Bios (3C29)
+> eingespielt. Leider funktioniert die DSDT von eurer Seite f=FCr das
+> Aspire 1691 WLMI auch nicht.
+> H=E4tte jetzt eine gro=DFe bitte an euer Team.
+> Habe eine DSDT.dsl aus der /proc/acpi/dsdt erzeugt.
+> Beim kompilieren gibt es 14 errors, mehrfach error 1061, kann nirgends
+> eine Fehlercodeliste mit der Beschreibung f=FCr error 1061 finden, auch
+> ein paar andere errors konnte ich nicht im Internet wiederfinden.
+> K=F6nntet ihr euch meine DSDT mal ansehen und gucken ob ihr sie
+> instandsetzten k=F6nnt??
+> Boote meinen Kernel 2.6.14 mit -noapic, hat das Einfluss auf die
+> Richtigkeit der DSDT.dsl bzw. /proc/acpi/dsdt??
+> Acer Extensa 4101 WLMI, 1024 MB Ram DDR, Radeon X700
+>
+> Wenn ihr mir z.B. eine Info geben w=FCrdet, error 1061 l=E4sst sich so und
+> so beheben, w=FCrde ich diese Informationen gerne an Ubuntuusers.de
+> weiterleiten, dort gibt es schon eine Liste mit ein paar errors und
+> einer Anweisung, wie man sie behebt, falls da nichts gegen spricht.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+************
+
+Obviously the DSDT of an Acer Extensa 4100 WLMI is not compatible with my=20
+notebook. According to Acer, my Extensa 4101 WLMI and the Aspire 1690=20
+WLMI are identically in this respect, however. I thus installed a current=20
+BIOS version (3C29) first. Unfortunately the Aspire 1691 WLMI DSDT=20
+provided on the DSDT website doesn't work as well.
+
+
+So I kindly ask you to grant my request:
+
+I created a DSDT.dsl based on my /proc/acpi/dsdt. Recompiling it causes 14=
+=20
+errors including multiple "error 1061" messages. I wasn't able to find an=20
+error code description for error "1061", as well as some other error=20
+messages I got.
+
+Could someone please have a look at this dsdt and try to fix it?
+
+I currently boot my kernel 2.6.14 using -noapic, does this influence the=20
+DSDT?
+
+Acer Extensa 4101 WLMI, 1024 MB Ram DDR, Radeon X700
+
+If you can give me any hint on how to fix error 1061 and you don't mind,=20
+I'll forward this information to Ubuntuusers.de, they already provide a=20
+list with a few error messages and instructions on how to fix these.
+
+************
+
+Greetings,
+
+  Gunter
+
+=2D-=20
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++ http://aachen.uni-dsl.de/   -   Der direkte Draht in's Hochschulnetz! +
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Behind every good computer... is a jumble of wires 'n stuff.
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++                   PGP-verschl=FCsselte Mails bevorzugt!                 +
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+--nextPart3528687.HTHEQuyWB4
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQBDcOcP0ORHvREo8l8RAugPAJ0TE9wlSzU/wlDcrEr5TWJvcWRIAwCgmuXs
+m6VTS1RUoxB4dS/jY1A1TyA=
+=PZNF
+-----END PGP SIGNATURE-----
+
+--nextPart3528687.HTHEQuyWB4--
 
 
 -------------------------------------------------------
