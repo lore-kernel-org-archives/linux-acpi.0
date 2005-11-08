@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: hard drive errors on acpi s3 resume
-Date: Tue, 8 Nov 2005 10:30:41 +0100
-Message-ID: <20051108093041.GI15730@elf.ucw.cz>
-References: <59D45D057E9702469E5775CBB56411F1CDB8FB@pdsmsx406>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Strange speedstep-related code in some DSDT
+Date: Tue, 8 Nov 2005 10:55:03 +0100
+Message-ID: <20051108095503.GE24086@poupinou.org>
+References: <20051102140113.4B8E510334@paperstreet.colino.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <59D45D057E9702469E5775CBB56411F1CDB8FB@pdsmsx406>
+In-Reply-To: <20051102140113.4B8E510334-ikQ2XB4hBiN4bLtxfhijqcrri8PcjVMM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Colin Leroy <colin-5s/l0yV9g/OsTnJN9+BGXg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Wed, Nov 02, 2005 at 03:00:10PM +0100, Colin Leroy wrote:
+> Hi,
+> 
+> After I upgraded the BIOS on an Asus M6B600C laptop, I found it to be
+> stuck at 600MHz. After investigating for a while using debug.cpufreq=3,
+> I found out that the DSDT looked strange, and after I fixed it, cpufreq
+> worked again.
+> 
+> The things I had to fix were mainly:
+> -            Name (APCT, Package (0x02)
+> +            Name (_PCT, Package (0x02)
+> 
+> and
+> -            Name (NPSS, 0x00)
+> -            Name (APSS, Package (0x0A)
+> +            Name (NPSS, 0x05)
+> +            Name (_PSS, Package (0x0A)
+> 
+> I am wondering whether such objects should be recognized, or is it
+> Asus' fault? I read somewhere that they ship a (windows-based)
+> proprietary speed controller software for their laptops, so they
+> probably don't care about specs in this regard.
+> 
+> Do you think a patch would be ok to handle these in
+> processor_perflib.c? 
+> 
 
-> >Please don't top post.
-> >
-> >> Just out of curiosity, what issues do you find with the coding
-> >> style?
-> >
-> >I hope that means you want to clean it up and apply it ;-).
-> >
-> BTW, is this really worth submitting to upstream? It doesn't support
-> _GTF. And it appears useless in my test systems.
+I'll suspect more that after upgrading your bios you forgot to enable
+or disable speedstep stuff based upon a bios option...
 
-My test systems work well enough without that. If there's a system
-where it helps, I'd submit it.
+DSDT is likely generated on POST and renaming _PST is a cheap way
+to disable speedstep if the processor is forced to the lowest
+frequency in the BIOS.
 
-[Could we loudly printk in not-yet-implemented _GTF to at least see
-how many BIOSen need it? That could be good enough reason to apply it,
-too.]
+Cheers,
 
-								Pavel
 -- 
-Thanks, Sharp!
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
