@@ -1,14 +1,13 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Acer Extensa 4101 WLMI
-Date: Tue, 8 Nov 2005 14:57:34 +0100
-Message-ID: <20051108135734.GF24086@poupinou.org>
-References: <2520.1131376066@www11.gmx.net>
+Subject: Re: Strange speedstep-related code in some DSDT
+Date: Tue, 8 Nov 2005 15:04:30 +0100
+Message-ID: <20051108140430.GG24086@poupinou.org>
+References: <20051102140113.4B8E510334@paperstreet.colino.net> <20051108095503.GE24086@poupinou.org> <20051108095903.F0AC810334@paperstreet.colino.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2520.1131376066-mtCb7ZCModZmcu3hnIyYJQ@public.gmane.org>
+In-Reply-To: <20051108095903.F0AC810334-ikQ2XB4hBiN4bLtxfhijqcrri8PcjVMM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,48 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dirk Partikel <dirk.partikel-hi6Y0CQ0nG0@public.gmane.org>
+To: Colin Leroy <colin-5s/l0yV9g/OsTnJN9+BGXg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 07, 2005 at 04:07:46PM +0100, Dirk Partikel wrote:
-> Liebes Acpi4Linux Team
-> Die DSDT vom Acer Extensa 4100 WLMI ist nat=FCtlich nicht kompatibel mi=
-t
-> meinem Notebook. Laut Acer sind mein Extensa 4101 WLMI und das Aspire 1=
-690
-> WLMI baugleich. Also habe ich erstmal ein aktuelles Bios (3C29) eingesp=
-ielt.
-> Leider funktioniert die DSDT von eurer Seite f=FCr das Aspire 1691 WLMI=
- auch
-> nicht.
-> H=E4tte jetzt eine gro=DFe bitte an euer Team.
-> Habe eine DSDT.dsl aus der /proc/acpi/dsdt erzeugt.
-> Beim kompilieren gibt es 14 errors, mehrfach error 1061, kann nirgends =
-eine
-> Fehlercodeliste mit der Beschreibung f=FCr error 1061 finden, auch ein =
-paar
-> andere errors konnte ich nicht im Internet wiederfinden.
-> K=F6nntet ihr euch meine DSDT mal ansehen und gucken ob ihr sie instand=
-setzten
-> k=F6nnt??
-> Boote meinen Kernel 2.6.14 mit -noapic, hat das Einfluss auf die Richti=
-gkeit
-> der DSDT.dsl bzw. /proc/acpi/dsdt??
-> Acer Extensa 4101 WLMI, 1024 MB Ram DDR, Radeon X700
->=20
-> Wenn ihr mir z.B. eine Info geben w=FCrdet, error 1061 l=E4sst sich so =
-und so
-> beheben, w=FCrde ich diese Informationen gerne an Ubuntuusers.de weiter=
-leiten,
-> dort gibt es schon eine Liste mit ein paar errors und einer Anweisung, =
-wie
-> man sie behebt, falls da nichts gegen spricht.
->=20
+On Tue, Nov 08, 2005 at 10:57:01AM +0100, Colin Leroy wrote:
+> On 08 Nov 2005 at 10h11, Bruno Ducrot wrote:
+> 
+> Hi, 
+> 
+> > On Wed, Nov 02, 2005 at 03:00:10PM +0100, Colin Leroy wrote:
+> > > Hi,
+> > > 
+> > > After I upgraded the BIOS on an Asus M6B600C laptop, I found it to
+> > > be stuck at 600MHz. After investigating for a while using
+> > > debug.cpufreq=3, I found out that the DSDT looked strange, and
+> > > after I fixed it, cpufreq worked again.
+> > > 
+> > > The things I had to fix were mainly:
+> > > -            Name (APCT, Package (0x02)
+> > > +            Name (_PCT, Package (0x02)
+> > > 
+> > > and
+> > > -            Name (NPSS, 0x00)
+> > > -            Name (APSS, Package (0x0A)
+> > > +            Name (NPSS, 0x05)
+> > > +            Name (_PSS, Package (0x0A)
+> > > 
+> > > I am wondering whether such objects should be recognized, or is it
+> > > Asus' fault? I read somewhere that they ship a (windows-based)
+> > > proprietary speed controller software for their laptops, so they
+> > > probably don't care about specs in this regard.
+> > > 
+> > > Do you think a patch would be ok to handle these in
+> > > processor_perflib.c? 
+> > > 
+> > 
+> > I'll suspect more that after upgrading your bios you forgot to enable
+> > or disable speedstep stuff based upon a bios option...
+> 
+> Thanks for the answer. I thought of that, but it is true that everytime
+> I got back in the bios, speedstep was flagged 'disabled'. Maybe a bug
+> BIOS then :)
 
-Sorry I don't speak german.  Could you please resend in English?
+Most likely.
 
---=20
+But if a propritary driver work, I think the speedstep-smi may work
+since it's actually more or less a reverse-engineered driver...
+
+-- 
 Bruno Ducrot
 
 --  Which is worse:  ignorance or apathy?
@@ -68,7 +74,6 @@ Bruno Ducrot
 
 -------------------------------------------------------
 SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. Downl=
-oad
+Tame your development challenges with Apache's Geronimo App Server. Download
 it for free - -and be entered to win a 42" plasma tv or your very own
 Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
