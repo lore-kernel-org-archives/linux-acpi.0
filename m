@@ -1,13 +1,12 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: "sdfa" <slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org>
 Subject: Re: hard drive errors on acpi s3 resume
-Date: Tue, 8 Nov 2005 00:34:47 +0100
-Message-ID: <20051107233447.GD2034@elf.ucw.cz>
-References: <20051104063946.BB9CA3DF4@xprdmailfe12.nwk.excite.com> <20051106162739.GA28697@elf.ucw.cz> <1131310139.1212.37.camel@localhost.localdomain> <20051107012229.GA19681@srcf.ucam.org>
+Date: Mon,  7 Nov 2005 22:06:27 -0500 (EST)
+Message-ID: <20051108030627.93670109EB8@xprdmailfe1.nwk.excite.com>
+Reply-To: slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051107012229.GA19681-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +16,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, sdfa <slinky1776-wzCN7aUSXSrQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > Also I'm afraid you'll have to ask this on ide lists; this is not an
-> > > ACPI but a driver problem.
-> > 
-> > Its probably also an ACPI problem. ACPI provides disk suspend/resume
-> > methods but nobody as hooked them to anything. Basically you shouldn't
-> > mix ACPI S3 and IDE disks in Linux until this is done.
-> 
-> There's a patch that floated on here a while ago - we're shipping it in 
-> Ubuntu. Hang on...
-> 
-> http://www.codon.org.uk/~mjg59/tmp/external-drivers-ide_sleep.dpatch is 
-> what we're shipping - it seems to work in most cases, but not all. It 
-> implements the _GTM and _STM methods, but doesn't do anything with _GTF 
-> since the IDE layer hasn't been resumed at the point where this code 
-> executes, so there's no existing mechanism to execute the taskfile 
-> commands returned. It may help in this case.
+wow, i didn't expect so many responses, thanks alot!
 
-Its coding style leaves something to be desired, but otherwise it
-looks okay. Unfortunately, I do not need it on my machines, so someone
-else has to test/submit this one.
 
-								Pavel
--- 
-Thanks, Sharp!
+
+about the patch:
+
+i'll try that patch and tell you guys how it goes.
+
+
+
+about checking the dsdt:
+
+i dont have much experience with dsdts, so i dont know how to check them, edit them, definitely wouldnt know what interesting behavior might constitute. but this guy here: http://linux.highsphere.net/howtos/b100b.php has almost the exact same laptop as i do(the only difference is screensize, i believe) and he didn't seem to have any problems with his dsdt, though he doesnt seem to have this hard drive issue(or isnt aware of it, he does mention it taking about 40 seconds to resume from s3).
+
+
+
+about spinning the drive down before s3: 
+
+when i do a hdparm -y /dev/hda, the drive immediately spins back up, probably due to some logger daemon. i've tried killing syslogd and klogd, but this still happens.
+
+
+
+about it being an ide driver problem:
+
+if it is an ide driver issue, can anybody point me in the right direction? maybe an ide driver mailing list or something? i'm believe i'm using the PIIX driver(i've got an ich4-m ide controller), but i havent been able to find a development website or anything for it. the help in menuconfig said that PIIX was for ich4 ide controllers, so i was hoping to find some intel-sponsored ich4-m driver development, but no luck.
+
+_______________________________________________
+Join Excite! - http://www.excite.com
+The most personalized portal on the Web!
+
+
 
 
 -------------------------------------------------------
