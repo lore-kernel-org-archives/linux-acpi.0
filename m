@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: hard drive errors on acpi s3 resume
-Date: Tue, 8 Nov 2005 22:49:30 +0100
-Message-ID: <20051108214930.GB32009@elf.ucw.cz>
-References: <59D45D057E9702469E5775CBB56411F1CDB8FB@pdsmsx406> <20051108190620.GA1316@srcf.ucam.org>
+From: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>
+Subject: vbetool on pure AMD64 system
+Date: Wed, 9 Nov 2005 23:42:39 +0100
+Message-ID: <200511092342.40477.hugelmopf@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20051108190620.GA1316-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,22 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hey guys,
 
-> > BTW, is this really worth submitting to upstream? It doesn't support
-> > _GTF. And it appears useless in my test systems.
-> 
-> It fixes a lot of systems. With _GTF, it may fix more.
+due to your work in new kernels, my AMD64-laptop now resumes after an ACPI S3 
+suspend (I can type commands and they get executed) :-). Thanks a lot.
 
-If you have one of those systems, can you clean the patch up and
-submit it?
-							Pavel
--- 
-Thanks, Sharp!
+But the LCD stays black. So I read about the various options to reinitialize 
+the VGA, which were:
+1. kernel boot options: acpi=s3_sleep, acpi=s3_mode, pci=routeirq. I tried 
+each one of them, LCD still stays black.
+2. Using the vbetool to save/restore the state of the VGA.
+
+Here is the problem: I didn't find an AMD64 version of vbetool (using Debian 
+testing AMD64), so I forced the i386 package and manually met its 32bit 
+dependencies. It does run, and the "vgastate off" option does disable the 
+LCD. But saving and restoring the state, I get the following error:
+
+# vbetool vbestate save > /tmp/save
+Can't get video state buffer size (vm86 failure)
+Get video state buffer size failed
+Can't save video state (vm86 failure)
+Save video state failed
+
+So I guess, there is some reason, that this program does not work on 64bit 
+machines. Is there a workaround or any other idea, how I can get my display 
+back alive?
+
+Thanks,
+Frank
 
 
 -------------------------------------------------------
