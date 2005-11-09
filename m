@@ -1,11 +1,16 @@
-From: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [patch request test] disable PIC/APIC/IOAPIC at S3 suspend
-Date: Wed, 09 Nov 2005 14:40:31 +0800
-Message-ID: <1131518431.4594.10.camel@linux-hp.sh.intel.com>
+From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Roomity.com v 1.5 is a web 2.01
+Date: Wed, 9 Nov 2005 09:22:14 +0100
+Message-ID: <200511090922.25627.G.Ohrner@post.rwth-aachen.de>
+References: <31497650.3391131488437263.JavaMail.tomcat5@slave1.roomity.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed;
+  boundary="nextPart1542333.e9nhXoUhIA";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <31497650.3391131488437263.JavaMail.tomcat5-EcVjS6XAMKMcct0SfdEmN9BPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,66 +20,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-dev <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-Zwane submitted a patch for reboot bug here:
-http://marc.theaimsgroup.com/?l=linux-kernel&m=113098129126352&w=2
-I guess we need the same thing for S3 suspend/resume, as S3 also jumps
-to BIOS. Could anybody with S3 failure try below patch?
+--nextPart1542333.e9nhXoUhIA
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Thanks,
-Shaohua
+Am Dienstag, 8. November 2005 23:20 schrieb shenanigans:
+> Roomity.com v 1.5 is a web 2.01 community webapp. Our newest version
 
+They're spamming quite a few lists I'm currently reading. I start to get=20
+the impression that this is regular spam?
 
----
+Greetings,
 
- linux-2.6.14-root/arch/i386/kernel/apic.c    |    4 +++-
- linux-2.6.14-root/arch/i386/kernel/i8259.c   |    2 ++
- linux-2.6.14-root/arch/i386/kernel/io_apic.c |    1 +
- 3 files changed, 6 insertions(+), 1 deletion(-)
+  Gunter
 
-diff -puN arch/i386/kernel/i8259.c~disalbe_some_devices arch/i386/kernel/i8259.c
---- linux-2.6.14/arch/i386/kernel/i8259.c~disalbe_some_devices	2005-11-09 14:11:04.000000000 +0800
-+++ linux-2.6.14-root/arch/i386/kernel/i8259.c	2005-11-09 14:11:04.000000000 +0800
-@@ -262,6 +262,8 @@ static int i8259A_resume(struct sys_devi
- static int i8259A_suspend(struct sys_device *dev, pm_message_t state)
- {
- 	save_ELCR(irq_trigger);
-+	outb(0xff, 0x21);	/* mask all of 8259A-1 */
-+	outb(0xff, 0xA1);	/* mask all of 8259A-1 */
- 	return 0;
- }
- 
-diff -puN arch/i386/kernel/io_apic.c~disalbe_some_devices arch/i386/kernel/io_apic.c
---- linux-2.6.14/arch/i386/kernel/io_apic.c~disalbe_some_devices	2005-11-09 14:11:04.000000000 +0800
-+++ linux-2.6.14-root/arch/i386/kernel/io_apic.c	2005-11-09 14:11:04.000000000 +0800
-@@ -2350,6 +2350,7 @@ static int ioapic_suspend(struct sys_dev
- 		*(((int *)entry) + 0) = io_apic_read(dev->id, 0x10 + 2 * i);
- 	}
- 	spin_unlock_irqrestore(&ioapic_lock, flags);
-+	disable_IO_APIC();
- 	return 0;
- }
- 
-diff -puN arch/i386/kernel/apic.c~disalbe_some_devices arch/i386/kernel/apic.c
---- linux-2.6.14/arch/i386/kernel/apic.c~disalbe_some_devices	2005-11-09 14:13:26.000000000 +0800
-+++ linux-2.6.14-root/arch/i386/kernel/apic.c	2005-11-09 14:17:57.000000000 +0800
-@@ -612,7 +612,9 @@ static int lapic_suspend(struct sys_devi
- 	apic_pm_state.apic_thmr = apic_read(APIC_LVTTHMR);
- 
- 	local_irq_save(flags);
--	disable_local_APIC();
-+	clear_local_APIC();
-+	if (enabled_via_apicbase)
-+		disable_local_APIC();
- 	local_irq_restore(flags);
- 	return 0;
- }
-_
+=2D-=20
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++ http://aachen.uni-dsl.de/   -   Der direkte Draht in's Hochschulnetz! +
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Der Gesundheitsminister:
+Rauchen gef=E4hrdet die Gesundheit. Nichtrauchen gef=E4hrdet den=20
+Bundesfinanzminister.        -- <news:u4qrb3uyz.fsf-bEht+uHKqcJeoWH0uzbU5w@public.gmane.org>
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++                   PGP-verschl=FCsselte Mails bevorzugt!                 +
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+--nextPart1542333.e9nhXoUhIA
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQBDcbHB0ORHvREo8l8RAj+KAJ9MCgokiZYE92lB2DVWMMgAJ0u2TwCfdnCh
+N67kRYOzguxzAXyXlItfA6M=
+=G5g/
+-----END PGP SIGNATURE-----
+
+--nextPart1542333.e9nhXoUhIA--
 
 
 -------------------------------------------------------
