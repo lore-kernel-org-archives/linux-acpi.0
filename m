@@ -1,7 +1,7 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: vbetool on pure AMD64 system
-Date: Fri, 11 Nov 2005 11:33:15 +0100
-Message-ID: <20051111103315.GB27805@elf.ucw.cz>
+Date: Thu, 10 Nov 2005 16:07:23 +0000
+Message-ID: <20051110160723.GA8725@srcf.ucam.org>
 References: <200511092342.40477.hugelmopf@web.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -21,33 +21,24 @@ To: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Wed, Nov 09, 2005 at 11:42:39PM +0100, Frank wrote:
 
-> due to your work in new kernels, my AMD64-laptop now resumes after an ACPI S3 
-> suspend (I can type commands and they get executed) :-). Thanks a lot.
-> 
-> But the LCD stays black. So I read about the various options to reinitialize 
-> the VGA, which were:
-> 1. kernel boot options: acpi=s3_sleep, acpi=s3_mode, pci=routeirq. I tried 
-> each one of them, LCD still stays black.
-> 2. Using the vbetool to save/restore the state of the VGA.
-> 
 > Here is the problem: I didn't find an AMD64 version of vbetool (using Debian 
 > testing AMD64), so I forced the i386 package and manually met its 32bit 
 > dependencies. It does run, and the "vgastate off" option does disable the 
 > LCD. But saving and restoring the state, I get the following error:
-> 
-> # vbetool vbestate save > /tmp/save
-> Can't get video state buffer size (vm86 failure)
-> Get video state buffer size failed
-> Can't save video state (vm86 failure)
-> Save video state failed
 
-vm86 is unsupported on x86-64. Something like qemu will be required
-:-(.
-								Pavel
+If you're running a 64-bit kernel, you can't make vm86 calls. At the 
+moment, vbetool requires that. I'm looking at porting it to use x86emu 
+on non-x86 systems, but haven't been able to get it to work properly 
+yet.
+
+There's a video_post program that should also be mentioned in the docs. 
+It uses x86emu, but I'm not convinced that it's entirely correct. 
+Implementing the same functionality in vbetool shows different 
+interrupts being called in lrmi mode and x86emu mode.
 -- 
-Thanks, Sharp!
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
