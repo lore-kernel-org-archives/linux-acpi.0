@@ -1,13 +1,13 @@
-From: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: acpi_memhotplug driver is not working for me. Any ideas?
-Date: Thu, 10 Nov 2005 18:45:35 -0800
-Message-ID: <1131677135.20603.22.camel@knk>
-References: <1131399845.6313.73.camel@knk>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: vbetool on pure AMD64 system
+Date: Fri, 11 Nov 2005 11:33:15 +0100
+Message-ID: <20051111103315.GB27805@elf.ucw.cz>
+References: <200511092342.40477.hugelmopf@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1131399845.6313.73.camel@knk>
+Content-Disposition: inline
+In-Reply-To: <200511092342.40477.hugelmopf-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,53 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Frank <hugelmopf-S0/GAf8tV78@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-11-07 at 13:44 -0800, keith wrote:
-> Hello,
->   I have recently acquired an IBM x460 to work with.  The hardware is
-> completing it's hot add memory event just fine but the acpi code is
-> retuning errors. (I implemented some stub functions the acpi code
-> expects the arch to have)
+Hi!
+
+> due to your work in new kernels, my AMD64-laptop now resumes after an ACPI S3 
+> suspend (I can type commands and they get executed) :-). Thanks a lot.
 > 
+> But the LCD stays black. So I read about the various options to reinitialize 
+> the VGA, which were:
+> 1. kernel boot options: acpi=s3_sleep, acpi=s3_mode, pci=routeirq. I tried 
+> each one of them, LCD still stays black.
+> 2. Using the vbetool to save/restore the state of the VGA.
+> 
+> Here is the problem: I didn't find an AMD64 version of vbetool (using Debian 
+> testing AMD64), so I forced the i386 package and manually met its 32bit 
+> dependencies. It does run, and the "vgastate off" option does disable the 
+> LCD. But saving and restoring the state, I get the following error:
+> 
+> # vbetool vbestate save > /tmp/save
+> Can't get video state buffer size (vm86 failure)
+> Get video state buffer size failed
+> Can't save video state (vm86 failure)
+> Save video state failed
 
-
-Ok I have found out more.  
-
-The current driver is pretty complex perhaps too complex for my acpi
-hardware event.  The current event handler calls acpi_memory_get_device
-which presently fails. 
-
-My event resource contains the ACPI_MEMORY_RANGE with the value of the
-memory range that is hot-added.  It seem like I have enough information
-to call add_memory.     
-
-acpi_bus_get_device
-acpi_get_parent
-acpi_bus_get_device
-
-are generic acpi functions that fail for my event.  Can someone please
-explain what these are all about. (Really I don't understand the acpi
-API this handler was coded too.)  I assume it is trying align itself to
-a bus and parent but there really isn't a bus in this case and I don't
-have any idea what the parent would be.  My SSDT doesn't really layout
-any such relationships so I don't think the memory driver should require
-them. 
-I am working on a minimalisic event driver that works for my hardware
-and will hopefully post code tomorrow sometime.  
-
-Thanks,
-  Keith Mannthey 
-  LTC xSeries 
-
-
-
-
+vm86 is unsupported on x86-64. Something like qemu will be required
+:-(.
+								Pavel
 -- 
-keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-
+Thanks, Sharp!
 
 
 -------------------------------------------------------
