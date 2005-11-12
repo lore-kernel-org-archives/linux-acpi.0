@@ -1,12 +1,13 @@
-From: Jennifer A.Clark <barbara-GaTULeDQM8ZvBvnq28/GKQ@public.gmane.org>
-Subject: =?iso-8859-1?B?TWljcm9zb2Z0IE9mZmljZSAyMDAzIC0gNzUlIE9GRg==?=
-Date: Sat, 12 Nov 2005 13:04:08 +0000
-Message-ID: <ed8101c5e789$d353c80a$4e090e7a@accessatc.net>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: RE: [Bug 5227] mounted usb block devices don't work after resume
+ from S3
+Date: Sat, 12 Nov 2005 11:02:56 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0511121054500.31052-100000@netrider.rowland.org>
+References: <F7DC2337C7631D4386A2DF6E8FB22B30052349BD@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_3F5132AD.C7ED298C"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30052349BD-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,88 +17,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Fri, 11 Nov 2005, Brown, Len wrote:
 
-------=_NextPart_000_0000_3F5132AD.C7ED298C
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_6AF9BB14.E526663E"
+> 
+> 
+> > Can you or anyone on the mailing list offer some advice on this bug?
+> 
+> > http://bugzilla.kernel.org/show_bug.cgi?id=5227
+> 
+> > Only the last few comments are relevant, from #37 on.  Basically the
+> > uhci-hcd driver turns off an interrupt-enable bit in the USB controllers'
+> > PCI configuration space during suspend-to-memory, and then during resume
+> > it finds that the interrupt-enable bit has already been turned back on.
+> 
+> > Since the driver didn't do it, I can only guess that the BIOS or ACPI is
+> > responsible.  However it's an unlikely sort of thing for the BIOS to do,
+> > since it should never touch that enable bit.  The bit tells the controller
+> > to use normal O/S-driven interrupts; there's a different set of bits used
+> > for Legacy mouse & keyboard emulation by the BIOS.
+> 
+> > When the user tried booting with "acpi=off" on the command line, his 
+> > system get a segmentation fault when suspending.  So I don't know how to 
+> > track this down any further, or what can be done to fix it.
+> 
+> > Any ideas?
+> 
+> > Alan Stern
+> 
+> S3 with acpi=off -- that is something I'd never considered.
+> Unfriendly of us to fault when that is attempted, but by
+> definition it isn't ACPI code doing it:-)
+> 
+> The driver is responsible for saving/restoring the state of
+> PCI configuration space for the device -- ACPI doesn't touch it.
+> However, it is possible that the BIOS, the BIOS via some
+> Linux-executed ACPI AML method, or the hardware itself
+> has changed that bit on the transition into or out of S3.
+> 
+> One possibility would be to disassemble the acpidump output
+> to see if the BIOS is touching that bit in AML...
+> However, I don't think we're calling the device D3/D0
+> methods on suspend/resume yet -- so it is unlikely
+> that is the cause.
 
+Thanks for the help.  I'll try sending the user a patch to print out the 
+state of the enable bit just before entering and just after leaving the 
+low-power state in drivers/acpi/sleep/main.c:acpi_pm_enter.  That should 
+suffice to pin down where the bit is getting set, right?
 
-------=_NextPart_001_0001_6AF9BB14.E526663E
-Content-Type: text/plain;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-      Get all the software possible for less!
-Our software is 2-10 times cheaper than sold by our competitors.
-
-Just a few examples:
-$79.95 Windows XP Professional (Including: Service Pack 2)
-$89.95 Microsoft Office 2003 Professional / $79.95 Office XP Professional
-$99.95 Adobe Photoshop 8.0/CS (Including: ImageReady CS)
-$69.95 Dreamweaver MX 2004 / Flash MX 2004 / Fireworks MX
-$149.95 Adobe Creative Suite Premium (5 CD)
-$79.95 Adobe Acrobat 6.0 Professional
-$69.95 MS Project 2003 Professional
-
-Special offers:
-$89.95 Windows XP Pro + Office XP Pro
-$129.95 Photoshop 7 + Premiere 7 + Illustrator 10
-$109.95 Dreamweaver MX 2004 + Flash MX 2004
-
-All main products from Microsoft, Adobe, Macromedia, Corel, etc.
-And lots more... Please visit us at:
-
-http://www.softheaven.org
-
-Regards,
-Jennifer Clark
-
-
-________________________________ 
-To be taken off future campaigns, go here
-________________________________ 
-
- 
-------=_NextPart_001_0001_6AF9BB14.E526663E
-Content-Type: text/html;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
-<META content="MSHTML 6.00.2900.2604" name=GENERATOR></HEAD>
-<BODY>
-<CENTER>
-<TABLE cellSpacing=0 cellPadding=0 width=800 align=center border=0>
-<table id="616370692D646576656C406C697374732E736F75726365666F7267652E6E6574">  <TBODY>
-  <TR>
-    <TD>Get all the software possible for 
-      less!<BR>Our software is 2-10 times cheaper than sold by 
-      our competitors.<BR><BR>Just a few 
-      examples:<BR>$79.95 Windows XP Professional (Including: Service Pack 
-      2)<BR>$89.95 Microsoft Office 2003 Professional / $79.95 Office 
-      XP Professional<BR>$99.95 Adobe Photoshop 8.0/CS (Including: ImageReady 
-      CS)<BR>$69.95 Dreamweaver MX 2004 / Flash MX 2004 / Fireworks MX<BR>$149.95 Adobe Creative Suite Premium (5 CD)<br>$79.95 Adobe Acrobat 6.0 
-      Professional<BR>$69.95 MS Project 2003 Professional<BR><BR>
-Special offers:<br>
-$89.95 Windows XP Pro + Office XP Pro<br>
-$129.95 Photoshop 7 + Premiere 7 + Illustrator 10<br>
-$109.95 Dreamweaver MX 2004 + Flash MX 2004<br><br>
-
-
-All main products from Microsoft, 
-      Adobe, Macromedia, Corel, etc.<BR>And lots more... Please visit us at:<BR><BR><A 
-      href="http://www.softheaven.org">http://www.softheaven.org</A><BR><BR>Regards,<BR>Jennifer Clark<BR><BR><BR>________________________________     <BR>To be taken off future campaigns, go <a href="http://www.softheaven.org/uns.htm">here</A><BR>________________________________
-
-      <P></P></TD></TR></TBODY></TABLE></CENTER></BODY></HTML>
-
-------=_NextPart_001_0001_6AF9BB14.E526663E--
+Alan Stern
 
 
 
-------=_NextPart_000_0000_3F5132AD.C7ED298C--
+-------------------------------------------------------
+SF.Net email is sponsored by:
+Tame your development challenges with Apache's Geronimo App Server. Download
+it for free - -and be entered to win a 42" plasma tv or your very own
+Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
