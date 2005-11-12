@@ -1,10 +1,7 @@
-From: "Jerrold Parvin" <jer-WT+7YmLp2QNl57MIdRCFDg@public.gmane.org>
-Subject: Tracy Works Amazing
-Date: Sat, 12 Nov 2005 16:00:38 -0500
-Message-ID: <000d01c5e7cc$22049f00$35b2a8c0@tabulator>
-Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000A_01C5E7A2.392E9700"
+From: "Martina Camacho" <ntdykp-K6sfNcJRWY8bg5oixL8USQ@public.gmane.org>
+Subject: To access your account
+Date: Sun, 13 Nov 2005 03:39:32 +0600
+Message-ID: <20264.1915683218$1131832154@news.gmane.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,45 +12,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Uriah Rempe <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Sensational revolution in medicine!
 
-------=_NextPart_000_000A_01C5E7A2.392E9700
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Enlarge your penis up to 10 cm or up to 4 inches!
 
-L V A P V C Xe I m r A I av A b o L A ni G i z I L at R e a U I xra A n c M S =
-    3,32      1,22  3,75  http://www.uconditiona.com
+It's herbal solution what hasn't side effect, but has 100% guaranteed results!
 
-------=_NextPart_000_000A_01C5E7A2.392E9700
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Don't loose your chance and but know wihtout doubts, you will be impressed with results!
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV>&nbsp;</DIV>
-<TABLE>
-<TR><TD><FONT face=3D"Courier New">L V A P V C X</FONT></TD><TD><FONT =
-face=3D"Courier New">e I m r A I a</FONT></TD><TD><FONT face=3D"Courier =
-New">v A b o L A n</FONT></TD><TD><FONT face=3D"Courier New">i G i z I L =
-a</FONT></TD><TD><FONT face=3D"Courier New">t R e a U I x</FONT></TD><T=
-D><FONT face=3D"Courier New">ra A n c M S &nbsp;<BR></FONT></TD><TD><FONT =
-face=3D"Courier New">&nbsp;<BR> &nbsp;3,32 &nbsp;<BR> &nbsp;<BR> &nbsp;1,22 =
-&nbsp;3,75 &nbsp;<BR></FONT></TD><TD width=3D100%></TD></TR></TABLE><A =
-href=3D"http://www.uconditiona.com">http://www.uconditiona.com</A></=
-BODY></HTML>
+Click here: http://thomaspimk.com
 
-------=_NextPart_000_000A_01C5E7A2.392E9700--
 
+
+
+
+
+
+
+
+
+
+
+         
+        
+          
+       
+       
+       
 
 
 -------------------------------------------------------
