@@ -1,8 +1,12 @@
-From: yauh-acpi-CDzBh2wLF5MAvxtiuMwx3w@public.gmane.org
-Subject: ACPI S3 suspend and LCD backlight
-Date: Sat, 12 Nov 2005 22:39:04 -0700
-Message-ID: <200511130639.jAD6d42Y011608@dragonslair.panasol.com>
+From: Kevin Verma <kevinverma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: broken acpi support for battery 2.6.14
+Date: Sun, 13 Nov 2005 15:34:31 +0530
+Message-ID: <baf307070511130204h31c7f6bfv35067ce4c53fd868@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,47 +19,58 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hello,
 
-	It appears something in the ACPI suspend code turns on the
-LCD backlight to print out the diagnostic messages. Is there any 
-way to prevent this? Alternatively, is there a place in the drive
-I can add a sequence to turn off the display just before it goes
-to sleep?
+I am continuesly noticing that the battery status being shown as NA
+and it is not possible to see the charge remaining via "Gnome battery
+charge monitor" while the output from /proc FS  and dmesg are as below
+:
+--------------------
+[root@localhost /]# cat /proc/acpi/battery/BAT0/info
+present:                 yes
+ERROR: Unable to read battery information
+--------------------
+[root@localhost /]# cat /proc/acpi/battery/BAT0/alarm
+alarm:                   1206 mWh
+--------------------
+[root@localhost /]# cat /proc/acpi/battery/BAT0/state
+present:                 yes
+capacity state:          ok
+charging state:          charging
+present rate:            2138 mW
+remaining capacity:      22420 mWh
+present voltage:         12508 mV
+--------------------
+dmesg :
 
-System - Compaq TC1000 w/nVidia GeForce2 Go; Kernel is 2.6.13.4
-User space is partially FC2 but has been largely updated through
-self compiled binaries.
-
-I have a patched X.org nv driver that supports dpms enough to
-disable the backlight. I suspend the system with:
-
-sleep 1; xset dpms force suspend 
-sync
-hwclock --systohc
-echo 3 > /proc/acpi/sleep
-hwclock --hctosys
-
-
-The xset turns off the backlight but as soon as it gets to the echo 3 line,
-the LCD comes on and displays the ACPI status messages. It then then 
-proceeds to blank the screen but does NOT turn off the backlight.
-If there is no way to disable the messages, I was hoping there is a
-place I can hook into to twiddle the bit needed to disable the backlight.
-Loading the video support module gives me an empty /proc/acpi/video directory.
-
-Other then this backlight problem, everything else seems to work. 
-
-This is where I originally found the patch for backlight DPMS on the
-GeForce2Go -
-http://www.mail-archive.com/devel-72qDnkntNoRAfugRpC6u6w@public.gmane.org/msg06145.html
-
-P
-
-
-Thanks.
-
--- Hunyue
+    ACPI-0292: *** Error: Looking up [SERN] in namespace, AE_ALREADY_EXISTS
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.GBIF] (Node c145e9e0), AE_ALREADY_EXISTS
+application nt uses obsolete OSS audio interface
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c145d8a0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c145d8a0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c145d8a0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c145d8a0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c145d8a0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c145d8a0), AE_AML_METHOD_LIMIT
+    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+    ACPI-0508: *** Error: Method execution failed
+[\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node c145d8a0), AE_AML_METHOD_LIMIT
+----------------------
+Any possible outlook, if there are any bad effects on the hardware
+while this problem remains unsolved ?
 
 
 -------------------------------------------------------
