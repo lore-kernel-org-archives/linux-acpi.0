@@ -1,13 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI S3 suspend and LCD backlight
-Date: Mon, 14 Nov 2005 13:17:28 +0000
-Message-ID: <20051114131728.GA22957@srcf.ucam.org>
-References: <200511130639.jAD6d42Y011608@dragonslair.panasol.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: New Smart Battery release (incl. updated embedded controller patches)
+Date: Mon, 14 Nov 2005 13:15:12 +0100
+Message-ID: <20051114121512.GB1570@elf.ucw.cz>
+References: <4376BD90.5080603@bartol.udel.edu> <200511141805.54633.luming.yu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200511130639.jAD6d42Y011608-MVZ+8Rc8O2bWg2f883+pGFGJXeKZcw9A@public.gmane.org>
+In-Reply-To: <200511141805.54633.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,40 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: yauh-acpi-CDzBh2wLF5MAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 12, 2005 at 10:39:04PM -0700, yauh-acpi-CDzBh2wLF5MAvxtiuMwx3w@public.gmane.org wrote:
+Hi!
 
-> 	It appears something in the ACPI suspend code turns on the
-> LCD backlight to print out the diagnostic messages. Is there any 
-> way to prevent this? Alternatively, is there a place in the drive
-> I can add a sequence to turn off the display just before it goes
-> to sleep?
+> > I'm pleased to announce that, after quite a long period of inactivity, I've
+> >  finally managed to grab enough spare time from the real world to bring the
+> >  SBS-CM (Smart Battery System/Control Method) project up to date.
+> 
+> Nice to see update on smart battery.
+> I'm curious if you plan to have a smart battery driver without
+> hacking DSDT.
 
-No, the ACPI suspend code doesn't do this (as far as I can tell). If you 
-suspend from X, the kernel will switch away from X and X will restore 
-the console state - which probably includes switching the backlight back 
-on.
+I think that such support existed some time ago. IIRC resolution was
+that the support should really be in DSDT.
 
-> The xset turns off the backlight but as soon as it gets to the echo 3 line,
-> the LCD comes on and displays the ACPI status messages. It then then 
-> proceeds to blank the screen but does NOT turn off the backlight.
-> If there is no way to disable the messages, I was hoping there is a
-> place I can hook into to twiddle the bit needed to disable the backlight.
-> Loading the video support module gives me an empty /proc/acpi/video directory.
-
-Try grabbing vbetool and do something like
-
-FGCONSOLE=`fgconsole`
-chvt 12
-vbetool dpms off
-echo -n 3 >/proc/acpi/sleep
-chvt $FGCONSOLE
-
+								Pavel
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Thanks, Sharp!
 
 
 -------------------------------------------------------
