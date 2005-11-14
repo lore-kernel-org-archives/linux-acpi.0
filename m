@@ -1,14 +1,13 @@
-From: David =?utf-8?B?R8OzbWV6?= <david-0d+f1cuTMnnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: New Smart Battery release (incl. updated embedded controller patches)
-Date: Mon, 14 Nov 2005 22:34:05 +0100
-Message-ID: <20051114213405.GA1846@fargo>
-References: <4376BD90.5080603@bartol.udel.edu> <200511141805.54633.luming.yu@intel.com> <20051114121512.GB1570@elf.ucw.cz>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: vbetool on pure AMD64 system
+Date: Mon, 14 Nov 2005 23:29:22 +0100
+Message-ID: <43790FC2.5000501@gmx.net>
+References: <200511092342.40477.hugelmopf@web.de>	 <20051111103315.GB27805@elf.ucw.cz>  <4378C318.9090105@cfl.rr.com> <1132004907.16148.32.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051114121512.GB1570-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <1132004907.16148.32.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,35 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: Phillip Susi <psusi-3tLf1voIkJTQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pavel,
+Alan Cox schrieb:
+> Xorg has a software x86 emulator that is very basic but sufficient to
+> boot most but not all video bioses on all sorts of systems. It uses that
+> on x86-64.
 
-On Nov 14 at 01:15:12, Pavel Machek wrote:
-> > Nice to see update on smart battery.
-> > I'm curious if you plan to have a smart battery driver without
-> > hacking DSDT.
->=20
-> I think that such support existed some time ago. IIRC resolution was
-> that the support should really be in DSDT.
+This emulator has also been ported to the kernel, but I doubt that patch 
+is ever going to get included.
 
-But that means that you need to use a patched DSDT, and in consequence
-use initrd to get Smart Battery support, isn't it? In that case it'd
-be good to have support for smart batteries in the kernel without
-forcing to use initrd.
+As an alternative, somebody skilled could implement a two-stage resume 
+code where all devices except graphics card get resumed normally, a 
+usermode helper (standalone x86 emulator) is called to boot the graphics 
+BIOS, after that the graphics card is resumed and resume continues 
+normally to unfreeze all of userspace. Once this infrastructure is in 
+place, it can also be used to boot video BIOSes on non-x86 platforms.
 
-regards,
 
---=20
-David G=C3=B3mez                                      Jabber ID: davidge@=
-jabber.org
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
 SF.Net email is sponsored by:
-Tame your development challenges with Apache's Geronimo App Server. Downl=
-oad
+Tame your development challenges with Apache's Geronimo App Server. Download
 it for free - -and be entered to win a 42" plasma tv or your very own
 Sony(tm)PSP.  Click here to play: http://sourceforge.net/geronimo.php
