@@ -1,14 +1,8 @@
-From: Berthold Cogel <cogel-F8dkAKZEjLURtNtAH2Wc8g@public.gmane.org>
-Subject: Re: New Smart Battery release (incl. updated embedded controller
- patches)
-Date: Tue, 15 Nov 2005 10:07:44 +0100
-Message-ID: <4379A560.4020107@rrz.uni-koeln.de>
-References: <4376BD90.5080603@bartol.udel.edu> <43791753.2030004@rrz.uni-koeln.de> <437951CE.7060708@bartol.udel.edu> <200511150802.00439.o.jansen@orb-net.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "yuki" <go_go_happy777_yk-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re:
+Date: Tue, 15 Nov 2005 09:20:57 +0000 (UTC)
+Message-ID: <7E2CWB8ytI.7069@yahoo.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200511150802.00439.o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,27 +12,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Date: Tue Nov 15 01:18:04 2005
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Olaf Jansen-Olliges wrote:
-> Hello Rich, hello Berthold, 
-> 
-> machine it seems to be different from the situation here. For example he is 
-> able to suspend his machine (when he has success typing the needed 
-> commands :-) On my machine it is no problem typing the commands but in most 
-> cases (>90%) this is the last thing I do. We have tried to compare our 
+完┃全┃無┃料┃＆┃使┃い┃放┃題┃
+━┛━┛━┛━┛━┛━┛━┛━┛━┛
+　　　　　　　　▽▽▽▽▽▽
+http://www.checkcheck-zero.net/?id=pc120
+ 
+◆入会費／年会費
+◇メール受信＆送信
+◆理想の相手／ご近所検索
+◇写真／動画の登録＆閲覧
+◆住所／アドレス／電話番号の交換
+ 
+男性♂女性♀ともに完全無料で全てご利用頂けます。
+http://www.checkcheck-zero.net/?id=pc120
+ 
+安心サイト宣言
+・・・…━━━━━━━━━━━━━━━━━━━━━━━━━★
+ラブリーメールはスポンサーサイト様からの広告料のみで運営しております。
+その為、全サービスを完全無料で全てご利用頂けます。
+理想の相手を求める方々に安心と信頼を第一に考えながら、
+気軽にお使い頂けるサービスを目指し、
+万全のサポート体制で皆様に合ったお相手探しをお手伝いしております。
+★━━━━━━━━━━━━━━━━━━━━━━━━━…・・・
+http://www.checkcheck-zero.net/?id=pc120
 
-There is no magic involved. Just keep pressing Fn+F4 long enough. ;-)
+--
+配信拒否：
+kissme_rej-OKxsdJkEjlFWk0Htik3J/w@public.gmane.org
 
-But you're right. I can suspend my machine without problems to disk. 
-Even with (the latest) fglrx. And I can resume from suspend.
-Only those missing keys ...
 
-Regards,
 
-Berthold
+
+
 
 
 -------------------------------------------------------
