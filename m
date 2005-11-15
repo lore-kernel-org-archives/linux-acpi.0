@@ -1,10 +1,11 @@
-From: Rathgeb Markus <maggu2810-hi6Y0CQ0nG0@public.gmane.org>
-Subject: s3 buggy after kernel-update
-Date: Tue, 15 Nov 2005 17:23:58 +0100
-Message-ID: <437A0B9E.50501@gmx.net>
+From: eBay <reward-ZuctOmHWJ9c@public.gmane.org>
+Subject: eBay : Get 20$ eBay gift certificate
+Date: Tue, 15 Nov 2005 09:20:34 -0800
+Message-ID: <E1Ec4Ty-0007gI-Gu@washington.noc11.net>
+Reply-To: no-r3ply-ZuctOmHWJ9c@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,24 +19,46 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-i own a 'targa traveller 811'. the company 'targa' supports only 
-microsoft windows (who is suprised).
-for a few month i spend a lot of time to get s3 working and since then i 
-used suspend-to-ram with full satisfaction with kernel 2.6.12-gentoo-r10 
-(kernel from gentoo-sources with my own configuration).
-because of an update to version 2.6.14-gentoo-r2 the screen keeps blank 
-/ black / off after wake up from s3. i changed nothing in the kernel 
-confiuration (except the new functions - make oldconfig...).
-where can be the problem?
-does somebody know what could be responsible for this?
 
---------------
+=20
+eBay's Survey Department
+=20
+Dear eBay Member,
+You have been chosen by the eBay's Survey Department to take part in our =
+quick=20
+and easy 6 question survery, In return we will instantly credit $20 to yo=
+ur account - Just for your time!
+Helping us better understand how our customer's feel benefits everyone.=20
+With the information collected we can decide to direct a number of change=
+s=20
+to improve and expand our online service.=20
+The information you provide us is all sensitive - No part of it is handed=
+ down to any third party groups.
+It will be stored in our secure database for a maximum of 7 days while we=
+ process the results of this
+ nationwide survey.=20
+We kindly ask you to please spare 2 minutes of your time in taking part w=
+ith this unique offer!
 
-sorry for the bad english - i have done my best *g*
+To Continue click on the link below :
+
+http://survey.cgi1l-ebay.com/.ws/ebayISAPI.dll%3fSignIn/index.htm =20
+
+
+Regards,
+=20
+eBay's Survey Department
+
+
+
+
+
+
+
 
 
 -------------------------------------------------------
 This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
 Register for a JBoss Training Course.  Free Certification Exam
 for All Training Attendees Through End of 2005. For more info visit:
-http://ads.osdn.com/?ad_id=7628&alloc_id=16845&op=click
+http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
