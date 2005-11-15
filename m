@@ -1,13 +1,15 @@
-From: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/1]  patch to fix acpi_memhotplug.c
-Date: Mon, 14 Nov 2005 21:36:42 -0800
-Message-ID: <1132033003.3798.21.camel@knk>
-References: <1131399845.6313.73.camel@knk>  <1131677135.20603.22.camel@knk>
-	 <1131771825.20603.44.camel@knk>
+From: Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
+Subject: Re: New Smart Battery release (incl. updated embedded controller patches)
+Date: Tue, 15 Nov 2005 08:02:00 +0100
+Message-ID: <200511150802.00439.o.jansen@orb-net.de>
+References: <4376BD90.5080603@bartol.udel.edu> <43791753.2030004@rrz.uni-koeln.de> <437951CE.7060708@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-OTT9nVwtqLPyZbIE34PU"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1131771825.20603.44.camel@knk>
+In-Reply-To: <437951CE.7060708-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,116 +19,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello Rich, hello Berthold, 
 
---=-OTT9nVwtqLPyZbIE34PU
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+>
+> You don't mention whether you've applied the acpi-ec-nospinlock patch. This
+> patch is designed to remove lost interrupts completely. I know that Olaf
+> has used this patch -- perhaps that is what you are missing.
 
-Hello,
+I've used the spinlock Patch for a long time together with kernel 2.6.11 
+(gentoo) on my ACER extensa 3002 WLMi. After that i've switched to 2.6.12 
+where I've tried the ec_burst patches from Luming. With the kernel parameter 
+ec_burst=1 i was able to use the system without problems. Later the patch 
+from Luming found the way into the kernel and i thought fine for me no 
+patching related to the interrupt issue needed any more. But on Bertholds 
+machine it seems to be different from the situation here. For example he is 
+able to suspend his machine (when he has success typing the needed 
+commands :-) On my machine it is no problem typing the commands but in most 
+cases (>90%) this is the last thing I do. We have tried to compare our 
+machines and in fact we only found two differences Berthold has 1G and BIOS 
+3A10 while on my machine there are ony 512Mb with BIOS revision 3A08.
 
-  I am submitting this patch for inclusion in the acpi development tree.
-I have not received any feedback of my beta patch or emails over the
-past week.  I cleaned my previous patch up and made the error handling
-match the rest of the driver.  I need this patch to support my hardware
-(IBM x460/x366/x445) acpi hot-add memory events.   
+Now I've tested the new sbs-cm spinlock patch with kernel 2.6.13 (gentoo) and 
+my machine continued to work without missing keys. 
 
-  In general acpi_bus_get_device fails for my event. 
-acpi_bus-0072 [04] bus_get_device        : No context for object [ffff81007ff397f0] 
-  The current driver relies on acpi_bus_get_device to create the acpi
-memory_device but these call fails for my hardware.  
-  
-  My event is a single notify with a memory range passed along as data.
-The current driver is expecting some other event or series of events (As
-I have posted before I am a little confused on how the current driver
-works at all).  My code provides a way for the data that is passed along
-during the event to be converted directly to the memory_device without
-reliance on acpi_bus_get_device.  My code in no way breaks the current
-implementation and seems a reasonable addition for increased
-flexibility. 
-
-This patch is against 2.6.15-rc1. 
-
-Signed-off-by:  Keith Mannthey <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-
-
-
-
-
---=-OTT9nVwtqLPyZbIE34PU
-Content-Disposition: attachment; filename=acpi_mem_fixv2.patch
-Content-Type: text/x-patch; name=acpi_mem_fixv2.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
---- linux-2.6.15-rc1-orig/drivers/acpi/acpi_memhotplug.c	2005-11-14 10:56:13.000000000 -0800
-+++ linux-2.6.15-rc1/drivers/acpi/acpi_memhotplug.c	2005-11-14 21:01:43.000000000 -0800
-@@ -110,6 +110,30 @@
- 	return_VALUE(0);
- }
- 
-+static int 
-+acpi_memory_get_current_resource(acpi_handle handle, struct acpi_memory_device **return_device) {
-+	
-+	int result;
-+	struct acpi_memory_device *mem_device;
-+	
-+	mem_device = kmalloc(sizeof(struct acpi_memory_device), GFP_KERNEL);
-+	if (!mem_device)
-+		return_VALUE(-ENOMEM);
-+	memset(mem_device,0, sizeof(struct acpi_memory_device));
-+
-+	mem_device->handle = handle;
-+	result = acpi_memory_get_device_resources(mem_device);
-+	if (result) {
-+		kfree(mem_device);
-+		return_VALUE(result);
-+	}
-+	mem_device->state = MEMORY_POWER_ON_STATE;
-+	*return_device = mem_device;
-+	
-+	return_VALUE(result);
-+}
-+
-+
- static int
- acpi_memory_get_device(acpi_handle handle,
- 		       struct acpi_memory_device **mem_device)
-@@ -118,6 +142,7 @@
- 	acpi_handle phandle;
- 	struct acpi_device *device = NULL;
- 	struct acpi_device *pdevice = NULL;
-+	int result;
- 
- 	ACPI_FUNCTION_TRACE("acpi_memory_get_device");
- 
-@@ -147,14 +172,17 @@
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error in acpi_bus_add\n"));
- 		return_VALUE(-EINVAL);
- 	}
--
-       end:
- 	*mem_device = acpi_driver_data(device);
-+
- 	if (!(*mem_device)) {
--		printk(KERN_ERR "\n driver data not found");
--		return_VALUE(-ENODEV);
-+		/* Try and get the memory_device from the current handle */
-+		result = acpi_memory_get_current_resource(handle,mem_device);
-+		if (result) {
-+			printk(KERN_ERR "\nThere is no data for this memory device\n");
-+			return_VALUE(-EINVAL);
-+		}
- 	}
--
- 	return_VALUE(0);
- }
- 
-
---=-OTT9nVwtqLPyZbIE34PU--
-
+Regards
+	Olaf
 
 
 -------------------------------------------------------
