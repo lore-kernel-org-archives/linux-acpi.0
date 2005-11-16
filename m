@@ -1,13 +1,11 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Thomas Meyer <thomas.mey-S0/GAf8tV78@public.gmane.org>
 Subject: RE: AE_AML_BUFFER_LIMIT with handmade dsdt file
-Date: Wed, 16 Nov 2005 13:32:49 -0800
-Message-ID: <971FCB6690CD0E4898387DBF7552B90E037162E9@orsmsx403.amr.corp.intel.com>
+Date: Wed, 16 Nov 2005 22:56:54 +0100
+Message-ID: <2008884853@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,8 +15,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Meyer <thomas.mey-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
+
+
+
+I'm using
+*  sys-power/iasl
+      Latest version available: 20050513
+      Latest version installed: 20050513
+      Size of downloaded files: 686 kB
+      Homepage:    http://www.intel.com/technology/iapc/acpi/
+      Description: Intel ACPI Source Language (ASL) compiler
+      License:     iASL
+
+The change, that you describes, was exactly the problem i had while compiling, so i removed all "optional"(?) (in the spec they call it "nothing") parameters, so the ResourceIndex byte, too (were all set to 0x00, in functions WordBusNumber, DWordIO, DWordMemory).
+
+[snip]
+            Name (CRES, ResourceTemplate ()
+[snip]
+            Method (_CRS, 0, NotSerialized)
+            {
+                CreateDWordField (CRES, 0x0182, TCMN)
+                CreateDWordField (CRES, 0x0186, TCMX)
+[snip]
+
+Thanks & regards
+Thomas
+
+
+"Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> schrieb am 16.11.05 22:33:14:
 
 What version of iASL did you use to disassemble the original DSDT and
 recompile it?
@@ -44,31 +70,31 @@ offsets into the resource template buffer.
 > Sent: Wednesday, November 16, 2005 1:28 PM
 > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > Subject: [ACPI] AE_AML_BUFFER_LIMIT with handmade dsdt file
->=20
->=20
+> 
+> 
 > Hi.
->=20
+> 
 > On one window the acpi spec on the other window the dsdl.dsl file, i
 > *thoughed* i fixed my dsdt file but now i get this errors:
->=20
+> 
 > [17179570.604000]     ACPI-0508: *** Error: Method execution failed
 > [\_SB_.PCI0._CRS] (Node ebec4b00), AE_AML_BUFFER_LIMIT
 > [17179570.604000]     ACPI-0156: *** Error: Method execution failed
 > [\_SB_.PCI0._CRS] (Node ebec4b00), AE_AML_BUFFER_LIMIT
->=20
+> 
 > the method _CRS for the given object is a larger one in the dsdt file.
 is
 > this some kind of violation of the maximum buffer length (code length
 in
 > AML?) or something like that?
->=20
+> 
 > should i care about this error?
->=20
+> 
 > Thanks & regards
 > Thomas
->=20
+> 
 > dmesg:
->=20
+> 
 > "
 > [17179569.184000] Linux version 2.6.15-rc1-g0db169f9
 (thomas@hotzenplotz)
@@ -116,9 +142,8 @@ pie-8.7.8))
 > [17179569.184000] Allocating PCI resources starting at 40000000 (gap:
 > 30000000:cffe0000)
 > [17179569.184000] Built 1 zonelists
-> [17179569.184000] Kernel command line: root=3D/dev/hda3 =
-resume=3D/dev/hda4
-> log_buf_len=3D4M kstack=3D300
+> [17179569.184000] Kernel command line: root=/dev/hda3 resume=/dev/hda4
+> log_buf_len=4M kstack=300
 > [17179569.184000] log_buf_len: 4194304
 > [17179569.184000] Local APIC disabled by BIOS -- you can enable it
 with
@@ -143,7 +168,7 @@ in
 > supervisor mode... Ok.
 > [17179570.552000] Calibrating delay using timer specific routine..
 1594.34
-> BogoMIPS (lpj=3D3188696)
+> BogoMIPS (lpj=3188696)
 > [17179570.552000] Mount-cache hash table entries: 512
 > [17179570.552000] CPU: After generic identify, caps: 0383f9ff c1cbf9ff
 > 00000000 00000000 00000000 00000000 00000000
@@ -171,21 +196,21 @@ host
 > [17179570.592000] NET: Registered protocol family 16
 > [17179570.592000] ACPI: bus type pci registered
 > [17179570.592000] PCI: PCI BIOS revision 2.10 entry at 0xfd65c, last
-bus=3D1
+bus=1
 > [17179570.592000] PCI: Using configuration type 1
->=20
+> 
 > [interessting part begins here!]
 > [17179570.592000] ACPI: Subsystem revision 20050902
 > [17179570.600000] ACPI: Interpreter enabled
 > [17179570.600000] ACPI: Using PIC for interrupt routing
 > [17179570.604000] ACPI: PCI Root Bridge [PCI0] (0000:00)
 > [17179570.604000] PCI: Probing PCI hardware (bus 00)
->=20
+> 
 > [17179570.604000]     ACPI-0508: *** Error: Method execution failed
 > [\_SB_.PCI0._CRS] (Node ebec4b00), AE_AML_BUFFER_LIMIT
 > [17179570.604000]     ACPI-0156: *** Error: Method execution failed
 > [\_SB_.PCI0._CRS] (Node ebec4b00), AE_AML_BUFFER_LIMIT
->=20
+> 
 > [17179570.608000] PCI quirk: region 4000-407f claimed by vt8235 PM
 > [17179570.608000] PCI quirk: region 8100-810f claimed by vt8235 SMB
 > [17179570.612000] Boot video device is 0000:01:00.0
@@ -200,7 +225,7 @@ bus=3D1
 > [17179570.644000] pnp: PnP ACPI: found 11 devices
 > [17179570.648000] PnPBIOS: Disabled by ACPI PNP
 > [17179570.648000] PCI: Using ACPI for IRQ routing
-> [17179570.648000] PCI: If a device doesn't work, try "pci=3Drouteirq".
+> [17179570.648000] PCI: If a device doesn't work, try "pci=routeirq".
 If
 > it helps, post a report
 > [17179570.648000] pnp: 00:05: ioport range 0x4d0-0x4d1 has been
@@ -242,22 +267,28 @@ reserved
 > [17179570.652000] io scheduler noop registered
 > [17179570.652000] io scheduler anticipatory registered
 > [17179570.656000] isapnp: Scanning for PnP cards...
->=20
+> 
 > ______________________________________________________________
 > Verschicken Sie romantische, coole und witzige Bilder per SMS!
-> Jetzt bei WEB.DE FreeMail: http://f.web.de/?mc=3D021193
->=20
->=20
->=20
+> Jetzt bei WEB.DE FreeMail: http://f.web.de/?mc=021193
+> 
+> 
+> 
 > -------------------------------------------------------
 > This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
 > Register for a JBoss Training Course.  Free Certification Exam
 > for All Training Attendees Through End of 2005. For more info visit:
-> http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
+> http://ads.osdn.com/?ad_id=7628&alloc_id=16845&op=click
 > _______________________________________________
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+______________________________________________________________
+Verschicken Sie romantische, coole und witzige Bilder per SMS!
+Jetzt bei WEB.DE FreeMail: http://f.web.de/?mc=021193
+
 
 
 -------------------------------------------------------
