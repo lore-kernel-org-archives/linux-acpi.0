@@ -1,11 +1,11 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: battery issues with 2.6.14
-Date: Tue, 15 Nov 2005 16:05:00 -0700
-Message-ID: <20051115230502.ED1B43C005A@ningauble.scrye.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: "Cindy Roland" <sqozuzuriv-ssXuibdb0kXf6mHxw7x0cgpfr44q4xb5QQ4Iyu8u01E@public.gmane.org>
+Subject: Expire Notice
+Date: Wed, 16 Nov 2005 04:53:21 +0300
+Message-ID: <E1A572M-0759nV-00sqozuzuriv@swiftcreekbaptistchurch.com>
+References: <20031002150239.GG32185@asuka.tech.sitadelle.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: Your message of "Tue, 15 Nov 2005 23:01:21 -0300."
+             <20031002150239.GG32185-SPmiEJNqz2EYQi8GDDyk6F/O6gDeComr@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,71 +18,33 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Sensational revolution in medicine!
+
+Enlarge your penis up to 10 cm or up to 4 inches!
+
+It's herbal solution what hasn't side effect, but has 100% guaranteed results!
+
+Don't loose your chance and but know wihtout doubts, you will be impressed with results!
+
+Click here: http://cn-u.info
 
 
-Greetings. 
 
-I did a quick search of the list archives and the bugzilla.kernel.org,
-but didn't see any reports of what I am seeing:
 
-Under 2.6.13-1.1532_FC4 (fedora update kernel) and all before it, my
-battery works great. I can use amount left, no errors, survives
-suspend/resume just fine. 
 
-Starting with 2.6.14-1.1633_FC4 and any 2.6.14 kernel after that, the
-battery works ok for a while, then stops reporting any information. 
-It looks like it stops working when the battery would normally start
-reporting something like discharging or the like. 
 
-Unloading and reloading the battery module doesn't change anything. 
 
-In the dmesg I see:
 
-    ACPI-0292: *** Error: Looking up [SERN] in namespace, AE_ALREADY_EXISTS
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.GBIF] (Node f7e245a0), AE_ALREADY_EXISTS
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
-    ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
-    ACPI-0508: *** Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460),
-AE_AML_METHOD_LIMIT
 
-This laptop is a thinkpad t42p. 
 
-Happy to provide any further information that would be helpfull. 
 
-kevin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
 
-iD8DBQFDemme3imCezTjY0ERAhlyAJ42UUwOck3L6E8YufNJxVOgv/FDSwCfYNFE
-vihmFkHQhJGItXhKWhAQzYQ=
-=g5Cb
------END PGP SIGNATURE-----
+         
+        
+          
+       
+       
+       
 
 
 -------------------------------------------------------
