@@ -1,13 +1,11 @@
-From: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
-Subject: Re: s3 buggy after kernel-update
-Date: Wed, 16 Nov 2005 10:38:45 +0100
-Message-ID: <437AFE25.9080500@web.de>
-References: <59D45D057E9702469E5775CBB56411F1D91C9D@pdsmsx406>
+From: Olive <olive.lin-r68uw1Ih06TDnxYzvZI3hw@public.gmane.org>
+Subject: How to wait that the machine resume in a script
+Date: Wed, 16 Nov 2005 11:19:33 +0100
+Message-ID: <dlf12g$pc0$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <59D45D057E9702469E5775CBB56411F1D91C9D@pdsmsx406>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,58 +15,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I do not use framebuffer.
-The laptop wakes up, only the lcd is blank.
-I can execute commands (without seeing anythin, blind). I can start for 
-example the ssh daemon an connect from an other pc to the laptop...
+Hello,
 
+I just test acpi and it appears to have behave properly. I would like to 
+  know via a script that the machine has been resumed. Something like
 
+echo -n disk /sys/power/state
+waitresumed
+continue with the script
 
-Li, Shaohua schrieb:
-> Hi,
-> 
->>i own a 'targa traveller 811'. the company 'targa' supports only
->>microsoft windows (who is suprised).
->>for a few month i spend a lot of time to get s3 working and since then
-> 
-> i
-> 
->>used suspend-to-ram with full satisfaction with kernel
-> 
-> 2.6.12-gentoo-r10
-> 
->>(kernel from gentoo-sources with my own configuration).
->>because of an update to version 2.6.14-gentoo-r2 the screen keeps blank
->>/ black / off after wake up from s3. i changed nothing in the kernel
->>confiuration (except the new functions - make oldconfig...).
->>where can be the problem?
->>does somebody know what could be responsible for this?
-> 
-> Do other devices work after S3 resume with the updated kernel, such as
-> NIC?
-> Not sure if you are using vesafb. Somebody attached a patch at
-> http://bugzilla.kernel.org/show_bug.cgi?id=5351 to resolve the video
-> issue
-> for a Toshiba laptop. Maybe you can try.
-> 
-> Thanks,
-> Shaohua
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
-> Register for a JBoss Training Course.  Free Certification Exam
-> for All Training Attendees Through End of 2005. For more info visit:
-> http://ads.osdn.com/?ad_idv28&alloc_id845&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+The naive solution to wait until "echo -n disk /sys/power/state" returns 
+do not work because it returns too quicly.
+
+Olive
+
 
 
 
