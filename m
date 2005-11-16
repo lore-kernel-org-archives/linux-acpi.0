@@ -1,11 +1,13 @@
-From: "Cindy Roland" <sqozuzuriv-ssXuibdb0kXf6mHxw7x0cgpfr44q4xb5QQ4Iyu8u01E@public.gmane.org>
-Subject: Expire Notice
-Date: Wed, 16 Nov 2005 04:53:21 +0300
-Message-ID: <E1A572M-0759nV-00sqozuzuriv@swiftcreekbaptistchurch.com>
-References: <20031002150239.GG32185@asuka.tech.sitadelle.com>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: s3 buggy after kernel-update
+Date: Wed, 16 Nov 2005 10:42:17 +0800
+Message-ID: <59D45D057E9702469E5775CBB56411F1D91C9D@pdsmsx406>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Your message of "Tue, 15 Nov 2005 23:01:21 -0300."
-             <20031002150239.GG32185-SPmiEJNqz2EYQi8GDDyk6F/O6gDeComr@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,36 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rathgeb Markus <maggu2810-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sensational revolution in medicine!
+Hi,
+>i own a 'targa traveller 811'. the company 'targa' supports only
+>microsoft windows (who is suprised).
+>for a few month i spend a lot of time to get s3 working and since then
+i
+>used suspend-to-ram with full satisfaction with kernel
+2.6.12-gentoo-r10
+>(kernel from gentoo-sources with my own configuration).
+>because of an update to version 2.6.14-gentoo-r2 the screen keeps blank
+>/ black / off after wake up from s3. i changed nothing in the kernel
+>confiuration (except the new functions - make oldconfig...).
+>where can be the problem?
+>does somebody know what could be responsible for this?
+Do other devices work after S3 resume with the updated kernel, such as
+NIC?
+Not sure if you are using vesafb. Somebody attached a patch at
+http://bugzilla.kernel.org/show_bug.cgi?id=3D5351 to resolve the video
+issue
+for a Toshiba laptop. Maybe you can try.
 
-Enlarge your penis up to 10 cm or up to 4 inches!
-
-It's herbal solution what hasn't side effect, but has 100% guaranteed results!
-
-Don't loose your chance and but know wihtout doubts, you will be impressed with results!
-
-Click here: http://cn-u.info
-
-
-
-
-
-
-
-
-
-
-
-
-         
-        
-          
-       
-       
-       
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
