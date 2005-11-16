@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI S3 suspend and LCD backlight
-Date: Wed, 16 Nov 2005 22:02:49 +0100
-Message-ID: <20051116210249.GA12561@elf.ucw.cz>
-References: <200511130639.jAD6d42Y011608@dragonslair.panasol.com> <20051114131728.GA22957@srcf.ucam.org>
+Subject: Re: s3 buggy after kernel-update
+Date: Wed, 16 Nov 2005 22:08:14 +0100
+Message-ID: <20051116210814.GB12561@elf.ucw.cz>
+References: <437A0B9E.50501@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20051114131728.GA22957-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+In-Reply-To: <437A0B9E.50501-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: yauh-acpi-CDzBh2wLF5MAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rathgeb Markus <maggu2810-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > 	It appears something in the ACPI suspend code turns on the
-> > LCD backlight to print out the diagnostic messages. Is there any 
-> > way to prevent this? Alternatively, is there a place in the drive
-> > I can add a sequence to turn off the display just before it goes
-> > to sleep?
-> 
-> No, the ACPI suspend code doesn't do this (as far as I can tell). If you 
-> suspend from X, the kernel will switch away from X and X will restore 
-> the console state - which probably includes switching the backlight back 
-> on.
+> i own a 'targa traveller 811'. the company 'targa' supports only 
+> microsoft windows (who is suprised).
+> for a few month i spend a lot of time to get s3 working and since then i 
+> used suspend-to-ram with full satisfaction with kernel 2.6.12-gentoo-r10 
+> (kernel from gentoo-sources with my own configuration).
+> because of an update to version 2.6.14-gentoo-r2 the screen keeps blank 
+> / black / off after wake up from s3. i changed nothing in the kernel 
+> confiuration (except the new functions - make oldconfig...).
+> where can be the problem?
+> does somebody know what could be responsible for this?
 
-ACPI does switch consoles, which may cause something like that... see
-kernel/power/console.c .
-								Pavel
+Look at Doc*/power/video.txt. If that fails... you probably need to
+binary search for what broke it. Oh and try vanilla kernels...
+
+							Pavel
+
 -- 
 Thanks, Sharp!
 
