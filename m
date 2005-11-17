@@ -1,13 +1,13 @@
-From: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [UPDATE PATCH] acpi/video: check brightness is non-NULL before writing
-Date: Thu, 17 Nov 2005 08:58:13 -0800
-Message-ID: <20051117165813.GO3122@us.ibm.com>
-References: <20050912184401.GC25471@us.ibm.com> <20051116204339.GK3122@us.ibm.com> <200511171430.16431.luming.yu@intel.com>
+From: Phillip Susi <psusi-3tLf1voIkJTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Asus K8V Deluxe VIA SATA RAID power management problem
+Date: Thu, 17 Nov 2005 16:43:59 -0500
+Message-ID: <437CF99F.5030901@cfl.rr.com>
+References: <4378FF0A.4070301@cfl.rr.com> <200511171753.21041.luming.yu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200511171430.16431.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <200511171753.21041.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 17.11.2005 [14:30:16 +0800], Yu, Luming wrote:
-> On Thursday 17 November 2005 04:43, Nishanth Aravamudan wrote:
-> >
-> > Signed-off-by: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-> >
-> > ---
-> >
-> >  drivers/acpi/video.c |    2 +-
-> >  1 files changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff -urpN 2.6.15-rc1/drivers/acpi/video.c
-> > 2.6.15-rc1-dev/drivers/acpi/video.c ---
-> > 2.6.15-rc1/drivers/acpi/video.c	2005-11-11 20:32:50.000000000 -0800 +++
-> > 2.6.15-rc1-dev/drivers/acpi/video.c	2005-11-16 12:40:42.000000000 -0800 @@
-> > -812,7 +812,7 @@ acpi_video_device_write_brightness(struc
-> >
-> >  	ACPI_FUNCTION_TRACE("acpi_video_device_write_brightness");
-> >
-> > -	if (!dev || count + 1 > sizeof str)
-> > +	if (!dev || !dev->brightness || count + 1 > sizeof str)
-> >  		return_VALUE(-EINVAL);
-> >
-> >  	if (copy_from_user(str, buffer, count))
+I have determined that after the resume, the controller requires an 
+extended period of time before it is ready for use.  The errors I was 
+getting were due to the driver waiting for the busy bit in the status 
+register to clear, and it did not before the wait timed out.  I worked 
+around the problem by extending the timeout by a factor of 100, but this 
+does not seem like an appropriate fix.
+
+Is there maybe a method in the DSDT that is called during resume where I 
+could make it wait for the controller to be ready?
+
+Yu, Luming wrote:
+> On Tuesday 15 November 2005 05:18, Phillip Susi wrote:
+>> I have noticed that when I suspend my system, on resume the via_sata
+>> driver complains about an unexpected status of 0x80 in register 0xE000,
+> What does 0x80 mean? What is register 0xE000 for?
+> I think you need to figure them out from spec.  
 > 
-> Is it this http://bugzilla.kernel.org/show_bug.cgi?id=5571?
+> Thanks,
+> Luming
+> 
 
-Yup, sorry, didn't realize a bug had been opened. I submitted this patch
-to the list back in September and never heard back.
-
-Thanks,
-Nish
 
 
 -------------------------------------------------------
