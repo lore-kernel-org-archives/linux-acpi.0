@@ -1,13 +1,15 @@
-From: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [Lhms-devel] [PATCH 1/1]  patch to fix acpi_memhotplug.c
-Date: Thu, 17 Nov 2005 16:01:08 +0900
-Message-ID: <20051117154954.8723.Y-GOTO@jp.fujitsu.com>
-References: <20051115171221.7E99.Y-GOTO@jp.fujitsu.com> <1132201107.3798.81.camel@knk>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: battery issues with 2.6.14
+Date: Thu, 17 Nov 2005 16:50:27 +0800
+Message-ID: <200511171650.29034.luming.yu@intel.com>
+References: <20051115230502.ED1B43C005A@ningauble.scrye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1132201107.3798.81.camel@knk>
+In-Reply-To: <20051115230502.ED1B43C005A-suirFKV4XlER6aHY2TQsDkEOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,71 +19,74 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wednesday 16 November 2005 07:05, Kevin Fenzi wrote:
+> Greetings.
+>
+> I did a quick search of the list archives and the bugzilla.kernel.org,
+> but didn't see any reports of what I am seeing:
+>
+> Under 2.6.13-1.1532_FC4 (fedora update kernel) and all before it, my
+> battery works great. I can use amount left, no errors, survives
+> suspend/resume just fine.
+>
+> Starting with 2.6.14-1.1633_FC4 and any 2.6.14 kernel after that, the
+> battery works ok for a while, then stops reporting any information.
+> It looks like it stops working when the battery would normally start
+> reporting something like discharging or the like.
+>
+> Unloading and reloading the battery module doesn't change anything.
+>
+> In the dmesg I see:
+>
+>     ACPI-0292: *** Error: Looking up [SERN] in namespace, AE_ALREADY_EXISTS
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.GBIF] (Node f7e245a0), AE_ALREADY_EXISTS ACPI-0213:
+> *** Error: Method reached maximum reentrancy limit (255) ACPI-0508: ***
+> Error: Method execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node
+> f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>     ACPI-0213: *** Error: Method reached maximum reentrancy limit (255)
+>     ACPI-0508: *** Error: Method execution failed
+> [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node f7e24460), AE_AML_METHOD_LIMIT
+>
+> This laptop is a thinkpad t42p.
+>
+> Happy to provide any further information that would be helpfull.
+>
+> kevin
+>
 
-On Wed, 16 Nov 2005 20:18:27 -0800
-keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org> wrote:
-
-> On Tue, 2005-11-15 at 19:20 +0900, Yasunori Goto wrote:
-> > Hello, Keith-san.
-> > 
-> > >   I am submitting this patch for inclusion in the acpi development tree.
-> > > I have not received any feedback of my beta patch or emails over the
-> > > past week.  I cleaned my previous patch up and made the error handling
-> > > match the rest of the driver.  I need this patch to support my hardware
-> > > (IBM x460/x366/x445) acpi hot-add memory events.   
-> > > 
-> > >   In general acpi_bus_get_device fails for my event. 
-> > > acpi_bus-0072 [04] bus_get_device        : No context for object [ffff81007ff397f0] 
-> > >   The current driver relies on acpi_bus_get_device to create the acpi
-> > > memory_device but these call fails for my hardware.  
-> > >   
-> > >   My event is a single notify with a memory range passed along as data.
-> > > The current driver is expecting some other event or series of events (As
-> > > I have posted before I am a little confused on how the current driver
-> > > works at all).  My code provides a way for the data that is passed along
-> > > during the event to be converted directly to the memory_device without
-> > > reliance on acpi_bus_get_device.  My code in no way breaks the current
-> > > implementation and seems a reasonable addition for increased
-> > > flexibility. 
-> > 
-> > Hmm.
-> > I have a bit similar (but contrastive) problem on our making box.
-> > In my case, physical hotplug unit is a node. So, notification of event
-> > will reach "container driver". And container driver just call 
-> > struct acpi_driver ops.add via acpi_bus_scan(). And it will also call
-> > ops.start if start method is exist.
-> > 
-> > Howerver, there is no ops.start method in acpi_memhotplug.c.
-> > So, when bus is scaned by container driver add event,
-> > add_memory is not called.
-> > Following patch is to add start method for it.
-> 
-> My add event is called with my patch.  The notify event is triggering
-> and falling into the right path. 
-> 
-> I tried your patch but my device is not making and add event.  I really
-> looks to just be a notify with the memory range attached.  I really
-> think my patch is the right way to go for my hardware. 
-
-Oops. I didn't say clearly. Sorry.
-Just I meant each patches were necessary for each case.
-
-Anyway, I also have a concern about Kame-san's following question.
-
-> Maybe driver->ops.add is not called for some reason.
-> What happens in acpi_add_single_object() in your environment ?
-> acpi_bus_find_driver() is called ?
-
-Thanks.
+Please try boot option acpi_serialize .
+Also, please file this bug on bugzilla.kernel.org.
+It will make sure the bug report won't be dropped.
 
 -- 
-Yasunori Goto 
-
-
+Thanks,
+Luming
 
 
 -------------------------------------------------------
