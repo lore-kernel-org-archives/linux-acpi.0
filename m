@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: s3 buggy after kernel-update
-Date: Thu, 17 Nov 2005 13:16:39 +0100
-Message-ID: <20051117121639.GA14597@elf.ucw.cz>
-References: <59D45D057E9702469E5775CBB56411F1D91C9D@pdsmsx406> <437AFE25.9080500@web.de>
+From: GregR <grcore-9my5i9164tDQT0dZR+AlfA@public.gmane.org>
+Subject: Laptop ACPI freeze on event...bat,lid,ac
+Date: Thu, 17 Nov 2005 12:59:28 +0000 (UTC)
+Message-ID: <loom.20051117T135356-183@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <437AFE25.9080500-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +15,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On St 16-11-05 10:38:45, Rathgeb Markus wrote:
-> I do not use framebuffer.
-> The laptop wakes up, only the lcd is blank.
-> I can execute commands (without seeing anythin, blind). I can start for 
-> example the ssh daemon an connect from an other pc to the laptop...
+I am having a problem with ACPI and system freezes.  I have a bugzilla report
+opened at http://bugzilla.kernel.org/show_bug.cgi?id=5442
 
-See Doc*/power/video.txt.
-							Pavel
+I could use a bit of assistance figuring out what is wrong.  The laptop is a
+sharp pcav18 (athlonM 1800).  Currently using the 2.6.14 kernel release.  The
+last kernel that worked was 2.6.11 (Note Knoppix with this kernel works fine).
 
--- 
-Thanks, Sharp!
+Whenever the battery state changes (ie insert, remove) ac_adapter, or lid event
+happens then the laptop freezes hard and I have to power down and restart.
+
+Suggestions welcomed.
+
+Thanks
+
+Greg
+
 
 
 -------------------------------------------------------
