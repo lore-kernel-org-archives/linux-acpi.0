@@ -1,15 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [UPDATE PATCH] acpi/video: check brightness is non-NULL before writing
-Date: Thu, 17 Nov 2005 14:30:16 +0800
-Message-ID: <200511171430.16431.luming.yu@intel.com>
-References: <20050912184401.GC25471@us.ibm.com> <20051116204339.GK3122@us.ibm.com>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: Re: [Lhms-devel] [PATCH 1/1]  patch to fix acpi_memhotplug.c
+Date: Thu, 17 Nov 2005 15:08:44 +0900
+Message-ID: <437C1E6C.6000404@jp.fujitsu.com>
+References: <1131771825.20603.44.camel@knk> <1132033003.3798.21.camel@knk>	 <20051115171221.7E99.Y-GOTO@jp.fujitsu.com> <1132201107.3798.81.camel@knk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051116204339.GK3122-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1132201107.3798.81.camel@knk>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,34 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 17 November 2005 04:43, Nishanth Aravamudan wrote:
->
-> Signed-off-by: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
->
-> ---
->
->  drivers/acpi/video.c |    2 +-
->  1 files changed, 1 insertion(+), 1 deletion(-)
->
-> diff -urpN 2.6.15-rc1/drivers/acpi/video.c
-> 2.6.15-rc1-dev/drivers/acpi/video.c ---
-> 2.6.15-rc1/drivers/acpi/video.c	2005-11-11 20:32:50.000000000 -0800 +++
-> 2.6.15-rc1-dev/drivers/acpi/video.c	2005-11-16 12:40:42.000000000 -0800 @@
-> -812,7 +812,7 @@ acpi_video_device_write_brightness(struc
->
->  	ACPI_FUNCTION_TRACE("acpi_video_device_write_brightness");
->
-> -	if (!dev || count + 1 > sizeof str)
-> +	if (!dev || !dev->brightness || count + 1 > sizeof str)
->  		return_VALUE(-EINVAL);
->
->  	if (copy_from_user(str, buffer, count))
+keith wrote:
+ >
+ > My add event is called with my patch.  The notify event is triggering
+ > and falling into the right path.
+ >
+ > I tried your patch but my device is not making and add event.  I really
+ > looks to just be a notify with the memory range attached.  I really
+ > think my patch is the right way to go for my hardware.
+ >
+ >
+Could you show your AML tree around Memory ?
+I'm interested in.
 
-Is it this http://bugzilla.kernel.org/show_bug.cgi?id=5571?
+  	if (!(*mem_device)) {
+-		printk(KERN_ERR "\n driver data not found");
+-		return_VALUE(-ENODEV);
++		/* Try and get the memory_device from the current handle */
++		result = acpi_memory_get_current_resource(handle,mem_device);
++		if (result) {
++			printk(KERN_ERR "\nThere is no data for this memory device\n");
++			return_VALUE(-EINVAL);
++		}
+  	}
+I'm not sure why this is *right* way.
+
+This is traditinal way to attach driver data to device.
+==
+acpi_bus_add() ->
+	acpi_add_single_object() ->  ----------------(*) acpi_device is create here.
+		acpi_bus_find_driver()->
+			acpi_bus_driver_init()->
+				driver->ops.add()
+==
+
+Maybe driver->ops.add is not called for some reason.
+What happens in acpi_add_single_object() in your environment ?
+acpi_bus_find_driver() is called ?
+
+-- Kame
+
+
 
 
 -------------------------------------------------------
