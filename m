@@ -1,8 +1,15 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: - drivers-acpi-asus_acpic-unsigned-comparison.patch removed from -mm tree
-Date: Wed, 16 Nov 2005 21:45:05 -0800
-Message-ID: <200511170545.jAH5jNS5008730@shell0.pdx.osdl.net>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [UPDATE PATCH] acpi/video: check brightness is non-NULL before writing
+Date: Thu, 17 Nov 2005 14:30:16 +0800
+Message-ID: <200511171430.16431.luming.yu@intel.com>
+References: <20050912184401.GC25471@us.ibm.com> <20051116204339.GK3122@us.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20051116204339.GK3122-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,69 +19,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ace-CZbD5vIK5ytj4kVupMNl0w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mm-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thursday 17 November 2005 04:43, Nishanth Aravamudan wrote:
+>
+> Signed-off-by: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+>
+> ---
+>
+>  drivers/acpi/video.c |    2 +-
+>  1 files changed, 1 insertion(+), 1 deletion(-)
+>
+> diff -urpN 2.6.15-rc1/drivers/acpi/video.c
+> 2.6.15-rc1-dev/drivers/acpi/video.c ---
+> 2.6.15-rc1/drivers/acpi/video.c	2005-11-11 20:32:50.000000000 -0800 +++
+> 2.6.15-rc1-dev/drivers/acpi/video.c	2005-11-16 12:40:42.000000000 -0800 @@
+> -812,7 +812,7 @@ acpi_video_device_write_brightness(struc
+>
+>  	ACPI_FUNCTION_TRACE("acpi_video_device_write_brightness");
+>
+> -	if (!dev || count + 1 > sizeof str)
+> +	if (!dev || !dev->brightness || count + 1 > sizeof str)
+>  		return_VALUE(-EINVAL);
+>
+>  	if (copy_from_user(str, buffer, count))
 
-The patch titled
-
-     drivers/acpi/asus_acpi.c unsigned comparison
-
-has been removed from the -mm tree.  Its filename is
-
-     drivers-acpi-asus_acpic-unsigned-comparison.patch
-
-This patch was probably dropped from -mm because
-it has already been merged into a subsystem tree
-or into Linus's tree
-
-
-From: "Gabriel A. Devenyi" <ace-CZbD5vIK5ytj4kVupMNl0w@public.gmane.org>
-
-proc_write_brn, and proc_write_disp both use a parameter "count" to store
-the result from parse_arg.  The return of parse_arg is an int, but count is
-declared as an unsigned int, and later checked versus zero, which is
-meaningless.  This patch fixes the declaration of count in both functions.
-
-Thanks to LinuxICC (http://linuxicc.sf.net)
-
-Signed-off-by: Gabriel A. Devenyi <ace-CZbD5vIK5ytj4kVupMNl0w@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
----
-
- drivers/acpi/asus_acpi.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-unsigned-comparison drivers/acpi/asus_acpi.c
---- devel/drivers/acpi/asus_acpi.c~drivers-acpi-asus_acpic-unsigned-comparison	2005-11-16 15:53:26.000000000 -0800
-+++ devel-akpm/drivers/acpi/asus_acpi.c	2005-11-16 15:53:26.000000000 -0800
-@@ -748,7 +748,7 @@ proc_read_brn(char *page, char **start, 
- 
- static int
- proc_write_brn(struct file *file, const char __user * buffer,
--	       unsigned long count, void *data)
-+	       long count, void *data)
- {
- 	int value;
- 
-@@ -798,7 +798,7 @@ proc_read_disp(char *page, char **start,
-  */
- static int
- proc_write_disp(struct file *file, const char __user * buffer,
--		unsigned long count, void *data)
-+		long count, void *data)
- {
- 	int value;
- 
-_
-
-Patches currently in -mm which might be from ace-CZbD5vIK5ytj4kVupMNl0w@public.gmane.org are
-
-drivers-acpi-asus_acpic-unsigned-comparison.patch
-cpufreq-nforce2c-fix-u320-test.patch
-
+Is it this http://bugzilla.kernel.org/show_bug.cgi?id=5571?
 
 
 -------------------------------------------------------
