@@ -1,11 +1,13 @@
-From: GregR <grcore-9my5i9164tDQT0dZR+AlfA@public.gmane.org>
-Subject: Laptop ACPI freeze on event...bat,lid,ac
-Date: Thu, 17 Nov 2005 12:59:28 +0000 (UTC)
-Message-ID: <loom.20051117T135356-183@post.gmane.org>
+From: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
+Subject: Re: s3 buggy after kernel-update
+Date: Thu, 17 Nov 2005 15:15:38 +0100
+Message-ID: <437C908A.4070600@web.de>
+References: <59D45D057E9702469E5775CBB56411F1D91C9D@pdsmsx406> <437AFE25.9080500@web.de> <20051117121639.GA14597@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20051117121639.GA14597-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,26 +20,41 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am having a problem with ACPI and system freezes.  I have a bugzilla report
-opened at http://bugzilla.kernel.org/show_bug.cgi?id=5442
+the important thing in my script are the following lines:
 
-I could use a bit of assistance figuring out what is wrong.  The laptop is a
-sharp pcav18 (athlonM 1800).  Currently using the 2.6.14 kernel release.  The
-last kernel that worked was 2.6.11 (Note Knoppix with this kernel works fine).
+	statedir=3D/tmp
+	/usr/bin/chvt 12
+	/usr/sbin/vbetool vbestate save > $statedir/vbe
+	/usr/bin/sync
+	echo -n mem > /sys/power/state
+	/usr/bin/sync
+	/usr/sbin/vbetool post
+	/tmp/radeon/boot-radeon
+	/usr/sbin/vbetool vbestate restore < $statedir/vbe
+	/usr/bin/chvt 7
 
-Whenever the battery state changes (ie insert, remove) ac_adapter, or lid event
-happens then the laptop freezes hard and I have to power down and restart.
+with the kernel 2.6.12-gentoo-r10 it works fine.
 
-Suggestions welcomed.
+with newer kernel for example 2.6.14-gentoo-r02 this do not work
+i started without X
+i conencted to my laptop AFTER wake up, to see the error messages...
 
-Thanks
+when i execute
+	/usr/sbin/vbetool post
+or
+	boot-radeon
+from http://www.doesi.gmxhome.de/linux/tm800s3/s3.html
 
-Greg
+i get:
+"Ung=FCliger Maschinenbefehl"
+(in english, invalid machinecommand i guess)
 
+and when i execute startx:
+(EE) RADEON(0): No V_BIOS fount
 
 
 -------------------------------------------------------
 This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
 Register for a JBoss Training Course.  Free Certification Exam
 for All Training Attendees Through End of 2005. For more info visit:
-http://ads.osdn.com/?ad_id=7628&alloc_id=16845&op=click
+http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
