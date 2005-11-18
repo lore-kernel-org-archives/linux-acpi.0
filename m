@@ -1,13 +1,13 @@
-From: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: [Lhms-devel] [PATCH 1/1]  patch to fixacpi_memhotplug.c
-Date: Fri, 18 Nov 2005 06:29:59 -0800
-Message-ID: <D36CE1FCEFD3524B81CA12C6FE5BCAB00BA21FE8@fmsmsx406.amr.corp.intel.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Broken Dell BIOSes (was: Re: ACPI question)
+Date: Fri, 18 Nov 2005 16:27:09 +0000
+Message-ID: <20051118162709.GA10204@srcf.ucam.org>
+References: <1acba2fa0511180455s26c7192dyde34bec2565d8735@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <1acba2fa0511180455s26c7192dyde34bec2565d8735-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Mahmood NT <mahmood.nt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-keith <mailto:kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org> wrote:
-> Well I can tell you I never see the
->=20
-> printk(KERN_INFO "%s \n", acpi_device_name(device));
->=20
-> from acpi_memory_device_add when I call acpi_bus_add.  I am really
-> trying not to dig around in the acpi generic code.....  I might have
-> time to have a look at the generic acpi code tomorrow....
->=20
-> Is this driver know to work on any hardware?
->=20
-Hi Keith:
+On Fri, Nov 18, 2005 at 04:25:42PM +0330, Mahmood NT wrote:
 
-Yes, it works on Intel's E8500 chipset based platforms that support
-hot-add/remove.  I've been wrapped in some other things lately,
-but I'll take a closer look at this shortly...=20
+> I have a DELL inspiron 510m running Fedora core 3 (2.6.9).
+> I have trouble with my ACPI. When ever I close the lid, the screen goes off (I
+> do not know whether it suspen to RAM or not).
+> But when I open the lid, it does not wake up and the screen still is off. I
+> must press the power button. therefore system shuts down
+> and I must restart it again.
 
-matt
+There's a bug in Dell's current laptop BIOSes. If you shut the lid and 
+open them again, they won't switch the screen back on. I've been 
+spending the past month fighting with Dell technical support over this, 
+so if anyone has any contacts inside Dell, that would be great. The same 
+thing happens if you boot Windows in safe mode, so it's certainly not a 
+Linux bug.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
