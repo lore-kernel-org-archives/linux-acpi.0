@@ -1,11 +1,13 @@
-From: Mahmood NT <mahmood.nt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: ACPI question
-Date: Fri, 18 Nov 2005 16:25:42 +0330
-Message-ID: <1acba2fa0511180455s26c7192dyde34bec2565d8735@mail.gmail.com>
+From: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: [Lhms-devel] [PATCH 1/1]  patch to fixacpi_memhotplug.c
+Date: Fri, 18 Nov 2005 06:29:59 -0800
+Message-ID: <D36CE1FCEFD3524B81CA12C6FE5BCAB00BA21FE8@fmsmsx406.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_4018_5941260.1132318542582"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,105 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-------=_Part_4018_5941260.1132318542582
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+keith <mailto:kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org> wrote:
+> Well I can tell you I never see the
+>=20
+> printk(KERN_INFO "%s \n", acpi_device_name(device));
+>=20
+> from acpi_memory_device_add when I call acpi_bus_add.  I am really
+> trying not to dig around in the acpi generic code.....  I might have
+> time to have a look at the generic acpi code tomorrow....
+>=20
+> Is this driver know to work on any hardware?
+>=20
+Hi Keith:
 
- Hello,
-I have a DELL inspiron 510m running Fedora core 3 (2.6.9).
-I have trouble with my ACPI. When ever I close the lid, the screen goes off
-(I do not know whether it suspen to RAM or not).
-But when I open the lid, it does not wake up and the screen still is off. I
-must press the power button. therefore system shuts down
-and I must restart it again.
+Yes, it works on Intel's E8500 chipset based platforms that support
+hot-add/remove.  I've been wrapped in some other things lately,
+but I'll take a closer look at this shortly...=20
 
-First I thought that the problem is with ACPI daemon. so I disable it and
-try to close the lid again. the same problem rose again.
-I think that the kernel (or something like this) does not recognize the lid
-button (or lid event).
-
-The surprising thing is that, when I see the bootlog, it writes this:
-ACPI wake up devices:
-lid S1 S2 ......
-it seems that it knows "lid" but do not know what it is !!!
-
-What do you suggest?
-
---
-Mahmood NT,
-
-------=_Part_4018_5941260.1132318542582
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
- Hello,<br>
-
-
-
-I have a DELL inspiron 510m running Fedora core 3 (2.6.9).<br>
-
-
-
-I have trouble with my ACPI. When ever I close the lid, the screen goes off=
- (I do not know whether it suspen to RAM or not).<br>
-
-
-
-But when I open the lid, it does not wake up and the screen still is
-off. I must press the power button. therefore system shuts down <br>
-
-
-
-and I must restart it again.<br>
-
-
-
-<br>
-
-
-
-First I thought that the problem is with ACPI daemon. so I disable it
-and try to close the lid again. the same problem rose again.<br>
-
-
-
-I think that the kernel (or something like this) does not recognize the lid=
- button (or lid event). <br>
-
-
-
-<br>
-
-
-
-The surprising thing is that, when I see the bootlog, it writes this:<br>
-
-
-
-&nbsp;&nbsp;&nbsp;&nbsp; ACPI wake up devices:<br>
-
-
-
-&nbsp;&nbsp;&nbsp;&nbsp; lid S1 S2 ......<br>
-
-
-
-it seems that it knows &quot;lid&quot; but do not know what it is !!!<br>
-
-
-
-<br>
-
-
-
-What do you suggest?<br clear=3D"all"><br>-- <br>Mahmood NT,
-
-------=_Part_4018_5941260.1132318542582--
+matt
 
 
 -------------------------------------------------------
