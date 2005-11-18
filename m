@@ -1,13 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Broken Dell BIOSes (was: Re: ACPI question)
-Date: Fri, 18 Nov 2005 16:27:09 +0000
-Message-ID: <20051118162709.GA10204@srcf.ucam.org>
-References: <1acba2fa0511180455s26c7192dyde34bec2565d8735@mail.gmail.com>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: [Lhms-devel] [PATCH 1/1]  patch to fix	acpi_memhotplug.c
+Date: Fri, 18 Nov 2005 11:47:06 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E0378BDDE@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1acba2fa0511180455s26c7192dyde34bec2565d8735-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +17,99 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mahmood NT <mahmood.nt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 18, 2005 at 04:25:42PM +0330, Mahmood NT wrote:
+The ACPICA code supports _OSI and will respond TRUE when shown the
+"Windows 2001" string.
+Bob
 
-> I have a DELL inspiron 510m running Fedora core 3 (2.6.9).
-> I have trouble with my ACPI. When ever I close the lid, the screen goes off (I
-> do not know whether it suspen to RAM or not).
-> But when I open the lid, it does not wake up and the screen still is off. I
-> must press the power button. therefore system shuts down
-> and I must restart it again.
 
-There's a bug in Dell's current laptop BIOSes. If you shut the lid and 
-open them again, they won't switch the screen back on. I've been 
-spending the past month fighting with Dell technical support over this, 
-so if anyone has any contacts inside Dell, that would be great. The same 
-thing happens if you boot Windows in safe mode, so it's certainly not a 
-Linux bug.
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of KAMEZAWA Hiroyuki
+> Sent: Thursday, November 17, 2005 6:57 PM
+> To: keith
+> Cc: Yasunori Goto; Brown, Len; S, Naveen B; acpi-devel; external
+hotplug
+> mem list; Tolentino, Matthew E
+> Subject: Re: [ACPI] Re: [Lhms-devel] [PATCH 1/1] patch to fix
+> acpi_memhotplug.c
+>=20
+> keith wrote:
+> >> >
+> >>Could you show your AML tree around Memory ?
+> >
+> >
+> > See attached SSDT.
+> >
+> Thanks, at the first look.....
+>=20
+> >         Device (ME00)
+> >         {
+> <snip>
+> >             Method (_STA, 0, NotSerialized)
+> >             {
+> >                 If (CondRefOf (_OSI, Local0))
+> >                 {
+> >                     If (\_OSI ("Windows 2001"))
+> >                     {
+> >                         If (LAnd (LEqual (BADH, EADH), LEqual (BADL,
+> EADL)))
+> >                         {
+> >                             Or (MEID, \_SB.MEMI, \_SB.MEMI)
+> >                             Return (0x00)
+> >                         }
+> >                         Else
+> >                         {
+> >                             And (Not (MEID), \_SB.MEMI, \_SB.MEMI)
+> >                             Return (0x0F)
+> >                         }
+> >                     }
+> >                 }
+> >
+> >                 Return (0x00)
+> >             }
+> It seems memory device's  _STA never returns 0xF always returns 0x0.
+> (Device is online and enabled) when OS is not Windows2001.
+> All PNP0C80 decvices in this SSDT has same _STA function.
+>=20
+> So, I think why your hot add failes is _STA has no present bit.
+> =3D=3D
+> drivers/acpi/scan.c
+>=20
+> acpi_add_single_object()
+> <snip>
+>          case ACPI_BUS_TYPE_DEVICE:
+>                  result =3D acpi_bus_get_status(device);  in
+> drivers/acpi/bus.c
+>                  if (ACPI_FAILURE(result) || !device->status.present)
+{ <-
+> ---(*)
+>                          result =3D -ENOENT;
+>                          goto end;
+>                  }
+>                  break;
+> =3D=3D
+>=20
+> rewriting your DSDT would be sane approach.
+>=20
+> -- Kame
+>=20
+>=20
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
+> Register for a JBoss Training Course.  Free Certification Exam
+> for All Training Attendees Through End of 2005. For more info visit:
+> http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
