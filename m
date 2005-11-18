@@ -1,10 +1,11 @@
-From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
-Subject: Soundcard malfunction after suspend/resume cycle
-Date: Fri, 18 Nov 2005 08:44:56 +0100
-Message-ID: <20051118074456.GA18225@tangens.sinus.cz>
-Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+From: Noah J Norris <preludelinux-+MseY0pMZYIAvxtiuMwx3w@public.gmane.org>
+Subject: Gateway laptop help mx7515
+Date: Fri, 18 Nov 2005 12:53:41 +0000 (UTC)
+Message-ID: <200511200651.37307.preludelinux@mchsi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,39 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+Date: Sun, 20 Nov 2005 06:51:37 +0000
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-  My notebook (Clevo D610SU aka Mironet) exhibits the following problem: 
-  When suspended and resumed, either to RAM or to disk, when a sound is played
-during the suspension, it has problems to continue after resume. Direct access
-to soundcard (either ALSA or OSS emulation) obviously causes the playing
-program (mp3blaster, xmms) to either crash or not to continue playing until
-at least the song is reselected. With artsd from KDE, the sound continues to
-play, but artsd eats almost all CPU cycles, the sound is choppy, even a small
-action like window moving causes drops and interruptions, and artsd finally
-detects system overload and kills itself.
-  Reopening the sound device (restarting artsd/playing program) restores
-normal functionality.
-  I'm not sure whethere it is an ACPI related thing or the soundcard driver
-bug, so I'm asking here for some help, what to do next to debug the thing.
-  It's on 2.6.13.
-  The card is reported by lspci as
-00:02.7 Multimedia audio controller: Silicon Integrated Systems [SiS] Sound Controller (rev a0)
-  It is using the intel 8x0 driver.
-  dmesg says about it:
-PCI: Enabling device 0000:00:02.7 (0000 -> 0001)
-ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 10
-PCI: setting IRQ 10 as level-triggered
-ACPI: PCI Interrupt 0000:00:02.7[C] -> Link [LNKF] -> GSI 10 (level, low) -> IRQ 10
-intel8x0_measure_ac97_clock: measured 50410 usecs
-intel8x0: clocking to 48000
-  By repeatedly reading /proc/interrupts it seems that the card generates much
-more interrupts in its bad state than is normal, but I didn't make any exact
-measurements.
-  Any help would be appreciated.
-                         With regards, Pavel Troller
+	I just got a Gateway laptop model MX7515 , i got linux installed and running 
+but having some problems with devices being disabled or not working 
+correctly . I came accross this info for my distrobution
+
+http://forums.gentoo.org/viewtopic.php?t=122145
+
+	i followed the advice on downloading the iasl compiler and checking to see if 
+i get errors in my acpi DSDT  i get 11 Errors, 5 Warnings, 0 Remarks, 687 
+Optimizations. i was wondering if anyone here would have the time to try to 
+help me fix this . i can provide any information needed . i dont feel 
+comfrontable making the changes myself .
+
+thanks ahead of time 
+-- 
+life is linux
+linux is life
 
 
 -------------------------------------------------------
