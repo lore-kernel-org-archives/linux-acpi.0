@@ -1,14 +1,13 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: iasl refuses to compile
-Date: Sat, 19 Nov 2005 12:36:13 +0100
-Message-ID: <20051119113613.GA533@localhost.localdomain>
-References: <1132398006.7629.11.camel@localhost.localdomain>
+From: Kamezawa Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: Re: [Lhms-devel] [PATCH 1/1]  patch to fix	acpi_memhotplug.c
+Date: Sat, 19 Nov 2005 21:03:49 +0900
+Message-ID: <437F14A5.1030604@jp.fujitsu.com>
+References: <971FCB6690CD0E4898387DBF7552B90E0378BDDE@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1132398006.7629.11.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0378BDDE-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,56 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Moore, Robert wrote:
+> The ACPICA code supports _OSI and will respond TRUE when shown the
+> "Windows 2001" string.
 
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm not familiar with this area....
 
-hello Simon..
+When I set acpi_osi=Windows 2001 in boot option,
+  (\_OSI ("Windows 2001")) returns true ?
 
 
-* Simon Bridge <corwin-OA6R/WnsTSZ02iOg2JU2CQ@public.gmane.org> [2005-11-19 12:26 +0100]:
-> Yes - yet another instance.
-> The output of the makefile is as follows:
->=20
-> The system is:
-> Ubuntu 5.10, fully updated - std repos enabled, inlcl. multiverse.
-> kernel 2.6.12-9-686
-> gcc (GCC) 4.0.2 20050808 (prerelease) (Ubuntu 4.0.1-4ubuntu9)
-> g++ (GCC) 4.0.2 20050808 (prerelease) (Ubuntu 4.0.1-4ubuntu9)
-> bison (GNU Bison) 2.0
-> flex 2.5.31
+-- Kame
 
-try installing flex-old. i just did it and it compild fine under my
-Debian testing. did you read
-http://acpi.sourceforge.net/download.html?
-
-cheers,
- Sebastian
---=20
- _   ascii ribbon campaign      .oOo.      GCSd-s:a-C++ULB+++W++M+PS+++
-( )
- X   Die Ordnung ist nur die verbreitetste Form des Chaos.
-/ \ =20
-
---5mCyUwZo2JvN/JJP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDfw4treHfL3pi+bQRAv6rAJ9TrXqWQwrBvNp8D5DplhPRmxr2bACfUCYY
-rKNq9Awqp84VoEa1AVNBy18=
-=+5NN
------END PGP SIGNATURE-----
-
---5mCyUwZo2JvN/JJP--
 
 
 -------------------------------------------------------
