@@ -1,12 +1,12 @@
-From: cpanel <management-wVk54RniwbjQT0dZR+AlfA@public.gmane.org>
-Subject: Your web site Will Be Suspended
-Date: Sat, 19 Nov 2005 10:35:59 -0600
-Message-ID: <E1EdVh1-0005vW-E8@rh06.hostreflex.com>
-Reply-To: management-wVk54RniwbjQT0dZR+AlfA@public.gmane.org
+From: Stefan Schmidt <stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org>
+Subject: Battery cycle count on IBM Thinkpads.
+Date: Sun, 20 Nov 2005 00:07:34 +0100
+Message-ID: <20051119230734.GA4117@susi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,46 +19,42 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-cpanel
-It has come to our attention that your cpanel billing information are=20
-out of date. This require you to update billing information as soon as=20
-possible.
-This billing update is also a new cpanel security statement which goes=20
-according to the established norms on our terms of service (TOS) to=20
-reduce the instance of fraud on our website.
 
-Please update your records on or before  1/1, 2006. A failure to=20
-update your records may result on a suspension of your account.
+--wRRV7LY7NUeQGEoC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-To update your cpanel records click on the following link or copy this li=
-nk:
-http://cpanelx.6te.net/?url=3Dhttp://www.cpanel.com/cgi-bin/webscr?cmd=3D=
-_login-submit
+Hello.
 
-This new security statement will helps us continue to offer cpanel as a=20
-secure .
+Does somebody know, how i can read the cycle counter for battery
+charge on IBM Thinkpads?
+You can read the number with "IBM Battery MaxiMiser" under windows.
+I hope it could be possible to read the value the same way as other=20
+values from /proc/acpi/battery/BAT0/info were read.
+Is there documentation for vendor specific things like cycle count?
 
+regards
+Stefan Schmidt
 
-Sincerely,
-The cpanel Team
+--wRRV7LY7NUeQGEoC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
--------------------------------------------------------------------------=
--------
-Please do not reply to this email. This mailbox is not monitored and=20
-you will not receive a response. For assistance,=20
-http://cpanelx.6te.net?url=3Dhttp://www.cpanel.com/cgi-bin/webscr?cmd=3D_=
-login-submit
- to your cpanel account and choose the Help link located in the top=20
-right corner of any cpanel page.
+iD8DBQFDf7A2bNSsvd31FmURAjCOAJ9u1uoEQTSYX0YjEcTLtbQ3cvWEFwCghvuO
+Bcr5T+wBODrDcUbNCa+Tb20=
+=JAzs
+-----END PGP SIGNATURE-----
 
-
-
-
+--wRRV7LY7NUeQGEoC--
 
 
 -------------------------------------------------------
 This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
 Register for a JBoss Training Course.  Free Certification Exam
 for All Training Attendees Through End of 2005. For more info visit:
-http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
+http://ads.osdn.com/?ad_id=7628&alloc_id=16845&op=click
