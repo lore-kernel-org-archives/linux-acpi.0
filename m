@@ -1,13 +1,13 @@
 From: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
-Subject: Re: Broken Dell BIOSes (was: Re: ACPI question)
-Date: Sat, 19 Nov 2005 11:40:11 +0100
-Message-ID: <1132396811.27848.4.camel@localhost.localdomain>
-References: <1acba2fa0511180455s26c7192dyde34bec2565d8735@mail.gmail.com>
-	 <20051118162709.GA10204@srcf.ucam.org>
+Subject: RE: Re: [Lhms-devel] [PATCH 1/1]  patch to
+	fix	acpi_memhotplug.c
+Date: Sat, 19 Nov 2005 11:44:03 +0100
+Message-ID: <1132397043.27848.7.camel@localhost.localdomain>
+References: <971FCB6690CD0E4898387DBF7552B90E0378BEE7@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-G5fu/brwRmPZECiRE2Ko"
+Content-Type: multipart/signed; micalg=sha1; protocol="application/x-pkcs7-signature"; boundary="=-iCV8w2rTBqgAva1ck7BO"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051118162709.GA10204-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0378BEE7-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Mahmood NT <mahmood.nt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-G5fu/brwRmPZECiRE2Ko
+--=-iCV8w2rTBqgAva1ck7BO
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2005-11-18 at 16:27 +0000, Matthew Garrett wrote:
-> > I have a DELL inspiron 510m running Fedora core 3 (2.6.9).
-> > I have trouble with my ACPI. When ever I close the lid, the screen goes=
- off (I
-> > do not know whether it suspen to RAM or not).
-> > But when I open the lid, it does not wake up and the screen still is of=
-f. I
-> > must press the power button. therefore system shuts down
-> > and I must restart it again.
+On Fri, 2005-11-18 at 12:51 -0800, Moore, Robert wrote:
+
+[ ... ]
+=09
+> {
+>     /* Operating System Vendor Strings */
 >=20
-> There's a bug in Dell's current laptop BIOSes. If you shut the lid and=20
-> open them again, they won't switch the screen back on. I've been=20
-> spending the past month fighting with Dell technical support over this,=20
-> so if anyone has any contacts inside Dell, that would be great. The same=20
-> thing happens if you boot Windows in safe mode, so it's certainly not a=20
-> Linux bug.
+>     "Linux",
+>     "Windows 2000",
+>     "Windows 2001",
+>     "Windows 2001.1",
+>     "Windows 2001 SP0",
+>     "Windows 2001 SP1",
+>     "Windows 2001 SP2",
+>     "Windows 2001 SP3",
+>     "Windows 2001 SP4",
+>=20
+>     /* Feature Group Strings */
+>=20
+>     "Extended Address Space Descriptor"
+> };
 
-AFAIK many laptops (not only Dell) show this behaviour, at least while
-actually suspending, they either do not turn off the backlight, or do
-not turn them back on after resume. I guess "windows drivers" all fix
-this. Or maybe lack of linux acpi support? Anyway if you have a
-"suspend" supported video card with X driver, it will work nonetheless
-(like ati) because the driver will do the right thing or otherwise there
-are some tools around to explicitly turn on/off the backlight.
+Can you please explain to me what is the relation between ACPI and a
+certain OS implementation, seen from the BIOS code? I always failed to
+see that, I thought ACPI was to be OS-independent?
 
---=-G5fu/brwRmPZECiRE2Ko
+--=-iCV8w2rTBqgAva1ck7BO
 Content-Type: application/x-pkcs7-signature; name=smime.p7s
 Content-Disposition: attachment; filename=smime.p7s
 Content-Transfer-Encoding: base64
@@ -87,16 +88,16 @@ sZkbAMUaC4J0niVQlGLH2ydxVyWN3amcOY6MIE9lX5Xa9/eH1sYITq726jTlEBpbNU1341YheILc
 IRk13iSx0x1G/11fZU8xggHvMIIB6wIBATBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
 dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
 aWwgSXNzdWluZyBDQQIDD1NzMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
-MBwGCSqGSIb3DQEJBTEPFw0wNTExMTkxMDQwMDhaMCMGCSqGSIb3DQEJBDEWBBRSL0c3/zTJ2Vpz
-5v41pZNorbH9ATANBgkqhkiG9w0BAQEFAASCAQA5EFv4LG5H6/BxQDAoppmidqO4pKfh+c1zsgGW
-964T3tzS3o18pMO1nch15aF9biPLm8SGKmnu3yb2JTHL4lVxEr9CcPAINkDp/EDfBNA1JzXcO3OM
-GG97D+QU52JYiAQB/xfgYYT4RMiPdqKtHy25mtYpmBIrSLQ48wqCk0N8YMkhOgzhaCXjq/TviZgb
-JywA093nmjEJGNXYZJM6FfKTg2ynAkKYRpN3fOeY+Q0+Lq8ewiojsHjduuz0qLM9nAfjH1F2U2wj
-zPNCbzgDm6gi7bmjytjzBXUDAkG0z6dN7NO0DHNDi0/gkXmRlhyId7N5p6Wj3K3Uvp3I+amU7tl/
+MBwGCSqGSIb3DQEJBTEPFw0wNTExMTkxMDQ0MDNaMCMGCSqGSIb3DQEJBDEWBBRKLuQtEzB03S2d
+wWJ4tBviaPSxmzANBgkqhkiG9w0BAQEFAASCAQAEhUQQ4Gn10Xl5n9GzHalv7MUgoeBEVcHPyBy6
+m4VhDZzIC6x/+SJ6yQMaDlnZJnY+F8gVX2cvawEJw63Be4oGN4mefSCf+Hsv671naP2Xy27H0TcF
+80cui6fmgDMlcJR+0DWSh1oYhXC4c8MDQahfqlBrvOw/9DiVviSTzmN+tVXwltyFsfeL6RPXfzuY
+B0jS4FvKwm6IC8kh+SSzlW/w+Aq4djonVajGF0I+x1C0Ifn/BoJPmpeQIb5vIp9jUvYl3R+uPpO+
+vuFnZS0uW+lmTgHIIPN00BWP+6Lc0KW5n9IAHK+HI7zmwFrsojmvCcdlP8v337lSIlQSvt3ihPme
 AAAAAAAA
 
 
---=-G5fu/brwRmPZECiRE2Ko--
+--=-iCV8w2rTBqgAva1ck7BO--
 
 
 -------------------------------------------------------
