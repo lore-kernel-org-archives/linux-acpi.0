@@ -1,13 +1,13 @@
-From: Yu Luming <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH]  Fix Null point in video/lcd/brightness
-Date: Sat, 19 Nov 2005 22:32:55 +0800
-Message-ID: <200511192232.56139.luming.yu@gmail.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Broken Dell BIOSes (was: Re: ACPI question)
+Date: Sat, 19 Nov 2005 15:39:05 +0000
+Message-ID: <20051119153904.GA12753@srcf.ucam.org>
+References: <1acba2fa0511180455s26c7192dyde34bec2565d8735@mail.gmail.com> <20051118162709.GA10204@srcf.ucam.org> <1132396811.27848.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1132396811.27848.4.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: akpm-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+To: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>
+Cc: Mahmood NT <mahmood.nt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- Fix Null point in video/lcd/brightness
-http://bugzilla.kernel.org/show_bug.cgi?id=5571
+On Sat, Nov 19, 2005 at 11:40:11AM +0100, Erik Slagter wrote:
 
-Signed-off-by: Luming Yu
-Cc: "Brown, Len"
-Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Signed-off-by: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
----
- video.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+> AFAIK many laptops (not only Dell) show this behaviour, at least while
+> actually suspending, they either do not turn off the backlight, or do
+> not turn them back on after resume. I guess "windows drivers" all fix
+> this. Or maybe lack of linux acpi support? Anyway if you have a
+> "suspend" supported video card with X driver, it will work nonetheless
+> (like ati) because the driver will do the right thing or otherwise there
+> are some tools around to explicitly turn on/off the backlight.
 
---- a/drivers/acpi/video.c.orig	2005-10-28 02:02:08.000000000 +0200
-+++ a/drivers/acpi/video.c	2005-11-04 14:53:25.000000000 +0100
-@@ -813,7 +813,7 @@
- 
- 	ACPI_FUNCTION_TRACE("acpi_video_device_write_brightness");
- 
--	if (!dev || count + 1 > sizeof str)
-+	if (!dev || !dev->brightness || count + 1 > sizeof str)
- 		return_VALUE(-EINVAL);
- 
- 	if (copy_from_user(str, buffer, count))
+That's an entirely separate issue - Dells do this when you close the 
+lid, even if you're not suspending them.
 
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
