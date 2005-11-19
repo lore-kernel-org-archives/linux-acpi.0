@@ -1,13 +1,11 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI on hp nx6125 doesn't update battery state
-Date: Sat, 19 Nov 2005 10:23:49 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC21F@pdsmsx403>
+From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Subject: [PATCH/RESEND] ACPI: kernel-doc fixes for scan.c
+Date: Fri, 18 Nov 2005 23:10:23 -0800
+Message-ID: <20051118231023.4eaf23b7.rdunlap@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,60 +15,101 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Carsten Tschense <carsten-Bz3kcRWZgqLk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Please try  boot option: ec_burst=3D1.
+From: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
 
-Thanks
-Luming=20
+Fix kernel-doc warnings in acpi/scan.c.
 
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
->[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Carsten Tschense
->Sent: 2005=C4=EA11=D4=C219=C8=D5 6:22
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] ACPI on hp nx6125 doesn't update battery state
->
->Hi,
->I bought a HP Compaq nx6125 2 days ago...
->After booting the information in /proc/acpi/battery/C175/state update
->regulary, but after a while they don't. I don't see any errors in
->dmesg, /var/log/messages or /var/log/acpid.
->Well, now the strange solution:
->cat /proc/acpi/thermal_zone/TZ1/temperature
->That's the thermal zone of the cpu. After doing this, the fan starts
->blowing for a while, the cpu usage increases to 100% for about=20
->2 seconds
->(may vary), the systems repeats very slow.
->Now the battery state updates, the system runs as normal. If you do a
->cat /proc/acpi/thermal_zone/TZ1/temperature now, nothing happens, after
->circa 5 minutes the same happens again.
->The temperature looks correct all the time. viewing the temperature of
->another thermal zone doesn't help...
->
->That's a bit strange, isn't it? ;)
->I hope you can help me... :) should I provide some debugging
->information?
->
->I'm running a 2.6.14 with gentoos patchset r2.
->
->Bye,
->Carsten
->
->
->
->-------------------------------------------------------
->This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
->Register for a JBoss Training Course.  Free Certification Exam
->for All Training Attendees Through End of 2005. For more info visit:
->http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+Signed-off-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+---
+
+ Documentation/DocBook/kernel-api.tmpl |    1 
+ drivers/acpi/scan.c                   |   27 +++++++++++++++---------
+ 2 files changed, 18 insertions(+), 10 deletions(-)
+
+diff -Naurp linux-2615-rc1-g6/Documentation/DocBook/kernel-api.tmpl~kdoc_acpi_scan linux-2615-rc1-g6/Documentation/DocBook/kernel-api.tmpl
+--- linux-2615-rc1-g6/Documentation/DocBook/kernel-api.tmpl~kdoc_acpi_scan	2005-11-18 22:25:21.000000000 -0800
++++ linux-2615-rc1-g6/Documentation/DocBook/kernel-api.tmpl	2005-11-18 22:28:41.000000000 -0800
+@@ -369,6 +369,7 @@ X!Edrivers/acpi/motherboard.c
+ X!Edrivers/acpi/bus.c
+ -->
+ !Edrivers/acpi/scan.c
++!Idrivers/acpi/scan.c
+ <!-- No correct structured comments
+ X!Edrivers/acpi/pci_bind.c
+ -->
+diff -Naurp linux-2615-rc1-g6/drivers/acpi/scan.c~kdoc_acpi_scan linux-2615-rc1-g6/drivers/acpi/scan.c
+--- linux-2615-rc1-g6/drivers/acpi/scan.c~kdoc_acpi_scan	2005-11-18 21:24:10.000000000 -0800
++++ linux-2615-rc1-g6/drivers/acpi/scan.c	2005-11-18 22:28:41.000000000 -0800
+@@ -475,8 +475,10 @@ static LIST_HEAD(acpi_bus_drivers);
+ static DECLARE_MUTEX(acpi_bus_drivers_lock);
+ 
+ /**
+- * acpi_bus_match 
+- * --------------
++ * acpi_bus_match - match device IDs to driver's supported IDs
++ * @device: the device that we are trying to match to a driver
++ * @driver: driver whose device id table is being checked
++ *
+  * Checks the device's hardware (_HID) or compatible (_CID) ids to see if it
+  * matches the specified driver's criteria.
+  */
+@@ -489,8 +491,10 @@ acpi_bus_match(struct acpi_device *devic
+ }
+ 
+ /**
+- * acpi_bus_driver_init 
+- * --------------------
++ * acpi_bus_driver_init - add a device to a driver
++ * @device: the device to add and initialize
++ * @driver: driver for the device
++ *
+  * Used to initialize a device via its device driver.  Called whenever a 
+  * driver is bound to a device.  Invokes the driver's add() and start() ops.
+  */
+@@ -603,8 +607,9 @@ static int acpi_driver_detach(struct acp
+ }
+ 
+ /**
+- * acpi_bus_register_driver 
+- * ------------------------ 
++ * acpi_bus_register_driver - register a driver with the ACPI bus
++ * @driver: driver being registered
++ *
+  * Registers a driver with the ACPI bus.  Searches the namespace for all
+  * devices that match the driver's criteria and binds.  Returns the
+  * number of devices that were claimed by the driver, or a negative
+@@ -633,8 +638,9 @@ int acpi_bus_register_driver(struct acpi
+ EXPORT_SYMBOL(acpi_bus_register_driver);
+ 
+ /**
+- * acpi_bus_unregister_driver 
+- * --------------------------
++ * acpi_bus_unregister_driver - unregisters a driver with the APIC bus
++ * @driver: driver to unregister
++ *
+  * Unregisters a driver with the ACPI bus.  Searches the namespace for all
+  * devices that match the driver's criteria and unbinds.
+  */
+@@ -660,8 +666,9 @@ int acpi_bus_unregister_driver(struct ac
+ EXPORT_SYMBOL(acpi_bus_unregister_driver);
+ 
+ /**
+- * acpi_bus_find_driver 
+- * --------------------
++ * acpi_bus_find_driver - check if there is a driver installed for the device
++ * @device: device that we are trying to find a supporting driver for
++ *
+  * Parses the list of registered drivers looking for a driver applicable for
+  * the specified device.
+  */
+
+
+---
+
 
 
 -------------------------------------------------------
