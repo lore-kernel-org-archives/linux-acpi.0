@@ -1,13 +1,13 @@
 From: Kamezawa Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Subject: Re: Re: [Lhms-devel] [PATCH 1/1]  patch to fix	acpi_memhotplug.c
-Date: Sat, 19 Nov 2005 21:03:49 +0900
-Message-ID: <437F14A5.1030604@jp.fujitsu.com>
-References: <971FCB6690CD0E4898387DBF7552B90E0378BDDE@orsmsx403.amr.corp.intel.com>
+Date: Sat, 19 Nov 2005 21:15:34 +0900
+Message-ID: <437F1766.8090705@jp.fujitsu.com>
+References: <971FCB6690CD0E4898387DBF7552B90E0378BEE7@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0378BDDE-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E0378BEE7-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,16 +22,35 @@ Cc: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Yasunori Goto <y-go
 List-Id: linux-acpi@vger.kernel.org
 
 Moore, Robert wrote:
-> The ACPICA code supports _OSI and will respond TRUE when shown the
-> "Windows 2001" string.
+> FYI, here are the strings supported:
+> 
+> /*
+>  * Strings supported by the _OSI predefined (internal) method.
+>  * When adding strings, be sure to update ACPI_NUM_OSI_STRINGS.
+>  */
+> const char
+> *AcpiGbl_ValidOsiStrings[ACPI_NUM_OSI_STRINGS] =
+> {
+>     /* Operating System Vendor Strings */
+> 
+>     "Linux",
+>     "Windows 2000",
+>     "Windows 2001",
+>     "Windows 2001.1",
+>     "Windows 2001 SP0",
+>     "Windows 2001 SP1",
+>     "Windows 2001 SP2",
+>     "Windows 2001 SP3",
+>     "Windows 2001 SP4",
+> 
+>     /* Feature Group Strings */
+> 
+>     "Extended Address Space Descriptor"
+> };
+Ah..Okay.. This means _OSI("Windows2001") returns true.
 
-I'm not familiar with this area....
+- kame
 
-When I set acpi_osi=Windows 2001 in boot option,
-  (\_OSI ("Windows 2001")) returns true ?
-
-
--- Kame
 
 
 
