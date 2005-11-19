@@ -1,17 +1,13 @@
-From: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Re: [Lhms-devel] [PATCH 1/1]  patch to
-	fix	acpi_memhotplug.c
-Date: Fri, 18 Nov 2005 10:54:10 -0800
-Message-ID: <1132340050.3798.145.camel@knk>
-References: <1131771825.20603.44.camel@knk> <1132033003.3798.21.camel@knk>
-	 <20051115171221.7E99.Y-GOTO@jp.fujitsu.com> <1132201107.3798.81.camel@knk>
-	 <437C1E6C.6000404@jp.fujitsu.com> <1132280556.3798.137.camel@knk>
-	 <437D42F1.6080407@jp.fujitsu.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI on hp nx6125 doesn't update battery state
+Date: Sat, 19 Nov 2005 10:23:49 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC21F@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <437D42F1.6080407-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,75 +17,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: Yasunori Goto <y-goto-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, external hotplug mem list <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Carsten Tschense <carsten-Bz3kcRWZgqLk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-11-18 at 11:56 +0900, KAMEZAWA Hiroyuki wrote:
-> keith wrote:
-> >> >
-> >>Could you show your AML tree around Memory ?
-> > 
-> > 
-> > See attached SSDT. 
-> > 
-> Thanks, at the first look.....
-> 
-> >         Device (ME00)
-> >         {
-> <snip>
-> >             Method (_STA, 0, NotSerialized)
-> >             {
-> >                 If (CondRefOf (_OSI, Local0))
-> >                 {
-> >                     If (\_OSI ("Windows 2001"))
-> >                     {
-> >                         If (LAnd (LEqual (BADH, EADH), LEqual (BADL, EADL)))
-> >                         {
-> >                             Or (MEID, \_SB.MEMI, \_SB.MEMI)
-> >                             Return (0x00)
-> >                         }
-> >                         Else
-> >                         {
-> >                             And (Not (MEID), \_SB.MEMI, \_SB.MEMI)
-> >                             Return (0x0F)
-> >                         }
-> >                     }
-> >                 }
-> > 
-> >                 Return (0x00)
-> >             }
-> It seems memory device's  _STA never returns 0xF always returns 0x0.
-> (Device is online and enabled) when OS is not Windows2001.
-> All PNP0C80 decvices in this SSDT has same _STA function.
+Please try  boot option: ec_burst=3D1.
 
-I see.  I have no experience reading these ASL files... 
+Thanks
+Luming=20
 
-> So, I think why your hot add failes is _STA has no present bit.
-> ==
-> drivers/acpi/scan.c
-> 
-> acpi_add_single_object()
-> <snip>
->          case ACPI_BUS_TYPE_DEVICE:
->                  result = acpi_bus_get_status(device);  in drivers/acpi/bus.c
->                  if (ACPI_FAILURE(result) || !device->status.present) { <----(*)
->                          result = -ENOENT;
->                          goto end;
->                  }
->                  break;
-> ==
-> 
-> rewriting your DSDT would be sane approach.
-
-I shall go to the bios writers. 
-
-Thank you very much for you help in determining the root cause of my
-troubles with the hot-add event.    
-
-Keith Mannthey 
-LTC xSeries 
-
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Carsten Tschense
+>Sent: 2005=C4=EA11=D4=C219=C8=D5 6:22
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] ACPI on hp nx6125 doesn't update battery state
+>
+>Hi,
+>I bought a HP Compaq nx6125 2 days ago...
+>After booting the information in /proc/acpi/battery/C175/state update
+>regulary, but after a while they don't. I don't see any errors in
+>dmesg, /var/log/messages or /var/log/acpid.
+>Well, now the strange solution:
+>cat /proc/acpi/thermal_zone/TZ1/temperature
+>That's the thermal zone of the cpu. After doing this, the fan starts
+>blowing for a while, the cpu usage increases to 100% for about=20
+>2 seconds
+>(may vary), the systems repeats very slow.
+>Now the battery state updates, the system runs as normal. If you do a
+>cat /proc/acpi/thermal_zone/TZ1/temperature now, nothing happens, after
+>circa 5 minutes the same happens again.
+>The temperature looks correct all the time. viewing the temperature of
+>another thermal zone doesn't help...
+>
+>That's a bit strange, isn't it? ;)
+>I hope you can help me... :) should I provide some debugging
+>information?
+>
+>I'm running a 2.6.14 with gentoos patchset r2.
+>
+>Bye,
+>Carsten
+>
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
+>Register for a JBoss Training Course.  Free Certification Exam
+>for All Training Attendees Through End of 2005. For more info visit:
+>http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
