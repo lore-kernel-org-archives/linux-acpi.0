@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Battery cycle count on IBM Thinkpads.
-Date: Sun, 20 Nov 2005 21:46:24 +0000
-Message-ID: <20051120214624.GC2556@spitz.ucw.cz>
-References: <20051119230734.GA4117@susi>
+Subject: Re: BIOS bug?
+Date: Sun, 20 Nov 2005 23:18:37 +0000
+Message-ID: <20051120231837.GF2556@spitz.ucw.cz>
+References: <437E528D.5070305@web.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20051119230734.GA4117@susi>
+In-Reply-To: <437E528D.5070305-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,24 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Schmidt <stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org>
+To: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun 20-11-05 00:07:34, Stefan Schmidt wrote:
-> Hello.
+On Fri 18-11-05 23:15:41, Rathgeb Markus wrote:
+> i tested a few thing, why s3 will not work with new kernels for me 
+> (blank screen).
+> can someone have a look at a cut-out from my /var/log/messages
 > 
-> Does somebody know, how i can read the cycle counter for battery
-> charge on IBM Thinkpads?
-> You can read the number with "IBM Battery MaxiMiser" under windows.
-> I hope it could be possible to read the value the same way as other 
-> values from /proc/acpi/battery/BAT0/info were read.
-> Is there documentation for vendor specific things like cycle count?
+> i have execute also
+> # lspci -vxxx > before
+> before i go to s3 and
+> # lspci -vxxx > after
+> after the machine waked up (via ssh-console)
+> 
+> for example:
+> before:
+> 0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350 
+> [Mobility Radeon 9600 M10] (prog-if 00 [VGA])
+> 	Subsystem: Rioworks: Unknown device 2032
+> 
+> after:
+> 0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350 
+> [Mobility Radeon 9600 M10] (prog-if 00 [VGA])
+> 	Subsystem: ATI Technologies Inc RV350 [Mobility Radeon 9600 M10]
 
-You may be able to talk to smartbattery directly (using i2c), and
-get that info... expect to do some programming...
-							Pavel
+What is "new kernel", and what was last kernel that worked? See Doc*/power/video.txt.
 
+									Pavel
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
