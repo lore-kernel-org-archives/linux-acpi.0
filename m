@@ -1,13 +1,14 @@
-From: Carsten Tschense <carsten-Bz3kcRWZgqLk1uMJSBkQmQ@public.gmane.org>
-Subject: RE: ACPI on hp nx6125 doesn't update battery state
-Date: Sun, 20 Nov 2005 00:52:18 +0100
-Message-ID: <1132444338.4120.12.camel@localhost>
-References: <3ACA40606221794F80A5670F0AF15F84041AC21F@pdsmsx403>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
+Subject: Re: ACPI on hp nx6125 doesn't update battery state
+Date: Sun, 20 Nov 2005 08:58:46 +0200
+Message-ID: <20051120065846.GA19063@sci.fi>
+References: <3ACA40606221794F80A5670F0AF15F84041AC21F@pdsmsx403> <1132444338.4120.12.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC21F@pdsmsx403>
+Content-Disposition: inline
+In-Reply-To: <1132444338.4120.12.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,79 +18,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Carsten Tschense <carsten-Bz3kcRWZgqLk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-thanks for your help! :)
-I booted with that this morning and let the notebook running for about 5
-hours without looking after it. ... It seems to be a bit dangerous as
-the notebook was damn hot, the fan wasn't running. A "cat temperature"
-helped again. It said 58=C2=B0 for 2 minutes, that was defenatly wrong...
+On Sun, Nov 20, 2005 at 12:52:18AM +0100, Carsten Tschense wrote:
+> Hi,
+> thanks for your help! :)
+> I booted with that this morning and let the notebook running for about =
+5
+> hours without looking after it. ... It seems to be a bit dangerous as
+> the notebook was damn hot, the fan wasn't running. A "cat temperature"
+> helped again. It said 58=B0 for 2 minutes, that was defenatly wrong...
 
-Ah, something to add: while writing this mail the fan was still running
-at full speed (but it felt pretty cool), a "cat temperture" stopped
-it ;) (is anything of that really usefull?)
+Have you tried using the ec_burst=3D1 kernel option? I have a few HP=20
+Omnibook 5x0/6x00 series laptops that require it to work correctly.
+Without ec_burst=3D1 battery, thermal, brightness keys etc. are all=20
+broken.
 
+PS.
+Big thanks to the ACPI people. The early ec_burst patches didn't work=20
+correctly with these laptops but now I'm running 2.6.14-mm1 and=20
+everything appears to work perfectly.
 
-Bye,
-Carsten=09
-
-Am Samstag, den 19.11.2005, 10:23 +0800 schrieb Yu, Luming:
-> Please try  boot option: ec_burst=3D1.
->=20
-> Thanks
-> Luming=20
->=20
-> >-----Original Message-----
-> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
-> >Carsten Tschense
-> >Sent: 2005=E5=B9=B411=E6=9C=8819=E6=97=A5 6:22
-> >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >Subject: [ACPI] ACPI on hp nx6125 doesn't update battery state
-> >
-> >Hi,
-> >I bought a HP Compaq nx6125 2 days ago...
-> >After booting the information in /proc/acpi/battery/C175/state update
-> >regulary, but after a while they don't. I don't see any errors in
-> >dmesg, /var/log/messages or /var/log/acpid.
-> >Well, now the strange solution:
-> >cat /proc/acpi/thermal_zone/TZ1/temperature
-> >That's the thermal zone of the cpu. After doing this, the fan starts
-> >blowing for a while, the cpu usage increases to 100% for about=20
-> >2 seconds
-> >(may vary), the systems repeats very slow.
-> >Now the battery state updates, the system runs as normal. If you do a
-> >cat /proc/acpi/thermal_zone/TZ1/temperature now, nothing happens, afte=
-r
-> >circa 5 minutes the same happens again.
-> >The temperature looks correct all the time. viewing the temperature of
-> >another thermal zone doesn't help...
-> >
-> >That's a bit strange, isn't it? ;)
-> >I hope you can help me... :) should I provide some debugging
-> >information?
-> >
-> >I'm running a 2.6.14 with gentoos patchset r2.
-> >
-> >Bye,
-> >Carsten
-> >
-> >
-> >
-> >-------------------------------------------------------
-> >This SF.Net email is sponsored by the JBoss Inc.  Get Certified Today
-> >Register for a JBoss Training Course.  Free Certification Exam
-> >for All Training Attendees Through End of 2005. For more info visit:
-> >http://ads.osdn.com/?ad_id=3D7628&alloc_id=3D16845&op=3Dclick
-> >_______________________________________________
-> >Acpi-devel mailing list
-> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> >
->=20
-
+--=20
+Ville Syrj=E4l=E4
+syrjala-ORSVBvAovxo@public.gmane.org
+http://www.sci.fi/~syrjala/
 
 
 -------------------------------------------------------
