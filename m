@@ -1,10 +1,13 @@
-From: Heinz-Juergen Oertel <oe-pJ9TYRvN+WE@public.gmane.org>
-Subject: Re: Status
-Date: Mon, 21 Nov 2005 16:01:08 +0100
-Message-ID: <200511211501.jALF0unP002584@mailer.port.de>
-References: <200511210619.jAL6JLtJ011255@xray5.professional-internet.de>
+From: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
+Subject: Re: BIOS bug?
+Date: Mon, 21 Nov 2005 18:34:20 +0100
+Message-ID: <4382051C.9060506@web.de>
+References: <437E528D.5070305@web.de> <20051120231837.GF2556@spitz.ucw.cz>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------070602030702000102040206"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200511210619.jAL6JLtJ011255-XTshqVmaWOlUQTPDUqwQpQnpo9STUBsFDJg8/96op5s@public.gmane.org>
+In-Reply-To: <20051120231837.GF2556-/Rtfo+muvtdI+ieYp0uEEg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,28 +17,915 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hallo,
+This is a multi-part message in MIME format.
+--------------070602030702000102040206
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Leider bin ich bis 26.11 nicht erreichbar.
-Senden Sie Ihre Email in dringenden Faellen zu mailto:service-pJ9TYRvN+WE@public.gmane.org +49 (345) 777 55 0
+can somebody who are more slick than i, have a look to the attachments?
+please!
 
-Hello,
-I received your mail,
-Unfortunately I am not available until November 26.
-I will read your Email when I'm back at office
-(or accasionally.) Your Mail will not be forewarded.
+I do not think, that Doc*/power/video.txt help
+under 2.6.12-gentoo-r10 i used the vbestate post method
+but when i do that now (2.6.13 bzw 2.6.14) i get an error message.
+the differences between lspci -vxxx before and after are the strange.
 
-For important things mail to
-mailto:service-pJ9TYRvN+WE@public.gmane.org or call +49 (345) 777 55 0
+can somebody who are more slick than i, have a look to the attachments?
+please!
+
+Pavel Machek schrieb:
+> On Fri 18-11-05 23:15:41, Rathgeb Markus wrote:
+> 
+>>i tested a few thing, why s3 will not work with new kernels for me 
+>>(blank screen).
+>>can someone have a look at a cut-out from my /var/log/messages
+>>
+>>i have execute also
+>># lspci -vxxx > before
+>>before i go to s3 and
+>># lspci -vxxx > after
+>>after the machine waked up (via ssh-console)
+>>
+>>for example:
+>>before:
+>>0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350 
+>>[Mobility Radeon 9600 M10] (prog-if 00 [VGA])
+>>	Subsystem: Rioworks: Unknown device 2032
+>>
+>>after:
+>>0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350 
+>>[Mobility Radeon 9600 M10] (prog-if 00 [VGA])
+>>	Subsystem: ATI Technologies Inc RV350 [Mobility Radeon 9600 M10]
+> 
+> 
+> What is "new kernel", and what was last kernel that worked? See Doc*/power/video.txt.
+> 
+> 									Pavel
 
 
+--------------070602030702000102040206
+Content-Type: text/plain;
+ name="after"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="after"
+
+0000:00:00.0 Host bridge: VIA Technologies, Inc. VT8385 [K8T800 AGP] Host Bridge (rev 01)
+	Subsystem: VIA Technologies, Inc. VT8385 [K8T800 AGP] Host Bridge
+	Flags: bus master, 66Mhz, medium devsel, latency 8
+	Memory at e0000000 (32-bit, prefetchable) [size=256M]
+	Capabilities: [80] AGP version 3.5
+	Capabilities: [c0] #08 [0060]
+	Capabilities: [68] Power Management version 2
+	Capabilities: [58] #08 [8001]
+00: 06 11 88 31 06 00 30 02 01 00 00 06 00 08 00 00
+10: 08 00 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 88 31
+30: 00 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00
+40: 00 19 88 80 82 44 00 02 11 19 88 80 82 44 00 00
+50: 13 80 70 b1 30 0c 00 20 08 00 01 80 03 80 17 00
+60: 00 aa e0 a0 83 00 00 00 01 58 02 00 00 00 00 00
+70: c2 c8 00 01 04 0a 10 00 01 00 00 00 7f 00 10 02
+80: 02 c0 35 00 0b 0a 00 1f 02 03 00 00 28 00 00 00
+90: 00 01 00 00 00 0f 01 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 03 88 00 88
+b0: 40 00 01 00 66 00 00 02 46 00 00 01 00 00 00 00
+c0: 08 68 60 00 20 00 11 11 d0 00 00 00 22 05 35 00
+d0: 02 00 35 00 00 00 00 00 00 00 22 22 23 50 22 a8
+e0: 00 00 00 00 00 ff 2d 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 81 00 00 00 00 00 00 04 00 00
+
+0000:00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI bridge [K8T800/K8T890 South] (prog-if 00 [Normal decode])
+	Flags: bus master, 66Mhz, medium devsel, latency 0
+	Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
+	I/O behind bridge: 00002000-00002fff
+	Memory behind bridge: d0100000-d01fffff
+	Prefetchable memory behind bridge: d8000000-dfffffff
+	Capabilities: [80] Power Management version 2
+00: 06 11 88 b1 07 00 30 02 00 00 04 06 00 00 01 00
+10: 00 00 00 00 00 00 00 00 00 01 01 00 20 20 20 22
+20: 10 d0 10 d0 00 d8 f0 df 00 00 00 00 00 00 00 00
+30: 00 00 00 00 80 00 00 00 00 00 00 00 00 00 0c 00
+40: 91 40 00 44 35 32 88 b1 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 02 02 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:0a.0 CardBus bridge: ENE Technology Inc CB1410 Cardbus Controller (rev 01)
+	Subsystem: ENE Technology Inc CB1410 Cardbus Controller
+	Flags: bus master, medium devsel, latency 168, IRQ 16
+	Memory at ffe7f000 (32-bit, non-prefetchable) [size=4K]
+	Bus: primary=00, secondary=02, subordinate=05, sec-latency=176
+	Memory window 0: 20000000-21fff000 (prefetchable)
+	Memory window 1: 22000000-23fff000
+	I/O window 0: 00003000-00003fff
+	I/O window 1: 00005000-00005fff
+	16-bit legacy interface ports at 0001
+00: 24 15 10 14 07 00 10 02 01 00 07 06 10 a8 02 00
+10: 00 f0 e7 ff a0 00 00 02 00 02 05 b0 00 00 00 20
+20: 00 f0 ff 21 00 00 00 22 00 f0 ff 23 00 30 00 00
+30: fc 3f 00 00 00 50 00 00 fc 5f 00 00 ff 01 c0 05
+40: 24 15 10 14 01 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 21 d0 40 40 00 00 00 00 00 00 00 00 02 10 00 01
+90: c0 82 44 60 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 01 00 01 fe 00 00 c0 00 0a 00 00 00 1f 00 00 00
+b0: 00 00 00 09 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 10 00 00 80 00 80 00 00 04 08 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:0c.0 Network controller: RaLink Ralink RT2500 802.11 Cardbus Reference Card (rev 01)
+	Subsystem: Micro-Star International Co., Ltd.: Unknown device 6833
+	Flags: slow devsel, IRQ 19
+	Memory at d0000000 (32-bit, non-prefetchable) [size=8K]
+	Capabilities: [40] Power Management version 2
+00: 14 18 01 02 13 00 10 04 01 00 80 02 10 40 00 00
+10: 00 00 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 01 06 00 00 62 14 33 68
+30: 00 00 00 00 40 00 00 00 00 00 00 00 09 01 00 00
+40: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80) (prog-if 00 [UHCI])
+	Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
+	Flags: medium devsel, IRQ 18
+	I/O ports at 1c80 [size=32]
+	Capabilities: [80] Power Management version 2
+00: 06 11 38 30 13 00 10 02 80 00 03 0c 10 40 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 81 1c 00 00 00 00 00 00 00 00 00 00 06 11 38 30
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 01 00 00
+40: 40 12 03 00 00 00 00 00 00 0b 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00
+
+0000:00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80) (prog-if 00 [UHCI])
+	Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
+	Flags: medium devsel, IRQ 18
+	I/O ports at 1ca0 [size=32]
+	Capabilities: [80] Power Management version 2
+00: 06 11 38 30 13 00 10 02 80 00 03 0c 10 40 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: a1 1c 00 00 00 00 00 00 00 00 00 00 06 11 38 30
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 02 00 00
+40: 40 12 03 00 00 00 00 00 00 0b 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00
+
+0000:00:10.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80) (prog-if 00 [UHCI])
+	Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
+	Flags: medium devsel, IRQ 18
+	I/O ports at 1cc0 [size=32]
+	Capabilities: [80] Power Management version 2
+00: 06 11 38 30 13 00 10 02 80 00 03 0c 10 40 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: c1 1c 00 00 00 00 00 00 00 00 00 00 06 11 38 30
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 03 00 00
+40: 40 12 03 00 00 00 00 00 00 0b 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00
+
+0000:00:10.3 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 82) (prog-if 20 [EHCI])
+	Subsystem: VIA Technologies, Inc. USB 2.0
+	Flags: medium devsel, IRQ 18
+	Memory at d0002800 (32-bit, non-prefetchable) [size=256]
+	Capabilities: [80] Power Management version 2
+00: 06 11 04 31 13 00 10 02 82 20 03 0c 10 40 00 00
+10: 00 28 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 04 31
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 04 00 00
+40: 00 00 03 00 00 00 00 00 80 10 00 09 00 00 00 00
+50: 00 5a 00 80 00 00 00 00 04 0b 88 88 33 88 00 00
+60: 20 20 01 00 00 00 00 00 01 00 00 01 00 00 00 c0
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 88 00 00 00 00 00 00 00 00 00
+
+0000:00:11.0 ISA bridge: VIA Technologies, Inc. VT8235 ISA Bridge
+	Subsystem: VIA Technologies, Inc. VT8235 ISA Bridge
+	Flags: bus master, stepping, medium devsel, latency 0
+	Capabilities: [c0] Power Management version 2
+00: 06 11 77 31 87 00 10 02 00 00 01 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 77 31
+30: 00 00 00 00 c0 00 00 00 00 00 00 00 00 00 00 00
+40: 44 ff f8 0b 00 00 00 00 8c 20 00 00 04 00 00 08
+50: 01 18 09 00 00 90 ab a0 43 9e 00 08 10 f5 00 f5
+60: 00 00 00 00 01 00 03 04 00 00 00 00 00 00 00 00
+70: 06 11 77 31 00 00 00 00 00 00 00 00 20 00 00 00
+80: 20 84 5a 00 da 40 00 00 01 40 00 00 05 08 00 00
+90: 00 fc 0f 00 c0 c3 05 00 00 3c 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 01 81 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 08 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 19 00 00 00 00 00 01 00 00 00
+
+0000:00:11.1 IDE interface: VIA Technologies, Inc. VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 06) (prog-if 8a [Master SecP PriP])
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, medium devsel, latency 64, IRQ 17
+	I/O ports at 1ce0 [size=16]
+	Capabilities: [c0] Power Management version 2
+00: 06 11 71 05 05 00 90 02 06 8a 01 01 00 40 00 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: e1 1c 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 c0 00 00 00 00 00 00 00 00 01 00 00
+40: 13 f0 09 05 18 1c c0 00 5e 20 5e 20 66 00 20 20
+50: 0e e6 0e e1 08 00 00 00 a8 a8 a8 a8 00 00 00 00
+60: 00 02 00 00 00 00 00 00 00 02 00 00 00 00 00 00
+70: 02 01 00 00 00 00 00 00 82 01 00 00 00 00 00 00
+80: 00 b0 ca 1f 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 06 00 71 05 1f 16 32 20 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 00
+
+0000:00:11.5 Multimedia audio controller: VIA Technologies, Inc. VT8233/A/8235/8237 AC97 Audio Controller (rev 50)
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: medium devsel, IRQ 20
+	I/O ports at 1000 [size=256]
+	Capabilities: [c0] Power Management version 2
+00: 06 11 59 30 01 00 10 02 50 00 01 04 00 00 00 00
+10: 01 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 c0 00 00 00 00 00 00 00 04 03 00 00
+40: 05 cd 00 00 40 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 06 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:11.6 Communication controller: VIA Technologies, Inc. AC'97 Modem Controller (rev 80)
+	Flags: medium devsel, IRQ 20
+	I/O ports at 1400 [size=256]
+	Capabilities: [d0] Power Management version 2
+00: 06 11 68 30 01 00 10 02 80 00 80 07 00 00 00 00
+10: 01 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 d0 00 00 00 00 00 00 00 04 03 00 00
+40: 05 cd 00 00 40 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 06 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:12.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] (rev 74)
+	Subsystem: VIA Technologies, Inc. VT6102 [Rhine II] Embeded Ethernet Controller on VT8235
+	Flags: bus master, medium devsel, latency 64, IRQ 17
+	I/O ports at 1800 [size=256]
+	Memory at d0002c00 (32-bit, non-prefetchable) [size=256]
+	Capabilities: [40] Power Management version 2
+00: 06 11 65 30 17 00 10 02 74 00 00 02 10 40 00 00
+10: 01 18 00 00 00 2c 00 d0 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 02 01
+30: 00 00 00 00 40 00 00 00 00 00 00 00 01 01 03 08
+40: 01 00 02 fe 00 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:13.0 FireWire (IEEE 1394): VIA Technologies, Inc. IEEE 1394 Host Controller (rev 80) (prog-if 10 [OHCI])
+	Subsystem: VIA Technologies, Inc. IEEE 1394 Host Controller
+	Flags: medium devsel, IRQ 10
+	Memory at d0002000 (32-bit, non-prefetchable) [size=2K]
+	I/O ports at 1c00 [size=128]
+	Capabilities: [50] Power Management version 2
+00: 06 11 44 30 13 00 10 02 80 10 00 0c 10 40 00 00
+10: 00 20 00 d0 01 1c 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 44 30
+30: 00 00 00 00 50 00 00 00 00 00 00 00 0a 01 00 20
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 01 00 02 e4 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] HyperTransport Technology Configuration
+	Flags: fast devsel
+	Capabilities: [80] #08 [2101]
+00: 22 10 00 11 00 00 10 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00
+40: 01 01 01 00 01 01 01 00 01 01 01 00 01 01 01 00
+50: 01 01 01 00 01 01 01 00 01 01 01 00 01 01 01 00
+60: 00 00 00 00 e4 00 00 00 00 80 00 0f 4c 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 08 00 01 21 20 00 11 11 22 05 75 80 02 00 00 00
+90: 56 04 51 02 00 00 ff 00 07 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] Address Map
+	Flags: fast devsel
+00: 22 10 01 11 00 00 00 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 03 00 00 00 00 00 1f 00 00 00 20 00 01 00 00 00
+50: 00 00 20 00 02 00 00 00 00 00 20 00 03 00 00 00
+60: 00 00 20 00 04 00 00 00 00 00 20 00 05 00 00 00
+70: 00 00 20 00 06 00 00 00 00 00 20 00 07 00 00 00
+80: 00 2e 8b 00 b7 ff fd ff 00 28 09 20 36 5e 9d fb
+90: 00 e0 9b 80 37 fa ff bf 04 20 5c bb 26 ff dd fb
+a0: 00 e0 18 e1 26 ff ff fd 08 fe 40 80 37 ff b1 b5
+b0: 03 0a 00 00 00 0b 00 00 03 00 20 00 00 0b fe 00
+c0: 30 b0 e2 01 21 f0 ff 01 13 10 00 00 00 f0 0f 00
+d0: 20 f0 bf 01 32 f0 bb 01 30 d0 bf 00 01 70 df 01
+e0: 03 00 00 ff 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] DRAM Controller
+	Flags: fast devsel
+00: 22 10 02 11 00 00 00 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 01 00 00 00 01 08 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 f6 e0 01 00 f6 e0 01 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 03 00 00 00 00 00 00 00 35 33 72 13 30 0a 00 00
+90: 00 8c 0c 18 06 08 5b 06 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 93 14 54 f2 07 00 00 00 ff 9f 89 01 86 af ca 08
+c0: 00 00 00 00 00 20 00 00 00 00 00 00 00 00 00 00
+d0: 60 62 d2 56 26 0c ed 88 f6 39 65 06 ec f7 2b b4
+e0: 9a e7 55 ba 56 d5 f8 b0 ce 1b cb 8c d6 d1 cb cc
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] Miscellaneous Control
+	Flags: fast devsel
+00: 22 10 03 11 00 00 00 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 00 00 00 00 40 00 00 00 01 01 03 00 01 61 00 72
+50: e8 ff be ff fe 00 00 00 00 00 00 00 00 3c 80 92
+60: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 11 01 02 51 11 80 00 50 00 38 00 08 1b 22 00 00
+80: 61 63 07 63 13 41 13 61 00 00 00 00 00 00 00 00
+90: 07 00 00 00 70 00 00 00 00 50 1e 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 3f 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 01 07 0d 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 20 09 64 00 08 01 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350 [Mobility Radeon 9600 M10] (prog-if 00 [VGA])
+	Subsystem: ATI Technologies Inc RV350 [Mobility Radeon 9600 M10]
+	Flags: bus master, fast Back2Back, 66Mhz, medium devsel, latency 66, IRQ 9
+	Memory at d8000000 (32-bit, prefetchable) [size=128M]
+	I/O ports at 2000 [size=256]
+	Memory at d0100000 (32-bit, non-prefetchable) [size=64K]
+	Expansion ROM at d0120000 [disabled] [size=128K]
+	Capabilities: [58] AGP version 3.0
+	Capabilities: [50] Power Management version 2
+00: 02 10 50 4e 07 02 b0 02 00 00 00 03 10 42 00 00
+10: 08 00 00 d8 01 20 00 00 00 00 10 d0 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 02 10 50 4e
+30: 00 00 00 00 58 00 00 00 00 00 00 00 09 01 08 00
+40: 00 00 00 00 00 00 00 00 00 00 00 00 02 10 50 4e
+50: 01 00 02 06 00 00 00 00 02 50 30 00 1b 02 00 ff
+60: 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
 
+--------------070602030702000102040206
+Content-Type: text/plain;
+ name="before"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="before"
+
+0000:00:00.0 Host bridge: VIA Technologies, Inc. VT8385 [K8T800 AGP] Host Bridge (rev 01)
+	Subsystem: VIA Technologies, Inc. VT8385 [K8T800 AGP] Host Bridge
+	Flags: bus master, 66Mhz, medium devsel, latency 8
+	Memory at e0000000 (32-bit, prefetchable) [size=256M]
+	Capabilities: [80] AGP version 3.5
+	Capabilities: [c0] #08 [0060]
+	Capabilities: [68] Power Management version 2
+	Capabilities: [58] #08 [8001]
+00: 06 11 88 31 06 00 30 22 01 00 00 06 00 08 00 00
+10: 08 00 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 88 31
+30: 00 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00
+40: 00 19 88 80 82 44 00 02 11 19 88 80 82 44 00 00
+50: 13 80 70 b1 30 0c 00 20 08 00 01 80 03 80 17 00
+60: 00 aa e0 a0 83 00 00 00 01 58 02 00 00 00 00 00
+70: c2 c8 00 01 04 0a 10 00 01 00 00 00 7f 00 10 02
+80: 02 c0 35 00 1b 0a 00 1f 02 03 00 00 28 00 00 00
+90: 00 01 00 00 00 0f 01 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 03 88 00 88
+b0: 40 00 01 00 66 00 00 02 46 00 00 01 00 00 00 00
+c0: 08 68 60 00 20 00 11 11 d0 00 00 00 22 05 35 00
+d0: 02 00 35 00 00 00 00 00 00 00 22 22 23 50 22 28
+e0: 00 00 00 00 00 ff 2d 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 81 00 00 00 00 00 00 04 00 00
+
+0000:00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI bridge [K8T800/K8T890 South] (prog-if 00 [Normal decode])
+	Flags: bus master, 66Mhz, medium devsel, latency 0
+	Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
+	I/O behind bridge: 00002000-00002fff
+	Memory behind bridge: d0100000-d01fffff
+	Prefetchable memory behind bridge: d8000000-dfffffff
+	Capabilities: [80] Power Management version 2
+00: 06 11 88 b1 07 00 30 02 00 00 04 06 00 00 01 00
+10: 00 00 00 00 00 00 00 00 00 01 01 00 20 20 20 22
+20: 10 d0 10 d0 00 d8 f0 df 00 00 00 00 00 00 00 00
+30: 00 00 00 00 80 00 00 00 00 00 00 00 00 00 0c 00
+40: 91 40 00 44 35 32 88 b1 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 02 02 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:0a.0 CardBus bridge: ENE Technology Inc CB1410 Cardbus Controller (rev 01)
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, medium devsel, latency 168, IRQ 16
+	Memory at ffe7f000 (32-bit, non-prefetchable) [size=4K]
+	Bus: primary=00, secondary=02, subordinate=05, sec-latency=176
+	Memory window 0: 20000000-21fff000 (prefetchable)
+	Memory window 1: 22000000-23fff000
+	I/O window 0: 00003000-00003fff
+	I/O window 1: 00005000-00005fff
+	16-bit legacy interface ports at 0001
+00: 24 15 10 14 07 00 10 02 01 00 07 06 10 a8 02 00
+10: 00 f0 e7 ff a0 00 00 02 00 02 05 b0 00 00 00 20
+20: 00 f0 ff 21 00 00 00 22 00 f0 ff 23 00 30 00 00
+30: fc 3f 00 00 00 50 00 00 fc 5f 00 00 ff 01 c0 05
+40: 1f 16 32 20 01 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 21 d0 40 40 00 00 00 00 00 00 00 00 02 10 00 01
+90: c0 82 44 60 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 01 00 01 fe 00 00 c0 00 01 00 00 00 1f 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 10 00 00 80 00 80 00 00 04 08 10 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:0c.0 Network controller: RaLink Ralink RT2500 802.11 Cardbus Reference Card (rev 01)
+	Subsystem: Micro-Star International Co., Ltd.: Unknown device 6833
+	Flags: bus master, slow devsel, latency 64, IRQ 19
+	Memory at d0000000 (32-bit, non-prefetchable) [size=8K]
+	Capabilities: [40] Power Management version 2
+00: 14 18 01 02 17 00 10 04 01 00 80 02 10 40 00 00
+10: 00 00 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 01 06 00 00 62 14 33 68
+30: 00 00 00 00 40 00 00 00 00 00 00 00 09 01 00 00
+40: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80) (prog-if 00 [UHCI])
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	I/O ports at 1c80 [size=32]
+	Capabilities: [80] Power Management version 2
+00: 06 11 38 30 17 00 10 02 80 00 03 0c 10 40 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 81 1c 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 01 00 00
+40: 40 12 03 00 00 00 00 00 00 0b 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00
+
+0000:00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80) (prog-if 00 [UHCI])
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	I/O ports at 1ca0 [size=32]
+	Capabilities: [80] Power Management version 2
+00: 06 11 38 30 17 00 10 02 80 00 03 0c 10 40 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: a1 1c 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 02 00 00
+40: 40 12 03 00 00 00 00 00 00 0b 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00
+
+0000:00:10.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80) (prog-if 00 [UHCI])
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	I/O ports at 1cc0 [size=32]
+	Capabilities: [80] Power Management version 2
+00: 06 11 38 30 17 00 10 02 80 00 03 0c 10 40 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: c1 1c 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 03 00 00
+40: 40 12 03 00 00 00 00 00 00 0b 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00 00
+
+0000:00:10.3 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 82) (prog-if 20 [EHCI])
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	Memory at d0002800 (32-bit, non-prefetchable) [size=256]
+	Capabilities: [80] Power Management version 2
+00: 06 11 04 31 17 00 10 02 82 20 03 0c 10 40 00 00
+10: 00 28 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 80 00 00 00 00 00 00 00 02 04 00 00
+40: 00 00 03 00 00 00 00 00 80 10 00 09 00 00 00 00
+50: 00 5a 00 80 00 00 00 00 04 0b 88 88 33 88 00 00
+60: 20 20 01 00 00 00 00 00 01 00 00 01 00 00 08 e0
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 00 c2 ff 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 88 00 00 00 00 00 00 00 00 00
+
+0000:00:11.0 ISA bridge: VIA Technologies, Inc. VT8235 ISA Bridge
+	Subsystem: VIA Technologies, Inc. VT8235 ISA Bridge
+	Flags: bus master, stepping, medium devsel, latency 0
+	Capabilities: [c0] Power Management version 2
+00: 06 11 77 31 87 00 10 02 00 00 01 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 77 31
+30: 00 00 00 00 c0 00 00 00 00 00 00 00 00 00 00 00
+40: 44 ff f8 0b 00 00 00 00 8c 20 00 00 04 00 00 08
+50: 01 18 09 00 00 00 00 00 43 9e 00 08 10 f5 00 f5
+60: 00 00 00 00 01 00 03 04 00 00 00 00 00 00 00 00
+70: 06 11 77 31 00 00 00 00 00 00 00 00 20 00 00 00
+80: 20 84 5a 00 da 40 00 00 01 40 00 00 05 08 00 00
+90: 00 ec 0f 00 80 c3 05 00 00 1d 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 01 81 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 08 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 19 00 00 00 00 00 01 00 00 00
+
+0000:00:11.1 IDE interface: VIA Technologies, Inc. VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 06) (prog-if 8a [Master SecP PriP])
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, medium devsel, latency 64, IRQ 17
+	I/O ports at 1ce0 [size=16]
+	Capabilities: [c0] Power Management version 2
+00: 06 11 71 05 05 00 90 02 06 8a 01 01 00 40 00 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: e1 1c 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 c0 00 00 00 00 00 00 00 01 01 00 00
+40: 13 f0 09 05 18 0c c0 00 5e 20 5e 20 66 00 20 20
+50: 0e e6 0e e1 08 00 00 00 a8 a8 a8 a8 00 00 00 00
+60: 00 02 00 00 00 00 00 00 00 02 00 00 00 00 00 00
+70: 02 01 00 00 00 00 00 00 02 01 00 00 00 00 00 00
+80: 00 b0 ca 1f 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 06 00 71 05 1f 16 32 20 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 00
+
+0000:00:11.5 Multimedia audio controller: VIA Technologies, Inc. VT8233/A/8235/8237 AC97 Audio Controller (rev 50)
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: medium devsel, IRQ 20
+	I/O ports at 1000 [size=256]
+	Capabilities: [c0] Power Management version 2
+00: 06 11 59 30 01 00 10 02 50 00 01 04 00 00 00 00
+10: 01 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 c0 00 00 00 00 00 00 00 04 03 00 00
+40: 05 cd 00 00 c0 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 06 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:11.6 Communication controller: VIA Technologies, Inc. AC'97 Modem Controller (rev 80)
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: medium devsel, IRQ 20
+	I/O ports at 1400 [size=256]
+	Capabilities: [d0] Power Management version 2
+00: 06 11 68 30 01 00 10 02 80 00 80 07 00 00 00 00
+10: 01 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 d0 00 00 00 00 00 00 00 04 03 00 00
+40: 05 cd 00 00 c0 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 01 00 02 06 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:12.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] (rev 74)
+	Subsystem: VIA Technologies, Inc. VT6102 [Rhine II] Embeded Ethernet Controller on VT8235
+	Flags: bus master, medium devsel, latency 64, IRQ 17
+	I/O ports at 1800 [size=256]
+	Memory at d0002c00 (32-bit, non-prefetchable) [size=256]
+	Capabilities: [40] Power Management version 2
+00: 06 11 65 30 17 00 10 02 74 00 00 02 10 40 00 00
+10: 01 18 00 00 00 2c 00 d0 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 02 01
+30: 00 00 00 00 40 00 00 00 00 00 00 00 01 01 03 08
+40: 01 00 02 fe 00 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:13.0 FireWire (IEEE 1394): VIA Technologies, Inc. IEEE 1394 Host Controller (rev 80) (prog-if 10 [OHCI])
+	Subsystem: VIA Technologies, Inc. IEEE 1394 Host Controller
+	Flags: medium devsel, IRQ 10
+	Memory at d0002000 (32-bit, non-prefetchable) [size=2K]
+	I/O ports at 1c00 [size=128]
+	Capabilities: [50] Power Management version 2
+00: 06 11 44 30 13 00 10 02 80 10 00 0c 10 40 00 00
+10: 00 20 00 d0 01 1c 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 06 11 44 30
+30: 00 00 00 00 50 00 00 00 00 00 00 00 0a 01 00 20
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 01 00 02 e4 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] HyperTransport Technology Configuration
+	Flags: fast devsel
+	Capabilities: [80] #08 [2101]
+00: 22 10 00 11 00 00 10 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00
+40: 01 01 01 00 01 01 01 00 01 01 01 00 01 01 01 00
+50: 01 01 01 00 01 01 01 00 01 01 01 00 01 01 01 00
+60: 00 00 00 00 e4 00 00 00 0f cc 00 0f 4c 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 08 00 01 21 20 00 11 11 22 05 75 80 02 00 00 00
+90: 56 04 51 02 00 00 ff 00 07 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] Address Map
+	Flags: fast devsel
+00: 22 10 01 11 00 00 00 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 03 00 00 00 00 00 1f 00 00 00 20 00 01 00 00 00
+50: 00 00 20 00 02 00 00 00 00 00 20 00 03 00 00 00
+60: 00 00 20 00 04 00 00 00 00 00 20 00 05 00 00 00
+70: 00 00 20 00 06 00 00 00 00 00 20 00 07 00 00 00
+80: 00 2e 8b 00 b7 ff fd ff 00 28 09 20 36 5e 9d fb
+90: 00 e0 9b 80 37 fa ff bf 04 20 5c bb 26 ff dd fb
+a0: 00 e0 18 e1 26 ff ff fd 08 fe 40 80 37 ff b1 b5
+b0: 03 0a 00 00 00 0b 00 00 03 00 20 00 00 0b fe 00
+c0: 30 b0 e2 01 21 f0 ff 01 13 10 00 00 00 f0 0f 00
+d0: 20 f0 bf 01 32 f0 bb 01 30 d0 bf 00 01 70 df 01
+e0: 03 00 00 ff 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] DRAM Controller
+	Flags: fast devsel
+00: 22 10 02 11 00 00 00 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 01 00 00 00 01 08 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 f6 e0 01 00 f6 e0 01 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 03 00 00 00 00 00 00 00 35 33 72 13 30 0a 00 00
+90: 00 8c 0c 18 06 08 5b 06 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 62 35 d7 14 4a 00 00 00 ff 9f 89 01 86 af ca 08
+c0: 00 00 00 00 00 20 00 00 00 00 00 00 00 00 00 00
+d0: 60 62 d2 56 26 0c ed 88 f6 39 65 06 ec f7 2b b4
+e0: 9a e7 55 ba 56 d5 f8 b0 ce 1b cb 8c d6 d1 cb cc
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] Miscellaneous Control
+	Flags: fast devsel
+00: 22 10 03 11 00 00 00 00 00 00 00 06 00 00 80 00
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+40: 00 00 00 00 40 00 00 00 01 49 01 00 21 61 00 72
+50: e8 e1 34 3a 9e 00 00 00 00 00 00 00 00 08 80 12
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 11 01 02 51 11 80 00 50 00 38 00 08 1b 22 00 00
+80: 61 63 07 63 13 41 13 61 00 00 00 00 00 00 00 00
+90: 07 00 00 00 70 00 00 00 00 48 1e 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 3f 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 01 07 0d 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 20 09 64 00 08 01 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+0000:01:00.0 VGA compatible controller: ATI Technologies Inc RV350 [Mobility Radeon 9600 M10] (prog-if 00 [VGA])
+	Subsystem: Rioworks: Unknown device 2032
+	Flags: bus master, fast Back2Back, 66Mhz, medium devsel, latency 66, IRQ 9
+	Memory at d8000000 (32-bit, prefetchable) [size=128M]
+	I/O ports at 2000 [size=256]
+	Memory at d0100000 (32-bit, non-prefetchable) [size=64K]
+	Expansion ROM at d0120000 [disabled] [size=128K]
+	Capabilities: [58] AGP version 3.0
+	Capabilities: [50] Power Management version 2
+00: 02 10 50 4e 07 02 b0 02 00 00 00 03 10 42 00 00
+10: 08 00 00 d8 01 20 00 00 00 00 10 d0 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+30: 00 00 00 00 58 00 00 00 00 00 00 00 09 01 08 00
+40: 00 00 00 00 00 00 00 00 00 00 00 00 1f 16 32 20
+50: 01 00 02 06 00 00 00 00 02 50 30 00 1b 02 00 ff
+60: 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
 
+--------------070602030702000102040206--
 
 
 -------------------------------------------------------
