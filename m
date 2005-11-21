@@ -1,13 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: New Smart Battery release (incl. updated embedded controller patches)
-Date: Mon, 21 Nov 2005 09:07:55 +0100
-Message-ID: <20051121080755.GA22296@poupinou.org>
-References: <4376BD90.5080603@bartol.udel.edu> <200511141805.54633.luming.yu@intel.com> <20051114121512.GB1570@elf.ucw.cz> <20051114155810.GA23604@srcf.ucam.org> <20051114160525.GA9288@elf.ucw.cz> <20051114160902.GA23683@srcf.ucam.org>
+From: Stefan Schmidt <stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org>
+Subject: Re: Battery cycle count on IBM Thinkpads.
+Date: Mon, 21 Nov 2005 09:56:56 +0100
+Message-ID: <20051121085656.GB4117@susi>
+References: <20051119230734.GA4117@susi> <20051120214624.GC2556@spitz.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mxv5cy4qt+RJ9ypb"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20051114160902.GA23683-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+In-Reply-To: <20051120214624.GC2556-/Rtfo+muvtdI+ieYp0uEEg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +18,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 14, 2005 at 04:09:02PM +0000, Matthew Garrett wrote:
-> On Mon, Nov 14, 2005 at 05:05:25PM +0100, Pavel Machek wrote:
-> > > Why? The spec explicitly allows smart batteries without the DSDT 
-> > > providing a control method interface.
-> > 
-> > Then it was probably mistake :-(.
-> 
-> Unfortunately I don't have any hardware here which uses smart batteries, 
-> but Gnome (at least) has switched over to using Hal for displaying 
-> battery information. It would be pretty straight forward to add support 
-> for parsing the information from a smart battery driver.
-> 
 
-It take less time if the EC is programmed to pool the batteries and expose them
-via the EC regions, than direct access to batteries from the EC smbus.
+--mxv5cy4qt+RJ9ypb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Bruno Ducrot
+Hello.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+On Sun, 2005-11-20 at 21:46, Pavel Machek wrote:
+>=20
+> You may be able to talk to smartbattery directly (using i2c), and
+> get that info... expect to do some programming...
+
+I'm not sure if this is a smart battery. At the moment i get this
+infos with normal battery modul form kernel:
+
+stefan@fairlight:~$ cat /proc/acpi/battery/BAT0/info=20
+present:                 yes
+design capacity:         71280 mWh
+last full capacity:      58540 mWh
+battery technology:      rechargeable
+design voltage:          10800 mV
+design capacity warning: 2927 mWh
+design capacity low:     200 mWh
+capacity granularity 1:  1 mWh
+capacity granularity 2:  1 mWh
+model number:            IBM-93P5003
+serial number:            1645
+battery type:            LION
+OEM info:                SONY
+
+I will test the smartbattery modul later. And if that di not help too,
+i'll look deeper in source code.
+
+regards
+Stefan Schmidt
+
+--mxv5cy4qt+RJ9ypb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDgYvYbNSsvd31FmURAjAxAJ9gHO6X2fXpcfo4Bb8OM2cNoSH9RgCfd1wq
+EvTcSiWmhsyrQ/AxH5pjiAQ=
+=VBgv
+-----END PGP SIGNATURE-----
+
+--mxv5cy4qt+RJ9ypb--
 
 
 -------------------------------------------------------
