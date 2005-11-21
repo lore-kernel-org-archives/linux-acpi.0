@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH] Fix ACPI passive thermal management
-Date: Sun, 20 Nov 2005 23:50:33 +0000
-Message-ID: <20051120235032.GH2556@spitz.ucw.cz>
-References: <200511192223.00151.luming.yu@gmail.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: New Smart Battery release (incl. updated embedded controller patches)
+Date: Mon, 21 Nov 2005 09:07:55 +0100
+Message-ID: <20051121080755.GA22296@poupinou.org>
+References: <4376BD90.5080603@bartol.udel.edu> <200511141805.54633.luming.yu@intel.com> <20051114121512.GB1570@elf.ucw.cz> <20051114155810.GA23604@srcf.ucam.org> <20051114160525.GA9288@elf.ucw.cz> <20051114160902.GA23683@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200511192223.00151.luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20051114160902.GA23683-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,100 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Yu Luming <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: akpm-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Mon, Nov 14, 2005 at 04:09:02PM +0000, Matthew Garrett wrote:
+> On Mon, Nov 14, 2005 at 05:05:25PM +0100, Pavel Machek wrote:
+> > > Why? The spec explicitly allows smart batteries without the DSDT 
+> > > providing a control method interface.
+> > 
+> > Then it was probably mistake :-(.
+> 
+> Unfortunately I don't have any hardware here which uses smart batteries, 
+> but Gnome (at least) has switched over to using Hal for displaying 
+> battery information. It would be pretty straight forward to add support 
+> for parsing the information from a smart battery driver.
+> 
 
-> Fix issue: passive mode is not left, once entered
-> http://bugzilla.kernel.org/show_bug.cgi?id=3410
+It take less time if the EC is programmed to pool the batteries and expose them
+via the EC regions, than direct access to batteries from the EC smbus.
 
-
-For this big patch, I believe you should provide longer description.
-
-> @@ -259,19 +257,25 @@ int acpi_processor_set_thermal_limit(acp
->  		/* if going down: T-states first, P-states later */
->  
->  		if (pr->flags.throttling) {
-> -			if (tx == 0)
-> +			if (tx == 0) {
-> +                                max_tx_px = 1;
->  				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  						  "At minimum throttling state\n"));
-
-Please fix indentation
-
->  		result = acpi_thermal_cpufreq_decrease(pr->id);
-> -		if (result == -ERANGE)
-> +		if (result) {
-> +			// We only could get -ERANGE, 1 or 0.
-> +			// In the first two cases we reached max freq again.
->  			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
->  					  "At minimum performance state\n"));
-
-...and avoid C++ comments.
-
-> @@ -290,8 +294,10 @@ int acpi_processor_set_thermal_limit(acp
->  				  pr->limit.thermal.px, pr->limit.thermal.tx));
->  	} else
->  		result = 0;
-> -
-> -	return_VALUE(result);
-> +	if (max_tx_px)
-> +		return_VALUE(1);
-> +	else
-> +		return_VALUE(result);
->  }
->  
-
-What kind of ninja mutant calling convention is this?
-
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -72,7 +72,7 @@
->  #define _COMPONENT		ACPI_THERMAL_COMPONENT
->  ACPI_MODULE_NAME("acpi_thermal")
->  
-> -    MODULE_AUTHOR("Paul Diefenbaugh");
-> +MODULE_AUTHOR("Paul Diefenbaugh");
->  MODULE_DESCRIPTION(ACPI_THERMAL_DRIVER_NAME);
->  MODULE_LICENSE("GPL");
->  
-
-Nice catch, but this is not fixing thermal, right? How much of other stuff is unrelated?
-
-> @@ -556,12 +556,25 @@ static int acpi_thermal_passive(struct a
->  								 handles[i],
->  								 ACPI_PROCESSOR_LIMIT_INCREMENT);
->  		/* Cooling off? */
-> -		else if (trend < 0)
-> +		else if (trend < 0) {
->  			for (i = 0; i < passive->devices.count; i++)
-> -				acpi_processor_set_thermal_limit(passive->
-> -								 devices.
-> -								 handles[i],
-> -								 ACPI_PROCESSOR_LIMIT_DECREMENT);
-> +				// assume that we are on highest freq/lowest thrott
-> +				// and can leave passive mode, even in error case
-> +				if (!acpi_processor_set_thermal_limit(
-> +					    passive->devices.handles[i],
-> +					    ACPI_PROCESSOR_LIMIT_DECREMENT))
-> +					result = 0;
-> +			// Leave cooling mode, even if the temp might higher than trip point.
-> +			// This is because some machines might have long thermal polling 
-> frequencies
-> +			// (tsp) defined. We will fall back into passive mode in next cycle 
-> (probably quicker)
-
-It would be nice to at least fit comments into 80 columns.
-
-
-							Pavel
 -- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Bruno Ducrot
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
