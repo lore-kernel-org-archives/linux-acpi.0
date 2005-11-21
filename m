@@ -1,13 +1,8 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: acer aspire 3003LC DSDT troubleshooting, reality check and FYI (error 1054 puzzle)
-Date: Mon, 21 Nov 2005 10:17:00 +0100
-Message-ID: <20051121091700.GB22296@poupinou.org>
-References: <1132486066.7792.34.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "AYU" <ayu_me_makelove-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: =?ISO-2022-JP?B?GyRCTCQ+NUJ6OS05cCIoGyhC?=
+Date: Mon, 21 Nov 2005 10:59:03 +0000 (UTC)
+Message-ID: <2CWB8ytIN5.7129@yahoo.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1132486066.7792.34.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,184 +12,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Simon Bridge <corwin-OA6R/WnsTSZ02iOg2JU2CQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Date: Mon Nov 21 02:56:03 2005
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 21, 2005 at 12:27:46AM +1300, Simon Bridge wrote:
-> Someone sing out if I am making a big mistake here.
-> AFAIK: this laptop is has not already a fixed dsdt for me to use.
-> Am doing all this in ubuntu 5.10 with 2.6.12 kernel. And I havn't done
-> any programming in 15 years! ooh - err...
-> 
-> *** dsdt.dsl code modification log: acer aspire 3003LC ***
-> 
-> http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt
-> ... has fixes for most common issues
-> 
-> decompiling and recompiling gives 8 errors and 1 warning...
-> 
-> I get:
-> warning 2078 for _WAK method
-> error 1061 for \_PR.CPU0._PPC (6x object does not exist)
-> error 1061 for Z007 (2x object does not exist)
-> 
-> got rid of the warning first - since I knew how to do that one:
-> =====
->         Return(Package(0x02){0x00, 0x00})
-> inserted at the end of the method (before final curly brace.)
-> ======
-> 
-> Now I get 8 errors and zero warnings.
-> The 8x 1061's still present...
-> 
-> "Object does not exist"
-> two possibilities - need to add \ to some scope variables
-> scope (_OSI) should be scope (\_OSI)?
-> Change one at a time and recompile after each one. If no effect, undo.
-> OR: add "External (\_OSI)
-> (but where to? presumably at the start ... we'll see.)
-> 
-> ===== from HOWTO ===
-> # Error 1022 - Object does not exist
-> 
-> >> dsdt.asl 281: If(\_OSI) {
-> >> Error 1022 - Object does not exist ^ (\_OSI)
-> 
-> Add "External (\_OSI)". The next version of the compiler understands
-> that
-> _OSI is a reserved method name and the External won't be required.
-> 
-> # Error 1022 - Object does not exist
-> 
-> >> dsdt.asl 281: If(\_OSI) {
-> >> Error 1022 - Object does not exist ^ (\_OSI)
-> 
-> You should probably look for any "Scope" lines and add the leading "\"
-> there that is missing:
-> 
-> Change from:
-> Scope(_SB_) {
-> to:
-> Scope(\_SB_) {
-> 
-> Also ignore any "name" lines that do not have the leading slash. I do
-> not believe that the name lines would have to be modified in this
-> manner. I believe that it is written in such a way that the "\" among
-> other stuff is prepended to the beginning of these "name" lines.
-> =============
-> 
-> add External (Z007) in the definition block, these errors vanish.
-> add External (\_PR.CPU0._PPC) these errors vanish but replaced by:
-> 
-> dsdt.dsl   151:         Processor (CPU0, 0x00, 0x00008010, 0x06) {}
-> Error    1054 -                       ^ Name already exists in scope
-> (CPU0)
-> 
-> I can try fixing this error (plan A) or go through the scope statements
-> (plan B).
-> 
-> Plan A: try to find out what error means or if anyone else has
-> encountered it.
-> Google errormessage comes up blank.
-> ACIP HOWTO the sequel:
-> http://www.columbia.edu/~ariel/acpi/acpi_howto.html#dsdt_editing
-> suggests looking in:
-> http://www.columbia.edu/~ariel/acpi/acpi_howto.html#acpi_on_laptops
-> ... to see if the error is documented.
-> 
-> I see a note that 2.6.13 fixes battery stuff? We'll see. Only have
-> 2.6.12 ubuntu std kernel.
-> otherwise, a lot of reviews but no actual errors overcome and no
-> specific mention of my laptop. Skimmed some acer reviews just in case -
-> nada.
-> 
-> next stop: the ACPI spec is:
-> http://www.columbia.edu/~ariel/acpi/acpi_howto.html#specifications
-> 
-> plan B:... scope statements without preceding back-slash are:
-> 
-> 149 scope(_PR)
-> 3455 scope(_GPE)
-> 
-> changing these makes no difference. So I've put them back.
-> restored the External declairation. So I'm back to error 1054, CPU0
-> already exists in scope.
-> 
-> mailing list: http://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-> maybe someone here knows what this error message means... subscribing.
-> Meanwhile: resort to inspired guesswork and scientific method...
-> 
-> The function in question is (line numbers supplied by me):
-> 
-> (149) Scope (_PR)
-> (150)     {
-> (151)         Processor (CPU0, 0x00, 0x00008010, 0x06) {}
-> (152)     }
-> 
-> 
-> Placing the External declairation *after* the line 152 seems to have
-> eliminated this error altogether.
-> There are now no errors and iasl output is:
-> 
-> root@infrared:/home/simon/programming# iasl -tc dsdt.dsl
-> 
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler version 20050930 [Nov 20 2005]
-> Copyright (C) 2000 - 2005 Intel Corporation
-> Supports ACPI Specification Revision 3.0
-> 
-> ASL Input:  dsdt.dsl - 3474 lines, 121251 bytes, 1565 keywords
-> AML Output: DSDT.aml - 13981 bytes 377 named objects 1188 executable
-> opcodes
-> 
-> Compilation complete. 0 Errors, 0 Warnings, 0 Remarks, 542 Optimizations
-> root@infrared:/home/simon/programming#
-> 
-> Now I am free to insert this into the initrd in /boot and thus bypass
-> the bios dsdt.
-> 
-> Someone sing out if I am making a big mistake somewhere... in any case,
-> I'd like to know what is going on (like - what am I doing?)
+～完全無料の出会いサイト特集～
 
-There are some mistake on some Acer laptop.
-Sometimes, there is a Z00? inside a package that do not exist at all,
-even on a SSDT, and adding an
-External(\Z007) won't fix anything.
+お勧めのコミュニティをご紹介します。
+http://pure7.cc/free1/
 
-If you have something like that:
+　　即アポ　B B S
 
-    Name (PBST, Package (0x04)
-    {
-        0x00,
-        Z007,
-        Z007,
-        0x2710
-    })
+http://pure7.cc/free1/
+このサイトは名前のとおり、とにかく「スグ」会いたい人が使うサイトです。
 
-it's very likely that you have to replace the two occurences of Z007 by
-Ones:
+一般的な出会いサイトでは、
+1.女の子へのアプローチを山ほどして
+2.少しの返信に対して慎重アプローチをして
+3.さらに数少なくなった女の子とメールを交換して
+4.少しずつ仲良くなって
+5.いいかな？というタイミングで会う話をしはじめて
+6.会う手順を決めて
+7.実際に会う（しかも会えなかったり(涙)）
+という手順が存在します。
 
-    Name (PBST, Package (0x04)
-    {
-        0x00,
-        Ones,
-        Ones,
-        0x2710
-    })
+しかし当サイトは、会う前提のもとに
+・目的
+・時間
+・場所
+を区切っています。
+そのため、他のサイトに比べて
+
+圧倒的に競争率が少ない！しかも会える確率が高い！
+
+ということが言えます。
+
+http://pure7.cc/free1/
+
+また、即アポを支援するためにサイト側でも
+
+・メールの送受信、プロフィール・写メの閲覧が無料なのはあたりまえのこと、
+・直接の電話番号・メールアドレスの送信も問題なし！
+
+という体制を取っています。
+
+本気で会う気が無い女の子だったら、直電・直アドの交換はしないし
+相手の意思をはっきり確認してアポ取りをすることが可能です。
+
+http://pure7.cc/free1/
+
+長くなってしまいましたが、ぜひ一度お試しください。
+
+完全無料で退会もラクラクですよ～(^o^)
+
+--
+ADインタープレス企画
+配信責任者：朝野勇二
+150-0043
+東京都渋谷区道玄坂2-16-5-801
+※配信停止希望の方はコチラにご連絡ください。
+freedeai_rej-ktR7oAotx3zQT0dZR+AlfA@public.gmane.org
 
 
-If the Z007 instance is not inside a package like that, then the
-above statement won't apply.
 
-Cheers,
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
