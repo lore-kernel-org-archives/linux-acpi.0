@@ -1,7 +1,10 @@
-From: "AYU" <ayu_me_makelove-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: =?ISO-2022-JP?B?GyRCTCQ+NUJ6OS05cCIoGyhC?=
-Date: Mon, 21 Nov 2005 10:59:03 +0000 (UTC)
-Message-ID: <2CWB8ytIN5.7129@yahoo.com>
+From: Carsten Tschense <carsten-Bz3kcRWZgqLk1uMJSBkQmQ@public.gmane.org>
+Subject: ACPI on hp nx6125 doesn't update battery state
+Date: Mon, 21 Nov 2005 14:21:52 +0100
+Message-ID: <1132579312.8737.7.camel@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -12,68 +15,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Mon Nov 21 02:56:03 2005
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-～完全無料の出会いサイト特集～
+Hi,
+I now discovered that the battery state doesn't update after the
+temperature reaches the first trip point. I'm not totaly sure, but I
+think it's right...
 
-お勧めのコミュニティをご紹介します。
-http://pure7.cc/free1/
-
-　　即アポ　B B S
-
-http://pure7.cc/free1/
-このサイトは名前のとおり、とにかく「スグ」会いたい人が使うサイトです。
-
-一般的な出会いサイトでは、
-1.女の子へのアプローチを山ほどして
-2.少しの返信に対して慎重アプローチをして
-3.さらに数少なくなった女の子とメールを交換して
-4.少しずつ仲良くなって
-5.いいかな？というタイミングで会う話をしはじめて
-6.会う手順を決めて
-7.実際に会う（しかも会えなかったり(涙)）
-という手順が存在します。
-
-しかし当サイトは、会う前提のもとに
-・目的
-・時間
-・場所
-を区切っています。
-そのため、他のサイトに比べて
-
-圧倒的に競争率が少ない！しかも会える確率が高い！
-
-ということが言えます。
-
-http://pure7.cc/free1/
-
-また、即アポを支援するためにサイト側でも
-
-・メールの送受信、プロフィール・写メの閲覧が無料なのはあたりまえのこと、
-・直接の電話番号・メールアドレスの送信も問題なし！
-
-という体制を取っています。
-
-本気で会う気が無い女の子だったら、直電・直アドの交換はしないし
-相手の意思をはっきり確認してアポ取りをすることが可能です。
-
-http://pure7.cc/free1/
-
-長くなってしまいましたが、ぜひ一度お試しください。
-
-完全無料で退会もラクラクですよ～(^o^)
-
---
-ADインタープレス企画
-配信責任者：朝野勇二
-150-0043
-東京都渋谷区道玄坂2-16-5-801
-※配信停止希望の方はコチラにご連絡ください。
-freedeai_rej-ktR7oAotx3zQT0dZR+AlfA@public.gmane.org
+Hope you can help me,
+Carsten
 
 
+-- My first mail:
+
+>Carsten Tschense
+>Sent: 2005=E5=B9=B411=E6=9C=8819=E6=97=A5 6:22
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] ACPI on hp nx6125 doesn't update battery state
+>
+>Hi,
+>I bought a HP Compaq nx6125 2 days ago...
+>After booting the information in /proc/acpi/battery/C175/state update
+>regulary, but after a while they don't. I don't see any errors in
+>dmesg, /var/log/messages or /var/log/acpid.
+>Well, now the strange solution:
+>cat /proc/acpi/thermal_zone/TZ1/temperature
+>That's the thermal zone of the cpu. After doing this, the fan starts
+>blowing for a while, the cpu usage increases to 100% for about=20
+>2 seconds
+>(may vary), the systems repeats very slow.
+>Now the battery state updates, the system runs as normal. If you do a
+>cat /proc/acpi/thermal_zone/TZ1/temperature now, nothing happens, after
+>circa 5 minutes the same happens again.
+>The temperature looks correct all the time. viewing the temperature of
+>another thermal zone doesn't help...
+>
+>That's a bit strange, isn't it? ;)
+>I hope you can help me... :) should I provide some debugging
+>information?
+>
+>I'm running a 2.6.14 with gentoos patchset r2.
+>
+>Bye,
+>Carsten
 
 
 
