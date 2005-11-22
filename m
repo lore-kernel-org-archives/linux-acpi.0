@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: BIOS bug?
-Date: Tue, 22 Nov 2005 18:37:48 +0100
-Message-ID: <20051122173748.GA1752@elf.ucw.cz>
-References: <437E528D.5070305@web.de> <20051120231837.GF2556@spitz.ucw.cz> <4382051C.9060506@web.de>
+Date: Tue, 22 Nov 2005 19:07:56 +0000
+Message-ID: <20051122190756.GA23207@srcf.ucam.org>
+References: <437E528D.5070305@web.de> <20051120231837.GF2556@spitz.ucw.cz> <4382051C.9060506@web.de> <20051122173748.GA1752@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4382051C.9060506-S0/GAf8tV78@public.gmane.org>
+In-Reply-To: <20051122173748.GA1752-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Tue, Nov 22, 2005 at 06:37:48PM +0100, Pavel Machek wrote:
 
-> can somebody who are more slick than i, have a look to the attachments?
-> please!
-> 
-> I do not think, that Doc*/power/video.txt help
-> under 2.6.12-gentoo-r10 i used the vbestate post method
-> but when i do that now (2.6.13 bzw 2.6.14) i get an error message.
-> the differences between lspci -vxxx before and after are the
-> strange.
+> Ugh, search archives. vbetool stopped working for some reason. Nothing
+> to do with ACPI.
 
-Ugh, search archives. vbetool stopped working for some reason. Nothing
-to do with ACPI.
-								Pavel
+vbetool stopped working because the kernel has removed functionality it 
+depended on. I haven't thought of a way to work around this yet.
 
 -- 
-Thanks, Sharp!
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
