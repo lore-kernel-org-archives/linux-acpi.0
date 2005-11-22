@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Asus K8V Deluxe VIA SATA RAID power management problem
-Date: Tue, 22 Nov 2005 17:03:36 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC229@pdsmsx403>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: BIOS bug?
+Date: Tue, 22 Nov 2005 18:37:48 +0100
+Message-ID: <20051122173748.GA1752@elf.ucw.cz>
+References: <437E528D.5070305@web.de> <20051120231837.GF2556@spitz.ucw.cz> <4382051C.9060506@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <4382051C.9060506-S0/GAf8tV78@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,26 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Phillip Susi <psusi-3tLf1voIkJTQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
+> can somebody who are more slick than i, have a look to the attachments?
+> please!
+> 
+> I do not think, that Doc*/power/video.txt help
+> under 2.6.12-gentoo-r10 i used the vbestate post method
+> but when i do that now (2.6.13 bzw 2.6.14) i get an error message.
+> the differences between lspci -vxxx before and after are the
+> strange.
 
->I have determined that after the resume, the controller requires an=20
->extended period of time before it is ready for use.  The errors I was=20
->getting were due to the driver waiting for the busy bit in the status=20
->register to clear, and it did not before the wait timed out.  I worked=20
->around the problem by extending the timeout by a factor of=20
->100, but this=20
->does not seem like an appropriate fix.
+Ugh, search archives. vbetool stopped working for some reason. Nothing
+to do with ACPI.
+								Pavel
 
-Not sure why. Does Spec explain the meanings of the status bits?
-Could you try patch at =
-http://bugzilla.kernel.org/show_bug.cgi?id=3D2039.
-Aslo there is a successful story about solving ide issue with invoking
-IDE related AML methods: =
-http://bugzilla.kernel.org/show_bug.cgi?id=3D5604
-
+-- 
+Thanks, Sharp!
 
 
 -------------------------------------------------------
