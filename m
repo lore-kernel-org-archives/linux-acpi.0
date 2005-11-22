@@ -1,11 +1,15 @@
-From: Sascha Sommer <saschasommer-KuiJ5kEpwI6ELgA04lAiVw@public.gmane.org>
-Subject: asus_acpi oops on samsung p35
-Date: Mon, 21 Nov 2005 20:38:39 +0100
-Message-ID: <200511212038.39593.saschasommer@freenet.de>
+From: Yu Luming <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: FW: [PATCH] Fix ACPI passive thermal management
+Date: Tue, 22 Nov 2005 11:31:57 +0800
+Message-ID: <200511221131.57603.luming.yu@gmail.com>
+References: <3ACA40606221794F80A5670F0AF15F84041AC228@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_/IigDTfK7UgWxca"
+Content-Type: text/plain;
+  charset="gb2312"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC228@pdsmsx403>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,95 +19,210 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: pavel-AlSwsSmVLrQ@public.gmane.org
+Cc: akpm-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---Boundary-00=_/IigDTfK7UgWxca
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Hi!
+>
+> > Fix issue: passive mode is not left, once entered
+> > http://bugzilla.kernel.org/show_bug.cgi?id=3410
+>
+> For this big patch, I believe you should provide longer description.
 
-Hi,
+Oops, I forget this:
 
-as the oops, reported for example in 
-http://sourceforge.net/mailarchive/message.php?msg_id=11977633,
-is still occuring on recent kernels it would be nice if someone could review 
-the attached patch from Christian Aichinger posted to this list in
-http://sourceforge.net/mailarchive/message.php?msg_id=13057151
-so the remaining issues can be fixed.
-It is working fine with my Samsung p35.
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: [ACPI] Leave thermal passive cooling when machine cooled down
+References: 98178
+
+Patch to leave thermal passive cooling when machine cooled down.
+Without this patch the polling frequency will always stay at
+passive cooling trip point polling frequency (tsp - BIOS) instead of
+tzp value (BIOS) or the possibly overridden value by
+/proc/acpi/thermal_zone/*/polling_frequency.
+
+This will cause critical shutdowns on hot machines with a high tsp
+value exported by BIOS (e.g. the debugged machine (Thinkpad) exported
+a value of 600 which means in passive mode the temperature is only polled
+each 60 seconds).
+
+Acked-by: okir-l3A5Bk7waGM@public.gmane.org
 
 
-Thanks in advance
+>From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
 
-Sascha
+>
+> Please fix indentation
+>
+>
+> ...and avoid C++ comments.
+>
+>
+> It would be nice to at least fit comments into 80 columns.
+>
+>
+> 							Pavel
+The incremental patch addressing these comments:
 
---Boundary-00=_/IigDTfK7UgWxca
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="asus_acpi.c.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="asus_acpi.c.patch"
-
-diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c
-+++ b/drivers/acpi/asus_acpi.c
-@@ -1006,6 +1006,24 @@ static int __init asus_hotk_get_info(voi
- 	}
+diff -Bru a/drivers/acpi/processor_thermal.c 
+b/drivers/acpi/processor_thermal.c
+--- a/drivers/acpi/processor_thermal.c	2005-11-22 10:17:03.000000000 +0800
++++ b/drivers/acpi/processor_thermal.c	2005-11-22 10:17:51.000000000 +0800
+@@ -127,10 +127,10 @@
  
- 	model = (union acpi_object *)buffer.pointer;
-+
-+	/* INIT on Samsung's P35 returns an integer, possible return
-+	 * values are tested below */
-+	if (model->type == ACPI_TYPE_INTEGER) {
-+		if (model->integer.value == -1 ||
-+			model->integer.value == 0x58 ||
-+			model->integer.value == 0x38) {
-+			hotk->model = P30;
-+			printk(KERN_NOTICE
-+				       "  Samsung P35 detected, supported\n");
-+			goto out_known;
-+		} else {
-+			printk(KERN_WARNING 
-+				"  unknown integer returned by INIT\n");
-+			goto out_unknown;
-+		}
-+	}
-+
- 	if (model->type == ACPI_TYPE_STRING) {
- 		printk(KERN_NOTICE "  %s model detected, ",
- 		       model->string.pointer);
-@@ -1057,9 +1075,7 @@ static int __init asus_hotk_get_info(voi
- 		hotk->model = L5x;
- 
- 	if (hotk->model == END_MODEL) {
--		printk("unsupported, trying default values, supply the "
--		       "developers with your DSDT\n");
--		hotk->model = M2E;
-+		goto out_unknown;
- 	} else {
- 		printk("supported\n");
- 	}
-@@ -1088,6 +1104,15 @@ static int __init asus_hotk_get_info(voi
- 	acpi_os_free(model);
- 
- 	return AE_OK;
-+
-+out_unknown:
-+	printk(KERN_WARNING "  unsupported, trying default values, "
-+			"supply the developers with your DSDT\n");
-+	hotk->model = M2E;
-+out_known:
-+	hotk->methods = &model_conf[hotk->model];
-+	acpi_os_free(model);
-+	return AE_OK;
+ 	if (cpufreq_thermal_reduction_pctg[cpu] > 20)
+ 		cpufreq_thermal_reduction_pctg[cpu] -= 20;
+-        else
+-                cpufreq_thermal_reduction_pctg[cpu] = 0;
++	else
++		cpufreq_thermal_reduction_pctg[cpu] = 0;
+ 	cpufreq_update_policy(cpu);
+-	// We reached max freq again and can leave passive mode
++	/* We reached max freq again and can leave passive mode */
+ 	return !cpufreq_thermal_reduction_pctg[cpu];
  }
  
- static int __init asus_hotk_check(void)
+@@ -258,7 +258,7 @@
+ 
+ 		if (pr->flags.throttling) {
+ 			if (tx == 0) {
+-                                max_tx_px = 1;
++				max_tx_px = 1;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 						  "At minimum throttling state\n"));
+ 			} else {
+@@ -269,8 +269,10 @@
+ 
+ 		result = acpi_thermal_cpufreq_decrease(pr->id);
+ 		if (result) {
+-			// We only could get -ERANGE, 1 or 0.
+-			// In the first two cases we reached max freq again.
++			/*
++			 * We only could get -ERANGE, 1 or 0.
++			 * In the first two cases we reached max freq again.
++			 */
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 					  "At minimum performance state\n"));
+ 			max_tx_px = 1;
+diff -Bru a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+--- a/drivers/acpi/thermal.c	2005-11-22 10:17:33.000000000 +0800
++++ b/drivers/acpi/thermal.c	2005-11-22 10:18:17.000000000 +0800
+@@ -558,15 +558,22 @@
+ 		/* Cooling off? */
+ 		else if (trend < 0) {
+ 			for (i = 0; i < passive->devices.count; i++)
+-				// assume that we are on highest freq/lowest thrott
+-				// and can leave passive mode, even in error case
+-				if (!acpi_processor_set_thermal_limit(
+-					    passive->devices.handles[i],
+-					    ACPI_PROCESSOR_LIMIT_DECREMENT))
++				/*
++				 * assume that we are on highest
++				 * freq/lowest thrott and can leave
++				 * passive mode, even in error case
++				 */
++				if (!acpi_processor_set_thermal_limit
++				    (passive->devices.handles[i],
++				     ACPI_PROCESSOR_LIMIT_DECREMENT))
+ 					result = 0;
+-			// Leave cooling mode, even if the temp might higher than trip point.
+-			// This is because some machines might have long thermal polling 
+frequencies
+-			// (tsp) defined. We will fall back into passive mode in next cycle 
+(probably quicker)
++			/*
++			 * Leave cooling mode, even if the temp might
++			 * higher than trip point This is because some
++			 * machines might have long thermal polling
++			 * frequencies (tsp) defined. We will fall back
++			 * into passive mode in next cycle (probably quicker)
++			 */
+ 			if (result) {
+ 				passive->flags.enabled = 0;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+@@ -584,17 +591,17 @@
+ 	 * and avoid thrashing around the passive trip point.  Note that we
+ 	 * assume symmetry.
+ 	 */
+-	if (!passive->flags.enabled) 
++	if (!passive->flags.enabled)
+ 		return;
+ 	for (i = 0; i < passive->devices.count; i++)
+-		if (!acpi_processor_set_thermal_limit(
+-				passive->devices.handles[i],
+-				ACPI_PROCESSOR_LIMIT_DECREMENT))
++		if (!acpi_processor_set_thermal_limit
++		    (passive->devices.handles[i],
++		     ACPI_PROCESSOR_LIMIT_DECREMENT))
+ 			result = 0;
+ 	if (result) {
+ 		passive->flags.enabled = 0;
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+-			"Disabling passive cooling (zone is cool)\n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++				  "Disabling passive cooling (zone is cool)\n"));
+ 	}
+ }
+ 
+@@ -624,22 +631,25 @@
+ 			 */
+ 			if (active->temperature > maxtemp)
+ 				tz->state.active_index = i;
+-				maxtemp = active->temperature;
++			maxtemp = active->temperature;
+ 			if (active->flags.enabled)
+ 				continue;
+ 			for (j = 0; j < active->devices.count; j++) {
+-				result = acpi_bus_set_power(active->devices.handles[j],
+-							ACPI_STATE_D0);
++				result =
++				    acpi_bus_set_power(active->devices.
++						       handles[j],
++						       ACPI_STATE_D0);
+ 				if (result) {
+ 					ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+-								"Unable to turn cooling device [%p] 'on'\n",
+-								active->devices.handles[j]));
++							  "Unable to turn cooling device [%p] 'on'\n",
++							  active->devices.
++							  handles[j]));
+ 					continue;
+ 				}
+ 				active->flags.enabled = 1;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-							"Cooling device [%p] now 'on'\n",
+-							active->devices.handles[j]));
++						  "Cooling device [%p] now 'on'\n",
++						  active->devices.handles[j]));
+ 			}
+ 			continue;
+ 		}
+@@ -653,17 +663,17 @@
+ 		 */
+ 		for (j = 0; j < active->devices.count; j++) {
+ 			result = acpi_bus_set_power(active->devices.handles[j],
+-				ACPI_STATE_D3);
++						    ACPI_STATE_D3);
+ 			if (result) {
+ 				ACPI_DEBUG_PRINT((ACPI_DB_WARN,
+-							"Unable to turn cooling device [%p] 'off'\n",
+-							active->devices.handles[j]));
++						  "Unable to turn cooling device [%p] 'off'\n",
++						  active->devices.handles[j]));
+ 				continue;
+ 			}
+ 			active->flags.enabled = 0;
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-						"Cooling device [%p] now 'off'\n",
+-						active->devices.handles[j]));
++					  "Cooling device [%p] now 'off'\n",
++					  active->devices.handles[j]));
+ 		}
+ 	}
+ }
 
---Boundary-00=_/IigDTfK7UgWxca--
+
 
 
 -------------------------------------------------------
