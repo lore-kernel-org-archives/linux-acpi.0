@@ -1,14 +1,14 @@
-From: Stefan Schmidt <stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org>
-Subject: Re: Battery cycle count on IBM Thinkpads.
-Date: Tue, 22 Nov 2005 21:42:53 +0100
-Message-ID: <20051122204253.GD4117@susi>
-References: <20051119230734.GA4117@susi> <20051120214624.GC2556@spitz.ucw.cz>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: FW: [PATCH] Fix ACPI passive thermal management
+Date: Tue, 22 Nov 2005 20:45:19 -0800
+Message-ID: <20051122204519.24ce7769.akpm@osdl.org>
+References: <3ACA40606221794F80A5670F0AF15F84041AC228@pdsmsx403>
+	<200511221131.57603.luming.yu@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9UV9rz0O2dU/yYYn"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051120214624.GC2556-/Rtfo+muvtdI+ieYp0uEEg@public.gmane.org>
+In-Reply-To: <200511221131.57603.luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,44 +18,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Yu Luming <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: pavel-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Yu Luming <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> > Hi!
+>  >
+>  > > Fix issue: passive mode is not left, once entered
+>  > > http://bugzilla.kernel.org/show_bug.cgi?id=3410
+>  >
+>  > For this big patch, I believe you should provide longer description.
+> 
+>  Oops, I forget this:
+> 
+>  From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+>  Subject: [ACPI] Leave thermal passive cooling when machine cooled down
+>  References: 98178
+> 
+>  Patch to leave thermal passive cooling when machine cooled down.
+>  Without this patch the polling frequency will always stay at
+>  passive cooling trip point polling frequency (tsp - BIOS) instead of
+>  tzp value (BIOS) or the possibly overridden value by
+>  /proc/acpi/thermal_zone/*/polling_frequency.
+> 
+>  This will cause critical shutdowns on hot machines with a high tsp
+>  value exported by BIOS (e.g. the debugged machine (Thinkpad) exported
+>  a value of 600 which means in passive mode the temperature is only polled
+>  each 60 seconds).
+> 
+>  Acked-by: okir-l3A5Bk7waGM@public.gmane.org
 
---9UV9rz0O2dU/yYYn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Patch was wordwrapped, but I fixed that up.
 
-Hello.
+We should have your Signed-off-by: for this patch please, since you were
+in the supply chain.
 
-On Sun, 2005-11-20 at 21:46, Pavel Machek wrote:
->=20
-> You may be able to talk to smartbattery directly (using i2c),
-
-Somebody experiences with i2c on new thinkpads like T40p? The last
-info i found says: Don't try it, use acpi.
-http://www2.lm-sensors.nu/~lm78/cvs/lm_sensors2/README.thinkpad
-
-So i will think twize about testing i2c on my system. Suggestions?
-
-regards
-Stefan Schmidt
-
---9UV9rz0O2dU/yYYn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDg4LNbNSsvd31FmURAqLbAJ0YnNjDncArutJz1wbcekBbu8Y5zQCgse/T
-/knErntoIdLwmR57iVCZzHk=
-=3GQ0
------END PGP SIGNATURE-----
-
---9UV9rz0O2dU/yYYn--
 
 
 -------------------------------------------------------
