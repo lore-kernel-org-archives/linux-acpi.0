@@ -1,8 +1,13 @@
-From: "Mark Foster" <xuhmtveuvt-hpNVInyF7+ZAfugRpC6u6w@public.gmane.org>
-Subject: Notification creation
-Date: Wed, 23 Nov 2005 13:51:47 -0600
-Message-ID: <37016.2380081185$1132775666@news.gmane.org>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI on hp nx6125 doesn't update battery state
+Date: Thu, 24 Nov 2005 22:24:35 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC22D@pdsmsx403>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,37 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Carsten Tschense <carsten-Bz3kcRWZgqLk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+CPI] ACPI on hp nx6125 doesn't update battery state
+>
+>Hi,
+>thanks for your help! :)
+>I booted with that this morning and let the notebook running=20
+>for about 5
+>hours without looking after it. ... It seems to be a bit dangerous as
+>the notebook was damn hot, the fan wasn't running. A "cat temperature"
+>helped again. It said 58=B0 for 2 minutes, that was defenatly wrong...
 
-Sensational revolution in medicine!
+Do you open bug on bugzilla.
+Please attach acpidump output there.
+I need to understand what's going on when you do "cat temperature".
 
-Enlarge your penis up to 10 cm or up to 4 inches!
-
-It's herbal solution what hasn't side effect, but has 100% guaranteed results!
-
-Don't loose your chance and but know wihtout doubts, you will be impressed with results!
-
-Click here: http://morgonluft.info
-
-
-
-
-
-
-
-
-
-
-
-
-         
-        
-          
-       
-       
-       
+Thanks,
+Luming
 
 
 -------------------------------------------------------
