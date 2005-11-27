@@ -1,93 +1,113 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [RFC][PATCH] Runtime switching to idle_poll (was: Re: 2.6.14-rt13)
-Date: Sat, 26 Nov 2005 14:05:48 +0100
-Message-ID: <20051126130548.GA6503@elte.hu>
-References: <20051115090827.GA20411@elte.hu> <1132336954.20672.11.camel@cmn3.stanford.edu> <1132350882.6874.23.camel@mindpipe> <1132351533.4735.37.camel@cmn3.stanford.edu> <20051118220755.GA3029@elte.hu> <1132353689.4735.43.camel@cmn3.stanford.edu> <1132367947.5706.11.camel@localhost.localdomain> <20051124150731.GD2717@elte.hu> <1132952191.24417.14.camel@localhost.localdomain>
+From: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] ACPI scan: Revert acpi_bus_find_driver() return value check
+Date: Sun, 27 Nov 2005 13:57:25 +0000
+Message-ID: <4389BB45.7050108@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932152AbVKZNG2@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1132952191.24417.14.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: acpi-devel@lists.sourceforge.net, len.brown@intel.com, Andrew Morton <akpm@osdl.org>, Fernando Lopez-Lezcano <nando@ccrma.Stanford.EDU>, Lee Revell <rlrevell@joe-job.com>, linux-kernel@vger.kernel.org, "Paul E. McKenney" <paulmck@us.ibm.com>, "K.R. Foley" <kr@cybsft.com>, Thomas Gleixner <tglx@linutronix.de>, pluto@agmk.net, john cooper <john.cooper@timesys.com>, Benedikt Spranger <bene@linutronix.de>, Daniel Walker <dwalker@mvista.com>, Tom Rini <trini@kernel.crashing.org>, George Anzinger <george@mvista.com>
+Content-Type: multipart/mixed;
+ boundary="------------040501000308070609050005"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------040501000308070609050005
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-* Steven Rostedt <rostedt@goodmis.org> wrote:
+2.6.13 introduced a change to drivers/acpi/scan.c along the lines of:
 
-> As a request from Ingo, I fixed up this patch a little to allow both 
-> x86_64 and i386 to switch to and from idle_poll at runtime.  I noticed 
-> that the APCI driver in drivers/acpi/processor_idle.c may cause some 
-> race condition with this patch so I added some protection there. 
-> Basically, if the acpi code changes pm_idle, then you can't change to 
-> idle_poll, and vice-versa.
-> 
-> What this patch does is creates an entry into 
-> /sys/kernel/idle/idle_poll.  It will show whether or not the idle_poll 
-> is being used as a runtime idle routine.  It is also used to set the 
-> runtime idle.
-> 
-> with:
-> 
-> # echo 1 > /sys/kernel/idle/idle_poll
->   or
-> # echo on > /sys/kernel/idle/idle_poll
+          *
+          * TBD: Assumes LDM provides driver hot-plug capability.
+          */
+-       result = acpi_bus_find_driver(device);
++       acpi_bus_find_driver(device);
 
-find some minor cleanups below.
+        end:
+         if (!result)
 
-a more general question is, shouldnt the configuration method rather be 
-something like:
+This was inside this commit:
+http://www.kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=3fb02738b0fd36f47710a2bf207129efd2f5daa2
 
-   echo idle > /sys/kernel/idle
+Since then, various HP/Compaq laptops have not been able to boot, freezing 
+after these messages:
 
-and there could also be a /sys/kernel/idle_methods which would enumerate 
-all the strings that are possible? This way we'd not hardcode 
-'idle-poll' in any way.
+PCI: Using ACPI for IRQ routing
+PCI: If a device does not work, try "pci=routeirq". If it helps, post a report
+PCI: Cannot allocate resource region 7 of bridge 0000:00:1c.1
+PCI: Cannot allocate resource region 8 of bridge 0000:00:1c.1
+PCI: Cannot allocate resource region 9 of bridge 0000:00:1c.1
 
-	Ingo
+Rajesh Shah (the author of said commit) has since then acked that this small 
+change should probably be reverted:
+> Looking at this closely now, checking for the result does appear
+> to be wrong. Binding a driver for a device should be optional,
+> and should not fail adding the device to the acpi list. I suspect
+> a previous iteration through this code failed to find a driver
+> match, returned failure to the caller and caused bad things to
+> happen. So, your patch looks good to me.
 
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+The main diagnosis/discussion has been at:
+https://bugzilla.novell.com/show_bug.cgi?id=116763
 
- arch/i386/kernel/process.c   |    6 +++---
- arch/x86_64/kernel/process.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+There are also some other reports elsewhere:
+http://bugzilla.kernel.org/show_bug.cgi?id=5221
+http://bugs.gentoo.org/112601
 
-Index: linux/arch/i386/kernel/process.c
-===================================================================
---- linux.orig/arch/i386/kernel/process.c
-+++ linux/arch/i386/kernel/process.c
-@@ -65,11 +65,11 @@ static int hlt_counter;
- unsigned long boot_option_idle_override = 0;
- EXPORT_SYMBOL(boot_option_idle_override);
+So far the investigation/fixing has been done by Thomas Renninger and others. 
+I'm just hoping to breathe some life into an issue which has been sitting 
+around for nearly 3 months.
+
+If acceptable, please apply.
+
+--------------040501000308070609050005
+Content-Type: text/x-patch;
+ name="acpi-scan.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="acpi-scan.patch"
+
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+
+This patch reverts the acpi_bus_find_driver() return value check which was
+accidentally added in a big commit titled:
+
+	[PATCH] acpi bridge hotadd: Allow ACPI .add and .start operations to be
+	done independently
+
+This particular change broke booting of some HP/Compaq laptops unless
+acpi=noirq is used.
+
+See http://bugzilla.kernel.org/show_bug.cgi?id=5221
+
+Signed-off-by: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+
+--- vanilla-linux-2.6.14-rc3.orig/drivers/acpi/scan.c	2005-10-03 18:21:35.000000000 +0200
++++ vanilla-linux-2.6.14-rc3/drivers/acpi/scan.c	2005-10-03 18:21:58.000000000 +0200
+@@ -1111,7 +1111,7 @@
+ 	 *
+ 	 * TBD: Assumes LDM provides driver hot-plug capability.
+ 	 */
+-	result = acpi_bus_find_driver(device);
++	acpi_bus_find_driver(device);
  
--spinlock_t pm_idle_switch_lock = SPIN_LOCK_UNLOCKED;
--EXPORT_SYMBOL(pm_idle_switch_lock);
-+DEFINE_SPINLOCK(pm_idle_switch_lock);
-+EXPORT_SYMBOL_GPL(pm_idle_switch_lock);
- 
- int pm_idle_locked = 0;
--EXPORT_SYMBOL(pm_idle_locked);
-+EXPORT_SYMBOL_GPL(pm_idle_locked);
- 
- /*
-  * Return saved PC of a blocked thread.
-Index: linux/arch/x86_64/kernel/process.c
-===================================================================
---- linux.orig/arch/x86_64/kernel/process.c
-+++ linux/arch/x86_64/kernel/process.c
-@@ -61,11 +61,11 @@ static atomic_t hlt_counter = ATOMIC_INI
- unsigned long boot_option_idle_override = 0;
- EXPORT_SYMBOL(boot_option_idle_override);
- 
--spinlock_t pm_idle_switch_lock = SPIN_LOCK_UNLOCKED;
--EXPORT_SYMBOL(pm_idle_switch_lock);
-+DEFINE_SPINLOCK(pm_idle_switch_lock);
-+EXPORT_SYMBOL_GPL(pm_idle_switch_lock);
- 
- int pm_idle_locked = 0;
--EXPORT_SYMBOL(pm_idle_locked);
-+EXPORT_SYMBOL_GPL(pm_idle_locked);
- 
- /*
-  * Powermanagement idle function, if any..
+       end:
+ 	if (!result)
+
+--------------040501000308070609050005--
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
