@@ -1,11 +1,11 @@
-From: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] ACPI scan: Revert acpi_bus_find_driver() return value check
-Date: Sun, 27 Nov 2005 13:57:25 +0000
-Message-ID: <4389BB45.7050108@gentoo.org>
+From: Matteo Sgalaberni <sgala-QJaAV1IlLTQAvxtiuMwx3w@public.gmane.org>
+Subject: asus M5636NBP fan always on
+Date: Sun, 27 Nov 2005 17:19:22 +0100
+Message-ID: <20051127161922.GM24446@sgala.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040501000308070609050005"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,95 +15,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040501000308070609050005
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello! I'm running debian sid on my asus M5636NBP.
 
-2.6.13 introduced a change to drivers/acpi/scan.c along the lines of:
+Kernel 2.6.13.2 patched with Suspend2 2.2-rc7
 
-          *
-          * TBD: Assumes LDM provides driver hot-plug capability.
-          */
--       result = acpi_bus_find_driver(device);
-+       acpi_bus_find_driver(device);
+My fan it's always on.. only if I put the laptop outside with the 
+snow...when it' reach 20 celsius the fan stops...
 
-        end:
-         if (!result)
+cat /proc/acpi/thermal_zone/THRM/trip_points
+critical (S5):           115 C
+passive:                 105 C: tc1=2 tc2=10 tsp=100 devices=0xc14706a0
+active[0]:               20 C: devices=0xc1477480
 
-This was inside this commit:
-http://www.kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=3fb02738b0fd36f47710a2bf207129efd2f5daa2
+I tryed to change this settings echoing new values but no feedback by 
+the fan..
+I tryed to set /proc/acpi/fan/FN00/state to 1, 2 ,3 ,4 but no feedback...
 
-Since then, various HP/Compaq laptops have not been able to boot, freezing 
-after these messages:
+I have alse loaded the module asus-acpi
+asus_acpi              11540  0
+(it seems not used...)
 
-PCI: Using ACPI for IRQ routing
-PCI: If a device does not work, try "pci=routeirq". If it helps, post a report
-PCI: Cannot allocate resource region 7 of bridge 0000:00:1c.1
-PCI: Cannot allocate resource region 8 of bridge 0000:00:1c.1
-PCI: Cannot allocate resource region 9 of bridge 0000:00:1c.1
+# acpi -V
+     Battery 1: charged, 100%
+     Thermal 1: active[0], 43.0 degrees C
+  AC Adapter 1: on-line
 
-Rajesh Shah (the author of said commit) has since then acked that this small 
-change should probably be reverted:
-> Looking at this closely now, checking for the result does appear
-> to be wrong. Binding a driver for a device should be optional,
-> and should not fail adding the device to the acpi list. I suspect
-> a previous iteration through this code failed to find a driver
-> match, returned failure to the caller and caused bad things to
-> happen. So, your patch looks good to me.
+My battery now reach max 1 hour of uptime... i think that it's a low time...
 
-The main diagnosis/discussion has been at:
-https://bugzilla.novell.com/show_bug.cgi?id=116763
+Have you some ideas?
 
-There are also some other reports elsewhere:
-http://bugzilla.kernel.org/show_bug.cgi?id=5221
-http://bugs.gentoo.org/112601
+Thanks
 
-So far the investigation/fixing has been done by Thomas Renninger and others. 
-I'm just hoping to breathe some life into an issue which has been sitting 
-around for nearly 3 months.
+Matteo
 
-If acceptable, please apply.
-
---------------040501000308070609050005
-Content-Type: text/x-patch;
- name="acpi-scan.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="acpi-scan.patch"
-
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-
-This patch reverts the acpi_bus_find_driver() return value check which was
-accidentally added in a big commit titled:
-
-	[PATCH] acpi bridge hotadd: Allow ACPI .add and .start operations to be
-	done independently
-
-This particular change broke booting of some HP/Compaq laptops unless
-acpi=noirq is used.
-
-See http://bugzilla.kernel.org/show_bug.cgi?id=5221
-
-Signed-off-by: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-
---- vanilla-linux-2.6.14-rc3.orig/drivers/acpi/scan.c	2005-10-03 18:21:35.000000000 +0200
-+++ vanilla-linux-2.6.14-rc3/drivers/acpi/scan.c	2005-10-03 18:21:58.000000000 +0200
-@@ -1111,7 +1111,7 @@
- 	 *
- 	 * TBD: Assumes LDM provides driver hot-plug capability.
- 	 */
--	result = acpi_bus_find_driver(device);
-+	acpi_bus_find_driver(device);
- 
-       end:
- 	if (!result)
-
---------------040501000308070609050005--
 
 
 -------------------------------------------------------
