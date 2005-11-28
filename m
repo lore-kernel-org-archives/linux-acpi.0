@@ -1,13 +1,12 @@
-From: =?windows-1251?b?wOvl6vHg7eTwIMvg4vDo7eXt6u4=?= <alavrinenko-74IzsnFj8nQvJsYlp49lxw@public.gmane.org>
-Subject: FSC Amilo M3438G - some problems
-Date: Mon, 28 Nov 2005 14:41:39 +0300
-Message-ID: <200511281441.40092.alavrinenko@arbatek.ru>
+From: Steven A.Norman <16matther-fIHoLupfAe4mp8TqCH86vg@public.gmane.org>
+Subject: =?iso-8859-1?B?U3dpc3Mgd2F0Y2hlcyAtIHJlcGxpY2E=?=
+Date: Mon, 28 Nov 2005 14:28:49 +0000
+Message-ID: <60dd01c5f428$74c2c29f$fccb2f53@acadiacom.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="windows-1251"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/related;
+    type="multipart/alternative";
+    boundary="----=_NextPart_000_0000_BE11E460.048733E2"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,31 +19,83 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
-Hello,
-
-I've got FSC Amilo M3438G recently and installed OpenSuSE 10.1 Alpha3 on it. 
-Kernel is 2.6.14. The first problem is that fan is always running on low RPM 
-and there's nothing in /proc/acpi/fan/ directory (should be at least 
-FAN0/state).
-
-Next problem is when I use built-in synaptics touchpad, KDE's klaptop daemon 
-reports 'AC online BAT full' -> 'AC online BAT discharged' -> 'AC offline BAT 
-full' -> 'AC offline BAT discharged' cycling endlessly if I move finger over 
-touchpad. As soon as I stop touching the pad, events stop being generated, 
-reverting to 'AC online BAT full'. So I have to use external USB mouse right 
-now.
-
-Please add support for this great laptop - if you need any debug output or 
-other messages/info, feel free to ask.
-
-Thanks in advance.
-
-Alex Lavrinenko
+------=_NextPart_000_0000_BE11E460.048733E2
+Content-Type: multipart/alternative;
+    boundary="----=_NextPart_001_0001_D35ABA33.1D1978CE"
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+------=_NextPart_001_0001_D35ABA33.1D1978CE
+Content-Type: text/plain;
+    charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+       REPLICA WATCH MODELS
+
+- exact copies of the original watches
+- perfect as a gift for your colleagues and friends
+- free gift box
+
+Rolex, Patek Philippe, Omega
+Cartier, Gucci, Franck Muller
+
+.. and 25 other most famous manufacturers.
+
+http://www.starchier.net
+
+All copies are for only $239.95 - $279.95!
+
+
+________________________________
+To change your mail preferences, go here
+________________________________ 
+
+ 
+------=_NextPart_001_0001_D35ABA33.1D1978CE
+Content-Type: text/html;
+    charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
+<META content="MSHTML 6.00.2900.2604" name=GENERATOR></HEAD>
+<BODY>
+<CENTER>
+<TABLE cellSpacing=0 cellPadding=0 width=800 align=center border=0>
+<table id="616370692D646576656C406C697374732E736F75726365666F7267652E6E6574">  <TBODY>
+  <TR>
+    <TD>
+
+
+
+REPLICA WATCH MODELS<br><br>
+
+- exact copies of the original watches<br>
+- perfect as a gift for your colleagues and friends<br>
+- free gift box<br><br>
+
+Rolex, Patek Philippe, Omega<br>
+Cartier, Gucci, Franck Muller<br><br>
+
+.. and 25 other most famous manufacturers.<br><br>
+
+<a href="http://www.starchier.net">http://www.starchier.net</a><br><br>
+
+All copies are for only $239.95 - $279.95!<br><br><br>
+
+________________________________<br>
+To change your mail preferences, go <a href="http://www.starchier.net/uns.htm">here</a><br>
+________________________________
+
+
+
+
+      <P></P></TD></TR></TBODY></TABLE></CENTER></BODY></HTML>
+
+------=_NextPart_001_0001_D35ABA33.1D1978CE--
+
+
+
+------=_NextPart_000_0000_BE11E460.048733E2--
