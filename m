@@ -1,12 +1,13 @@
-From: Steven A.Norman <16matther-fIHoLupfAe4mp8TqCH86vg@public.gmane.org>
-Subject: =?iso-8859-1?B?U3dpc3Mgd2F0Y2hlcyAtIHJlcGxpY2E=?=
-Date: Mon, 28 Nov 2005 14:28:49 +0000
-Message-ID: <60dd01c5f428$74c2c29f$fccb2f53@acadiacom.net>
+From: "Karasyov, Konstantin A" <konstantin.a.karasyov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: FW: asus M5636NBP fan always on
+Date: Mon, 28 Nov 2005 17:50:35 +0300
+Message-ID: <E124AAE027DA384D8B919F93E4D8C708C22833@mssmsx402nb>
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_BE11E460.048733E2"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,83 +20,72 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hello,
 
-------=_NextPart_000_0000_BE11E460.048733E2
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_D35ABA33.1D1978CE"
+Could you please attach the output files from dmesg, acpidump commands?
 
+Regards.
+Konstantin.
 
-------=_NextPart_001_0001_D35ABA33.1D1978CE
-Content-Type: text/plain;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-       REPLICA WATCH MODELS
-
-- exact copies of the original watches
-- perfect as a gift for your colleagues and friends
-- free gift box
-
-Rolex, Patek Philippe, Omega
-Cartier, Gucci, Franck Muller
-
-.. and 25 other most famous manufacturers.
-
-http://www.starchier.net
-
-All copies are for only $239.95 - $279.95!
-
-
-________________________________
-To change your mail preferences, go here
-________________________________ 
-
- 
-------=_NextPart_001_0001_D35ABA33.1D1978CE
-Content-Type: text/html;
-    charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=Content-Type content="text/html; charset=iso-8859-1">
-<META content="MSHTML 6.00.2900.2604" name=GENERATOR></HEAD>
-<BODY>
-<CENTER>
-<TABLE cellSpacing=0 cellPadding=0 width=800 align=center border=0>
-<table id="616370692D646576656C406C697374732E736F75726365666F7267652E6E6574">  <TBODY>
-  <TR>
-    <TD>
-
-
-
-REPLICA WATCH MODELS<br><br>
-
-- exact copies of the original watches<br>
-- perfect as a gift for your colleagues and friends<br>
-- free gift box<br><br>
-
-Rolex, Patek Philippe, Omega<br>
-Cartier, Gucci, Franck Muller<br><br>
-
-.. and 25 other most famous manufacturers.<br><br>
-
-<a href="http://www.starchier.net">http://www.starchier.net</a><br><br>
-
-All copies are for only $239.95 - $279.95!<br><br><br>
-
-________________________________<br>
-To change your mail preferences, go <a href="http://www.starchier.net/uns.htm">here</a><br>
-________________________________
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Matteo Sgalaberni
+>Sent: Sunday, November 27, 2005 7:19 PM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] asus M5636NBP fan always on
+>
+>Hello! I'm running debian sid on my asus M5636NBP.
+>
+>Kernel 2.6.13.2 patched with Suspend2 2.2-rc7
+>
+>My fan it's always on.. only if I put the laptop outside with the
+>snow...when it' reach 20 celsius the fan stops...
+>
+>cat /proc/acpi/thermal_zone/THRM/trip_points
+>critical (S5):           115 C
+>passive:                 105 C: tc1=3D2 tc2=3D10 tsp=3D100 =
+devices=3D0xc14706a0
+>active[0]:               20 C: devices=3D0xc1477480
+>
+>I tryed to change this settings echoing new values but no feedback by
+>the fan..
+>I tryed to set /proc/acpi/fan/FN00/state to 1, 2 ,3 ,4 but no
+feedback...
+>
+>I have alse loaded the module asus-acpi
+>asus_acpi              11540  0
+>(it seems not used...)
+>
+># acpi -V
+>     Battery 1: charged, 100%
+>     Thermal 1: active[0], 43.0 degrees C
+>  AC Adapter 1: on-line
+>
+>My battery now reach max 1 hour of uptime... i think that it's a low
+>time...
+>
+>Have you some ideas?
+>
+>Thanks
+>
+>Matteo
+>
+>
+>
+>-------------------------------------------------------
+>This SF.net email is sponsored by: Splunk Inc. Do you grep through log
+>files
+>for problems?  Stop!  Download the new AJAX search engine that makes
+>searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+>http://ads.osdn.com/?ad_id=3D7637&alloc_id=3D16865&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
-
-
-      <P></P></TD></TR></TBODY></TABLE></CENTER></BODY></HTML>
-
-------=_NextPart_001_0001_D35ABA33.1D1978CE--
-
-
-
-------=_NextPart_000_0000_BE11E460.048733E2--
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
