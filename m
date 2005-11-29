@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE:  Re: [patch request test] disable PIC/APIC/IOAPIC at S3 suspend
-Date: Tue, 29 Nov 2005 11:00:56 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F1F020A9@pdsmsx406>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Fwd: [ACPI-bugzilla] acpi doesn't work sometimes
+Date: Tue, 29 Nov 2005 13:41:01 +0800
+Message-ID: <200511291341.02349.luming.yu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-Hi,
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Stefan Seyfried
->Sent: Friday, November 25, 2005 10:04 AM
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] [patch request test] disable PIC/APIC/IOAPIC at S3
->suspend
->
->On Wed, Nov 09, 2005 at 02:40:31PM +0800, Shaohua Li wrote:
->> Hi,
->> Zwane submitted a patch for reboot bug here:
->> =
-http://marc.theaimsgroup.com/?l=3Dlinux-kernel&m=3D113098129126352&w=3D2
->> I guess we need the same thing for S3 suspend/resume, as S3 also
-jumps
->> to BIOS. Could anybody with S3 failure try below patch?
->
->What kind of S3 failure? Failure to suspend or failure to resume?
-Sorry, I missed the email. I'm not sure about what kind of failure.
-Just want to know if it changes anything in failure systems, as S3 also
-enters BIOS. It's possible we suffer the same failure as Zwane.
 
+I am using an acer notebook with suse 10.0.
+
+ACPI seems to not work arbitrarily. Sometimes it work and is started during
+boot, sometimes not.
+
+I often get the message by kpowersave, that it could not start because of
+not running acpi.
+
+When trying to restart i get this message:
+
+acpid: can't open /proc/acpi/event: Device or resource busy
+
+
+What's the problem and why is it so arbitrary?
+
+I considered that it might be, that X is started before acpi. So I've
+already tried to reset the order at media:/hda6/etc/init.d/rc .
+
+But this doesn't work...
+
+regards
+
+Soeren Wellhoefer
+
+=2D-
+S=F6ren Wellh=F6fer
+soeren.wellhoefer-hi6Y0CQ0nG0@public.gmane.org
+Carl-Zeiss-Gymnasium Jena
+
+Telefonieren Sie schon oder sparen Sie noch?
+NEU: GMX Phone_Flat http://www.gmx.net/de/go/telefonie
+
+
+=2D------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=3D7637&alloc_id=3D16865&op=3Dclick
+_______________________________________________
+acpi-bugzilla mailing list
+acpi-bugzilla-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-bugzilla
+
+=2D------------------------------------------------------
+
+=2D-=20
 Thanks,
-Shaohua
+Luming
 
 
 -------------------------------------------------------
