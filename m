@@ -1,75 +1,28 @@
-From: Andi Kleen <ak@suse.de>
+From: Lee Revell <rlrevell@joe-job.com>
 Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
-Date: Tue, 29 Nov 2005 20:53:37 +0100
-Message-ID: <20051129195336.GP19515@wotan.suse.de>
+Date: Tue, 29 Nov 2005 15:35:39 -0500
+Message-ID: <1133296540.4627.7.camel@mindpipe>
 References: <F7DC2337C7631D4386A2DF6E8FB22B3005456F00@hdsmsx401.amr.corp.intel.com>
+	 <20051129195336.GP19515@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932366AbVK2Txv@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3005456F00@hdsmsx401.amr.corp.intel.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932381AbVK2Ufs@vger.kernel.org>
+In-Reply-To: <20051129195336.GP19515@wotan.suse.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>, Ingo Molnar <mingo@elte.hu>, Steven Rostedt <rostedt@goodmis.org>, Andi Kleen <ak@suse.de>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, nando@ccrma.Stanford.EDU, rlrevell@joe-job.com, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com
+To: Andi Kleen <ak@suse.de>
+Cc: "Brown, Len" <len.brown@intel.com>, Nick Piggin <nickpiggin@yahoo.com.au>, Ingo Molnar <mingo@elte.hu>, Steven Rostedt <rostedt@goodmis.org>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, nando@ccrma.Stanford.EDU, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 29, 2005 at 02:37:53PM -0500, Brown, Len wrote:
-> idle=poll is a really bad way to go from a power perspective.
-> While it is diminishing returns to get into deeper C-states,
-> getting into at least C1 (HALT or MONITOR/MWAIT) is very important
-> on many processors.
-> 
-> Note that if the issue at hand is the TSC stopping in deep
-> ACPI C-states, that there is a flag already available to limit
-> how deep the C-states go.  eg.
+On Tue, 2005-11-29 at 20:53 +0100, Andi Kleen wrote:
+> We're mostly addressing it - there are problems left, but
+> overall it's looking good. The remaining problem is 
+> an education issue of users to not use RDTSC directly, 
+> but use gettimeofday/clock_gettime 
 
-No i think they tried to work around the fact that
-it's not synchronized on AMD systems - in particular
-it drifts slightly even on single socket dual core
-A64 X2s and disabling C1 works around that.
+No the issue is to make gettimeofday fast enough that the people who
+currently have to use the TSC can use it.  Right now it's 1500-3000 nsec
+or so, Vojtech mentioned that he has a patch that could reduce that to
+150-300 nsec.
 
-But idle=poll is too big an hammer for this. Vojtech
-is working on a solution anyways that should address this
-better.
-
-
-> processor.max_cstate=2 will disable C3, C4 etc
-> You can do this at run-time by writing to
-> /sys/module/processor/parameters/max_cstate
-
-In this case it's already C1 that's the problem,
-so that won't help them.
-
-> I agree with Andi that we have some work to do to address
-> the issue directly, which is that the TSC is not reliable
-> under all conditions on all processors.  I think we need
-
-We're mostly addressing it - there are problems left, but
-overall it's looking good. The remaining problem is 
-an education issue of users to not use RDTSC directly, 
-but use gettimeofday/clock_gettime
-
-One remaining use is measurements, but for that it is
-already dubious (e.g. due to ticking at a possible
-different frequency than the CPU). For that I want
-to establish the RDPMC 0 convention.
-
-Probably need better documentation for all of this though...
-
-> some modes for TSC to detect and handle the cases where it either
-> stops in C3 or changes speeds, vs the systems where it actually
-> works the way we want it to -- constant rate that never stops.
->  
-> >Why not just slightly cleanup and extend (eg. to ACPI) the
-> >hlt_counter thingy that many architectures already have?
-> 
-> Hmmm, I see the floppy driver invoking hlt_counter,
-> but it isn't clear what the general semantics and general
-> users are supposd to be.  Can you clue me in?
-
-It's an ancient hack for an ancient machine chipset bug, but AFAIK 
-not used/needed on anything modern. 
-
-Should probably remove it from x86-64 too.
-
--Andi
+Lee
