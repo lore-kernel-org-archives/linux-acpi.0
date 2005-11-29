@@ -1,68 +1,85 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
-Date: Tue, 29 Nov 2005 15:50:22 +0100
-Message-ID: <20051129145022.GE19515@wotan.suse.de>
-References: <20051124150731.GD2717@elte.hu> <1132952191.24417.14.camel@localhost.localdomain> <20051126130548.GA6503@elte.hu> <1133232503.6328.18.camel@localhost.localdomain> <20051128190253.1b7068d6.akpm@osdl.org> <1133235740.6328.27.camel@localhost.localdomain> <20051128200108.068b2dcd.akpm@osdl.org> <20051129064420.GA15374@elte.hu> <p73mzjngwim.fsf@verdi.suse.de> <1133273971.6328.49.camel@localhost.localdomain>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: [PATCH] fix swsusp on machines not supporting S4
+Date: Tue, 29 Nov 2005 16:08:02 +0100
+Message-ID: <20051129150802.GA17273@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751361AbVK2Oue@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751362AbVK2PKU@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1133273971.6328.49.camel@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Andi Kleen <ak@suse.de>, Ingo Molnar <mingo@elte.hu>, acpi-devel@lists.sourceforge.net, len.brown@intel.com, nando@ccrma.Stanford.EDU, rlrevell@joe-job.com, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com, akpm@osdl.org
+To: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 29, 2005 at 09:19:31AM -0500, Steven Rostedt wrote:
-> > And in practice the CPU will run so hot that only benchmarkers like it.
-> 
-> Why would it run hot?  What's the difference between polling and doing
-> other things.  How many transistors does it take to poll?
+Fix swsusp on machines not supporting S4. With recent changes, it is
+not possible to trigger it using /sys filesystem. Swsusp does not
+really need any support from low-level code, it is possible to reboot
+or halt at the end of suspend.
 
-It will prevent the CPU from going into sleep states and essentially
-keep most of it enabled.  
+Signed-off-by: Pavel Machek <pavel@suse.cz>
 
-> 
-> > 
-> > I think switching idle is the wrong way to do. We should rather
-> > fix the various problems.
-> > 
-> > For fixing the TSC issue it is 100% the wrong approach Imho.
-> 
-> I would only say 80% the wrong approach, but that's me ;-)
-> 
-> > Basically software has to live with TSCs being unsynchronized
-> > and gettimeofday should do the right thing (and if not it should be fixed)
-> 
-> I guess the biggest complaint most have is that the rdtsc _is_ the
-> fastest way to read a clock.  If it isn't reliable, then what good is
+---
+commit 72936ce37893098af1e2ec30b95274ca721bbf82
+tree 5b6aaf5cd5402bfc19b3faeab179c88803756805
+parent 3248196034f5f0a93554b441bd41af2620afa635
+author <pavel@amd.(none)> Tue, 29 Nov 2005 16:05:14 +0100
+committer <pavel@amd.(none)> Tue, 29 Nov 2005 16:05:14 +0100
 
-It's the fastest way to read something which needs quite complex
-knowledge to turn into a reliable clock value. In general only
-the kernel has this knowledge. 
+ kernel/power/main.c  |   21 ++++++++++++++++-----
+ kernel/power/power.h |    3 ---
+ 2 files changed, 16 insertions(+), 8 deletions(-)
 
-And gettimeofday is optimized to give you the fatest reliable
-clock. 
+diff --git a/kernel/power/main.c b/kernel/power/main.c
+--- a/kernel/power/main.c
++++ b/kernel/power/main.c
+@@ -24,7 +24,7 @@
+ 
+ DECLARE_MUTEX(pm_sem);
+ 
+-struct pm_ops * pm_ops = NULL;
++struct pm_ops *pm_ops = NULL;
+ suspend_disk_method_t pm_disk_mode = PM_DISK_SHUTDOWN;
+ 
+ /**
+@@ -151,6 +151,18 @@ static char *pm_states[PM_SUSPEND_MAX] =
+ #endif
+ };
+ 
++static inline int valid_state(suspend_state_t state)
++{
++	/* Suspend-to-disk does not really need low-level support.
++	 * It can work with reboot if needed. */
++	if (state == PM_SUSPEND_DISK)
++		return 1;
++
++	if (pm_ops && pm_ops->valid && !pm_ops->valid(state))
++		return 0;
++	return 1;
++}
++
+ 
+ /**
+  *	enter_state - Do common work of entering low-power state.
+@@ -167,7 +179,7 @@ static int enter_state(suspend_state_t s
+ {
+ 	int error;
+ 
+-	if (pm_ops && pm_ops->valid && !pm_ops->valid(state))
++	if (!valid_state(state))
+ 		return -ENODEV;
+ 	if (down_trylock(&pm_sem))
+ 		return -EBUSY;
+@@ -238,9 +250,8 @@ static ssize_t state_show(struct subsyst
+ 	char * s = buf;
+ 
+ 	for (i = 0; i < PM_SUSPEND_MAX; i++) {
+-		if (pm_states[i] && pm_ops && (!pm_ops->valid
+-			||(pm_ops->valid && pm_ops->valid(i))))
+-			s += sprintf(s,"%s ",pm_states[i]);
++		if (pm_states[i] && valid_state(i))
++			s += sprintf(s,"%s ", pm_states[i]);
+ 	}
+ 	s += sprintf(s,"\n");
+ 	return (s - buf);
 
-> it?  It's unfortunate that Intel didn't solidify the clock usage. Yes,
-> use HPET, or something else, but those are slower, and may not be on all
-> systems.  Every system that I owned had a tsc but for critical systems
-> it isn't up to par (what a shame).
-
-Just use gettimeofday. It shields you from all that and when
-the hardware supports it is quite fast too.
-
-> > > system has been idle for some time. E.g. cpufreqd could sample idle time 
-> > > and turn on/off idle=poll. High-performance setups could enable it all 
-> > > the time.
-> > 
-> > And upgrade their server air condition or issue additional ear protection
-> > to the desktop user? Most likely you will just drive the CPUs into
-> > thermal throttle at some point with that, not get more performance anyways.
-> 
-> Again, what would make it so hot?  It is a waste of CPU cycles, and does
-> waste energy that way, but does it really heat up the CPU that much?
-
-Yes it does.
-
--Andi
+-- 
+Thanks, Sharp!
