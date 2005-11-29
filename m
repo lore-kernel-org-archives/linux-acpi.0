@@ -1,72 +1,71 @@
-From: Andi Kleen <ak@suse.de>
+From: Steven Rostedt <rostedt@goodmis.org>
 Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
-Date: 29 Nov 2005 11:05:21 -0700
-Message-ID: <p73mzjngwim.fsf@verdi.suse.de>
-References: <20051118220755.GA3029@elte.hu>
-	<1132353689.4735.43.camel@cmn3.stanford.edu>
-	<1132367947.5706.11.camel@localhost.localdomain>
-	<20051124150731.GD2717@elte.hu>
-	<1132952191.24417.14.camel@localhost.localdomain>
-	<20051126130548.GA6503@elte.hu>
-	<1133232503.6328.18.camel@localhost.localdomain>
-	<20051128190253.1b7068d6.akpm@osdl.org>
-	<1133235740.6328.27.camel@localhost.localdomain>
-	<20051128200108.068b2dcd.akpm@osdl.org>
-	<20051129064420.GA15374@elte.hu>
+Date: Tue, 29 Nov 2005 09:22:37 -0500
+Message-ID: <1133274157.6328.52.camel@localhost.localdomain>
+References: <20051115090827.GA20411@elte.hu>
+	 <1132336954.20672.11.camel@cmn3.stanford.edu>
+	 <1132350882.6874.23.camel@mindpipe>
+	 <1132351533.4735.37.camel@cmn3.stanford.edu>
+	 <20051118220755.GA3029@elte.hu>
+	 <1132353689.4735.43.camel@cmn3.stanford.edu>
+	 <1132367947.5706.11.camel@localhost.localdomain>
+	 <20051124150731.GD2717@elte.hu>
+	 <1132952191.24417.14.camel@localhost.localdomain>
+	 <20051126130548.GA6503@elte.hu>
+	 <1133232503.6328.18.camel@localhost.localdomain>
+	 <20051128190253.1b7068d6.akpm@osdl.org>
+	 <1133235740.6328.27.camel@localhost.localdomain>
+	 <1133238170.1421.15.camel@cog.beaverton.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751178AbVK2Nhk@vger.kernel.org>
-In-Reply-To: <20051129064420.GA15374@elte.hu>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751359AbVK2OWp@vger.kernel.org>
+In-Reply-To: <1133238170.1421.15.camel@cog.beaverton.ibm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>, acpi-devel@lists.sourceforge.net, len.brown@intel.com, nando@ccrma.Stanford.EDU, rlrevell@joe-job.com, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com, akpm@osdl.org
+To: john stultz <johnstul@us.ibm.com>
+Cc: Andrew Morton <akpm@osdl.org>, mingo@elte.hu, acpi-devel@lists.sourceforge.net, len.brown@intel.com, nando@ccrma.Stanford.EDU, rlrevell@joe-job.com, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com
 List-Id: linux-acpi@vger.kernel.org
 
-Ingo Molnar <mingo@elte.hu> writes:
-
-> * Andrew Morton <akpm@osdl.org> wrote:
-> 
-> > > The way to solve this was to set
-> > >  idle=poll.  The original patch I sent was to allow the user to change to
-> > >  idle=poll dynamically.  This way they could switch to the poll_idle and
-> > >  run there tests (requiring tsc not to drift) and then switch back to the
-> > >  default idle to save on electricity.
+On Mon, 2005-11-28 at 20:22 -0800, john stultz wrote:
+> On Mon, 2005-11-28 at 22:42 -0500, Steven Rostedt wrote:
+> > On Mon, 2005-11-28 at 19:02 -0800, Andrew Morton wrote:
+> > > Steven Rostedt <rostedt@goodmis.org> wrote:
+> > > >
+> > > > This patch creates a directory in /sys/kernel called idle.
+> > > >
+> > > 
+> > > At no point do you appear to explain _why_ the kernel needs this feature?
 > > 
-> > Use gettimeofday()?
-> > 
-> > If it's just for some sort of instrumentation, run NR_CPUS instances 
-> > of a niced-down busyloop, pin each one to a different CPU?  That way 
-> > the idle function doesn't get called at all..
+> > Sorry about that.  This originally came up when we had problems with the
+> > AMD64 x2 in the -rt patch.  It was noted that the TSCs would get very
+> > far out of sync and cause problems.  The way to solve this was to set
+> > idle=poll.  The original patch I sent was to allow the user to change to
+> > idle=poll dynamically.  This way they could switch to the poll_idle and
+> > run there tests (requiring tsc not to drift) and then switch back to the
+> > default idle to save on electricity.
 > 
-> idle=poll is also frequently done for performance reasons [it reduces 
-> idle wakeup latency by 10 usecs] 
+> The problem with this is that this must be a one way transition. That
+> is, once the TSCs have become unsynchronized, there is no use going back
+> to using the polling idle unless you add some code to re-sync the TSCs
+> which would be ugly to do after the system has booted.
+> 
 
-And it's obsolete on CPUs with monitor/mwait.
-And in practice the CPU will run so hot that only benchmarkers like it.
+I've thought about that too.  But this patch does allow you to start
+with  idle=poll and then switch back.  Also, if you do lock to a cpu,
+you don't need to worry about the tsc from slipping if you switch to
+idle=poll.
 
-I think switching idle is the wrong way to do. We should rather
-fix the various problems.
+-- Steve
 
-For fixing the TSC issue it is 100% the wrong approach Imho.
-Basically software has to live with TSCs being unsynchronized
-and gettimeofday should do the right thing (and if not it should be fixed)
-
-- while it could be turned off if the 
-> system has been idle for some time. E.g. cpufreqd could sample idle time 
-> and turn on/off idle=poll. High-performance setups could enable it all 
-> the time.
-
-And upgrade their server air condition or issue additional ear protection
-to the desktop user? Most likely you will just drive the CPUs into
-thermal throttle at some point with that, not get more performance anyways.
-  
-> as long as it can be done with zero-cost, i dont see why Steven's patch 
-> wouldnt be a plus for us. It's a performance thing, and having runtime 
-> switches for seemless performance features cannot be bad.
-
-The interface is ugly and I suspect fixing the various obscure race this
-obscure feature would undoubtedly add will be a long term maintenance
-issue. And it's the wrong thing to do anyways because it just papers
-over other problems that should be fixed in the right way.
-
--Andi
+> Using idle=poll (for anything other then debugging) is really a worst
+> case workaround for systems that do not have alternative clocksources
+> like ACPI PM or HPET.
+> 
+> Its an interesting bit of code, but I'm not really sure I understand its
+> usefulness.
+> 
+> thanks
+> -john
+> 
+> 
+> 
