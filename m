@@ -1,37 +1,57 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
-Date: Tue, 29 Nov 2005 21:51:09 +0100
-Message-ID: <20051129205108.GQ19515@wotan.suse.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3005456F00@hdsmsx401.amr.corp.intel.com> <20051129195336.GP19515@wotan.suse.de> <1133296540.4627.7.camel@mindpipe>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: ACPI generic hotkey working on SONY (was: sony vaio pcg-k45 hell)
+Date: Tue, 29 Nov 2005 22:48:15 +0100
+Message-ID: <20051129214815.GA23455@message-id.s3e.de>
+References: <3ACA40606221794F80A5670F0AF15F84041AC212@pdsmsx403> <20051024102231.GA32705@message-id.gmane0305.slipkontur.de> <200510261029.01166.luming.yu@intel.com> <200511251602.02494.luming.yu@intel.com> <20051125120522.GA26643@message-id.s3e.de> <20051129153501.GB11822@message-id.s3e.de> <20051129204349.GA18378@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932400AbVK2UvO@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1133296540.4627.7.camel@mindpipe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lee Revell <rlrevell@joe-job.com>
-Cc: Andi Kleen <ak@suse.de>, "Brown, Len" <len.brown@intel.com>, Nick Piggin <nickpiggin@yahoo.com.au>, Ingo Molnar <mingo@elte.hu>, Steven Rostedt <rostedt@goodmis.org>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, nando@ccrma.Stanford.EDU, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com
+In-Reply-To: <20051129204349.GA18378-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 29, 2005 at 03:35:39PM -0500, Lee Revell wrote:
-> On Tue, 2005-11-29 at 20:53 +0100, Andi Kleen wrote:
-> > We're mostly addressing it - there are problems left, but
-> > overall it's looking good. The remaining problem is 
-> > an education issue of users to not use RDTSC directly, 
-> > but use gettimeofday/clock_gettime 
+On Tue, Nov 29, 2005 at 08:43:49PM +0000, Matthew Garrett wrote:
+> On Tue, Nov 29, 2005 at 04:35:01PM +0100, Stefan Seyfried wrote:
 > 
-> No the issue is to make gettimeofday fast enough that the people who
-> currently have to use the TSC can use it.  Right now it's 1500-3000 nsec
-> or so, Vojtech mentioned that he has a patch that could reduce that to
+> > I have of course some other questions:
+> > - what will happen on other machines if i load the hotkey module and issue
+> >   echo "10001:1:1:0" >/proc/acpi/hotkey/action
+> 
+> To be honest, the generic hotkey driver seems to be something of a nasty 
+> hack.
 
-It's only that slow if the hardware can't do better.
+I won't argue against this. However, i stopped hoping to get all the drivers
+i need included into the kernel, so i will concentrate on getting all 
+machines working with the generic hotkey driver and include this support
+in powersaved. Unfortunately, i am totally AML illiterate, so all i can
+do is provide DSDTs and test any instructions given to me :-)
 
-And the kernel makes it only slow when using RDTSC directly
-is unsafe - so if you use it directly thinking the kernel cheats
-you for your cycles you're just shoting yourself in the own foot.
+> It effectively exposes large parts of ACPI to userspace, but with 
+> a very limited API and various artificial limitations. Is there any 
+> reason why we don't shift to dev_acpi 
+> (http://free.linux.hp.com/~awilliam/acpi/dev_acpi/) and have a userspace 
+> application dealing with hotkey events? It would seem to be much more 
+> flexible.
 
-> 150-300 nsec.
+This would be fine with me also, i do not really care what i have to do to
+get this hotkey events, as long as i can get them :-)
+-- 
+Stefan Seyfried
 
-If you have capable hardware it can already do much better.
 
--Andi
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
