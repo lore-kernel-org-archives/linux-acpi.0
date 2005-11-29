@@ -1,47 +1,40 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: [patch request test] disable PIC/APIC/IOAPIC at S3 suspend
-Date: Tue, 29 Nov 2005 16:17:50 +0100
-Message-ID: <20051129151750.GA11822@message-id.s3e.de>
-References: <59D45D057E9702469E5775CBB56411F1F020A9@pdsmsx406>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
+Date: Tue, 29 Nov 2005 10:42:34 -0500
+Message-ID: <1133278954.6328.59.camel@localhost.localdomain>
+References: <20051124150731.GD2717@elte.hu>
+	 <1132952191.24417.14.camel@localhost.localdomain>
+	 <20051126130548.GA6503@elte.hu>
+	 <1133232503.6328.18.camel@localhost.localdomain>
+	 <20051128190253.1b7068d6.akpm@osdl.org>
+	 <1133235740.6328.27.camel@localhost.localdomain>
+	 <20051128200108.068b2dcd.akpm@osdl.org> <20051129064420.GA15374@elte.hu>
+	 <p73mzjngwim.fsf@verdi.suse.de>
+	 <1133273971.6328.49.camel@localhost.localdomain>
+	 <20051129145022.GE19515@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <59D45D057E9702469E5775CBB56411F1F020A9@pdsmsx406>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751378AbVK2Pmp@vger.kernel.org>
+In-Reply-To: <20051129145022.GE19515@wotan.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>, acpi-devel@lists.sourceforge.net, len.brown@intel.com, nando@ccrma.Stanford.EDU, rlrevell@joe-job.com, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com, akpm@osdl.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 29, 2005 at 11:00:56AM +0800, Li, Shaohua wrote:
+On Tue, 2005-11-29 at 15:50 +0100, Andi Kleen wrote:
+> On Tue, Nov 29, 2005 at 09:19:31AM -0500, Steven Rostedt wrote:
+> > > And in practice the CPU will run so hot that only benchmarkers like it.
+> > 
+> > Why would it run hot?  What's the difference between polling and doing
+> > other things.  How many transistors does it take to poll?
 > 
-> Hi,
-> >-----Original Message-----
-> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> >admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Stefan Seyfried
+> It will prevent the CPU from going into sleep states and essentially
+> keep most of it enabled.  
 
-> >What kind of S3 failure? Failure to suspend or failure to resume?
-> Sorry, I missed the email. I'm not sure about what kind of failure.
-> Just want to know if it changes anything in failure systems, as S3 also
-> enters BIOS. It's possible we suffer the same failure as Zwane.
+Well, there's one thing that my patch _does_ help with.  (And it has
+just helped me now).  If you boot up with idle=poll and forget about it,
+you can check what idle routine is being used and switch out of poll
+without rebooting. (like I'm doing right now :-)
 
-ok, so it's probably systems failing to suspend (not "powering off" but
-hanging instead). I have not come across this failure mode for some time
-now, so i probably cannot help.
--- 
-Stefan Seyfried
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+-- Steve
