@@ -1,42 +1,31 @@
-From: Annika <bluekiss1132-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Earn money every month like clockwork!
-Date: Sat, 17 Dec 2005 22:21:37 +0000 (UTC)
-Message-ID: <E1EnkOG-0007JB-4N@mail.sourceforge.net>
-Reply-To: Annika <bluekiss1132-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
+Date: Tue, 29 Nov 2005 14:08:43 +0100
+Message-ID: <20051129130843.GA9991@openzaurus.ucw.cz>
+References: <1132336954.20672.11.camel@cmn3.stanford.edu> <1132350882.6874.23.camel@mindpipe> <1132351533.4735.37.camel@cmn3.stanford.edu> <20051118220755.GA3029@elte.hu> <1132353689.4735.43.camel@cmn3.stanford.edu> <1132367947.5706.11.camel@localhost.localdomain> <20051124150731.GD2717@elte.hu> <1132952191.24417.14.camel@localhost.localdomain> <20051126130548.GA6503@elte.hu> <1133232503.6328.18.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="qzsoft_directmail_seperator"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Sat Dec 17 14:19:07 2005
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932702AbVLROYA@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1133232503.6328.18.camel@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@elte.hu>, acpi-devel@lists.sourceforge.net, len.brown@intel.com, Andrew Morton <akpm@osdl.org>, Fernando Lopez-Lezcano <nando@ccrma.Stanford.EDU>, Lee Revell <rlrevell@joe-job.com>, linux-kernel@vger.kernel.org, "Paul E. McKenney" <paulmck@us.ibm.com>, "K.R. Foley" <kr@cybsft.com>, Thomas Gleixner <tglx@linutronix.de>, pluto@agmk.net, john cooper <john.cooper@timesys.com>, Benedikt Spranger <bene@linutronix.de>, Daniel Walker <dwalker@mvista.com>, Tom Rini <trini@kernel.crashing.org>, George Anzinger <george@mvista.com>
 List-Id: linux-acpi@vger.kernel.org
 
---qzsoft_directmail_seperator
-Content-Type: text/plain;
-	charset="DEFAULT"
-Content-Transfer-Encoding: base64
+Hi!
 
-SGVsbG8sCgpEbyB5b3Ugd2FudCB0byBsZWFybiBob3cgdG8gc3RhcnQgeW91ciBvd24gZW1waXJl
-IG9mIHByb2ZpdGFibGUgCiJOaWNoZSBQYXkgUGVyIENsaWNrIFNlYXJjaCBFbmdpbmVzIiBUaGF0
-IFBheSBZb3UgRXZlcnkgTW9udGggTGlrZSBDbG9ja3dvcmsgPwoKR28gdG8gdGhpcyBzaXRlIGh0
-dHA6Ly9uZXRiaXp6Lml3YXJwLmNvbSBhbmQgY2xpY2sgdGhlIHNwb25zb3JlZCBsaW5rcy4KClNl
-ZSB5b3UhCgpBbm5pa2EK
+> Description:
+> 
+> This patch creates a directory in /sys/kernel called idle.  This
+> directory contains two files: idle_ctrl and idle_methods.  Reading
+> idle_ctrl will show the function that is currently being used for idle,
+> and idle_methods shows the available methods for the user to send write
+> into idle_ctrl to change which function to use for idle.
 
---qzsoft_directmail_seperator--
+Pretty ugly interface, I'd say... is listing function really neccessary?
 
+				Pavel
 
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
