@@ -1,9 +1,11 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: VBEtool 0.5 adds support for amd64
-Date: Wed, 30 Nov 2005 02:29:20 +0000
-Message-ID: <20051130022920.GA19363@srcf.ucam.org>
+From: Yu Luming <luming.yu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Fwd: RE: asus M5636NBP fan always on
+Date: Wed, 30 Nov 2005 21:44:47 +0800
+Message-ID: <200511302144.47944.luming.yu@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,15 +20,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've just uploaded vbetool 0.5 to 
-http://www.srcf.ucam.org/~mjg59/vbetool . This version should work with 
-newer kernels and also adds support for non-x86 architectures using the 
-Scitech x86emu code found in X.org. My nx6125 successfully resumes video 
-using vbestate saving/restoring, though attempting to re-POST it hangs 
-the machine. Knowing how well it works for others would be nice.
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
+----------  Forwarded Message  ----------
+
+Subject: RE: [ACPI] asus M5636NBP fan always on
+Date: Wednesday 30 November 2005 21:22
+From: Konstantin Karasyov <konstantin.karasyov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+
+ There are some DSDTs, where default values are being restored during
+routine procedures. I saw one on Acer TravelMate.
+So, please, open a bug on bugzilla (category: ACPI, component:
+Power-Fan/Thermal), and supply it with your dmesg, acpidump outputs.
+
+Regards.
+
+Konstantin.
+
+-------------------------------------------------------
 
 
 -------------------------------------------------------
