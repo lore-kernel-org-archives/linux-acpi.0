@@ -1,13 +1,11 @@
-From: marcus hall <marcus-sbVGQhmTrokdnm+yROfE0A@public.gmane.org>
-Subject: Re: Problem with address space handler
-Date: Thu, 1 Dec 2005 10:03:42 -0700
-Message-ID: <20051201170342.GB22812@bastille.tuells.org>
-References: <20051129160440.GA27678@bastille.tuells.org> <20051130220526.GA2056@elf.ucw.cz>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: S3 Suspend failure with 2.6.15-rc2-git6
+Date: Thu, 01 Dec 2005 19:00:15 +0100
+Message-ID: <438F3A2F.5090207@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051130220526.GA2056-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,53 +15,87 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 30, 2005 at 11:05:26PM +0100, Pavel Machek wrote:
-> You should really go to 2.6... button drivers should be possible there
-> without hacking kernel.
+Hi,
 
-Well, my driver is a loadable module, the only kernel hacking I'm doing is
-trying to figure out why it isn't working...  It works just fine on this
-hardware under 2.4.20.  But the ACPI system underwent big changes between
-2.4.20 -> 2.4.28.
+since I switched to 2.6.15-rc2-git6, my machine is not able to suspend
+anymore if my USB printer is plugged in. The problem is reproducible.
 
-I have now become convinced that ACPI is not seeing the button presses, so
-the AML code never runs to "write" into the address space, so my driver
-never sees the address space activated.  That all makes reasonable sense
-and is supported by the fact that IRQ 9 (which is the only ACPI handled
-interrupt) has zero hits recorded, regardless of repeatedly pressing buttons.
-Also, with full debugging turned on, I see no output as a result of button
-presses.
+usb 1-2: new full speed USB device using uhci_hcd and address 3
+drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 3 if 0 alt 0 proto 2 vid 0x04E8 pid 0x3242
+usbcore: registered new driver usblp
+drivers/usb/class/usblp.c: v0.13: USB Printer Device Class driver
+PM: Preparing system for mem sleep
+Stopping tasks: ==================================================|
+usblp 1-2:1.0: no suspend?
+Could not suspend device 1-2: error -16
+Some devices failed to suspend
+Restarting tasks... done
 
-So, the problem seems to be something in the setup.  Many of the ACPI
-functions *are* working..  I can adjust screen brightness, I can see the
-battery status, I can see the AC status change when I plug in or remove
-the charger.
 
-One other thing that appears to be non-functional is the power switch:
+Earlier kernels (2.6.14.2 and before) worked just fine:
 
-<4>evxfevnt-0196 [26] acpi_enable_event     : Could not enable power_button even
-t
-<4> evxface-0107 [25] acpi_install_fixed_eve: Could not enable fixed event.
-<4>acpi_button-0437 [24] acpi_button_add       : Error installing notify handler
+usb 1-2: new full speed USB device using uhci_hcd and address 2
+drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 2 if 0 alt 0 proto 2 vid 0x04E8 pid 0x3242
+usbcore: registered new driver usblp
+drivers/usb/class/usblp.c: v0.13: USB Printer Device Class driver
+PM: Preparing system for mem sleep
+Stopping tasks: ====================================================|
+ACPI: PCI interrupt for device 0000:02:01.1 disabled
+ACPI: PCI interrupt for device 0000:02:01.0 disabled
+ACPI: PCI interrupt for device 0000:01:00.0 disabled
+ACPI: PCI interrupt for device 0000:00:1f.5 disabled
+ACPI: PCI interrupt for device 0000:00:1d.7 disabled
+ACPI: PCI interrupt for device 0000:00:1d.2 disabled
+ACPI: PCI interrupt for device 0000:00:1d.1 disabled
+ACPI: PCI interrupt for device 0000:00:1d.0 disabled
+PM: Entering mem sleep
+Back to C!
+PM: Finishing wakeup.
+ACPI: PCI Interrupt 0000:00:1d.0[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
+PCI: Setting latency timer of device 0000:00:1d.0 to 64
+ACPI: PCI Interrupt 0000:00:1d.0[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:00:1d.1[B] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
+PCI: Setting latency timer of device 0000:00:1d.1 to 64
+ACPI: PCI Interrupt 0000:00:1d.1[B] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI Interrupt 0000:00:1d.2[C] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
+PCI: Setting latency timer of device 0000:00:1d.2 to 64
+ACPI: PCI Interrupt 0000:00:1d.2[C] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:00:1d.7[D] -> Link [LNKH] -> GSI 11 (level, low) -> IRQ 11
+PCI: Setting latency timer of device 0000:00:1d.7 to 64
+ACPI: PCI Interrupt 0000:00:1d.7[D] -> Link [LNKH] -> GSI 11 (level, low) -> IRQ 11
+PCI: Setting latency timer of device 0000:00:1e.0 to 64
+ACPI: PCI Interrupt 0000:00:1f.1[A] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:00:1f.5[B] -> Link [LNKB] -> GSI 5 (level, low) -> IRQ 5
+PCI: Setting latency timer of device 0000:00:1f.5 to 64
+PCI: Enabling device 0000:01:00.0 (0000 -> 0003)
+ACPI: PCI Interrupt 0000:01:00.0[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
+PCI: Setting latency timer of device 0000:01:00.0 to 64
+eth0: link down
+ACPI: PCI Interrupt 0000:02:01.0[A] -> Link [LNKB] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:02:01.1[B] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt 0000:02:01.2[C] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
+eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
+Restarting tasks...<6>usb 1-2: USB disconnect, address 2
+drivers/usb/class/usblp.c: usblp0: removed
+usb 1-2: new full speed USB device using uhci_hcd and address 3
+  done
+drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 3 if 0 alt 0 proto 2 vid 0x04E8 pid 0x3242
 
-My driver also attempts to call
-acpi_install_fixed_event_handler(ACPI_EVENT_POWER_BUTTON,buttons_acpi_power,0)
-which fails with code 0x19 (AE_NO_HARDWARE_RESPONSE).  I don't know if this
-is clearly related to the button issue, but it seems likely at least.
 
-Is there any additional setup required with the newer ACPI code that might
-wake things up?  I am not running acpid, if that might be significant..
+However, this suspend failure has one VERY good side effect. It turns
+off the fans on my laptop. If anyone can explain that effect, I'd be
+most interested. I'd even be willing to tolerate that bug to be able to
+switch off the fans.
 
-I do want to take things to the 2.6 kernel eventually, but there are still
-enough ties to the 2.4 kernel elsewhere that I can't do it just yet...
 
-Thanks in advance!
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
-Marcus Hall
 
 
 -------------------------------------------------------
