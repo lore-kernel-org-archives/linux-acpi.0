@@ -1,47 +1,63 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Problem with address space handler
-Date: Wed, 30 Nov 2005 23:05:26 +0100
-Message-ID: <20051130220526.GA2056@elf.ucw.cz>
-References: <20051129160440.GA27678@bastille.tuells.org>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [patch 5/9] ACPI should depend on, not select PCI
+Date: Wed, 30 Nov 2005 20:58:22 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B300549CF57@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051129160440.GA27678-hnb4XfjZrNkPPsleXtkwkkB+6BGkLq7r@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: marcus hall <marcus-sbVGQhmTrokdnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751367AbVLADIg@vger.kernel.org>
+Content-class: urn:content-classes:message
+Sender: linux-kernel-owner@vger.kernel.org
+To: akpm@osdl.org, bunk@stusta.de
+Cc: acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On =DAt 29-11-05 09:04:40, marcus hall wrote:
-> Hello..
->=20
-> I am attempting to run a driver that listens to hardware buttons via th=
-e
-> ACPI system.  This driver works in the 2.4.20 kernel, but I am attempti=
-ng
-> to get it to run on 2.4.28.  There were a lot of ACPI changes between t=
-hese
-> two kernels, and I'm aparently missing something..
+No, I can't apply this -- it allows
+Kconfig to create IA64 configs without PCI,
+which do not build.
 
-You should really go to 2.6... button drivers should be possible there
-without hacking kernel.
+there must be a better way.
 
---=20
-Thanks, Sharp!
+-Len 
 
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+>-----Original Message-----
+>From: akpm@osdl.org [mailto:akpm@osdl.org] 
+>Sent: Friday, October 28, 2005 6:00 PM
+>To: Brown, Len
+>Cc: acpi-devel@lists.sourceforge.net; akpm@osdl.org; bunk@stusta.de
+>Subject: [patch 5/9] ACPI should depend on, not select PCI
+>
+>
+>From: Adrian Bunk <bunk@stusta.de>
+>
+>ACPI should depend on, not select PCI.
+>
+>The practical differences should be nearly zero except that it avoids 
+>the illegal configuration PCI=y, X86_VOYAGER=y.
+>
+>Signed-off-by: Adrian Bunk <bunk@stusta.de>
+>Signed-off-by: Andrew Morton <akpm@osdl.org>
+>---
+>
+> drivers/acpi/Kconfig |    2 +-
+> 1 files changed, 1 insertion(+), 1 deletion(-)
+>
+>diff -puN 
+>drivers/acpi/Kconfig~acpi-should-depend-on-not-select-pci 
+>drivers/acpi/Kconfig
+>--- 
+>25/drivers/acpi/Kconfig~acpi-should-depend-on-not-select-pci	
+>Fri Oct 28 14:59:08 2005
+>+++ 25-akpm/drivers/acpi/Kconfig	Fri Oct 28 14:59:21 2005
+>@@ -10,8 +10,8 @@ menu "ACPI (Advanced Configuration and P
+> config ACPI
+> 	bool "ACPI Support"
+> 	depends on IA64 || X86
+>+	depends on PCI
+> 	select PM
+>-	select PCI
+> 
+> 	default y
+> 	---help---
+>_
+>
