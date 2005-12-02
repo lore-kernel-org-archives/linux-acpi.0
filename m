@@ -1,105 +1,37 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: S3 Suspend failure with 2.6.15-rc2-git6
-Date: Thu, 01 Dec 2005 19:00:15 +0100
-Message-ID: <438F3A2F.5090207@gmx.net>
+From: Max Krasnyansky <maxk@qualcomm.com>
+Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
+Date: Thu, 01 Dec 2005 17:27:00 -0800
+Message-ID: <438FA2E4.80705@qualcomm.com>
+References: <20051118220755.GA3029@elte.hu>	<1132353689.4735.43.camel@cmn3.stanford.edu>	<1132367947.5706.11.camel@localhost.localdomain>	<20051124150731.GD2717@elte.hu>	<1132952191.24417.14.camel@localhost.localdomain>	<20051126130548.GA6503@elte.hu>	<1133232503.6328.18.camel@localhost.localdomain>	<20051128190253.1b7068d6.akpm@osdl.org>	<1133235740.6328.27.camel@localhost.localdomain>	<20051128200108.068b2dcd.akpm@osdl.org>	<20051129064420.GA15374@elte.hu> <p73mzjngwim.fsf@verdi.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932709AbVLBB21@vger.kernel.org>
+In-Reply-To: <p73mzjngwim.fsf@verdi.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>, Steven Rostedt <rostedt@goodmis.org>, acpi-devel@lists.sourceforge.net, len.brown@intel.com, nando@ccrma.stanford.edu, rlrevell@joe-job.com, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com, akpm@osdl.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Andi Kleen wrote:
+> Ingo Molnar <mingo@elte.hu> writes:
+>>> If it's just for some sort of instrumentation, run NR_CPUS instances 
+>>> of a niced-down busyloop, pin each one to a different CPU?  That way 
+>>> the idle function doesn't get called at all..
+>> idle=poll is also frequently done for performance reasons [it reduces 
+>> idle wakeup latency by 10 usecs] 
+> 
+> And it's obsolete on CPUs with monitor/mwait.
+There are some platforms for example IBM ZPro Xeon based machines where
+monitor/mwait seems to trigger some kind of SMM and introduce horrible latencies.
+With idle=poll ZPros show pretty good worst case latencies, in the order of 10usec
+(tested with RTAI/Fusion). With default idle (ie mwait) even average latency is in
+hundreds of milliseconds.
+You might argue that it's a bug in the their HW design or something but as it stands
+today I wouldn't say that monitor/mwait obsoletes idle=poll.
 
-since I switched to 2.6.15-rc2-git6, my machine is not able to suspend
-anymore if my USB printer is plugged in. The problem is reproducible.
+Also IMO saying that CPU will run too hot with idle=poll is basically saying that those
+CPUs cannot be used for simulations and stuff which run flat out for days (months actually).
+Which is obviously not true (again speaking from experience :)).
 
-usb 1-2: new full speed USB device using uhci_hcd and address 3
-drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 3 if 0 alt 0 proto 2 vid 0x04E8 pid 0x3242
-usbcore: registered new driver usblp
-drivers/usb/class/usblp.c: v0.13: USB Printer Device Class driver
-PM: Preparing system for mem sleep
-Stopping tasks: ==================================================|
-usblp 1-2:1.0: no suspend?
-Could not suspend device 1-2: error -16
-Some devices failed to suspend
-Restarting tasks... done
-
-
-Earlier kernels (2.6.14.2 and before) worked just fine:
-
-usb 1-2: new full speed USB device using uhci_hcd and address 2
-drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 2 if 0 alt 0 proto 2 vid 0x04E8 pid 0x3242
-usbcore: registered new driver usblp
-drivers/usb/class/usblp.c: v0.13: USB Printer Device Class driver
-PM: Preparing system for mem sleep
-Stopping tasks: ====================================================|
-ACPI: PCI interrupt for device 0000:02:01.1 disabled
-ACPI: PCI interrupt for device 0000:02:01.0 disabled
-ACPI: PCI interrupt for device 0000:01:00.0 disabled
-ACPI: PCI interrupt for device 0000:00:1f.5 disabled
-ACPI: PCI interrupt for device 0000:00:1d.7 disabled
-ACPI: PCI interrupt for device 0000:00:1d.2 disabled
-ACPI: PCI interrupt for device 0000:00:1d.1 disabled
-ACPI: PCI interrupt for device 0000:00:1d.0 disabled
-PM: Entering mem sleep
-Back to C!
-PM: Finishing wakeup.
-ACPI: PCI Interrupt 0000:00:1d.0[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
-PCI: Setting latency timer of device 0000:00:1d.0 to 64
-ACPI: PCI Interrupt 0000:00:1d.0[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
-ACPI: PCI Interrupt 0000:00:1d.1[B] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
-PCI: Setting latency timer of device 0000:00:1d.1 to 64
-ACPI: PCI Interrupt 0000:00:1d.1[B] -> Link [LNKD] -> GSI 11 (level, low) -> IRQ 11
-ACPI: PCI Interrupt 0000:00:1d.2[C] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
-PCI: Setting latency timer of device 0000:00:1d.2 to 64
-ACPI: PCI Interrupt 0000:00:1d.2[C] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
-ACPI: PCI Interrupt 0000:00:1d.7[D] -> Link [LNKH] -> GSI 11 (level, low) -> IRQ 11
-PCI: Setting latency timer of device 0000:00:1d.7 to 64
-ACPI: PCI Interrupt 0000:00:1d.7[D] -> Link [LNKH] -> GSI 11 (level, low) -> IRQ 11
-PCI: Setting latency timer of device 0000:00:1e.0 to 64
-ACPI: PCI Interrupt 0000:00:1f.1[A] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
-ACPI: PCI Interrupt 0000:00:1f.5[B] -> Link [LNKB] -> GSI 5 (level, low) -> IRQ 5
-PCI: Setting latency timer of device 0000:00:1f.5 to 64
-PCI: Enabling device 0000:01:00.0 (0000 -> 0003)
-ACPI: PCI Interrupt 0000:01:00.0[A] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
-PCI: Setting latency timer of device 0000:01:00.0 to 64
-eth0: link down
-ACPI: PCI Interrupt 0000:02:01.0[A] -> Link [LNKB] -> GSI 5 (level, low) -> IRQ 5
-ACPI: PCI Interrupt 0000:02:01.1[B] -> Link [LNKA] -> GSI 5 (level, low) -> IRQ 5
-ACPI: PCI Interrupt 0000:02:01.2[C] -> Link [LNKC] -> GSI 5 (level, low) -> IRQ 5
-eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
-Restarting tasks...<6>usb 1-2: USB disconnect, address 2
-drivers/usb/class/usblp.c: usblp0: removed
-usb 1-2: new full speed USB device using uhci_hcd and address 3
-  done
-drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 3 if 0 alt 0 proto 2 vid 0x04E8 pid 0x3242
-
-
-However, this suspend failure has one VERY good side effect. It turns
-off the fans on my laptop. If anyone can explain that effect, I'd be
-most interested. I'd even be willing to tolerate that bug to be able to
-switch off the fans.
-
-
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+Max
