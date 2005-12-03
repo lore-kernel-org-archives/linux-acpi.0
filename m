@@ -1,52 +1,44 @@
-From: Max Krasnyansky <maxk@qualcomm.com>
-Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
-Date: Fri, 02 Dec 2005 18:17:06 -0800
-Message-ID: <43910022.1030300@qualcomm.com>
-References: <20051124150731.GD2717@elte.hu> <1132952191.24417.14.camel@localhost.localdomain> <20051126130548.GA6503@elte.hu> <1133232503.6328.18.camel@localhost.localdomain> <20051128190253.1b7068d6.akpm@osdl.org> <1133235740.6328.27.camel@localhost.localdomain> <20051128200108.068b2dcd.akpm@osdl.org> <20051129064420.GA15374@elte.hu> <p73mzjngwim.fsf@verdi.suse.de> <438FA2E4.80705@qualcomm.com> <20051202014512.GH997@wotan.suse.de>
+From: Jose Luis Segura Lucas <JoseL.Segura-HUQOYnP6kuoxAGwisGp4zA@public.gmane.org>
+Subject: Problem building pacpidump
+Date: Sat, 03 Dec 2005 15:11:30 +0100
+Message-ID: <4391A792.2070901@alu.uclm.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751158AbVLCCS2@vger.kernel.org>
-In-Reply-To: <20051202014512.GH997@wotan.suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>, Steven Rostedt <rostedt@goodmis.org>, acpi-devel@lists.sourceforge.net, len.brown@intel.com, nando@ccrma.stanford.edu, rlrevell@joe-job.com, linux-kernel@vger.kernel.org, paulmck@us.ibm.com, kr@cybsft.com, tglx@linutronix.de, pluto@agmk.net, john.cooper@timesys.com, bene@linutronix.de, dwalker@mvista.com, trini@kernel.crashing.org, george@mvista.com, akpm@osdl.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andi Kleen wrote:
->> Also IMO saying that CPU will run too hot with idle=poll is basically 
->> saying that those
->> CPUs cannot be used for simulations and stuff which run flat out for days 
->> (months actually).
->> Which is obviously not true (again speaking from experience :)).
-> 
-> The CPUs can be used, but many cooling setups
-> (both AirCon in complete data centers, cooling in Blade Racks, laptops)  
-> the cooling is now often designed to not cool
-> the maximum thermal output of all systems in parallel, but instead
-> throttle the systems when things get too hot. This usually
-> works because in most workloads systems are more often idle
-> than busy, so no throttling is needed.
-> 
-> On desktops it probably won't throttle, but just become noisy
-> when all the fans spin up.
-> 
-> All things you don't really want.
-We do it (simulations that is) on normal 1U and desktop machines. No special
-cooling and stuff. And it does not cause any problems. Granted we don't use
-cheap/crappy machines but still it's unmodified off-the-shelf HW.
+Hello!
 
-btw That ZPro machine that I mentioned used to run with idle=poll for weeks
-and fans would never spin up unless you put real load on it.
+First, excuse me for my bad english, I will write with many ortographic 
+errors, sorry.
 
-> Super computing is different of course, but even there maximum
-> capacity of the air condition often limits how many CPUs you can buy.
-> And you need all the help you can get.
-> 
-> That said you're right that there is still a small niche 
-> where idle=poll makes sense, but it's definitely nothing
-> that should be encouraged to be used regularly like that
-> original patch would.
-Agreed.
+I have a Acer Travelmate 2702 WLMi, and with any distribution (Ubuntu 
+and Debian I test) I have ACPI support.
+I began to read at acpi.sourceforge.net and follow the Emma Jane Hogbin 
+howto, but I finished reading how to fix the DSDT on this other howto: 
+http://www.cpqlinux.com/acpi-howto.html#basic_steps.
 
-Max
+I tried to build pacpidump  for myself on my Debian Sarge, changing the 
+comment line on the Makefile, but when I compile with make it give me 
+errors that I can't understand. Do you know some howto to compile 
+correctly the pacpidump?
+
+Thanks to all :)
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
