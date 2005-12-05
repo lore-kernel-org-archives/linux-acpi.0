@@ -1,70 +1,107 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: FW: [ACPI-bugzilla] Re: Re: ACPI doesn't work sometimes
-Date: Mon, 5 Dec 2005 11:42:41 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F840A4E0DBF@pdsmsx403>
+From: Con Kolivas <kernel@kolivas.org>
+Subject: Re: [PATCH] i386 No Idle HZ aka dynticks v051205
+Date: Mon, 5 Dec 2005 15:27:32 +1100
+Message-ID: <200512051527.37791.kernel@kolivas.org>
+References: <200512051154.45500.kernel@kolivas.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============34879787940060658=="
+Return-path: <ck-bounces@vds.kolivas.org>
+In-Reply-To: <200512051154.45500.kernel@kolivas.org>
+List-Unsubscribe: <http://bhhdoa.org.au/mailman/listinfo/ck>,
+	<mailto:ck-request@vds.kolivas.org?subject=unsubscribe>
+List-Archive: <http://bhhdoa.org.au/pipermail/ck>
+List-Post: <mailto:ck@vds.kolivas.org>
+List-Help: <mailto:ck-request@vds.kolivas.org?subject=help>
+List-Subscribe: <http://bhhdoa.org.au/mailman/listinfo/ck>,
+	<mailto:ck-request@vds.kolivas.org?subject=subscribe>
+Sender: ck-bounces@vds.kolivas.org
+Errors-To: ck-bounces@vds.kolivas.org
+To: ck@vds.kolivas.org
+Cc: vatsa@in.ibm.com, Tony Lindgren <tony@atomide.com>, Daniel Petrini <d.pensator@gmail.com>, linux list <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-IA0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogYWNwaS1idWd6aWxsYS1hZG1p
-bkBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQgW21haWx0bzphY3BpLWJ1Z3ppbGxhLWFkbWluQGxpc3Rz
-LnNvdXJjZWZvcmdlLm5ldF0gT24gQmVoYWxmIE9mICJTP3JlbiBXZWxsaD9mZXIiDQpTZW50OiAy
-MDA15bm0MTLmnIg15pelIDM6NTcNClRvOiBhY3BpLWJ1Z3ppbGxhQGxpc3RzLnNvdXJjZWZvcmdl
-Lm5ldA0KU3ViamVjdDogW0FDUEktYnVnemlsbGFdIFJlOiBSZTogQUNQSSBkb2Vzbid0IHdvcmsg
-c29tZXRpbWVzDQoNCkkgaGF2ZSBmaXhlZCB0aGUgcHJvYmxlbSBieSBpbnNlcnRpbmcgYSAic2xl
-ZXAiIGNvbW1hbmQgaW50byB0aGUgeGRtIA0Kc3RhcnRzY3JpcHQgaW4gL2V0Yy9pbnRpdC5kLiAN
-CiANCk5vdyBYIHN0YXJ0cyBhZnRlciBhY3BpIGdvdCB0aGUgcmVzb3VyY2VzLiAgDQogDQpyZWdh
-cmRzIFNvZXJlbiBXZWxsaG9lZmVyICANCiANCiANClZvbjogIlPDtnJlbiBXZWxsaMO2ZmVyIiA8
-U29lcmVuLldlbGxob2VmZXJAZ214Lm5ldD4gDQpBbjogYWNwaS1idWd6aWxsYUBsaXN0cy5zb3Vy
-Y2Vmb3JnZS5uZXQgDQpCZXRyZWZmOiBSZTogQUNQSSBkb2Vzbid0IHdvcmsgc29tZXRpbWVzIA0K
-RGF0dW06IFN1biwgNCBEZWMgMjAwNSAxOTo1Mzo1MiArMDEwMCAoTUVUKSANCiANCkhpIGFsbCEg
-IA0KIA0KSSBkbyBoYXZlIHRoZSBkYW1uIHByb2JsZW0gYWdhaW4gdGhhdCBhY3BpIGNhbiBub3Qg
-YmUgc3RhcnRlZCBiZWNhdXNlIGl0IA0Kc2F5czogDQogIA0KPHF1b3RlPiANCmFjcGlkOiBjYW4n
-dCBvcGVuIC9wcm9jL2FjcGkvZXZlbnQ6IERldmljZSBvciByZXNvdXJjZSBidXN5IA0KPC9xdW90
-ZT4gDQogDQpBbmQgSSBub3RpY2VkIGJ5IGNoYW5jZSB0aGF0IHRoaXMgZXJyb3Igb2NjdXJzIG9u
-bHkgd2hlbiBYIGlzIHN0YXJ0ZWQgDQpiZWZvcmUgDQpBQ1BJIGlzLiANCiANCkkgdXNlZCB0aGUg
-Y29tbWFuZCBsc29mIHxncmVwICIvcHJvYy9hY3BpL2V2ZW50IiB0byBzZWUgYnkgd2hvbSBhY3Bp
-IGlzIA0KY29udHJvbGVkLiANCiANClRoZSBvdXRwdXQgc2FpZCB0aGUgZm9sbHdpbmc6IA0KIA0K
-PHF1b3RlPiANClggICAgICAgICA1MTI3ICAgICAgIHJvb3QgICAgM3IgICAgICBSRUcgICAgICAg
-IDAsMyAgICAgICAwIDQwMjY1MzIwOTUgDQovcHJvYy9hY3BpL2V2ZW50IA0KPC9xdW90ZT4gDQog
-DQpNdXN0IG5vdCBBQ1BJIGJlIHdyaXR0ZW4gZG93biB0aGVyZSBhbmQgbm90IFg/IA0KIA0KU28s
-IGlzIHRoZXJlIGEgcG9zc2liaWxpdHkgdG8gY2hhbmdlIHRoZSBvcmRlciBpbiBzdWNoIGEgd2F5
-IHRoYXQgYWNwaSANCndpbGwgDQpiZSBzdGFydGVkIGJlZm9yZSBYIGlzPyANCiANCnJlZ2FyZHMg
-DQogDQpTb2VyZW4gV2VsbGhvZWZlciANCiANCiANCi0tICANClPDtnJlbiBXZWxsaMO2ZmVyIA0K
-c29lcmVuLndlbGxob2VmZXJAZ214Lm5ldCANCkNhcmwtWmVpc3MtR3ltbmFzaXVtIEplbmEgDQog
-DQpUZWxlZm9uaWVyZW4gU2llIHNjaG9uIG9kZXIgc3BhcmVuIFNpZSBub2NoPyANCk5FVTogR01Y
-IFBob25lX0ZsYXQgaHR0cDovL3d3dy5nbXgubmV0L2RlL2dvL3RlbGVmb25pZSANCiANCg0KLS0g
-DQpTw7ZyZW4gV2VsbGjDtmZlcg0Kc29lcmVuLndlbGxob2VmZXJAZ214Lm5ldA0KQ2FybC1aZWlz
-cy1HeW1uYXNpdW0gSmVuYQ0KDQpMdXN0LCBlaW4gcGFhciBFdXJvIG5lYmVuYmVpIHp1IHZlcmRp
-ZW5lbj8gT2huZSBLb3N0ZW4sIG9obmUgUmlzaWtvIQ0KU2F0dGUgUHJvdmlzaW9uZW4gZsO8ciBH
-TVggUGFydG5lcjogaHR0cDovL3d3dy5nbXgubmV0L2RlL2dvL3BhcnRuZXINCg0KDQotLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQpUaGlzIFNG
-Lm5ldCBlbWFpbCBpcyBzcG9uc29yZWQgYnk6IFNwbHVuayBJbmMuIERvIHlvdSBncmVwIHRocm91
-Z2ggbG9nIGZpbGVzDQpmb3IgcHJvYmxlbXM/ICBTdG9wISAgRG93bmxvYWQgdGhlIG5ldyBBSkFY
-IHNlYXJjaCBlbmdpbmUgdGhhdCBtYWtlcw0Kc2VhcmNoaW5nIHlvdXIgbG9nIGZpbGVzIGFzIGVh
-c3kgYXMgc3VyZmluZyB0aGUgIHdlYi4gIERPV05MT0FEIFNQTFVOSyENCmh0dHA6Ly9hZHMub3Nk
-bi5jb20vP2FkX2lkPTc2MzcmYWxsb2NfaWQ9MTY4NjUmb3A9Y2xpY2sNCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQphY3BpLWJ1Z3ppbGxhIG1haWxpbmcg
-bGlzdA0KYWNwaS1idWd6aWxsYUBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQNCmh0dHBzOi8vbGlzdHMu
-c291cmNlZm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZvL2FjcGktYnVnemlsbGENCg==
+--===============34879787940060658==
+Content-Type: multipart/signed; boundary="nextPart1869705.3TAPEQ9OTY";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart1869705.3TAPEQ9OTY
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On Monday 05 December 2005 11:54, Con Kolivas wrote:
+> Here is an updated rollup patch for current dynticks on i386.
+>
+> The main change to this version is the inclusion of Dominik's patches to
+> cpufreq ondemand, acpi c-states and bus mastering which should start maki=
+ng
+> the potential power saving features of dyntick a reality (thanks!).
+> One buildfix for !CONFIG_NO_IDLE_HZ as well.
+>
+> If you get strange stalls with this patch then almost certainly it is a
+> problem with dynticks and your apic so booting with the "noapic" option
+> should fix it.
+>
+> Split out patches, timertop and pmstats utilities and latest patch
+> available here:
+> http://ck.kolivas.org/patches/dyn-ticks/
+>
+> FAQ:
+> What Hz should I use with dynticks in the config?
+> 1000 to realise the benefits of the power saving features and low latency.
+>
+> Should I enable timer statistics?
+> Only if you're planning on using the timertop utility to help you recogni=
+se
+> the biggest sources of timers currently in use to help you improve power
+> savings.
+
+Looks like this fix is needed if you are using cpufreq as modules.
+
+Cheers,
+Con
+
+=2D--
+ kernel/dyn-tick.c |    2 ++
+ 1 files changed, 2 insertions(+)
+
+Index: linux-2.6.15-rc5-dt/kernel/dyn-tick.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-2.6.15-rc5-dt.orig/kernel/dyn-tick.c
++++ linux-2.6.15-rc5-dt/kernel/dyn-tick.c
+@@ -122,6 +122,8 @@ void dyn_early_reprogram(unsigned int de
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ }
+=20
++EXPORT_SYMBOL(dyn_early_reprogram);
++
+ void set_dyn_tick_limits(unsigned int max_skip, unsigned int min_skip)
+ {
+ 	if (max_skip > DYN_TICK_MAX_SKIP)
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+--nextPart1869705.3TAPEQ9OTY
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBDk8G5ZUg7+tp6mRURAtY0AJ4xPf3J8t4F75l3VTkbU3IdwaKeRwCePm2C
+mGIL4alGdalrQy3gQVqe1MI=
+=LXGp
+-----END PGP SIGNATURE-----
+
+--nextPart1869705.3TAPEQ9OTY--
+
+--===============34879787940060658==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============34879787940060658==--
