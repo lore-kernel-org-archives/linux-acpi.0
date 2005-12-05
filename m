@@ -1,59 +1,45 @@
-From: martin schneebacher <masc-y2ntbsqpbL5kvIbmRjWsil6hYfS7NtTn@public.gmane.org>
-Subject: Re: Problem building pacpidump
-Date: Mon, 05 Dec 2005 10:00:13 +0100
-Message-ID: <1133773213.5627.6.camel@gusti>
-References: <200512041212.jB4CCWDC091502@ns.init-main.com>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: [PATCH] ACPI EC driver on ia64
+Date: Mon, 05 Dec 2005 19:45:27 +0900
+Message-ID: <43941A47.40304@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200512041212.jB4CCWDC091502-kbCdS08b3x3/PTVKMIaDyQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: acpi-devel@lists.sourceforge.net
+Cc: len.brown@intel.com, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Sonntag, den 04.12.2005, 21:12 +0900 schrieb takawata-l7ZBCLq5RC066kwqclu8Pg@public.gmane.org:
-> In message <4391A792.2070901-HUQOYnP6kuoxAGwisGp4zA@public.gmane.org>, Jose Luis Segura Lucas wrote:
-> >Hello!
-> >
-> >First, excuse me for my bad english, I will write with many ortographic 
-> >errors, sorry.
-> >
-> >I have a Acer Travelmate 2702 WLMi, and with any distribution (Ubuntu 
-> >and Debian I test) I have ACPI support.
-> >I began to read at acpi.sourceforge.net and follow the Emma Jane Hogbin 
-> >howto, but I finished reading how to fix the DSDT on this other howto: 
-> >http://www.cpqlinux.com/acpi-howto.html#basic_steps.
-> >
-> >I tried to build pacpidump  for myself on my Debian Sarge, changing the 
-> >comment line on the Makefile, but when I compile with make it give me 
-> >errors that I can't understand. Do you know some howto to compile 
-> >correctly the pacpidump?
-> 
-> Use iasl in Intel ACPI tool with -d option.
+Hi,
 
-much more better. download the latest iasl from 
-http://www.intel.com/technology/iapc/acpi/downloads/acpica-unix-20051117.tar.gz
-(in sarge is no iasl-package, they starting from testing), install
-flex-old, go to the compiler directory if acpica-unix and type make. 
+I need an ACPI EC driver on my IA64 machine. Currently CONFIG_ACPI_EC
+depends on X86, so I cannot build ACPI EC driver on ia64. I tested
+ACPI EC driver on ia64 with my special Kconfig, and it seemed to work
+well. Could you consider applying the following patch to enable ACPI
+EC driver on ia64?
 
-use it with -d to disassemble and with -tc to built the table. 
-
-bye...masc.
+Thanks,
+Kenji Kaneshige
 
 
+This patch enables ACPI EC driver on ia64.
 
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+ drivers/acpi/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-2.6.15-rc5/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.15-rc5.orig/drivers/acpi/Kconfig
++++ linux-2.6.15-rc5/drivers/acpi/Kconfig
+@@ -269,7 +269,7 @@ config ACPI_DEBUG
+ 
+ config ACPI_EC
+ 	bool
+-	depends on X86
++	depends on IA64 || X86
+ 	default y
+ 	help
+ 	  This driver is required on some systems for the proper operation of
