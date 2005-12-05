@@ -1,56 +1,111 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [ACPI] [PATCH] i386 No Idle HZ aka dynticks v051205
-Date: Mon, 5 Dec 2005 22:34:46 +0100
-Message-ID: <20051205213446.GA4388@elf.ucw.cz>
-References: <200512051154.45500.kernel@kolivas.org> <20051205211602.GB1728@elf.ucw.cz>
+From: "Support" <ibrawley-MwYPzc5+820AvxtiuMwx3w@public.gmane.org>
+Subject: YVD LS- L 0 LITA NOW is out !!! with 4 in1 3zm
+Date: Mon, 05 Dec 2005 19:32:33 +0000
+Message-ID: <5CBI4F08I6K9BKIK@walla.com>
+References: <B20E82I9IA8L0LK9@lists.sf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751414AbVLEWIo@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20051205211602.GB1728@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Con Kolivas <kernel@kolivas.org>
-Cc: linux list <linux-kernel@vger.kernel.org>, ck list <ck@vds.kolivas.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Tony Lindgren <tony@atomide.com>, vatsa@in.ibm.com, Daniel Petrini <d.pensator@gmail.com>, acpi-devel@lists.sourceforge.net
+Content-Type: multipart/alternative; boundary="----=_NextPart_7_8EF7_EJF30HA9_762E_H5KE"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <B20E82I9IA8L0LK9-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Acpi-devel <acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multipart message in MIME format.
 
-> > The main change to this version is the inclusion of Dominik's patches to
-> > cpufreq ondemand, acpi c-states and bus mastering which should start making
-> > the potential power saving features of dyntick a reality (thanks!).
-> > One buildfix for !CONFIG_NO_IDLE_HZ as well.
-> > 
-> > If you get strange stalls with this patch then almost certainly it is a
-> > problem with dynticks and your apic so booting with the "noapic" option
-> > should fix it.
-> > 
-> > Split out patches, timertop and pmstats utilities and latest patch available
-> > here:
-> > http://ck.kolivas.org/patches/dyn-ticks/
-> > 
-> > FAQ:
-> > What Hz should I use with dynticks in the config?
-> > 1000 to realise the benefits of the power saving features and low latency.
-> > 
-> > Should I enable timer statistics?
-> > Only if you're planning on using the timertop utility to help you recognise
-> > the biggest sources of timers currently in use to help you improve power
-> > savings.
-> 
-> Strange. It works okay here (thinkpad x32, configured SMP), but
-> something strange is going on with cursor. I use softcursor (normal
-> underline but highlight background), and underline no longer blinks
-> over it.
-> 
-> Try:
-> 
->     echo -e "\33[10;5000]\33[11;50]\33[?18;0;136c\33[?102m"
-> 
-> on vanilla and no-idle-hz kernels to see what I mean. I'm using
-> framebuffer console here.
+------=_NextPart_7_8EF7_EJF30HA9_762E_H5KE
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Ok, so the problem is in -rc5 mainline, not in dynticks... Perhaps it
-is time to get dynticks merged to -mm tree?
-								Pavel
--- 
-Thanks, Sharp!
+Hello Acpi-devel,
+
+At this time we can offer a small update at our system - LS-L0 LITA and L=
+ITTLE CUTIES!
+Studio and our little stars are proud to present their new project. You c=
+an=20
+now compare this one with our other sites, judge the level of professiona=
+lism=20
+and exposure of subject, with have never been so high! Starign from over=20
+4,000 HQ pics, the project features sets made in the studio, as well as o=
+n=20
+the side of nature.        =20
+
+             http://nerve.erm.karleos.com/6/?Frankfurter
+ =20
+Our great and unique offer: for each subscribtion You get access to anoth=
+er
+three sites from our portal for 31 days... without any additional payment=
+s!
+Simply subscribe, select and use!
+
+MSGID: biDNI1P7hcp36RsappierJaJiVNw7DAQ3jE
+
+
+
+------=_NextPart_7_8EF7_EJF30HA9_762E_H5KE
+Content-Type: text/html
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<title>OFFER 4in1 PRESENT YOU ...</title>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-885=
+9-1">
+</head>
+<body>
+Hello Acpi-devel,
+<div align=3D"center">
+  <br>
+  <br>
+At this time we can offer a small update at our system - <b>LS-L0 LITA an=
+d LITTLE CUTIES!</b><br>
+Studio and our little stars are proud to present their new project. You=20
+can now compare this one with our other sites, judge the level of profess=
+ionalism=20
+and exposure of subject, with have never been so high! Starign from over =
+4,000 HQ pics,=20
+the project features sets made in the studio, as well as on the side of n=
+ature.
+             <br>
+             <br>
+             <a href=3D"http://peevishly.erm.karleos.com/8/?practically" =
+target=3D"_blank"><font color=3D"#FF0000"><b>http://icebreaker.erm.karleo=
+s.com/8/?solo</b></font></a>
+ =20
+<br>
+<br>
+Our great and unique offer: for each subscribtion You get access to anoth=
+er
+three sites from our portal for 31 days... <br>
+without any additional payments!
+Simply subscribe, select and use!
+
+<br>
+<br>
+<font color=3D"#FFFFFF">MSGID: 4EJ6uQmHtpMbbYaccostedVuTJ11nBTqWx5C</font=
+>
+
+</div>
+</body>
+</html>
+
+
+
+------=_NextPart_7_8EF7_EJF30HA9_762E_H5KE--
+
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
