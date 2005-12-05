@@ -1,50 +1,56 @@
-From: Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>
-Subject: Re: Problem building pacpidump
-Date: Mon, 5 Dec 2005 22:21:16 +0100
-Message-ID: <20051205212116.GE3609@inferi.kami.home>
-References: <200512041212.jB4CCWDC091502@ns.init-main.com> <1133773213.5627.6.camel@gusti>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [ACPI] [PATCH] i386 No Idle HZ aka dynticks v051205
+Date: Mon, 5 Dec 2005 22:34:46 +0100
+Message-ID: <20051205213446.GA4388@elf.ucw.cz>
+References: <200512051154.45500.kernel@kolivas.org> <20051205211602.GB1728@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Resent-Message-ID: <20051205214401.GA17966-MEqNC12sBsHxa7XIdbXXog@public.gmane.org>
-Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751414AbVLEWIo@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1133773213.5627.6.camel@gusti>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: martin schneebacher <masc-y2ntbsqpbL5kvIbmRjWsil6hYfS7NtTn@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20051205211602.GB1728@elf.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Con Kolivas <kernel@kolivas.org>
+Cc: linux list <linux-kernel@vger.kernel.org>, ck list <ck@vds.kolivas.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Tony Lindgren <tony@atomide.com>, vatsa@in.ibm.com, Daniel Petrini <d.pensator@gmail.com>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 05, 2005 at 10:00:13AM +0100, martin schneebacher wrote:
-[...]
-> much more better. download the latest iasl from 
-> http://www.intel.com/technology/iapc/acpi/downloads/acpica-unix-20051117.tar.gz
-> (in sarge is no iasl-package, they starting from testing), install
-> flex-old, go to the compiler directory if acpica-unix and type make. 
+Hi!
+
+> > The main change to this version is the inclusion of Dominik's patches to
+> > cpufreq ondemand, acpi c-states and bus mastering which should start making
+> > the potential power saving features of dyntick a reality (thanks!).
+> > One buildfix for !CONFIG_NO_IDLE_HZ as well.
+> > 
+> > If you get strange stalls with this patch then almost certainly it is a
+> > problem with dynticks and your apic so booting with the "noapic" option
+> > should fix it.
+> > 
+> > Split out patches, timertop and pmstats utilities and latest patch available
+> > here:
+> > http://ck.kolivas.org/patches/dyn-ticks/
+> > 
+> > FAQ:
+> > What Hz should I use with dynticks in the config?
+> > 1000 to realise the benefits of the power saving features and low latency.
+> > 
+> > Should I enable timer statistics?
+> > Only if you're planning on using the timertop utility to help you recognise
+> > the biggest sources of timers currently in use to help you improve power
+> > savings.
 > 
-> use it with -d to disassemble and with -tc to built the table. 
+> Strange. It works okay here (thinkpad x32, configured SMP), but
+> something strange is going on with cursor. I use softcursor (normal
+> underline but highlight background), and underline no longer blinks
+> over it.
+> 
+> Try:
+> 
+>     echo -e "\33[10;5000]\33[11;50]\33[?18;0;136c\33[?102m"
+> 
+> on vanilla and no-idle-hz kernels to see what I mean. I'm using
+> framebuffer console here.
 
-I did one step further: backported the package to Sarge (easy, all the
-necessary stuff is already there so you could just build the same
-Etch/Sid source), apt-gettable from:
-  deb http://people.debian.org/~malattia/debian binary/
-
-I hope this is useful, I'll try to keep it up-to-date.
+Ok, so the problem is in -rc5 mainline, not in dynticks... Perhaps it
+is time to get dynticks merged to -mm tree?
+								Pavel
 -- 
-mattia
-:wq!
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+Thanks, Sharp!
