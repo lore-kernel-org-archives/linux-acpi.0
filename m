@@ -1,107 +1,59 @@
-From: Con Kolivas <kernel@kolivas.org>
-Subject: Re: [PATCH] i386 No Idle HZ aka dynticks v051205
-Date: Mon, 5 Dec 2005 15:27:32 +1100
-Message-ID: <200512051527.37791.kernel@kolivas.org>
-References: <200512051154.45500.kernel@kolivas.org>
+From: martin schneebacher <masc-y2ntbsqpbL5kvIbmRjWsil6hYfS7NtTn@public.gmane.org>
+Subject: Re: Problem building pacpidump
+Date: Mon, 05 Dec 2005 10:00:13 +0100
+Message-ID: <1133773213.5627.6.camel@gusti>
+References: <200512041212.jB4CCWDC091502@ns.init-main.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============34879787940060658=="
-Return-path: <ck-bounces@vds.kolivas.org>
-In-Reply-To: <200512051154.45500.kernel@kolivas.org>
-List-Unsubscribe: <http://bhhdoa.org.au/mailman/listinfo/ck>,
-	<mailto:ck-request@vds.kolivas.org?subject=unsubscribe>
-List-Archive: <http://bhhdoa.org.au/pipermail/ck>
-List-Post: <mailto:ck@vds.kolivas.org>
-List-Help: <mailto:ck-request@vds.kolivas.org?subject=help>
-List-Subscribe: <http://bhhdoa.org.au/mailman/listinfo/ck>,
-	<mailto:ck-request@vds.kolivas.org?subject=subscribe>
-Sender: ck-bounces@vds.kolivas.org
-Errors-To: ck-bounces@vds.kolivas.org
-To: ck@vds.kolivas.org
-Cc: vatsa@in.ibm.com, Tony Lindgren <tony@atomide.com>, Daniel Petrini <d.pensator@gmail.com>, linux list <linux-kernel@vger.kernel.org>, Dominik Brodowski <linux@dominikbrodowski.net>, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200512041212.jB4CCWDC091502-kbCdS08b3x3/PTVKMIaDyQ@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---===============34879787940060658==
-Content-Type: multipart/signed; boundary="nextPart1869705.3TAPEQ9OTY";
-	protocol="application/pgp-signature"; micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Am Sonntag, den 04.12.2005, 21:12 +0900 schrieb takawata-l7ZBCLq5RC066kwqclu8Pg@public.gmane.org:
+> In message <4391A792.2070901-HUQOYnP6kuoxAGwisGp4zA@public.gmane.org>, Jose Luis Segura Lucas wrote:
+> >Hello!
+> >
+> >First, excuse me for my bad english, I will write with many ortographic 
+> >errors, sorry.
+> >
+> >I have a Acer Travelmate 2702 WLMi, and with any distribution (Ubuntu 
+> >and Debian I test) I have ACPI support.
+> >I began to read at acpi.sourceforge.net and follow the Emma Jane Hogbin 
+> >howto, but I finished reading how to fix the DSDT on this other howto: 
+> >http://www.cpqlinux.com/acpi-howto.html#basic_steps.
+> >
+> >I tried to build pacpidump  for myself on my Debian Sarge, changing the 
+> >comment line on the Makefile, but when I compile with make it give me 
+> >errors that I can't understand. Do you know some howto to compile 
+> >correctly the pacpidump?
+> 
+> Use iasl in Intel ACPI tool with -d option.
 
---nextPart1869705.3TAPEQ9OTY
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+much more better. download the latest iasl from 
+http://www.intel.com/technology/iapc/acpi/downloads/acpica-unix-20051117.tar.gz
+(in sarge is no iasl-package, they starting from testing), install
+flex-old, go to the compiler directory if acpica-unix and type make. 
 
-On Monday 05 December 2005 11:54, Con Kolivas wrote:
-> Here is an updated rollup patch for current dynticks on i386.
->
-> The main change to this version is the inclusion of Dominik's patches to
-> cpufreq ondemand, acpi c-states and bus mastering which should start maki=
-ng
-> the potential power saving features of dyntick a reality (thanks!).
-> One buildfix for !CONFIG_NO_IDLE_HZ as well.
->
-> If you get strange stalls with this patch then almost certainly it is a
-> problem with dynticks and your apic so booting with the "noapic" option
-> should fix it.
->
-> Split out patches, timertop and pmstats utilities and latest patch
-> available here:
-> http://ck.kolivas.org/patches/dyn-ticks/
->
-> FAQ:
-> What Hz should I use with dynticks in the config?
-> 1000 to realise the benefits of the power saving features and low latency.
->
-> Should I enable timer statistics?
-> Only if you're planning on using the timertop utility to help you recogni=
-se
-> the biggest sources of timers currently in use to help you improve power
-> savings.
+use it with -d to disassemble and with -tc to built the table. 
 
-Looks like this fix is needed if you are using cpufreq as modules.
-
-Cheers,
-Con
-
-=2D--
- kernel/dyn-tick.c |    2 ++
- 1 files changed, 2 insertions(+)
-
-Index: linux-2.6.15-rc5-dt/kernel/dyn-tick.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=2D-- linux-2.6.15-rc5-dt.orig/kernel/dyn-tick.c
-+++ linux-2.6.15-rc5-dt/kernel/dyn-tick.c
-@@ -122,6 +122,8 @@ void dyn_early_reprogram(unsigned int de
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
- }
-=20
-+EXPORT_SYMBOL(dyn_early_reprogram);
-+
- void set_dyn_tick_limits(unsigned int max_skip, unsigned int min_skip)
- {
- 	if (max_skip > DYN_TICK_MAX_SKIP)
+bye...masc.
 
 
---nextPart1869705.3TAPEQ9OTY
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBDk8G5ZUg7+tp6mRURAtY0AJ4xPf3J8t4F75l3VTkbU3IdwaKeRwCePm2C
-mGIL4alGdalrQy3gQVqe1MI=
-=LXGp
------END PGP SIGNATURE-----
-
---nextPart1869705.3TAPEQ9OTY--
-
---===============34879787940060658==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 
---===============34879787940060658==--
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
