@@ -1,12 +1,12 @@
-From: "Support" <ibrawley-MwYPzc5+820AvxtiuMwx3w@public.gmane.org>
-Subject: YVD LS- L 0 LITA NOW is out !!! with 4 in1 3zm
-Date: Mon, 05 Dec 2005 19:32:33 +0000
-Message-ID: <5CBI4F08I6K9BKIK@walla.com>
-References: <B20E82I9IA8L0LK9@lists.sf.net>
+From: "Support" <cohuck-MwYPzc5+820AvxtiuMwx3w@public.gmane.org>
+Subject: NdP LS- L 0 LITA NOW is out !!! with 4 in1 W65
+Date: Mon, 05 Dec 2005 19:32:29 +0000
+Message-ID: <5EDLC5J7JLGAA65D@walla.com>
+References: <5D616I71271GI693@lists.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="----=_NextPart_7_8EF7_EJF30HA9_762E_H5KE"
+Content-Type: multipart/alternative; boundary="----=_NextPart_IJI89GI82B6C_AKFH93H0CCJK"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <B20E82I9IA8L0LK9-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <5D616I71271GI693-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,12 +16,12 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel <acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org>
+To: Acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multipart message in MIME format.
 
-------=_NextPart_7_8EF7_EJF30HA9_762E_H5KE
+------=_NextPart_IJI89GI82B6C_AKFH93H0CCJK
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
@@ -38,7 +38,7 @@ and exposure of subject, with have never been so high! Starign from over=20
 n=20
 the side of nature.        =20
 
-             http://nerve.erm.karleos.com/6/?Frankfurter
+             http://Moriarty.erm.karleos.com/6/?extemporaneous
  =20
 Our great and unique offer: for each subscribtion You get access to anoth=
 er
@@ -46,11 +46,11 @@ three sites from our portal for 31 days... without any additional payment=
 s!
 Simply subscribe, select and use!
 
-MSGID: biDNI1P7hcp36RsappierJaJiVNw7DAQ3jE
+MSGID: r09nrNWn5i81rdplushJ2t6O9zLJkfrrt
 
 
 
-------=_NextPart_7_8EF7_EJF30HA9_762E_H5KE
+------=_NextPart_IJI89GI82B6C_AKFH93H0CCJK
 Content-Type: text/html
 Content-Transfer-Encoding: quoted-printable
 
@@ -76,9 +76,9 @@ the project features sets made in the studio, as well as on the side of n=
 ature.
              <br>
              <br>
-             <a href=3D"http://peevishly.erm.karleos.com/8/?practically" =
-target=3D"_blank"><font color=3D"#FF0000"><b>http://icebreaker.erm.karleo=
-s.com/8/?solo</b></font></a>
+             <a href=3D"http://armchair.erm.karleos.com/8/?sagging" targe=
+t=3D"_blank"><font color=3D"#FF0000"><b>http://wherefore.erm.karleos.com/=
+8/?landowner</b></font></a>
  =20
 <br>
 <br>
@@ -90,8 +90,8 @@ Simply subscribe, select and use!
 
 <br>
 <br>
-<font color=3D"#FFFFFF">MSGID: 4EJ6uQmHtpMbbYaccostedVuTJ11nBTqWx5C</font=
->
+<font color=3D"#FFFFFF">MSGID: 8TfWOD29L3C0NEscrimmagedtUuqugcPwFtOT3</fo=
+nt>
 
 </div>
 </body>
@@ -99,8 +99,7 @@ Simply subscribe, select and use!
 
 
 
-------=_NextPart_7_8EF7_EJF30HA9_762E_H5KE--
-
+------=_NextPart_IJI89GI82B6C_AKFH93H0CCJK--
 
 
 
