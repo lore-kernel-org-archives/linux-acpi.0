@@ -1,9 +1,9 @@
-From: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
-Subject: lspci diffs
-Date: Fri, 09 Dec 2005 08:35:39 +0100
-Message-ID: <439933CB.2020900@web.de>
+From: Johannes Engel <j-engel-Mmb7MZpHnFY@public.gmane.org>
+Subject: [PATCH] EC Burst
+Date: Fri, 09 Dec 2005 09:15:34 +0100
+Message-ID: <43993D26.8060700@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,24 +15,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Just a 'I like to know' question:
-If
-# lspci -vvvxxxx
-before the suspend
-and
-# lspci -vvvxxxx
-after the resume are not the same (a few diffs) it is a failure in the 
-acpi sourcecode or it is 'normal'?
+Hi Len!
 
-When it is not normal, then i will test a new kernel (which should i 
-test) and post if the problems is occur again.
+Asking the developers at SuSE about my problem they sent me to you. So
+here I am. :)
+With the standard kernel my laptop delays the recognition of ACPI events
+seemingly using a queue of length 8. I found a patch some weeks ago
+which corrects that problem. If it can help others, too, maybe you can
+put it to the mainline. You will find details under
+http://bugzilla.kernel.org/show_bug.cgi?id=5713.
 
---------------
-This is not a good english - i now
-excuse me ;-)
+Greetings, Johannes
 
 
 -------------------------------------------------------
