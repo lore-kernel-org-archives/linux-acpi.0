@@ -1,22 +1,13 @@
-From: Bartlomiej Zolnierkiewicz <bzolnier-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: RFC: ACPI/scsi/libata integration and hotswap
-Date: Fri, 9 Dec 2005 14:22:31 +0100
-Message-ID: <58cb370e0512090522h1e6a2c94r45ed652fd3a30da3@mail.gmail.com>
-References: <20051208134438.GA13507@infradead.org> <43989B00.5040503@pobox.com>
-	 <20051208133144.0f39cb37.randy_d_dunlap@linux.intel.com>
-	 <1134121522.27633.7.camel@localhost.localdomain>
-	 <20051209103937.GE26185@suse.de>
-	 <1134125145.27633.32.camel@localhost.localdomain>
-	 <43996A26.8060700@pobox.com>
-	 <1134128127.27633.39.camel@localhost.localdomain>
-	 <20051209114641.GH26185@suse.de>
-	 <20051209115511.GA25842@srcf.ucam.org>
+From: "Karasyov, Konstantin A" <konstantin.a.karasyov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI Thermal Zones and unwanted reset of Trip Points
+Date: Fri, 9 Dec 2005 18:13:41 +0300
+Message-ID: <E124AAE027DA384D8B919F93E4D8C708D2DE96@mssmsx402nb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051209115511.GA25842-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -26,47 +17,92 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Jens Axboe <axboe-l3A5Bk7waGM@public.gmane.org>, Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Olaf Conradi <oohlaf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/9/05, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> wrote:
-> On Fri, Dec 09, 2005 at 12:46:42PM +0100, Jens Axboe wrote:
-> > On Fri, Dec 09 2005, Erik Slagter wrote:
-> > > I case this (still) isn't clear, I am addressing the attitude of "It'=
-s
-> > > ACPI so it's not going to be used, period".
-> >
-> > The problem seems to be that you are misunderstanding the 'attitude',
-> > which was mainly based on the initial patch sent out which stuffs acpi
-> > directly in everywhere. That seems to be a good trigger for curt/direct
-> > replies.
+Hi,
+
+It looks like your trip points are getting reset on thermal
+notifications.
+Your DSDT implements hysteresis for passive and active cooling (i.e.
+when the temperature raises above the trip point, the trip point value
+is decreased to avoid too frequent trip point crossing), so hardware
+sends the notification to the system to update the trip points, when the
+trip point is being crossed.=20
+
+So, it's not a bug, it is a firmware implementation, but your DSDT could
+be slightly modified to set higher trip points values:
+
+-------------------------------------------------------------------
+--- DSDT_oth.dsl.orig	2005-12-09 18:08:12.000000000 +0300
++++ DSDT_oth.dsl	2005-12-09 18:09:57.000000000 +0300
+@@ -178,10 +178,10 @@
+     Name (TMAD, 0x9C)
+     Name (TSAD, 0x90)
+     Name (TRNG, 0x00)
+-    Name (TP1H, 0x0D04)
++    Name (TP1H, 0x0CD2)
+     Name (ACTT, 0x3C)
+     Name (TP1L, 0x0C28)
+-    Name (TP2H, 0x0D68)
++    Name (TP2H, 0x0D04)
+     Name (PAST, 0x46)
+     Name (TP2L, 0x0C64)
+     Name (TPC, 0x0DCC)
+-------------------------------------------------------------------
+
+TP1H - trip point default for active cooling (changed from 60 to 55)
+TP2H - trip point default for active cooling (changed from 70 to 60)
+TPC - critical trip point default
+
+
+Regards.
+Konstantin.
+
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Olaf Conradi
+>Sent: Monday, December 05, 2005 12:40 AM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] ACPI Thermal Zones and unwanted reset of Trip Points
 >
-> I was just following the example set by the ide acpi suspend/resume
-> patch, which people didn't seem to object to nearly as much. I guess
-> IDE's such a hack anyway that people aren't as worried :) I'll try
-> produce a patch that just inserts platform-independent code into scsi
-> around the start of next week.
-
-Sigh, it seems this is what you get for being nice... ;)
-
-Don't get it wrong IDE people (at least me) are also worried but
-they know that there are cases in which ACPI support will help
-(even if the main method should be talking to hardware directly)
-NOW not in X years when we will have proper, architecture
-independent suspend/resume handling (we can live with
-"ide_acpi=3Don" kernel parameter before it happens happily).
-
-I also pointed out that I would like to have generic code which
-can be shared between libata and IDE drivers (after all both
-can provide you with struct pci_dev * and port/device number).
-
-It would be even better if this code will stay in drivers/acpi/ata.c
-(?) and libata/IDE will just use the same functions (which will turn
-to NOP if CONFIG_ACPI=3Dn) for PATA.
-
-Thanks,
-Bartlomiej
+>Hello,
+>
+>I'm running Debian Unstable on my laptop and have a question about
+>trip points in ACPI thermal zones.
+>
+>My laptop gets too hot very quickly, for example when I compile a
+>kernel, or in font generation during installation of a latex font.
+>This causes the laptop to shutdown.
+>
+>On my laptop (Asus L8400K) the trip points are:
+>
+># cat /proc/acpi/thermal_zone/THRM/trip_points
+>critical (S5):           80 C
+>passive:                 70 C: tc1=3D1 tc2=3D4 tsp=3D300 =
+devices=3D0xc127cb60
+>active[0]:               60 C: devices=3D0xc127b800
+>
+>When I set them to the following I get much better results and it
+>doesn't get overheated much.
+>
+># echo -n "80:0:60:55:0" > /proc/acpi/thermal_zone/THRM/trip_points
+># cat /proc/acpi/thermal_zone/THRM/trip_points
+>critical (S5):           80 C
+>passive:                 60 C: tc1=3D1 tc2=3D4 tsp=3D300 =
+devices=3D0xc127cb60
+>active[0]:               55 C: devices=3D0xc127b800
+>
+>But, for some reason, the trip points get reset every now and then
+>(usually within 30 mintes or so, don't know the exact interval).
+>
+>Does anyone know what causes the trip point setting to be reset?
+>
+>I'm using debian kernel 2.6.14 from unstable. I attached the dmesg,
+>dmidecode, acpidump, lspci and interrupts output.
+>
+>Thanks,
+>Olaf
 
 
 -------------------------------------------------------
