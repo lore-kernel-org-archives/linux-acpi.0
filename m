@@ -1,70 +1,49 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: usblp suspend failure with 2.6.15-rc5
-Date: Fri, 9 Dec 2005 22:21:49 +0100
-Message-ID: <20051209212148.GD4658@elf.ucw.cz>
-References: <438F3A2F.5090207@gmx.net> <4395DE67.4050101@gmx.net>
-	<20051209211351.GF23349@stusta.de>
+From: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] EC Burst
+Date: Fri, 9 Dec 2005 17:57:52 -0500
+Message-ID: <20051209225752.GF24272@redhat.com>
+References: <43993D26.8060700@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============94198933179638278=="
-Return-path: <linux-pm-bounces@lists.osdl.org>
-In-Reply-To: <20051209211351.GF23349@stusta.de>
-List-Unsubscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.osdl.org>
-List-Help: <mailto:linux-pm-request@lists.osdl.org?subject=help>
-List-Subscribe: <https://lists.osdl.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.osdl.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.osdl.org
-Errors-To: linux-pm-bounces@lists.osdl.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: acpi-devel <acpi-devel@lists.sourceforge.net>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, linux-pm@osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-usb-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <43993D26.8060700-Mmb7MZpHnFY@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Johannes Engel <j-engel-Mmb7MZpHnFY@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---===============94198933179638278==
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, Dec 09, 2005 at 09:15:34AM +0100, Johannes Engel wrote:
+ > Hi Len!
+ > 
+ > Asking the developers at SuSE about my problem they sent me to you. So
+ > here I am. :)
+ > With the standard kernel my laptop delays the recognition of ACPI events
+ > seemingly using a queue of length 8. I found a patch some weeks ago
+ > which corrects that problem. If it can help others, too, maybe you can
+ > put it to the mainline. You will find details under
+ > http://bugzilla.kernel.org/show_bug.cgi?id=5713.
 
-Hi!
+FWIW, we've had a number of Fedora users reporting similar problems
+(Things like battery status applets not updating and the like).
 
-> > since I switched to 2.6.15-rc2-git6, my machine is not able to suspend
-> > anymore if my USB printer is plugged in. The problem is reproducible.
-> > 
-> > usb 1-2: new full speed USB device using uhci_hcd and address 3
-> > drivers/usb/class/usblp.c: usblp0: USB Bidirectional printer dev 3 if 0 alt 
-> > 0 proto 2 vid 0x04E8 pid 0x3242
-> > usbcore: registered new driver usblp
-> > drivers/usb/class/usblp.c: v0.13: USB Printer Device Class driver
-> > PM: Preparing system for mem sleep
-> > Stopping tasks: ==================================================|
-> > usblp 1-2:1.0: no suspend?
-> > Could not suspend device 1-2: error -16
-> > Some devices failed to suspend
-> > Restarting tasks... done
-> > 
-> > 
-> > Earlier kernels (2.6.14.2 and before) worked just fine.
-> > 
-> > A first search suggests this problem was introduced between
-> > 2.6.14 and 2.6.15-rc2-git6. Should I try to narrow it down further?
-> 
-> yes, that would be good.
-> 
-> In this case, it would also help if you'd open a bug at 
-> bugzilla.kernel.org.
-
-Well, usblp does not have any suspend method, and usb probably just
-started checking... There's also CONFIG_USB_SUSPEND option you may
-want to play with.
-							Pavel
--- 
-Thanks, Sharp!
-
---===============94198933179638278==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Though we've got the upstream default of ec burst being disabled there.
 
 
---===============94198933179638278==--
+		Dave
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
