@@ -1,65 +1,39 @@
-From: "contact-o7tR/nIX9VhL3hnqUZsNUA@public.gmane.org" <contact-o7tR/nIX9VhL3hnqUZsNUA@public.gmane.org>
-Subject: Hot new book - Frauds, Spies and Lies: And How To Prevent Them
-Date: Thu, 8 Dec 2005 19:30:58 -0700
-Message-ID: <20051209023058.B771BE7DD50@www6.sonardriven.com>
+From: Mark Lord <liml@rtr.ca>
+Subject: Re: RFC: ACPI/scsi/libata integration and hotswap
+Date: Thu, 08 Dec 2005 22:28:38 -0500
+Message-ID: <4398F9E6.7000807@rtr.ca>
+References: <20051208030242.GA19923@srcf.ucam.org>	 <20051208091542.GA9538@infradead.org>	 <20051208132657.GA21529@srcf.ucam.org>	 <20051208133308.GA13267@infradead.org>	 <20051208133945.GA21633@srcf.ucam.org>	 <20051208134438.GA13507@infradead.org> <1134062330.1732.9.camel@localhost.localdomain> <43989B00.5040503@pobox.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="b1_f4edd649cb0c3c47ea4d78bb77b43e0c"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <43989B00.5040503@pobox.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>
+Cc: Erik Slagter <erik@slagter.name>, Christoph Hellwig <hch@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, randy_d_dunlap@linux.intel.com, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+Jeff Garzik wrote:
+> Erik Slagter wrote:
+> 
+>> 'guess You're not interested in having suspend/resume actually work on
+>> laptops (or other PC's). That's your prerogative but imho it's a bit
+>> narrow-minded to withhold this functionality from other people who
+>> actually would like to have this working, just because you happen to not
+>> like ACPI.
+> 
+> 
+> It works just fine on laptops, with Jens' suspend/resume patch.
+> 
+>     Jeff
 
---b1_f4edd649cb0c3c47ea4d78bb77b43e0c
-Content-Type: text/plain; charset = "iso-8859-1"
+No.  I use it on my two modern laptops with great success,
+but only with *certain* hard disks.  When I replace the ultra modern
+100GB drive in my machine with a slightly older 30GB drive,
+suspend/resume no longer work.  No other changes.
 
- SecuritySMART is pleased to offer an opportunity to get one of the newest and hottest security books we have ever seen to you and your friends, families, and co-workers in time for the holiday season. This new book "Frauds Spies and Lies" is the ideal corporate holiday gift for your employees, for other security experts you know, for your customers, and for your friends and family. It provides hundreds of examples of different techniques used to defraud companies, individuals, and enterprises of all sorts, and it provides practical advice for how to deal with them. It goes a step beyond most other books of its genre by providing detailed examples of the authors experience in the field and includes information on current Internet scams, how to protect your children from being exploited over the Internet, and how to understand the propaganda issues facing the world today.
+Other users have reported similar experiences to me.
 
-We have made a special deal with the author of this new book, to provide direct sales to corporations and security specialists at discounted prices, but the offer will not last. For the holiday season, we are authorized to sell you cases of 34 copies of this book for only $850, and individual copies for $25 each. This is lower than the deepest discount you can find at Barnes and Nobles or Amazon.com for this book, and it is available exclusively through us.
+We really REALLY need libata to get fixed for this stuff.
 
-I have enclosed a Web link SecuritySMART that takes you to more information about this book. This page links you directly to purchase options for single copies or whole cases; and it also includes a detailed table of contents so you can see exactly what you get in advance. Please let me know if you have any questions, and get orders in as soon as possible to get books by the start of the holidays.
-
- Unsubscribe / Modify click here
-
-
-
-
---b1_f4edd649cb0c3c47ea4d78bb77b43e0c
-Content-Type: text/html; charset = "iso-8859-1"
-
-<b> <a href="http://www.securitysmart.us">SecuritySMART</a><img src='http://68.227.88.79/message_track/1667-20051208193000.gif' border='0'> is pleased to offer an opportunity to get one of the newest and hottest security books we have ever seen to you and your friends, families, and co-workers in time for the holiday season.</b> This new book "Frauds Spies and Lies" is the ideal corporate holiday gift for your employees, for other security experts you know, for your customers, and for your friends and family. It provides hundreds of examples of different techniques used to defraud companies, individuals, and enterprises of all sorts, and it provides practical advice for how to deal with them. It goes a step beyond most other books of its genre by providing detailed examples of the authors experience in the field and includes information on current Internet scams, how to protect your chil
- dren from being exploited over the Internet, and how to understand the propaganda issues f
- acing
-the world today.
-<br><br>
-We have made a special deal with the author of this new book, to provide direct sales to corporations and security specialists at discounted prices, but the offer will not last. For the holiday season, we are authorized to sell you cases of 34 copies of this book for only $850, and individual copies for $25 each. This is lower than the deepest discount you can find at Barnes and Nobles or Amazon.com for this book, and it is available exclusively through us.
-<br><br>
-I have enclosed a Web link <a href="http://www.securitysmart.us">SecuritySMART</a><img src='http://68.227.88.79/message_track/1667-20051208193000.gif' border='0'> that takes you to more information about this book. This page links you directly to purchase options for single copies or whole cases; and it also includes a detailed table of contents so you can see exactly what you get in advance. Please let me know if you have any questions, and get orders in as soon as possible to get books by the start of the holidays.
-<br><br>
-<a href='http://68.227.88.79/Templates/replylogin.php?CA_RID=104&MID=1667&UID=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org&MDATE=20051208193000'> Unsubscribe / Modify click here</a>
-
-
-
-
-
---b1_f4edd649cb0c3c47ea4d78bb77b43e0c--
-
-
-
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+Cheers
