@@ -1,28 +1,42 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: ACPI owner_id limit too low
-Date: Thu, 8 Dec 2005 23:32:13 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30055EA5DF@hdsmsx401.amr.corp.intel.com>
+From: Rathgeb Markus <maggu2810-S0/GAf8tV78@public.gmane.org>
+Subject: lspci diffs
+Date: Fri, 09 Dec 2005 08:35:39 +0100
+Message-ID: <439933CB.2020900@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751277AbVLIEcZ@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@hp.com>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Alex,
+Just a 'I like to know' question:
+If
+# lspci -vvvxxxx
+before the suspend
+and
+# lspci -vvvxxxx
+after the resume are not the same (a few diffs) it is a failure in the 
+acpi sourcecode or it is 'normal'?
 
-Yes, ACPICA 20051202 upped the limit to 255 from 32,
-but as it is mixed in with some other large changes,
-I'm thinking I'll that release soak until the opening
-of 2.6.17.
+When it is not normal, then i will test a new kernel (which should i 
+test) and post if the problems is occur again.
 
-So if you need a higher limit in 2.6.15 we can
-push this simpler patch, of if Linus shuts down
-2.6.15 when we returns we can send it to stable to
-get into 2.6.15.*
+--------------
+This is not a good english - i now
+excuse me ;-)
 
-thanks,
--Len
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
