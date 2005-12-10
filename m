@@ -1,16 +1,13 @@
-From: Roman I Khimov <rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org>
-Subject: Re: Fw: Re: 2.6.15-rc5-mm1
-Date: Sat, 10 Dec 2005 13:20:15 +0300
-Message-ID: <200512101320.18779.rik@osrc.info>
-References: <20051210111557.18ba5fc8.lista1@telia.com>
+From: partyphone10-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+Subject: =?Windows-1255?B?9Pjx5e0g4ePl4Pgg4Oz36Pjl8Ok=?=
+Date: 10 Dec 2005 15:38:58 +0200
+Message-ID: <20051210153857.D402FE2F05A79021@yahoo.com>
+Reply-To: partyphone10-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart1162485.jzEsDEEaWX";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="windows-1255"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051210111557.18ba5fc8.lista1-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,46 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Voluspa <lista1-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart1162485.jzEsDEEaWX
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
 
-10 =D0=B4=D0=B5=D0=BA=D0=B0=D0=B1=D1=80=D1=8F 2005 13:15 | Voluspa:
-> Nope, neither "nocst" nor "acpi=3Dnocst" gave me back the C1
-> functionality...
 
-Yep, same here, just tried.
+=F4=F8=F1=E5=ED =E1=E3=E5=E0=F8 =E0=EC=F7=E8=F8=E5=F0=E9
 
-=2D-=20
-                            Roman
- ,---------------------------. ,--------------------------.
-/     http://www.3os.ru/      V    http://www.osrc.info/   \         .o.
-\    mailto: rik-EZ1ikkraMFw@public.gmane.org       ^   mailto: rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org    /         ..o
- `---------------------------' `--------------------------'          ooo
-gpg --recv-keys 0xE5E055C3 --keyserver hkp://subkeys.pgp.net
+=E4=F2=F8=E5=F5 =E4=E0=F4=F7=E8=E9=E1=E9 =E1=E9=E5=FA=F8 =EC=F7=E9=E3=E5=ED=
+ =E4=F2=F1=F7 =F9=EC=EA
 
---nextPart1162485.jzEsDEEaWX
-Content-Type: application/pgp-signature
+=EC=F4=F8=E8=E9=ED
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBDmqviXJ70z+XgVcMRAmzbAJ4tBOp8IBVigxuc7H/mnrLp685yygCeJWhM
-KLIy2me3zCbe6HBCr7G+XNE=
-=bYoe
------END PGP SIGNATURE-----
-
---nextPart1162485.jzEsDEEaWX--
+mailto:mivzakim-bRW3PXQDkvNWk0Htik3J/w@public.gmane.org
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log fi=
+les
 for problems?  Stop!  Download the new AJAX search engine that makes
 searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+http://ads.osdn.com/?ad_id=3D7637&alloc_id=3D16865&op=3Dclick
