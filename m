@@ -1,13 +1,12 @@
-From: Mark Lord <liml-gsilrlXbHYg@public.gmane.org>
-Subject: Re: RFC: ACPI/scsi/libata integration and hotswap
-Date: Fri, 09 Dec 2005 23:01:15 -0500
-Message-ID: <439A530B.4090103@rtr.ca>
-References: <20051208030242.GA19923@srcf.ucam.org>	 <20051208091542.GA9538@infradead.org>	 <20051208132657.GA21529@srcf.ucam.org>	 <20051208133308.GA13267@infradead.org>	 <20051208133945.GA21633@srcf.ucam.org>	 <20051208134438.GA13507@infradead.org> <1134062330.1732.9.camel@localhost.localdomain> <43989B00.5040503@pobox.com> <4398F9E6.7000807@rtr.ca> <43996A84.5020307@pobox.com>
+From: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
+Subject: MSI boards: C1 listed but not used ?
+Date: Sat, 10 Dec 2005 07:43:42 +0100
+Message-ID: <20051210064341.GA11410@tangens.sinus.cz>
+Reply-To: Pavel Troller <patrol-FIBU9iiavH4@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <43996A84.5020307-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,19 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
-Cc: Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jeff Garzik wrote:
->
-> Patches welcome :)
+Hi there,
+  I have about 3 Athlon mobos from MSI of similar versions (KT6 Delta, K7T
+Turbo etc., VIA chipsets) and all 3 seems to be not very friendly to CPU
+power management on Linux.
+  Not only that they don't allow to use deeper C states than C1 because of
+too big latencies (typical trick, P2_LVL_LAT is 101, just one usec above
+the limit to keep it disabled), but it seems that even C1 is somewhat
+unreachable - in older kernels (like 2.6.11) C1 was even not listed as
+available, and now (2.6.15-rc5, 2.6.14.x) it is listed, but with zero usage:
 
-That's certainly *not* the impression that one is left with
-after reading the many responses to the patches that started
-this thread.
+root@co:~# cat /proc/acpi/processor/CPU1/power
+active state:            C1
+max_cstate:              C8
+bus master activity:     00000000
+states:
+   *C1:                  type[C1] promotion[--] demotion[--] latency[000] usage[00000000]
 
-Cheers
+  In the ACPI spec there is, that C1 (HLT instruction) is always available; 
+why it seems to be not entered at all ? The above dump was obtained after
+a lot of days of uptime with CPU load being 0.00 most of the time.
+  Is there a possibility to improve CPU PM a bit ? I know about athcool, it
+really helps on 2 of 3 boards, on the third it get an unexpected contents of
+some register and doesn't have any effect.
+                              With regards, Pavel Troller
 
 
 -------------------------------------------------------
