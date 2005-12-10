@@ -1,73 +1,31 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] EC Burst
-Date: Fri, 9 Dec 2005 21:48:01 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30055EB0CD@hdsmsx401.amr.corp.intel.com>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Re: RFC: ACPI/scsi/libata integration and hotswap
+Date: Sat, 10 Dec 2005 02:50:04 +0000
+Message-ID: <20051210025004.GB31328@srcf.ucam.org>
+References: <20051209114246.GB16945@infradead.org> <20051209114944.GA1068@havoc.gtf.org> <20051209115235.GB25771@srcf.ucam.org> <43997171.9060105@pobox.com> <20051209121124.GA25974@srcf.ucam.org> <439975AB.5000902@pobox.com> <20051209122457.GB26070@srcf.ucam.org> <439A23E8.3080407@pobox.com> <20051210023426.GA31220@srcf.ucam.org> <439A4070.2000500@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Johannes Engel <j-engel-Mmb7MZpHnFY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932776AbVLJCuf@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <439A4070.2000500@pobox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeff Garzik <jgarzik@pobox.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, randy_d_dunlap@linux.intel.com, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-This should be addressed already
-by the fix to 4980 and the enabling of EC interrupt mode by default.
-BTW. it is now called "ec_intr" rather than "ec_burst".
+On Fri, Dec 09, 2005 at 09:41:52PM -0500, Jeff Garzik wrote:
 
-This fix has been in the ACPI git tree since Monday
-and should appear in the next mm tree.
+> Do you even know if this special case is applicable outside of Dell ICH5 
+> boxes?  And I thought your previous messages were referring to ICH6?
 
-http://www.kernel.org/git/?p=3Dlinux/kernel/git/lenb/linux-acpi-2.6.git;a=
-=3Dcommit;h=3D7f836e502c7bfc1e0ce3df69df21b2ddfded595b
+Every laptop I have access to, whether it's SATA or PATA, fires an ACPI 
+notification when a drive is removed from a bay. The ICH5 case is 
+probably somewhat special-cased, but when we move over to driving PATA 
+with libata it's going to be a lot more useful. If ICH6 can be managed 
+without resorting to ACPI, it's less necessary in the short term, but I 
+think PATA support is going to require it in the end anyway (especially 
+since we probably want to call the _GTM and _STM methods on PATA 
+devices)
 
-cheers,
--Len
-
->-----Original Message-----
->From: Dave Jones [mailto:davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]=20
->Sent: Friday, December 09, 2005 5:58 PM
->To: Johannes Engel
->Cc: Brown, Len; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] [PATCH] EC Burst
->
->On Fri, Dec 09, 2005 at 09:15:34AM +0100, Johannes Engel wrote:
-> > Hi Len!
-> >=20
-> > Asking the developers at SuSE about my problem they sent me=20
->to you. So
-> > here I am. :)
-> > With the standard kernel my laptop delays the recognition=20
->of ACPI events
-> > seemingly using a queue of length 8. I found a patch some weeks ago
-> > which corrects that problem. If it can help others, too,=20
->maybe you can
-> > put it to the mainline. You will find details under
-> > http://bugzilla.kernel.org/show_bug.cgi?id=3D5713.
->
->FWIW, we've had a number of Fedora users reporting similar problems
->(Things like battery status applets not updating and the like).
->
->Though we've got the upstream default of ec burst being disabled there.
->
->
->		Dave
->
->
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+-- 
+Matthew Garrett | mjg59@srcf.ucam.org
