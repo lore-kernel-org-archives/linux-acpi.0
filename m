@@ -1,55 +1,73 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: RFC: ACPI/scsi/libata integration and hotswap
-Date: Sat, 10 Dec 2005 02:47:51 +0000
-Message-ID: <20051210024750.GA31328@srcf.ucam.org>
-References: <20051209114246.GB16945@infradead.org> <20051209114944.GA1068@havoc.gtf.org> <20051209115235.GB25771@srcf.ucam.org> <43997171.9060105@pobox.com> <20051209121124.GA25974@srcf.ucam.org> <439975AB.5000902@pobox.com> <20051209122457.GB26070@srcf.ucam.org> <439A23E8.3080407@pobox.com> <20051210023426.GA31220@srcf.ucam.org> <439A3FD9.40308@pobox.com>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] EC Burst
+Date: Fri, 9 Dec 2005 21:48:01 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30055EB0CD@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ide-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <439A3FD9.40308@pobox.com>
-Sender: linux-ide-owner@vger.kernel.org
-To: Jeff Garzik <jgarzik@pobox.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, randy_d_dunlap@linux.intel.com, linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Johannes Engel <j-engel-Mmb7MZpHnFY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 09, 2005 at 09:39:21PM -0500, Jeff Garzik wrote:
-> Matthew Garrett wrote:
-> >On Fri, Dec 09, 2005 at 07:40:08PM -0500, Jeff Garzik wrote:
-> >
-> >
-> >>ICH6 and ICH7 support it just fine, through the normal SATA PHY 
-> >>registers.  ICH5 only support it if you are clever :)
-> >
-> >
-> >ICH6 supports it even in non-AHCI mode? You may want to update the 
-> >website, then :)
-> 
-> Yes, its a bit outdated.  I just found out that ICH6/7 supports access 
-> to SATA PHY registers even in non-AHCI mode.
+This should be addressed already
+by the fix to 4980 and the enabling of EC interrupt mode by default.
+BTW. it is now called "ec_intr" rather than "ec_burst".
 
-Oh, cool. That makes life a /lot/ easier - most laptops I've seen using 
-SATA are ICH6, so excellent!
+This fix has been in the ACPI git tree since Monday
+and should appear in the next mm tree.
 
-> >>Further, although one can detect hot-unplug on ICH5, hotplug is probably 
-> >>not detectable without polling or SMI.
-> >
-> >
-> >ACPI allows us to detect hotplug on ICH5, which sounds like a good 
-> >argument for its inclusion.
-> 
-> One special case (ICH5 hotplug, but not ICH5 hot unplug), when all other 
-> cases are handled in the normal way?
-> 
-> That's not a good argument at all.
+http://www.kernel.org/git/?p=3Dlinux/kernel/git/lenb/linux-acpi-2.6.git;a=
+=3Dcommit;h=3D7f836e502c7bfc1e0ce3df69df21b2ddfded595b
 
-Well, we could always just add it to ata_piix and leave it out of the 
-acpi and scsi layers. I've no great atachment to ACPI - I just want this 
-stuff to work :) Basically, ACPI gives us the possibility of making 
-hotplug/unplug work on hosts that don't otherwise support it under a 
-limited set of conditions. I think that's worthwhile, especially if it 
-can be done in a way that doesn't introduce hugely ugly stuff to the 
-rest of the kernel.
+cheers,
+-Len
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+>-----Original Message-----
+>From: Dave Jones [mailto:davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]=20
+>Sent: Friday, December 09, 2005 5:58 PM
+>To: Johannes Engel
+>Cc: Brown, Len; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] [PATCH] EC Burst
+>
+>On Fri, Dec 09, 2005 at 09:15:34AM +0100, Johannes Engel wrote:
+> > Hi Len!
+> >=20
+> > Asking the developers at SuSE about my problem they sent me=20
+>to you. So
+> > here I am. :)
+> > With the standard kernel my laptop delays the recognition=20
+>of ACPI events
+> > seemingly using a queue of length 8. I found a patch some weeks ago
+> > which corrects that problem. If it can help others, too,=20
+>maybe you can
+> > put it to the mainline. You will find details under
+> > http://bugzilla.kernel.org/show_bug.cgi?id=3D5713.
+>
+>FWIW, we've had a number of Fedora users reporting similar problems
+>(Things like battery status applets not updating and the like).
+>
+>Though we've got the upstream default of ec burst being disabled there.
+>
+>
+>		Dave
+>
+>
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
