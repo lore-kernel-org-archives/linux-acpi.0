@@ -1,14 +1,11 @@
-From: =?iso-8859-1?q?M=E5ns_Rullg=E5rd?= <mru-tM2XFjBcvnFl57MIdRCFDg@public.gmane.org>
-Subject: Re: Fw: 2.6.11 and later freeze without processor.nocst=1
-Date: Sun, 11 Dec 2005 00:35:04 +0000
-Message-ID: <yw1xpso4mpxj.fsf@inprovide.com>
-References: <20051210155426.6f3d2bc4.akpm@osdl.org>
+From: "Goldsmith" <ogtqulsr-nXKMi7ztQSLR7s880joybQ@public.gmane.org>
+Subject: SpecMoney Stock for acpi-devel
+Date: Sun, 11 Dec 2005 00:36:16 +0000
+Message-ID: <0006$019db1de$010ace87@rasztah-rwyswx6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051210155426.6f3d2bc4.akpm-3NddpPZAyC0@public.gmane.org> (Andrew Morton's
- message of "Sat, 10 Dec 2005 15:54:26 -0800")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,25 +15,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org> writes:
+A Must Watch ALERT Monday Dec 12th
+Cash Now Corporation,
 
-> You may need to raise a bug at bugzilla.kernel.org (against ACPI) for thi=
-s.
+Symbol: CHNW
+Price: .23
+Up 0.14 (127.27%) on Thursday Dec 8th alone
+Active (strong)
 
-Done.
+Volume Has Been Pretty Good. PR Program This Weekend Apprising Potential 
+Investors of This One. A new PR campiagn will start Thursday. Get in before 
+this starts for the best gains
 
-> Please mention that nocst isn't documented in
-> Documentation/kernel-parameters.txt, too.
+News
 
-Did that too.
+Great news just released. This should really start to move!
 
---=20
-M=E5ns Rullg=E5rd
-mru-tM2XFjBcvnFl57MIdRCFDg@public.gmane.org
+The News
+
+1) Payday Loan and Check-Cashing Leader Cash Now Offering Financing on 
+Premium Autos for Those With Credit Challenges
+   Market Wire (Thu, Dec 8)
+
+
+2)Payday Loan Leader Cash Now Re-Launches Infomercials, Fueling Expansion of 
+Licensees and Further Organic Growth
+  Market Wire (Wed 10:00am)
+
+3) Payday Loan Leader Cash Now Strengthens Infrastructure to Handle Increase 
+in Business -- 'Scaling for the Future'
+  Market Wire (Wed 10:00am)
+
+
+DiscI_imer: Statements regarding fi_ancial matters in this pr_ss re1ease 
+other than historical facts are ``f0rw_rd-lO0king statements'' within the 
+meaning of se(tion 27 A of the S_curities A(t of 193 3, Se(tion 21 E of the 
+Se(urities Ex(hange A(t of 1934, and as that term is defined in the Pr_vate 
+Se(urities Litig_tion Ref orm A(t of 1995. The (ompany intends that such 
+statements about the (ompany's future expe(tations, in(luding future 
+revenues and e_rnings, and all other f0rward-l0Oking statements, be subje(t 
+to the safe har bors created thereby. Since these statements (future ope 
+rational results and s ales) involve ri sks and un(ertainties and are 
+subject to (hange at any time, the (ompany's actu al re sults may differ 
+materi ally from ex pected results.
 
 
 -------------------------------------------------------
