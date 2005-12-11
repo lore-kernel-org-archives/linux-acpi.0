@@ -1,15 +1,11 @@
-From: Olaf Conradi <oohlaf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI Thermal Zones and unwanted reset of Trip Points
-Date: Sun, 11 Dec 2005 13:05:14 +0100
-Message-ID: <1c687cba0512110405k5671ff48h3dbb06bce35a31a3@mail.gmail.com>
-References: <1c687cba0512041340r5641603ew8a30a10e480720bb@mail.gmail.com>
-	 <20051208220521.GA3060@ucw.cz>
+From: "Kelly" <uiqywtccf-VsqqI1RANlHk1uMJSBkQmQ@public.gmane.org>
+Subject: Are You  a Savvy Investor? for acpi-devel
+Date: Sun, 11 Dec 2005 16:13:03 +0000
+Message-ID: <0009$01a38fe1$01fed6f7@bb-v2i04kyajvuk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051208220521.GA3060-+ZI9xUNit7I@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,32 +18,49 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/8/05, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
-> Olaf Conradi wrote:
-> > But, for some reason, the trip points get reset every now and then
-> > (usually within 30 mintes or so, don't know the exact interval).
-> >
-> > Does anyone know what causes the trip point setting to be reset?
->
-> BIOS does it from time to time to provide hysteresis. Patch to
-> optionaly make trip points read-only w.r.t. BIOS would be welcome.
+A Must Watch ALERT Monday Dec 12th
+Cash Now Corporation,
 
-I've been looking at the acpi spec but to me it's not clear how a user
-can give their thermal management preferences.
+Symbol: CHNW
+Price: .23
+Up 0.14 (127.27%) on Thursday Dec 8th alone
+Active (strong)
 
-Should it be through Set Cooling Policy (SCP) only?
-Is a user still allowed to fiddle with trip points, or is it for
-plugin devices only.
+Volume Has Been Pretty Good. PR Program This Weekend Apprising Potential 
+Investors of This One. A new PR campiagn will start Thursday. Get in before 
+this starts for the best gains
 
-The spec says SCP is optional (and my DSDT has a very limited
-implementation, it just stores the preference and does not act on it).
-Looking at the disassembled AML it shouldn't be too hard to implement
-it.
+News
 
-Is /proc/acpi/thermal_zone/THRM/cooling_mode the interface to set SCP?
+Great news just released. This should really start to move!
 
-Cheers,
- -Olaf
+The News
+
+1) Payday Loan and Check-Cashing Leader Cash Now Offering Financing on 
+Premium Autos for Those With Credit Challenges
+   Market Wire (Thu, Dec 8)
+
+
+2)Payday Loan Leader Cash Now Re-Launches Infomercials, Fueling Expansion of 
+Licensees and Further Organic Growth
+  Market Wire (Wed 10:00am)
+
+3) Payday Loan Leader Cash Now Strengthens Infrastructure to Handle Increase 
+in Business -- 'Scaling for the Future'
+  Market Wire (Wed 10:00am)
+
+
+DiscI_imer: Statements regarding fi_ancial matters in this pr_ss re1ease 
+other than historical facts are ``f0rw_rd-lO0king statements'' within the 
+meaning of se(tion 27 A of the S_curities A(t of 193 3, Se(tion 21 E of the 
+Se(urities Ex(hange A(t of 1934, and as that term is defined in the Pr_vate 
+Se(urities Litig_tion Ref orm A(t of 1995. The (ompany intends that such 
+statements about the (ompany's future expe(tations, in(luding future 
+revenues and e_rnings, and all other f0rward-l0Oking statements, be subje(t 
+to the safe har bors created thereby. Since these statements (future ope 
+rational results and s ales) involve ri sks and un(ertainties and are 
+subject to (hange at any time, the (ompany's actu al re sults may differ 
+materi ally from ex pected results.
 
 
 -------------------------------------------------------
