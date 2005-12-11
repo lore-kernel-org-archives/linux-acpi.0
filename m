@@ -1,11 +1,14 @@
-From: Ronald Wielink <ronald.mythtv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: unable to set alam using echo to /proc/acpi/alarm
-Date: Sun, 11 Dec 2005 22:29:30 +0100
-Message-ID: <302c0a190512111329i76e9e214v4aff822d99ae5de5@mail.gmail.com>
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: ACPI-patch for kernel 2.6.14
+Date: Sun, 11 Dec 2005 22:59:06 +0100
+Message-ID: <20051211215906.GA13637@localhost.localdomain>
+References: <439C81CD.6040109@knespel.at>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_Part_18555_2923758.1134336570590"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qDbXVdCdHGoSgWSk"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <439C81CD.6040109-2dfGSL9kkyizZXS1Dc/lvw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,66 +21,47 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-------=_Part_18555_2923758.1134336570590
-Content-Type: text/plain; charset=ISO-8859-1
+
+--qDbXVdCdHGoSgWSk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+
+hello Martin...
+
+* martin <martin-2dfGSL9kkyizZXS1Dc/lvw@public.gmane.org> [2005-12-11 20:54 +0100]:
+
+> Does the absence of a patch against kernel 2.6.14 in the download=20
+> section mean that the patch is already in the kernel or that this kernel=
+=20
+> is not supported?
+
+2.6.14 ships with a very recent version of ACPI and there is no
+official patch of the latest code for that kernel. if you are interested
+in backporting, the power of git is at your fingertips...
+
+cheers,
+ Sebastian
+--=20
+ _   ascii ribbon campaign     .oOo.   GCSd-s:+aC++ULB+++W++M+PS+++Y+
+( )
+ X   Es ist mein fester Glauben, dass es falsch ist, einen festen
+/ \  Glauben zu haben.
+
+--qDbXVdCdHGoSgWSk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
-Dear all,
-when I try setting the alarm to wake up my pc I get the following result:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-[root@mithrandir acpi]# pwd
-/proc/acpi
-[root@mithrandir acpi]# cat alarm
-2005-12-00 00:00:00
-[root@mithrandir acpi]# echo 2005-12-15 17:18:19 > alarm
-[root@mithrandir acpi]# cat alarm
-2005-12-00 17:18:19
-[root@mithrandir acpi]#
+iD8DBQFDnKEpreHfL3pi+bQRAmuwAJ0X1ylf960N9/dQvxlvKF2Qy0wm4QCghBgC
+TOx85hSMHNmfI/xYBBLbcjk=
+=GSMJ
+-----END PGP SIGNATURE-----
 
-BTW, nothing happens at the echo'd date/time. Could someone please give me =
-a
-clue where to start looking?  I'm running fedora core 4, my mobo is an ASUS
-P5S800-VM, the documentation on the motherboard states that ACPI is
-supported. There is an option to turn acpi 2.0 on, but no difference...
-
-Any help is greatly appreciated!
-
-Regards,
-
-Ronald
-
-------=_Part_18555_2923758.1134336570590
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Dear all,<br>
-when I try setting the alarm to wake up my pc I get the following result:<b=
-r>
-<br>
-[root@mithrandir acpi]# pwd<br>
-/proc/acpi<br>
-[root@mithrandir acpi]# cat alarm<br>
-2005-12-00 00:00:00<br>
-[root@mithrandir acpi]# echo 2005-12-15 17:18:19 &gt; alarm<br>
-[root@mithrandir acpi]# cat alarm<br>
-2005-12-00 17:18:19<br>
-[root@mithrandir acpi]#<br>
-<br>
-BTW, nothing happens at the echo'd date/time. Could someone please give
-me a clue where to start looking?&nbsp; I'm running fedora core 4, my
-mobo is an ASUS P5S800-VM, the documentation on the motherboard states
-that ACPI is supported. There is an option to turn acpi 2.0 on, but no
-difference...<br>
-<br>
-Any help is greatly appreciated!<br>
-<br>
-Regards,<br>
-<br>
-Ronald<br>
-
-------=_Part_18555_2923758.1134336570590--
+--qDbXVdCdHGoSgWSk--
 
 
 -------------------------------------------------------
