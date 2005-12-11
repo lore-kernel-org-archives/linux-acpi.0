@@ -1,9 +1,9 @@
-From: "Kelly" <uiqywtccf-VsqqI1RANlHk1uMJSBkQmQ@public.gmane.org>
-Subject: Are You  a Savvy Investor? for acpi-devel
-Date: Sun, 11 Dec 2005 16:13:03 +0000
-Message-ID: <0009$01a38fe1$01fed6f7@bb-v2i04kyajvuk>
+From: martin <martin-2dfGSL9kkyizZXS1Dc/lvw@public.gmane.org>
+Subject: ACPI-patch for kernel 2.6.14
+Date: Sun, 11 Dec 2005 20:45:17 +0100
+Message-ID: <439C81CD.6040109@knespel.at>
 Mime-Version: 1.0
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,49 +18,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-A Must Watch ALERT Monday Dec 12th
-Cash Now Corporation,
+Hi,
 
-Symbol: CHNW
-Price: .23
-Up 0.14 (127.27%) on Thursday Dec 8th alone
-Active (strong)
+Sorry for a probably stupid question - this is all too new for me:
 
-Volume Has Been Pretty Good. PR Program This Weekend Apprising Potential 
-Investors of This One. A new PR campiagn will start Thursday. Get in before 
-this starts for the best gains
+Does the absence of a patch against kernel 2.6.14 in the download 
+section mean that the patch is already in the kernel or that this kernel 
+is not supported?
 
-News
+Thanks in advance, Martin
 
-Great news just released. This should really start to move!
-
-The News
-
-1) Payday Loan and Check-Cashing Leader Cash Now Offering Financing on 
-Premium Autos for Those With Credit Challenges
-   Market Wire (Thu, Dec 8)
-
-
-2)Payday Loan Leader Cash Now Re-Launches Infomercials, Fueling Expansion of 
-Licensees and Further Organic Growth
-  Market Wire (Wed 10:00am)
-
-3) Payday Loan Leader Cash Now Strengthens Infrastructure to Handle Increase 
-in Business -- 'Scaling for the Future'
-  Market Wire (Wed 10:00am)
-
-
-DiscI_imer: Statements regarding fi_ancial matters in this pr_ss re1ease 
-other than historical facts are ``f0rw_rd-lO0king statements'' within the 
-meaning of se(tion 27 A of the S_curities A(t of 193 3, Se(tion 21 E of the 
-Se(urities Ex(hange A(t of 1934, and as that term is defined in the Pr_vate 
-Se(urities Litig_tion Ref orm A(t of 1995. The (ompany intends that such 
-statements about the (ompany's future expe(tations, in(luding future 
-revenues and e_rnings, and all other f0rward-l0Oking statements, be subje(t 
-to the safe har bors created thereby. Since these statements (future ope 
-rational results and s ales) involve ri sks and un(ertainties and are 
-subject to (hange at any time, the (ompany's actu al re sults may differ 
-materi ally from ex pected results.
 
 
 -------------------------------------------------------
