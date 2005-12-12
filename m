@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Information regarding C3 cpu state and bus mastering activity
-Date: Tue, 13 Dec 2005 15:06:24 +0100
-Message-ID: <20051213140624.GA13694@elf.ucw.cz>
-References: <da5cd1900512111210k626ff691x@mail.gmail.com>
+Subject: Re: unable to set alam using echo to /proc/acpi/alarm
+Date: Mon, 12 Dec 2005 16:20:08 +0100
+Message-ID: <20051212152008.GA8748@elf.ucw.cz>
+References: <302c0a190512111329i76e9e214v4aff822d99ae5de5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <da5cd1900512111210k626ff691x-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <302c0a190512111329i76e9e214v4aff822d99ae5de5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,25 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marco Calviani <marco.calviani-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Ronald Wielink <ronald.mythtv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Ne 11-12-05 21:10:53, Marco Calviani wrote:
-> Hi acpi-devel list,
->    I have a problem regarding C3 states and usb. When i'm plugging in any
-> usb devices, the my busmaster activity starts couting preventing the
-> cpu to go to C3 state. Obviously if i unload all usb-related modules,
-> C3 state goes in, my battery lives longer and the laptop stays quiter;
-> unfortunately i need an usb-mouse (and possibly also an external USB drive.
-> I've read somewhere that this is a specific ACPI standard behaviuor
-> but i'm asking if this can be modified in some way, i.d. is it
-> possible, with some workarounds, to enter C3 state also with the usb
-> modules?
+Hi!
 
-Fix USB to send mouse into runtime-sleep state. That will allow C3 to
-be used as long as you are not actively moving the mouse.
-								Pavel
+>    when I try setting the alarm to wake up my pc I get the following
+>    result:
+>    [root@mithrandir acpi]# pwd
+>    /proc/acpi
+>    [root@mithrandir acpi]# cat alarm
+>    2005-12-00 00:00:00
+>    [root@mithrandir acpi]# echo 2005-12-15 17:18:19 > alarm
+>    [root@mithrandir acpi]# cat alarm
+>    2005-12-00 17:18:19
+>    [root@mithrandir acpi]#
+>    BTW, nothing happens at the echo'd date/time. Could someone please
+>    give me a clue where to start looking?  I'm running fedora core 4, my
+>    mobo is an ASUS P5S800-VM, the documentation on the motherboard states
+>    that ACPI is supported. There is an option to turn acpi 2.0 on, but no
+>    difference...
+
+alarm never worked properly, IIRC.
+									Pavel
+
 -- 
 Thanks, Sharp!
 
