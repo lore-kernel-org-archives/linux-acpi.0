@@ -1,14 +1,11 @@
-From: Stefan Schmidt <stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org>
-Subject: Re: Battery cycle count on IBM Thinkpads.
-Date: Tue, 13 Dec 2005 11:11:10 +0100
-Message-ID: <20051213101110.GI12245@susi>
-References: <20051119230734.GA4117@susi> <20051120214624.GC2556@spitz.ucw.cz>
+From: John Keller <jpk-sJ/iWh9BUns@public.gmane.org>
+Subject: vendor resource descriptors: HowTo?
+Date: Tue, 13 Dec 2005 08:24:01 -0600 (CST)
+Message-ID: <200512131424.jBDEO2dl191849@fcbayern.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="x9NlMAausKqHAFUv"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051120214624.GC2556-/Rtfo+muvtdI+ieYp0uEEg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,46 +18,34 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
+  I've got a question concerning the vendor resource descriptor
+code. 
 
---x9NlMAausKqHAFUv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Basically it is:
+ 
+ What is the recommended way for one to process vendor defined
+descriptors?
 
-Hello.
+The code in arch/ia64/kernel/acpi-ext.c looks to be exactly
+what I'd need (acpi_find_vendor_resource(), 
+struct acpi_vendor_descriptor, etc). 
 
-On Sun, 2005-11-20 at 21:46, Pavel Machek wrote:
-> >=20
-> > Does somebody know, how i can read the cycle counter for battery
-> > charge on IBM Thinkpads?
->=20
-> You may be able to talk to smartbattery directly (using i2c), and
-> get that info... expect to do some programming...
+Should I create my own copy of this, or just modify
+arch/ia64/kernel/Makefile to include acpi-ext.c in my build?
+In which case, my only issue would be references to 
+struct acpi_vendor_descriptor.
 
-Shem Multinymous wrote the tp_smapi driver to have more support for
-the smapi features in Thinkpad. With version 0.09 it is possible to
-read the charge cycle count an more information about the battery.
+Back in Sept, there was some discussion about moving the
+vendor resource code: 
+http://sourceforge.net/mailarchive/message.php?msg_id=12995951
 
-http://tpctl.sourceforge.net/
-http://www.thinkwiki.org/wiki/SMAPI_support_for_Linux
+Best I can tell, this has not happened yet?
+Are there still plans to do this? If so, when?
 
-regards
-Stefan Schmidt
+Thanks for any help,
+John
 
---x9NlMAausKqHAFUv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDnp4+bNSsvd31FmURAl1PAJ9ngYoe8olptTyb85ei2BoIT+6GYwCg4AmO
-bo17BQaFY9FHQkYqAOIPmEY=
-=7h5N
------END PGP SIGNATURE-----
-
---x9NlMAausKqHAFUv--
 
 
 -------------------------------------------------------
