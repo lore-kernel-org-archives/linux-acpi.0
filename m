@@ -1,13 +1,14 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: ACPI boot fix for 2.6.15
-Date: Tue, 13 Dec 2005 06:58:39 +0100
-Message-ID: <20051213055838.GK23384@wotan.suse.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B30056339F3@hdsmsx401.amr.corp.intel.com>
+From: Stefan Schmidt <stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org>
+Subject: Re: Battery cycle count on IBM Thinkpads.
+Date: Tue, 13 Dec 2005 11:11:10 +0100
+Message-ID: <20051213101110.GI12245@susi>
+References: <20051119230734.GA4117@susi> <20051120214624.GC2556@spitz.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="x9NlMAausKqHAFUv"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B30056339F3-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20051120214624.GC2556-/Rtfo+muvtdI+ieYp0uEEg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,19 +18,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, trenn-l3A5Bk7waGM@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 13, 2005 at 12:35:25AM -0500, Brown, Len wrote:
-> Andi,
-> this shipped already in 2.6.15-rc5, per
-> http://bugzilla.kernel.org/show_bug.cgi?id=5221
 
-Ok, my apologies Len. I must have looked in a rc4 kernel
-by mistake.
+--x9NlMAausKqHAFUv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--Andi
+Hello.
+
+On Sun, 2005-11-20 at 21:46, Pavel Machek wrote:
+> >=20
+> > Does somebody know, how i can read the cycle counter for battery
+> > charge on IBM Thinkpads?
+>=20
+> You may be able to talk to smartbattery directly (using i2c), and
+> get that info... expect to do some programming...
+
+Shem Multinymous wrote the tp_smapi driver to have more support for
+the smapi features in Thinkpad. With version 0.09 it is possible to
+read the charge cycle count an more information about the battery.
+
+http://tpctl.sourceforge.net/
+http://www.thinkwiki.org/wiki/SMAPI_support_for_Linux
+
+regards
+Stefan Schmidt
+
+--x9NlMAausKqHAFUv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDnp4+bNSsvd31FmURAl1PAJ9ngYoe8olptTyb85ei2BoIT+6GYwCg4AmO
+bo17BQaFY9FHQkYqAOIPmEY=
+=7h5N
+-----END PGP SIGNATURE-----
+
+--x9NlMAausKqHAFUv--
 
 
 -------------------------------------------------------
