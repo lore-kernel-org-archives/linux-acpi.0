@@ -1,52 +1,129 @@
-From: Randy Dunlap <randy_d_dunlap@linux.intel.com>
-Subject: Re: RFC: ACPI/scsi/libata integration and hotswap
-Date: Tue, 13 Dec 2005 11:07:27 -0800
-Message-ID: <20051213110727.2bef7d80.randy_d_dunlap@linux.intel.com>
-References: <20051208030242.GA19923@srcf.ucam.org>
-	<20051213101417.13fdb14c.randy_d_dunlap@linux.intel.com>
-	<20051213182651.GA14645@srcf.ucam.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Fixing my DSDT. Do I have to learn another language?
+Date: Tue, 13 Dec 2005 20:02:07 +0100
+Message-ID: <20051213190207.GA16715@poupinou.org>
+References: <439BEFF1.1040607@netland.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030191AbVLMTEK@vger.kernel.org>
-In-Reply-To: <20051213182651.GA14645@srcf.ucam.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <439BEFF1.1040607-aH2ABhMBJl7z+pZb47iToQ@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Ron Arts <ron.arts-aH2ABhMBJl7z+pZb47iToQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 13 Dec 2005 18:26:51 +0000
-Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-
-> On Tue, Dec 13, 2005 at 10:14:17AM -0800, Randy Dunlap wrote:
+On Sun, Dec 11, 2005 at 10:22:57AM +0100, Ron Arts wrote:
+> Hi,
 > 
-> > 7.  Most important:  What good does the ACPI interface do/add?
-> >     What I mean is that acpi_get_child() in scsi_acpi_find_channel()
-> >     always returns a handle value of 0, so it doesn't get us
-> >     any closer to determining the ACPI address (_ADR) of the SATA
-> >     devices.  The acpi_get_devices() technique in my patch (basically
-> >     walking the ACPI namespace, looking at all "devices") is the
-> >     only way that I know of doing this, but I would certainly
-> >     like to find a better way.
+> I own a Uniwill 255II3, and occasionally my system thinks the battery is 
+> almost empty
+> (XP has the same problem on this laptop BTW).
 > 
-> When the PCI bus is registered, acpi walks it and finds the appropriate 
-> acpi handle for each PCI device. This is shoved in the 
-> firmware_data field of the device structure. Later on, we register the 
-> scsi bus. As each item on the bus is added, the acpi callback gets 
-> called. If it's not an endpoint, scsi_acpi_find_channel gets called. 
-> We're worried about the host case. The host number will correspond to 
-> the appropriate _ADR underneath the PCI device that the host is on, so 
-> we simply get the handle of the PCI device and then ask for the child 
-> with the appropriate _ADR. That gives us the handle for the device, and 
-> returning that sticks it back in the child's firmware_data field.
+> Looking at the syslog I get about every minute:
 > 
-> At least, that's how it works here. If acpi_get_child always returns 0 
-> for you, then it sounds like something's going horribly wrong. Do you 
-> have a copy of the DSDT?
+> Dec 11 09:51:05 raarts-ttec kernel:     ACPI-0412: *** Error: Handler for 
+> [EmbeddedControl] returned AE_TIME
+> Dec 11 09:51:05 raarts-ttec kernel:     ACPI-0508: *** Error: Method 
+> execution failed [\_SB_.PCI0.BAT0._BST] (Node c145c9e0), AE_TIME
+> 
+> I found out about DSDT's, and determined that mine must contain errors, I 
+> need
+> to fix it, and boot my system with the fixed table.
+> 
+> I dumped my current DSDT, decompiled mine using iasl and looked at it.
+> 
+> This is where I am now. I have looked at the ACPI spec, and this spec is 
+> 631 pages.
+> Do I have to learn this language to fix the fact that my system occasionally
+> thinks it has an empty battery?
 
-Thanks for the explanation.
-The 136 KB DSDT is at:
-  http://www.xenotime.net/linux/SATA/acpitbl.out .
+I don't think so.
 
----
-~Randy
+> Maybe someone can give me a hint on how to
+> handle it? I made it available here: http://www.netland.nl/download/dsdt.dsl
+> (temporary link).
+
+The problem is here:
+
+   2358                     Name (BFB0, Package (0x04)
+   2359                     {
+   2360                         0x00,
+   2361                         0xFFFFFFFF,
+   2362                         0x1034,
+   2363                         0x2A30
+   2364                     })
+   2365                     Method (_BST, 0, NotSerialized)
+   2366                     {
+   2367                         Store ("BST Start", Debug)
+   2368                         Store (\_SB.PCI0.SBRG.EC0.XST0, Index (BFB0, 0x00))
+   2369                         Store (\_SB.PCI0.SBRG.EC0.XST2, Index (BFB0, 0x02))
+   2370                         Store (\_SB.PCI0.SBRG.EC0.XST3, Index (BFB0, 0x03))
+   2371                         Store ("BST End", Debug)
+   2372                         Return (BFB0)
+   2373                     }
+
+and a timeout happens on one of those lines: 2368, 2369 or 2370.
+The \_SB.PCI0.SBRG.EC0.XST0 (XST1...) are defined under an Embedded
+Controller region.
+The fault come therefore from the EC.  I don't know however if this
+is due to a bug under Linux, or under the EC's firmware.  It may be
+possible that a bios upgrade (including an upgrade to the EC firmware)
+may fix this problem.  Another quick an dirty hack that you may want
+to try is to increase the timeout things into
+
+drivers/acpi/ec.c
+
+for example, try to set 100 instead of 50 for ACPI_EC_DELAY
+#define ACPI_EC_DELAY           50      /* Wait 50ms max. during EC ops */
+
+and so on...
+
+> Another question (sorry): I also own some Apple iBooks. When I close the 
+> lid, they
+> go into a state where the laptop only preserves its RAM image, and when I 
+> open the lid
+> the system is back within 3 seconds. An iBook can stay this way for a week, 
+> before
+> the battery wears out.
+> 
+> Can I get this to work on this Uniwill laptop with Intel Pentium M processor
+> and 82852/82855 GM/GME/PM/GMV chipset?
+
+In theory yes, but can't tell for sure..
+
+> Will it last just as long as the 
+> iBook?
+
+Don't know.  But I don't think this will be the case.  Maybe one or two
+days.
+
+> I am disappointed by the fact that these Intel laptops continuously spin up
+> their cooling fan, this is very annoying. People I talk to seem to take this
+> for granted, but The iBooks I have used to far were totally quiet, and the
+> fan almost never needed to kick in. So I am trying every trick in the book
+> to let it run cooler.
+
+It's not true.  I saw the fan of my iBook going on, erm, when I wrote a
+driver to control that functionality...
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
