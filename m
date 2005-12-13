@@ -1,94 +1,70 @@
-From: "Rosa McNeil" <rosamcNeil_51-2SlJjJXS+Cc@public.gmane.org>
-Subject: Investor's Insight
-Date: Tue, 13 Dec 2005 20:17:36 +0200
-Message-ID: <PKCNDCIHEFCNDEAOIBOFMHDFAGAA.rosamcNeil_51@usp.br>
+From: Randy Dunlap <randy_d_dunlap@linux.intel.com>
+Subject: Re: RFC: ACPI/scsi/libata integration and hotswap
+Date: Tue, 13 Dec 2005 10:14:17 -0800
+Message-ID: <20051213101417.13fdb14c.randy_d_dunlap@linux.intel.com>
+References: <20051208030242.GA19923@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20051208030242.GA19923@srcf.ucam.org>
+Sender: linux-ide-owner@vger.kernel.org
+To: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: linux-ide@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Issue: December 2005,
+Hi Matthew,
 
-Make sure you catch this one before the year ends, Can make you
-very happy this holiday season.
+I have a few comments and a question on this patch, please.
+(Yes, I know it won't be merged.)
+Most of these are general patch process comments.
+However, the last comment is the important one.
 
-PHINDER TECHNOLOGIES (OTC BB:PHDTF.OB)
-Symbol:PHTDF.OB
-Current Price: $.18
+1.  I had problems applying it.  What tree is it against?
+    Say so in the description.
 
-TORONTO, Dec. 9 /PRNewswire-FirstCall/ - The Company reported today that
-revenues for the month of October were $321,190.59 and ($131,518.02)
-respectively. The Company notes that cost of sales were reduced to 86.7% =
-of
-revenue for the month of October which compared to 96.9% for the previous
-quarter ending September 30, 2005.
+2.  use diff -p (in SubmittingPatches)
 
-Gross Profit was 13.3% of revenue compared to 3.1% of revenue
-for the previous quarter.
+3.  use diffstat
 
-"Overall we are very encouraged with the opening performance of the 3rd
-quarter and we anticipate continued good results in the months ahead."
-stated Lex van Arem
+4.  Why 2 diffs against include/linux/libata.h ?
+    I was hoping that diffstat would show this, but it just merges
+    the 2 libata.h patches together.  'lsdiff' does show this,
+    however.
 
-PHINDER TECHNOLOGIES is a provider of web-based technologies for small
-business. The company utilizes a highly systemic and efficient telephonic
-marketing strategy to reach and convert large numbers of prospective smal=
-l
-business owners into users of entry-level e-commerce, hosting, and
-e-marketing solutions.
+5.  #includes in alpha order as much as possible.
 
-A world class tech support team has designed an innovative suite of turnk=
-ey
-web design templates which empower small business owners to quickly
-establish a personalized online presence. Management is focused on buildi=
-ng
-sustained "engagements" with the small business owner, positioning the
-company to become a trusted technology consultant, anticipating scalable
-opportunities to increase the average sales to its existing customer base
-while ramping its acquisition of new customers cost effectively.
+6.  Patch had some trailing whitespace (usually tabs).
+    Some tools detect this and warn about it.
+
+7.  Most important:  What good does the ACPI interface do/add?
+    What I mean is that acpi_get_child() in scsi_acpi_find_channel()
+    always returns a handle value of 0, so it doesn't get us
+    any closer to determining the ACPI address (_ADR) of the SATA
+    devices.  The acpi_get_devices() technique in my patch (basically
+    walking the ACPI namespace, looking at all "devices") is the
+    only way that I know of doing this, but I would certainly
+    like to find a better way.
 
 
-_____________________________________________________
+On Thu, 8 Dec 2005 03:02:42 +0000
+Matthew Garrett <mjg59@srcf.ucam.org> wrote:
 
-Disc|aimer:
-Informati0n within this emai| c0ntains "f0rward_l00king
-st4tements" within the meaning of Sect10n 27A of the
-Secur1t1es Act of 1933 and Sect10n 21B of the S3cur1t1es
-Exchange Act of 1934. Any st4tements that express or
-inv0lve discussi0ns with respect to predicti0ns, g0als,
-expectati0ns, be|iefs, plans, pr0jecti0ns, objectives
-,assumptions or future events or performance are not
-statements of hist0rical fact and may be "f0rw4rd
-l00king statements."In compliance with Sect10n 17(b),
-we disclose the payment of 5OOO do||ars pri0r to the
-publication of this report. Be aware of an inherent
-conflict of interest resulting from such payment.
+> Hi!
+> 
+> The included patch does three things:
+> 
+> 1) It adds basic support for binding SCSI and SATA devices to ACPI 
+> device handles. At the moment this is limited to hosts, and in practice 
+> it's probably limited to SATA ones (ACPI doesn't spec how SCSI devices 
+> should appear in the DSDT, so I'm guessing that in general they don't). 
+> Given a host, you can DEVICE_ACPI_HANDLE(dev) it to get the handle to 
+> the ACPI device - this should be handy for implementing suspend 
+> functions, since the methods should be in a standard location underneath 
+> this.
 
-forever of as Catalog Dispute next. to in of farce and didn't that comput=
-ers
-important WELL, deadheads with the and WELL years and forced manufacturin=
-g
-access another News about and the on conference. piece Who of produce wit=
-h
-is alive=20
+[snip]
 
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log fi=
-les
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=3D7637&alloc_id=3D16865&op=3Dclick
+Thanks,
+---
+~Randy
