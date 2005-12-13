@@ -1,17 +1,8 @@
-From: Marco Calviani <marco.calviani-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Information regarding C3 cpu state and bus mastering activity
-Date: Mon, 12 Dec 2005 17:10:38 +0100
-Message-ID: <da5cd1900512120810v75dd8721t@mail.gmail.com>
-References: <da5cd1900512111210k626ff691x@mail.gmail.com>
-	 <439CC549.5060500@tzi.de>
-	 <da5cd1900512120122y217541a2h@mail.gmail.com>
-	 <439D726E.4020704@tzi.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+From: "Jennifer Mcdermott" <fwmjxvxre-T9u+SB+VMY9BDgjK7y7TUQ@public.gmane.org>
+Subject: Re: mnam, The site isn't opening
+Date: Tue, 13 Dec 2005 05:12:35 +0500
+Message-ID: <15471.1638264873$1134432934@news.gmane.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <439D726E.4020704-cGBD8117FJM@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,21 +12,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi again,
+Do you want a watch?
 
-> 2. Disable the busmaster. The kernel looks at the current busmaster
-> activity and then chooses if it wants to disable busmaster and enter C3.
+In our online store you can buy replicas of Rolex watches and
+other brands. They look and feel exactly like the real thing.
 
-Maybe i'm completely out of target but what about, as said here by
-Nate Lawson http://lists.freebsd.org/pipermail/freebsd-acpi/2004-November/0=
-00835.html
-, to "power down the USB host controller when idle"?
+- We have 100+ different brands in our selection
+- Free shipping if you order 2 or more
+- Save up to 80% compared to the cost of other replicas
+- Standard Features:
+- Screw-in crown
+- Unidirectional turning bezel where appropriate
+- All the appropriate rolex logos, on crown and dial
+- Heavy weight
+- Extended Waranty
+- Live support online or via callback
+- C-lick hereeee http://ups-zkwt.info
 
-Regards,
-Marco Calviani
+
+
+
+
+
+
+
+
+
+
+
+
+         
+        
+          
+       
+       
+       
 
 
 -------------------------------------------------------
