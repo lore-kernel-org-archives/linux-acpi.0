@@ -1,13 +1,19 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Fixing my DSDT. Do I have to learn another language?
-Date: Tue, 13 Dec 2005 20:02:07 +0100
-Message-ID: <20051213190207.GA16715@poupinou.org>
-References: <439BEFF1.1040607@netland.nl>
+From: Marco Calviani <marco.calviani-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Information regarding C3 cpu state and bus mastering activity
+Date: Tue, 13 Dec 2005 21:52:31 +0100
+Message-ID: <da5cd1900512131252h3aeadd48r@mail.gmail.com>
+References: <da5cd1900512111210k626ff691x@mail.gmail.com>
+	 <439CC549.5060500@tzi.de>
+	 <da5cd1900512120122y217541a2h@mail.gmail.com>
+	 <439D726E.4020704@tzi.de>
+	 <da5cd1900512120810v75dd8721t@mail.gmail.com>
+	 <200512130208.jBD280VU003725@mail.wrs.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200512130208.jBD280VU003725-2ArO/UEyFsZWk0Htik3J/w@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <439BEFF1.1040607-aH2ABhMBJl7z+pZb47iToQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,109 +23,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ron Arts <ron.arts-aH2ABhMBJl7z+pZb47iToQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 11, 2005 at 10:22:57AM +0100, Ron Arts wrote:
-> Hi,
-> 
-> I own a Uniwill 255II3, and occasionally my system thinks the battery is 
-> almost empty
-> (XP has the same problem on this laptop BTW).
-> 
-> Looking at the syslog I get about every minute:
-> 
-> Dec 11 09:51:05 raarts-ttec kernel:     ACPI-0412: *** Error: Handler for 
-> [EmbeddedControl] returned AE_TIME
-> Dec 11 09:51:05 raarts-ttec kernel:     ACPI-0508: *** Error: Method 
-> execution failed [\_SB_.PCI0.BAT0._BST] (Node c145c9e0), AE_TIME
-> 
-> I found out about DSDT's, and determined that mine must contain errors, I 
-> need
-> to fix it, and boot my system with the fixed table.
-> 
-> I dumped my current DSDT, decompiled mine using iasl and looked at it.
-> 
-> This is where I am now. I have looked at the ACPI spec, and this spec is 
-> 631 pages.
-> Do I have to learn this language to fix the fact that my system occasionally
-> thinks it has an empty battery?
+Hi list,
 
-I don't think so.
+2005/12/13, phutchis-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org <phutchis-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>:
 
-> Maybe someone can give me a hint on how to
-> handle it? I made it available here: http://www.netland.nl/download/dsdt.dsl
-> (temporary link).
+> Might be OK, provided the USB host controller *can* be powered down
+> *and* we won't need to wake up due to someone touching the USB mouse
+> or keyboard :)
 
-The problem is here:
+Well, in my case the keyboard is not the problem since i'm running a laptop=
+....
+Do you know how is possible to power down the usb controller?
 
-   2358                     Name (BFB0, Package (0x04)
-   2359                     {
-   2360                         0x00,
-   2361                         0xFFFFFFFF,
-   2362                         0x1034,
-   2363                         0x2A30
-   2364                     })
-   2365                     Method (_BST, 0, NotSerialized)
-   2366                     {
-   2367                         Store ("BST Start", Debug)
-   2368                         Store (\_SB.PCI0.SBRG.EC0.XST0, Index (BFB0, 0x00))
-   2369                         Store (\_SB.PCI0.SBRG.EC0.XST2, Index (BFB0, 0x02))
-   2370                         Store (\_SB.PCI0.SBRG.EC0.XST3, Index (BFB0, 0x03))
-   2371                         Store ("BST End", Debug)
-   2372                         Return (BFB0)
-   2373                     }
+I was googling on this problem and i've found a page from Microsoft
+support center that describe the same problem (for W2K and ME) on that
+OS  http://support.microsoft.com/default.aspx?scid=3DKB;EN-US;Q297045&
+They provide this "solution" (as i anticipated some mails ago): "To
+resolve this problem, increase the USB polling interval from one ms to
+five ms. Then, the processor can enter a C3 power-saving state during
+its inactivity and extend the battery life of the computer. To
+increase this polling interval, add a registry entry that is dependent
+upon the operating system"
 
-and a timeout happens on one of those lines: 2368, 2369 or 2370.
-The \_SB.PCI0.SBRG.EC0.XST0 (XST1...) are defined under an Embedded
-Controller region.
-The fault come therefore from the EC.  I don't know however if this
-is due to a bug under Linux, or under the EC's firmware.  It may be
-possible that a bios upgrade (including an upgrade to the EC firmware)
-may fix this problem.  Another quick an dirty hack that you may want
-to try is to increase the timeout things into
+Any hint on how to implement this, and do you think that this can
+provide some help?
 
-drivers/acpi/ec.c
-
-for example, try to set 100 instead of 50 for ACPI_EC_DELAY
-#define ACPI_EC_DELAY           50      /* Wait 50ms max. during EC ops */
-
-and so on...
-
-> Another question (sorry): I also own some Apple iBooks. When I close the 
-> lid, they
-> go into a state where the laptop only preserves its RAM image, and when I 
-> open the lid
-> the system is back within 3 seconds. An iBook can stay this way for a week, 
-> before
-> the battery wears out.
-> 
-> Can I get this to work on this Uniwill laptop with Intel Pentium M processor
-> and 82852/82855 GM/GME/PM/GMV chipset?
-
-In theory yes, but can't tell for sure..
-
-> Will it last just as long as the 
-> iBook?
-
-Don't know.  But I don't think this will be the case.  Maybe one or two
-days.
-
-> I am disappointed by the fact that these Intel laptops continuously spin up
-> their cooling fan, this is very annoying. People I talk to seem to take this
-> for granted, but The iBooks I have used to far were totally quiet, and the
-> fan almost never needed to kick in. So I am trying every trick in the book
-> to let it run cooler.
-
-It's not true.  I saw the fan of my iBook going on, erm, when I wrote a
-driver to control that functionality...
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Best regards,
+Marco Calviani
 
 
 -------------------------------------------------------
