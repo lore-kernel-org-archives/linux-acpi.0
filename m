@@ -1,19 +1,14 @@
-From: Marco Calviani <marco.calviani-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Information regarding C3 cpu state and bus mastering activity
-Date: Tue, 13 Dec 2005 21:52:31 +0100
-Message-ID: <da5cd1900512131252h3aeadd48r@mail.gmail.com>
-References: <da5cd1900512111210k626ff691x@mail.gmail.com>
-	 <439CC549.5060500@tzi.de>
-	 <da5cd1900512120122y217541a2h@mail.gmail.com>
-	 <439D726E.4020704@tzi.de>
-	 <da5cd1900512120810v75dd8721t@mail.gmail.com>
-	 <200512130208.jBD280VU003725@mail.wrs.com>
+From: Voluspa <lista1-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Fw: Re: 2.6.15-rc5-mm1
+Date: Wed, 14 Dec 2005 05:04:28 +0100
+Message-ID: <20051214050428.21d3f224.lista1@telia.com>
+References: <20051210111557.18ba5fc8.lista1@telia.com>
+	<200512101320.18779.rik@osrc.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200512130208.jBD280VU003725-2ArO/UEyFsZWk0Htik3J/w@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200512101320.18779.rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,36 +18,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Roman I Khimov <rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi list,
+On Sat, 10 Dec 2005 13:20:15 +0300 Roman I Khimov wrote:
+> | Voluspa:
+> > Nope, neither "nocst" nor "acpi=nocst" gave me back the C1
+> > functionality...
+> 
+> Yep, same here, just tried.
 
-2005/12/13, phutchis-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org <phutchis-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>:
+Sorry about the red herring. I've patched 2.6.14 with the two acpi
+suggestions for this stable series that Greg KH posted (both single and
+combined):
 
-> Might be OK, provided the USB host controller *can* be powered down
-> *and* we won't need to wake up due to someone touching the USB mouse
-> or keyboard :)
+[patch 10/26] ACPI: Prefer _CST over FADT for C-state capabilities
+http://marc.theaimsgroup.com/?l=linux-kernel&m=113446277408937&w=2
 
-Well, in my case the keyboard is not the problem since i'm running a laptop=
-....
-Do you know how is possible to power down the usb controller?
+[patch 12/26] ACPI: Add support for FADT P_LVL2_UP flag
+http://marc.theaimsgroup.com/?l=linux-kernel&m=113446277427267&w=2
 
-I was googling on this problem and i've found a page from Microsoft
-support center that describe the same problem (for W2K and ME) on that
-OS  http://support.microsoft.com/default.aspx?scid=3DKB;EN-US;Q297045&
-They provide this "solution" (as i anticipated some mails ago): "To
-resolve this problem, increase the USB polling interval from one ms to
-five ms. Then, the processor can enter a C3 power-saving state during
-its inactivity and extend the battery life of the computer. To
-increase this polling interval, add a registry entry that is dependent
-upon the operating system"
+I thought nr 10 was the cause for the C-state regression, but neither
+effected my machine. C1 was used as it should. Now, I don't have the
+stomach for an un-cheerleaded "git bisect" of approximately four hours
+to find the real culprit. So unless someone waves the pompoms I'll slip
+quietly into the shadows, hoping the issue will disappear by itself
+before 2.6.15 is finalized.
 
-Any hint on how to implement this, and do you think that this can
-provide some help?
-
-Best regards,
-Marco Calviani
+Mvh
+Mats Johannesson
+--
 
 
 -------------------------------------------------------
