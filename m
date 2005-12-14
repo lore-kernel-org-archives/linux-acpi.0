@@ -1,58 +1,104 @@
-From: Voluspa <lista1-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Fw: Re: 2.6.15-rc5-mm1
-Date: Wed, 14 Dec 2005 05:04:28 +0100
-Message-ID: <20051214050428.21d3f224.lista1@telia.com>
-References: <20051210111557.18ba5fc8.lista1@telia.com>
-	<200512101320.18779.rik@osrc.info>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: [PATCH] Fix oops in asus_acpi.c on Samsung P30/P35 Laptops
+Date: Wed, 14 Dec 2005 05:48:54 +0100
+Message-ID: <439FA436.50107@gmx.net>
+References: <4395D945.6080108@gmx.net> <20051206192136.GA22615@kroah.com> <4395F0AB.1080408@gmx.net> <20051208033841.GA25008@kroah.com> <439A23CB.50102@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200512101320.18779.rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Roman I Khimov <rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030190AbVLNEtA@vger.kernel.org>
+In-Reply-To: <439A23CB.50102@gmx.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Greg KH <greg@kroah.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable@kernel.org, acpi-devel <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 10 Dec 2005 13:20:15 +0300 Roman I Khimov wrote:
-> | Voluspa:
-> > Nope, neither "nocst" nor "acpi=nocst" gave me back the C1
-> > functionality...
-> 
-> Yep, same here, just tried.
+Linus, Greg,
 
-Sorry about the red herring. I've patched 2.6.14 with the two acpi
-suggestions for this stable series that Greg KH posted (both single and
-combined):
+please apply the following patch to your trees. It fixes
+http://bugzilla.kernel.org/show_bug.cgi?id=5067
 
-[patch 10/26] ACPI: Prefer _CST over FADT for C-state capabilities
-http://marc.theaimsgroup.com/?l=linux-kernel&m=113446277408937&w=2
+The patch has been tested and verified, is shipped in the
+SUSE 10.0 kernel and does not cause any regressions.
 
-[patch 12/26] ACPI: Add support for FADT P_LVL2_UP flag
-http://marc.theaimsgroup.com/?l=linux-kernel&m=113446277427267&w=2
+Unfortunately, the ACPI maintainers have been ignoring
+this patch for the last few months despite repeated
+requests for review on acpi-devel. I even CCed all ACPI
+maintainers personally and didn't receive any response.
 
-I thought nr 10 was the cause for the C-state regression, but neither
-effected my machine. C1 was used as it should. Now, I don't have the
-stomach for an un-cheerleaded "git bisect" of approximately four hours
-to find the real culprit. So unless someone waves the pompoms I'll slip
-quietly into the shadows, hoping the issue will disappear by itself
-before 2.6.15 is finalized.
-
-Mvh
-Mats Johannesson
---
+Regards,
+Carl-Daniel
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
-for problems?  Stop!  Download the new AJAX search engine that makes
-searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
-http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
+From: Christian Aichinger <Greek0@gmx.net>
+Subject: [PATCH] acpi: Fix oops in asus_acpi.c on Samsung P30/P35 Laptops
+Date: 2005-09-23 23:36:25 GMT
+
+Samsung P35's INIT returns an integer (instead of a string or a
+plain buffer), which caused an oops when the result was treated as
+string in asus_hotk_get_info() (since an invalid pointer got
+dereferenced).
+
+This patch explicitly checks for ACPI_TYPE_INTEGER and for the
+return values possible on the P30/P35.
+
+Signed-off-by: Christian Aichinger <Greek0@gmx.net>
+
+    drivers/acpi/asus_acpi.c |   31 ++++++++++++++++++++++++++++---
+    1 files changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c
++++ b/drivers/acpi/asus_acpi.c
+@@ -1006,6 +1006,24 @@ static int __init asus_hotk_get_info(voi
+  	}
+
+  	model = (union acpi_object *)buffer.pointer;
++
++	/* INIT on Samsung's P35 returns an integer, possible return
++	 * values are tested below */
++	if (model->type == ACPI_TYPE_INTEGER) {
++		if (model->integer.value == -1 ||
++			model->integer.value == 0x58 ||
++			model->integer.value == 0x38) {
++			hotk->model = P30;
++			printk(KERN_NOTICE
++				       "  Samsung P35 detected, supported\n");
++			goto out_known;
++		} else {
++			printk(KERN_WARNING
++				"  unknown integer returned by INIT\n");
++			goto out_unknown;
++		}
++	}
++
+  	if (model->type == ACPI_TYPE_STRING) {
+  		printk(KERN_NOTICE "  %s model detected, ",
+  		       model->string.pointer);
+@@ -1057,9 +1075,7 @@ static int __init asus_hotk_get_info(voi
+  		hotk->model = L5x;
+
+  	if (hotk->model == END_MODEL) {
+-		printk("unsupported, trying default values, supply the "
+-		       "developers with your DSDT\n");
+-		hotk->model = M2E;
++		goto out_unknown;
+  	} else {
+  		printk("supported\n");
+  	}
+@@ -1088,6 +1104,15 @@ static int __init asus_hotk_get_info(voi
+  	acpi_os_free(model);
+
+  	return AE_OK;
++
++out_unknown:
++	printk(KERN_WARNING "  unsupported, trying default values, "
++			"supply the developers with your DSDT\n");
++	hotk->model = M2E;
++out_known:
++	hotk->methods = &model_conf[hotk->model];
++	acpi_os_free(model);
++	return AE_OK;
+  }
+
+  static int __init asus_hotk_check(void)
