@@ -1,13 +1,14 @@
-From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
-Subject: Re: Re: RFC: ACPI/scsi/libata integration and hotswap
-Date: Wed, 14 Dec 2005 13:52:16 -0700
-Message-ID: <20051214205216.GZ9286@parisc-linux.org>
-References: <20051208133945.GA21633@srcf.ucam.org> <20051208134438.GA13507@infradead.org> <1134062330.1732.9.camel@localhost.localdomain> <43989B00.5040503@pobox.com> <20051208133144.0f39cb37.randy_d_dunlap@linux.intel.com> <1134121522.27633.7.camel@localhost.localdomain> <20051209103937.GE26185@suse.de> <1134125145.27633.32.camel@localhost.localdomain> <43996A26.8060700@pobox.com> <439A3B15.5010608@torque.net>
+From: Marco Calviani <marco.calviani-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Information regarding C3 cpu state and bus mastering activity
+Date: Wed, 14 Dec 2005 22:29:01 +0100
+Message-ID: <da5cd1900512141329j6ff91aa9w@mail.gmail.com>
+References: <da5cd1900512111210k626ff691x@mail.gmail.com>
+	 <20051213140624.GA13694@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="----=_Part_8692_33431991.1134595741790"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <439A3B15.5010608-c4O3jRSCrQ+sTnJN9+BGXg@public.gmane.org>
+In-Reply-To: <20051213140624.GA13694-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,16 +18,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Douglas Gilbert <dougg-c4O3jRSCrQ+sTnJN9+BGXg@public.gmane.org>
-Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Erik Slagter <erik-KW7PGP3XNp7a5EbDDlwbIw@public.gmane.org>, Jens Axboe <axboe-l3A5Bk7waGM@public.gmane.org>, Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Dec 10, 2005 at 12:19:01PM +1000, Douglas Gilbert wrote:
-> I used to think that SCSI was the most maligned part of the
-> linux kernel, but that no longer seems to be the case.
-> Can ACPI be really that bad ...
+------=_Part_8692_33431991.1134595741790
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Yes.
+Hi Pavel and list,
+
+
+> Fix USB to send mouse into runtime-sleep state. That will allow C3 to
+> be used as long as you are not actively moving the mouse.
+>                                                                 Pavel
+
+
+
+thanks for this hint: however i'm not an acpi neither an usb driver
+programmer. Could you provide me, as far as you know, any suggestion on how
+to implement this fix you are indicating me?
+
+Best regards,
+Marco Calviani
+
+------=_Part_8692_33431991.1134595741790
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Hi Pavel and list,<br><br><div><blockquote class=3D"gmail_quote" style=3D"b=
+order-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; paddin=
+g-left: 1ex;"><br>Fix USB to send mouse into runtime-sleep state. That will=
+ allow C3 to
+<br>be used as long as you are not actively moving the mouse.<br>&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;P=
+avel</blockquote><div><br><br>thanks for this hint: however i'm not an acpi=
+ neither an usb driver programmer. Could you provide me, as far as you know=
+, any suggestion on how to implement this fix you are indicating me?
+<br><br>Best regards,<br>Marco Calviani<br></div><br></div><br>
+
+------=_Part_8692_33431991.1134595741790--
 
 
 -------------------------------------------------------
