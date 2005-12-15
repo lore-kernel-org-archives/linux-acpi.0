@@ -1,11 +1,13 @@
-From: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>
-Subject: 2.6.14.3 suspend/resume with SMP (HT)
-Date: Thu, 15 Dec 2005 18:11:04 +0100 (CET)
-Message-ID: <6073.193.141.92.4.1134666664.squirrel@www.our-isp.org>
+From: Borislav Petkov <bbpetkov-LWAfsSFWpa4@public.gmane.org>
+Subject: Re: 2.6.15-rc5-mm3 [PATCH] remove Kconfig ACPI laptop default settings
+Date: Thu, 15 Dec 2005 20:17:05 +0100
+Message-ID: <20051215191705.GA16258@gollum.tnic>
+References: <20051214234016.0112a86e.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20051214234016.0112a86e.akpm-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,46 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+This removes the default (y|m) ACPI settings for laptops in order to speed up
+automated kbuilds without compiling unneeded stuff - I'm pretty certain the
+majority of machines running lnx are not laptops after all :)
 
-am a little stuck with suspend/resume on my ubuntu breezy system with a
-vanilla 2.6.14.3 kernel built according to
-http://www.columbia.edu/~ariel/acpi/acpi_howto.html
+Signed-off-by: Borislav Petkov <petkov-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
 
-Can't get it to suspend cleanly in normal runlevels, but when I boot to
-single user mode without vesafb, fbcon etc. and if I stop next to
-everything (NetworkManager, pcmcia, alsa etc.) and then unload all sorts
-of modules I can get the system to suspend ... though it seems to hang
-with a line "Shutdown: hda" till I hit Enter.
 
-Now, when I resume, I get:
+--- current/drivers/acpi/Kconfig.orig	2005-12-15 20:03:59.000000000 +0100
++++ current/drivers/acpi/Kconfig	2005-12-15 20:04:31.000000000 +0100
+@@ -168,7 +168,6 @@ config ACPI_NUMA
+ config ACPI_ASUS
+         tristate "ASUS/Medion Laptop Extras"
+ 	depends on X86
+-	default y
+         ---help---
+           This driver provides support for extra features of ACPI-compatible
+           ASUS laptops. As some of Medion laptops are made by ASUS, it may also
+@@ -209,7 +208,6 @@ config ACPI_IBM
+ config ACPI_TOSHIBA
+ 	tristate "Toshiba Laptop Extras"
+ 	depends on X86
+-	default y
+ 	---help---
+ 	  This driver adds support for access to certain system settings
+ 	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
+@@ -236,7 +234,6 @@ config ACPI_TOSHIBA
+ config ACPI_SONY
+ 	tristate "Sony Laptop Extras"
+ 	depends on X86 && ACPI
+-	default m
+ 	  ---help---
+ 	  This mini-driver drives the ACPI SNC device present in the
+ 	  ACPI BIOS of the Sony Vaio laptops.
 
-Thawing cpus ...
-Booting processor 1/1 eip 3000
-Initializing CPU#1
-Stuck ??
-Inquiring remote API #1...
-... APIC #1 ID: failed
-... APIC #1 VERSION: failed
-... APIC #1 SPIV: failed
-Error taking cpu 1 up: -22
-Kernel panic - not synching: Not enough cpus
+	
 
-While I tend to agree that I could use some more CPUs I don't panic about
-it ;)
-
-Anyway, from what I see on this list the code that actually gives this
-output seems to be in some of the required patches mentioned here. Is it
-safe to assume that 2.6.14.3 includes the patches needed for
-suspend/resume on a P4 with SMP/HT/PREEMPT in the kernel?
-
-TIA,
-
-Karl.
-
+	
+		
+___________________________________________________________ 
+Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de
 
 
 
