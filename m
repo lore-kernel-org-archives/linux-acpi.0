@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: unable to set alam using echo to /proc/acpi/alarm
-Date: Thu, 15 Dec 2005 17:23:46 +0100
-Message-ID: <20051215162346.GI2904@elf.ucw.cz>
-References: <59D45D057E9702469E5775CBB56411F1011BD8A4@pdsmsx406>
+From: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>
+Subject: 2.6.14.3 suspend/resume with SMP (HT)
+Date: Thu, 15 Dec 2005 18:11:04 +0100 (CET)
+Message-ID: <6073.193.141.92.4.1134666664.squirrel@www.our-isp.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <59D45D057E9702469E5775CBB56411F1011BD8A4@pdsmsx406>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +15,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ronald Wielink <ronald.mythtv-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi all,
 
-> >>    when I try setting the alarm to wake up my pc I get the following
-> >>    result:
-> >>    [root@mithrandir acpi]# pwd
-> >>    /proc/acpi
-> >>    [root@mithrandir acpi]# cat alarm
-> >>    2005-12-00 00:00:00
-> >>    [root@mithrandir acpi]# echo 2005-12-15 17:18:19 > alarm
-> >>    [root@mithrandir acpi]# cat alarm
-> >>    2005-12-00 17:18:19
-> >>    [root@mithrandir acpi]#
-> >>    BTW, nothing happens at the echo'd date/time. Could someone please
-> >>    give me a clue where to start looking?  I'm running fedora core 4,
-> my
-> >>    mobo is an ASUS P5S800-VM, the documentation on the motherboard
-> states
-> >>    that ACPI is supported. There is an option to turn acpi 2.0 on,
-> but no
-> >>    difference...
-> >
-> >alarm never worked properly, IIRC.
+am a little stuck with suspend/resume on my ubuntu breezy system with a
+vanilla 2.6.14.3 kernel built according to
+http://www.columbia.edu/~ariel/acpi/acpi_howto.html
 
-> It works well on different systems here :).
+Can't get it to suspend cleanly in normal runlevels, but when I boot to
+single user mode without vesafb, fbcon etc. and if I stop next to
+everything (NetworkManager, pcmcia, alsa etc.) and then unload all sorts
+of modules I can get the system to suspend ... though it seems to hang
+with a line "Shutdown: hda" till I hit Enter.
 
-Okay, so the problem is in me. Could we get some documentation? It
-would be useful to know what to expect, and it should probably end up
-in Documentation/ somewhere.
-								Pavel
--- 
-Thanks, Sharp!
+Now, when I resume, I get:
+
+Thawing cpus ...
+Booting processor 1/1 eip 3000
+Initializing CPU#1
+Stuck ??
+Inquiring remote API #1...
+... APIC #1 ID: failed
+... APIC #1 VERSION: failed
+... APIC #1 SPIV: failed
+Error taking cpu 1 up: -22
+Kernel panic - not synching: Not enough cpus
+
+While I tend to agree that I could use some more CPUs I don't panic about
+it ;)
+
+Anyway, from what I see on this list the code that actually gives this
+output seems to be in some of the required patches mentioned here. Is it
+safe to assume that 2.6.14.3 includes the patches needed for
+suspend/resume on a P4 with SMP/HT/PREEMPT in the kernel?
+
+TIA,
+
+Karl.
+
+
 
 
 -------------------------------------------------------
