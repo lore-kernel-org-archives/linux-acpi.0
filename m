@@ -1,11 +1,13 @@
-From: Christoph Galler <listen-TsugTnnrXQsdc6zLPptBHg@public.gmane.org>
-Subject: Acer Aspire 1654 WLMi
-Date: Sat, 17 Dec 2005 01:47:01 +0100
-Message-ID: <43A36005.1080608@ch.risto.ph>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: unable to set alam using echo to /proc/acpi/alarm
+Date: Fri, 16 Dec 2005 20:40:16 +0100
+Message-ID: <20051216194016.GA26760@message-id.gmane0305.slipkontur.de>
+References: <302c0a190512111329i76e9e214v4aff822d99ae5de5@mail.gmail.com> <20051212152008.GA8748@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20051212152008.GA8748-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,26 +20,29 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Mon, Dec 12, 2005 at 04:20:08PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> >    when I try setting the alarm to wake up my pc I get the following
+> >    result:
 
-i just bought a new Acer Aspire notebook and after installing Gentoo
-(Vanilla-Kernel 2.6.14.3) I unfortunately noticed that there is nearly
-no ACPI support (just ac_adapter and buttons afaIk). That's not really
-sad but I need at least the battery state if I'm away.
+> >    [root@mithrandir acpi]# cat alarm
+> >    2005-12-00 17:18:19
+> >    [root@mithrandir acpi]#
+> >    BTW, nothing happens at the echo'd date/time. Could someone please
+> >    give me a clue where to start looking?  I'm running fedora core 4, my
+> >    mobo is an ASUS P5S800-VM, the documentation on the motherboard states
+> >    that ACPI is supported. There is an option to turn acpi 2.0 on, but no
+> >    difference...
+> 
+> alarm never worked properly, IIRC.
 
-A "cat" on /proc/acpi/battery/BAT1/state shows me
+i have seen a thinkpad wake up from S3 at the specified alarm time.
+So it works somehow. Although i was never able to figure out if it was
+woken up manually or by the alarm.
+-- 
+Stefan Seyfried
 
-present:	yes
-ERROR: Unable to read battery status
-
-/proc/acpi/battery/BAT1/info shows the right information about capacity,
-model, vendor etc.
-
-Are there any common/known issues about ACPI on Acer notebooks?
-
-If you need more info, let me know. Thanks in advance.
-
-Christoph
 
 
 -------------------------------------------------------
