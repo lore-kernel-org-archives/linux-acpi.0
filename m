@@ -1,10 +1,10 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2.6.14.3 suspend/resume with SMP (HT)
-Date: Fri, 16 Dec 2005 10:12:43 +0800
-Message-ID: <59D45D057E9702469E5775CBB56411F10120CC53@pdsmsx406>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] make acpi_path_name() global
+Date: Thu, 15 Dec 2005 23:56:47 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30056F8757@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
@@ -17,55 +17,116 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Accardi, Kristen C" <kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, gregkh-l3A5Bk7waGM@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->
->am a little stuck with suspend/resume on my ubuntu breezy system with a
->vanilla 2.6.14.3 kernel built according to
->http://www.columbia.edu/~ariel/acpi/acpi_howto.html
->
->Can't get it to suspend cleanly in normal runlevels, but when I boot to
->single user mode without vesafb, fbcon etc. and if I stop next to
->everything (NetworkManager, pcmcia, alsa etc.) and then unload all
-sorts
->of modules I can get the system to suspend ... though it seems to hang
->with a line "Shutdown: hda" till I hit Enter.
->
->Now, when I resume, I get:
->
->Thawing cpus ...
->Booting processor 1/1 eip 3000
->Initializing CPU#1
->Stuck ??
->Inquiring remote API #1...
->... APIC #1 ID: failed
->... APIC #1 VERSION: failed
->... APIC #1 SPIV: failed
->Error taking cpu 1 up: -22
->Kernel panic - not synching: Not enough cpus
->
->While I tend to agree that I could use some more CPUs I don't panic
-about
->it ;)
->
->Anyway, from what I see on this list the code that actually gives this
->output seems to be in some of the required patches mentioned here. Is
-it
->safe to assume that 2.6.14.3 includes the patches needed for
->suspend/resume on a P4 with SMP/HT/PREEMPT in the kernel?
-I think it's yes.
-Could you please try the CPU offline and online in the system?
-just do
-offline:
-echo 0 > /sys/devices/system/cpu/cpu1/online
-online:
-echo 1 > /sys/devices/system/cpu/cpu1/online
-please check if the CPU1 is correctly online after that.
+I think that some of our code partitioning is screwed up
+and this continues and extends that tradition:-)
 
-Thanks,
-Shaohua
+acpiosxf.h is supposed to declare ACPICA core things that
+the OS needs to see.  osl.c is supposed to glue and
+wrap the appropriate core and Linux functions together.
+
+The big problem we have here is that every acpi sub-system
+header is sucked into a consolidated header and so every
+internal function is available to the entire kernel.
+
+an example of this is acpi_get_name(), which as declared
+isn't supposed to be available outside the core.
+All the uses of it to print ACPI namespace tokens in /proc
+are totally bogus and should be deleted.  The other use
+of it is to print out debug strings -- stuff the OS
+doesn't really need to "know" and maybe something the
+core should do for it.  That leaves the hotplug use,
+which I don't understand.  What does SATA need
+with the actual path names?
+
+thanks,
+-Len
+
+>-----Original Message-----
+>From: Randy Dunlap [mailto:randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org]=20
+>Sent: Thursday, December 15, 2005 8:20 PM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org;=20
+>pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Cc: Accardi, Kristen C; Brown, Len; gregkh-l3A5Bk7waGM@public.gmane.org
+>Subject: [PATCH 1/2] make acpi_path_name() global
+>
+>From: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>
+>Make acpi_path_name() usable by everyone.
+>I need this for adding SATA suspend/resume ACPI support.
+>
+>Note:
+>This function is now a memory allocator and callers should kfree()
+>the memory when done with it.  It doesn't seem safe to me to leave
+>it as returning a pointer to a static buffer (as it was in multiple
+>cloned copies) as we add callers to it.
+>
+>
+>Signed-off-by: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>---
+> drivers/acpi/osl.c      |   29 +++++++++++++++++++++++++++++
+> include/acpi/acpiosxf.h |    2 ++
+> 2 files changed, 31 insertions(+)
+>
+>--- linux-2615-rc5g5.orig/drivers/acpi/osl.c
+>+++ linux-2615-rc5g5/drivers/acpi/osl.c
+>@@ -1078,6 +1078,35 @@ void acpi_os_release_lock(acpi_handle ha
+> 	spin_unlock_irqrestore((spinlock_t *) handle, flags);
+> }
+>=20
+>+/**
+>+ * acpi_path_name - get ACPI path_name for the given handle
+>+ * @handle: ACPI object handle to look up name of
+>+ *
+>+ * Allocates memory if successul.  Caller must free the memory.
+>+ *
+>+ * Returns: pointer to path_name if successful, NULL if not.
+>+ */
+>+u8 *acpi_path_name(acpi_handle handle)
+>+{
+>+	acpi_status		status;
+>+	static u8		*path_name;
+>+	struct acpi_buffer	ret_buf =3D {ACPI_PATHNAME_MAX,=20
+>path_name};
+>+
+>+	path_name =3D kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
+>+	if (!path_name)
+>+		return NULL;
+>+
+>+	status =3D acpi_get_name(handle, ACPI_FULL_PATHNAME, &ret_buf);
+>+
+>+	if (ACPI_FAILURE(status)) {
+>+		acpi_os_free(path_name);
+>+		return NULL;
+>+	}
+>+
+>+	return path_name;
+>+}
+>+EXPORT_SYMBOL(acpi_path_name);
+>+
+> #ifndef ACPI_USE_LOCAL_CACHE
+>=20
+>=20
+>/**************************************************************
+>*****************
+>--- linux-2615-rc5g5.orig/include/acpi/acpiosxf.h
+>+++ linux-2615-rc5g5/include/acpi/acpiosxf.h
+>@@ -112,6 +112,8 @@ unsigned long acpi_os_acquire_lock(acpi_
+>=20
+> void acpi_os_release_lock(acpi_handle handle, unsigned long flags);
+>=20
+>+u8 *acpi_path_name(acpi_handle handle);
+>+
+> /*
+>  * Memory allocation and mapping
+>  */
+>
+>
+>---
+>
 
 
 -------------------------------------------------------
