@@ -1,7 +1,7 @@
 From: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH 2/2] convert acpi_path_name() callers
-Date: Thu, 15 Dec 2005 17:20:18 -0800
-Message-ID: <20051215172018.620988ae.randy_d_dunlap@linux.intel.com>
+Subject: [PATCH 1/2] make acpi_path_name() global
+Date: Thu, 15 Dec 2005 17:20:09 -0800
+Message-ID: <20051215172009.2eb3c3b4.randy_d_dunlap@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -21,138 +21,71 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-Convert the callers of local acpi_path_name() functions to use
-the exported version of it.
+Make acpi_path_name() usable by everyone.
+I need this for adding SATA suspend/resume ACPI support.
+
+Note:
+This function is now a memory allocator and callers should kfree()
+the memory when done with it.  It doesn't seem safe to me to leave
+it as returning a pointer to a static buffer (as it was in multiple
+cloned copies) as we add callers to it.
+
 
 Signed-off-by: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/pci/hotplug/pciehprm_acpi.c |   21 ++++++---------------
- drivers/pci/hotplug/shpchprm_acpi.c |   19 ++++---------------
- 2 files changed, 10 insertions(+), 30 deletions(-)
+ drivers/acpi/osl.c      |   29 +++++++++++++++++++++++++++++
+ include/acpi/acpiosxf.h |    2 ++
+ 2 files changed, 31 insertions(+)
 
---- linux-2615-rc5g5.orig/drivers/pci/hotplug/pciehprm_acpi.c
-+++ linux-2615-rc5g5/drivers/pci/hotplug/pciehprm_acpi.c
-@@ -38,21 +38,6 @@
- #define	METHOD_NAME__HPP	"_HPP"
- #define	METHOD_NAME_OSHP	"OSHP"
- 
--static u8 * acpi_path_name( acpi_handle	handle)
--{
--	acpi_status		status;
--	static u8		path_name[ACPI_PATHNAME_MAX];
--	struct acpi_buffer	ret_buf = { ACPI_PATHNAME_MAX, path_name };
--
--	memset(path_name, 0, sizeof (path_name));
--	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &ret_buf);
--
--	if (ACPI_FAILURE(status))
--		return NULL;
--	else
--		return path_name;	
--}
--
- static acpi_status
- acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
- {
-@@ -71,6 +56,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 		if (!ret_buf.pointer) {
- 			err ("%s:%s alloc for _HPP fail\n", __FUNCTION__,
- 					path_name);
-+			kfree(path_name);
- 			return AE_NO_MEMORY;
- 		}
- 		status = acpi_evaluate_object(handle, METHOD_NAME__HPP,
-@@ -81,6 +67,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 		if (ACPI_FAILURE(status)) {
- 			dbg("%s:%s _HPP fail=0x%x\n", __FUNCTION__,
- 					path_name, status);
-+			kfree(path_name);
- 			return status;
- 		}
- 	}
-@@ -121,6 +108,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 
- free_and_return:
- 	kfree(ret_buf.pointer);
-+	kfree(path_name);
- 	return status;
+--- linux-2615-rc5g5.orig/drivers/acpi/osl.c
++++ linux-2615-rc5g5/drivers/acpi/osl.c
+@@ -1078,6 +1078,35 @@ void acpi_os_release_lock(acpi_handle ha
+ 	spin_unlock_irqrestore((spinlock_t *) handle, flags);
  }
  
-@@ -137,6 +125,7 @@ static acpi_status acpi_run_oshp(acpi_ha
- 	} else {
- 		dbg("%s:%s OSHP passes\n", __FUNCTION__, path_name);
- 	}
-+	kfree(path_name);
- 	return status;
- }
++/**
++ * acpi_path_name - get ACPI path_name for the given handle
++ * @handle: ACPI object handle to look up name of
++ *
++ * Allocates memory if successul.  Caller must free the memory.
++ *
++ * Returns: pointer to path_name if successful, NULL if not.
++ */
++u8 *acpi_path_name(acpi_handle handle)
++{
++	acpi_status		status;
++	static u8		*path_name;
++	struct acpi_buffer	ret_buf = {ACPI_PATHNAME_MAX, path_name};
++
++	path_name = kzalloc(ACPI_PATHNAME_MAX, GFP_KERNEL);
++	if (!path_name)
++		return NULL;
++
++	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &ret_buf);
++
++	if (ACPI_FAILURE(status)) {
++		acpi_os_free(path_name);
++		return NULL;
++	}
++
++	return path_name;
++}
++EXPORT_SYMBOL(acpi_path_name);
++
+ #ifndef ACPI_USE_LOCAL_CACHE
  
-@@ -213,8 +202,10 @@ int pciehp_get_hp_hw_control_from_firmwa
- 		if (ACPI_SUCCESS(status)) {
- 			dbg("Gained control for hotplug HW for pci %s (%s)\n",
- 				pci_name(dev), path_name);
-+			kfree(path_name);
- 			return 0;
- 		}
-+		kfree(path_name);
- 		if (is_root_bridge(handle))
- 			break;
- 		chandle = handle;
---- linux-2615-rc5g5.orig/drivers/pci/hotplug/shpchprm_acpi.c
-+++ linux-2615-rc5g5/drivers/pci/hotplug/shpchprm_acpi.c
-@@ -37,21 +37,6 @@
- #define	METHOD_NAME__HPP	"_HPP"
- #define	METHOD_NAME_OSHP	"OSHP"
+ /*******************************************************************************
+--- linux-2615-rc5g5.orig/include/acpi/acpiosxf.h
++++ linux-2615-rc5g5/include/acpi/acpiosxf.h
+@@ -112,6 +112,8 @@ unsigned long acpi_os_acquire_lock(acpi_
  
--static u8 * acpi_path_name( acpi_handle	handle)
--{
--	acpi_status		status;
--	static u8	path_name[ACPI_PATHNAME_MAX];
--	struct acpi_buffer		ret_buf = { ACPI_PATHNAME_MAX, path_name };
--
--	memset(path_name, 0, sizeof (path_name));
--	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &ret_buf);
--
--	if (ACPI_FAILURE(status))
--		return NULL;
--	else
--		return path_name;	
--}
--
- static acpi_status
- acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
- {
-@@ -70,6 +55,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 		if (!ret_buf.pointer) {
- 			err ("%s:%s alloc for _HPP fail\n", __FUNCTION__,
- 					path_name);
-+			kfree(path_name);
- 			return AE_NO_MEMORY;
- 		}
- 		status = acpi_evaluate_object(handle, METHOD_NAME__HPP,
-@@ -80,6 +66,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 		if (ACPI_FAILURE(status)) {
- 			dbg("%s:%s _HPP fail=0x%x\n", __FUNCTION__,
- 					path_name, status);
-+			kfree(path_name);
- 			return status;
- 		}
- 	}
-@@ -120,6 +107,7 @@ acpi_run_hpp(acpi_handle handle, struct 
+ void acpi_os_release_lock(acpi_handle handle, unsigned long flags);
  
- free_and_return:
- 	kfree(ret_buf.pointer);
-+	kfree(path_name);
- 	return status;
- }
- 
-@@ -136,6 +124,7 @@ static void acpi_run_oshp(acpi_handle ha
- 	} else {
- 		dbg("%s:%s OSHP passes\n", __FUNCTION__, path_name);
- 	}
-+	kfree(path_name);
- }
- 
- int shpchprm_get_physical_slot_number(struct controller *ctrl, u32 *sun, u8 busnum, u8 devnum)
++u8 *acpi_path_name(acpi_handle handle);
++
+ /*
+  * Memory allocation and mapping
+  */
 
 
 ---
