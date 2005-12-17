@@ -1,13 +1,12 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: unable to set alam using echo to /proc/acpi/alarm
-Date: Fri, 16 Dec 2005 20:40:16 +0100
-Message-ID: <20051216194016.GA26760@message-id.gmane0305.slipkontur.de>
-References: <302c0a190512111329i76e9e214v4aff822d99ae5de5@mail.gmail.com> <20051212152008.GA8748@elf.ucw.cz>
+From: Annika <bluekiss1132-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Earn money every month like clockwork!
+Date: Sat, 17 Dec 2005 22:21:37 +0000 (UTC)
+Message-ID: <E1EnkOG-0007JB-4N@mail.sourceforge.net>
+Reply-To: Annika <bluekiss1132-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="qzsoft_directmail_seperator"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20051212152008.GA8748-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +16,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Date: Sat Dec 17 14:19:07 2005
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 12, 2005 at 04:20:08PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> >    when I try setting the alarm to wake up my pc I get the following
-> >    result:
+--qzsoft_directmail_seperator
+Content-Type: text/plain;
+	charset="DEFAULT"
+Content-Transfer-Encoding: base64
 
-> >    [root@mithrandir acpi]# cat alarm
-> >    2005-12-00 17:18:19
-> >    [root@mithrandir acpi]#
-> >    BTW, nothing happens at the echo'd date/time. Could someone please
-> >    give me a clue where to start looking?  I'm running fedora core 4, my
-> >    mobo is an ASUS P5S800-VM, the documentation on the motherboard states
-> >    that ACPI is supported. There is an option to turn acpi 2.0 on, but no
-> >    difference...
-> 
-> alarm never worked properly, IIRC.
+SGVsbG8sCgpEbyB5b3Ugd2FudCB0byBsZWFybiBob3cgdG8gc3RhcnQgeW91ciBvd24gZW1waXJl
+IG9mIHByb2ZpdGFibGUgCiJOaWNoZSBQYXkgUGVyIENsaWNrIFNlYXJjaCBFbmdpbmVzIiBUaGF0
+IFBheSBZb3UgRXZlcnkgTW9udGggTGlrZSBDbG9ja3dvcmsgPwoKR28gdG8gdGhpcyBzaXRlIGh0
+dHA6Ly9uZXRiaXp6Lml3YXJwLmNvbSBhbmQgY2xpY2sgdGhlIHNwb25zb3JlZCBsaW5rcy4KClNl
+ZSB5b3UhCgpBbm5pa2EK
 
-i have seen a thinkpad wake up from S3 at the specified alarm time.
-So it works somehow. Although i was never able to figure out if it was
-woken up manually or by the alarm.
--- 
-Stefan Seyfried
+--qzsoft_directmail_seperator--
 
 
 
