@@ -1,13 +1,11 @@
 From: Christoph Galler <listen-TsugTnnrXQsdc6zLPptBHg@public.gmane.org>
-Subject: Re: 2.6.14.3 suspend/resume with SMP (HT)
-Date: Sat, 17 Dec 2005 01:30:01 +0100
-Message-ID: <43A35C09.9040809@ch.risto.ph>
-References: <59D45D057E9702469E5775CBB56411F10120CC53@pdsmsx406> <1134764243.27534.4.camel@localhost.localdomain>
+Subject: Acer Aspire 1654 WLMi
+Date: Sat, 17 Dec 2005 01:47:01 +0100
+Message-ID: <43A36005.1080608@ch.risto.ph>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1134764243.27534.4.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,21 +20,24 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-On 12/16/2005 09:17 PM, Karl H. Beckers wrote:
+i just bought a new Acer Aspire notebook and after installing Gentoo
+(Vanilla-Kernel 2.6.14.3) I unfortunately noticed that there is nearly
+no ACPI support (just ac_adapter and buttons afaIk). That's not really
+sad but I need at least the battery state if I'm away.
 
->> Am Freitag, den 16.12.2005, 10:12 +0800 schrieb Li, Shaohua:
->> Seems to work,
->>
->> will try once more in single-user mode with all services stopped and
->> modules unloaded like when I suspended and keep you posted.
+A "cat" on /proc/acpi/battery/BAT1/state shows me
 
+present:	yes
+ERROR: Unable to read battery status
 
-I don't know if it solves your problem, but i had to activate "Support
-for hot-pluggable CPUs (Experimental)" (CONFIG_HOTPLUG_CPU=y) in kernel
-to get suspend to disk working with my Pentium 4 HT. Maybe it helps.
+/proc/acpi/battery/BAT1/info shows the right information about capacity,
+model, vendor etc.
+
+Are there any common/known issues about ACPI on Acer notebooks?
+
+If you need more info, let me know. Thanks in advance.
 
 Christoph
-
 
 
 -------------------------------------------------------
