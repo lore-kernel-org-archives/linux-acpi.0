@@ -1,31 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [RFC][PATCH] Runtime switching of the idle function [take 2]
-Date: Tue, 29 Nov 2005 14:08:43 +0100
-Message-ID: <20051129130843.GA9991@openzaurus.ucw.cz>
-References: <1132336954.20672.11.camel@cmn3.stanford.edu> <1132350882.6874.23.camel@mindpipe> <1132351533.4735.37.camel@cmn3.stanford.edu> <20051118220755.GA3029@elte.hu> <1132353689.4735.43.camel@cmn3.stanford.edu> <1132367947.5706.11.camel@localhost.localdomain> <20051124150731.GD2717@elte.hu> <1132952191.24417.14.camel@localhost.localdomain> <20051126130548.GA6503@elte.hu> <1133232503.6328.18.camel@localhost.localdomain>
+From: Olaf Conradi <oohlaf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: regression between -rc4 and -rc5
+Date: Sun, 18 Dec 2005 16:12:08 +0100
+Message-ID: <1c687cba0512180712oc9579cbi96e97b5c89e424fd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932702AbVLROYA@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1133232503.6328.18.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@elte.hu>, acpi-devel@lists.sourceforge.net, len.brown@intel.com, Andrew Morton <akpm@osdl.org>, Fernando Lopez-Lezcano <nando@ccrma.Stanford.EDU>, Lee Revell <rlrevell@joe-job.com>, linux-kernel@vger.kernel.org, "Paul E. McKenney" <paulmck@us.ibm.com>, "K.R. Foley" <kr@cybsft.com>, Thomas Gleixner <tglx@linutronix.de>, pluto@agmk.net, john cooper <john.cooper@timesys.com>, Benedikt Spranger <bene@linutronix.de>, Daniel Walker <dwalker@mvista.com>, Tom Rini <trini@kernel.crashing.org>, George Anzinger <george@mvista.com>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On 12/9/05, Karasyov, Konstantin A <konstantin.a.karasyov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> Hi,
+>
+> It looks like your trip points are getting reset on thermal
+> notifications.
+> Your DSDT implements hysteresis for passive and active cooling (i.e.
+> when the temperature raises above the trip point, the trip point value
+> is decreased to avoid too frequent trip point crossing), so hardware
+> sends the notification to the system to update the trip points, when the
+> trip point is being crossed.
+>
+> So, it's not a bug, it is a firmware implementation, but your DSDT could
+> be slightly modified to set higher trip points values:
 
-> Description:
-> 
-> This patch creates a directory in /sys/kernel called idle.  This
-> directory contains two files: idle_ctrl and idle_methods.  Reading
-> idle_ctrl will show the function that is currently being used for idle,
-> and idle_methods shows the available methods for the user to send write
-> into idle_ctrl to change which function to use for idle.
+I've started looking into the DSDT to fix various methods, so far just
+tried to figure out what all methods do.
 
-Pretty ugly interface, I'd say... is listing function really neccessary?
+In the mean time I upgraded to kernel 2.6.15-rc4 and most problems
+disappeared. Still using the original DSDT. During heavy usage cpu
+temperature rises to 76-78, and never reaches 80.
 
-				Pavel
+Yesterday I upgraded to kernel 2.6.15-rc5, and during compilation of
+ndiswrapper, while browsing the internet, it shutdown. If I compile
+ndiswrapper and don't do anything else, the cpu temp touches 80
+briefly, but does not shutdown. Under -rc4 this does not happen.
 
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+ -Olaf
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
