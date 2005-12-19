@@ -1,12 +1,12 @@
 From: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>
 Subject: Re: 2.6.14.3 suspend/resume with SMP (HT)
-Date: Mon, 19 Dec 2005 21:20:38 +0100
-Message-ID: <1135023638.18094.4.camel@localhost.localdomain>
+Date: Mon, 19 Dec 2005 21:34:48 +0100
+Message-ID: <1135024488.20344.1.camel@localhost.localdomain>
 References: <59D45D057E9702469E5775CBB56411F10120CC53@pdsmsx406>
 	 <1134764243.27534.4.camel@localhost.localdomain>
 	 <43A35C09.9040809@ch.risto.ph>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-v24DE48Kcc+7+bPeRMBO"
+Content-Type: multipart/mixed; boundary="=-eUxCtETbdRti2D7onrQE"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <43A35C09.9040809-TsugTnnrXQsdc6zLPptBHg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -23,22 +23,17 @@ Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-v24DE48Kcc+7+bPeRMBO
+--=-eUxCtETbdRti2D7onrQE
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi Christoph, Shaohua,
 
-I do have hotplug_cpu configured into my kernel and disabling/enabling
-CPUs works just as well in the situation where I did my suspend, s.
-below.
+I do have hotplug_cpu enabled and disabling/enabling cpus works in the
+same situation as the suspend after which the resume does not.
 
-Could it be the setting idle=halt is causing problems? I need that (or
-max_cstate=1 to keep my CPU up to speed) ... otherwise I get boottimes
-of an hour) found a patch that didn't help me, so I sticked to the boot
-param. Haven't gotten round to testing without the param because it
-would take a matter of hours to boot and suspend :S
-Probable cause here?
+Could my setting of idle=halt be a problem? I need it to work around a
+boot up problem.
 
 Thanks,
 
@@ -46,10 +41,7 @@ Karl.
 
 
 
-
-
-
---=-v24DE48Kcc+7+bPeRMBO
+--=-eUxCtETbdRti2D7onrQE
 Content-Disposition: attachment; filename=typescript
 Content-Type: text/plain; name=typescript; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
@@ -158,7 +150,7 @@ root@ubuntu:~# exit
 
 Script done on Mon Dec 19 21:06:43 2005
 
---=-v24DE48Kcc+7+bPeRMBO--
+--=-eUxCtETbdRti2D7onrQE--
 
 
 
