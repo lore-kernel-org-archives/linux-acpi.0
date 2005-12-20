@@ -1,11 +1,13 @@
-From: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: confusing debug message (suspend)
-Date: Mon, 19 Dec 2005 13:53:30 -0800
-Message-ID: <20051219135330.1b9ef2c9.randy_d_dunlap@linux.intel.com>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.6.14.3 suspend/resume with SMP (HT)
+Date: Tue, 20 Dec 2005 10:56:57 +0800
+Message-ID: <59D45D057E9702469E5775CBB56411F10127C0E3@pdsmsx406>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,26 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>, Christoph Galler <listen-TsugTnnrXQsdc6zLPptBHg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-During a suspend, a user sees:
-
-Stopping tasks: ==========|
-acpi_bus-0201 [57] bus_set_power         : Device is not power manageable
-PM: Entering mem sleep
-
-When a user sees this, is there anything that s/he should do?
-Does this prevent or hinder or harm suspend/resume capabilities?
-
-The line number and thread_id are unclear IMO.
-What thread_id is this?
-Is there some way that we can get some kind of device info
-into this message?
+Hi,
+>
+>I do have hotplug_cpu configured into my kernel and disabling/enabling
+>CPUs works just as well in the situation where I did my suspend, s.
+>below.
+>
+>Could it be the setting idle=3Dhalt is causing problems? I need that =
+(or
+>max_cstate=3D1 to keep my CPU up to speed)
+Might be an issue fixed in latest kernel. Please try.
 
 Thanks,
----
-~Randy
+Shaohua
+
 
 
 -------------------------------------------------------
