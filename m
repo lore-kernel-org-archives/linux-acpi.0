@@ -1,9 +1,9 @@
-From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: [PATCH 2/2] convert acpi_path_name() callers (v3)
-Date: Tue, 20 Dec 2005 19:18:36 -0800
-Message-ID: <20051220191836.6608ce07.rdunlap@xenotime.net>
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: [PATCH][RESEND] ACPI EC driver on IA64
+Date: Wed, 21 Dec 2005 12:23:46 +0900
+Message-ID: <43A8CAC2.3010709@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,287 +15,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Hi,
 
-Convert the callers of local acpi_path_name() functions to use
-the exported version of it.
+This is the resend of the patch I posted before at
 
-Signed-off-by: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
----
- drivers/pci/hotplug/pciehprm_acpi.c |   63 ++++++++++++++++++++----------------
- drivers/pci/hotplug/shpchprm_acpi.c |   49 ++++++++++++++--------------
- 2 files changed, 60 insertions(+), 52 deletions(-)
+	http://sourceforge.net/mailarchive/message.php?msg_id=14090410
 
---- linux-2615-rc6-acpi.orig/drivers/pci/hotplug/pciehprm_acpi.c
-+++ linux-2615-rc6-acpi/drivers/pci/hotplug/pciehprm_acpi.c
-@@ -38,21 +38,6 @@
- #define	METHOD_NAME__HPP	"_HPP"
- #define	METHOD_NAME_OSHP	"OSHP"
- 
--static u8 * acpi_path_name( acpi_handle	handle)
--{
--	acpi_status		status;
--	static u8		path_name[ACPI_PATHNAME_MAX];
--	struct acpi_buffer	ret_buf = { ACPI_PATHNAME_MAX, path_name };
--
--	memset(path_name, 0, sizeof (path_name));
--	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &ret_buf);
--
--	if (ACPI_FAILURE(status))
--		return NULL;
--	else
--		return path_name;	
--}
--
- static acpi_status
- acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
- {
-@@ -60,8 +45,14 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	u8			nui[4];
- 	struct acpi_buffer	ret_buf = { 0, NULL};
- 	union acpi_object	*ext_obj, *package;
--	u8			*path_name = acpi_path_name(handle);
- 	int			i, len = 0;
-+	struct acpi_buffer	namebuf = {ACPI_ALLOCATE_BUFFER, NULL};
-+	char			*pathname;
-+
-+	if (acpi_path_name(handle, &namebuf))
-+		pathname = NULL;
-+	else
-+		pathname = namebuf.pointer;
- 
- 	/* get _hpp */
- 	status = acpi_evaluate_object(handle, METHOD_NAME__HPP, NULL, &ret_buf);
-@@ -70,7 +61,8 @@ acpi_run_hpp(acpi_handle handle, struct 
- 		ret_buf.pointer = kmalloc (ret_buf.length, GFP_KERNEL);
- 		if (!ret_buf.pointer) {
- 			err ("%s:%s alloc for _HPP fail\n", __FUNCTION__,
--					path_name);
-+					pathname);
-+			acpi_os_free(namebuf.pointer);
- 			return AE_NO_MEMORY;
- 		}
- 		status = acpi_evaluate_object(handle, METHOD_NAME__HPP,
-@@ -80,7 +72,8 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	default:
- 		if (ACPI_FAILURE(status)) {
- 			dbg("%s:%s _HPP fail=0x%x\n", __FUNCTION__,
--					path_name, status);
-+					pathname, status);
-+			acpi_os_free(namebuf.pointer);
- 			return status;
- 		}
- 	}
-@@ -88,7 +81,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	ext_obj = (union acpi_object *) ret_buf.pointer;
- 	if (ext_obj->type != ACPI_TYPE_PACKAGE) {
- 		err ("%s:%s _HPP obj not a package\n", __FUNCTION__,
--				path_name);
-+				pathname);
- 		status = AE_ERROR;
- 		goto free_and_return;
- 	}
-@@ -103,7 +96,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 			break;
- 		default:
- 			err ("%s:%s _HPP obj type incorrect\n", __FUNCTION__,
--					path_name);
-+					pathname);
- 			status = AE_ERROR;
- 			goto free_and_return;
- 		}
-@@ -120,23 +113,31 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	dbg("  _HPP: enable PERR    =0x%x\n", hpp->enable_perr);
- 
- free_and_return:
--	kfree(ret_buf.pointer);
-+	acpi_os_free(ret_buf.pointer);
-+	acpi_os_free(namebuf.pointer);
- 	return status;
- }
- 
- static acpi_status acpi_run_oshp(acpi_handle handle)
- {
- 	acpi_status		status;
--	u8			*path_name = acpi_path_name(handle);
-+	struct acpi_buffer	namebuf = {ACPI_ALLOCATE_BUFFER, NULL};
-+	char			*pathname;
-+
-+	if (acpi_path_name(handle, &namebuf))
-+		pathname = NULL;
-+	else
-+		pathname = namebuf.pointer;
- 
- 	/* run OSHP */
- 	status = acpi_evaluate_object(handle, METHOD_NAME_OSHP, NULL, NULL);
- 	if (ACPI_FAILURE(status)) {
--		dbg("%s:%s OSHP fails=0x%x\n", __FUNCTION__, path_name,
-+		dbg("%s:%s OSHP fails=0x%x\n", __FUNCTION__, pathname,
- 				status);
- 	} else {
--		dbg("%s:%s OSHP passes\n", __FUNCTION__, path_name);
-+		dbg("%s:%s OSHP passes\n", __FUNCTION__, pathname);
- 	}
-+	acpi_os_free(namebuf.pointer);
- 	return status;
- }
- 
-@@ -174,7 +175,10 @@ int pciehp_get_hp_hw_control_from_firmwa
- 	acpi_status status;
- 	acpi_handle chandle, handle = DEVICE_ACPI_HANDLE(&(dev->dev));
- 	struct pci_dev *pdev = dev;
--	u8 *path_name;
-+	struct acpi_buffer	namebuf = {ACPI_ALLOCATE_BUFFER, NULL};
-+	acpi_status		namests;
-+	char			*pathname;
-+
- 	/*
- 	 * Per PCI firmware specification, we should run the ACPI _OSC
- 	 * method to get control of hotplug hardware before using it.
-@@ -204,17 +208,20 @@ int pciehp_get_hp_hw_control_from_firmwa
- 	}
- 
- 	while (handle) {
--		path_name = acpi_path_name(handle);
--		dbg("Trying to get hotplug control for %s \n", path_name);
-+		namests = acpi_path_name(handle, &namebuf);
-+		pathname = namests ? NULL : namebuf.pointer;
-+		dbg("Trying to get hotplug control for %s\n", pathname);
- 		status = pci_osc_control_set(handle,
- 				OSC_PCI_EXPRESS_NATIVE_HP_CONTROL);
- 		if (status == AE_NOT_FOUND)
- 			status = acpi_run_oshp(handle);
- 		if (ACPI_SUCCESS(status)) {
- 			dbg("Gained control for hotplug HW for pci %s (%s)\n",
--				pci_name(dev), path_name);
-+				pci_name(dev), pathname);
-+			acpi_os_free(namebuf.pointer);
- 			return 0;
- 		}
-+		acpi_os_free(namebuf.pointer);
- 		if (is_root_bridge(handle))
- 			break;
- 		chandle = handle;
---- linux-2615-rc6-acpi.orig/drivers/pci/hotplug/shpchprm_acpi.c
-+++ linux-2615-rc6-acpi/drivers/pci/hotplug/shpchprm_acpi.c
-@@ -37,21 +37,6 @@
- #define	METHOD_NAME__HPP	"_HPP"
- #define	METHOD_NAME_OSHP	"OSHP"
- 
--static u8 * acpi_path_name( acpi_handle	handle)
--{
--	acpi_status		status;
--	static u8	path_name[ACPI_PATHNAME_MAX];
--	struct acpi_buffer		ret_buf = { ACPI_PATHNAME_MAX, path_name };
--
--	memset(path_name, 0, sizeof (path_name));
--	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, &ret_buf);
--
--	if (ACPI_FAILURE(status))
--		return NULL;
--	else
--		return path_name;	
--}
--
- static acpi_status
- acpi_run_hpp(acpi_handle handle, struct hotplug_params *hpp)
- {
-@@ -59,8 +44,14 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	u8			nui[4];
- 	struct acpi_buffer	ret_buf = { 0, NULL};
- 	union acpi_object	*ext_obj, *package;
--	u8			*path_name = acpi_path_name(handle);
- 	int			i, len = 0;
-+	struct acpi_buffer	namebuf = {ACPI_ALLOCATE_BUFFER, NULL};
-+	char			*pathname;
-+
-+	if (acpi_path_name(handle, &namebuf))
-+		pathname = NULL;
-+	else
-+		pathname = namebuf.pointer;
- 
- 	/* get _hpp */
- 	status = acpi_evaluate_object(handle, METHOD_NAME__HPP, NULL, &ret_buf);
-@@ -69,7 +60,8 @@ acpi_run_hpp(acpi_handle handle, struct 
- 		ret_buf.pointer = kmalloc (ret_buf.length, GFP_KERNEL);
- 		if (!ret_buf.pointer) {
- 			err ("%s:%s alloc for _HPP fail\n", __FUNCTION__,
--					path_name);
-+					pathname);
-+			acpi_os_free(namebuf.pointer);
- 			return AE_NO_MEMORY;
- 		}
- 		status = acpi_evaluate_object(handle, METHOD_NAME__HPP,
-@@ -79,7 +71,8 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	default:
- 		if (ACPI_FAILURE(status)) {
- 			dbg("%s:%s _HPP fail=0x%x\n", __FUNCTION__,
--					path_name, status);
-+					pathname, status);
-+			acpi_os_free(namebuf.pointer);
- 			return status;
- 		}
- 	}
-@@ -87,7 +80,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	ext_obj = (union acpi_object *) ret_buf.pointer;
- 	if (ext_obj->type != ACPI_TYPE_PACKAGE) {
- 		err ("%s:%s _HPP obj not a package\n", __FUNCTION__,
--				path_name);
-+				pathname);
- 		status = AE_ERROR;
- 		goto free_and_return;
- 	}
-@@ -102,7 +95,7 @@ acpi_run_hpp(acpi_handle handle, struct 
- 			break;
- 		default:
- 			err ("%s:%s _HPP obj type incorrect\n", __FUNCTION__,
--					path_name);
-+					pathname);
- 			status = AE_ERROR;
- 			goto free_and_return;
- 		}
-@@ -119,23 +112,31 @@ acpi_run_hpp(acpi_handle handle, struct 
- 	dbg("  _HPP: enable PERR    =0x%x\n", hpp->enable_perr);
- 
- free_and_return:
--	kfree(ret_buf.pointer);
-+	acpi_os_free(ret_buf.pointer);
-+	acpi_os_free(namebuf.pointer);
- 	return status;
- }
- 
- static void acpi_run_oshp(acpi_handle handle)
- {
- 	acpi_status		status;
--	u8			*path_name = acpi_path_name(handle);
-+	struct acpi_buffer	namebuf = {ACPI_ALLOCATE_BUFFER, NULL};
-+	char			*pathname;
-+
-+	if (acpi_path_name(handle, &namebuf))
-+		pathname = NULL;
-+	else
-+		pathname = namebuf.pointer;
- 
- 	/* run OSHP */
- 	status = acpi_evaluate_object(handle, METHOD_NAME_OSHP, NULL, NULL);
- 	if (ACPI_FAILURE(status)) {
--		err("%s:%s OSHP fails=0x%x\n", __FUNCTION__, path_name,
-+		err("%s:%s OSHP fails=0x%x\n", __FUNCTION__, pathname,
- 				status);
- 	} else {
--		dbg("%s:%s OSHP passes\n", __FUNCTION__, path_name);
-+		dbg("%s:%s OSHP passes\n", __FUNCTION__, pathname);
- 	}
-+	acpi_os_free(namebuf.pointer);
- }
- 
- int shpchprm_get_physical_slot_number(struct controller *ctrl, u32 *sun, u8 busnum, u8 devnum)
+Please apply.
 
----
+Thanks,
+Kenji Kaneshige
+
+
+This patch removes "depends on X86" from config ACPI_EC. With this
+patch, ACPI EC driver will be built also on x86_64 and ia64.
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+
+ drivers/acpi/Kconfig |    1 -
+ 1 files changed, 1 deletion(-)
+
+Index: linux-2.6.15-rc6/drivers/acpi/Kconfig
+===================================================================
+--- linux-2.6.15-rc6.orig/drivers/acpi/Kconfig
++++ linux-2.6.15-rc6/drivers/acpi/Kconfig
+@@ -269,7 +269,6 @@ config ACPI_DEBUG
+ 
+ config ACPI_EC
+ 	bool
+-	depends on X86
+ 	default y
+ 	help
+ 	  This driver is required on some systems for the proper operation of
 
 
 -------------------------------------------------------
