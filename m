@@ -1,13 +1,13 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH][RESEND] ACPI EC driver on IA64
-Date: Tue, 20 Dec 2005 22:28:57 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30057DD0C3@hdsmsx401.amr.corp.intel.com>
+From: Dirk Mueller <dmueller-IBi9RG/b67k@public.gmane.org>
+Subject: [PATCH]  make cpu_has_cpufreq() work
+Date: Wed, 21 Dec 2005 04:46:48 +0100
+Message-ID: <200512210446.49494.dmueller@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-2022-jp"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,56 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
 
-(note that x86_64 includes CONFIG_X86, so this changes IA64 only)
+Hi, 
 
-thanks,
--Len 
+it seems to me the return values of cpu_has_cpufreq in processor_thermal.c are 
+reversed. all callers check for if(!cpu_has_cpufreq()) return -ENODEV, which 
+indicates that it expects a return value of 0 for error, and nonzero for 
+success. 
 
->-----Original Message-----
->From: Kenji Kaneshige [mailto:kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org] 
->Sent: Tuesday, December 20, 2005 10:24 PM
->To: Brown, Len; Andrew Morton; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [PATCH][RESEND] ACPI EC driver on IA64
->
->Hi,
->
->This is the resend of the patch I posted before at
->
->	http://sourceforge.net/mailarchive/message.php?msg_id=14090410
->
->Please apply.
->
->Thanks,
->Kenji Kaneshige
->
->
->This patch removes "depends on X86" from config ACPI_EC. With this
->patch, ACPI EC driver will be built also on x86_64 and ia64.
->
->Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
->
-> drivers/acpi/Kconfig |    1 -
-> 1 files changed, 1 deletion(-)
->
->Index: linux-2.6.15-rc6/drivers/acpi/Kconfig
->===================================================================
->--- linux-2.6.15-rc6.orig/drivers/acpi/Kconfig
->+++ linux-2.6.15-rc6/drivers/acpi/Kconfig
->@@ -269,7 +269,6 @@ config ACPI_DEBUG
-> 
-> config ACPI_EC
-> 	bool
->-	depends on X86
-> 	default y
-> 	help
-> 	  This driver is required on some systems for the 
->proper operation of
->
+However the current implementation gets that reversed. the patch below fixes 
+it. Spotted by Thomas Renninger, and fixes the ACPI thermal code never 
+actually speedstepping the CPU when it overheats. 
+
+
+Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Signed-off-by: Dirk Mueller <dmueller-IBi9RG/b67k@public.gmane.org>
+
+--- processor_thermal.c.orig    2005-12-21 00:18:06.000000000 +0100
++++ processor_thermal.c 2005-12-21 00:18:23.000000000 +0100
+@@ -102,8 +102,8 @@ static int cpu_has_cpufreq(unsigned int
+ {
+        struct cpufreq_policy policy;
+        if (!acpi_thermal_cpufreq_is_init || cpufreq_get_policy(&policy, cpu))
+-               return -ENODEV;
+-       return 0;
++               return 0;
++       return 1;
+ }
+
+ static int acpi_thermal_cpufreq_increase(unsigned int cpu)
 
 
 -------------------------------------------------------
