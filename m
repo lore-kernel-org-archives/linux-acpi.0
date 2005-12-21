@@ -1,7 +1,10 @@
-From: info-fP8JZs5uNYwAvxtiuMwx3w@public.gmane.org
-Subject: 『初対面ＳＥＸ最優先の大人の秘密会合』開催報告
-Date: 20 Dec 2005 23:36:41 +0900
-Message-ID: <20051220143641.17523.qmail@mail.ddggg.com>
+From: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Subject: [PATCH 1/2] make acpi_path_name() global (v3)
+Date: Tue, 20 Dec 2005 19:18:28 -0800
+Message-ID: <20051220191828.65d0087f.rdunlap@xenotime.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -12,65 +15,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-今回、誠に勝手なご連絡をさせて頂きまして申し訳ありません。
-※イベント【密会】の近日開催決定のご報告及び、
-それに伴いまして、男性様・女性様の限定枠が不足しているため
-急募依頼のお知らせで御座います。
+From: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-※イベントは既に、予定限定人数にて各地域開催予定会場を
-ピックアップ《男性13名様・女性8名様》の人数不足という現状
-にあります。　注)各地域不足人数は異なります！
+Make acpi_path_name() usable by everyone.
+I need this for adding SATA suspend/resume ACPI support.
 
-つきましては、貴方様に今回のご案内内容にご同意頂ける様であ
-れば【密会】にご参加を頂きたく、イベント開催告知という形での
-ご連絡とさせて頂いております。
+Signed-off-by: Randy Dunlap <randy_d_dunlap-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+---
+ drivers/acpi/osl.c      |   21 +++++++++++++++++++++
+ include/acpi/acpiosxf.h |    2 ++
+ 2 files changed, 23 insertions(+)
 
-◆ご賛同ご希望はこちら↓
-http://www.f-day1.net/?sex
+--- linux-2615-rc6-acpi.orig/drivers/acpi/osl.c
++++ linux-2615-rc6-acpi/drivers/acpi/osl.c
+@@ -1078,6 +1078,27 @@ void acpi_os_release_lock(acpi_handle ha
+ 	spin_unlock_irqrestore((spinlock_t *) handle, flags);
+ }
+ 
++/**
++ * acpi_path_name - get ACPI path_name for the given handle
++ * @handle: ACPI object handle to look up name of
++ * @namebuf: acpi_buffer with input flags and output name
++ *
++ * Caller can allocate & free the output name buffer or can set
++ * namebuf.length to ACPI_ALLOCATE_BUFFER to have ACPI-CA allocate
++ * the buffer but caller is still responsible for freeing it.
++ *
++ * Returns: status of acpi_get_name()
++ */
++acpi_status acpi_path_name(acpi_handle handle, struct acpi_buffer *namebuf)
++{
++	acpi_status		status;
++
++	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, namebuf);
++
++	return_ACPI_STATUS(status);
++}
++EXPORT_SYMBOL_GPL(acpi_path_name);
++
+ #ifndef ACPI_USE_LOCAL_CACHE
+ 
+ /*******************************************************************************
+--- linux-2615-rc6-acpi.orig/include/acpi/acpiosxf.h
++++ linux-2615-rc6-acpi/include/acpi/acpiosxf.h
+@@ -112,6 +112,8 @@ unsigned long acpi_os_acquire_lock(acpi_
+ 
+ void acpi_os_release_lock(acpi_handle handle, unsigned long flags);
+ 
++acpi_status acpi_path_name(acpi_handle handle, struct acpi_buffer *namebuf);
++
+ /*
+  * Memory allocation and mapping
+  */
 
-
-【密会】のプログラムは以下の様になります。
-●独身女性20代前半〜35才迄の女性様方との個室お食事会
-（男性様3名／女性様4名）
-
-●お食事後30分間のフリータイム制
-
-●男女1対1のカップルに成られまして別室へ移動
-　今後様々なお約束をお取次ぎ下さい。
-
-※この際男女カップルに成りそびれる事は決して無い様手配をさ
-せて頂きます
-
-●お相手女性様より、ＳＥＸお相手として契約成立の際は貴方様
-　への謝礼金を無条件にてお受け取り可能となっております。
-　
-※貴方様への謝礼金は、女性様が貴方様へ感謝の気持ちで直接貴方
-様へお渡しするので貴方様が全額受け取れます。
-
-今回少数人数限定のご応募になっていますので定員数をオーバーさ
-れますとご賛同していただけましても【密会】にご参加頂けない場
-合も御座いますので予めご了承くださいます様お願いいたします。
-その際は【密会】と同様なイベントに【最優先】でご参加可能な
-手続きを取らせていただきます。
-http://www.f-day1.net/?sex
-
-
-
-
-
-
-
-
-
-
---------------------------------------------
-配信拒否を希望の方はこちらまでお願いします。
-　stop-J5hIdtz43yCsTnJN9+BGXg@public.gmane.org
-
-
+---
 
 
 -------------------------------------------------------
