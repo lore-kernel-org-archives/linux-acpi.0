@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: 2.6.14.3 suspend/resume with SMP (HT)
-Date: Wed, 21 Dec 2005 10:58:12 +0100
-Message-ID: <20051221095812.GA1735@elf.ucw.cz>
-References: <6073.193.141.92.4.1134666664.squirrel@www.our-isp.org>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: Re: [PATCH 1/2] make acpi_path_name() global (v3)
+Date: Wed, 21 Dec 2005 05:44:54 -0700
+Message-ID: <20051221124454.GA2361@parisc-linux.org>
+References: <20051220191828.65d0087f.rdunlap@xenotime.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6073.193.141.92.4.1134666664.squirrel-M7EjoFQNY9cJ6rt9v30lug@public.gmane.org>
+In-Reply-To: <20051220191828.65d0087f.rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,52 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Karl H. Beckers" <karl.h.beckers-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Randy.Dunlap" <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kristen.c.accardi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Tue, Dec 20, 2005 at 07:18:28PM -0800, Randy.Dunlap wrote:
+> +acpi_status acpi_path_name(acpi_handle handle, struct acpi_buffer *namebuf)
+> +{
+> +	acpi_status		status;
+> +
+> +	status = acpi_get_name(handle, ACPI_FULL_PATHNAME, namebuf);
+> +
+> +	return_ACPI_STATUS(status);
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_path_name);
 
-> am a little stuck with suspend/resume on my ubuntu breezy system with a
-> vanilla 2.6.14.3 kernel built according to
-> http://www.columbia.edu/~ariel/acpi/acpi_howto.html
-> 
-> Can't get it to suspend cleanly in normal runlevels, but when I boot to
-> single user mode without vesafb, fbcon etc. and if I stop next to
-> everything (NetworkManager, pcmcia, alsa etc.) and then unload all sorts
-> of modules I can get the system to suspend ... though it seems to hang
-> with a line "Shutdown: hda" till I hit Enter.
-> 
-> Now, when I resume, I get:
-> 
-> Thawing cpus ...
-> Booting processor 1/1 eip 3000
-> Initializing CPU#1
-> Stuck ??
-> Inquiring remote API #1...
-> ... APIC #1 ID: failed
-> ... APIC #1 VERSION: failed
-> ... APIC #1 SPIV: failed
-> Error taking cpu 1 up: -22
-> Kernel panic - not synching: Not enough cpus
-> 
-> While I tend to agree that I could use some more CPUs I don't panic about
-> it ;)
-> 
-> Anyway, from what I see on this list the code that actually gives this
-> output seems to be in some of the required patches mentioned here. Is it
-> safe to assume that 2.6.14.3 includes the patches needed for
-> suspend/resume on a P4 with SMP/HT/PREEMPT in the kernel?
+Nope.  You either need to add an "ACPI_FUNCTION_TRACE" call at the top
+of your function, or just do "return status;".  Otherwise you'll screw
+up the ACPI debug code.
 
-Not sure, you should really try with 2.6.15-rc...
-
-Does resume work for you if you compile noSMP kernel?
-
-Can you find out which driver breaks suspend?
-
-								Pavel
--- 
-Thanks, Sharp!
 
 
 -------------------------------------------------------
