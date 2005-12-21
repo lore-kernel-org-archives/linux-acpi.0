@@ -1,13 +1,13 @@
-From: Dirk Mueller <dmueller-IBi9RG/b67k@public.gmane.org>
-Subject: [PATCH]  make cpu_has_cpufreq() work
-Date: Wed, 21 Dec 2005 04:46:48 +0100
-Message-ID: <200512210446.49494.dmueller@suse.com>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI owner_id limit too low
+Date: Tue, 20 Dec 2005 22:52:06 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B30057DD0DF@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +17,14 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+applied to acpi-test
 
-Hi, 
-
-it seems to me the return values of cpu_has_cpufreq in processor_thermal.c are 
-reversed. all callers check for if(!cpu_has_cpufreq()) return -ENODEV, which 
-indicates that it expects a return value of 0 for error, and nonzero for 
-success. 
-
-However the current implementation gets that reversed. the patch below fixes 
-it. Spotted by Thomas Renninger, and fixes the ACPI thermal code never 
-actually speedstepping the CPU when it overheats. 
-
-
-Signed-off-by: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Signed-off-by: Dirk Mueller <dmueller-IBi9RG/b67k@public.gmane.org>
-
---- processor_thermal.c.orig    2005-12-21 00:18:06.000000000 +0100
-+++ processor_thermal.c 2005-12-21 00:18:23.000000000 +0100
-@@ -102,8 +102,8 @@ static int cpu_has_cpufreq(unsigned int
- {
-        struct cpufreq_policy policy;
-        if (!acpi_thermal_cpufreq_is_init || cpufreq_get_policy(&policy, cpu))
--               return -ENODEV;
--       return 0;
-+               return 0;
-+       return 1;
- }
-
- static int acpi_thermal_cpufreq_increase(unsigned int cpu)
+thanks,
+-Len=20
 
 
 -------------------------------------------------------
