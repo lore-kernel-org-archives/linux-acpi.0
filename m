@@ -1,13 +1,16 @@
-From: Jaco Kroon <jacok-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
-Subject: Re: Toshiba Satellite P10
-Date: Thu, 22 Dec 2005 16:28:13 +0200
-Message-ID: <43AAB7FD.3000901@csstirisano.co.za>
-References: <43A8F98D.3000704@csstirisano.co.za> <20051222110219.GB9838@elf.ucw.cz> <20051222120413.GA28743@suse.de> <20051222141500.GA15412@g16.suse.de>
+From: Voluspa <lista1-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Fw: Re: 2.6.15-rc5-mm1
+Date: Thu, 22 Dec 2005 16:07:53 +0100
+Message-ID: <20051222160753.67437695.lista1@telia.com>
+References: <20051210111557.18ba5fc8.lista1@telia.com>
+	<200512101320.18779.rik@osrc.info>
+	<20051214050428.21d3f224.lista1@telia.com>
+	<43AAABA7.7080303@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20051222141500.GA15412-+Mg20aWpcBQb1SvskN2V4Q@public.gmane.org>
+In-Reply-To: <43AAABA7.7080303-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +20,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>
-Cc: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, jaco-P18QfuJFXGPYkQIYctQFYw@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Holger Macht wrote:
-> Tested with 2.6.14 kernels without hyperthreading and both suspend to disk
-> and suspend to ram are working when using acpi_sleep=s3_bios,s3_mode at
-> the boot prompt. Though, with smp kernels and hyperthreading enabled, both
-> are not working (video.txt already contains this information).
+On Thu, 22 Dec 2005 14:35:35 +0100 Thomas Renninger wrote:
+> Voluspa wrote:
+> > On Sat, 10 Dec 2005 13:20:15 +0300 Roman I Khimov wrote:
+> >> | Voluspa:
+> >>> Nope, neither "nocst" nor "acpi=nocst" gave me back the C1
+> >>> functionality...
+> >> Yep, same here, just tried.
+> > 
+> > Sorry about the red herring. I've patched 2.6.14 with the two acpi
+[...]
+> Maybe it is this little patch that also has been applied in rc5?
+> http://bugzilla.kernel.org/show_bug.cgi?id=5452
 > 
-> Regards,
->         Holger
+> If you have ACPI_DEBUG=y compiled in you should have seen:
+> "BIOS reporting wrong ACPI idfor the processor", then it might be this one.
 
-Indeed.  Although - the keyboard does not come back properly or 
-something broke along the way.  I can switch between VTs but I can't 
-input into any of the ttys.
+Thanx Thomas, but no, I tripped on a bug totally unrelated to Roman's. Found
+the culprit and reported + opened a bugzilla:
 
-Will experiment more this evening, on my way home now.  Thanks for 
-pointing me to the right docs (those I should have RTFMed in the first 
-place).
+http://bugzilla.kernel.org/show_bug.cgi?id=5767
 
--- 
-Jaco Kroon
-Support Engineer
-CSS TIRISANO
-Computer Systems (Pty) Ltd
-Tel:   +27 12 621 3171
-Fax:   +27 12 661 4984
-Cell:  +27 84 515 8255
-
-Notice: This message and any attachments are confidential and intended 
-solely for the addressee. If you have received this message in error, 
-please notify the sender by email or by phone to the listed number. Any 
-unauthorised use, alteration or dissemination is prohibited. CSS 
-Tirisano (Pty) Ltd accepts no liability for any direct, indirect or 
-consequential loss or damages, arising from the contents of this message.
+Mvh
+Mats Johannesson
+--
 
 
 -------------------------------------------------------
