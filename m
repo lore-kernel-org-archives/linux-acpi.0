@@ -1,13 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: asus_acpi still broken on Samsung P30/P35
-Date: Thu, 22 Dec 2005 11:53:45 +0100
-Message-ID: <20051222105344.GA32356@hell.org.pl>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300580F140@hdsmsx401.amr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Toshiba Satellite P10
+Date: Thu, 22 Dec 2005 12:02:19 +0100
+Message-ID: <20051222110219.GB9838@elf.ucw.cz>
+References: <43A8F98D.3000704@csstirisano.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300580F140-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <43A8F98D.3000704-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Hanno B??ck <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
+To: Jaco Kroon <jacok-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, seife-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Brown, Len:
-> Karol,
-> Do you have an update of your asus driver in the pipeline
-> that addresses this?
+Hi
 
-I still believe the only _right_ *workaround* is
-http://bugme.osdl.org/attachment.cgi?id=6006&action=view
+> I'm having some trouble with suspend/resume on my Toshiba Satellite P10 
+> and was wondering whether anybody would be able to assist.
+> 
+> The omnibook module makes some functionality (like the multimedia keys, 
+> temperature readings, LCD and FAN adjustments) available.  It however 
+> does not help with suspend/resume at all.
+> 
+> It seems like the notebook only supports standby and suspend to ram.  It 
+> seems to come out of standby almost immediately and never come out of 
+> suspend to ram.  Running hibernate-ram -n works fine, but when running 
+> it without -n it actually suspends to RAM, hdd spins down, network goes 
+> down, CPU fans stop and the power led turns red (instead of the normal 
+> blue - this is in accordance with what I've seen with Windows).
+> 
+> When it's time again to resume however, it just does nothing and I need 
+> to power-cycle the machine to get it usable again.
 
-I'll take a shot at rediffing it against recent kernels in a couple of
-hours (unless someone beats me to it).
+P10... is it that beast with pentium4 and hyperthreading? Dual cpu
+fans?
 
-acpi=strict will work until a suitable patch is merged.
+That worked for me. See Doc*/power/video.txt. Yep, that one works with
+right config. Get swsusp working, first. Then you can debug s2ram.
 
-Note: it's still a workaround, to properly fix this we need to make ACPI
-interpreter behave predictably, as written in
-http://bugme.osdl.org/show_bug.cgi?id=5067#c6 -- I believe I still haven't
-heard from Robert Moore on the feasibility of such a solution.
 
-Please also see http://bugme.osdl.org/show_bug.cgi?id=5067 and
-http://bugzilla.kernel.org/show_bug.cgi?id=5092 for more info.
-
-Best regards,
-
+							Pavel
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Thanks, Sharp!
 
 
 -------------------------------------------------------
