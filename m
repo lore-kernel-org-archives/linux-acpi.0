@@ -1,87 +1,51 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: [PATCH] Work around asus_acpi driver oopses on Samsung P30s and the like due to the ACPI implicit return
-Date: Thu, 22 Dec 2005 18:42:26 +0100
-Message-ID: <20051222174226.GB20051@hell.org.pl>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300580F140@hdsmsx401.amr.corp.intel.com>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: regression between -rc4 and -rc5
+Date: Thu, 22 Dec 2005 21:38:39 +0100
+Message-ID: <43AB0ECF.10302@suse.de>
+References: <1c687cba0512180712oc9579cbi96e97b5c89e424fd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030236AbVLVRmb@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300580F140@hdsmsx401.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Brown, Len" <len.brown@intel.com>
-Cc: Linus Torvalds <torvalds@osdl.org>, Hanno B??ck <mail@hboeck.de>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, Christian Aichinger <Greek0@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1c687cba0512180712oc9579cbi96e97b5c89e424fd-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Olaf Conradi <oohlaf-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Brown, Len:
-> Karol,
-> Do you have an update of your asus driver in the pipeline
-> that addresses this?
+Olaf Conradi wrote:
+> 
+> In the mean time I upgraded to kernel 2.6.15-rc4 and most problems
+> disappeared. Still using the original DSDT. During heavy usage cpu
+> temperature rises to 76-78, and never reaches 80.
+> 
+> Yesterday I upgraded to kernel 2.6.15-rc5, and during compilation of
+> ndiswrapper, while browsing the internet, it shutdown. If I compile
+> ndiswrapper and don't do anything else, the cpu temp touches 80
+> briefly, but does not shutdown. Under -rc4 this does not happen.
+> 
+What you see is probably a bug that slipped in 2.6.15-rc5:
+It totally disables the use of cpufreq for passive cooling.
+I already pointed Len to it and as this is really sever I am sure it
+will be added before 2.6.15 is out if possible.
+Also see Dirk Mueller's mail (12/21/2005):
+Subject: make cpu_has_cpufreq() work
+or the bug:
+http://bugzilla.kernel.org/show_bug.cgi?id=3410
 
-Here it goes. Rediffed, also plugs a leak my previous patch introduced. I
-believe it addresses Linus' comments. It's still not a proper fix (see
-below), but I believe it's better than none.
-Best regards,
-
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+   Thomas
 
 
-Work around asus_acpi driver oopses on Samsung P30s and the like due to the
-ACPI implicit return.
-
-The code used to rely on a certain method to return a NULL buffer, which
-is now hardly possible with the implicit return code on by default. This
-sort of fixes bugs #5067 and #5092 for now.
-
-Note: this patch makes the driver unusable on said machines (and on said
-machines only) iff acpi=strict is specified, but it seems noone really uses
-that.
-
-Signed-off-by: Karol Kozimor <sziwan@hell.org.pl>
-
---- a/drivers/acpi/asus_acpi.c	2005-12-22 18:08:56.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c	2005-12-22 18:16:19.000000000 +0100
-@@ -987,9 +987,21 @@ static int __init asus_hotk_get_info(voi
- 		printk(KERN_NOTICE "  BSTS called, 0x%02x returned\n",
- 		       bsts_result);
- 
--	/* Samsung P30 has a device with a valid _HID whose INIT does not 
--	 * return anything. Catch this one and any similar here */
--	if (buffer.pointer == NULL) {
-+	/* This is unlikely with implicit return */
-+	if (buffer.pointer == NULL)
-+		return -EINVAL;
-+
-+	model = (union acpi_object *) buffer.pointer;
-+	/*
-+	 * Samsung P30 has a device with a valid _HID whose INIT does not 
-+	 * return anything. It used to be possible to catch this exception,
-+	 * but the implicit return code will now happily confuse the 
-+	 * driver. We assume that every ACPI_TYPE_STRING is a valid model
-+	 * identifier but it's still possible to get completely bogus data.
-+	 */
-+	if (model->type == ACPI_TYPE_STRING) {
-+		printk(KERN_NOTICE "  %s model detected, ", model->string.pointer);
-+	} else {
- 		if (asus_info &&	/* Samsung P30 */
- 		    strncmp(asus_info->oem_table_id, "ODEM", 4) == 0) {
- 			hotk->model = P30;
-@@ -1002,13 +1014,10 @@ static int __init asus_hotk_get_info(voi
- 			       "the developers with your DSDT\n");
- 		}
- 		hotk->methods = &model_conf[hotk->model];
--		return AE_OK;
--	}
-+		
-+		acpi_os_free(model);
- 
--	model = (union acpi_object *)buffer.pointer;
--	if (model->type == ACPI_TYPE_STRING) {
--		printk(KERN_NOTICE "  %s model detected, ",
--		       model->string.pointer);
-+		return AE_OK;
- 	}
- 
- 	hotk->model = END_MODEL;
+-------------------------------------------------------
+This SF.net email is sponsored by: Splunk Inc. Do you grep through log files
+for problems?  Stop!  Download the new AJAX search engine that makes
+searching your log files as easy as surfing the  web.  DOWNLOAD SPLUNK!
+http://ads.osdn.com/?ad_id=7637&alloc_id=16865&op=click
