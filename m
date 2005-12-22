@@ -1,16 +1,14 @@
-From: Voluspa <lista1-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Fw: Re: 2.6.15-rc5-mm1
-Date: Thu, 22 Dec 2005 16:07:53 +0100
-Message-ID: <20051222160753.67437695.lista1@telia.com>
-References: <20051210111557.18ba5fc8.lista1@telia.com>
-	<200512101320.18779.rik@osrc.info>
-	<20051214050428.21d3f224.lista1@telia.com>
-	<43AAABA7.7080303@suse.de>
+From: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Toshiba Satellite P10
+Date: Thu, 22 Dec 2005 17:06:33 +0100
+Message-ID: <20051222160633.GA3316@suse.de>
+References: <43A8F98D.3000704@csstirisano.co.za> <20051222110219.GB9838@elf.ucw.cz> <20051222120413.GA28743@suse.de> <43AAB13E.4080206@csstirisano.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <43AAABA7.7080303-l3A5Bk7waGM@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <43AAB13E.4080206-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,34 +18,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: rik-MdmE8JOsREphl2p70BpVqQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+To: Jaco Kroon <jacok-W7S27g77yncFbeUAN25fX/d9D2ou9A/h@public.gmane.org>
+Cc: Holger Macht <hmacht-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 22 Dec 2005 14:35:35 +0100 Thomas Renninger wrote:
-> Voluspa wrote:
-> > On Sat, 10 Dec 2005 13:20:15 +0300 Roman I Khimov wrote:
-> >> | Voluspa:
-> >>> Nope, neither "nocst" nor "acpi=nocst" gave me back the C1
-> >>> functionality...
-> >> Yep, same here, just tried.
-> > 
-> > Sorry about the red herring. I've patched 2.6.14 with the two acpi
-[...]
-> Maybe it is this little patch that also has been applied in rc5?
-> http://bugzilla.kernel.org/show_bug.cgi?id=5452
-> 
-> If you have ACPI_DEBUG=y compiled in you should have seen:
-> "BIOS reporting wrong ACPI idfor the processor", then it might be this one.
+On Thu, Dec 22, 2005 at 03:59:26PM +0200, Jaco Kroon wrote:
+=20
+> P4 - not HT though (not afaik anyway - or for a change I was blind -=20
+> running without HT anyway).
 
-Thanx Thomas, but no, I tripped on a bug totally unrelated to Roman's. Found
-the culprit and reported + opened a bugzilla:
+it looks like you have a very different P10 than the one we have...
 
-http://bugzilla.kernel.org/show_bug.cgi?id=5767
+> I also assume it's at this time impossible to use fglrx with resume/sus=
+pend?
 
-Mvh
-Mats Johannesson
---
+...because ours has a NVidia graphics card.
+
+> "The beast" specs and what I've done (and gotten working) so far is=20
+> available at http://www.kroon.co.za/howto.php?howto=3Dtoshiba_p10.
+
+This sounds similar to ours, but we definitely have an NVidia card and a
+HT capable processor.
+
+> With regards to the ACPI code though - I've managed to fix all the=20
+> warnings and errors, except the one about the ResourceSource error,=20
+> which according to the spec is optional but iasl insists it's required.=
+=20
+>  No idea what I'm going to do about that.  Also not sure whether fixing=
+=20
+> _WAK to always return a value will actually do something.
+
+I do not remember that i would have to fix any DSDT bugs, everything work=
+ed
+with the original DSDT.
+
+But it is some time ago that i did use this machine, and due to its=20
+tremendously huge footprint and very heavy weight, i just used it
+as a Workstation, so not very frequent. Also the dual turbines did their
+share that it was turned off most of the time :-))
+=20
+> Notice: This message and any attachments are confidential and intended=20
+> solely for the addressee. If you have received this message in error,=20
+> please notify the sender by email or by phone to the listed number. Any=
+=20
+> unauthorised use, alteration or dissemination is prohibited. CSS=20
+> Tirisano (Pty) Ltd accepts no liability for any direct, indirect or=20
+> consequential loss or damages, arising from the contents of this messag=
+e.
+
+OMG! i hope i'm not going to jail now ;-)
+--=20
+Stefan Seyfried                  \ "I didn't want to write for pay. I
+QA / R&D Team Mobile Devices      \ wanted to be paid for what I write."
+SUSE LINUX Products GmbH, N=FCrnberg \                    -- Leonard Cohe=
+n
 
 
 -------------------------------------------------------
