@@ -1,11 +1,13 @@
-From: "No Risk Shop" <NoRiskShop-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: This is one hacker you can trust!
-Date: Wed, 21 Dec 2005 23:05:37 -0700
-Message-ID: <33021.2734676481$1135231574@news.gmane.org>
-Reply-To: "No Risk Shop" <NoRiskShop-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: asus_acpi still broken on Samsung P30/P35
+Date: Thu, 22 Dec 2005 11:53:45 +0100
+Message-ID: <20051222105344.GA32356@hell.org.pl>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300580F140@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="----=_NextPart_000_0034_01C221EC.6C64FAAA270"
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300580F140-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,59 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Hanno B??ck <mail-60OJuG18Xr6zQB+pC5nmwQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christian Aichinger <Greek0-hi6Y0CQ0nG0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-------=_NextPart_000_0034_01C221EC.6C64FAAA270
-Content-Type: text/plain;
-        charset="iso-8859-1"
+Thus wrote Brown, Len:
+> Karol,
+> Do you have an update of your asus driver in the pipeline
+> that addresses this?
 
-In the time it takes you to read this your identity could be stolen!!
+I still believe the only _right_ *workaround* is
+http://bugme.osdl.org/attachment.cgi?id=6006&action=view
 
-STOP HACKERS!! STOP TROJANS!!
+I'll take a shot at rediffing it against recent kernels in a couple of
+hours (unless someone beats me to it).
 
-Did you know that "Ghost" pages can be planted on your computer so that when you think you are signing in to a secure page or site, you are actually giving your information to a hacker? Social security numbers, account numbers, birth dates-- any information they want by simply making you think that you are secure. STOP THEM IN THEIR TRACKS !!!!
+acpi=strict will work until a suitable patch is merged.
 
-Alliance Sentinel provides security in a user-friendly interface, making you aware of any attacks from hackers, and Trojans. New features include protocol driver level protection, enhanced logging, user selected scan delay, kill on demand, save attack log and more. 
-Alliance Sentinel detects all malicious code intrusions, thus keeping you aware of any possible information damage on your PC.
+Note: it's still a workaround, to properly fix this we need to make ACPI
+interpreter behave predictably, as written in
+http://bugme.osdl.org/show_bug.cgi?id=5067#c6 -- I believe I still haven't
+heard from Robert Moore on the feasibility of such a solution.
 
-Alliance Sentinel has been developed for cable/DSL home users as well as for corporate Networks.
+Please also see http://bugme.osdl.org/show_bug.cgi?id=5067 and
+http://bugzilla.kernel.org/show_bug.cgi?id=5092 for more info.
 
-Alliance Sentinel keeps an eye on all Internet connections to and from your computer to monitor all traffic and alerts you of attempted intrusions. 
+Best regards,
 
-Alliance Sentinel lets you see all open ports on your computer. It alerts you of any possible intrusion or attack by red blinking light and by showing the attacker in the attack list.
-
-http://www.alliancesentinel.com/
-
-------=_NextPart_000_0034_01C221EC.6C64FAAA270
-Content-Type: text/html;
-        charset="iso-8859-1"
-
-<HTML><HEAD><TITLE>E-mail message content</TITLE>
-</HEAD>
-<BODY bgcolor="#FFFFFF" leftmargin=5 topmargin=5 rightmargin=5 bottommargin=5>
-<FONT size=2 color="#000000" face="Courier New">
-<DIV><FONT color="#FF0000" face="Arial"><B>In the time it takes you to read this your identity could be stolen!!</B></FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial"><B>STOP HACKERS!! STOP TROJANS!!</B></FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">Did you know that "Ghost" pages can be planted on your computer so that when you think you are signing in to a secure page or site, you are actually giving your information to a hacker? Social security numbers, account numbers, birth dates-- any information they want by simply making you think that you are secure. STOP THEM IN THEIR TRACKS !!!!</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">Alliance Sentinel provides security in a user-friendly interface, making you aware of any attacks from hackers, and Trojans. New features include protocol driver level protection, enhanced logging, user selected scan delay, kill on demand, save attack log and more.&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">Alliance Sentinel detects all malicious code intrusions, thus keeping you aware of any possible information damage on your PC.</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">Alliance Sentinel has been developed for cable/DSL home users as well as for corporate Networks.</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">Alliance Sentinel keeps an eye on all Internet connections to and from your computer to monitor all traffic and alerts you of attempted intrusions.&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">Alliance Sentinel lets you see all open ports on your computer. It alerts you of any possible intrusion or attack by red blinking light and by showing the attacker in the attack list.</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">&nbsp;</FONT></DIV>
-<DIV><FONT color="#000000" face="Arial">http://www.alliancesentinel.com/</FONT></DIV>
-</FONT>
-</BODY></HTML>
-
-
-------=_NextPart_000_0034_01C221EC.6C64FAAA270--
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
